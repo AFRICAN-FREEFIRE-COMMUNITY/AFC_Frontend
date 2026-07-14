@@ -21,6 +21,7 @@
 
 import React, { useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -64,6 +65,7 @@ interface StepSponsorRequirementProps {
 }
 
 export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
+  const t = useTranslations("evSteps");
   const sponsorRequired = form.watch("is_sponsored");
   const { token } = useAuth();
 
@@ -120,12 +122,11 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          Step 7: Sponsors
+          {t("sponsor.title")}
           <InfoTip id="events.create.sponsor._section" className="ml-1.5" />
         </CardTitle>
         <CardDescription>
-          Attach sponsors and build the engagements participants must complete
-          during registration.
+          {t("sponsor.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -143,27 +144,25 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
         <details className="group rounded-md border" open={sponsorRequired}>
           <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
             <IconChevronRight className="size-4 transition-transform group-open:rotate-90" />
-            Legacy fields
+            {t("sponsor.legacyFields")}
             {sponsorRequired && (
               <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs">
-                in use
+                {t("sponsor.inUse")}
               </Badge>
             )}
           </summary>
 
           <div className="space-y-6 border-t px-4 py-4">
             <p className="text-xs text-muted-foreground">
-              The old single-sponsor flow (free-text name + one UUID field). Kept
-              for continuity; new events should use the builder above instead.
+              {t("sponsor.legacyIntro")}
             </p>
 
             {/* Toggle */}
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <Label htmlFor="sponsor-toggle">Enable Sponsor Requirement</Label>
+                <Label htmlFor="sponsor-toggle">{t("sponsor.enableRequirement")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Require players to complete a sponsor task and submit a UUID
-                  before registering.
+                  {t("sponsor.enableRequirementHelp")}
                 </p>
               </div>
               <FormField
@@ -193,9 +192,9 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
                   name="sponsor_name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Sponsor / Company Name</FormLabel>
+                      <FormLabel>{t("sponsor.companyName")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Acme Corp" {...field} />
+                        <Input placeholder={t("sponsor.companyNamePlaceholder")} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -204,19 +203,18 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
 
                 {/* Sponsor Multi-Select */}
                 <div className="flex flex-col gap-1.5">
-                  <Label>Sponsor Accounts</Label>
+                  <Label>{t("sponsor.sponsorAccounts")}</Label>
                   <p className="text-xs text-muted-foreground">
-                    Select one or more sponsor accounts to associate with this
-                    event.
+                    {t("sponsor.sponsorAccountsHelp")}
                   </p>
                   {sponsorsLoading ? (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                       <IconLoader2 className="size-4 animate-spin" />
-                      Loading sponsors...
+                      {t("sponsor.loadingSponsors")}
                     </div>
                   ) : sponsors.length === 0 ? (
                     <p className="text-sm text-muted-foreground mt-1">
-                      No sponsors available.
+                      {t("sponsor.noSponsors")}
                     </p>
                   ) : (
                     <div className="rounded-md border divide-y max-h-48 overflow-y-auto">
@@ -241,8 +239,7 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
                   )}
                   {selectedUsernames.length > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      {selectedUsernames.length} sponsor
-                      {selectedUsernames.length !== 1 ? "s" : ""} selected
+                      {t("sponsor.selectedCount", { count: selectedUsernames.length })}
                     </p>
                   )}
                 </div>
@@ -254,10 +251,10 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
                   name="sponsor_requirement_description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Requirement Description</FormLabel>
+                      <FormLabel>{t("sponsor.requirementDescription")}</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="e.g. Download our app on the App Store, create an account, and enter your Player UUID below."
+                          placeholder={t("sponsor.requirementDescriptionPlaceholder")}
                           className="min-h-[100px]"
                           {...field}
                         />
@@ -274,13 +271,12 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
                   name="sponsor_field_label"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>UUID Field Label</FormLabel>
+                      <FormLabel>{t("sponsor.uuidFieldLabel")}</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Player UUID" {...field} />
+                        <Input placeholder={t("sponsor.uuidFieldLabelPlaceholder")} {...field} />
                       </FormControl>
                       <p className="text-xs text-muted-foreground">
-                        This is the label shown next to the input field during
-                        registration.
+                        {t("sponsor.uuidFieldLabelHelp")}
                       </p>
                       <FormMessage />
                     </FormItem>

@@ -517,7 +517,7 @@ export function DesignFieldsEditor({
   // Canvas pixel dims: fit the wrapper width, cap at MAX_CANVAS_H, preserve the ASPECT OF THE SIZE
   // BEING EDITED (IG portrait 1080x1350 vs YT landscape 1920x1080) so positions match the export.
   const ratio = CANVAS_RATIO_BY_SIZE[editSize];
-  let canvasW = availW || 700;
+  let canvasW = availW || 320;
   let canvasH = canvasW / ratio;
   if (canvasH > MAX_CANVAS_H) {
     canvasH = MAX_CANVAS_H;
@@ -1590,7 +1590,7 @@ export function DesignFieldsEditor({
             a new page. When there are NO explicit pages we show a single "Add page" button so the
             user can start a multi-page design without any visible page-1 complexity. */}
         {pages.length > 0 && (
-          <div className="flex items-center gap-1 overflow-x-auto rounded-md border bg-muted p-1">
+          <div className="flex flex-wrap items-center gap-1 rounded-md border bg-muted p-1">
             {pages.map((p) => (
               // Each tab = a "switch" button + an optional "delete" button, wrapped in a flex
               // container so they form one visual unit without nesting <button> inside <button>.
@@ -1616,7 +1616,7 @@ export function DesignFieldsEditor({
                     onClick={() => handleDeletePage(p.id)}
                     disabled={deletingPageId !== null}
                     className={[
-                      "rounded-r-md border-y border-r px-1.5 py-1.5 text-muted-foreground",
+                      "rounded-r-md border-y border-r p-1 text-muted-foreground",
                       "hover:text-destructive hover:bg-destructive/10 disabled:opacity-50",
                       currentPageId === p.id
                         ? "border-primary bg-background shadow-sm"
@@ -1626,9 +1626,9 @@ export function DesignFieldsEditor({
                     title={`Delete page ${p.page_number}`}
                   >
                     {deletingPageId === p.id ? (
-                      <IconLoader2 className="size-3 animate-spin" />
+                      <IconLoader2 className="size-4 animate-spin" />
                     ) : (
-                      <IconX className="size-3" />
+                      <IconX className="size-4" />
                     )}
                   </button>
                 )}
@@ -1684,7 +1684,7 @@ export function DesignFieldsEditor({
         {canManage && (
           <div className="rounded-md border bg-card p-3 space-y-3">
             <p className="text-xs font-medium text-foreground">Design settings</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="col-span-2 space-y-1">
                 <Label className="text-[0.65rem]">Name</Label>
                 <Input
@@ -2070,7 +2070,7 @@ export function DesignFieldsEditor({
                             if (f) hideFieldForCurrentSize(f.draftId);
                           }}
                           disabled={!canManage}
-                          className="flex size-4 items-center justify-center rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground"
+                          className="flex size-5 items-center justify-center rounded-full bg-muted p-0.5 hover:bg-destructive hover:text-destructive-foreground"
                           aria-label={`Remove ${FIELD_LABELS[ft]}`}
                         >
                           <IconX className="size-2.5" />
@@ -2080,7 +2080,7 @@ export function DesignFieldsEditor({
                           type="button"
                           onClick={() => addField(ft)}
                           disabled={!canManage}
-                          className="font-bold text-primary hover:text-primary/80"
+                          className="font-bold text-primary px-1.5 py-0.5 -my-0.5 leading-none hover:text-primary/80"
                           aria-label={`Add ${FIELD_LABELS[ft]}`}
                         >
                           +
@@ -2190,18 +2190,29 @@ export function DesignFieldsEditor({
                             setSelected({ type: "field", draftId: field.draftId });
                             if (canManage) startDrag(e, "field", field.draftId);
                           }}
-                          className="absolute top-0 h-full cursor-ew-resize"
+                          // Mobile drag target (owner 2026-07-13): the wide, transparent 18px div is the
+                          // finger hit area (a 2px bar is impossible to grab on touch); the thin coloured
+                          // bar is rendered as a centred inner span below so the visual stays 2px.
+                          // touchAction/touch-none stop a touch-drag from scrolling the dialog instead.
+                          className="absolute top-0 h-full cursor-ew-resize touch-none"
                           style={{
                             left: `${fieldX(field)}%`,
-                            width: 2,
-                            backgroundColor: isSelected
-                              ? handleColor
-                              : `${handleColor}80`,
+                            width: 18,
                             transform: "translateX(-50%)",
                             zIndex: 10,
+                            touchAction: "none",
                           }}
                           title={`${FIELD_LABELS[field.field_type]} (group ${gi + 1})`}
                         >
+                          {/* Thin 2px visual bar, centred inside the wide touch target. */}
+                          <span
+                            className="pointer-events-none absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2"
+                            style={{
+                              backgroundColor: isSelected
+                                ? handleColor
+                                : `${handleColor}80`,
+                            }}
+                          />
                           {/* Label badge on the handle. */}
                           <span
                             className="pointer-events-none absolute left-1/2 top-1.5 -translate-x-1/2 rounded px-1 py-px text-[10px] font-bold leading-none"
@@ -2290,7 +2301,7 @@ export function DesignFieldsEditor({
                         setSelected({ type: "text", draftId: txt.draftId });
                         if (canManage) startDrag(e, "text", txt.draftId);
                       }}
-                      className="absolute cursor-move leading-none"
+                      className="absolute cursor-move leading-none touch-none"
                       style={{
                         left: `${textX(txt)}%`,
                         top: `${textY(txt)}%`,
@@ -2300,6 +2311,9 @@ export function DesignFieldsEditor({
                         color: txt.color || "#ffffff",
                         transform: alignTransform(txt.align),
                         whiteSpace: "nowrap",
+                        // Stop a touch-drag from scrolling the dialog instead of moving the text
+                        // (mobile drag fix, owner 2026-07-13; mirrors the versus slots + column handle).
+                        touchAction: "none",
                         zIndex: 20,
                         outline: isSelected
                           ? "2px solid #f5c451"
@@ -2483,7 +2497,7 @@ export function DesignFieldsEditor({
                                         if (f) hideFieldForCurrentSize(f.draftId);
                                       }}
                                       disabled={!canManage}
-                                      className="flex size-3.5 items-center justify-center rounded-full bg-muted hover:bg-destructive hover:text-destructive-foreground"
+                                      className="flex size-5 items-center justify-center rounded-full bg-muted p-0.5 hover:bg-destructive hover:text-destructive-foreground"
                                       aria-label={`Remove ${FIELD_LABELS[ft]} from group ${gi + 1}`}
                                     >
                                       <IconX className="size-2.5" />
@@ -2493,7 +2507,7 @@ export function DesignFieldsEditor({
                                       type="button"
                                       onClick={() => addField(ft, gi)}
                                       disabled={!canManage}
-                                      className="font-bold text-primary hover:text-primary/80"
+                                      className="font-bold text-primary px-1.5 py-0.5 -my-0.5 leading-none hover:text-primary/80"
                                       aria-label={`Add ${FIELD_LABELS[ft]} to group ${gi + 1}`}
                                     >
                                       +

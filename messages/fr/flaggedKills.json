@@ -34,5 +34,18 @@
   "unmatchedDontCount": "Ne compte pas",
   "missingWinnerTitle": "Le vainqueur de la carte n'a pas été enregistré",
   "missingWinnerUnmatched": "L'équipe classée 1re ({team}) n'a pas été appariée à une équipe inscrite ; cette carte affiche donc 0 « booyah ». Attribuez l'équipe dans la section « Kills de joueurs marqués » du classement pour rétablir le « booyah ».",
-  "missingWinnerNoFirst": "Le fichier mis en ligne ne comportait aucune équipe classée en première position ; cette carte compte donc 0 « booyah »."
+  "missingWinnerNoFirst": "Le fichier mis en ligne ne comportait aucune équipe classée en première position ; cette carte compte donc 0 « booyah ».",
+  "combine": "Combiner",
+  "combineHint": "Sélectionnez les étapes et les groupes dont vous souhaitez voir ensemble les coureurs que vous avez marqués.",
+  "followCurrent": "Suivre la vue actuelle",
+  "scopeGroup": "Affichage : {group}",
+  "scopeStage": "Résultats : {stage} (tous les groupes)",
+  "scopeEvent": "Affichage : l'événement dans son intégralité",
+  "scopeCustom": "Affichage : « {count} » sélectionné",
+  "noStages": "Cet événement ne comporte pas encore d'étapes.",
+  "bulkLabel": "Actions groupées :",
+  "bulkAcceptAll": "Tout accepter",
+  "bulkRejectAll": "Tout rejeter",
+  "bulkFollowAll": "Suivre la configuration de l'événement",
+  "bulkTeamsReject": "Tout rejeter"
 }

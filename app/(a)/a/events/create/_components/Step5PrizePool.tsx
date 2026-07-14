@@ -2,6 +2,7 @@
 
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,7 @@ interface Step5Props {
 }
 
 export function Step5PrizePool({ form }: Step5Props) {
+  const t = useTranslations("evSteps");
   const prizeDistribution = form.watch("prize_distribution") || {};
 
   // Add the next sequential position. addPrizePositionTo renumbers first, so the new key
@@ -86,7 +88,7 @@ export function Step5PrizePool({ form }: Step5Props) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          Step 5: Prize Pool &amp; Distribution
+          {t("step5.title")}
           <InfoTip id="events.create.prizes._section" className="ml-1.5" />
         </CardTitle>
       </CardHeader>
@@ -97,13 +99,13 @@ export function Step5PrizePool({ form }: Step5Props) {
           name="prizepool"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Total Prize Pool</FormLabel>
+              <FormLabel>{t("step5.totalPrizePool")}</FormLabel>
               <FormControl>
                 <Input
                   type="text"
                   value={field.value === undefined || field.value === null ? "" : field.value.toString()}
                   onChange={(e) => field.onChange(e.target.value)}
-                  placeholder="e.g., 5000 USD"
+                  placeholder={t("step5.totalPrizePoolPlaceholder")}
                 />
               </FormControl>
               <FormMessage />
@@ -118,7 +120,7 @@ export function Step5PrizePool({ form }: Step5Props) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Prize Pool Cash Value <span className="text-red-500">*</span>
+                {t("step5.cashValue")} <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -136,11 +138,11 @@ export function Step5PrizePool({ form }: Step5Props) {
                       e.preventDefault();
                     }
                   }}
-                  placeholder="e.g., 5000"
+                  placeholder={t("step5.cashValuePlaceholder")}
                 />
               </FormControl>
               <p className="text-muted-foreground text-xs">
-                Required. Your prize distribution below must add up to this amount.
+                {t("step5.cashValueHelp")}
               </p>
               <FormMessage />
             </FormItem>
@@ -156,26 +158,32 @@ export function Step5PrizePool({ form }: Step5Props) {
           name="prize_currency"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Prize Currency</FormLabel>
+              <FormLabel>{t("step5.prizeCurrency")}</FormLabel>
               <FormControl>
                 <Select
                   value={(field.value as string) || "USD"}
                   onValueChange={field.onChange}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select currency" />
+                    <SelectValue placeholder={t("step5.selectCurrency")} />
                   </SelectTrigger>
                   <SelectContent>
                     {PRIZE_CURRENCIES.map((c) => (
                       <SelectItem key={c.code} value={c.code}>
-                        {c.code} - {c.name}
+                        {/* c.code ∈ PRIZE_CURRENCIES (20 fixed codes, all enumerated under
+                            step5.currencyNames.*); t.has guard falls back to the English c.name
+                            if a new code is added to the constant before its key exists. */}
+                        {c.code} -{" "}
+                        {t.has(`step5.currencyNames.${c.code}`)
+                          ? t(`step5.currencyNames.${c.code}`)
+                          : c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </FormControl>
               <p className="text-muted-foreground text-xs">
-                The amounts above are treated as this currency for conversion + display.
+                {t("step5.currencyHelp")}
               </p>
               <FormMessage />
             </FormItem>
@@ -183,7 +191,7 @@ export function Step5PrizePool({ form }: Step5Props) {
         />
 
         <div className="space-y-3">
-          <FormLabel>Prize Distribution</FormLabel>
+          <FormLabel>{t("step5.prizeDistribution")}</FormLabel>
           {Object.entries(prizeDistribution).map(([key, value]) => (
             <div key={key} className="grid grid-cols-4 gap-2">
               {/* Show the position as an ordinal ("1st", "2nd", ...). The map is keyed by
@@ -210,7 +218,7 @@ export function Step5PrizePool({ form }: Step5Props) {
                     const updated = { ...prizeDistribution, [key]: e.target.value };
                     form.setValue("prize_distribution", updated, { shouldDirty: true });
                   }}
-                  placeholder="e.g., 2000"
+                  placeholder={t("step5.amountPlaceholder")}
                 />
                 <Button
                   type="button"
@@ -225,7 +233,7 @@ export function Step5PrizePool({ form }: Step5Props) {
             </div>
           ))}
           <Button type="button" variant="outline" onClick={addPrizePosition}>
-            + Add Prize Position
+            {t("step5.addPosition")}
           </Button>
 
           {/* Live tally: does the distribution add up to the cash value? Tells over/under + by how much. */}

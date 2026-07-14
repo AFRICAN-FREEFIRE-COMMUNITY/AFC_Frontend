@@ -1,0 +1,578 @@
+{
+  "categories": {
+    "player-eligibility": {
+      "name": "Conditions d'éligibilité et exigences pour les joueurs",
+      "description": "Conditions essentielles pour la participation des joueurs, notamment en matière de compte, d'âge et de critères régionaux.",
+      "rules": {
+        "0": {
+          "title": "Conditions requises pour la création d'un compte",
+          "content": "Les joueurs doivent disposer d'un compte FreeFire actif ayant atteint au minimum le niveau 20 au classement Platine IV. Les noms d'utilisateur ne peuvent pas être modifiés pendant les tournois, sauf autorisation des modérateurs ; toute infraction sera considérée comme l'utilisation d'un compte non enregistré. Les joueurs doivent utiliser des comptes FreeFire officiels ayant atteint ou dépassé les paliers de classement et de niveau définis ; tout changement de nom nécessite une notification et l'autorisation des responsables du tournoi."
+        },
+        "1": {
+          "title": "Conditions d'âge",
+          "content": "Conformément au règlement du tournoi, les participants doivent être âgés d'au moins 16 ans. Pour les événements en réseau local (LAN), les participants mineurs doivent présenter une autorisation parentale."
+        },
+        "2": {
+          "title": "Éligibilité régionale",
+          "content": "Seuls les joueurs dont les comptes sont enregistrés dans des régions autorisées à participer au tournoi peuvent concourir. Pour les tournois réservés au Nigeria, seuls les joueurs de nationalité nigériane peuvent participer. Chaque équipe ne peut compter qu'un seul joueur de nationalité nigériane résidant hors du Nigeria."
+        },
+        "3": {
+          "title": "Intégrité et sécurité du compte",
+          "content": "Le partage des comptes de jeu personnels est strictement interdit, y compris entre coéquipiers. Chaque joueur est tenu d'assumer le contrôle exclusif et la responsabilité de son compte afin de garantir l'équité du jeu et la transparence."
+        },
+        "4": {
+          "title": "Restriction relative aux équipes multiples",
+          "content": "Les joueurs ne sont pas autorisés à jouer pour plus d'une équipe à la fois ni à signer de contrat avec plus d'une équipe à la fois. Cette règle s'applique aussi bien aux tournois qu'aux matchs d'entraînement."
+        }
+      }
+    },
+    "team-registration": {
+      "name": "Inscription des équipes et gestion des effectifs",
+      "description": "Directives relatives à la constitution des équipes, aux procédures d'inscription et à la soumission des listes de joueurs.",
+      "rules": {
+        "0": {
+          "title": "Procédure d'inscription",
+          "content": "Les équipes sont tenues de s'inscrire via la plateforme officielle désignée, dans les délais impartis. L'inscription doit inclure la liste complète des joueurs, comprenant les titulaires et les remplaçants. Les équipes doivent s'inscrire sur le site officiel de l'AFC à l'adresse www.africanfreefirecommunity.com. Seules les équipes figurant sur ce site sont autorisées à participer."
+        },
+        "1": {
+          "title": "Exigences relatives à la soumission de la liste des joueurs",
+          "content": "Les informations relatives aux équipes doivent être exactes et complètes. Des frais peuvent s'appliquer pour certaines données d'inscription ou certaines modifications. Les équipes doivent enregistrer leur composition initiale, comprenant tous les titulaires et remplaçants, avant le début d'une compétition officielle, à l'aide des outils fournis par les organisateurs du tournoi."
+        },
+        "2": {
+          "title": "Exigences relatives aux réseaux sociaux",
+          "content": "Les équipes doivent disposer d'un compte Instagram collectif (et non d'un compte personnel) et doivent suivre les sponsors et les organisateurs du tournoi sur les réseaux sociaux."
+        },
+        "3": {
+          "title": "Mandat relatif à la soumission des contrats",
+          "content": "Les équipes qui s'inscrivent aux tournois doivent avoir transmis à l'organisateur les contrats de tous leurs joueurs, qui doivent être enregistrés dans la base de données. Tous les contrats doivent être envoyés via le canal Discord de l'AFC dédié à la soumission des contrats."
+        },
+        "4": {
+          "title": "Inscription à la base de données des joueurs",
+          "content": "Toutes les équipes et tous les joueurs doivent être inscrits dans la base de données officielle des joueurs et des équipes du tournoi avant de pouvoir y participer."
+        }
+      }
+    },
+    "code-of-conduct": {
+      "name": "Code de conduite et comportement des joueurs",
+      "description": "Normes de fair-play, comportements interdits et directives relatives aux relations professionnelles.",
+      "rules": {
+        "0": {
+          "title": "Règles de conduite des joueurs",
+          "content": "Les participants doivent adopter un comportement conforme à l'esprit sportif et respecter les normes d'intégrité. Les joueurs doivent mener une vie saine et donner le meilleur d'eux-mêmes sur le terrain. Tout comportement irrespectueux envers les officiels ou l'utilisation d'un langage injurieux peut entraîner des sanctions, généralement sous forme de déductions de points ou de suspensions."
+        },
+        "1": {
+          "title": "Comportements interdits - Tricherie",
+          "content": "La triche, le « stream sniping », l'utilisation de VPN et la formation d'alliances avec d'autres concurrents dans le but d'obtenir un avantage déloyal (collusion) sont strictement interdits. L'utilisation de logiciels non autorisés, y compris les émulateurs et les outils de piratage, entraînera une disqualification immédiate. L'utilisation de programmes de piratage par un membre de l'équipe entraînera des sanctions pour infraction grave."
+        },
+        "2": {
+          "title": "Gestion des scandales et normes en matière de réputation",
+          "content": "Les joueurs doivent respecter les normes les plus strictes en matière de conduite personnelle, tant dans le cadre des activités e-sportives qu’en dehors. Toute implication dans des scandales, quel que soit le domaine, susceptible de nuire à la réputation des organisateurs du tournoi peut entraîner des mesures disciplinaires. Les organisateurs du tournoi se réservent le droit d'exclure le joueur impliqué et d'imposer des sanctions à son équipe, si le scandale venait à nuire à l'intégrité du tournoi ou à son image auprès du public, quelle que soit la véracité des allégations. Les équipes qui disputent des matchs d'entraînement ou d'autres tournois avec des joueurs sanctionnés seront également exclues."
+        },
+        "3": {
+          "title": "Interdiction des fausses rumeurs",
+          "content": "Il est interdit aux joueurs de répandre de fausses rumeurs concernant d'autres joueurs, des équipes, les organisateurs ou le tournoi lui-même. De tels agissements portent atteinte à l'intégrité de la compétition et entraînent des sanctions de la part des organisateurs, qui peuvent s'étendre à l'équipe du joueur responsable."
+        },
+        "4": {
+          "title": "Déclarations diffamatoires",
+          "content": "Les joueurs ne doivent en aucun cas porter atteinte à la réputation du tournoi, de ses participants ou de ses partenaires. Il est interdit aux membres des équipes de divulguer toute information confidentielle ou exclusive communiquée par l'organisateur du tournoi. Les propos diffamatoires sont strictement interdits."
+        },
+        "5": {
+          "title": "Substances contrôlées et médicaments sur ordonnance",
+          "content": "L'usage, la possession ou la distribution de substances contrôlées sont strictement interdits lors de tout événement lié au tournoi. Les médicaments sur ordonnance doivent être utilisés uniquement conformément aux prescriptions."
+        },
+        "6": {
+          "title": "Corruption",
+          "content": "Il est interdit d'offrir ou d'accepter des cadeaux ou des récompenses dans le but d'influencer le résultat d'un match ; cela constitue une infraction grave."
+        }
+      }
+    },
+    "game-participation": {
+      "name": "Participation au jeu et conditions relatives aux justificatifs",
+      "description": "Protocoles relatifs à la participation aux matchs, aux obligations d'enregistrement et à la transmission des preuves relatives aux matchs.",
+      "rules": {
+        "0": {
+          "title": "Soumission de preuves relatives au jeu",
+          "content": "Chaque équipe doit fournir des captures d'écran de ses résultats de match lorsque les modérateurs du tournoi le lui demandent. Les équipes doivent également fournir les enregistrements complets des matchs (et non des rediffusions) sur simple demande, afin de garantir le respect des règles et l'équité. Les enregistrements en cours de partie de tous les joueurs d'une équipe doivent être disponibles dans tous les cas."
+        },
+        "1": {
+          "title": "Protocole d'enregistrement",
+          "content": "L'enregistrement doit commencer dans le hall et se poursuivre jusqu'à ce que l'équipe soit éliminée. L'enregistrement ne doit prendre fin que lorsque cette équipe est éliminée du match."
+        },
+        "2": {
+          "title": "Préparation des joueurs",
+          "content": "Les joueurs doivent être connectés au jeu et occupés les places qui leur ont été attribuées avant le début des matchs. Toute inactivité ou position incorrecte pendant cette période peut entraîner la perte de points. Les joueurs doivent rester assis et connectés au jeu jusqu'à la fin du match."
+        },
+        "3": {
+          "title": "Politique « zéro pause »",
+          "content": "Aucune interruption ni pause n'est autorisée pendant le déroulement du jeu une fois celui-ci lancé, sauf en cas de circonstances exceptionnelles telles que des pannes réseau ou des perturbations extérieures."
+        },
+        "4": {
+          "title": "Protocoles d'avant-match",
+          "content": "Les équipes doivent effectuer des vérifications avant chaque match, notamment la validation du réseau et des appareils pour les événements en LAN. Tout problème doit être signalé immédiatement aux organisateurs. Les joueurs doivent s'assurer que tous les paramètres sont corrects et remplir une liste de contrôle afin de garantir la conformité et l'état de préparation avant le début du match. Avant chaque match, les identifiants et mots de passe d'accès au lobby seront communiqués via les canaux désignés."
+        }
+      }
+    },
+    "equipment-technical": {
+      "name": "Équipements et normes techniques",
+      "description": "Appareils autorisés, équipements interdits et exigences techniques de conformité.",
+      "rules": {
+        "0": {
+          "title": "Dispositifs homologués",
+          "content": "Les participants doivent utiliser des appareils mobiles fonctionnant sous les systèmes d'exploitation Android ou iOS. Aucun autre type d'appareil, tel que des émulateurs ou des PC, n'est autorisé. L'utilisation d'émulateurs, de PC ou d'adaptateurs périphériques (claviers, souris, manettes) est interdite."
+        },
+        "1": {
+          "title": "Équipements interdits",
+          "content": "L'utilisation de périphériques tels que des adaptateurs, des contrôleurs, des claviers Bluetooth et des souris est strictement interdite, sauf autorisation officielle des organisateurs du tournoi. Tout équipement non autorisé, y compris les déclencheurs physiques ou pneumatiques, ou tout autre dispositif ne relevant pas de l'utilisation normale du jeu, entraînera une exclusion."
+        },
+        "2": {
+          "title": "Accessoires compatibles",
+          "content": "Les joueurs ne peuvent apporter et utiliser que leurs propres casques ou appareils à réduction de bruit, à condition qu'ils respectent le règlement du tournoi."
+        },
+        "3": {
+          "title": "Outils techniques non autorisés",
+          "content": "L'utilisation d'équipements non autorisés, tels que des périphériques non conformes aux normes ou des appareils considérés comme des « hacks », est strictement interdite. Tout manquement à cette règle peut entraîner la disqualification. L'installation de logiciels tiers externes ou l'utilisation de navigateurs pendant la finale en réseau local sans l'autorisation de l'administrateur constitue une infraction grave."
+        },
+        "4": {
+          "title": "Matériel de studio (LAN Events)",
+          "content": "Il est interdit de manipuler le matériel du studio lors des événements LAN."
+        }
+      }
+    },
+    "dress-code": {
+      "name": "Règles relatives à la tenue vestimentaire et aux uniformes",
+      "description": "Normes officielles relatives à la tenue et aux critères d'apparence pour la participation aux tournois.",
+      "rules": {
+        "0": {
+          "title": "Exigences relatives à la tenue de l'équipe",
+          "content": "Tous les joueurs doivent porter l'uniforme officiel de l'équipe, comprenant le maillot, la veste, la casquette et le pantalon, lors de leurs apparitions publiques dans le cadre de tournois, tels que les événements LAN. Les uniformes doivent arborer bien en évidence le logo de l'équipe sur le devant et peuvent comporter les logos des sponsors dans les limites fixées par les organisateurs. Les joueurs sont tenus de porter un pantalon long et des chaussures fermées lors des tournois."
+        },
+        "1": {
+          "title": "Vêtements sur le thème de la compétition",
+          "content": "Le cas échéant, les équipes peuvent être tenues de porter des tenues officielles aux couleurs de la compétition lors d'événements spéciaux et d'entretiens. Le non-respect des exigences en matière de code vestimentaire peut entraîner l'obligation de porter temporairement les tenues officielles de la compétition, avec pour consigne de mettre à jour les uniformes avant une date limite fixée."
+        },
+        "2": {
+          "title": "Vêtements de sport et tenues professionnelles",
+          "content": "Les entraîneurs, lorsqu'ils sont présents, doivent porter une tenue professionnelle ou des vêtements aux couleurs de l'équipe lors de tous les tournois et événements ouverts au public."
+        },
+        "3": {
+          "title": "Sanctions pour tenue inappropriée",
+          "content": "Le non-respect de la tenue réglementaire (par exemple, les pantoufles et les shorts sont interdits ; la tenue réglementaire impose le port de chaussures fermées, d'un pantalon et du maillot de l'équipe, conformément aux instructions des organisateurs) constitue une infraction grave."
+        },
+        "4": {
+          "title": "Vérification d'identité",
+          "content": "Les joueurs ne doivent pas dissimuler leur identité à l'aide de chapeaux ou de lunettes de soleil, sauf si ceux-ci font partie de la tenue officielle de leur équipe."
+        },
+        "5": {
+          "title": "Autorité chargée de la conformité dans le secteur de l'habillement",
+          "content": "L'organisateur du tournoi détient l'autorité suprême en matière de normes relatives aux tenues et se réserve le droit de refuser l'accès ou la participation à tout membre d'une équipe qui ne respecterait pas ces directives."
+        }
+      }
+    },
+    "team-ownership": {
+      "name": "Propriété et direction de l'équipe",
+      "description": "Règles régissant la propriété des équipes, les transferts et les responsabilités en matière de gestion.",
+      "rules": {
+        "0": {
+          "title": "Droits de propriété",
+          "content": "Le ou les propriétaires enregistrés d'une équipe conservent les droits exclusifs sur la place de leur équipe dans les compétitions officielles, conformément aux règles générales et spécifiques à chaque compétition. La propriété de l'équipe, y compris les droits relatifs à l'évolution de l'effectif au cours des compétitions, appartient strictement au(x) propriétaire(s) et non aux membres individuels de l'équipe."
+        },
+        "1": {
+          "title": "Transferts de propriété",
+          "content": "Tout transfert de propriété à des tiers doit être approuvé par écrit par l'organisateur du tournoi et implique que le cessionnaire se conforme à l'ensemble des règles applicables. Tout changement de propriétaire doit faire l'objet d'une notification préalable et d'une autorisation."
+        },
+        "2": {
+          "title": "Politique relative aux changements d'équipe",
+          "content": "Si un propriétaire vend une équipe, il ne peut pas en posséder une nouvelle pendant toute la durée d'un Split (saison de compétition), afin de préserver l'intégrité de la compétition."
+        },
+        "3": {
+          "title": "Restrictions en matière de propriété",
+          "content": "Les propriétaires ne peuvent diriger plus d'une équipe par région ni plus de deux équipes toutes régions confondues, sauf pour certaines catégories d'équipes telles que les équipes de l'Académie ou les équipes féminines. Les propriétaires ne doivent pas détenir de participations dans plusieurs équipes, sauf autorisation expresse de l'organisateur."
+        },
+        "4": {
+          "title": "Exigences relatives à l'image de marque de l'équipe",
+          "content": "Les noms et logos des équipes doivent être uniques ; toute similitude doit être modifiée afin de permettre une distinction claire."
+        },
+        "5": {
+          "title": "Renonciation à une place dans un tournoi LAN",
+          "content": "Pour les tournois en réseau local (LAN), si une équipe n'était pas sûre à 100 % de ne pas pouvoir participer et n'en a pas informé l'organisateur au moins sept (7) jours avant la date à laquelle elle était censée se présenter, cette équipe s'exposera à de lourdes sanctions. Une équipe conserve sa place tant qu'elle est en mesure de se présenter à l'événement ; si elle ne le peut pas, l'organisateur du tournoi se réserve le droit d'attribuer cette place à l'équipe suivante disponible sur la liste d'attente."
+        }
+      }
+    },
+    "roster-transfers": {
+      "name": "Changements dans l'effectif, transferts et prêts de joueurs",
+      "description": "Directives relatives aux modifications d'effectif, aux périodes de transfert et aux accords de prêt de joueurs.",
+      "rules": {
+        "0": {
+          "title": "Périodes de transfert",
+          "content": "Les périodes de transfert sont fixées à l'avance, avant le début de la saison. Les dates exactes seront annoncées publiquement ; les changements d'effectif ne seront autorisés que pendant ces périodes, sauf autorisation contraire."
+        },
+        "1": {
+          "title": "Politique relative aux prêts de joueurs",
+          "content": "Chaque équipe peut recruter un joueur en prêt auprès d'une autre équipe au cours d'une saison de compétition. Les équipes ne peuvent recruter qu'un seul joueur en prêt par saison. Le joueur doit avoir été inscrit auprès de son équipe d'origine depuis au moins six mois avant le début du prêt. Les prêts provenant d'équipes participant déjà au tournoi en cours ne sont pas autorisés."
+        },
+        "2": {
+          "title": "Durée du prêt",
+          "content": "Les joueurs prêtés doivent avoir été inscrits au sein de leur club d'origine pendant au moins six mois avant le début du prêt, dont la durée ne doit pas dépasser un an."
+        },
+        "3": {
+          "title": "Responsabilités financières liées au prêt",
+          "content": "Les équipes qui empruntent des joueurs doivent verser des frais de prêt à l'équipe prêteuse. Les équipes emprunteuses prennent en charge les salaires des joueurs et les frais liés aux tournois. Les joueurs doivent réintégrer leur équipe prêteuse à la fin de la période de prêt, sauf accord contraire."
+        },
+        "4": {
+          "title": "Rappel à mi-mandat",
+          "content": "Les clubs de prêt peuvent rappeler des joueurs dans certaines conditions (par exemple, en cas de blessure)."
+        }
+      }
+    },
+    "slot-trading": {
+      "name": "Achat et vente de créneaux horaires",
+      "description": "Cadre complet régissant l'acquisition, la vente et le transfert de places dans les tournois.",
+      "rules": {
+        "0": {
+          "title": "Prix minimum par créneau",
+          "content": "Le prix minimum d'une place dans un tournoi est fixé à 50 % de la part la plus faible de la cagnotte du tournoi. Exemple : si la cagnotte totale s'élève à ₦1 000 000 et que la part attribuée au dernier classé est de ₦100 000, le prix minimum d'une place est alors de ₦50 000. Cela permet de garantir que la valeur des places correspond à la structure compétitive et financière du tournoi."
+        },
+        "1": {
+          "title": "Frais de transaction AFC",
+          "content": "L'AFC prélève des frais de transaction de 10 % sur les ventes inférieures à ₦150 000 et de 5 % sur les ventes égales ou supérieures à ₦150 000, calculés sur le prix de vente du créneau. Ces frais servent à financer le développement communautaire, les infrastructures et les coûts opérationnels de l'AFC. Exemple : pour un prix de créneau de 200 000 ₦, les frais de 10 % s'élèvent à 20 000 ₦ versés à l'AFC."
+        },
+        "2": {
+          "title": "Calendrier des transferts de créneaux horaires",
+          "content": "Tous les transferts de places doivent être effectués au moins 3 jours avant le début du tournoi afin de permettre la vérification et la mise à jour des listes de joueurs. Les transferts effectués en retard ne seront pas acceptés."
+        },
+        "3": {
+          "title": "Restriction relative à la revente de créneaux horaires",
+          "content": "Les créneaux horaires achetés ne peuvent être revendus dans les six mois, sauf autorisation expresse de l'AFC. Cette mesure vise à empêcher les achats et ventes spéculatifs de créneaux horaires."
+        },
+        "4": {
+          "title": "Responsabilités de l'équipe commerciale",
+          "content": "Les équipes vendeuses doivent fournir des informations précises concernant la place, notamment les conditions d'éligibilité, la composition actuelle de l'équipe et les obligations en cours. Elles doivent informer l'AFC de la vente envisagée via Discord ou par e-mail, régler tous les frais en suspens (tels que les frais d'inscription aux tournois) avant de finaliser le transfert, et renoncer à tous leurs droits sur la place une fois la transaction conclue."
+        },
+        "5": {
+          "title": "Responsabilités de l'équipe des achats",
+          "content": "Les équipes acheteuses doivent honorer tous leurs engagements financiers, y compris le prix de la place et les frais de transaction de l'AFC. Elles doivent s'assurer du respect du règlement du tournoi et des conditions d'éligibilité, et transmettre à l'AFC la composition actualisée de leur équipe ainsi que les informations pertinentes dans les 3 jours suivant la finalisation de l'achat."
+        },
+        "6": {
+          "title": "Le rôle de l'AFC dans les transferts de créneaux horaires",
+          "content": "L'AFC vérifie les transferts afin de s'assurer du respect des exigences en matière de prix minimum, du paiement des frais de transaction et des règles d'éligibilité aux tournois. Les transferts ne sont valables qu'après approbation officielle de l'AFC. Les notifications d'approbation seront envoyées via Discord ou par e-mail. Les frais de place seront versés à l'AFC, qui transmettra ensuite la somme à l'équipe cédante après déduction de ses frais. Tous les transferts seront enregistrés dans la base de données de l'AFC."
+        },
+        "7": {
+          "title": "Résolution des litiges relatifs aux transferts de créneaux horaires",
+          "content": "Les litiges les plus courants concernent le non-paiement (si l'équipe acheteuse ne paie pas, le transfert est annulé et l'équipe vendeuse conserve la propriété du joueur) et les fausses déclarations (si l'équipe vendeuse fournit de fausses informations, le transfert est annulé et des sanctions peuvent s'appliquer). Les litiges doivent être signalés via Discord (canal #report-slot-transfer) ou par e-mail. L'AFC jouera le rôle de médiateur dans les 48 heures et rendra une décision contraignante."
+        },
+        "8": {
+          "title": "Pénalités liées au transfert de créneaux horaires",
+          "content": "Pour les équipes vendeuses : le non-respect de l'obligation d'informer l'AFC entraîne un avertissement en cas de première infraction, et des amendes ou une suspension en cas de récidive. La communication d'informations erronées entraîne l'annulation immédiate de la transaction et une suspension éventuelle. Pour les équipes acheteuses : le non-paiement des frais entraîne la non-transfert de la place et peut entraîner l'exclusion de la compétition. Les infractions relatives à la composition de l'équipe entraînent la disqualification et la perte de la place."
+        }
+      }
+    },
+    "contracts": {
+      "name": "Soumission et gestion des contrats",
+      "description": "Directives détaillées relatives à la soumission, à l'examen et à l'application de tous les contrats liés à l'e-sport.",
+      "rules": {
+        "0": {
+          "title": "Processus de soumission des contrats",
+          "content": "Tous les contrats doivent être envoyés via le canal Discord de l'AFC dédié à la soumission des contrats. Les contrats doivent être envoyés au format PDF afin d'empêcher toute modification non autorisée. Veuillez joindre l'historique complet des échanges comme preuve de l'accord."
+        },
+        "1": {
+          "title": "Format de dénomination des billets",
+          "content": "Contrat de recrutement d'un joueur d'e-sport : « EPAC [Nom du joueur - Nom de l'équipe acquéreuse] ». Prêt d'un joueur : « EPLC [Nom de l'équipe prêteuse - Nom de l'équipe emprunteuse] ». Vente d'une équipe : « TSAC [Nom de l'équipe vendue] »."
+        },
+        "2": {
+          "title": "Informations obligatoires relatives au contrat",
+          "content": "Les documents fournis doivent inclure : (1) les noms légaux complets de toutes les parties concernées, (2) le type de contrat, (3) les dates de début et de fin de l'accord, (4) un résumé des principales conditions (salaire, obligations, clauses de non-concurrence pour les contrats de joueurs ; frais de prêt, prise en charge du salaire, conditions de retour pour les prêts de joueurs ; prix de vente, modalités de paiement, détails du transfert d’actifs pour les ventes d’équipes), (5) le contrat en pièce jointe au format PDF, (6) des preuves de l’accord (e-mails/historiques de discussion)."
+        },
+        "3": {
+          "title": "Clauses contractuelles obligatoires",
+          "content": "Tous les contrats doivent inclure : (1) une clause de non-concurrence empêchant les parties de conclure des accords concurrents pendant la durée du contrat, (2) une clause de confidentialité protégeant les informations sensibles, (3) une clause de résiliation définissant clairement les conditions de résiliation du contrat, (4) une clause de partage des recettes (le cas échéant) précisant la répartition de la cagnotte ou des revenus de sponsoring, (5) des conditions de transition relatives aux prêts et aux ventes d'équipes, précisant les délais et les conditions des transferts."
+        },
+        "4": {
+          "title": "Lignes directrices relatives aux contrats des joueurs d'e-sport",
+          "content": "Les équipes doivent préciser clairement les conditions salariales, les avantages sociaux et les obligations. Les contrats peuvent prévoir une période d'essai de 30 jours afin d'évaluer les performances des joueurs. Il convient de préciser les conditions de résiliation, qu'elle soit mutuelle ou unilatérale. Il faut également définir les modalités de répartition des gains remportés lors des tournois ou des revenus issus des sponsors."
+        },
+        "5": {
+          "title": "Conditions relatives au contrat de vente en équipe",
+          "content": "Le vendeur doit accorder un accès complet à l'image de marque de l'équipe, aux contrats des joueurs et aux places dans les tournois. Les vendeurs doivent déclarer toute dette ou obligation financière en cours. Il convient d'empêcher les acheteurs de revendre l'équipe pendant une période déterminée (par exemple, 12 mois)."
+        },
+        "6": {
+          "title": "Vérification et validation des contrats",
+          "content": "Les modérateurs de l'AFC examinent les contrats afin de s'assurer qu'ils respectent les règlements de l'AFC et la législation régionale, que les obligations de toutes les parties sont claires et équilibrées, et que toutes les clauses obligatoires y figurent. Une fois approuvé, le contrat reçoit le cachet « Approuvé par l'AFC » et une copie est archivée dans la base de données Discord de l'AFC."
+        },
+        "7": {
+          "title": "Résolution des litiges contractuels",
+          "content": "L'AFC intervient en tant que médiateur neutre dans les litiges découlant de contrats approuvés. Procédure : (1) Un canal Discord privé (ticket) est créé pour toutes les parties et les modérateurs de l'AFC, (2) Chaque partie expose ses arguments, (3) Les médiateurs de l'AFC animent les discussions et proposent des solutions, (4) Une décision contraignante est consignée par écrit et archivée."
+        }
+      }
+    },
+    "sponsor-regulations": {
+      "name": "Règlement relatif au parrainage et à la publicité",
+      "description": "Règles régissant le parrainage des équipes, les obligations en matière de publicité et les activités promotionnelles.",
+      "rules": {
+        "0": {
+          "title": "Processus d'approbation des sponsors",
+          "content": "Toute modification concernant les partenariats ou les maillots des équipes doit être préalablement approuvée par les responsables du tournoi, en leur laissant suffisamment de temps pour s'y préparer."
+        },
+        "1": {
+          "title": "Obligations en matière de marketing et de promotion",
+          "content": "Les équipes et leurs membres doivent respecter l'ensemble des exigences en matière de marketing et de promotion définies par l'organisateur du tournoi. Le non-respect répété des exigences de l'organisateur du tournoi, telles que les obligations publicitaires, constitue une infraction grave."
+        },
+        "2": {
+          "title": "Autorisation publicitaire et exclusivité",
+          "content": "Les équipes doivent obtenir au préalable une autorisation écrite pour tout programme publicitaire ou promotionnel. Elles ne sont pas autorisées à participer à des événements organisés par des tiers pendant la durée du tournoi, sauf autorisation expresse. Les équipes ou les joueurs ne peuvent pas participer à des compétitions organisées par des tiers le jour même du tournoi sans l'accord de l'organisateur du tournoi."
+        }
+      }
+    },
+    "competition-structure": {
+      "name": "Structure et calendrier de la compétition",
+      "description": "Formats des matchs, protocoles de programmation et épreuves obligatoires des tournois.",
+      "rules": {
+        "0": {
+          "title": "Format du match",
+          "content": "Les matchs se déroulent selon un format de tournoi à la ronde ou à élimination directe, en fonction de la phase du tournoi. Le tournoi comprend à la fois des phases en ligne et hors ligne : les premiers tours se déroulent en ligne, tandis que les finales sont organisées dans une salle physique."
+        },
+        "1": {
+          "title": "Emploi du temps et présence",
+          "content": "L'organisateur du tournoi est chargé de communiquer le calendrier des matchs, y compris les dates et heures exactes. Toutes les équipes doivent respecter le calendrier annoncé et être présentes à l'heure prévue. Tout retard à la journée des médias ou aux journées de match constitue une infraction mineure."
+        },
+        "2": {
+          "title": "Épreuves tests obligatoires",
+          "content": "Les équipes sont tenues de participer aux entraînements et aux matchs de préparation organisés avant les compétitions principales. Toute absence non autorisée au préalable peut entraîner des sanctions."
+        },
+        "3": {
+          "title": "Restrictions en matière de communication pendant les matchs",
+          "content": "Pendant les matchs, seuls les canaux de communication approuvés et désignés peuvent être utilisés. L'utilisation non autorisée de SMS, d'e-mails ou de tout autre moyen de communication est interdite. L'utilisation d'appareils et de méthodes de communication non autorisés pendant les matchs est interdite."
+        }
+      }
+    },
+    "communication": {
+      "name": "Communication avec les organisateurs",
+      "description": "Exigences en matière de réponse, obligations de confidentialité et protocoles de communication.",
+      "rules": {
+        "0": {
+          "title": "Exigences en matière de délai de réponse",
+          "content": "Les membres de l'équipe doivent répondre aux communications officielles dans les délais impartis : dans un délai d'un jour ouvré pour les e-mails et dans un délai de douze heures s'ils sont contactés via plusieurs canaux."
+        },
+        "1": {
+          "title": "Demandes d'informations relatives au paiement",
+          "content": "Le fait de ne pas fournir les informations nécessaires à la remise des prix dans un délai de 3 jours entraînera la perte du prix. Les équipes doivent transmettre les informations complètes et exactes relatives à leur demande de prix dans les trois (3) jours suivant la demande de l'organisateur du tournoi."
+        },
+        "2": {
+          "title": "Exigences en matière de confidentialité",
+          "content": "Les joueurs ne doivent divulguer aucune information confidentielle reçue de la part de l'organisateur du tournoi. Il est interdit aux membres des équipes de divulguer toute information confidentielle ou exclusive communiquée par l'organisateur du tournoi."
+        }
+      }
+    },
+    "disciplinary": {
+      "name": "Mesures disciplinaires et infractions",
+      "description": "Classification des infractions, procédures d'enquête et cadres de sanctions.",
+      "rules": {
+        "0": {
+          "title": "Infractions mineures",
+          "content": "Les infractions mineures comprennent : (1) la transmission tardive des informations relatives aux médias et à l'équipe lorsque les organisateurs en font la demande ; (2) l'utilisation de comptes de jeu alternatifs sans en informer les responsables du tournoi ; (3) l'utilisation de pseudonymes inappropriés lors des matchs officiels ; (4) le retard à la journée des médias ou aux journées de compétition."
+        },
+        "1": {
+          "title": "Infractions graves",
+          "content": "Les infractions graves comprennent : (1) l'utilisation de comptes de jeu non enregistrés, (2) le non-respect de la tenue vestimentaire requise, (3) la publication publique des résultats d'un match avant leur diffusion officielle lorsqu'il s'agit d'un match préenregistré, (4) l'installation de logiciels tiers externes ou l'utilisation d'un navigateur pendant la finale en réseau local (LAN) sans l'autorisation de l'administrateur, (5) le non-respect répété des exigences de l'organisateur du tournoi, telles que les obligations publicitaires, (6) l'utilisation de programmes de triche par un membre de l'équipe, (7) la corruption."
+        },
+        "2": {
+          "title": "Procédures d'enquête",
+          "content": "Les organisateurs du tournoi se réservent le droit de mener une enquête approfondie sur toute infraction au règlement. Les participants doivent coopérer en fournissant des informations exactes et en ne dissimulant aucun élément de preuve."
+        },
+        "3": {
+          "title": "Cadre des sanctions",
+          "content": "Les sanctions infligées varient en fonction de la gravité et de la fréquence des infractions. Elles comprennent : (1) des avertissements verbaux ou écrits publics, (2) la perte de matchs et de tournois, (3) des déductions de points, (4) la perte de prix, (5) la suspension ou la disqualification des tournois en cours et à venir."
+        },
+        "4": {
+          "title": "Politique relative aux infractions répétées",
+          "content": "Des infractions répétées au règlement peuvent entraîner des conséquences de plus en plus sévères, notamment des sanctions plus lourdes ou une exclusion définitive."
+        },
+        "5": {
+          "title": "Mesures provisoires",
+          "content": "Des sanctions provisoires peuvent être prononcées pendant le déroulement des enquêtes, notamment en cas d'allégations graves, et peuvent être révisées à mesure que de nouvelles informations sont disponibles."
+        },
+        "6": {
+          "title": "Décisions définitives",
+          "content": "L'organisateur du tournoi se réserve le droit de prendre des décisions définitives concernant les infractions et les sanctions, en évaluant les violations du règlement indépendamment de l'intention."
+        }
+      }
+    },
+    "prize-distribution": {
+      "name": "Remise et perte des prix",
+      "description": "Règlement relatif aux prix, délais de versement et conditions de perte du prix.",
+      "rules": {
+        "0": {
+          "title": "Calendrier des paiements",
+          "content": "L'ensemble des prix en argent sera versé à la personne de contact désignée par chaque équipe dans les 90 jours suivant la fin de la finale du tournoi, à condition que toutes les informations nécessaires au paiement aient été fournies dans les délais impartis."
+        },
+        "1": {
+          "title": "Conditions d'attribution des prix",
+          "content": "L'attribution des prix est subordonnée au respect par l'équipe de toutes les obligations liées au tournoi, notamment la participation à tous les matchs et la réalisation des activités promotionnelles requises. Les gains seront versés par l'organisateur du tournoi uniquement à l'équipe. Les joueurs doivent accepter les modalités de répartition fixées en interne par l'équipe."
+        },
+        "2": {
+          "title": "Dates limites de dépôt des demandes de remise de prix",
+          "content": "Les équipes doivent fournir des informations complètes et exactes concernant leur demande de prix, y compris toutes les données requises, dans un délai de trois (3) jours à compter de la demande formulée par l'organisateur du tournoi. Tout retard ou omission dans la transmission des informations relatives au prix, que ce soit en termes de délai ou d'exhaustivité, peut entraîner la perte du prix en argent."
+        },
+        "3": {
+          "title": "Cession des droits de propriété intellectuelle",
+          "content": "Les équipes sont tenues de céder l'ensemble des droits, titres et intérêts, y compris les droits de propriété intellectuelle liés au contenu créé dans le cadre du tournoi, comme condition préalable à l'obtention de la prime."
+        }
+      }
+    },
+    "ip-media-rights": {
+      "name": "Propriété intellectuelle et droits des médias",
+      "description": "Droits de propriété, autorisations d'utilisation et exploitation du contenu des tournois.",
+      "rules": {
+        "0": {
+          "title": "Droits de propriété",
+          "content": "L'organisateur du tournoi se réserve tous les droits sur l'ensemble des éléments créés dans le cadre du tournoi. Cela inclut les contenus, les retransmissions et toute œuvre dérivée."
+        },
+        "1": {
+          "title": "Autorisations d'utilisation",
+          "content": "Les équipes et les joueurs n'acquièrent aucun droit de propriété ni aucun autre droit sur la propriété intellectuelle du tournoi. Toute utilisation non autorisée est considérée comme une violation de ces droits."
+        },
+        "2": {
+          "title": "Droits d'exploitation",
+          "content": "L'organisateur peut exploiter la propriété intellectuelle du tournoi sur divers supports sans aucune restriction, et il peut céder ces droits à des tiers s'il le juge nécessaire."
+        }
+      }
+    },
+    "organizer-authority": {
+      "name": "Droits de veto des organisateurs et modifications du règlement",
+      "description": "Les pouvoirs discrétionnaires de l'organisateur du tournoi et son autorité en matière de format de la compétition.",
+      "rules": {
+        "0": {
+          "title": "Pouvoir discrétionnaire de l'organisateur",
+          "content": "L'organisateur du tournoi dispose du pouvoir de décision final sur divers aspects du tournoi. Cela comprend notamment le format général, le nombre d'équipes participantes, la répartition de la cagnotte (sans réduire le montant annoncé précédemment) et l'aménagement du studio."
+        },
+        "1": {
+          "title": "Modifications du règlement",
+          "content": "Des modifications peuvent être apportées au règlement du tournoi dans le but d'améliorer son bon déroulement ou de renforcer sa réputation. Toute mise à jour ou tout ajout au règlement fera l'objet d'une annonce."
+        },
+        "2": {
+          "title": "Autorité d'interprétation finale",
+          "content": "Les administrateurs de l'AFC disposent d'un droit de veto définitif en matière d'interprétation et de modification des règles. L'organisateur du tournoi se réserve le droit de prendre des décisions contraignantes concernant les infractions et les sanctions."
+        }
+      }
+    },
+    "monthly-ranking": {
+      "name": "Système de classement mensuel",
+      "description": "Système de mesure des performances à court terme, mis à jour chaque mois pour les équipes et les joueurs.",
+      "rules": {
+        "0": {
+          "title": "Objectif du système de classement",
+          "content": "Le système de classement évalue les performances à court terme afin d'identifier chaque mois les équipes ou les joueurs les plus actifs et les plus performants. Il favorise une compétition soutenue et garantit une participation continue tout au long de chaque saison."
+        },
+        "1": {
+          "title": "Opération de classement",
+          "content": "Les classements sont mis à jour chaque mois et remis à zéro au début de chaque nouveau mois. Les équipes peuvent comparer leur position par rapport à toutes les autres équipes inscrites à l'AFC, quel que soit leur niveau de compétition."
+        },
+        "2": {
+          "title": "Critères de classement des équipes",
+          "content": "Victoires en tournoi : 20 points par victoire. Kills en tournoi (cumulés) : échelle de 0 à 5 000 kills (1 point pour 0 à 100 kills, 3 points pour 101 à 300, 5 points pour 301 à 500, 8 points pour 501 à 1 000, 12 pts pour 1 001 à 1 500, 15 pts pour 1 501 à 2 000, 18 pts pour 2 001 à 2 500, 20 pts pour 2 501 à 3 000, 23 points pour 3 001 à 3 500, 25 points pour 3 501 à 4 000, 28 points pour 4 001 à 4 500, 30 points pour 4 501 à 5 000). Classements en tournoi : échelle de classement de 0 à 1 000+. Victoires en matchs d'entraînement : 0,5 point par victoire. Kills et classements en matchs d'entraînement : mêmes échelles que pour les indicateurs de tournoi."
+        },
+        "3": {
+          "title": "Limite de poids du tissu de protection",
+          "content": "Les points attribués sur la base des matchs d'entraînement ne doivent pas dépasser 30 % du total des points de classement accumulés par une équipe au cours d'un mois. Les données issues des tournois restent le facteur déterminant pour l'établissement du classement."
+        },
+        "4": {
+          "title": "Système de classement des joueurs",
+          "content": "Le classement mensuel des joueurs est établi en fonction des critères suivants : les « kills » en tournoi (même barème que les « kills » en équipe), les titres de MVP (5 points par titre), les participations aux finales de tournoi (3 points par participation), les victoires en tournoi (20 points par victoire d'équipe), les éliminations en matchs d'entraînement (même barème que les éliminations en matchs d'entraînement par équipe), les victoires en matchs d'entraînement (0,5 point par victoire)."
+        }
+      }
+    },
+    "quarterly-tiering": {
+      "name": "Système de classification trimestriel",
+      "description": "Système d'évaluation des performances à long terme permettant de déterminer le classement dans les compétitions et les avantages qui y sont liés.",
+      "rules": {
+        "0": {
+          "title": "Objectif de la classification par niveaux",
+          "content": "Le classement par niveaux définit le niveau de performance global de chaque équipe au sein de l'écosystème de l'AFC. Ces niveaux déterminent l'accès aux compétitions de haut niveau, aux avantages et à la reconnaissance au sein de la communauté."
+        },
+        "1": {
+          "title": "Durée des niveaux et saisons",
+          "content": "Les niveaux sont attribués tous les trois (3) mois. Il y a quatre saisons de compétition par an : la saison 1 (janvier-mars), la saison 2 (avril-juin), la saison 3 (juillet-septembre) et la saison 4 (octobre-décembre). Les classements sont remis à zéro au début de chaque nouvelle saison. Tous les points de classement s'accumulent tout au long de l'année pour établir le classement annuel et attribuer les récompenses."
+        },
+        "2": {
+          "title": "Maintien du niveau",
+          "content": "Une fois qu'une équipe s'est vu attribuer un niveau, elle conserve ce niveau pendant tout le trimestre. Exemple : une équipe classée au niveau 1 en mars conserve ce niveau d'avril à juin ; tout changement n'intervient qu'après la prochaine évaluation."
+        },
+        "3": {
+          "title": "Critères de classement – Victoires en tournoi",
+          "content": "20 points par victoire en tournoi."
+        },
+        "4": {
+          "title": "Critères de classement - Prix en argent",
+          "content": "Les gains en argent contribuent à l'attribution de points de classement selon un barème dégressif : 0 à 100 000 ₦ (5 pts), 101 000 à 300 000 ₦ (10 pts), 301 000 à 500 000 ₦ (15 pts), ₦501 000-750 000 (20 pts), ₦751 000-1 000 000 (25 pts), 1 000 001 à 1 500 000 ₦ (30 pts), 1 500 001 à 2 000 000 ₦ (35 pts), de 2 000 001 à 2 500 000 ₦ (40 pts), de 2 500 001 à 3 000 000 ₦ (45 pts), 3 000 001 à 3 500 000 ₦ (50 pts), 3 500 001 à 4 000 000 ₦ (55 pts), 4 000 001 à 4 500 000 ₦ (60 pts), 4 500 001 à 5 000 000 ₦ (65 pts)."
+        },
+        "5": {
+          "title": "Critères de classement – Victimes en tournoi",
+          "content": "Les éliminations cumulées en tournoi sont comptabilisées selon le barème suivant : 0-100 (1 point), 101-300 (3 points), 301-500 (5 points), 501 à 1 000 (8 pts), 1 001 à 1 500 (12 pts), 1 501 à 2 000 (15 pts), 2 001 à 2 500 (18 pts), 2 501 à 3 000 (20 pts), 3 001 à 3 500 (23 pts), 3 501 à 4 000 (25 pts), 4 001 à 4 500 (28 pts), 4 501 à 5 000 (30 pts)."
+        },
+        "6": {
+          "title": "Critères de répartition par niveau - Classement des tournois",
+          "content": "Points de classement obtenus : 0-100 (0,02 par classement), 101-300 (0,05), 301 à 500 (0,10), 501 à 1 000 (0,15), 1 001 et plus (0,20)."
+        },
+        "7": {
+          "title": "Critères de répartition par niveau - Finales du tournoi",
+          "content": "5 points par participation à une finale de tournoi."
+        },
+        "8": {
+          "title": "Critères de classification - Indicateurs des réseaux sociaux",
+          "content": "Données relevées sur Instagram et TikTok concernant le nombre d'abonnés, de publications et de « j'aime » : 0 à 500 (1 point), 501 à 1 000 (2 pts), 1 001 à 2 500 (5 pts), 2 501 à 5 000 (8 pts), 5 001 à 10 000 (12 pts), 10 001 à 20 000 (15 pts), 20 001 à 50 000 (20 pts), 50 001 à 75 000 (30 pts), 75 001 à 100 000 (35 pts), 100 000 et plus (40 pts)."
+        },
+        "9": {
+          "title": "Critères de classement - Indicateurs Scrim",
+          "content": "Statistiques des matchs d'entraînement (poids maximal de 30 % dans la note globale) : victoires en matchs d'entraînement (0,5 par victoire), nombre cumulé de kills en matchs d'entraînement (échelle de 0,5 à 11 points), classements en matchs d'entraînement (échelle de 0 à 0,2, identique à celle des tournois)."
+        }
+      }
+    },
+    "tier-classifications": {
+      "name": "Classifications et avantages par niveau d'équipe",
+      "description": "Niveaux, seuils de points et privilèges associés à chaque catégorie.",
+      "rules": {
+        "0": {
+          "title": "Classifications par niveau",
+          "content": "Les équipes sont classées en trois niveaux : Niveau 1 (Élite : 70 points et plus), Niveau 2 (Compétitif : 50 à 69 points), Niveau 3 (En développement : moins de 50 points)."
+        },
+        "1": {
+          "title": "Avantages offerts aux équipes de niveau 1",
+          "content": "Les équipes de niveau 1 bénéficient des privilèges suivants : (1) invitations automatiques aux tournois sur invitation de l'AFC, (2) visibilité grâce à des interviews et des articles consacrés à la communauté, (3) rôles spéciaux de reconnaissance sur Discord, (4) accès aux matchs d'entraînement privés de l'AFC ou de ses partenaires, (5) qualification pour l'AFC Community Cup."
+        },
+        "2": {
+          "title": "Classement du tournoi",
+          "content": "Les tournois sont classés par niveau en fonction de leur cagnotte et de leur structure : Niveau 1 (équivalent en ₦ de 1 000 $ ou plus, ou événement officiel FreeFire), Niveau 2 (équivalent en ₦ compris entre 300 et 999 $, ou événement LAN), Niveau 3 (moins de 300 $). Cette classification influe sur le prestige et la visibilité sur la plateforme AFC. Les points de tournoi restent les mêmes quel que soit le niveau, mais les événements de niveau supérieur bénéficient d’un badge de reconnaissance sur le site web de l’AFC."
+        }
+      }
+    },
+    "metrics-compliance": {
+      "name": "Conformité au système métrique et sanctions",
+      "description": "Règles relatives à la vérification des données, à la remise à zéro des points et aux exigences de conformité.",
+      "rules": {
+        "0": {
+          "title": "Conditions d'inscription",
+          "content": "Les équipes doivent s'inscrire sur le site officiel de l'AFC à l'adresse www.africanfreefirecommunity.com. Seules les équipes figurant sur ce site peuvent faire l'objet d'un suivi des indicateurs."
+        },
+        "1": {
+          "title": "Réinitialisation des points en cas d'infractions",
+          "content": "Tout acte de piratage, de triche ou de manipulation de compte entraînera une remise à zéro totale des points pour les équipes et les joueurs concernés. Les équipes ne disposant pas de classement mensuel verront leurs points remis à zéro."
+        },
+        "2": {
+          "title": "Admissibilité des équipes suspendues",
+          "content": "Les équipes exclues ou inscrites sur la liste noire ne peuvent pas marquer de points pendant la durée de leur suspension."
+        },
+        "3": {
+          "title": "Exigences en matière de déontologie professionnelle",
+          "content": "Une conduite professionnelle est obligatoire lors de toutes les activités organisées sous l'égide de l'AFC."
+        },
+        "4": {
+          "title": "Processus de vérification des données",
+          "content": "Toutes les données de performance sont vérifiées par les administrateurs de l'AFC. Le processus de vérification comprend : (1) la validation des résultats des tournois et des matchs d'entraînement, (2) la vérification des indicateurs issus des médias et des réseaux sociaux, (3) des audits de cohérence entre les différentes plateformes. Seuls les événements approuvés et vérifiés par l'AFC comptent pour le classement et la répartition par niveau."
+        },
+        "5": {
+          "title": "Visibilité des données",
+          "content": "La vue publique affiche le total des points et le niveau actuel de chaque équipe. La vue privée présente une ventilation complète des statistiques (kills, gains, médias, matchs d'entraînement), accessible depuis le profil de chaque équipe. Le classement annuel affiche les points de niveau cumulés sur l'année, utilisés pour les récompenses et les distinctions de l'AFC."
+        }
+      }
+    }
+  }
+}

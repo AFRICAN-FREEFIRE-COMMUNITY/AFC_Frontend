@@ -40,8 +40,13 @@ export default function HomePage() {
       <PageHeader
         title={t("dashboard.pageTitle")}
         description={t("dashboard.pageDescription")}
+        dataTour="home-header"
       />
-      <HomeBoxes />
+      {/* data-tour anchor (home-boxes): guided-tour "Home" stop points here at the quick-stat
+          boxes so a new player sees where their at-a-glance numbers live. */}
+      <div data-tour="home-boxes">
+        <HomeBoxes />
+      </div>
       <div className="grid gap-2 md:grid-cols-2 mb-4">
         <div>
           <LatestNews />

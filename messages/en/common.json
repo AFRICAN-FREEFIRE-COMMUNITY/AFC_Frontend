@@ -1,4 +1,11 @@
 {
+  "applying": "Applying...",
+  "back": "Back",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "discard": "Discard",
+  "done": "Done",
+  "refresh": "Refresh",
   "actions": {
     "save": "Save",
     "cancel": "Cancel",
@@ -22,7 +29,17 @@
     "players": "Players",
     "shop": "Shop",
     "leaderboards": "Leaderboards",
-    "profile": "Profile"
+    "profile": "Profile",
+    "glossary": "Glossary",
+    "awards": "Awards",
+    "tournamentsScrims": "Tournaments & Scrims",
+    "rankingsTiers": "Rankings & Tiers",
+    "playerMarkets": "Player Markets",
+    "newsUpdates": "News & Updates",
+    "rules": "Rules",
+    "myOrders": "My Orders",
+    "about": "About Us",
+    "contact": "Contact"
   },
   "states": {
     "empty": "Nothing here yet",
@@ -87,6 +104,7 @@
     "takeMeThere": "Take me there",
     "view": "View",
     "markRead": "Mark as read",
+    "markAllRead": "Mark all as read",
     "types": {
       "event": "Tournament",
       "news": "News",
@@ -164,5 +182,15 @@
     "passwordRequirements": "Password requirements",
     "requirementMet": " - Requirement met",
     "requirementNotMet": " - Requirement not met"
+  },
+  "logoAlt": "AFC Logo",
+  "phoneInput": {
+    "selectCountry": "Select country",
+    "selectCountryPlaceholder": "Select a country"
+  },
+  "eventTime": {
+    "to": "to",
+    "yourTime": "(your time)",
+    "host": "(host)"
   }
 }

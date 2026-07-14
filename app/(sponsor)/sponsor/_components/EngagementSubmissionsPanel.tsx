@@ -48,6 +48,7 @@
 // per the owner's design-parity feedback.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -134,21 +135,30 @@ type DecideAction = "approve" | "reject" | "reject_final" | "undo";
 // Tab label for one engagement entry. Falls back from the configured label to a
 // type-derived name (the wizard's collect_id entries always carry a label, e.g.
 // "ydpay UID"; join_group derives from its platform, e.g. "WhatsApp group").
-function engagementTabLabel(e: SponsorEngagement): string {
+// `t` is the sponsorSubmissions translator, passed in because this helper lives
+// outside the component (same ReturnType<typeof useTranslations> idiom the repo
+// uses for MediaAuditCard's helpers). Configured labels (e.label) are backend
+// data and stay verbatim; only the type-derived fallbacks are translated.
+function engagementTabLabel(
+  e: SponsorEngagement,
+  t: ReturnType<typeof useTranslations>,
+): string {
   if (e.label) return e.label;
   switch (e.type) {
     case "collect_id":
-      return "Collect id";
+      return t("engagementCollectId");
     case "follow_social":
-      return e.platform ? `Follow ${e.platform}` : "Follow socials";
+      return e.platform
+        ? t("engagementFollowPlatform", { platform: e.platform })
+        : t("engagementFollowSocials");
     case "create_account":
-      return "Create account";
+      return t("engagementCreateAccount");
     case "join_group":
-      if (e.platform === "whatsapp") return "WhatsApp group";
-      if (e.platform === "discord") return "Discord group";
-      return "Join group";
+      if (e.platform === "whatsapp") return t("engagementWhatsappGroup");
+      if (e.platform === "discord") return t("engagementDiscordGroup");
+      return t("engagementJoinGroup");
     default:
-      return "Engagement";
+      return t("engagementDefault");
   }
 }
 
@@ -165,7 +175,13 @@ function errorMessage(err: unknown, fallback: string): string {
 
 // The legacy dashboard's light pill StatusBadge, mapped onto approval_status.
 // not_required rows show no pill (there is nothing to decide on them).
-function ApprovalPill({ row }: { row: EngagementSubmissionRow }) {
+function ApprovalPill({
+  row,
+  t,
+}: {
+  row: EngagementSubmissionRow;
+  t: ReturnType<typeof useTranslations>;
+}) {
   if (row.approval_status === "not_required") {
     return <span className="text-xs text-muted-foreground">-</span>;
   }
@@ -173,6 +189,12 @@ function ApprovalPill({ row }: { row: EngagementSubmissionRow }) {
     pending: "bg-yellow-100 text-yellow-700",
     approved: "bg-green-100 text-green-700",
     rejected: "bg-red-100 text-red-700",
+  };
+  // Map the backend approval_status enum onto its translated pill label.
+  const labelKey: Record<string, string> = {
+    pending: "statusPending",
+    approved: "statusApproved",
+    rejected: "statusRejected",
   };
   return (
     <span
@@ -184,7 +206,7 @@ function ApprovalPill({ row }: { row: EngagementSubmissionRow }) {
         map[row.approval_status],
       )}
     >
-      {row.approval_status}
+      {t(labelKey[row.approval_status])}
     </span>
   );
 }
@@ -223,6 +245,11 @@ export function EngagementSubmissionsPanel({
   // wizard-side), so the tabs render from the seed payload.
   const engagements = initial.engagements;
   const requiresApproval = initial.requires_approval;
+
+  // sponsorSubmissions namespace (messages/en/sponsorSubmissions.json). Client
+  // component, so useTranslations; passed down to the ApprovalPill and the
+  // engagementTabLabel helper which sit outside this function.
+  const t = useTranslations("sponsorSubmissions");
 
   // "all" or the engagement index as a string (the endpoint's `engagement`
   // param is the entry's index in the sponsorship's engagements array, which
@@ -275,13 +302,13 @@ export function EngagementSubmissionsPanel({
         }
       } catch (err) {
         if (fetchSeq.current === mySeq) {
-          toast.error(errorMessage(err, "Failed to load submissions."));
+          toast.error(errorMessage(err, t("toastLoadFailed")));
         }
       } finally {
         if (fetchSeq.current === mySeq) setLoading(false);
       }
     },
-    [sponsor.id, event.event_id],
+    [sponsor.id, event.event_id, t],
   );
 
   // Refetch whenever the tab / status filter / page changes. The very first
@@ -339,21 +366,19 @@ export function EngagementSubmissionsPanel({
       try {
         await sponsorsApi.decideSubmission(row.id, action, reason);
         if (action === "approve") {
-          toast.success(`${row.username} confirmed.`);
+          toast.success(t("toastConfirmed", { username: row.username }));
         } else if (action === "reject") {
-          toast.success(
-            `${row.username} rejected. They get a notification with your reason and a prompt to re-enter the value.`,
-          );
+          toast.success(t("toastRejected", { username: row.username }));
         } else if (action === "reject_final") {
-          toast.success(`${row.username} rejected and removed from the event.`);
+          toast.success(t("toastRejectedRemoved", { username: row.username }));
         } else {
-          toast.success(`Decision undone for ${row.username}.`);
+          toast.success(t("toastUndone", { username: row.username }));
         }
         await loadPage(activeTab, statusFilter, page);
         refreshPendingCounts();
         return true;
       } catch (err) {
-        toast.error(errorMessage(err, `Failed to update ${row.username}.`));
+        toast.error(errorMessage(err, t("toastUpdateFailed", { username: row.username })));
         return false;
       } finally {
         setActing((prev) => {
@@ -363,7 +388,7 @@ export function EngagementSubmissionsPanel({
         });
       }
     },
-    [activeTab, statusFilter, page, loadPage, refreshPendingCounts],
+    [activeTab, statusFilter, page, loadPage, refreshPendingCounts, t],
   );
 
   const openRejectDialog = (row: EngagementSubmissionRow) => {
@@ -376,7 +401,7 @@ export function EngagementSubmissionsPanel({
     // Reason is REQUIRED here (unlike the legacy dialog): it rides in the
     // player's rejection email + in-app notification.
     if (!reason.trim()) {
-      toast.error("A reason is required. It is sent to the player.");
+      toast.error(t("toastReasonRequired"));
       return;
     }
     // reject_final frees the player's slot in the event; demand an explicit
@@ -384,7 +409,7 @@ export function EngagementSubmissionsPanel({
     if (
       removeFromEvent &&
       !window.confirm(
-        `Reject and REMOVE ${row.username} from ${event.event_name}? This frees their slot in the event.`,
+        t("confirmRemove", { username: row.username, event: event.event_name }),
       )
     ) {
       return;
@@ -402,7 +427,7 @@ export function EngagementSubmissionsPanel({
 
   const exportCsv = () => {
     const tabLabel =
-      activeTab === "all" ? "all" : engagementTabLabel(engagements[Number(activeTab)]);
+      activeTab === "all" ? "all" : engagementTabLabel(engagements[Number(activeTab)], t);
     const statusSuffix = statusFilter === "all" ? "" : `-${statusFilter}`;
     sponsorsApi
       .engagementSubmissionsCsv(
@@ -414,7 +439,7 @@ export function EngagementSubmissionsPanel({
           ...(statusFilter !== "all" ? { status: statusFilter } : {}),
         },
       )
-      .catch(() => toast.error("CSV export failed."));
+      .catch(() => toast.error(t("toastCsvFailed")));
   };
 
   // ── client-side search over the loaded page ─────────────────────────────────
@@ -462,17 +487,16 @@ export function EngagementSubmissionsPanel({
                   className="rounded-full border-gold px-2 py-0.5 text-xs"
                   style={{ color: "var(--gold)" }}
                 >
-                  requires your approval
+                  {t("requiresApproval")}
                 </Badge>
               )}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              You see usernames + the values registrants gave {sponsor.name}. AFC never shares
-              account emails or phone numbers.
+              {t("privacyLine", { name: sponsor.name })}
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={exportCsv}>
-            <IconDownload className="size-4" /> Export CSV
+            <IconDownload className="size-4" /> {t("exportCsv")}
           </Button>
         </CardContent>
       </Card>
@@ -481,7 +505,7 @@ export function EngagementSubmissionsPanel({
       <Tabs value={activeTab} onValueChange={changeTab}>
         <TabsList className="w-full justify-start overflow-x-auto">
           <TabsTrigger value="all">
-            All
+            {t("all")}
             {requiresApproval && totalPending > 0 && (
               <span className="ml-1 rounded-full bg-yellow-100 text-yellow-700 px-1.5 text-[10px] font-semibold">
                 {totalPending}
@@ -490,7 +514,7 @@ export function EngagementSubmissionsPanel({
           </TabsTrigger>
           {engagements.map((e, i) => (
             <TabsTrigger key={i} value={String(i)}>
-              {engagementTabLabel(e)}
+              {engagementTabLabel(e, t)}
               {requiresApproval && (pendingCounts[i] ?? 0) > 0 && (
                 <span className="ml-1 rounded-full bg-yellow-100 text-yellow-700 px-1.5 text-[10px] font-semibold">
                   {pendingCounts[i]}
@@ -506,7 +530,7 @@ export function EngagementSubmissionsPanel({
         <div className="relative flex-1">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Search by username or submitted value..."
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -522,13 +546,13 @@ export function EngagementSubmissionsPanel({
         </div>
         <Select value={statusFilter} onValueChange={changeStatus}>
           <SelectTrigger className="w-full sm:w-44">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder={t("filterByStatus")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="all">{t("all")}</SelectItem>
+            <SelectItem value="pending">{t("statusPending")}</SelectItem>
+            <SelectItem value="approved">{t("statusApproved")}</SelectItem>
+            <SelectItem value="rejected">{t("statusRejected")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -539,12 +563,12 @@ export function EngagementSubmissionsPanel({
           <CardContent className="py-12 text-center text-muted-foreground">
             {loading ? (
               <span className="inline-flex items-center gap-2 text-sm">
-                <IconLoader2 className="size-5 animate-spin" /> Loading submissions...
+                <IconLoader2 className="size-5 animate-spin" /> {t("loadingSubmissions")}
               </span>
             ) : data.results.length === 0 ? (
-              "No submissions here yet."
+              t("noSubmissions")
             ) : (
-              "No results match your search on this page."
+              t("noSearchResults")
             )}
           </CardContent>
         </Card>
@@ -555,12 +579,12 @@ export function EngagementSubmissionsPanel({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Username</TableHead>
+                    <TableHead>{t("colUsername")}</TableHead>
                     {/* The All tab mixes engagements, so name each row's source. */}
-                    {activeTab === "all" && <TableHead>Engagement</TableHead>}
-                    <TableHead>Value</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    {activeTab === "all" && <TableHead>{t("colEngagement")}</TableHead>}
+                    <TableHead>{t("colValue")}</TableHead>
+                    <TableHead>{t("colStatus")}</TableHead>
+                    <TableHead className="text-right">{t("colActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -579,12 +603,12 @@ export function EngagementSubmissionsPanel({
                             r.value
                           ) : (
                             <span className="text-muted-foreground italic text-xs">
-                              Not provided
+                              {t("notProvided")}
                             </span>
                           )}
                         </TableCell>
                         <TableCell>
-                          <ApprovalPill row={r} />
+                          <ApprovalPill row={r} t={t} />
                         </TableCell>
                         <TableCell className="text-right">
                           {/* ── actions per approval_status (P4 queue) ── */}
@@ -602,7 +626,7 @@ export function EngagementSubmissionsPanel({
                                 ) : (
                                   <IconCheck className="size-3" />
                                 )}
-                                Confirm
+                                {t("confirm")}
                               </Button>
                               <Button
                                 size="sm"
@@ -616,14 +640,20 @@ export function EngagementSubmissionsPanel({
                                 ) : (
                                   <IconX className="size-3" />
                                 )}
-                                Reject
+                                {t("reject")}
                               </Button>
                             </div>
                           ) : r.approval_status === "approved" ? (
                             // Owner feedback: decided rows show WHAT was decided.
                             <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
                               <span>
-                                <b className="text-foreground font-semibold">Confirmed</b> by you
+                                {/* "<b>Confirmed</b> by you" - t.rich keeps the bold
+                                    on the verb only while staying localizable. */}
+                                {t.rich("confirmedByYou", {
+                                  b: (chunks) => (
+                                    <b className="text-foreground font-semibold">{chunks}</b>
+                                  ),
+                                })}
                               </span>
                               {r.can_undo && (
                                 <Button
@@ -638,15 +668,15 @@ export function EngagementSubmissionsPanel({
                                   ) : (
                                     <IconArrowBackUp className="size-3" />
                                   )}
-                                  Undo
+                                  {t("undo")}
                                 </Button>
                               )}
                             </div>
                           ) : r.approval_status === "rejected" ? (
                             <div className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
                               <span className="max-w-[260px] text-right">
-                                <b className="text-foreground font-semibold">Rejected:</b>{" "}
-                                {r.reason || "no reason"}
+                                <b className="text-foreground font-semibold">{t("rejectedLabel")}</b>{" "}
+                                {r.reason || t("noReason")}
                               </span>
                               {r.can_undo && (
                                 <Button
@@ -661,7 +691,7 @@ export function EngagementSubmissionsPanel({
                                   ) : (
                                     <IconArrowBackUp className="size-3" />
                                   )}
-                                  Undo
+                                  {t("undo")}
                                 </Button>
                               )}
                             </div>
@@ -681,8 +711,15 @@ export function EngagementSubmissionsPanel({
             <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
                 {search.trim()
-                  ? `${filtered.length} of ${data.results.length} on this page match your search`
-                  : `Showing ${showingStart}-${showingEnd} of ${data.total_count}`}
+                  ? t("searchMatchCount", {
+                      count: filtered.length,
+                      total: data.results.length,
+                    })
+                  : t("showingRange", {
+                      start: showingStart,
+                      end: showingEnd,
+                      total: data.total_count,
+                    })}
               </p>
               {totalPages > 1 && (
                 <Pagination>
@@ -742,9 +779,7 @@ export function EngagementSubmissionsPanel({
       {/* Hint under the queue (mockup's note line), only when the gate is on. */}
       {requiresApproval && (
         <p className="text-xs text-muted-foreground border border-dashed rounded-md px-3 py-2">
-          Rejecting requires a reason. The player gets an email + an in-app notification with
-          your reason and a prompt to re-enter the correct value; their resubmission returns
-          here as pending.
+          {t("queueHint")}
         </p>
       )}
 
@@ -758,15 +793,17 @@ export function EngagementSubmissionsPanel({
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Reject {rejectDialog.row?.username}?</DialogTitle>
+            <DialogTitle>
+              {t("rejectDialogTitle", { username: rejectDialog.row?.username ?? "" })}
+            </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-2">
             <div className="flex flex-col gap-2">
               <label className="text-sm text-muted-foreground">
-                Reason <span className="text-xs">(required, sent to the player)</span>
+                {t("reasonLabel")} <span className="text-xs">{t("reasonRequiredNote")}</span>
               </label>
               <Textarea
-                placeholder="e.g. This UID does not exist. Check the app and re-enter it."
+                placeholder={t("reasonPlaceholder")}
                 value={rejectDialog.reason}
                 onChange={(e) =>
                   setRejectDialog((prev) => ({ ...prev, reason: e.target.value }))
@@ -786,9 +823,9 @@ export function EngagementSubmissionsPanel({
                 }
               />
               <span>
-                Also remove {rejectDialog.row?.username} from the event
+                {t("alsoRemove", { username: rejectDialog.row?.username ?? "" })}
                 <span className="block text-xs text-muted-foreground">
-                  Frees their slot so another player can register. They cannot resubmit.
+                  {t("alsoRemoveNote")}
                 </span>
               </span>
             </label>
@@ -799,7 +836,7 @@ export function EngagementSubmissionsPanel({
               disabled={rejectDialog.loading}
               onClick={() => setRejectDialog(CLOSED_REJECT_DIALOG)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -807,7 +844,7 @@ export function EngagementSubmissionsPanel({
               onClick={handleRejectConfirm}
             >
               {rejectDialog.loading && <IconLoader2 className="size-4 animate-spin mr-2" />}
-              {rejectDialog.removeFromEvent ? "Reject and remove" : "Reject"}
+              {rejectDialog.removeFromEvent ? t("rejectAndRemove") : t("reject")}
             </Button>
           </DialogFooter>
         </DialogContent>

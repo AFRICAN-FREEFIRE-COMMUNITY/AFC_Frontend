@@ -11,8 +11,9 @@
 //
 // Per row the admin can:
 //   - see the raw OCR name (raw_name);
-//   - re-assign the matched player from top_candidates (up to 3) OR keep matched_username
-//     editable as a free-text fallback (see ROSTER NOTE below);
+//   - re-assign the matched player from a roster-scoped searchable combobox that lists ONLY the
+//     players registered to this event (see ROSTER NOTE below): the row's fuzzy top_candidates
+//     float to the top as suggestions, the rest of the roster follows;
 //   - edit kills;
 //   - read a confidence Badge (>=0.8 default / >=0.5 secondary / else destructive;
 //     team_mismatch overrides to an outline-yellow badge);
@@ -26,15 +27,27 @@
 //
 // API client: lib/api/ocr.ts (ocrApi). Toasts via sonner. Help copy via InfoTip ids ocr.*.
 //
+// ── i18n NOTE ──────────────────────────────────────────────────────────────────
+// Every user-facing string here is a next-intl key. Component-specific copy lives under the
+// "ocr" namespace, group "reviewTable" (messages/<locale>/ocr.json); generic verbs (Back,
+// Discard, Cancel) reference the shared "common" group. English is authored here; the
+// i18n:translate script machine-fills fr/pt. No raw English literals may reach the DOM.
+//
 // ── ROSTER NOTE ────────────────────────────────────────────────────────────────
-// The full event roster is NOT readily available to this component (the edit page passes the
-// match + maps, not the registered-player list, and there is no roster prop in the OCR contract).
-// So "reassign to any roster player" is served by the per-row `top_candidates` dropdown (the best
-// 3 fuzzy matches the backend already computed) PLUS a free-text matched_username field for the
-// rare case the right player is not in the top 3. Picking a candidate sets matched_user_id (the
-// real identity link the backend commits on); the free-text field only adjusts the displayed
-// username. A future enhancement could thread the event roster down and swap the free-text box for
-// a full searchable player picker.
+// The event roster IS now fetched by this component: on mount it calls
+// ocrApi.getSessionRoster(sessionId) -> GET /events/ocr-session/<id>/roster/, which returns the
+// players registered to the event this session belongs to (+ event_type solo/team). That list
+// powers a per-row searchable combobox (RosterMatchPicker below): the admin TYPES a name and picks
+// from the REGISTERED players only. The row's fuzzy `top_candidates` are surfaced at the top as
+// "Suggestions" (showing username + confidence), the rest of the roster follows under "Registered
+// players" (deduped by user_id). Picking either sets matched_user_id (the real identity link the
+// backend commits on) AND matched_username, plus matched_team_id / matched_team_name for team
+// events, so the row RESOLVES for commit - no more inert free-text box that couldn't link a user.
+// Fallbacks: while the roster loads the trigger is a disabled spinner; if the fetch ERRORS we drop
+// back to the old top_candidates <Select> so the table still works; if the roster is empty the
+// combobox shows a "no registered players" message.
+// Because this ONE component is reused by the admin event OCR page, the organizer OCR page, the
+// organizer leaderboard and the admin leaderboard editor, fixing the picker here fixes all four.
 //
 // ── CORRECTED-TEXT NOTE ────────────────────────────────────────────────────────
 // "Corrected on-screen text" is recognition-truth: what the PIXELS literally say, independent of
@@ -43,9 +56,11 @@
 // and send it inside commit's `final_rows`. The current commit ignores unknown keys, and the
 // future training-capture step (afc_ocr.services.training_capture, referenced in the model
 // docstring) is the intended consumer. It defaults to raw_name so an untouched row already carries
-// the correct label.
+// the correct label. The column is labelled "training only" (B7) so the admin knows editing it
+// never changes who the row resolves to or the score.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -68,21 +83,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InfoTip } from "@/components/ui/info-tip";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   IconLoader2,
   IconDeviceFloppy,
   IconTrash,
   IconAlertTriangle,
   IconScan,
+  IconCheck,
+  IconSelector,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { ocrApi, type DraftRow, type CommitOcrError } from "@/lib/api/ocr";
+import {
+  ocrApi,
+  type DraftRow,
+  type CommitOcrError,
+  type OcrCandidate,
+  type OcrRosterPlayer,
+} from "@/lib/api/ocr";
 
 interface Props {
   /** The OCR session being reviewed (afc_ocr OCRSession.session_id). */
@@ -99,8 +145,188 @@ interface Props {
   onBack: () => void;
 }
 
-// Sentinel <Select> value for the free-text fallback (Radix Select forbids an empty-string item).
-const FREE_TEXT = "__free_text__";
+// The identity the picker hands back when a row is matched. `confidence` is present only when the
+// pick came from a fuzzy suggestion (mirrors the old handlePickCandidate, which set the badge from
+// the candidate score). team_id / team_name ride along for team events.
+type RosterPick = {
+  user_id: number;
+  username: string;
+  team_id: number | null;
+  team_name: string | null;
+  confidence?: number;
+};
+
+// ── RosterMatchPicker ──────────────────────────────────────────────────────────
+// The roster-scoped "matched player" combobox for ONE review row. Mirrors the Popover + Command
+// pattern in components/ui/user-search-select.tsx, but the DATA SOURCE is the event roster the
+// parent fetched once (getSessionRoster) - filtered CLIENT-SIDE by cmdk (the list is bounded, so
+// there is no server search). The row's fuzzy `topCandidates` float to the top under "Suggestions"
+// (shown as "username (NN%)"); the rest of the roster follows under "Registered players", deduped
+// by user_id so a suggestion is never listed twice. For team events each entry also shows the
+// player's team_name. Picking either calls onPick with the full identity so the parent persists
+// matched_user_id (+ team fields for team events) and the row resolves for commit.
+function RosterMatchPicker({
+  roster,
+  eventType,
+  topCandidates,
+  matchedUserId,
+  matchedUsername,
+  onPick,
+}: {
+  roster: OcrRosterPlayer[];
+  eventType: "solo" | "team";
+  topCandidates: OcrCandidate[];
+  matchedUserId: number | null;
+  matchedUsername: string | null;
+  onPick: (pick: RosterPick) => void;
+}) {
+  // Its own translator (component copy under ocr.reviewTable.*), so no translator prop threading.
+  const t = useTranslations("ocr");
+  // Each row owns its own popover open state (that is why this is a component, not inline JSX).
+  const [open, setOpen] = useState(false);
+  const isTeam = eventType === "team";
+
+  // Fast id -> roster player lookup, used to enrich a suggestion (top_candidates carry no team).
+  const rosterById = useMemo(() => {
+    const m = new Map<number, OcrRosterPlayer>();
+    for (const p of roster) m.set(p.user_id, p);
+    return m;
+  }, [roster]);
+
+  // Suggestion ids, so the "Registered players" group can exclude anyone already shown on top.
+  const candidateIds = useMemo(
+    () => new Set(topCandidates.map((c) => c.user_id)),
+    [topCandidates],
+  );
+  const restRoster = useMemo(
+    () => roster.filter((p) => !candidateIds.has(p.user_id)),
+    [roster, candidateIds],
+  );
+
+  // Pick a fuzzy suggestion: enrich with team fields from the roster (if the candidate is on it).
+  const pickCandidate = (c: OcrCandidate) => {
+    const rp = rosterById.get(c.user_id);
+    onPick({
+      user_id: c.user_id,
+      username: c.username,
+      team_id: rp?.team_id ?? null,
+      team_name: rp?.team_name ?? null,
+      confidence: c.confidence,
+    });
+    setOpen(false);
+  };
+
+  // Pick a plain roster player (no fuzzy score -> leave the confidence badge as it was).
+  const pickRoster = (p: OcrRosterPlayer) => {
+    onPick({
+      user_id: p.user_id,
+      username: p.username,
+      team_id: p.team_id,
+      team_name: p.team_name,
+    });
+    setOpen(false);
+  };
+
+  const triggerLabel =
+    matchedUserId != null && matchedUsername
+      ? matchedUsername
+      : t("reviewTable.selectPlayer");
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(
+            "h-8 w-full justify-between gap-2 text-xs font-normal",
+            matchedUserId == null && "text-muted-foreground",
+          )}
+        >
+          <span className="truncate">{triggerLabel}</span>
+          <IconSelector size={14} className="shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[--radix-popover-trigger-width] p-0"
+        align="start"
+      >
+        {/* cmdk filters CommandItems client-side by their `value` (username + team_name), so the
+            admin can just type to narrow the bounded roster - no server round-trip. */}
+        <Command>
+          <CommandInput
+            placeholder={t("reviewTable.searchPlayerPlaceholder")}
+            className="text-xs"
+          />
+          <CommandList>
+            <CommandEmpty>
+              {roster.length === 0 && topCandidates.length === 0
+                ? t("reviewTable.rosterEmpty")
+                : t("reviewTable.noRosterMatch")}
+            </CommandEmpty>
+
+            {/* Suggestions: the backend's best fuzzy matches, on top. */}
+            {topCandidates.length > 0 && (
+              <CommandGroup heading={t("reviewTable.suggestionsGroup")}>
+                {topCandidates.map((c) => {
+                  const rp = rosterById.get(c.user_id);
+                  return (
+                    <CommandItem
+                      key={`cand-${c.user_id}`}
+                      value={`${c.username} ${rp?.team_name ?? ""}`}
+                      onSelect={() => pickCandidate(c)}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <span className="flex min-w-0 flex-col">
+                        <span className="truncate">
+                          {c.username} ({Math.round(c.confidence * 100)}%)
+                        </span>
+                        {isTeam && rp?.team_name && (
+                          <span className="truncate text-[10px] text-muted-foreground">
+                            {rp.team_name}
+                          </span>
+                        )}
+                      </span>
+                      {matchedUserId === c.user_id && (
+                        <IconCheck size={14} className="shrink-0 text-primary" />
+                      )}
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+
+            {/* The rest of the registered roster (suggestions removed). */}
+            {restRoster.length > 0 && (
+              <CommandGroup heading={t("reviewTable.rosterGroup")}>
+                {restRoster.map((p) => (
+                  <CommandItem
+                    key={`roster-${p.user_id}`}
+                    value={`${p.username} ${p.team_name ?? ""}`}
+                    onSelect={() => pickRoster(p)}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate">{p.username}</span>
+                      {isTeam && p.team_name && (
+                        <span className="truncate text-[10px] text-muted-foreground">
+                          {p.team_name}
+                        </span>
+                      )}
+                    </span>
+                    {matchedUserId === p.user_id && (
+                      <IconCheck size={14} className="shrink-0 text-primary" />
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function OCRReviewTable({
   sessionId,
@@ -110,6 +336,11 @@ export function OCRReviewTable({
   onCommitted,
   onBack,
 }: Props) {
+  // next-intl translators. `t` = component copy under ocr.reviewTable.*; `tc` = shared verbs
+  // under the common.* group (Back / Discard / Cancel), so those stay consistent site-wide.
+  const t = useTranslations("ocr");
+  const tc = useTranslations("common");
+
   // Local editable copy of the rows. Each edit updates this AND fires a patch to the server.
   // corrected_text is seeded from raw_name so an untouched row already carries the right label.
   const [rows, setRows] = useState<DraftRow[]>(() =>
@@ -122,6 +353,44 @@ export function OCRReviewTable({
   const [savingRowIds, setSavingRowIds] = useState<Set<string>>(new Set());
   const [committing, setCommitting] = useState(false);
   const [discarding, setDiscarding] = useState(false);
+  // Controls the "Discard this draft?" confirm gate (B4 #3). Discard throws away every local
+  // edit and deletes the server draft, so BOTH discard triggers (empty-state + main button) open
+  // this AlertDialog first; only AlertDialogAction actually runs handleDiscard.
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
+
+  // ── Event roster (source for the matched-player combobox) ────────────────────
+  // Fetched ONCE per session from GET /events/ocr-session/<id>/roster/. The list is the players
+  // registered to this event; RosterMatchPicker filters it client-side. rosterError flips the per
+  // row picker to the old top_candidates <Select> fallback so the table still works offline of the
+  // roster endpoint. rosterEventType decides whether we show + persist team fields.
+  const [roster, setRoster] = useState<OcrRosterPlayer[]>([]);
+  const [rosterEventType, setRosterEventType] = useState<"solo" | "team">(
+    "solo",
+  );
+  const [rosterLoading, setRosterLoading] = useState(true);
+  const [rosterError, setRosterError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setRosterLoading(true);
+    setRosterError(false);
+    ocrApi
+      .getSessionRoster(sessionId)
+      .then((res) => {
+        if (cancelled) return;
+        setRoster(res.players ?? []);
+        setRosterEventType(res.event_type ?? "solo");
+      })
+      .catch(() => {
+        if (!cancelled) setRosterError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setRosterLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionId]);
 
   // ── Commit-readiness (mirrors the backend's two 400 guards) ──────────────────
   // Disable Commit until: every row has a matched player, AND every team_mismatch is acknowledged.
@@ -163,7 +432,7 @@ export function OCRReviewTable({
     try {
       await ocrApi.patchOcrRow(sessionId, { row_id: rowId, ...apiBody });
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Could not save that change");
+      toast.error(err?.response?.data?.message || t("reviewTable.saveFailed"));
     } finally {
       markSaving(rowId, false);
     }
@@ -171,12 +440,33 @@ export function OCRReviewTable({
 
   // ── Per-field edit handlers ──────────────────────────────────────────────────
 
-  // Reassign the matched player from a top candidate. Sets BOTH the user id (identity link the
-  // backend commits on) and the displayed username. We also clear any stale team_mismatch -> the
-  // backend recomputes team context on the next upload, but locally picking a known candidate is a
-  // resolution, so we keep team fields as-is and let the admin acknowledge if still mismatched.
+  // Reassign the matched player from a roster pick (RosterMatchPicker.onPick). Sets BOTH the user
+  // id (identity link the backend commits on) and the displayed username so the row RESOLVES for
+  // commit; for team events it also stores matched_team_id / matched_team_name from the picked
+  // roster player. A pick that came from a fuzzy suggestion carries a confidence, which we mirror
+  // onto the badge (as the old top_candidates dropdown did); a plain roster pick leaves the badge
+  // untouched. matched_team_name is display-only local state (the PATCH body only takes team_id).
+  const handlePickRosterPlayer = (row: DraftRow, pick: RosterPick) => {
+    const patch: Partial<DraftRow> = {
+      matched_user_id: pick.user_id,
+      matched_username: pick.username,
+    };
+    const apiBody: Record<string, any> = {
+      matched_user_id: pick.user_id,
+      matched_username: pick.username,
+    };
+    if (pick.confidence != null) patch.confidence = pick.confidence;
+    if (rosterEventType === "team") {
+      patch.matched_team_id = pick.team_id;
+      patch.matched_team_name = pick.team_name;
+      apiBody.matched_team_id = pick.team_id;
+    }
+    persistRow(row.row_id, patch, apiBody);
+  };
+
+  // Fallback picker (roster endpoint unavailable): reassign from a top candidate exactly as before.
+  // Sets the user id + displayed username + confidence badge. Only rendered when rosterError.
   const handlePickCandidate = (row: DraftRow, value: string) => {
-    if (value === FREE_TEXT) return; // selecting the placeholder is a no-op
     const cand = row.top_candidates.find((c) => String(c.user_id) === value);
     if (!cand) return;
     persistRow(
@@ -187,18 +477,6 @@ export function OCRReviewTable({
         confidence: cand.confidence,
       },
       { matched_user_id: cand.user_id, matched_username: cand.username },
-    );
-  };
-
-  // Free-text username fallback (see ROSTER NOTE). This only sets matched_username; it does NOT
-  // invent a matched_user_id (we can't resolve a free string to a real user here), so a free-text
-  // row stays "unresolved" for commit unless a candidate is also picked. Saved on blur.
-  const handleUsernameBlur = (row: DraftRow, username: string) => {
-    if (username === (row.matched_username ?? "")) return;
-    persistRow(
-      row.row_id,
-      { matched_username: username },
-      { matched_username: username },
     );
   };
 
@@ -236,21 +514,23 @@ export function OCRReviewTable({
       // Send the full local row set as final_rows so corrected_text (recognition-truth) rides along
       // for the training-capture step. The backend re-validates resolved + acknowledged regardless.
       await ocrApi.commitOcrSession(sessionId, { final_rows: rows });
-      toast.success("Match results committed from the screenshot");
+      toast.success(t("reviewTable.committed"));
       onCommitted();
     } catch (err: any) {
       const data = (err?.response?.data ?? {}) as CommitOcrError;
       // Surface the backend's blocking lists explicitly so the admin knows which names to fix.
       if (data.unresolved?.length) {
         toast.error(
-          `Resolve these unmatched names first: ${data.unresolved.join(", ")}`,
+          t("reviewTable.resolveFirst", { names: data.unresolved.join(", ") }),
         );
       } else if (data.unacknowledged?.length) {
         toast.error(
-          `Acknowledge these team mismatches first: ${data.unacknowledged.join(", ")}`,
+          t("reviewTable.acknowledgeFirst", {
+            names: data.unacknowledged.join(", "),
+          }),
         );
       } else {
-        toast.error(data.message || "Failed to commit the session");
+        toast.error(data.message || t("reviewTable.commitFailed"));
       }
     } finally {
       setCommitting(false);
@@ -261,16 +541,43 @@ export function OCRReviewTable({
     setDiscarding(true);
     try {
       await ocrApi.discardOcrSession(sessionId);
-      toast.success("Draft discarded");
+      toast.success(t("reviewTable.discarded"));
       onBack();
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to discard the draft",
+        err?.response?.data?.message || t("reviewTable.discardFailed"),
       );
     } finally {
       setDiscarding(false);
     }
   };
+
+  // ── Discard confirm gate (B4 #3) ─────────────────────────────────────────────
+  // Rendered once and reused from both discard triggers (empty-state + main). Only the
+  // AlertDialogAction runs handleDiscard; Cancel just closes. Controlled via confirmDiscardOpen.
+  const discardConfirmDialog = (
+    <AlertDialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {t("reviewTable.discardConfirmTitle")}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {t("reviewTable.discardConfirmDescription")}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDiscard}
+            className="bg-destructive text-white hover:bg-destructive/90"
+          >
+            {t("reviewTable.discardDraft")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 
   // ── Confidence badge ─────────────────────────────────────────────────────────
   // team_mismatch wins (outline-yellow), matching ImageUploadStep's mismatch styling. Otherwise
@@ -283,7 +590,7 @@ export function OCRReviewTable({
           variant="outline"
           className="rounded-full text-yellow-600 border-yellow-500/50"
         >
-          Team mismatch
+          {t("reviewTable.teamMismatch")}
         </Badge>
       );
     }
@@ -303,6 +610,38 @@ export function OCRReviewTable({
     );
   };
 
+  // ── Matched-player picker: fallback ──────────────────────────────────────────
+  // Only rendered when the roster endpoint FAILED (rosterError). Degrades to the original
+  // top_candidates-only <Select> so the row is still resolvable from the backend's best fuzzy
+  // guesses. No free-text (a typed string can't link a real user) - that inert box is gone.
+  const fallbackCandidateSelect = (row: DraftRow) => {
+    const value =
+      row.matched_user_id != null &&
+      row.top_candidates.some((c) => c.user_id === row.matched_user_id)
+        ? String(row.matched_user_id)
+        : undefined;
+    return (
+      <Select value={value} onValueChange={(v) => handlePickCandidate(row, v)}>
+        <SelectTrigger className="h-8 text-xs">
+          <SelectValue placeholder={t("reviewTable.pickPlayer")} />
+        </SelectTrigger>
+        <SelectContent>
+          {row.top_candidates.length === 0 ? (
+            <div className="px-2 py-1.5 text-xs text-muted-foreground">
+              {t("reviewTable.noSuggestions")}
+            </div>
+          ) : (
+            row.top_candidates.map((c) => (
+              <SelectItem key={c.user_id} value={String(c.user_id)}>
+                {c.username} ({Math.round(c.confidence * 100)}%)
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
+    );
+  };
+
   // ── Empty state ──────────────────────────────────────────────────────────────
   if (rows.length === 0) {
     return (
@@ -310,27 +649,23 @@ export function OCRReviewTable({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <IconScan size={20} className="text-muted-foreground" />
-            OCR Review
+            {t("reviewTable.emptyTitle")}
           </CardTitle>
-          <CardDescription>
-            No rows were read from this screenshot.
-          </CardDescription>
+          <CardDescription>{t("reviewTable.emptyDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
           <div className="flex items-center gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
             <IconAlertTriangle className="size-4 shrink-0" />
-            <span>
-              Check that the screenshot is clear and shows the match results,
-              then try again.
-            </span>
+            <span>{t("reviewTable.emptyWarning")}</span>
           </div>
           <div className="flex justify-between pt-2">
             <Button variant="outline" onClick={onBack}>
-              Back
+              {tc("back")}
             </Button>
+            {/* Discard is destructive (deletes the server draft), so route it through the confirm. */}
             <Button
               variant="ghost"
-              onClick={handleDiscard}
+              onClick={() => setConfirmDiscardOpen(true)}
               disabled={discarding}
               className="text-destructive hover:text-destructive"
             >
@@ -339,10 +674,11 @@ export function OCRReviewTable({
               ) : (
                 <IconTrash size={14} className="mr-1" />
               )}
-              Discard draft
+              {t("reviewTable.discardDraft")}
             </Button>
           </div>
         </CardContent>
+        {discardConfirmDialog}
       </Card>
     );
   }
@@ -352,19 +688,16 @@ export function OCRReviewTable({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <IconScan size={20} className="text-muted-foreground" />
-          Review OCR Result
+          {t("reviewTable.title")}
           {/* "Which engine answered" visibility - rendered only when the backend surfaced it. */}
           {engine ? (
             <Badge variant="outline" className="rounded-full text-xs">
-              Engine: {engine}
+              {t("reviewTable.enginePrefix", { engine })}
             </Badge>
           ) : null}
           <InfoTip id="ocr.engine" className="ml-1" />
         </CardTitle>
-        <CardDescription>
-          Check each player the screenshot read, correct any mistakes, then
-          commit to write the results to the leaderboard.
-        </CardDescription>
+        <CardDescription>{t("reviewTable.description")}</CardDescription>
       </CardHeader>
 
       <CardContent className="pt-4 space-y-4">
@@ -373,17 +706,24 @@ export function OCRReviewTable({
           <div className="flex flex-col gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
             {unresolvedCount > 0 && (
               <span>
-                {unresolvedCount} row{unresolvedCount !== 1 ? "s" : ""} still
-                need a matched player.
+                {t("reviewTable.needMatchedPlayer", { count: unresolvedCount })}
               </span>
             )}
             {unacknowledgedCount > 0 && (
               <span>
-                {unacknowledgedCount} team mismatch
-                {unacknowledgedCount !== 1 ? "es" : ""} still need
-                acknowledging.
+                {t("reviewTable.needAcknowledging", {
+                  count: unacknowledgedCount,
+                })}
               </span>
             )}
+          </div>
+        )}
+
+        {/* Roster fetch failed: tell the admin once why the picker degraded to suggestions only. */}
+        {rosterError && (
+          <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+            <IconAlertTriangle className="size-4 shrink-0" />
+            <span>{t("reviewTable.rosterError")}</span>
           </div>
         )}
 
@@ -392,20 +732,28 @@ export function OCRReviewTable({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10 text-xs">#</TableHead>
-                <TableHead className="text-xs">Raw name (OCR)</TableHead>
-                <TableHead className="text-xs">Matched player</TableHead>
-                <TableHead className="w-20 text-xs">Kills</TableHead>
+                <TableHead className="w-10 text-xs">
+                  {t("reviewTable.colNumber")}
+                </TableHead>
+                <TableHead className="text-xs">
+                  {t("reviewTable.colRawName")}
+                </TableHead>
+                <TableHead className="text-xs">
+                  {t("reviewTable.colMatchedPlayer")}
+                </TableHead>
+                <TableHead className="w-20 text-xs">
+                  {t("reviewTable.colKills")}
+                </TableHead>
                 <TableHead className="w-28 text-xs">
-                  Confidence
+                  {t("reviewTable.colConfidence")}
                   <InfoTip id="ocr.confidence" className="ml-1" />
                 </TableHead>
                 <TableHead className="text-xs">
-                  Corrected text
+                  {t("reviewTable.colCorrectedText")}
                   <InfoTip id="ocr.corrected_text" className="ml-1" />
                 </TableHead>
                 <TableHead className="w-24 text-center text-xs">
-                  Acknowledge
+                  {t("reviewTable.colAcknowledge")}
                   <InfoTip id="ocr.team_mismatch" className="ml-1" />
                 </TableHead>
               </TableRow>
@@ -413,15 +761,6 @@ export function OCRReviewTable({
             <TableBody>
               {rows.map((row, idx) => {
                 const saving = savingRowIds.has(row.row_id);
-                // Value for the candidate <Select>: the currently matched candidate id, or the
-                // free-text sentinel when the match isn't one of the listed candidates.
-                const selectValue =
-                  row.matched_user_id != null &&
-                  row.top_candidates.some(
-                    (c) => c.user_id === row.matched_user_id,
-                  )
-                    ? String(row.matched_user_id)
-                    : FREE_TEXT;
                 return (
                   <TableRow
                     key={row.row_id}
@@ -440,47 +779,31 @@ export function OCRReviewTable({
                       <span className="font-mono text-xs">{row.raw_name}</span>
                     </TableCell>
 
-                    {/* Matched player: top_candidates dropdown + free-text fallback */}
+                    {/* Matched player: roster-scoped searchable combobox (registered players only).
+                        Three states: roster loading -> disabled spinner trigger; roster fetch
+                        failed -> old top_candidates <Select> fallback; otherwise the picker. */}
                     <TableCell className="p-2">
-                      <div className="flex flex-col gap-1.5">
-                        <Select
-                          value={selectValue}
-                          onValueChange={(v) => handlePickCandidate(row, v)}
+                      {rosterError ? (
+                        fallbackCandidateSelect(row)
+                      ) : rosterLoading ? (
+                        <Button
+                          variant="outline"
+                          disabled
+                          className="h-8 w-full justify-start gap-2 text-xs font-normal text-muted-foreground"
                         >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue placeholder="Pick a player" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {row.top_candidates.length === 0 && (
-                              <SelectItem value={FREE_TEXT} disabled>
-                                No suggestions
-                              </SelectItem>
-                            )}
-                            {row.top_candidates.map((c) => (
-                              <SelectItem
-                                key={c.user_id}
-                                value={String(c.user_id)}
-                              >
-                                {c.username} ({Math.round(c.confidence * 100)}%)
-                              </SelectItem>
-                            ))}
-                            {/* Free-text marker so the dropdown can reflect a manual username. */}
-                            <SelectItem value={FREE_TEXT}>
-                              Other (type below)
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {/* Free-text username fallback - only sets the displayed name (see ROSTER
-                            NOTE); a row still needs a real candidate pick to resolve for commit. */}
-                        <Input
-                          defaultValue={row.matched_username ?? ""}
-                          placeholder="or type a username"
-                          className="h-7 text-xs"
-                          onBlur={(e) =>
-                            handleUsernameBlur(row, e.target.value.trim())
-                          }
+                          <IconLoader2 size={14} className="animate-spin" />
+                          {t("reviewTable.rosterLoading")}
+                        </Button>
+                      ) : (
+                        <RosterMatchPicker
+                          roster={roster}
+                          eventType={rosterEventType}
+                          topCandidates={row.top_candidates}
+                          matchedUserId={row.matched_user_id}
+                          matchedUsername={row.matched_username}
+                          onPick={(pick) => handlePickRosterPlayer(row, pick)}
                         />
-                      </div>
+                      )}
                     </TableCell>
 
                     {/* Editable kills */}
@@ -509,7 +832,7 @@ export function OCRReviewTable({
                       </span>
                     </TableCell>
 
-                    {/* Corrected on-screen text (recognition-truth capture) */}
+                    {/* Corrected on-screen text (recognition-truth capture, training only) */}
                     <TableCell className="p-2">
                       <Input
                         defaultValue={row.corrected_text ?? row.raw_name ?? ""}
@@ -528,7 +851,7 @@ export function OCRReviewTable({
                           onCheckedChange={(v) =>
                             handleAcknowledgeSub(row, !!v)
                           }
-                          aria-label="Acknowledge sub"
+                          aria-label={t("reviewTable.acknowledgeSub")}
                         />
                       ) : (
                         <span className="text-muted-foreground text-xs">-</span>
@@ -544,24 +867,25 @@ export function OCRReviewTable({
         {/* ── Actions ── */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
           <Button variant="outline" onClick={onBack} disabled={committing}>
-            Back
+            {tc("back")}
           </Button>
           <div className="flex items-center gap-2">
+            {/* Discard is destructive (loses every local edit), so open the confirm gate first. */}
             <Button
               variant="ghost"
-              onClick={handleDiscard}
+              onClick={() => setConfirmDiscardOpen(true)}
               disabled={discarding || committing}
               className="text-destructive hover:text-destructive"
             >
               {discarding ? (
                 <span className="flex items-center gap-2">
                   <IconLoader2 size={14} className="animate-spin" />
-                  Discarding…
+                  {t("reviewTable.discarding")}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <IconTrash size={14} />
-                  Discard
+                  {tc("discard")}
                 </span>
               )}
             </Button>
@@ -569,18 +893,19 @@ export function OCRReviewTable({
               {committing ? (
                 <span className="flex items-center gap-2">
                   <IconLoader2 size={14} className="animate-spin" />
-                  Committing…
+                  {t("reviewTable.committing")}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
                   <IconDeviceFloppy size={14} />
-                  Commit results
+                  {t("reviewTable.commitResults")}
                 </span>
               )}
             </Button>
           </div>
         </div>
       </CardContent>
+      {discardConfirmDialog}
     </Card>
   );
 }

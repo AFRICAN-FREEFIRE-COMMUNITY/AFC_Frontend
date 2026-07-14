@@ -1,0 +1,19 @@
+{
+  "title": "Classements",
+  "description": "Sélectionnez un événement pour consulter les classements",
+  "filterByEvent": "Filtrer par événement",
+  "selectEventPlaceholder": "Sélectionnez un événement",
+  "noLeaderboardConfig": "Il n'y a pas encore de configuration de classement pour cet événement.",
+  "group": "Groupe",
+  "viewFilter": "Afficher le filtre",
+  "overallLeaderboard": "Classement général",
+  "matchOption": "{number} du match - {map}",
+  "overallRankings": "Classement général",
+  "matchStandings": "Classement du championnat",
+  "rank": "Classement",
+  "competitor": "Concurrent",
+  "kills": "Tues",
+  "points": "Points",
+  "playerFallback": "{id} des joueurs",
+  "noData": "Aucune donnée n'a été enregistrée pour cette sélection."
+}

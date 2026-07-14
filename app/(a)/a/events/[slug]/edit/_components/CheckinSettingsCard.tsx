@@ -11,6 +11,7 @@
 // afc_tournament_and_scrims/views_checkin.py. Mounted by WaitlistTab (shared admin + organizer).
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
@@ -54,6 +55,8 @@ interface SoloStat {
 }
 
 export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
+  // Shared admin + organizer edit-flow card -> keys live in evEditTabs.checkin (en/fr/pt).
+  const t = useTranslations("evEditTabs");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [relegating, setRelegating] = useState(false);
@@ -105,11 +108,11 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
         },
         { headers: authHeaders() },
       );
-      toast.success("Check-in settings saved.");
+      toast.success(t("checkin.toastSaved"));
       load();
     } catch (err: any) {
       // The backend returns the specific window-rule violation as its message.
-      toast.error(err?.response?.data?.message || "Could not save check-in settings.");
+      toast.error(err?.response?.data?.message || t("checkin.toastSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -120,10 +123,10 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
     setRelegating(true);
     try {
       const r = await axios.post(`${base}/checkin/relegate/`, { event_id: eventId }, { headers: authHeaders() });
-      toast.success(r?.data?.message || "Competitors relegated.");
+      toast.success(r?.data?.message || t("checkin.toastRelegated"));
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Could not relegate.");
+      toast.error(err?.response?.data?.message || t("checkin.toastRelegateFailed"));
     } finally {
       setRelegating(false);
     }
@@ -135,21 +138,21 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <IconUserCheck className="text-primary size-5" /> Check-in
+          <IconUserCheck className="text-primary size-5" /> {t("checkin.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-muted-foreground text-sm">When on, every registered competitor must log in and tap Check-in inside the window. A squad is eligible only when all its players check in; anyone who does not is moved to the waitlist.</p>
+        <p className="text-muted-foreground text-sm">{t("checkin.desc")}</p>
 
         <div className="flex items-center justify-between rounded-md border p-3">
-          <Label htmlFor="checkin-enabled" className="text-sm">Enable check-in</Label>
+          <Label htmlFor="checkin-enabled" className="text-sm">{t("checkin.enableLabel")}</Label>
           <Switch id="checkin-enabled" checked={enabled} onCheckedChange={setEnabled} disabled={loading} />
         </div>
 
         {enabled && (
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <Label className="text-xs">Opens</Label>
+              <Label className="text-xs">{t("checkin.opens")}</Label>
               <input
                 type="datetime-local"
                 value={start}
@@ -158,7 +161,7 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Closes</Label>
+              <Label className="text-xs">{t("checkin.closes")}</Label>
               <input
                 type="datetime-local"
                 value={end}
@@ -166,20 +169,20 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
                 className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm"
               />
             </div>
-            <p className="text-muted-foreground col-span-full text-xs">Check-in opens after registration ends and closes before the event starts.</p>
+            <p className="text-muted-foreground col-span-full text-xs">{t("checkin.windowHelp")}</p>
           </div>
         )}
 
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" onClick={save} disabled={saving || loading}>
             {saving ? <IconLoader2 className="mr-1 size-4 animate-spin" /> : null}
-            Save check-in settings
+            {t("checkin.saveSettings")}
           </Button>
-          {enabled && windowOpen && <Badge variant="outline" className="border-green-600/60 text-green-500">Open now</Badge>}
+          {enabled && windowOpen && <Badge variant="outline" className="border-green-600/60 text-green-500">{t("checkin.openNow")}</Badge>}
           {windowClosed && (
             <Button size="sm" variant="outline" onClick={relegateNow} disabled={relegating}>
               {relegating ? <IconLoader2 className="mr-1 size-4 animate-spin" /> : null}
-              Move un-checked-in to waitlist
+              {t("checkin.relegateNow")}
             </Button>
           )}
         </div>
@@ -191,7 +194,7 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
               <div key={tm.tournament_team_id} className="flex items-center justify-between text-xs">
                 <span className="truncate font-medium">
                   {tm.team_name}
-                  {tm.is_waitlisted ? <span className="text-amber-500"> · waitlisted</span> : null}
+                  {tm.is_waitlisted ? <span className="text-amber-500"> · {t("checkin.waitlistedSuffix")}</span> : null}
                 </span>
                 <span className={tm.eligible ? "text-green-500" : "text-muted-foreground"}>
                   {tm.roster_checked_in}/{tm.roster_total}
@@ -202,10 +205,10 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
               <div key={s.user_id} className="flex items-center justify-between text-xs">
                 <span className="truncate font-medium">
                   {s.username}
-                  {s.is_waitlisted ? <span className="text-amber-500"> · waitlisted</span> : null}
+                  {s.is_waitlisted ? <span className="text-amber-500"> · {t("checkin.waitlistedSuffix")}</span> : null}
                 </span>
                 <span className={s.checked_in ? "text-green-500" : "text-muted-foreground"}>
-                  {s.checked_in ? "In" : "Not yet"}
+                  {s.checked_in ? t("checkin.statusIn") : t("checkin.statusNotYet")}
                 </span>
               </div>
             ))}

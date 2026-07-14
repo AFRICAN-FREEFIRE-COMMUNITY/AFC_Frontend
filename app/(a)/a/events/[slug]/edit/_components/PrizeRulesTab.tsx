@@ -2,6 +2,9 @@
 
 import React, { useState } from "react";
 import { useFormContext } from "react-hook-form";
+// i18n: this Prize & Rules tab is shared by the admin + organizer event-edit wizards. All copy is
+// internationalized via the "evEditTabs" namespace (messages/{en,fr,pt}/evEditTabs.json).
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,6 +76,7 @@ export default function PrizeRulesTab({
   pendingSubmit,
 }: PrizeRulesTabProps) {
   const form = useFormContext<EventFormType>();
+  const t = useTranslations("evEditTabs");
   const [isDragging, setIsDragging] = useState(false);
 
   const prizeDistribution = form.watch("prize_distribution") || {};
@@ -80,7 +84,7 @@ export default function PrizeRulesTab({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Prize Pool & Rules</CardTitle>
+        <CardTitle>{t("prizeRules.cardTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <FormField
@@ -88,11 +92,11 @@ export default function PrizeRulesTab({
           name="prizepool"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Total Prize Pool</FormLabel>
+              <FormLabel>{t("prizeRules.totalPrizePool")}</FormLabel>
               <Input
                 type="text"
                 {...field}
-                placeholder="e.g., $5,000 USD or 5000 Diamonds"
+                placeholder={t("prizeRules.totalPrizePoolPlaceholder")}
               />
               <FormMessage />
             </FormItem>
@@ -105,7 +109,7 @@ export default function PrizeRulesTab({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Prize Pool Cash Value <span className="text-red-500">*</span>
+                {t("prizeRules.cashValue")} <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -123,11 +127,11 @@ export default function PrizeRulesTab({
                       e.preventDefault();
                     }
                   }}
-                  placeholder="e.g., 5000"
+                  placeholder={t("prizeRules.cashValuePlaceholder")}
                 />
               </FormControl>
               <p className="text-muted-foreground text-xs">
-                Required. Your prize distribution below must add up to this amount.
+                {t("prizeRules.cashValueHelp")}
               </p>
               <FormMessage />
             </FormItem>
@@ -141,14 +145,14 @@ export default function PrizeRulesTab({
           name="prize_currency"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Prize Currency</FormLabel>
+              <FormLabel>{t("prizeRules.prizeCurrency")}</FormLabel>
               <FormControl>
                 <Select
                   value={(field.value as string) || "USD"}
                   onValueChange={field.onChange}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select currency" />
+                    <SelectValue placeholder={t("prizeRules.selectCurrency")} />
                   </SelectTrigger>
                   <SelectContent>
                     {PRIZE_CURRENCIES.map((c) => (
@@ -160,7 +164,7 @@ export default function PrizeRulesTab({
                 </Select>
               </FormControl>
               <p className="text-muted-foreground text-xs">
-                The amounts above are treated as this currency for conversion + display.
+                {t("prizeRules.prizeCurrencyHelp")}
               </p>
               <FormMessage />
             </FormItem>
@@ -170,7 +174,7 @@ export default function PrizeRulesTab({
         <Separator />
 
         <div className="space-y-3">
-          <FormLabel>Prize Distribution</FormLabel>
+          <FormLabel>{t("prizeRules.prizeDistribution")}</FormLabel>
           {Object.entries(prizeDistribution).map(([key, value]) => (
             <div key={key} className="grid grid-cols-4 gap-2">
               <Input
@@ -202,7 +206,7 @@ export default function PrizeRulesTab({
                       shouldDirty: true,
                     });
                   }}
-                  placeholder="e.g., 2000"
+                  placeholder={t("prizeRules.distributionPlaceholder")}
                 />
                 <Button
                   type="button"
@@ -221,7 +225,7 @@ export default function PrizeRulesTab({
             variant="outline"
             onClick={addPrizePosition}
           >
-            + Add Prize Position
+            {t("prizeRules.addPrizePosition")}
           </Button>
 
           {/* Live tally: does the distribution add up to the cash value? Tells over/under + by how much. */}
@@ -235,21 +239,21 @@ export default function PrizeRulesTab({
         <Separator />
 
         <div className="space-y-4">
-          <FormLabel>Tournament Rules</FormLabel>
+          <FormLabel>{t("prizeRules.tournamentRules")}</FormLabel>
           <div className="flex gap-2">
             <Button
               type="button"
               variant={rulesInputMethod === "type" ? "default" : "outline"}
               onClick={() => setRulesInputMethod("type")}
             >
-              Type Rules
+              {t("prizeRules.typeRules")}
             </Button>
             <Button
               type="button"
               variant={rulesInputMethod === "upload" ? "default" : "outline"}
               onClick={() => setRulesInputMethod("upload")}
             >
-              Upload Document
+              {t("prizeRules.uploadDocument")}
             </Button>
           </div>
 
@@ -262,7 +266,7 @@ export default function PrizeRulesTab({
                   <Textarea
                     {...field}
                     rows={10}
-                    placeholder="Enter event rules..."
+                    placeholder={t("prizeRules.rulesPlaceholder")}
                     onFocus={() => form.setValue("rules_document", "")}
                   />
                   <FormMessage />
@@ -275,7 +279,7 @@ export default function PrizeRulesTab({
               name="rules_document"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Upload Rules Document</FormLabel>
+                  <FormLabel>{t("prizeRules.uploadRulesDocument")}</FormLabel>
                   <FormControl>
                     <div className="space-y-4">
                       {!previewRuleUrl ? (
@@ -299,9 +303,7 @@ export default function PrizeRulesTab({
                                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                               ];
                               if (!supportedTypes.includes(file.type)) {
-                                toast.error(
-                                  "Only PDF, DOC, or DOCX files are supported.",
-                                );
+                                toast.error(t("prizeRules.toastDocType"));
                                 return;
                               }
                               setSelectedRuleFile(file);
@@ -323,13 +325,13 @@ export default function PrizeRulesTab({
                               />
                             </div>
                             <p className="text-sm text-muted-foreground">
-                              Drop your document here, or{" "}
+                              {t("prizeRules.dropDocument")}{" "}
                               <span className="text-primary font-medium hover:underline">
-                                browse
+                                {t("prizeRules.browse")}
                               </span>
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Supports: PDF, DOC, DOCX
+                              {t("prizeRules.supportsDocs")}
                             </p>
                           </div>
                         </div>
@@ -339,16 +341,16 @@ export default function PrizeRulesTab({
                             <IconFile size={64} className="text-primary" />
                             <p className="text-sm font-medium mt-2">
                               {selectedRuleFile?.name ||
-                                "Rules Document Uploaded"}
+                                t("prizeRules.rulesDocUploaded")}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              File Size:{" "}
-                              {(
-                                (selectedRuleFile?.size || 0) /
-                                1024 /
-                                1024
-                              ).toFixed(2)}{" "}
-                              MB
+                              {t("prizeRules.fileSize", {
+                                size: (
+                                  (selectedRuleFile?.size || 0) /
+                                  1024 /
+                                  1024
+                                ).toFixed(2),
+                              })}
                             </p>
                           </div>
 
@@ -367,7 +369,7 @@ export default function PrizeRulesTab({
                               }}
                             >
                               <IconX size={16} className="mr-2" />
-                              Remove
+                              {t("prizeRules.remove")}
                             </Button>
 
                             <Button
@@ -379,7 +381,7 @@ export default function PrizeRulesTab({
                               }
                             >
                               <IconUpload size={16} className="mr-2" />
-                              Replace
+                              {t("prizeRules.replace")}
                             </Button>
                           </div>
                         </div>
@@ -401,9 +403,7 @@ export default function PrizeRulesTab({
                           ];
 
                           if (!supportedTypes.includes(file.type)) {
-                            toast.error(
-                              "Only PDF, DOC, or DOCX files are supported.",
-                            );
+                            toast.error(t("prizeRules.toastDocType"));
                             return;
                           }
 
@@ -427,9 +427,9 @@ export default function PrizeRulesTab({
           disabled={loadingEvent || pendingSubmit}
         >
           {loadingEvent || pendingSubmit ? (
-            <Loader text="Saving..." />
+            <Loader text={t("prizeRules.saving")} />
           ) : (
-            "Save Changes"
+            t("prizeRules.saveChanges")
           )}
         </Button>
       </CardContent>

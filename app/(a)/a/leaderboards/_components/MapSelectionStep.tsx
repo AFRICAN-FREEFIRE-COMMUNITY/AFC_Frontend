@@ -1,10 +1,9 @@
 "use client";
 
 // ── MapSelectionStep ───────────────────────────────────────────────────────────
-// First step of the OCR review flow: the admin picks WHICH map (1-indexed map_index)
-// this result is for, drops ONE OR MORE screenshots for that map, and uploads them for
-// OCR. On success the returned session_id + (merged) draft_rows are handed up to
-// OCRReviewTable for edit + commit.
+// First step of the OCR review flow: the admin picks WHICH map this result is for, drops ONE
+// OR MORE screenshots for that map, and uploads them for OCR. On success the returned
+// session_id + (merged) draft_rows are handed up to OCRReviewTable for edit + commit.
 //
 // Why multiple screenshots: a single map's standings are often split across more than one
 // screenshot (placements 1-6 on one screen, 7-12 on the next, or a top/bottom half). The
@@ -22,12 +21,19 @@
 // client: lib/api/ocr.ts (ocrApi.uploadOcrScreenshot, which POSTs multipart to
 // /events/ocr-match-result/ with the "screenshot" field repeated once per image). Toasts via sonner.
 //
-// The `maps` array is the group's matches passed down from edit/page.tsx. Map index is 1-based and
-// derived from each map's position in that array (matching how ImageUploadStep labels Map 1..N),
-// so it lines up with the backend's map_index (1-indexed). When there is exactly one map we
-// pre-select it to save a click.
+// Image validation: files are gated through lib/ocrImages.filterOcrImages (png/jpeg/webp, <=10 MB),
+// the exact same contract the backend enforces in afc_ocr/services/image_validate.py, so an HEIC
+// iPhone screenshot is rejected at drop time (B8) instead of failing later at Gemini.
+//
+// Map binding (B9): the picked map's STABLE backend id is carried end-to-end. Each map in the group
+// IS its own Match, so on upload we send the selected map's match_id as match_id and its
+// match_number as map_index (falling back to array position only if a map has no number). That makes
+// attribution independent of the maps list order, so reordering/deleting a map cannot re-point a
+// screenshot at the wrong map. The `maps` array is the group's matches passed down from edit/page.tsx.
+// When there is exactly one map we pre-select it to save a click.
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -47,9 +53,10 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ocrApi, type DraftRow } from "@/lib/api/ocr";
+import { filterOcrImages, OCR_ACCEPT } from "@/lib/ocrImages";
 
 // One selectable map. Mirrors the {match_id, match_number, match_map} shape the edit page already
-// hands GroupBulkUploadPanel; only match_map (+ a 1-based index) is needed for the label here.
+// hands GroupBulkUploadPanel. match_id + match_number are the stable identity used for the B9 binding.
 export interface OcrMapOption {
   match_id: number;
   match_number?: number;
@@ -65,9 +72,9 @@ interface QueuedShot {
 }
 
 interface Props {
-  /** The match these maps belong to (afc_ocr OCR is gated per match_id). */
+  /** The match the drawer was opened from. Kept as a defensive fallback for the map binding (B9). */
   matchId: number;
-  /** The group's maps, in order. Position drives the 1-indexed map_index sent to the backend. */
+  /** The group's maps, in order. Each map's own match_id/match_number drives the stable binding. */
   maps: OcrMapOption[];
   /** Hands the fresh session up to OCRReviewTable. engine is optional (backend may not surface it). */
   onSessionReady: (
@@ -85,11 +92,14 @@ export function MapSelectionStep({
   onSessionReady,
   onBack,
 }: Props) {
-  // 1-indexed map_index the admin picked (the backend expects 1-based). Pre-pick the only map.
-  const [mapIndex, setMapIndex] = useState<number | null>(
-    maps.length === 1 ? 1 : null,
+  const t = useTranslations("ocr");
+  const tc = useTranslations("common");
+
+  // The stable match_id of the map the admin picked (B9). Pre-pick the only map if there is one.
+  const [selectedMatchId, setSelectedMatchId] = useState<number | null>(
+    maps.length === 1 ? maps[0].match_id : null,
   );
-  // The screenshots queued for this map (one OR many — all merged server-side into one draft).
+  // The screenshots queued for this map (one OR many, all merged server-side into one draft).
   const [shots, setShots] = useState<QueuedShot[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -104,18 +114,25 @@ export function MapSelectionStep({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Primary card label: the in-game map name if we have it, else its stable "Map N" number.
   const mapLabel = (m: OcrMapOption, i: number) =>
-    m.match_map ? `${m.match_map}` : `Map ${m.match_number ?? i + 1}`;
+    m.match_map
+      ? m.match_map
+      : t("uploadSteps.mapStep.mapNumber", { n: m.match_number ?? i + 1 });
 
-  // Append every dropped/selected image file to the queue (replaces nothing — multiple shots
-  // for one map are the point). Non-image files are rejected with a toast.
+  // Append every dropped/selected image file to the queue (replaces nothing, multiple shots for
+  // one map are the point). Files are gated through filterOcrImages so only png/jpeg/webp <=10 MB
+  // survive; the first rejected file toasts the reason (wrong type / too big).
   const acceptFiles = (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    const images = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (images.length === 0) {
-      toast.error("Only image files are allowed (PNG, JPG, WEBP)");
-      return;
-    }
+    const images = filterOcrImages(files, {
+      onReject: (reason) =>
+        toast.error(
+          reason === "size"
+            ? t("uploadSteps.rejectSize")
+            : t("uploadSteps.rejectType"),
+        ),
+    });
+    if (images.length === 0) return;
     setShots((prev) => [
       ...prev,
       ...images.map((file, i) => ({
@@ -137,26 +154,37 @@ export function MapSelectionStep({
   // (match_id, map_index, and the "screenshot" field appended once per image), then hands the
   // resulting MERGED session up to the review table.
   const handleUpload = async () => {
-    if (!mapIndex) {
-      toast.error("Pick which map these screenshots are for first.");
+    const selectedMap = maps.find((m) => m.match_id === selectedMatchId);
+    // Resolve the stable binding BEFORE the guard so the fallback to the drawer's entry match is
+    // type-honest (selectedMap may be undefined here); after the guard selectedMap is defined.
+    const boundMatchId = selectedMap?.match_id ?? matchId;
+    if (!selectedMap) {
+      toast.error(t("uploadSteps.mapStep.pickMapFirst"));
       return;
     }
     if (shots.length === 0) {
-      toast.error("Add at least one screenshot to upload.");
+      toast.error(t("uploadSteps.mapStep.addOneFirst"));
       return;
     }
     setUploading(true);
     try {
       const fd = new FormData();
-      fd.append("match_id", String(matchId));
-      fd.append("map_index", String(mapIndex));
+      // B9: bind to the selected map's own Match id + its backend-assigned match_number as
+      // map_index, instead of the drawer's entry match and the card's array position. Falls back
+      // to array position only if a map somehow has no number.
+      fd.append("match_id", String(boundMatchId));
+      fd.append(
+        "map_index",
+        String(selectedMap.match_number ?? maps.indexOf(selectedMap) + 1),
+      );
       shots.forEach((s) => fd.append("screenshot", s.file));
       const session = await ocrApi.uploadOcrScreenshot(fd);
       const rowCount = session.draft_rows?.length ?? 0;
       toast.success(
-        `Read ${rowCount} row${rowCount !== 1 ? "s" : ""} from ${shots.length} screenshot${
-          shots.length !== 1 ? "s" : ""
-        }`,
+        t("uploadSteps.mapStep.readSuccess", {
+          rows: rowCount,
+          shots: shots.length,
+        }),
       );
       onSessionReady(
         session.session_id,
@@ -165,7 +193,7 @@ export function MapSelectionStep({
       );
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "OCR upload failed. Try again.",
+        err?.response?.data?.message || t("uploadSteps.mapStep.uploadFailed"),
       );
     } finally {
       setUploading(false);
@@ -177,26 +205,24 @@ export function MapSelectionStep({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <IconMap size={20} className="text-muted-foreground" />
-          Select Map and Upload Screenshot
+          {t("uploadSteps.mapStep.title")}
         </CardTitle>
-        <CardDescription>
-          Pick which map this result is for, then drop in one or more screenshots to read
-          them with OCR.
-        </CardDescription>
+        <CardDescription>{t("uploadSteps.mapStep.description")}</CardDescription>
       </CardHeader>
 
       <CardContent className="pt-4 space-y-6">
         {/* ── Map picker (method-card grid idiom) ── */}
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">Which map is this for?</h3>
+          <h3 className="text-sm font-medium">
+            {t("uploadSteps.mapStep.whichMap")}
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {maps.map((m, i) => {
-              const idx = i + 1; // 1-based map_index
-              const selected = mapIndex === idx;
+              const selected = selectedMatchId === m.match_id;
               return (
                 <button
                   key={m.match_id}
-                  onClick={() => setMapIndex(idx)}
+                  onClick={() => setSelectedMatchId(m.match_id)}
                   className={cn(
                     "text-left rounded-lg border p-4 flex flex-col gap-2 transition-colors",
                     selected
@@ -218,7 +244,12 @@ export function MapSelectionStep({
                       <IconCheck size={16} className="text-primary shrink-0" />
                     )}
                   </div>
-                  <p className="text-xs text-primary">Map {idx}</p>
+                  {/* Stable map number (B9), not the array position. */}
+                  <p className="text-xs text-primary">
+                    {t("uploadSteps.mapStep.mapNumber", {
+                      n: m.match_number ?? i + 1,
+                    })}
+                  </p>
                 </button>
               );
             })}
@@ -228,10 +259,14 @@ export function MapSelectionStep({
         {/* ── Dropzone (always visible so more shots can be added) + thumbnail grid ── */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium">Result screenshots</h3>
+            <h3 className="text-sm font-medium">
+              {t("uploadSteps.mapStep.screenshotsHeading")}
+            </h3>
             {shots.length > 0 && (
               <span className="text-xs text-muted-foreground">
-                {shots.length} screenshot{shots.length !== 1 ? "s" : ""} for this map
+                {t("uploadSteps.mapStep.screenshotCount", {
+                  count: shots.length,
+                })}
               </span>
             )}
           </div>
@@ -257,12 +292,13 @@ export function MapSelectionStep({
           >
             <IconUpload size={28} className="text-muted-foreground" />
             <p className="text-sm text-center text-muted-foreground">
-              Drag &amp; drop one or more screenshots here, or{" "}
-              <span className="text-primary font-medium">click to browse</span>
+              {t("uploadSteps.mapStep.dropzoneTitle")}{" "}
+              <span className="text-primary font-medium">
+                {t("uploadSteps.mapStep.dropzoneBrowse")}
+              </span>
             </p>
             <p className="text-xs text-muted-foreground text-center">
-              PNG, JPG, WEBP. Add several when a map&apos;s standings span more than one
-              screenshot, they are merged into one result.
+              {t("uploadSteps.mapStep.dropzoneHint")}
             </p>
           </div>
 
@@ -288,7 +324,9 @@ export function MapSelectionStep({
                       removeShot(s.id);
                     }}
                     className="absolute top-1.5 right-1.5 size-6 rounded-full bg-destructive/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
-                    aria-label={`Remove ${s.file.name}`}
+                    aria-label={t("uploadSteps.mapStep.removeShot", {
+                      name: s.file.name,
+                    })}
                   >
                     <IconX size={12} className="text-white" />
                   </button>
@@ -300,7 +338,7 @@ export function MapSelectionStep({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/png,image/jpeg,image/jpg,image/webp"
+            accept={OCR_ACCEPT}
             multiple
             className="hidden"
             onChange={(e) => {
@@ -313,7 +351,7 @@ export function MapSelectionStep({
           {maps.length === 0 && (
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <IconPhoto size={14} />
-              No maps found for this match.
+              {t("uploadSteps.mapStep.noMaps")}
             </p>
           )}
         </div>
@@ -321,21 +359,21 @@ export function MapSelectionStep({
         {/* ── Actions ── */}
         <div className="flex justify-between pt-2">
           <Button variant="outline" onClick={onBack} disabled={uploading}>
-            Back
+            {tc("back")}
           </Button>
           <Button
             onClick={handleUpload}
-            disabled={uploading || shots.length === 0 || !mapIndex}
+            disabled={uploading || shots.length === 0 || selectedMatchId === null}
           >
             {uploading ? (
               <span className="flex items-center gap-2">
                 <IconLoader2 size={14} className="animate-spin" />
-                Reading screenshot{shots.length !== 1 ? "s" : ""}…
+                {t("uploadSteps.mapStep.reading", { count: shots.length })}
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <IconUpload size={14} />
-                Upload and read
+                {t("uploadSteps.mapStep.uploadAndRead")}
               </span>
             )}
           </Button>

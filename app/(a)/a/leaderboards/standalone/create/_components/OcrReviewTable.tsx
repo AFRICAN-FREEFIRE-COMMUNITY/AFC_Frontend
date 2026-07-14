@@ -25,10 +25,16 @@
 
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
+// i18n: all user-facing copy in this table comes from the "ocr" namespace
+// (messages/{en,fr,pt}/ocr.json) under the "stdReview" group, plus a few generic
+// strings from the shared "common" group. Keys are resolved for the active locale by
+// useTranslations. See CONSUMED BY note above - the parent OcrBatchDialog is also i18n'd.
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -213,6 +219,11 @@ export function OcrReviewTable({
   // Fired when the admin presses "Apply this map" with every row resolved. Parent does the API call.
   onApply: (applyRows: OcrApplyRow[]) => void;
 }) {
+  // i18n hooks: `t` = this table's own copy (ocr.stdReview.*); `tc` = shared generic
+  // strings (common.*). All labels/placeholders/toasts/badges below route through these.
+  const t = useTranslations("ocr");
+  const tc = useTranslations("common");
+
   const [rows, setRows] = useState<ReviewRow[]>(() =>
     (extractRows ?? []).map((r) => toReviewRow(r, format)),
   );
@@ -245,7 +256,9 @@ export function OcrReviewTable({
       const cand = row.candidates.find((c) => c.ghost_team_id === gid);
       setRow(row.row_id, {
         resolution: { kind: "ghost_existing", id: gid },
-        resolutionLabel: `${cand?.team_name ?? "Ghost team"} (existing ghost)`,
+        resolutionLabel: t("stdReview.existingGhostLabel", {
+          name: cand?.team_name ?? t("stdReview.ghostTeamFallback"),
+        }),
         showFreeMatch: false,
         showGhostForm: false,
       });
@@ -329,7 +342,7 @@ export function OcrReviewTable({
     if (teamId == null) return;
     setRow(row.row_id, {
       resolution: { kind: "real", id: teamId },
-      resolutionLabel: team?.team_name ?? `Team #${teamId}`,
+      resolutionLabel: team?.team_name ?? t("stdReview.teamNumFallback", { id: teamId }),
       matchedId: teamId,
       showFreeMatch: false,
     });
@@ -349,7 +362,9 @@ export function OcrReviewTable({
     const name = row.ghostName.trim();
     if (!name) {
       toast.error(
-        format === "team" ? "Enter a ghost team name." : "Enter the player's IGN.",
+        format === "team"
+          ? t("stdReview.errGhostTeamName")
+          : t("stdReview.errGhostIgn"),
       );
       return;
     }
@@ -362,7 +377,7 @@ export function OcrReviewTable({
         : { kind: "ghost_new", name };
     setRow(row.row_id, {
       resolution,
-      resolutionLabel: `${name} (new ghost)`,
+      resolutionLabel: t("stdReview.newGhostLabel", { name }),
       showGhostForm: false,
     });
   };
@@ -432,7 +447,7 @@ export function OcrReviewTable({
   if (rows.length === 0) {
     return (
       <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
-        No rows were read from this map. Remove it and try clearer screenshots.
+        {t("stdReview.emptyState")}
       </p>
     );
   }
@@ -444,8 +459,10 @@ export function OcrReviewTable({
         <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
           <IconAlertTriangle className="size-4 shrink-0" />
           <span>
-            {unresolvedCount} row{unresolvedCount !== 1 ? "s" : ""} still need a match. Pick a{" "}
-            {format === "team" ? "team" : "player"} or create a ghost for each.
+            {t("stdReview.readinessHint", {
+              count: unresolvedCount,
+              entity: format === "team" ? "team" : "player",
+            })}
           </span>
         </div>
       )}
@@ -454,15 +471,20 @@ export function OcrReviewTable({
         <Table>
           <TableHeader>
             <TableRow className="h-10">
-              <TableHead className="text-xs text-foreground">Raw name</TableHead>
-              <TableHead className="w-24 text-xs text-foreground">Placement</TableHead>
-              <TableHead className="w-20 text-xs text-foreground">Kills</TableHead>
+              <TableHead className="text-xs text-foreground">{t("stdReview.colRawName")}</TableHead>
+              <TableHead className="w-24 text-xs text-foreground">{t("stdReview.colPlacement")}</TableHead>
+              <TableHead className="w-20 text-xs text-foreground">{t("stdReview.colKills")}</TableHead>
               {scoring && (
-                <TableHead className="w-20 text-xs text-foreground">Points</TableHead>
+                <TableHead className="w-20 text-xs text-foreground">{t("stdReview.colPoints")}</TableHead>
               )}
-              <TableHead className="w-24 text-xs text-foreground">Confidence</TableHead>
+              {/* B5: the confidence InfoTip mirrors the sibling event table (OCRReviewTable.tsx).
+                  The `ocr.confidence` help id renders its translated copy from the `help` namespace. */}
+              <TableHead className="w-24 text-xs text-foreground">
+                {t("stdReview.colConfidence")}
+                <InfoTip id="ocr.confidence" className="ml-1" />
+              </TableHead>
               <TableHead className="text-xs text-foreground">
-                {format === "team" ? "Matched team" : "Matched player"}
+                {format === "team" ? t("stdReview.colMatchedTeam") : t("stdReview.colMatchedPlayer")}
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -478,7 +500,7 @@ export function OcrReviewTable({
                       <span className="font-mono text-xs">{row.raw_name}</span>
                     ) : (
                       <span className="text-xs italic text-muted-foreground">
-                        (team name not read)
+                        {t("stdReview.teamNameNotRead")}
                       </span>
                     )}
                     {/* Players toggle (team format): expands the per-player panel under this row,
@@ -495,7 +517,7 @@ export function OcrReviewTable({
                         ) : (
                           <IconChevronRight size={11} />
                         )}
-                        {row.players.length} player{row.players.length !== 1 ? "s" : ""}
+                        {t("stdReview.playersToggle", { count: row.players.length })}
                         {": "}
                         <span className="max-w-[160px] truncate">
                           {row.players.map((p) => p.name).join(", ")}
@@ -531,7 +553,7 @@ export function OcrReviewTable({
                       {(rowPoints(row) ?? 0) % 1 === 0
                         ? rowPoints(row)
                         : (rowPoints(row) ?? 0).toFixed(1)}{" "}
-                      pts
+                      {t("stdReview.pts")}
                     </span>
                   </TableCell>
                 )}
@@ -545,13 +567,13 @@ export function OcrReviewTable({
                       >
                         <SelectTrigger className="h-8 text-xs">
                           <SelectValue
-                            placeholder={format === "team" ? "Pick a team" : "Pick a player"}
+                            placeholder={format === "team" ? t("stdReview.pickTeam") : t("stdReview.pickPlayer")}
                           />
                         </SelectTrigger>
                         <SelectContent>
                           {row.candidates.length === 0 && (
                             <SelectItem value={FREE_MATCH} disabled>
-                              No suggestions
+                              {t("stdReview.noSuggestions")}
                             </SelectItem>
                           )}
                           {row.candidates.map((c) => {
@@ -563,7 +585,10 @@ export function OcrReviewTable({
                                   key={`g-${c.ghost_team_id}`}
                                   value={`${GHOST_VALUE_PREFIX}${c.ghost_team_id}`}
                                 >
-                                  {c.team_name} (ghost, {Math.round(c.confidence * 100)}%)
+                                  {t("stdReview.ghostCandidate", {
+                                    name: c.team_name ?? "",
+                                    pct: Math.round(c.confidence * 100),
+                                  })}
                                 </SelectItem>
                               );
                             }
@@ -576,9 +601,11 @@ export function OcrReviewTable({
                             );
                           })}
                           <SelectItem value={FREE_MATCH}>
-                            Search for another {format === "team" ? "team" : "player"}
+                            {format === "team"
+                              ? t("stdReview.searchAnotherTeam")
+                              : t("stdReview.searchAnotherPlayer")}
                           </SelectItem>
-                          <SelectItem value={MAKE_GHOST}>Create as ghost</SelectItem>
+                          <SelectItem value={MAKE_GHOST}>{t("stdReview.createAsGhost")}</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -588,13 +615,13 @@ export function OcrReviewTable({
                         <TeamSearchSelect
                           value={null}
                           onChange={(id, team) => handleFreeTeamPick(row, id, team)}
-                          placeholder="Search a team..."
+                          placeholder={t("stdReview.searchTeamPlaceholder")}
                         />
                       ) : (
                         <UserSearchSelect
                           value={null}
                           onChange={(u, user) => handleFreeUserPick(row, u, user)}
-                          placeholder="Search a player..."
+                          placeholder={t("stdReview.searchPlayerPlaceholder")}
                         />
                       ))}
 
@@ -602,24 +629,24 @@ export function OcrReviewTable({
                       <div className="space-y-2 rounded-md border bg-muted/30 p-2.5">
                         <div className="space-y-1">
                           <Label className="text-xs">
-                            {format === "team" ? "Ghost team name" : "In-game name (IGN)"}
+                            {format === "team" ? t("stdReview.ghostTeamNameLabel") : t("stdReview.ignLabel")}
                           </Label>
                           <Input
                             value={row.ghostName}
                             onChange={(e) => setRow(row.row_id, { ghostName: e.target.value })}
-                            placeholder={format === "team" ? "e.g. Team Phoenix" : "e.g. SkullKing"}
+                            placeholder={format === "team" ? t("stdReview.ghostTeamNamePh") : t("stdReview.ignPh")}
                             className="h-8 text-xs"
                           />
                         </div>
                         {format === "team" && (
                           <div className="space-y-1">
-                            <Label className="text-xs">Country (optional)</Label>
+                            <Label className="text-xs">{t("stdReview.countryLabel")}</Label>
                             <Input
                               value={row.ghostCountry}
                               onChange={(e) =>
                                 setRow(row.row_id, { ghostCountry: e.target.value })
                               }
-                              placeholder="e.g. Nigeria"
+                              placeholder={t("stdReview.countryPh")}
                               className="h-8 text-xs"
                             />
                           </div>
@@ -631,11 +658,11 @@ export function OcrReviewTable({
                             size="sm"
                             onClick={() => setRow(row.row_id, { showGhostForm: false })}
                           >
-                            Cancel
+                            {tc("cancel")}
                           </Button>
                           <Button type="button" size="sm" onClick={() => handleSaveGhost(row)}>
                             <IconUserPlus size={14} className="mr-1" />
-                            Use ghost
+                            {t("stdReview.useGhost")}
                           </Button>
                         </div>
                       </div>
@@ -652,7 +679,7 @@ export function OcrReviewTable({
                               : "border-green-500 text-green-600",
                           )}
                         >
-                          {row.resolution.kind !== "real" ? "Ghost" : "Real"}
+                          {row.resolution.kind !== "real" ? t("stdReview.ghost") : t("stdReview.real")}
                         </Badge>
                         <span className="truncate text-xs text-muted-foreground">
                           {row.resolutionLabel}
@@ -677,7 +704,7 @@ export function OcrReviewTable({
                             {p.name}
                           </span>
                           <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs">
-                            {p.kills} kill{p.kills !== 1 ? "s" : ""}
+                            {t("stdReview.killCount", { count: p.kills })}
                           </Badge>
                           {p.chosenUsername ? (
                             <Badge
@@ -697,7 +724,7 @@ export function OcrReviewTable({
                               variant="outline"
                               className="rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
                             >
-                              not on platform
+                              {t("stdReview.notOnPlatform")}
                             </Badge>
                           )}
                           {!applied && (
@@ -712,8 +739,8 @@ export function OcrReviewTable({
                               }
                               onValueChange={(v) => handlePlayerSelect(row, idx, v)}
                             >
-                              <SelectTrigger className="h-7 w-44 text-xs">
-                                <SelectValue placeholder="Match player" />
+                              <SelectTrigger className="h-8 w-44 text-xs">
+                                <SelectValue placeholder={t("stdReview.matchPlayer")} />
                               </SelectTrigger>
                               <SelectContent>
                                 {p.candidates.map((c) =>
@@ -726,10 +753,10 @@ export function OcrReviewTable({
                                   ),
                                 )}
                                 <SelectItem value={PLAYER_SEARCH}>
-                                  Search platform players
+                                  {t("stdReview.searchPlatformPlayers")}
                                 </SelectItem>
                                 <SelectItem value={PLAYER_NONE}>
-                                  Not on the platform
+                                  {t("stdReview.notOnPlatformOption")}
                                 </SelectItem>
                               </SelectContent>
                             </Select>
@@ -739,16 +766,14 @@ export function OcrReviewTable({
                               <UserSearchSelect
                                 value={null}
                                 onChange={(u, user) => handlePlayerFreePick(row, idx, u, user)}
-                                placeholder="Search a player..."
+                                placeholder={t("stdReview.searchPlayerPlaceholder")}
                               />
                             </div>
                           )}
                         </div>
                       ))}
                       <p className="text-[10px] text-muted-foreground">
-                        Approved names are saved as the roster when this row is applied as a ghost
-                        team (new or existing). Matching a player here does not change any real
-                        team's roster.
+                        {t("stdReview.rosterHelp")}
                       </p>
                     </div>
                   </TableCell>
@@ -765,19 +790,19 @@ export function OcrReviewTable({
         {applied ? (
           <span className="flex items-center gap-1.5 text-xs font-medium text-green-600">
             <IconCircleCheck size={15} />
-            Applied as a map
+            {t("stdReview.appliedAsMap")}
           </span>
         ) : (
           <Button type="button" size="sm" onClick={handleApplyClick} disabled={!canApply}>
             {applying ? (
               <span className="flex items-center gap-2">
                 <IconLoader2 size={14} className="animate-spin" />
-                Applying...
+                {tc("applying")}
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <IconUpload size={14} />
-                Apply this map
+                {t("stdReview.applyThisMap")}
               </span>
             )}
           </Button>

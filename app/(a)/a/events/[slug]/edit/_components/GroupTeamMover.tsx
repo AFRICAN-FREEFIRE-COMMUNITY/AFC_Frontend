@@ -16,7 +16,7 @@
 //      entered results in the source group; we show a confirm dialog and retry with force=true.
 //   4. Remove → POST /events/seeding/remove-from-group/ {group_id, tournament_team_id} OR
 //      /events/seeding/remove-from-stage/ {stage_id, tournament_team_id}. The backend HARD-BLOCKS
-//      (400) a team that already has entered match results (no force) — we surface that message.
+//      (400) a team that already has entered match results (no force) - we surface that message.
 //   5. On success → refetch rosters (in place) + toast.
 //
 // Mounted by StagesGroupsTab for team (duo/squad) events. Admin + organizer both reach it (the
@@ -26,6 +26,7 @@
 // its Remove dialog offers only "remove from stage" (there is no group to leave).
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
 import {
@@ -110,6 +111,7 @@ function TeamChip({
   onMove: () => void;
   onRemove: () => void;
 }) {
+  const t = useTranslations("evEditTabs");
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `t:${groupId}:${team.tournament_team_id}`,
     disabled,
@@ -118,7 +120,7 @@ function TeamChip({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex items-center gap-1.5 rounded-md border bg-card px-2 py-1.5 text-xs select-none group/chip",
+        "flex items-center gap-1.5 rounded-md border bg-card px-2 py-2 text-xs select-none group/chip",
         isDragging && "opacity-40",
       )}
     >
@@ -127,7 +129,7 @@ function TeamChip({
         {...listeners}
         {...attributes}
         className="flex items-center gap-1.5 flex-1 min-w-0 cursor-grab active:cursor-grabbing"
-        title="Drag to another group to move this team"
+        title={t("groupMover.dragToMove")}
       >
         <IconGripVertical size={13} className="text-muted-foreground shrink-0" />
         {/* Flag beside the team name on the draggable chip (team's country). */}
@@ -146,8 +148,8 @@ function TeamChip({
             e.stopPropagation();
             onMove();
           }}
-          title="Move this team to another group"
-          className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-primary hover:bg-primary/10 disabled:opacity-40"
+          title={t("groupMover.moveToAnotherGroup")}
+          className="shrink-0 rounded p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 disabled:opacity-40"
         >
           <IconArrowsMove size={13} />
         </button>
@@ -161,8 +163,8 @@ function TeamChip({
           e.stopPropagation();
           onRemove();
         }}
-        title="Remove this team"
-        className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-40"
+        title={t("groupMover.removeTeam")}
+        className="shrink-0 rounded p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-40"
       >
         <IconX size={13} />
       </button>
@@ -185,6 +187,7 @@ function GroupColumn({
   onMove: (team: RosterTeam) => void;
   onRemove: (team: RosterTeam) => void;
 }) {
+  const t = useTranslations("evEditTabs");
   const { setNodeRef, isOver } = useDroppable({ id: `g:${group.group_id}` });
   const teams = group.teams ?? [];
   return (
@@ -205,7 +208,7 @@ function GroupColumn({
         )}
       >
         {teams.length === 0 ? (
-          <p className="italic text-xs text-muted-foreground py-2">Drop a team here</p>
+          <p className="italic text-xs text-muted-foreground py-2">{t("groupMover.dropHere")}</p>
         ) : (
           teams.map((t) => (
             <TeamChip
@@ -225,6 +228,7 @@ function GroupColumn({
 }
 
 export default function GroupTeamMover({ eventId }: { eventId: number }) {
+  const t = useTranslations("evEditTabs");
   const { token } = useAuth();
   const [stages, setStages] = useState<RosterStage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -240,7 +244,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
   // Pending remove-from-group / remove-from-stage confirm.
   const [pendingRemove, setPendingRemove] = useState<PendingRemove | null>(null);
   // Pending tap-to-move: the team + the candidate groups it can move INTO (the phone-friendly, no-drag
-  // path — owner 2026-07-06). candidates = the OTHER zones in the same stage (groups + RR pool).
+  // path - owner 2026-07-06). candidates = the OTHER zones in the same stage (groups + RR pool).
   const [pendingMove, setPendingMove] = useState<{
     fromGroupId: number | string;
     ttId: number;
@@ -249,7 +253,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
   } | null>(null);
 
   // Mobile fix (owner 2026-07-06): plain pointer-drag felt broken on phones because every drag
-  // attempt was read as a page SCROLL. Now split by input type — MouseSensor (8px activation, so a
+  // attempt was read as a page SCROLL. Now split by input type - MouseSensor (8px activation, so a
   // click isn't a drag) for desktop; TouchSensor with a 180ms press-and-hold so a quick swipe still
   // SCROLLS while a deliberate hold starts the drag. The per-chip "move" button below is the tap-only
   // fallback for anyone who'd rather not drag on a small screen at all.
@@ -292,7 +296,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
       .then(() => "ok" as const)
       .catch((e) => {
         if (e?.response?.status === 409 && e?.response?.data?.requires_force) return "needs_force" as const;
-        toast.error(e?.response?.data?.message || "Failed to move team.");
+        toast.error(e?.response?.data?.message || t("groupMover.toastMoveFailed"));
         return "error" as const;
       });
     return res;
@@ -313,7 +317,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
       .post(url, body, { headers: { Authorization: `Bearer ${token}` } })
       .then(() => "ok" as const)
       .catch((e) => {
-        toast.error(e?.response?.data?.message || "Failed to remove team.");
+        toast.error(e?.response?.data?.message || t("groupMover.toastRemoveFailed"));
         return "error" as const;
       });
   };
@@ -325,7 +329,11 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
     setMoving(true);
     const result = await doRemove(scope, pr);
     if (result === "ok") {
-      toast.success(scope === "group" ? `${pr.name} removed from group.` : `${pr.name} removed from stage.`);
+      toast.success(
+        scope === "group"
+          ? t("groupMover.toastRemovedFromGroup", { name: pr.name })
+          : t("groupMover.toastRemovedFromStage", { name: pr.name }),
+      );
       await fetchRosters();
     }
     setMoving(false);
@@ -367,7 +375,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
     setMoving(true);
     const result = await doMove(from, to, ttId, false);
     if (result === "ok") {
-      toast.success(`${name} moved.`);
+      toast.success(t("groupMover.toastMoved", { name }));
       await fetchRosters(); // await so the tree is fresh before chips re-enable (no stale re-drag)
     } else if (result === "needs_force") {
       setPendingForce({ from, to, ttId, name });
@@ -384,7 +392,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
     setMoving(true);
     const result = await doMove(pm.fromGroupId, toGid, pm.ttId, false);
     if (result === "ok") {
-      toast.success(`${pm.name} moved.`);
+      toast.success(t("groupMover.toastMoved", { name: pm.name }));
       await fetchRosters();
     } else if (result === "needs_force") {
       setPendingForce({ from: pm.fromGroupId, to: toGid, ttId: pm.ttId, name: pm.name });
@@ -398,7 +406,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
     const result = await doMove(pendingForce.from, pendingForce.to, pendingForce.ttId, true);
     setPendingForce(null);
     if (result === "ok") {
-      toast.success(`${pendingForce.name} moved.`);
+      toast.success(t("groupMover.toastMoved", { name: pendingForce.name }));
       await fetchRosters();
     }
     setMoving(false);
@@ -408,7 +416,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
     return (
       <Card>
         <CardContent className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
-          <IconLoader2 className="size-4 animate-spin" /> Loading group rosters…
+          <IconLoader2 className="size-4 animate-spin" /> {t("groupMover.loading")}
         </CardContent>
       </Card>
     );
@@ -421,14 +429,9 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <IconArrowsMove size={18} className="text-primary" />
-          Move or remove teams
+          {t("groupMover.cardTitle")}
         </CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Drag a team from one group into another (on a phone, press and hold a team briefly, then drag,
-          or just tap the move button to pick its new group). Use the remove button to take a team out of
-          a group or the whole stage. Teams that already have results can&apos;t be moved or removed until
-          you clear those results.
-        </p>
+        <p className="text-xs text-muted-foreground">{t("groupMover.help")}</p>
       </CardHeader>
       <CardContent className="space-y-5">
         <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
@@ -488,7 +491,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
         </DndContext>
         {moving && (
           <p className="flex items-center gap-2 text-xs text-muted-foreground">
-            <IconLoader2 className="size-3 animate-spin" /> Working…
+            <IconLoader2 className="size-3 animate-spin" /> {t("groupMover.working")}
           </p>
         )}
       </CardContent>
@@ -497,14 +500,13 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
       <AlertDialog open={!!pendingForce} onOpenChange={(o) => !o && setPendingForce(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Move {pendingForce?.name} anyway?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This team already has results entered in its current group. Moving it leaves those
-              results in the old group&apos;s standings. Move anyway?
-            </AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("groupMover.forceTitle", { name: pendingForce?.name ?? "" })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{t("groupMover.forceBody")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={moving}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={moving}>{t("groupMover.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -512,7 +514,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
               }}
               disabled={moving}
             >
-              Move anyway
+              {t("groupMover.moveAnyway")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -523,15 +525,17 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
       <AlertDialog open={!!pendingRemove} onOpenChange={(o) => !o && setPendingRemove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove {pendingRemove?.name}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("groupMover.removeTitle", { name: pendingRemove?.name ?? "" })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingRemove?.isPool
-                ? "Remove this team from the stage. It stays registered for the event."
-                : "Remove this team from just this group (it stays seeded in the stage), or from the whole stage. Either way it stays registered for the event."}
+                ? t("groupMover.removeBodyPool")
+                : t("groupMover.removeBodyGroup")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-2">
-            <AlertDialogCancel disabled={moving}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={moving}>{t("groupMover.cancel")}</AlertDialogCancel>
             {!pendingRemove?.isPool && (
               <Button
                 variant="outline"
@@ -541,7 +545,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
                   runRemove("group");
                 }}
               >
-                Remove from group
+                {t("groupMover.removeFromGroup")}
               </Button>
             )}
             <Button
@@ -552,22 +556,24 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
                 runRemove("stage");
               }}
             >
-              Remove from stage
+              {t("groupMover.removeFromStage")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Tap-to-move picker (owner 2026-07-06): the no-drag path. Lists every other group/pool in the
-          stage as a big tappable target — comfortable on a phone. Move itself reuses the drag path's
+          stage as a big tappable target - comfortable on a phone. Move itself reuses the drag path's
           endpoint + results-guard (runMove -> doMove), so behaviour is identical either way. */}
       <AlertDialog open={!!pendingMove} onOpenChange={(o) => !o && setPendingMove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Move {pendingMove?.name}</AlertDialogTitle>
-            <AlertDialogDescription>Choose the group to move this team into.</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("groupMover.moveTitle", { name: pendingMove?.name ?? "" })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{t("groupMover.moveChooseGroup")}</AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="grid grid-cols-2 gap-2 py-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 py-2">
             {pendingMove?.candidates.map((c) => (
               <Button
                 key={String(c.group_id)}
@@ -584,7 +590,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
             ))}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={moving}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={moving}>{t("groupMover.cancel")}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

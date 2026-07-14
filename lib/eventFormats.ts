@@ -32,6 +32,14 @@ export const STAGE_FORMATS = [
 ] as const;
 
 // Display label for each bracket type (used in the stage-format <Select> options).
+//
+// i18n: these English strings are the source-of-truth + en fallback. The user-facing
+// localized labels live in the "eventFormats" namespace (messages/{en,fr,pt}/eventFormats.json),
+// keyed by the SAME bracket codes as this map. The public Tournament Structure view
+// (app/(user)/tournaments/[slug]/_components/TournamentStructure.tsx, owned by the tournaments
+// workstream) resolves the localized label via useTranslations("eventFormats") with these codes,
+// falling back to FORMAT_LABEL here. Admin/organizer create/edit surfaces are i18n-exempt and
+// keep reading these English labels directly.
 export const FORMAT_LABEL: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
   // Mirror the backend label for the legacy unspaced key (it is "Knockout" there,

@@ -18,7 +18,9 @@
     "current": "Capturas de ecrã atuais",
     "removeAll": "Remover todas as capturas de ecrã",
     "replaceHint": "Foram adicionadas novas capturas de ecrã à sua publicação. As capturas de ecrã marcadas são removidas quando guardar.",
-    "undoRemove": "Desfazer"
+    "undoRemove": "Desfazer",
+    "altIndexed": "Captura de ecrã {index}",
+    "alt": "Captura de ecrã"
   },
   "location": {
     "label": "Estado de residência",
@@ -39,5 +41,222 @@
     "statePlaceholder": "Filtrar por estado",
     "stateHint": "Escolha um país e, em seguida, filtre os jogadores por estados.",
     "stateDisabled": "Selecione primeiro um país"
+  },
+  "share": {
+    "copied": "O link foi copiado para a área de transferência!",
+    "share": "Partilhar",
+    "copyLink": "Copiar link",
+    "twitter": "Twitter / X",
+    "whatsapp": "WhatsApp",
+    "facebook": "Facebook",
+    "telegram": "Telegram",
+    "reddit": "Reddit",
+    "linkedin": "LinkedIn"
+  },
+  "countrySelect": {
+    "selectPlaceholder": "Selecionar países...",
+    "searchPlaceholder": "Pesquisar países...",
+    "empty": "Não foram encontrados países",
+    "clearAll": "Limpar tudo (selecionar «{count}»)"
+  },
+  "common": {
+    "loading": "A carregar...",
+    "edit": "Editar",
+    "delete": "Apagar",
+    "deleting": "A eliminar...",
+    "close": "Fechar",
+    "cancel": "Cancelar",
+    "back": "Voltar",
+    "video": "Vídeo",
+    "report": "Relatório",
+    "view": "Ver",
+    "viewDetails": "Ver detalhes",
+    "details": "Detalhes",
+    "createPost": "Criar publicação",
+    "unknownTeam": "Equipa Desconhecida",
+    "team": "Equipa",
+    "adjustFilters": "Experimenta ajustar os teus filtros",
+    "expires": "Vence-se em {date}",
+    "applied": "{date} Aplicada",
+    "contactUnlocked": "Contacto desbloqueado",
+    "wins": "{count, plural,  one { # vitórias }  other { # vitórias } }",
+    "kills": "{count, plural,  one { # encerrar }  other { # encerra } }",
+    "finals": "{count, plural,  one { # final }  other { # finais } }"
+  },
+  "header": {
+    "title": "Mercado de jogadores",
+    "description": "Encontra colegas de equipa ou divulga a tua disponibilidade",
+    "chats": "Conversas"
+  },
+  "rules": {
+    "notice": "Todo o processo de recrutamento e os períodos de teste são regidos pelas regras da AFC. A comunicação só fica disponível após o convite para o período de teste. As equipas e os jogadores devem certificar-se de que gravam o ecrã e tiram capturas de ecrã de quaisquer incidentes com que se possam ter deparado durante o período de teste e que pretendam comunicar.",
+    "heading": "Regras do Mercado de Jogadores",
+    "oneActive": "Apenas uma publicação ativa de cada vez.",
+    "twoTryouts": "No máximo, duas provas de seleção ativas ao mesmo tempo.",
+    "reportHonestly": "Denuncie com sinceridade. As denúncias falsas podem levar ao seu banimento.",
+    "banBlocks": "Uma restrição de acesso ao mercado impede a publicação, a candidatura e o envio de convites."
+  },
+  "tierNotice": {
+    "label": "Aviso temporário:",
+    "body": "Todas as equipas e jogadores estão atualmente classificados no Nível 3. A classificação por níveis será atualizada automaticamente ao longo do tempo, com base na atividade e no desempenho."
+  },
+  "tabs": {
+    "teamsRecruiting": "Equipas a recrutar",
+    "playersOpen": "Jogadores disponíveis para se juntarem à equipa",
+    "myApplications": "As minhas aplicações",
+    "trialInvites": "Convites para o período de teste",
+    "teamApplications": "Candidaturas de equipas",
+    "myTeam": "A minha equipa",
+    "myPosts": "As minhas publicações"
+  },
+  "teamsTab": {
+    "search": "Equipas de busca...",
+    "commitment": "Compromisso",
+    "allLevels": "Todos os níveis",
+    "minTier": "Nível mínimo",
+    "allTiers": "Todos os níveis",
+    "noneFound": "Não foram encontradas equipas",
+    "openTo": "Aberto a:",
+    "shareText": "{team} está a recrutar no AFC Player Market!",
+    "aTeam": "Uma equipa",
+    "thisTeam": "esta equipa",
+    "teamFallback": "equipa"
+  },
+  "playersTab": {
+    "search": "Pesquisar jogadores...",
+    "availability": "Disponibilidade",
+    "all": "Todos",
+    "role": "Função",
+    "allRoles": "Todas as funções",
+    "noneFound": "Não foram encontrados jogadores",
+    "openToPlay": "Disponível para jogar em:",
+    "shareText": "{player} está disponível para integrar uma equipa no AFC Player Market!"
+  },
+  "invitesTab": {
+    "maxTryouts": "Podes participar, no máximo, em duas provas de seleção ativas ao mesmo tempo.",
+    "none": "Não há convites para julgamentos",
+    "emptyHint": "As equipas que te convidarem para um período de experiência aparecerão aqui",
+    "sent": "Enviado{date}",
+    "expired": "Caducado",
+    "decline": "Declínio",
+    "accept": "Aceitar"
+  },
+  "teamAppsTab": {
+    "subtitle": "Jogadores que se candidataram através do teu anúncio de recrutamento",
+    "none": "Ainda não há candidaturas",
+    "emptyHint": "As candidaturas à sua oferta de emprego aparecerão aqui",
+    "review": "Crítica"
+  },
+  "myAppsTab": {
+    "none": "Ainda não há candidaturas",
+    "emptyHint": "Pesquise as equipas que estão a recrutar e candidate-se para se juntar a elas",
+    "inviteExpires": "O convite expira em {date}"
+  },
+  "myTeamTab": {
+    "tier": "Nível {tier}",
+    "banned": "Banido",
+    "members": "{count, plural,  one { # membro }  other { # membros } }",
+    "founded": "Fundada em {date}",
+    "yourRole": "A sua função",
+    "member": "Membro",
+    "owner": "Proprietário",
+    "joined": "Registou-se",
+    "inGameRole": "Função no jogo",
+    "joining": "Inscrição",
+    "viewFullTeam": "Ver a equipa completa"
+  },
+  "myPostsTab": {
+    "none": "Ainda não há publicações",
+    "emptyHint": "Cria uma publicação de recrutamento para a equipa ou uma publicação sobre a tua disponibilidade para começares",
+    "recruitmentHeading": "As minhas publicações sobre recrutamento",
+    "recruitmentSub": "Anúncios de recrutamento para a equipa que criou",
+    "availabilityHeading": "As minhas publicações sobre disponibilidade",
+    "availabilitySub": "Publicações que criaste para encontrar uma equipa"
+  },
+  "createDialog": {
+    "title": "Criar uma publicação",
+    "teamTitle": "Publicação sobre o recrutamento para a equipa",
+    "playerTitle": "Publicação sobre jogadores disponíveis",
+    "chooseType": "Escolha o tipo de publicação que pretende criar.",
+    "teamDesc": "Preencha os dados para recrutar jogadores para a sua equipa.",
+    "playerDesc": "Informe as equipas de que está disponível para se juntar a elas.",
+    "oneActiveNotice": "Só pode ter uma publicação ativa de cada vez (de equipa ou de jogador). Feche a sua publicação atual ou aguarde que expire antes de criar uma nova.",
+    "teamRecruiting": "Recrutamento para a equipa",
+    "teamRecruitingSub": "Encontra jogadores para a tua equipa",
+    "playerAvailable": "Jogador disponível",
+    "playerAvailableSub": "Divulgue a sua disponibilidade",
+    "rolesNeeded": "Funções a preencher",
+    "minTier": "Nível mínimo",
+    "selectTier": "Selecionar nível",
+    "commitment": "Nível de compromisso",
+    "selectLevel": "Selecionar nível",
+    "countries": "Países",
+    "countriesTeamHint": "(selecione os países de onde pretende receber candidaturas)",
+    "expiry": "Data de validade",
+    "expiryNote": "As publicações permanecem ativas até 1 mês e, depois, são encerradas automaticamente.",
+    "criteria": "Critérios de recrutamento",
+    "criteriaPlaceholder": "Descreve o que procuras num colega de equipa...",
+    "creating": "A criar...",
+    "primaryRole": "Função principal",
+    "selectRole": "Selecionar função",
+    "secondaryRole": "Papel secundário",
+    "availability": "Disponibilidade",
+    "selectAvailability": "Selecionar disponibilidade",
+    "countriesPlayerHint": "(selecione os países onde está disposto a trabalhar)",
+    "videoLabel": "Link para o vídeo de jogabilidade",
+    "videoPlaceholder": "Link para o teu vídeo de jogo",
+    "videoHint": "É opcional, mas as publicações com imagens de jogo chamam mais a atenção: as equipas podem ver-te a jogar diretamente na tua publicação. Um vídeo por publicação. Plataformas aceites: {platforms}.",
+    "additionalInfo": "Informações adicionais",
+    "additionalPlaceholder": "Fala às equipas sobre ti, a tua experiência e o que procuras..."
+  },
+  "editDialog": {
+    "teamTitle": "Editar publicação de recrutamento para a equipa de edição",
+    "playerTitle": "Editar publicação sobre a disponibilidade dos jogadores",
+    "teamDesc": "Atualize os detalhes do seu anúncio de recrutamento para a equipa.",
+    "playerDesc": "Atualiza a tua publicação sobre a disponibilidade.",
+    "saving": "A guardar...",
+    "saveChanges": "Guardar alterações",
+    "videoHint": "Um vídeo por publicação. Plataformas aceites: {platforms}. Ao introduzir um novo link, o vídeo atual é substituído; limpe o campo para o remover."
+  },
+  "viewTeam": {
+    "openTo": "Aberto a",
+    "applying": "A aplicar...",
+    "applyToJoin": "Candidatar-se"
+  },
+  "viewPlayer": {
+    "about": "Sobre",
+    "gameplay": "Jogabilidade",
+    "watchVideo": "Veja o vídeo de jogabilidade",
+    "videoTitle": "Vídeo de jogabilidade",
+    "openToPlay": "Disponível para jogar pelo",
+    "messageLabel": "Mensagem para o jogador",
+    "messagePlaceholder": "Apresente a sua equipa e explique por que razão gostaria que participassem no período de teste...",
+    "sending": "A enviar...",
+    "inviteToTrial": "Convite para o período de avaliação"
+  },
+  "toasts": {
+    "postDeleted": "Publicação eliminada.",
+    "deleteFailed": "Não foi possível eliminar a publicação.",
+    "loadDetailsFailed": "Não foi possível carregar os detalhes da publicação.",
+    "fillRequired": "Por favor, preencha todos os campos obrigatórios.",
+    "postUpdated": "A publicação foi atualizada com sucesso!",
+    "updateFailed": "Não foi possível atualizar a publicação.",
+    "videoPlatform": "O link do vídeo de jogabilidade tem de ser um link do tipo {platforms}.",
+    "expiryWithinMonth": "O prazo de validade deve terminar no prazo de 1 mês a contar de hoje.",
+    "teamPostCreated": "A publicação de recrutamento para a equipa foi criada com sucesso!",
+    "playerPostCreated": "A publicação sobre a disponibilidade dos jogadores foi criada com sucesso!",
+    "createFailed": "Não foi possível criar a publicação.",
+    "applicationSent": "A candidatura foi enviada para {team}!",
+    "applicationFailed": "Não foi possível enviar a candidatura.",
+    "trialInviteSent": "Convite para o período de avaliação enviado para {player}!",
+    "inviteFailed": "Não foi possível enviar o convite.",
+    "inviteAccepted": "Convite para o período de avaliação aceite!",
+    "inviteDeclined": "Convite recusado.",
+    "respondFailed": "Não foi possível obter resposta.",
+    "loadTeamAppsFailed": "Não foi possível carregar as candidaturas da equipa.",
+    "loadMyAppsFailed": "Não foi possível carregar as suas aplicações.",
+    "loadInvitesFailed": "Não foi possível carregar os convites para a versão de avaliação.",
+    "loadTeamPostsFailed": "Não foi possível carregar as publicações da equipa.",
+    "loadPlayerPostsFailed": "Não foi possível carregar as publicações dos utilizadores."
   }
 }

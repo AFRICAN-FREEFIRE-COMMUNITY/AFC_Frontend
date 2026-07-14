@@ -253,6 +253,7 @@
   "edit.letterAvatars.saveNote": "Your letter avatars are saved when you press Save changes.",
   "edit.whatsapp.numberLabel": "WhatsApp number",
   "edit.whatsapp.numberDescription": "Add your WhatsApp number (with country code) to get tournament room details sent straight to your WhatsApp.",
+  "edit.whatsapp.numberPlaceholder": "+234 801 234 5678",
   "edit.whatsapp.optInLabel": "Send me room IDs and passwords on WhatsApp",
   "edit.changeEmail.button": "Change email",
   "edit.changeEmail.helper": "This is the email you sign in with and where we send account mail. Changing it needs your password and a code sent to the new address.",

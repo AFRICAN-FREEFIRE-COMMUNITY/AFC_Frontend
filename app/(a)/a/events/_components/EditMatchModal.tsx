@@ -3,7 +3,7 @@
 // Per-MATCH (per-map) room details editor (owner 2026-06-18).
 // Behaviour the owner asked for:
 //   • Room ID / Room name / Room password start EMPTY when nothing is set for that map (NO browser
-//     autofill of the saved login email/password — blocked via autoComplete + off-screen decoys).
+//     autofill of the saved login email/password - blocked via autoComplete + off-screen decoys).
 //   • On reopen the SAVED values show (we seed from the match's stored room fields).
 //   • AUTO-SAVE: typing persists after a short debounce (no Save button); a "Saved" hint confirms it.
 //   • "Send to players" broadcasts THIS map's room details to the group (per-map, not whole-group),
@@ -62,7 +62,7 @@ export const EditMatchModal = ({
 
   // Seed from the match's SAVED values when the modal opens (owner 2026-06-18: reopen shows what was
   // saved; blank when unset). Deliberately NOT keyed on the room props, so a refetch mid-typing can't
-  // clobber the field the user is editing — fresh props are only read on the next open.
+  // clobber the field the user is editing - fresh props are only read on the next open.
   useEffect(() => {
     if (open) {
       setRId(roomId || "");
@@ -94,7 +94,7 @@ export const EditMatchModal = ({
       try {
         await persist();
         setSaveState("saved");
-        // NOTE: do NOT refetch here — a full event refetch re-renders the match list and would
+        // NOTE: do NOT refetch here - a full event refetch re-renders the match list and would
         // close this modal mid-edit. We sync the parent on CLOSE instead (onOpenChange below), so
         // the next open seeds from the freshly-saved values.
       } catch (e: any) {
@@ -181,7 +181,7 @@ export const EditMatchModal = ({
 
       <DialogContent className="sm:max-w-[400px]">
         <DialogTitle>
-          Room details{matchLabel ? ` — ${matchLabel}` : ""}
+          Room details{matchLabel ? ` - ${matchLabel}` : ""}
         </DialogTitle>
 
         {/* autoComplete="off" + the off-screen decoys stop Chrome's password manager treating this as

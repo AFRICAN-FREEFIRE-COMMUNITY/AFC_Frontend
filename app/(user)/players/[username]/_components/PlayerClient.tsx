@@ -53,8 +53,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -735,8 +735,7 @@ export function PlayerClient({ username }: { username: string }) {
         <CardContent>
           {/* ── AFC PILL TABS ──────────────────────────────────────────────── */}
           <Tabs defaultValue="overview">
-            <ScrollArea>
-              <TabsList className="w-full mb-4">
+            <ScrollableTabsList className="w-full mb-4">
                 <TabsTrigger value="overview">{t("player.tabOverview")}</TabsTrigger>
                 {/* Individual player STATS tabs are hidden entirely unless the viewer may see this
                     player's stats (owner 2026-06-24: own profile or an AFC admin only - NOT teammates,
@@ -753,9 +752,7 @@ export function PlayerClient({ username }: { username: string }) {
                   </>
                 )}
                 <TabsTrigger value="team">{t("player.tabTeam")}</TabsTrigger>
-              </TabsList>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            </ScrollableTabsList>
 
             {/* ── OVERVIEW TAB ─────────────────────────────────────────────── */}
             <TabsContent value="overview">

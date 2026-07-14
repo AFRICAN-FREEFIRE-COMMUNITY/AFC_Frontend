@@ -42,7 +42,7 @@ import { CombinedStandings } from "./CombinedStandings";
 // "Your match" callout (owner 2026-06-29): a top-of-page card for registered participants that
 // surfaces their play time + room ID/password without digging into the Structure tab.
 import { YourMatchCallout } from "./YourMatchCallout";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import {
   Dialog,
   DialogContent,
@@ -5343,20 +5343,17 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   onValueChange={setActiveStageTab}
                   className="w-full"
                 >
-              <ScrollArea>
-                <TabsList className="w-full">
-                  {eventDetails.stages.map((stage) => (
-                    <TabsTrigger
-                      key={stage.stage_id}
-                      value={stage.stage_name}
-                      className="flex-1"
-                    >
-                      {stage.stage_name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
+              <ScrollableTabsList className="w-full">
+                {eventDetails.stages.map((stage) => (
+                  <TabsTrigger
+                    key={stage.stage_id}
+                    value={stage.stage_name}
+                    className="flex-1"
+                  >
+                    {stage.stage_name}
+                  </TabsTrigger>
+                ))}
+              </ScrollableTabsList>
 
               {eventDetails.stages.map((stage) => (
                 <TabsContent

@@ -3,6 +3,7 @@
 import React, { useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,12 +38,13 @@ export function Step6EventRules({
   previewRuleUrl,
   setPreviewRuleUrl,
 }: Step6Props) {
+  const t = useTranslations("evSteps");
   const [isDragging, setIsDragging] = useState(false);
   const rulesFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (file: File, fieldOnChange: (val: any) => void) => {
     if (!SUPPORTED_DOC_TYPES.includes(file.type)) {
-      toast.error("Only PDF, DOC, or DOCX files are supported.");
+      toast.error(t("step6.unsupportedFile"));
       return;
     }
     setSelectedRuleFile(file);
@@ -54,14 +56,14 @@ export function Step6EventRules({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          Step 6: Event Rules
+          {t("step6.title")}
           <InfoTip id="events.create.rules._section" className="ml-1.5" />
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Method Toggle */}
         <div>
-          <FormLabel>Rules Input Method</FormLabel>
+          <FormLabel>{t("step6.inputMethod")}</FormLabel>
           <RadioGroup
             value={rulesInputMethod}
             onValueChange={(v: "type" | "upload") => setRulesInputMethod(v)}
@@ -69,11 +71,11 @@ export function Step6EventRules({
           >
             <div className="flex items-center gap-2 text-sm">
               <RadioGroupItem value="type" />
-              <span>Type Rules</span>
+              <span>{t("step6.typeRules")}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <RadioGroupItem value="upload" />
-              <span>Upload Document</span>
+              <span>{t("step6.uploadDocument")}</span>
             </div>
           </RadioGroup>
         </div>
@@ -86,12 +88,12 @@ export function Step6EventRules({
             name="event_rules"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Rules</FormLabel>
+                <FormLabel>{t("step6.eventRules")}</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
                     rows={10}
-                    placeholder="Enter event rules..."
+                    placeholder={t("step6.rulesPlaceholder")}
                     onFocus={() => form.setValue("rules_document", "")}
                   />
                 </FormControl>
@@ -107,7 +109,7 @@ export function Step6EventRules({
             name="rules_document"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Upload Rules Document</FormLabel>
+                <FormLabel>{t("step6.uploadRulesDoc")}</FormLabel>
                 <FormControl>
                   <div className="space-y-4">
                     {!previewRuleUrl ? (
@@ -130,11 +132,11 @@ export function Step6EventRules({
                             <IconFileText size={32} className="text-primary dark:text-white" />
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            Drop your document here, or{" "}
-                            <span className="text-primary font-medium hover:underline">browse</span>
+                            {t("step6.dropDoc")}{" "}
+                            <span className="text-primary font-medium hover:underline">{t("step6.browse")}</span>
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Supports: PDF, DOC, DOCX
+                            {t("step6.supports")}
                           </p>
                         </div>
                       </div>
@@ -143,10 +145,12 @@ export function Step6EventRules({
                         <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex flex-col items-center justify-center p-8">
                           <IconFile size={64} className="text-primary" />
                           <p className="text-sm font-medium mt-2">
-                            {selectedRuleFile?.name || "Rules Document Uploaded"}
+                            {selectedRuleFile?.name || t("step6.docUploaded")}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            File Size: {((selectedRuleFile?.size || 0) / 1024 / 1024).toFixed(2)} MB
+                            {t("step6.fileSize", {
+                              size: ((selectedRuleFile?.size || 0) / 1024 / 1024).toFixed(2),
+                            })}
                           </p>
                         </div>
                         <div className="flex gap-2">
@@ -161,7 +165,7 @@ export function Step6EventRules({
                               if (rulesFileInputRef.current) rulesFileInputRef.current.value = "";
                             }}
                           >
-                            <IconX size={16} className="mr-2" /> Remove
+                            <IconX size={16} className="mr-2" /> {t("step6.remove")}
                           </Button>
                           <Button
                             type="button"
@@ -169,7 +173,7 @@ export function Step6EventRules({
                             className="flex-1"
                             onClick={() => rulesFileInputRef.current?.click()}
                           >
-                            <IconUpload size={16} className="mr-2" /> Replace
+                            <IconUpload size={16} className="mr-2" /> {t("step6.replace")}
                           </Button>
                         </div>
                       </div>

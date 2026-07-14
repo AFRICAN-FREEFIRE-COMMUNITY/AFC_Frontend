@@ -109,6 +109,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -118,7 +119,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   IconDatabaseImport,
   IconDeviceFloppy,
@@ -152,7 +152,7 @@ import { ManualMatchResultStep } from "@/app/(a)/a/leaderboards/_components/Manu
 import { FileUploadStep } from "@/app/(a)/a/leaderboards/_components/FileUploadStep";
 import { ImageUploadStep } from "@/app/(a)/a/leaderboards/_components/ImageUploadStep";
 // Single-map OCR review flow (owner 2026-07-04 organizer parity): the SAME two-step upload the
-// admin edit page uses for the image_upload path — MapSelectionStep (pick map + drop screenshot,
+// admin edit page uses for the image_upload path - MapSelectionStep (pick map + drop screenshot,
 // POST /events/ocr-match-result/) then OCRReviewTable (edit + commit the extracted rows). Replaces
 // the older auto-OCR-and-save ImageUploadStep in the per-match EDIT flow so organizers can review
 // and correct rows before committing. Both components are role-agnostic and the endpoint already
@@ -172,7 +172,7 @@ import { GroupResultsEditor } from "@/app/(a)/a/leaderboards/_components/GroupRe
 // Flagged-kill controls (owner 2026-06-16): manage "ringer" kills for this TEAM event. Gated to
 // organizers with can_upload_results (same as result entry). Backend: events/flagged-kills/*.
 import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
-// Multi-map .log upload (owner 2026-06-22) — shared with the admin leaderboard (cross-imported via
+// Multi-map .log upload (owner 2026-06-22) - shared with the admin leaderboard (cross-imported via
 // the @/app alias, same pattern as EventStageExportGraphicDialog). Drop all maps' match-logs at
 // once, assign+review+apply per file (reuses /events/upload-team-match-result/).
 import { MultiMapLogUpload, type MatchOption } from "@/app/(a)/a/leaderboards/_components/MultiMapLogUpload";
@@ -216,8 +216,8 @@ import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/Debugger
 // Scoring Config editor (owner 2026-07-04 organizer parity): the per-match kill/assist/damage +
 // placement-ladder editor + "Apply to..." fan-out, shared with the admin edit page's Scoring tab.
 // Mounted as a new tab in the "Manage leaderboard tools" section below. POSTs
-// /events/edit-match-scoring-config/, which the backend gates on org can_upload_results — this
-// page's own baseline gate — so it always shows here (like the Total Leaderboard tab).
+// /events/edit-match-scoring-config/, which the backend gates on org can_upload_results - this
+// page's own baseline gate - so it always shows here (like the Total Leaderboard tab).
 import { ScoringConfigPanel } from "@/app/(a)/a/leaderboards/_components/ScoringConfigPanel";
 // Advisory watchlist badges (owner 2026-07-02 organizer parity): one bulk watchlistApi.tags call
 // per group marks which standings team_ids/player_ids are watched; <WatchTag> renders next to the
@@ -422,7 +422,7 @@ export default function OrganizerEventLeaderboardPage({
   const [editingMatch, setEditingMatch] = useState<{
     match: { match_id: number; match_name: string };
     view: MatchView;
-    // Matches of the group that owns this match — fed to FileUploadStep's "All maps at once" mode.
+    // Matches of the group that owns this match - fed to FileUploadStep's "All maps at once" mode.
     groupMatches?: MatchOption[];
   } | null>(null);
   const [matchPickerOpen, setMatchPickerOpen] = useState(false);
@@ -821,6 +821,10 @@ export default function OrganizerEventLeaderboardPage({
   const currentStage = eventData?.stages?.find(
     (s: any) => s.stage_id.toString() === selectedStageId,
   );
+  // Clash Squad (head-to-head) stage guard (CS remediation P1#3, owner 2026-07-13): a `cs -` stage
+  // runs as a bracket, not BR groups/lobbies, so it has no groups/matches to edit here. Show a note
+  // pointing to the event-page bracket instead of the empty BR group/match editors below.
+  const isCsStage = String(currentStage?.stage_format || "").startsWith("cs -");
   const currentGroup = currentStage?.groups?.find(
     (g: any) => g.group_id.toString() === selectedGroupId,
   );
@@ -1262,12 +1266,12 @@ export default function OrganizerEventLeaderboardPage({
 
   // ── Recalc after a scoring-config save (owner 2026-07-04 organizer parity) ────
   // The shared <ScoringConfigPanel> POSTs edit-match-scoring-config, which only STORES the new
-  // scoring_settings — it does not recompute the map's already-saved points. So, exactly like the
+  // scoring_settings - it does not recompute the map's already-saved points. So, exactly like the
   // admin edit page (whose onScoringSaved is handleSaveMatch), we re-save that map's SAVED stats
   // through the proven per-map endpoints (edit-match-result / edit-solo-match-result, gate = org
   // can_upload_results) so the backend recomputes its points against the new config, then refresh.
   // Row shape mirrors handleSaveAdjustments (players keyed by user_id; placement 0 = not played).
-  // If the map has no saved results yet, there is nothing to recompute — just refresh (the config
+  // If the map has no saved results yet, there is nothing to recompute - just refresh (the config
   // is stored and will apply on the next result save). matchId always belongs to the current group
   // (the panel's groupMatches is currentGroup.matches).
   const resaveMatchForRecalc = async (matchId: number) => {
@@ -2036,24 +2040,41 @@ export default function OrganizerEventLeaderboardPage({
           value={selectedStageId}
           onValueChange={setSelectedStageId}
         >
-          <ScrollArea>
-            <TabsList className="w-full justify-start">
-              {eventData.stages.map((s: any) => (
-                <TabsTrigger key={s.stage_id} value={s.stage_id.toString()}>
-                  {s.stage_name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          <ScrollableTabsList className="w-full justify-start">
+            {eventData.stages.map((s: any) => (
+              <TabsTrigger key={s.stage_id} value={s.stage_id.toString()}>
+                {s.stage_name}
+              </TabsTrigger>
+            ))}
+          </ScrollableTabsList>
         </Tabs>
+      )}
+
+      {/* Clash Squad bracket stage (CS remediation P1#3, owner 2026-07-13): this stage has no BR
+          groups/matches to edit here - its results come from the head-to-head bracket. Send the
+          manager to the event page's bracket instead of the empty BR group/match editors below. */}
+      {!editingMatch && hasAnyLeaderboard && isCsStage && (
+        <Card>
+          <CardContent className="flex flex-col items-center gap-2 py-8 text-center">
+            <IconTrophy className="size-7 text-primary" />
+            <p className="font-medium">{t("eventLeaderboard.csBracketTitle")}</p>
+            <p className="max-w-md text-sm text-muted-foreground">
+              {t("eventLeaderboard.csBracketHint")}
+            </p>
+            <Button asChild variant="outline" className="mt-1">
+              <Link href={`/organizer/events/${routeSlug}`}>
+                {t("eventLeaderboard.csBracketGoto")}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {/* ── Normal leaderboard view ── */}
       {/* data-tour anchor: this Card wraps the whole standings panel (group/view
           pickers + the solo table or team tabs), so the tour step works for both
           solo and team events without targeting a conditional inner branch. */}
-      {!editingMatch && !groupEditOpen && hasAnyLeaderboard && (
+      {!editingMatch && !groupEditOpen && hasAnyLeaderboard && !isCsStage && (
         <Card data-tour="org-event-lb-table">
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -2510,8 +2531,8 @@ export default function OrganizerEventLeaderboardPage({
       )}
 
       {/* ── Image Upload = the OCR review mini-stepper (owner 2026-07-04 organizer parity) ──
-          Step 1 (no session yet): MapSelectionStep — pick which map this screenshot is for and
-          upload it (POST /events/ocr-match-result/). Step 2 (session ready): OCRReviewTable —
+          Step 1 (no session yet): MapSelectionStep - pick which map this screenshot is for and
+          upload it (POST /events/ocr-match-result/). Step 2 (session ready): OCRReviewTable -
           edit + commit the auto-extracted rows before they are written. Mirrors the admin edit
           page exactly; onCommitted runs handleEditComplete (refresh + close, same as every other
           edit path). `maps` is this match's group's matches (position drives the 1-based map_index
@@ -2591,6 +2612,9 @@ export default function OrganizerEventLeaderboardPage({
             token={token}
             canManage={canUploadResults}
             onChanged={fetchLeaderboard}
+            // Flagged players follow the stage/group being viewed (owner 2026-07-10); combine picker overrides.
+            selectedStageId={selectedStageId}
+            selectedGroupId={selectedGroupId}
           />
         </div>
       )}
@@ -2614,7 +2638,7 @@ export default function OrganizerEventLeaderboardPage({
                 baseline; Tie-breakers / MVPs / Debugger backfill need can_edit_events. */}
             <Tabs defaultValue="matches">
               <TabsList
-                className={`grid w-full ${canEditEvents ? "grid-cols-7" : "grid-cols-3"}`}
+                className={`grid w-full h-auto ${canEditEvents ? "grid-cols-3 md:grid-cols-7" : "grid-cols-3"}`}
               >
                 {/* Match Results (owner 2026-07-04 organizer parity): the SAME always-editable per-map
                     grid the admin editor has. Saves via edit-match-result / edit-solo-match-result,
@@ -2627,7 +2651,7 @@ export default function OrganizerEventLeaderboardPage({
                   <IconTrophy size={14} className="mr-1" />
                   {t("eventLeaderboard.tools.totalTab")}
                 </TabsTrigger>
-                {/* Scoring Config (owner 2026-07-04 organizer parity): always shown — editing a
+                {/* Scoring Config (owner 2026-07-04 organizer parity): always shown - editing a
                     match's scoring requires can_upload_results, which is this page's baseline gate
                     (like the Total tab). The other three tools need can_edit_events. */}
                 <TabsTrigger value="scoring">
@@ -2939,7 +2963,7 @@ export default function OrganizerEventLeaderboardPage({
 
       {/* Match picker modal (ported 1:1 from the admin [id] page). */}
       <Dialog open={matchPickerOpen} onOpenChange={setMatchPickerOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>{t("eventLeaderboard.editMatchResults")}</DialogTitle>
             <DialogDescription>

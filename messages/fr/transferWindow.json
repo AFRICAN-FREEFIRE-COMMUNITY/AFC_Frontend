@@ -1,0 +1,9 @@
+{
+  "openTitle": "🟢 Le mercato est OUVERT",
+  "closedTitle": "🔴 Le mercato est FERMÉ",
+  "openBody": "Les changements dans l'effectif sont autorisés.",
+  "openBodyWithDate": "Les changements d'effectif sont autorisés ; la période de transfert prend fin le {date}.",
+  "closedBody": "Les changements d'effectif sont gelés ; les joueurs ne peuvent ni quitter leur équipe, ni en être exclus, ni dissoudre leur équipe tant que la période de transfert n'aura pas repris.",
+  "openBadge": "OUVERT",
+  "closedBadge": "FERMÉ"
+}

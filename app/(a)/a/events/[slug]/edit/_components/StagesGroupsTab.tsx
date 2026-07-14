@@ -374,6 +374,9 @@
 
 import React from "react";
 import { useFormContext } from "react-hook-form";
+// i18n (namespace "evEditStages"): this tab is mounted by BOTH the admin and the organizer
+// event-edit pages, so its stage/group copy is localized (en/fr/pt). English extracted verbatim.
+import { useTranslations } from "next-intl";
 import axios from "axios";
 // DnD (drag-to-reorder, owner 2026-06-15): mirrors the proven pattern at
 // app/(a)/a/rankings/tournament-tiers/page.tsx (DndContext + SortableContext + useSortable +
@@ -501,6 +504,9 @@ function DragHandle({
   disabled?: boolean;
   label: string;
 }) {
+  // Local hook so the disabled tooltip is localized too; the visible `label` is already
+  // translated by the caller (dragStage / dragGroup).
+  const t = useTranslations("evEditStages");
   return (
     <button
       type="button"
@@ -508,8 +514,8 @@ function DragHandle({
       {...listeners}
       disabled={disabled}
       aria-label={label}
-      title={disabled ? "Save this row first to enable reordering" : label}
-      className="cursor-grab touch-none rounded p-1 text-muted-foreground hover:text-foreground active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40"
+      title={disabled ? t("dragDisabledTitle") : label}
+      className="cursor-grab touch-none rounded p-2 text-muted-foreground hover:text-foreground active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-40"
     >
       <IconGripVertical className="size-4" />
     </button>
@@ -537,6 +543,7 @@ export default function StagesGroupsTab({
   const form = useFormContext<EventFormType>();
   const stages = (form.watch("stages") || []) as any[];
   const { token } = useAuth();
+  const t = useTranslations("evEditStages");
 
   // Shared DnD sensors (mouse + touch + keyboard for mobile/accessibility), matching
   // app/(a)/a/rankings/tournament-tiers/page.tsx.
@@ -572,10 +579,10 @@ export default function StagesGroupsTab({
         { headers: { Authorization: `Bearer ${token}` } },
       );
       if (res.data?.warning) toast.info(res.data.warning);
-      else toast.success("Stage order saved.");
+      else toast.success(t("toastStageOrderSaved"));
       onRefresh?.();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to save stage order.");
+      toast.error(err?.response?.data?.message || t("toastStageOrderFailed"));
       onRefresh?.(); // snap back to the canonical saved order
     }
   }
@@ -602,10 +609,10 @@ export default function StagesGroupsTab({
         { headers: { Authorization: `Bearer ${token}` } },
       );
       if (res.data?.warning) toast.info(res.data.warning);
-      else toast.success("Group order saved.");
+      else toast.success(t("toastGroupOrderSaved"));
       onRefresh?.();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to save group order.");
+      toast.error(err?.response?.data?.message || t("toastGroupOrderFailed"));
       onRefresh?.(); // snap back to the canonical saved order
     }
   }
@@ -643,13 +650,13 @@ export default function StagesGroupsTab({
                 <Card className="bg-yellow-50 border-yellow-200">
                   <CardContent className="p-4">
                     <p className="text-yellow-800">
-                      ⚠️ Stage {sIdx + 1} is not configured.
+                      {t("notConfigured", { number: sIdx + 1 })}
                       <Button
                         type="button"
                         variant="link"
                         onClick={() => onOpenStageModal(sIdx)}
                       >
-                        Click here to configure
+                        {t("clickToConfigure")}
                       </Button>
                     </p>
                   </CardContent>
@@ -672,7 +679,7 @@ export default function StagesGroupsTab({
                   <div className="flex items-start gap-1">
                     {/* Stage drag handle: POSTs /events/reorder-stages/ on drop. Disabled until the
                         stage is saved (the backend keys reordering on the persisted stage_id). */}
-                    <DragHandle {...handle} label="Drag to reorder stage" />
+                    <DragHandle {...handle} label={t("dragStage")} />
                     <div>
                     <span>
                       <IconTrophy className="inline-block mr-2" />
@@ -683,15 +690,16 @@ export default function StagesGroupsTab({
                       {formatDate(stage.start_date)} →{" "}
                       {formatDate(stage.end_date)} |{" "}
                       {formattedWord[stage.stage_format]} |{" "}
-                      {stage.teams_qualifying_from_stage} teams qualify
+                      {stage.teams_qualifying_from_stage} {t("teamsQualifyLower")}
                     </p>
                     {/* Stage prize summary */}
                     {hasStagePrize && (
                       <p className="text-xs mt-1 text-primary font-medium">
-                        🏆 Prize:{" "}
-                        {[stage.prizepool, stage.prizepool_cash_value]
-                          .filter(Boolean)
-                          .join(" · ")}
+                        {t("stagePrize", {
+                          value: [stage.prizepool, stage.prizepool_cash_value]
+                            .filter(Boolean)
+                            .join(" · "),
+                        })}
                       </p>
                     )}
                     </div>
@@ -759,8 +767,8 @@ export default function StagesGroupsTab({
                       disabled={stages.length <= 1}
                       title={
                         stages.length <= 1
-                          ? "Cannot remove the last stage"
-                          : "Remove this stage"
+                          ? t("cannotRemoveLast")
+                          : t("removeThisStage")
                       }
                     >
                       <Trash2 className="w-4 h-4" />
@@ -801,7 +809,7 @@ export default function StagesGroupsTab({
                       <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="flex items-center gap-1">
                           {/* Group drag handle: POSTs /events/reorder-groups/ on drop. */}
-                          <DragHandle {...groupHandle} label="Drag to reorder group" />
+                          <DragHandle {...groupHandle} label={t("dragGroup")} />
                           <div>
                           {group?.group_name}
                           {/* Group prize summary */}
@@ -844,33 +852,33 @@ export default function StagesGroupsTab({
                     <CardContent className="text-muted-foreground text-sm space-y-2">
                       <div className="space-y-1">
                         <p>
-                          {formatDate(group?.playing_date)} at{" "}
+                          {formatDate(group?.playing_date)} {t("at")}{" "}
                           {group?.playing_time}
                         </p>
                         <p className="text-primary">
-                          Maps:{" "}
+                          {t("mapsLabel")}{" "}
                           {group?.match_maps?.join(", ") || (
-                            <span className="italic">No maps selected</span>
+                            <span className="italic">{t("noMapsSelected")}</span>
                           )}
                         </p>
                         <p>
                           {group?.total_teams_in_group ||
                             group?.competitors_in_group?.length}{" "}
                           {group?.total_teams_in_group === 0
-                            ? "Players"
-                            : "Teams"}{" "}
-                          | {group?.teams_qualifying} qualify
+                            ? t("players")
+                            : t("teams")}{" "}
+                          | {group?.teams_qualifying} {t("qualifyLower")}
                         </p>
                       </div>
                       <div className="w-full">
                         <Card className="gap-0">
                           <CardHeader>
-                            <CardTitle>Players</CardTitle>
+                            <CardTitle>{t("players")}</CardTitle>
                           </CardHeader>
                           <CardContent className="pt-1 max-h-40 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-1 mt-1.5">
                             {group?.competitors_in_group?.length === 0 && (
                               <p className="italic text-sm text-muted-foreground">
-                                No players yet
+                                {t("noPlayersYet")}
                               </p>
                             )}
                             {group?.competitors_in_group?.map(
@@ -892,7 +900,7 @@ export default function StagesGroupsTab({
                           <CardHeader>
                             <CardTitle className="flex items-center justify-start gap-2">
                               <IconMap size={16} className="text-primary" />
-                              Match Schedule & Status
+                              {t("matchScheduleStatus")}
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
@@ -900,16 +908,16 @@ export default function StagesGroupsTab({
                               <TableHeader>
                                 <TableRow className="border-zinc-800">
                                   <TableHead className="h-8 text-[10px] uppercase font-bold">
-                                    No.
+                                    {t("colNo")}
                                   </TableHead>
                                   <TableHead className="h-8 text-[10px] uppercase font-bold">
-                                    Map
+                                    {t("colMap")}
                                   </TableHead>
                                   <TableHead className="h-8 text-[10px] uppercase font-bold">
-                                    Status
+                                    {t("colStatus")}
                                   </TableHead>
                                   <TableHead className="h-8 text-[10px] uppercase font-bold text-right">
-                                    Actions
+                                    {t("colActions")}
                                   </TableHead>
                                 </TableRow>
                               </TableHeader>
@@ -941,8 +949,8 @@ export default function StagesGroupsTab({
                                             }
                                           >
                                             {match.result_inputted
-                                              ? "Resulted"
-                                              : "Pending"}
+                                              ? t("resulted")
+                                              : t("pending")}
                                           </Badge>
                                         </TableCell>
                                         <TableCell className="py-2 text-right space-x-1">
@@ -955,7 +963,16 @@ export default function StagesGroupsTab({
                                             roomId={match.room_id}
                                             roomPassword={match.room_password}
                                             roomName={match.room_name}
-                                            matchLabel={`Match ${match.match_number}${match.match_map ? ` - ${match.match_map}` : ""}`}
+                                            matchLabel={
+                                              match.match_map
+                                                ? t("matchLabelWithMap", {
+                                                    number: match.match_number,
+                                                    map: match.match_map,
+                                                  })
+                                                : t("matchLabelNoMap", {
+                                                    number: match.match_number,
+                                                  })
+                                            }
                                           />
                                           <DeleteMatchModal
                                             matchId={match.match_id}
@@ -971,7 +988,7 @@ export default function StagesGroupsTab({
                                       colSpan={4}
                                       className="text-center py-4 text-xs text-muted-foreground italic"
                                     >
-                                      No matches generated for this group yet.
+                                      {t("noMatches")}
                                     </TableCell>
                                   </TableRow>
                                 )}
@@ -993,7 +1010,7 @@ export default function StagesGroupsTab({
                           className="flex-1"
                           onClick={() => onSeedGroup(group)}
                         >
-                          Seed to Next Stage
+                          {t("seedToNextStage")}
                         </Button>
                         {/*
                           Edit-only live-event action - explain what seeding does.
@@ -1028,7 +1045,7 @@ export default function StagesGroupsTab({
           onClick={onAddNewStage}
         >
           <IconTrophy className="mr-2 h-5 w-5" />
-          Add New Stage
+          {t("addNewStage")}
         </Button>
       </div>
 
@@ -1052,9 +1069,9 @@ export default function StagesGroupsTab({
         disabled={loadingEvent || pendingSubmit}
       >
         {loadingEvent || pendingSubmit ? (
-          <Loader text="Saving..." />
+          <Loader text={t("saving")} />
         ) : (
-          "Save Changes"
+          t("saveChanges")
         )}
       </Button>
     </>

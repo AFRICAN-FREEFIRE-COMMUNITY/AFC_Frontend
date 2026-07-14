@@ -1,5 +1,36 @@
 import { countries } from "@/constants";
 import { z } from "zod";
+// ── i18n for validation messages ────────────────────────────────────────────────
+// This is a plain module (no React hooks), so we cannot use useTranslations here.
+// Instead we resolve the active UI language from the NEXT_LOCALE cookie (the same cookie
+// the rest of the app trusts, see lib/i18n/time.ts::getActiveLocale) and build a next-intl
+// translator over the "validation" namespace catalog (messages/{en,fr,pt}/validation.json).
+// Messages are captured when the schemas are CONSTRUCTED (module load). A language change
+// writes the NEXT_LOCALE cookie and reloads the app, so the captured locale always matches
+// what the user sees. Only the USER-facing schemas below are localized; the admin schemas
+// (tournament / product / coupon, further down) are i18n-exempt and keep their English text.
+// Connects to: the auth (LoginForm/CreateAccountForm/ForgotPasswordForm/ResetPasswordForm/
+// VerifyTokenForm), onboarding (ConfirmationForm), profile (EditProfileForm), team
+// (CreateTeam/EditTeam) and shop-checkout forms that consume these via zodResolver(<Schema>).
+import { createTranslator } from "next-intl";
+import { getActiveLocale } from "@/lib/i18n/time";
+import enValidation from "@/messages/en/validation.json";
+import frValidation from "@/messages/fr/validation.json";
+import ptValidation from "@/messages/pt/validation.json";
+
+const VALIDATION_CATALOG: Record<string, typeof enValidation> = {
+  en: enValidation,
+  fr: frValidation,
+  pt: ptValidation,
+};
+
+// Two-letter primary subtag of the active locale ("en" | "fr" | "pt"; "en" on the server or
+// for any unsupported value), used to pick the catalog and fall back to English.
+const vLocale = getActiveLocale().slice(0, 2).toLowerCase();
+const vt = createTranslator({
+  locale: vLocale,
+  messages: VALIDATION_CATALOG[vLocale] ?? enValidation,
+});
 
 // Regex pattern that allows only standard characters:
 // - Letters (a-z, A-Z)
@@ -15,94 +46,107 @@ const validateSafeName = (value: string) => {
   return SAFE_NAME_REGEX.test(value);
 };
 
-// Reusable schema for safe names
-const safeNameSchema = (fieldName: string, minLength: number = 2) =>
+// Resolve a field's display name. USER schemas pass a key that indexes validation.fields.*
+// (e.g. "ingameName") so the field name localizes. ADMIN / i18n-exempt schemas (tournament,
+// product, coupon) pass a raw English label (e.g. "Stage name") that is NOT a catalog key -
+// for those we fall back to the literal string. Using vt.has() avoids throwing a
+// MISSING_MESSAGE IntlError at module-construction time for the raw-label callers.
+const fieldLabel = (fieldKey: string) =>
+  vt.has(`fields.${fieldKey}`) ? vt(`fields.${fieldKey}`) : fieldKey;
+
+// Reusable schema for safe names. `fieldKey` is a validation.fields.* key (user schemas) or a
+// raw English label (admin schemas); the two messages come from validation.minChars /
+// validation.unsafeChars.
+const safeNameSchema = (fieldKey: string, minLength: number = 2) =>
   z
     .string()
     .min(minLength, {
-      message: `${fieldName} must be at least ${minLength} characters.`,
+      message: vt("minChars", {
+        field: fieldLabel(fieldKey),
+        min: minLength,
+      }),
     })
     .refine((val) => validateSafeName(val), {
-      message: `${fieldName} can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @). Special characters like emojis or fancy unicode text are not allowed.`,
+      message: vt("unsafeChars", { field: fieldLabel(fieldKey) }),
     });
 
 export const LoginFormSchema = z.object({
   ign_or_uid: z.string().min(2, {
-    message: "UID must be at least 2 characters.",
+    message: vt("uidMin"),
   }),
   password: z.string().min(2, {
-    message: "Password must be at least 2 characters.",
+    message: vt("passwordMin2"),
   }),
 });
 
 export const EditMatchFormSchema = z.object({
   roomId: z.string().min(1, {
-    message: "ID must be at least 1 characters.",
+    message: vt("roomIdMin"),
   }),
   roomName: z.string().min(1, {
-    message: "Name must be at least 1 characters.",
+    message: vt("roomNameMin"),
   }),
   roomPassword: z.string().min(1, {
-    message: "Password must be at least 1 characters.",
+    message: vt("roomPasswordMin"),
   }),
 });
 
 export const RegisterFormSchema = z
   .object({
-    ingameName: safeNameSchema("In-game name", 2),
-    fullName: safeNameSchema("Full name", 2),
+    ingameName: safeNameSchema("ingameName", 2),
+    fullName: safeNameSchema("fullName", 2),
     // uid: z.string().min(8, {
     //   message: "UID must be at least 8 characters.",
     // }),
     email: z.string().email().min(2, {
-      message: "Email must be at least 2 characters.",
+      message: vt("emailMin"),
     }),
     // country: z.enum(countries, { message: "Country is required" }).optional(),
     password: z
       .string()
-      .min(8, { message: "Password must be at least 8 characters." })
+      .min(8, { message: vt("passwordMin8") })
       .refine((val) => /[a-z]/.test(val), {
-        message: "Password must contain at least one lowercase letter.",
+        message: vt("passwordLowercase"),
       })
       .refine((val) => /[A-Z]/.test(val), {
-        message: "Password must contain at least one uppercase letter.",
+        message: vt("passwordUppercase"),
       })
       .refine((val) => /[0-9]/.test(val), {
-        message: "Password must contain at least one number.",
+        message: vt("passwordNumber"),
       })
       .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
-        message: "Password must contain at least one special character.",
+        message: vt("passwordSpecial"),
       }),
     confirmPassword: z.string(),
 
     // 💥 NEW VALIDATION FIELD 💥
     acceptTerms: z.literal(true, {
-      message: "You must accept the Terms of Service and Privacy Policy.",
+      message: vt("acceptTerms"),
     }),
     // The .literal(true) method ensures that the value must be exactly 'true'.
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: vt("passwordsNoMatch"),
     path: ["confirmPassword"], // 👈 attach the error to confirmPassword
   });
 
 export const EmailConfirmationFormSchema = z.object({
   email: z.string().email().min(2, {
-    message: "Email must be at least 2 characters.",
+    message: vt("emailMin"),
   }),
   code: z.string().min(2, {
-    message: "Code must be at least 2 characters.",
+    message: vt("codeMin"),
   }),
 });
 
 export const ForgotPasswordFormSchema = z.object({
   email: z.string().email().min(2, {
-    message: "Email must be at least 2 characters.",
+    message: vt("emailMin"),
   }),
 });
 
 export const ForgotPasswordUidFormSchema = z.object({
-  uid: z.string().min(1, { message: "UID is required." }),
+  uid: z.string().min(1, { message: vt("uidRequired") }),
 });
 
 // Only the 6-char token is entered on the verify-token screen. The identifier
@@ -115,18 +159,18 @@ export const VerifyTokenFormSchema = z.object({
   token: z
     .string()
     .min(6, {
-      message: "Token must be 6 characters.",
+      message: vt("tokenLength"),
     })
-    .max(6, { message: "Token must be 6 characters" }),
+    .max(6, { message: vt("tokenLength") }),
 });
 
 export const EditProfileFormSchema = z.object({
   avatar: z.string().optional(),
-  ingameName: safeNameSchema("In-game name", 2),
-  fullName: safeNameSchema("Full name", 2),
+  ingameName: safeNameSchema("ingameName", 2),
+  fullName: safeNameSchema("fullName", 2),
   uid: z.string().optional(),
   email: z.string().email().min(2, {
-    message: "Email must be at least 2 characters.",
+    message: vt("emailMin"),
   }),
   // i18n Phase 0: preferred UI language. Bound to the Language <Select> on the profile edit
   // page (app/(user)/profile/edit/page.tsx) and sent to POST /auth/edit-profile/ as the
@@ -153,56 +197,55 @@ export const ResetPasswordFormSchema = z
   .object({
     password: z
       .string()
-      .min(8, { message: "Password must be at least 8 characters." })
+      .min(8, { message: vt("passwordMin8") })
       .refine((val) => /[a-z]/.test(val), {
-        message: "Password must contain at least one lowercase letter.",
+        message: vt("passwordLowercase"),
       })
       .refine((val) => /[A-Z]/.test(val), {
-        message: "Password must contain at least one uppercase letter.",
+        message: vt("passwordUppercase"),
       })
       .refine((val) => /[0-9]/.test(val), {
-        message: "Password must contain at least one number.",
+        message: vt("passwordNumber"),
       })
       .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
-        message: "Password must contain at least one special character.",
+        message: vt("passwordSpecial"),
       }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: vt("passwordsNoMatch"),
     path: ["confirmPassword"], // 👈 attach the error to confirmPassword
   });
 
 export const ContactFormSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    message: vt("nameMin"),
   }),
   email: z.string().email().min(2, {
-    message: "Email must be at least 2 characters.",
+    message: vt("emailMin"),
   }),
   message: z.string().min(2, {
-    message: "message must be at least 2 characters.",
+    message: vt("messageMin"),
   }),
 });
 
 export const CreateTeamFormSchema = z.object({
-  team_name: safeNameSchema("Team name", 2),
+  team_name: safeNameSchema("teamName", 2),
   team_tag: z
     .string()
     .optional()
     .refine((val) => !val || SAFE_NAME_REGEX.test(val), {
-      message:
-        "Team tag can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @).",
+      message: vt("unsafeCharsShort", { field: vt("fields.teamTag") }),
     }),
   team_logo: z.string().optional(),
   team_description: z.string().min(2, {
-    message: "Team description must be at least 2 characters.",
+    message: vt("teamDescriptionMin"),
   }),
   // country: z.string().min(2, {
   //   message: "Country must be at least 2 characters.",
   // }),
   join_settings: z.string().min(2, {
-    message: "Join settings must be selected.",
+    message: vt("joinSettingsRequired"),
   }),
   list_of_players_to_invite: z
     .array(
@@ -220,12 +263,12 @@ export const CreateTeamFormSchema = z.object({
 
 export const EditTeamFormSchema = z.object({
   team_id: z.coerce.number().min(2, {
-    message: "Team id is required.",
+    message: vt("teamIdRequired"),
   }),
-  team_name: safeNameSchema("Team name", 2),
+  team_name: safeNameSchema("teamName", 2),
   team_logo: z.string().optional(),
   join_settings: z.string().min(2, {
-    message: "Join settings must be selected.",
+    message: vt("joinSettingsRequired"),
   }),
   facebook_url: z.string().optional(),
   twitter_url: z.string().optional(),
@@ -531,15 +574,15 @@ export const EditCouponSchema = z.object({
 });
 
 export const ShopCustomerDetailsSchema = z.object({
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
-  email: z.string().email("Invalid email address"),
+  firstName: z.string().min(2, vt("firstNameRequired")),
+  lastName: z.string().min(2, vt("lastNameRequired")),
+  email: z.string().email(vt("emailInvalid")),
   phone: z.string().regex(/^(\+?\d{10,15})$/, {
-    message: "Enter a valid phone number.",
+    message: vt("phoneInvalid"),
   }),
-  address: z.string().min(5, "Address is required"),
-  city: z.string().min(2, "City is required"),
-  state: z.string().min(2, "State is required"),
+  address: z.string().min(5, vt("addressRequired")),
+  city: z.string().min(2, vt("cityRequired")),
+  state: z.string().min(2, vt("stateRequired")),
   postalCode: z.string().optional(),
 });
 

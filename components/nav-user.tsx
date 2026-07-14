@@ -26,6 +26,10 @@ import {
 } from "@/components/ui/sidebar";
 import { useSignout } from "@/hooks/use-signout";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
+// i18n: the admin sidebar footer user-menu (Log out) is resolved from the
+// adminNav namespace (messages/{en,fr,pt}/adminNav.json), matching the rest of
+// the admin sidebar (app-sidebar.tsx / nav-main.tsx).
+import { useTranslations } from "next-intl";
 
 export function NavUser({
   user,
@@ -37,6 +41,7 @@ export function NavUser({
   };
 }) {
   const handleSignout = useSignout();
+  const t = useTranslations("adminNav");
 
   const { isMobile, setOpenMobile } = useSidebar();
 
@@ -98,7 +103,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
-              Log out
+              {t("logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

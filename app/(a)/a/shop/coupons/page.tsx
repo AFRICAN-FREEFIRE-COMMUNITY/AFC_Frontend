@@ -13,7 +13,7 @@ import {
 import { ITEMS_PER_PAGE } from "@/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import {
   Table,
@@ -32,7 +32,7 @@ import {
   IconCalendar,
 } from "@tabler/icons-react";
 import Link from "next/link";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -252,14 +252,11 @@ export default function CouponMetricsPage() {
             onValueChange={setActiveTab}
             data-tour="shop-coupons-tabs"
           >
-            <ScrollArea>
-              <TabsList className="w-full">
-                <TabsTrigger value="performance">Performance</TabsTrigger>
-                <TabsTrigger value="trends">Trends</TabsTrigger>
-                <TabsTrigger value="activity">Recent Activity</TabsTrigger>
-              </TabsList>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            <ScrollableTabsList className="w-full">
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+              <TabsTrigger value="trends">Trends</TabsTrigger>
+              <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+            </ScrollableTabsList>
 
             {/* Performance - Real data */}
             <TabsContent value="performance" className="mt-6">

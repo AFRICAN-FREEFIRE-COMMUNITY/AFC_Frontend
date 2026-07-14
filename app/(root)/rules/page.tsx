@@ -41,18 +41,29 @@ const RulesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   // Root namespace (messages/en/root.json, rules.* keys): page title +
   // description, the search box placeholder, the no-match empty state, and the
-  // "Rule Discrepancies?" support card. The rule CONTENT itself comes from the
-  // shared AFC_RULES_DATA constant (constants/rules.ts), which is outside this
-  // page and not localized here.
+  // "Rule Discrepancies?" support card.
   const t = useTranslations("root");
+
+  // Rules namespace (messages/{en,fr,pt}/rules.json): every rule's human-readable
+  // copy. AFC_RULES_DATA (constants/rules.ts) only carries structure now (id +
+  // icon + rule count), so each string is looked up by the category `id` and the
+  // rule's array index:
+  //   categories.<id>.name / .description / .rules.<index>.title / .rules.<index>.content
+  const tRules = useTranslations("rules");
 
   // Use the shared matchesSearch helper (punctuation/space/accent-insensitive, folds stylized
   // fancy-font unicode) so the rules search behaves like every other "Search ..." box on the site.
   // The OR-chain (match the category OR any rule title) collapses into a single multi-field haystack:
   // the category plus all of its rule titles, so a query that hits any one of them keeps the section.
+  // We search against the TRANSLATED strings (via tRules) so search matches what the user actually sees.
   const filteredRules = AFC_RULES_DATA.filter((cat) =>
     matchesSearch(
-      [cat.category, ...cat.rules.map((r) => r.title)],
+      [
+        tRules(`categories.${cat.id}.name`),
+        ...cat.rules.map((_, index) =>
+          tRules(`categories.${cat.id}.rules.${index}.title`)
+        ),
+      ],
       searchQuery
     )
   );
@@ -87,10 +98,10 @@ const RulesPage = () => {
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-primary">
-                      {section.category}
+                      {tRules(`categories.${section.id}.name`)}
                     </h2>
                     <p className="text-xs text-muted-foreground">
-                      {section.description}
+                      {tRules(`categories.${section.id}.description`)}
                     </p>
                   </div>
                 </div>
@@ -98,17 +109,17 @@ const RulesPage = () => {
                 <Card className="p-0 overflow-hidden">
                   <CardContent className="p-0">
                     <Accordion type="single" collapsible className="w-full">
-                      {section.rules.map((rule, index) => (
+                      {section.rules.map((_rule, index) => (
                         <AccordionItem
                           key={index}
                           value={`${section.id}-${index}`}
                           className="px-6 last:border-0"
                         >
                           <AccordionTrigger className="hover:no-underline cursor-pointer hover:text-primary py-5 text-left font-semibold transition-all">
-                            {rule.title}
+                            {tRules(`categories.${section.id}.rules.${index}.title`)}
                           </AccordionTrigger>
                           <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-8 whitespace-pre-line border-t pt-4">
-                            {rule.content}
+                            {tRules(`categories.${section.id}.rules.${index}.content`)}
                           </AccordionContent>
                         </AccordionItem>
                       ))}

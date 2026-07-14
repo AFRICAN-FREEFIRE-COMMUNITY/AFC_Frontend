@@ -225,18 +225,6 @@ export const HELP = {
   "leaderboards.detail.upload_edit_group":
     "Manage the whole group in one place. Drop result screenshots for several of its maps at once (each is read and scored automatically), or edit every map's table by hand, then save all maps together.",
 
-  // ── OCR screenshot review (the admin reads a result screenshot, then checks it) ──
-  // Surfaced in app/(a)/a/leaderboards/_components/OCRReviewTable.tsx (the review table) and
-  // MapSelectionStep.tsx. Explains the few non-obvious controls in that flow.
-  "ocr.confidence":
-    "How sure the reader is that this on-screen name matches the player shown. Green is a strong match, amber is unsure, red is a weak guess. Always check the low ones.",
-  "ocr.team_mismatch":
-    "This player was read onto a different team than the one they registered with, usually a stand-in. Tick Acknowledge to confirm the sub before committing, or pick the correct player instead.",
-  "ocr.corrected_text":
-    "The exact text as it appears on the screenshot, even if it is misspelled in-game. Fix it to match the pixels, not the player's real name. This trains the reader to get it right next time.",
-  "ocr.engine":
-    "Which reader produced this result (the in-house model or the external one). Shown only when available, so you can see what read the screenshot.",
-
   // ══════════════════════════════════════════════════════════════════════════
   // Rankings & Tiering - the system that scores every team and player each
   // quarter and locks them into tiers (Elite / Competitive / Rising / Entry).
@@ -809,6 +797,22 @@ export const HELP = {
   "partners.revoke_key":
     "Permanently disable this key. Any integration using it stops authenticating immediately. This can't be undone - issue a new key to restore access.",
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // USER-FACING SECTION (i18n'd via the `help` namespace).
+  // Everything from here down is copy a normal user/player/organizer/sponsor sees
+  // (roster, tournament registration, shop checkout, diamonds, player market,
+  // profile, public leaderboards/rankings, download media). These English strings
+  // stay here as the DATA + FALLBACK source, but the InfoTip UI renders the
+  // TRANSLATED text from messages/{en,fr,pt}/help.json (keyed by the SAME dotted
+  // id, which next-intl resolves as a nested path). The set of ids below is the
+  // single source of truth for "which id is user-facing"; InfoTip consults it to
+  // decide whether to translate (user) or render raw (admin). This mirrors how the
+  // player achievements catalog keeps English in achievements.ts while rendering
+  // translated copy from profile.json -> achievementsCatalog.
+  // Consumed by: components/ui/info-tip.tsx (via USER_HELP_IDS below).
+  // The ADMIN keys above (~line 6-810) are i18n-EXEMPT and stay English-only.
+  // ══════════════════════════════════════════════════════════════════════════
+
   // ── User › Teams › Manage Roster ───────────────────────────────────────────
   "teams.roster._page":
     "Manage your team's roster: set each member's in-game and management role, or remove them. Only the team owner and coaches can manage the roster - captains cannot.",
@@ -935,6 +939,95 @@ export const HELP = {
     "How each esport image file is named: the player's in-game name, their Free Fire UID, or both combined (name then UID).",
   "media.download.logoSize":
     "Original keeps the full resolution. Gloo wallpaper is 1000 x 1000 (display/social); Head pic is 108 x 130. Team logo files are always named after the team.",
+
+  // ── OCR screenshot review (admin/organizer reads a result screenshot, then checks it) ──
+  // Surfaced in app/(a)/a/leaderboards/_components/OCRReviewTable.tsx (the review table),
+  // MapSelectionStep.tsx and OcrBatchDialog.tsx. Moved here (from the admin block) so the
+  // admin OCR namespace is in scope for i18n (per spec B3): InfoTip renders these through the
+  // `help` next-intl namespace (messages/{en,fr,pt}/help.json) instead of raw English.
+  // Keys mirrored in USER_HELP_IDS below and in messages/en/help.json under "ocr".
+  "ocr.confidence":
+    "How sure the reader is that this on-screen name matches the player shown. Green is a strong match, amber is unsure, red is a weak guess. Always check the low ones.",
+  "ocr.team_mismatch":
+    "This player was read onto a different team than the one they registered with, usually a stand-in. Tick Acknowledge to confirm the sub before committing, or pick the correct player instead.",
+  // B7: this field trains the reader only; it is NOT the player's identity and does NOT affect the score.
+  "ocr.corrected_text":
+    "The exact text as it appears on the screenshot, even if misspelled in-game. This only trains the reader; it does not change who the row is or the score.",
+  "ocr.engine":
+    "Which reader produced this result (the in-house model or the external one). Shown only when available, so you can see what read the screenshot.",
 } as const;
 
 export type HelpId = keyof typeof HELP;
+
+// ──────────────────────────────────────────────────────────────────────────────
+// USER_HELP_IDS: the ids of the user-facing tips (the section above, from
+// "teams.roster._page" onward). InfoTip (components/ui/info-tip.tsx) renders these
+// through the `help` next-intl namespace (messages/{en,fr,pt}/help.json); every
+// other (admin) id renders the raw English HELP string. Kept in lockstep with the
+// keys in help.json (same dotted ids, which next-intl reads as nested paths).
+// Anything NOT in this set is treated as admin (i18n-exempt) copy.
+// ──────────────────────────────────────────────────────────────────────────────
+export const USER_HELP_IDS: ReadonlySet<HelpId> = new Set<HelpId>([
+  // Teams › Manage Roster + Create
+  "teams.roster._page",
+  "teams.roster.in_game_role",
+  "teams.roster.management_role",
+  "teams.create.team_tag",
+  "teams.create.join_settings",
+  "teams.create.invite_members",
+  // Tournament registration (multi-step)
+  "tournaments.register.type._section",
+  "tournaments.register.afc_uid",
+  "tournaments.register.select_members._section",
+  "tournaments.register.rules._section",
+  "tournaments.register.rules_accept",
+  "tournaments.register.sponsor._section",
+  "tournaments.register.discord_link._section",
+  "tournaments.register.discord_join._section",
+  "tournaments.register.discord_status._section",
+  // Shop › Checkout
+  "shop.checkout.coupon",
+  "shop.checkout.tax",
+  "shop.checkout.total",
+  "shop.checkout.pay_now",
+  // Shop › Diamonds delivery + orders
+  "shop.diamonds.customer_details._section",
+  "shop.diamonds.claim._section",
+  "shop.diamonds.order_status",
+  "shop.diamonds.order_detail_status",
+  // Player market
+  "player_market.create_post",
+  "player_market.one_active_post",
+  "player_market.post_expiry",
+  "player_market.tryout_limit",
+  "player_market.rules_summary",
+  "player_market.report_rules",
+  "player_market.recruitment_criteria",
+  "player_market.apply",
+  "player_market.invite_message",
+  "player_market.trial_invites",
+  "player_market.unlock_contact",
+  "player_market.accept_player",
+  "player_market.extend_trial",
+  "player_market.trial_chat",
+  // Profile
+  "profile.edit.uid",
+  "profile.edit.in_game_name",
+  "profile.discord_connect",
+  // Public leaderboards + rankings/tiers
+  "leaderboards.public._page",
+  "leaderboards.public.view_filter",
+  "leaderboards.public.points_column",
+  "rankings.public.monthly_standings",
+  "rankings.public.score_column",
+  "rankings.public.tiers_intro",
+  // Download media
+  "media.download.esportSize",
+  "media.download.esportNaming",
+  "media.download.logoSize",
+  // OCR screenshot review (admin/organizer surface, now i18n'd per spec B3)
+  "ocr.confidence",
+  "ocr.team_mismatch",
+  "ocr.corrected_text",
+  "ocr.engine",
+]);

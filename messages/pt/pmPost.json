@@ -1,0 +1,67 @@
+{
+  "back": "Voltar ao Mercado de Jogadores",
+  "recruiting": "Recrutamento",
+  "available": "Disponível",
+  "expired": "Caducado",
+  "postedBy": "Publicado por",
+  "unknown": "Desconhecido",
+  "altPost": "Publicação",
+  "rolesNeeded": "Funções a preencher",
+  "minTier": "Nível mínimo",
+  "commitmentLabel": "Compromisso",
+  "openTo": "Aberto a",
+  "recruitmentCriteria": "Critérios de recrutamento",
+  "primaryRole": "Função principal",
+  "secondaryRole": "Papel secundário",
+  "availabilityLabel": "Disponibilidade",
+  "openToPlayFor": "Disponível para jogar por",
+  "about": "Sobre",
+  "postExpires": "A publicação expira:",
+  "viewOnMarket": "Ver no Player Market",
+  "apply": {
+    "cta": "Candidatar-se a esta equipa",
+    "applying": "A aplicar...",
+    "sent": "Candidatura enviada",
+    "success": "A candidatura foi enviada para {team}!",
+    "teamFallback": "equipa",
+    "error": "Não foi possível enviar a candidatura."
+  },
+  "roles": {
+    "IGL": "Líder no jogo",
+    "RUSHER": "Rusher",
+    "SUPPORT": "Apoio",
+    "SNIPER": "Atirador de precisão",
+    "GRENADE": "Granada"
+  },
+  "tiers": {
+    "TIER_1": "Nível 1",
+    "TIER_2": "Nível 2",
+    "TIER_3": "Nível 3"
+  },
+  "commitment": {
+    "FULL_TIME": "A tempo inteiro",
+    "PART_TIME": "A tempo parcial"
+  },
+  "availability": {
+    "TRIAL": "Versão de avaliação",
+    "PERMANENT": "Permanente",
+    "SCRIMS_ONLY": "Apenas jogos de treino"
+  },
+  "meta": {
+    "notFound": "Publicação não encontrada | Mercado de jogadores da AFC",
+    "teamFallback": "Uma equipa",
+    "playerFallback": "Um jogador",
+    "rolesFallback": "jogadores",
+    "teamTitle": "{team} está a recrutar",
+    "teamLooking": "{team} está à procura de {roles}",
+    "fromCountry": " retirado de {country}",
+    "commitmentPart": "{commitment} compromisso",
+    "minimumTier": ", mínimo{tier}",
+    "applyLine": "Candidate-se no AFC Player Market.",
+    "playerTitle": "{player} está à procura de uma equipa",
+    "playerAvailable": "{player} {role} está disponível",
+    "playerRoleParen": " ({role})",
+    "availBasis": " - base «{avail}»",
+    "connectLine": "Junte-se a nós no AFC Player Market."
+  }
+}

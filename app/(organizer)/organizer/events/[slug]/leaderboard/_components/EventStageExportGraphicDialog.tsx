@@ -197,7 +197,7 @@ export function EventStageExportGraphicDialog({
   }, [open, defaultTitle, defaultSubtitle, loadDesigns, stageId, groupId]);
 
   // ── Combine checklist toggles (owner 2026-07-05, complaint B) ─────────────
-  // Toggling a WHOLE stage drops its individual group picks (they become redundant — the backend
+  // Toggling a WHOLE stage drops its individual group picks (they become redundant - the backend
   // expands a stage to all its groups). Group checkboxes are disabled while their stage is selected.
   const toggleCombineStage = (sid: string) => {
     setCombineStages((prev) => {
@@ -374,7 +374,7 @@ export function EventStageExportGraphicDialog({
       )}
 
       <Dialog open={open} onOpenChange={(o) => !downloading && setOpen(o)}>
-        <DialogContent className="sm:max-w-[460px]">
+        <DialogContent className="sm:max-w-[460px] flex flex-col max-h-[85vh]">
           <DialogHeader>
             <DialogTitle>{t("exportGraphic.dialogTitle")}</DialogTitle>
             <DialogDescription>
@@ -382,7 +382,7 @@ export function EventStageExportGraphicDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto flex-1 min-h-0">
             {/* ── Combine toggle (owner 2026-07-05, complaint B) ────────────
                 Turn ON to merge the leaderboards of MULTIPLE selected units (whole stages
                 and/or individual groups) into ONE downloadable board, instead of the single

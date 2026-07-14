@@ -20,6 +20,7 @@ import {
   IconUser,
   IconShoppingBag,
   IconBuilding,
+  IconChecks,
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -125,6 +126,26 @@ export function NotificationDropdown({
     } catch (error) {}
   };
 
+  // Bulk "Mark all as read": one POST to the user-scoped backend endpoint
+  // (auth/view-all-notifications/ -> view_all_notifications), then refresh so the badge count and
+  // every per-card unread accent clear together. No-op when there is nothing unread.
+  const markAllRead = async () => {
+    if (unreadCount === 0 || !token) return;
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/view-all-notifications/`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      onNotificationUpdate();
+    } catch (error) {}
+  };
+
   // A "View" button marks the notification read, closes the panel, then routes to the
   // linked entity. stopPropagation so the card's own (mark-read) click doesn't double-fire.
   const openLink = async (notification: AppNotification, url: string) => {
@@ -187,6 +208,21 @@ export function NotificationDropdown({
               </Badge>
             )}
           </SheetTitle>
+          {/* Bulk mark-all-as-read: only offered when something is unread. Sits under the title row
+              so it never crowds the title/badge on a narrow phone sheet (owner 2026-07-13). */}
+          {unreadCount > 0 && (
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs text-muted-foreground"
+                onClick={markAllRead}
+              >
+                <IconChecks className="mr-1 h-3.5 w-3.5" />
+                {t("notifications.markAllRead")}
+              </Button>
+            </div>
+          )}
         </SheetHeader>
 
         <ScrollArea className="flex-1 min-h-0">

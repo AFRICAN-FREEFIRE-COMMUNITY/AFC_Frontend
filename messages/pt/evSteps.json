@@ -1,0 +1,166 @@
+{
+  "step2": {
+    "title": "Passo 2: Modo Evento",
+    "selectMode": "Selecionar o modo de evento",
+    "modes": {
+      "virtual": "Virtual",
+      "physical": "Físico (LAN)",
+      "hybrid": "Híbrido"
+    }
+  },
+  "step3": {
+    "title": "Passo 3: Selecionar o número de fases",
+    "howMany": "Quantas etapas?",
+    "stageNames": "Nomes artísticos",
+    "stagePlaceholder": "Etapa{n}"
+  },
+  "step4": {
+    "title": "Passo 4: Detalhes da etapa e encomendas",
+    "stageOrder": "Ordem das etapas",
+    "notConfigured": "Não configurado",
+    "groupsFormat": "{count} Grupos • {format}",
+    "edit": "Editar",
+    "add": "Adicionar"
+  },
+  "step5": {
+    "title": "Passo 5: Prémio total e distribuição",
+    "totalPrizePool": "Montante total do prémio",
+    "totalPrizePoolPlaceholder": "por exemplo, 5000 USD",
+    "cashValue": "Valor monetário do prémio total",
+    "cashValuePlaceholder": "por exemplo, 5000",
+    "cashValueHelp": "Obrigatório. A distribuição dos prémios que indica abaixo deve totalizar este montante.",
+    "prizeCurrency": "Moeda do prémio",
+    "selectCurrency": "Selecionar moeda",
+    "currencyHelp": "Os montantes acima são tratados como esta moeda para efeitos de conversão e exibição.",
+    "prizeDistribution": "Entrega dos prémios",
+    "amountPlaceholder": "por exemplo, 2000",
+    "addPosition": "+ Adicionar posição do prémio",
+    "currencyNames": {
+      "USD": "Dólar dos EUA",
+      "NGN": "Naira nigeriana",
+      "GHS": "Cedi ganês",
+      "KES": "Xelim queniano",
+      "ZAR": "Rand sul-africano",
+      "EGP": "Libra egípcia",
+      "MAD": "Dirham marroquino",
+      "XOF": "Franco CFA da África Ocidental",
+      "XAF": "Franco CFA da África Central",
+      "TZS": "Xelim da Tanzânia",
+      "UGX": "Xelim ugandês",
+      "RWF": "Franco ruandês",
+      "ETB": "Birr etíope",
+      "DZD": "Dinar argelino",
+      "AOA": "Kwanza angolano",
+      "MZN": "Metical moçambicano",
+      "ZMW": "Kwacha da Zâmbia",
+      "EUR": "Euro",
+      "GBP": "Libra esterlina",
+      "INR": "Rupia indiana"
+    }
+  },
+  "step6": {
+    "title": "Passo 6: Regras do evento",
+    "unsupportedFile": "Só são suportados ficheiros PDF, DOC ou DOCX.",
+    "inputMethod": "Regras do método de introdução de texto",
+    "typeRules": "Regras de digitação",
+    "uploadDocument": "Carregar documento",
+    "eventRules": "Regulamento do evento",
+    "rulesPlaceholder": "Introduzir regras do evento...",
+    "uploadRulesDoc": "Carregar o documento com as regras",
+    "dropDoc": "Arraste o teu documento para aqui, ou",
+    "browse": "navegar",
+    "supports": "Formatos suportados: PDF, DOC, DOCX",
+    "docUploaded": "Documento com as regras carregado",
+    "fileSize": "Tamanho do ficheiro: {size} MB",
+    "remove": "Remover",
+    "replace": "Substituir"
+  },
+  "step7": {
+    "title": "Passo 7: Publicar e guardar",
+    "whereToPublish": "Onde gostaria de publicar este evento?",
+    "publishToTournaments": "Publicar nos torneios",
+    "saveAsDraft": "Guardar como rascunho"
+  },
+  "sponsor": {
+    "title": "Passo 7: Patrocinadores",
+    "description": "Adicione patrocinadores e defina as atividades que os participantes têm de realizar durante o registo.",
+    "legacyFields": "Campos herdados",
+    "inUse": "em uso",
+    "legacyIntro": "O antigo fluxo de patrocinador único (nome em texto livre + um campo UUID). Mantido por uma questão de continuidade; os novos eventos devem utilizar o construtor acima.",
+    "enableRequirement": "Ativar requisito de patrocinador",
+    "enableRequirementHelp": "Exigir que os jogadores concluam uma tarefa do patrocinador e enviem um UUID antes de se registarem.",
+    "companyName": "Patrocinador / Nome da empresa",
+    "companyNamePlaceholder": "por exemplo, Acme Corp",
+    "sponsorAccounts": "Contas de patrocinadores",
+    "sponsorAccountsHelp": "Selecione uma ou mais contas de patrocinador para associar a este evento.",
+    "loadingSponsors": "A carregar patrocinadores...",
+    "noSponsors": "Não há patrocinadores disponíveis.",
+    "selectedCount": "{count, plural,  one { # patrocinador selecionado }  other { # patrocinadores selecionados } }",
+    "requirementDescription": "Descrição dos requisitos",
+    "requirementDescriptionPlaceholder": "Por exemplo: Descarrega a nossa aplicação na App Store, cria uma conta e introduz o teu UUID de jogador abaixo.",
+    "uuidFieldLabel": "Rótulo do campo UUID",
+    "uuidFieldLabelPlaceholder": "por exemplo, UUID do jogador",
+    "uuidFieldLabelHelp": "Este é o texto que aparece ao lado do campo de introdução de dados durante o registo."
+  },
+  "waitlist": {
+    "title": "Passo 8: Lista de espera",
+    "description": "Permitir que os jogadores se inscrevam numa lista de espera caso o evento atinja a capacidade máxima.",
+    "enable": "Ativar lista de espera",
+    "enableHelp": "Quando o evento estiver lotado, os jogadores podem inscrever-se numa lista de espera e serão admitidos caso surjam vagas.",
+    "howFilled": "Como são preenchidas as vagas disponíveis",
+    "modeLabel": {
+      "first_registered": "Mais antigo registado",
+      "fcfs_room": "O primeiro a entrar na sala",
+      "manual_admin": "A escolha é tua"
+    },
+    "modeDesc": {
+      "first_registered": "A equipa/jogador que se inscreveu primeiro na lista de espera fica com a vaga disponível.",
+      "fcfs_room": "Todas as equipas da lista de espera recebem o ID da sala e a palavra-passe; quem entrar primeiro na sala fica com a vaga. É a ti que cabe confirmar quem conseguiu entrar.",
+      "manual_admin": "É o utilizador que escolhe manualmente qual a equipa ou jogador da lista de espera que ocupa cada vaga disponível."
+    },
+    "capacity": "Capacidade da lista de espera",
+    "capacityPlaceholder": "por exemplo, 20",
+    "capacityHelp": "Número máximo de jogadores permitidos na lista de espera.",
+    "discordRoleId": "ID da função «Lista de espera» no Discord",
+    "optional": "(opcional)",
+    "discordRoleHelp": "Função do Discord atribuída aos jogadores na lista de espera."
+  },
+  "discord": {
+    "toastNoInviteLink": "Não foi possível obter o link de convite do bot. Tenta novamente.",
+    "toastInviteFailed": "Não foi possível obter o link de convite do bot.",
+    "toastVerifyFailed": "Não foi possível verificar o bot no servidor.",
+    "guildId": "ID do servidor do Discord (ID da guilda)",
+    "guildIdHelp": "Deixe em branco para utilizar o servidor principal da AFC (o nosso bot já se encontra lá, não sendo necessário qualquer convite nem verificação). Se pretender utilizar o seu próprio servidor, cole o ID da guilda e, em seguida, convide o bot da AFC e verifique-o abaixo.",
+    "inviteBot": "Convida o bot da AFC para o teu servidor",
+    "verifyBot": "Verificar se o bot está no servidor",
+    "botFound": "O bot está no teu servidor",
+    "botNotFound": "Bot não encontrado — convida-o primeiro",
+    "requireDiscord": "Exigir o registo no Discord",
+    "requireDiscordHelp": "Os jogadores têm de estar ligados ao Discord e ser membros deste servidor.",
+    "toggleDisabledHelp": "Convida o bot do AFC para o teu servidor e verifica-o antes de poderes exigir o Discord. Ou deixa o ID da guilda em branco para utilizares o servidor principal do AFC.",
+    "inviteLink": "Link de convite para o Discord (obrigatório)",
+    "inviteLinkHelp": "Os jogadores vão utilizar este link para acederem ao Discord do evento. O link encontra-se na página pública do evento."
+  },
+  "prizeSummary": {
+    "setCashValue": "Defina o valor monetário do prémio total acima indicado, para que a distribuição possa ser verificada em relação a esse valor.",
+    "distributed": "Distribuído por <b>{total} {ccy}</b> de <b>{cash} {ccy}</b>",
+    "matches": "Corresponde ao valor em dinheiro",
+    "over": "Publicado em {diff} {ccy}",
+    "under": "Artigo de {diff} {ccy}"
+  },
+  "paidTerms": {
+    "title": "Termos relativos a eventos pagos",
+    "description": "Antes de cobrar as taxas de inscrição, por favor, leia e aceite as regras relativas ao funcionamento dos torneios pagos na AFC. Só é necessário aceitar estas regras uma vez por organização.",
+    "escrowLead": "Os fundos são mantidos em conta de garantia.",
+    "escrowBody": "As taxas de inscrição são mantidas em conta de garantia pela entidade responsável pelo processamento de pagamentos, e não por si. A AFC só liberta o pagamento à sua organização após a realização do evento.",
+    "feeLead": "Taxa sobre torneios pagos.",
+    "feeBody": "Os primeiros 10 torneios pagos por organização estão isentos da taxa da AFC. A partir daí, a AFC retém 2 por cento das taxas de inscrição cobradas.",
+    "refundsLead": "Reembolsos.",
+    "refundsBody": "Caso um evento seja cancelado, a AFC pode reembolsar os participantes das respetivas taxas de inscrição.",
+    "runLead": "Tens de organizar o evento.",
+    "runBody": "É obrigatório realizar o evento para o qual cobrou as taxas de inscrição. O não cumprimento desta obrigação pode resultar em reembolsos e na remoção da plataforma.",
+    "cancel": "Cancelar",
+    "submitting": "A enviar...",
+    "accept": "Aceito"
+  }
+}

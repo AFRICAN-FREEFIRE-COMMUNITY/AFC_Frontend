@@ -1,0 +1,578 @@
+{
+  "categories": {
+    "player-eligibility": {
+      "name": "Elegibilidade e requisitos dos jogadores",
+      "description": "Requisitos essenciais para a participação dos jogadores, incluindo critérios relativos à conta, à idade e à região.",
+      "rules": {
+        "0": {
+          "title": "Requisitos da conta",
+          "content": "Os jogadores devem possuir uma conta ativa do FreeFire que tenha atingido, no mínimo, o nível 20 na classificação Platina IV. Os nomes no jogo não podem ser alterados durante os torneios, a menos que haja autorização dos moderadores — as violações são consideradas como a utilização de um jogador não registado. Os jogadores devem utilizar contas oficiais do FreeFire que atinjam ou ultrapassem os marcos de classificação e nível estabelecidos, sendo que qualquer alteração de nome requer comunicação e autorização por parte dos responsáveis pelo torneio."
+        },
+        "1": {
+          "title": "Requisitos de idade",
+          "content": "Os participantes devem ter, pelo menos, 16 anos de idade, conforme definido no regulamento do torneio. No caso de eventos LAN, os participantes menores de idade devem apresentar autorização dos pais."
+        },
+        "2": {
+          "title": "Elegibilidade regional",
+          "content": "Apenas os jogadores cujas contas estejam registadas em regiões aprovadas para o torneio podem competir. No caso de torneios específicos para a Nigéria, apenas os jogadores de nacionalidade nigeriana podem participar. Cada equipa pode incluir apenas um jogador de nacionalidade nigeriana que resida fora da Nigéria."
+        },
+        "3": {
+          "title": "Integridade e segurança da conta",
+          "content": "É estritamente proibido partilhar contas pessoais de jogo, mesmo entre colegas de equipa. Espera-se que cada jogador mantenha o controlo e a responsabilidade exclusivos pela sua conta, de modo a garantir o jogo limpo e a responsabilização."
+        },
+        "4": {
+          "title": "Restrição relativa a várias equipas",
+          "content": "Os jogadores não podem jogar nem assinar contrato com mais do que uma equipa de cada vez. Esta regra aplica-se tanto à participação em torneios como a jogos de treino."
+        }
+      }
+    },
+    "team-registration": {
+      "name": "Inscrição de equipas e gestão do plantel",
+      "description": "Orientações para a formação de equipas, processos de inscrição e envio das listas de jogadores.",
+      "rules": {
+        "0": {
+          "title": "Processo de inscrição",
+          "content": "As equipas devem inscrever-se através da plataforma oficial designada, dentro do prazo estabelecido. A inscrição deve incluir os dados completos do plantel, incluindo os jogadores titulares e os suplentes. As equipas devem inscrever-se no site oficial da AFC, em www.africanfreefirecommunity.com. Apenas as equipas listadas no site são elegíveis para participar."
+        },
+        "1": {
+          "title": "Requisitos para a apresentação da lista de jogadores",
+          "content": "As informações completas sobre as equipas devem ser precisas. Podem ser cobradas taxas relativamente a determinados dados de inscrição ou alterações. As equipas devem registar as suas listas iniciais, incluindo todos os titulares e suplentes, antes do início de uma competição oficial, utilizando as ferramentas disponibilizadas pelos responsáveis do torneio."
+        },
+        "2": {
+          "title": "Requisitos relativos às redes sociais",
+          "content": "As equipas têm de ter uma conta no Instagram da equipa (não uma conta pessoal de uma única pessoa) e têm de seguir os patrocinadores e os organizadores do torneio nas redes sociais."
+        },
+        "3": {
+          "title": "Mandato para a apresentação de contratos",
+          "content": "As equipas que se inscreverem nos torneios devem apresentar ao organizador os contratos de todos os jogadores, os quais devem ser guardados na base de dados. Todos os contratos devem ser enviados através do canal de envio de contratos da AFC no Discord."
+        },
+        "4": {
+          "title": "Registo na Base de Dados de Jogadores",
+          "content": "Todas as equipas e jogadores têm de estar inscritos na base de dados oficial de jogadores/equipas do torneio antes de participarem."
+        }
+      }
+    },
+    "code-of-conduct": {
+      "name": "Código de Conduta e Comportamento dos Jogadores",
+      "description": "Normas de desportivismo, comportamentos proibidos e diretrizes para a interação profissional.",
+      "rules": {
+        "0": {
+          "title": "Normas de Conduta dos Jogadores",
+          "content": "Os participantes devem demonstrar um comportamento que reflita o espírito desportivo e respeitar as normas de integridade. Os jogadores devem manter um estilo de vida saudável e dar o melhor de si em campo. Um comportamento desrespeitoso para com os árbitros ou a utilização de linguagem ofensiva podem resultar em sanções, normalmente sob a forma de deduções de pontos ou suspensões."
+        },
+        "1": {
+          "title": "Comportamentos proibidos - Batota",
+          "content": "É estritamente proibido fazer batota, «stream sniping», utilizar VPNs e formar alianças com outros concorrentes para obter vantagens desleais (conluio). A utilização de software não autorizado, incluindo emuladores e ferramentas de pirataria informática, implicará a desqualificação imediata. A utilização de hacks por qualquer membro da equipa resultará em sanções por infração grave."
+        },
+        "2": {
+          "title": "Gestão de escândalos e normas de reputação",
+          "content": "Os jogadores devem manter os mais elevados padrões de conduta pessoal, tanto no âmbito das atividades de e-sports como fora delas. Qualquer envolvimento em escândalos, independentemente do âmbito, que possa potencialmente prejudicar a reputação dos organizadores do torneio poderá resultar em medidas disciplinares. Os organizadores do torneio reservam-se o direito de banir o jogador envolvido e de impor sanções à sua equipa, caso o escândalo tenha um impacto negativo na integridade do torneio ou na perceção do público, independentemente da veracidade das alegações. As equipas que disputarem jogos de treino ou outros torneios com jogadores sancionados serão igualmente banidas."
+        },
+        "3": {
+          "title": "Proibição de rumores falsos",
+          "content": "É proibido aos jogadores espalharem rumores falsos sobre outros jogadores, equipas, organizadores ou o próprio torneio. Tais ações comprometem a integridade da competição e implicam sanções por parte dos organizadores, que podem estender-se a penalizações contra a equipa do jogador responsável."
+        },
+        "4": {
+          "title": "Declarações difamatórias",
+          "content": "Os jogadores não podem difamar qualquer parte do Torneio, os participantes ou as suas entidades associadas. Os membros das equipas estão proibidos de divulgar qualquer informação confidencial ou de natureza privada partilhada pelo Organizador do Torneio. É estritamente proibido fazer declarações difamatórias."
+        },
+        "5": {
+          "title": "Substâncias controladas e medicamentos sujeitos a receita médica",
+          "content": "O uso, a posse ou a distribuição de substâncias controladas são estritamente proibidos durante qualquer evento relacionado com o torneio. Os medicamentos sujeitos a receita médica só devem ser utilizados de acordo com as instruções."
+        },
+        "6": {
+          "title": "Suborno",
+          "content": "É proibido oferecer ou aceitar presentes ou recompensas com o objetivo de influenciar os resultados dos jogos, o que constitui uma infração grave."
+        }
+      }
+    },
+    "game-participation": {
+      "name": "Participação no jogo e requisitos de comprovação",
+      "description": "Protocolos relativos à participação nos jogos, requisitos de registo e envio de provas dos jogos.",
+      "rules": {
+        "0": {
+          "title": "Envio de provas do jogo",
+          "content": "Cada equipa deve fornecer capturas de ecrã dos resultados dos seus jogos sempre que tal for solicitado pelos moderadores do torneio. As equipas devem também enviar gravações completas dos jogos (não gravações de repetição) sempre que tal for solicitado, a fim de garantir o cumprimento das regras e a imparcialidade. As gravações do jogo de todos os jogadores de uma equipa devem estar disponíveis em qualquer circunstância."
+        },
+        "1": {
+          "title": "Protocolo de registo",
+          "content": "A gravação deve começar no átrio e continuar até a equipa ser eliminada. A gravação só deve terminar quando essa equipa for eliminada da partida."
+        },
+        "2": {
+          "title": "Preparação dos jogadores",
+          "content": "Os jogadores devem estar ligados ao jogo e posicionados nos lugares que lhes foram atribuídos antes do início das partidas. A inatividade ou o posicionamento incorreto durante este período podem resultar na perda de pontos. Os jogadores devem permanecer sentados e no jogo até ao final da partida."
+        },
+        "3": {
+          "title": "Política de «Sem Pausas»",
+          "content": "Não são permitidas interrupções ou pausas durante o jogo, uma vez iniciado, salvo em circunstâncias excecionais, como falhas de rede ou perturbações ambientais."
+        },
+        "4": {
+          "title": "Protocolos pré-jogo",
+          "content": "As equipas devem realizar verificações antes dos jogos, incluindo a validação da rede e dos dispositivos nos eventos em LAN. Quaisquer problemas devem ser comunicados imediatamente aos organizadores. Os jogadores devem confirmar se todas as definições estão corretas e preencher uma lista de verificação para garantir a conformidade e a prontidão antes do início do jogo. Antes de cada jogo, os IDs e as palavras-passe dos lobbies serão fornecidos através dos canais designados."
+        }
+      }
+    },
+    "equipment-technical": {
+      "name": "Equipamento e normas técnicas",
+      "description": "Dispositivos aprovados, equipamentos proibidos e requisitos técnicos de conformidade.",
+      "rules": {
+        "0": {
+          "title": "Dispositivos aprovados",
+          "content": "Os participantes devem utilizar dispositivos móveis com os sistemas operativos Android ou iOS. Não é permitido qualquer outro tipo de dispositivo, como emuladores ou computadores. É proibida a utilização de emuladores, computadores ou adaptadores periféricos (teclados, ratos, comandos)."
+        },
+        "1": {
+          "title": "Equipamento proibido",
+          "content": "A utilização de dispositivos periféricos, tais como adaptadores, controladores, teclados Bluetooth e ratos, é estritamente proibida, a menos que seja oficialmente aprovada pelos organizadores do torneio. O equipamento não autorizado, incluindo gatilhos físicos ou pneumáticos ou qualquer outro dispositivo que não se enquadre na utilização normal do jogo, resultará na exclusão do torneio."
+        },
+        "2": {
+          "title": "Acessórios compatíveis",
+          "content": "Os jogadores só podem trazer e utilizar os seus próprios auscultadores ou dispositivos de cancelamento de ruído, desde que estes cumpram as regras do torneio."
+        },
+        "3": {
+          "title": "Ferramentas técnicas não autorizadas",
+          "content": "É estritamente proibida a utilização de equipamento não autorizado, como periféricos não conformes com as normas ou dispositivos classificados como «hacks». As infrações podem resultar na desqualificação. A instalação de software externo de terceiros ou a utilização de navegadores durante a final da LAN sem autorização do administrador constitui uma infração grave."
+        },
+        "4": {
+          "title": "Equipamento de estúdio (LAN Events)",
+          "content": "Não é permitido alterar o equipamento do estúdio em eventos LAN."
+        }
+      }
+    },
+    "dress-code": {
+      "name": "Código de vestuário e requisitos relativos ao uniforme",
+      "description": "Normas oficiais relativas ao uniforme e requisitos de aparência para a participação em torneios.",
+      "rules": {
+        "0": {
+          "title": "Requisitos relativos ao equipamento da equipa",
+          "content": "Todos os jogadores devem usar os uniformes oficiais da equipa, incluindo camisolas, casacos, bonés e calças, durante as participações públicas em torneios, tais como eventos LAN. Os uniformes devem exibir de forma destacada os logótipos da equipa na parte da frente e podem incluir logótipos de patrocinadores dentro dos limites estabelecidos pelos organizadores. Os jogadores são obrigados a usar calças compridas e sapatos fechados nos torneios."
+        },
+        "1": {
+          "title": "Vestuário com temática desportiva",
+          "content": "Caso seja fornecido, as equipas poderão ser obrigadas a usar vestuário oficial com a temática da competição em eventos especiais e entrevistas. O incumprimento dos requisitos do código de vestuário pode resultar na utilização temporária do vestuário oficial da competição, com instruções para atualizar os uniformes até um prazo definido."
+        },
+        "2": {
+          "title": "Treinadores e vestuário profissional",
+          "content": "Os treinadores, quando presentes, devem usar trajes profissionais ou equipamento da equipa em todos os torneios e eventos abertos ao público."
+        },
+        "3": {
+          "title": "Sanções por vestuário inadequado",
+          "content": "O não uso de vestuário adequado (por exemplo, não são permitidos chinelos nem calções; o vestuário adequado exige sapatos fechados, calças e camisolas da equipa, conforme indicado pelos organizadores) constitui uma infração grave."
+        },
+        "4": {
+          "title": "Verificação de identidade",
+          "content": "Os jogadores não devem ocultar a sua identidade com chapéus ou óculos de sol, a menos que isso faça parte do equipamento aprovado da equipa."
+        },
+        "5": {
+          "title": "Autoridade de Conformidade do Setor do Vestuário",
+          "content": "O organizador do torneio detém a autoridade máxima no que diz respeito às normas relativas aos uniformes, tendo o direito de recusar a entrada ou a participação de qualquer membro da equipa que não cumpra estas diretrizes."
+        }
+      }
+    },
+    "team-ownership": {
+      "name": "Propriedade e gestão da equipa",
+      "description": "Regras que regem a propriedade das equipas, as transferências e as responsabilidades de gestão.",
+      "rules": {
+        "0": {
+          "title": "Direitos de propriedade",
+          "content": "O(s) proprietário(s) registado(s) de uma equipa detém(em) os direitos exclusivos sobre o lugar da sua equipa nas competições oficiais, conforme previsto nas regras gerais e específicas de cada competição. A propriedade da equipa, incluindo os direitos relativos à evolução do plantel nas competições, pertence estritamente ao(s) proprietário(s), e não aos membros individuais da equipa."
+        },
+        "1": {
+          "title": "Transferências de propriedade",
+          "content": "As transferências de propriedade para terceiros têm de ser aprovadas por escrito pelo organizador do torneio e exigem que o cessionário cumpra todas as regras aplicáveis. Qualquer alteração na propriedade requer notificação prévia e aprovação."
+        },
+        "2": {
+          "title": "Política de Mudança de Equipa",
+          "content": "Se um proprietário vender uma equipa, não poderá ser proprietário de uma nova equipa durante uma Split completa (época competitiva), de modo a preservar a integridade competitiva."
+        },
+        "3": {
+          "title": "Restrições à propriedade",
+          "content": "Os proprietários não podem controlar mais do que uma equipa por região nem mais do que duas equipas em todas as regiões, exceto no caso de categorias específicas de equipas, como as equipas da Academia ou as equipas femininas. Os proprietários não podem deter participações em várias equipas, a menos que tal seja explicitamente autorizado pelo organizador."
+        },
+        "4": {
+          "title": "Requisitos de imagem de marca da equipa",
+          "content": "Os nomes e logótipos das equipas devem ser únicos, devendo quaisquer semelhanças ser alteradas de forma a permitir uma distinção clara."
+        },
+        "5": {
+          "title": "Desistência de uma vaga no torneio LAN",
+          "content": "No caso dos torneios LAN, se uma equipa não tiver a certeza a cem por cento de que não poderá comparecer e não alertar o organizador pelo menos sete (7) dias antes da data em que deveria comparecer, essa equipa estará sujeita a penalizações severas. Uma equipa manterá a sua vaga desde que consiga comparecer ao evento; caso não o consiga, o organizador do torneio reserva-se o direito de atribuir essa vaga à próxima equipa disponível na lista de espera."
+        }
+      }
+    },
+    "roster-transfers": {
+      "name": "Alterações no plantel, transferências e empréstimos de jogadores",
+      "description": "Orientações relativas a alterações no plantel, períodos de transferências e acordos de empréstimo de jogadores.",
+      "rules": {
+        "0": {
+          "title": "Períodos de transferências",
+          "content": "Os períodos de transferências são previamente agendados antes do início da época competitiva. Os períodos exatos serão anunciados publicamente, sendo que as alterações aos plantéis só serão permitidas durante esses intervalos, salvo aprovação em contrário."
+        },
+        "1": {
+          "title": "Política de Empréstimo de Jogadores",
+          "content": "Cada equipa pode contratar um jogador por empréstimo de outra equipa durante uma época competitiva. As equipas só podem contratar um jogador por empréstimo de outra equipa por época. O jogador deve ter estado inscrito na equipa anterior durante, pelo menos, seis meses antes do início do empréstimo. Não são permitidos empréstimos de equipas que já estejam a participar no torneio em curso."
+        },
+        "2": {
+          "title": "Duração do empréstimo",
+          "content": "Os jogadores emprestados devem ter estado inscritos na sua equipa anterior durante, pelo menos, seis meses antes do início do empréstimo, devendo o contrato não exceder a duração de um ano."
+        },
+        "3": {
+          "title": "Responsabilidades financeiras relacionadas com o empréstimo",
+          "content": "As equipas que contratam jogadores a empréstimo têm de pagar uma taxa de empréstimo à equipa que os cede. As equipas que contratam jogadores a empréstimo são responsáveis pelos salários dos jogadores e pelas despesas do torneio. Os jogadores têm de regressar à equipa que os cedeu no final do período de empréstimo, salvo acordo em contrário."
+        },
+        "4": {
+          "title": "Revogação a meio do mandato",
+          "content": "As equipas de empréstimo podem chamar de volta os jogadores em condições específicas (por exemplo, para substituir um jogador lesionado)."
+        }
+      }
+    },
+    "slot-trading": {
+      "name": "Compra e venda de vagas",
+      "description": "Estrutura completa para a aquisição, venda e transferência de vagas em torneios.",
+      "rules": {
+        "0": {
+          "title": "Preço mínimo do slot",
+          "content": "O preço mínimo de qualquer vaga no torneio é fixado em 50% da atribuição mais baixa do prémio total do torneio. Exemplo: Se o prémio total for de ₦1 000 000 e a atribuição para o último lugar for de ₦100 000, então o preço mínimo da vaga é de ₦50 000. Isto garante que as avaliações das vagas se alinhem com a estrutura competitiva e financeira do torneio."
+        },
+        "1": {
+          "title": "Taxa de transação da AFC",
+          "content": "A AFC cobra uma taxa de transação de 10% sobre vendas inferiores a ₦150 000 e de 5% sobre vendas iguais ou superiores a ₦150 000, calculada sobre o preço de venda do slot. Esta taxa destina-se a financiar o desenvolvimento comunitário, as infraestruturas e os custos operacionais da AFC. Exemplo: Para um preço de slot de ₦200 000, a taxa de 10% corresponde a ₦20 000 para a AFC."
+        },
+        "2": {
+          "title": "Cronograma de transferência de faixas horárias",
+          "content": "Todas as transferências de vagas devem ser concluídas pelo menos 3 dias antes do início do torneio, para permitir a verificação e as atualizações das listas de jogadores. As transferências efetuadas fora do prazo não serão aprovadas."
+        },
+        "3": {
+          "title": "Restrição à revenda de vagas",
+          "content": "Os slots adquiridos não podem ser revendidos no prazo de 6 meses, a menos que tal seja explicitamente aprovado pela AFC. Isto impede a compra e venda especulativa de slots."
+        },
+        "4": {
+          "title": "Responsabilidades da equipa de vendas",
+          "content": "As equipas vendedoras devem fornecer informações precisas sobre a vaga, incluindo os critérios de elegibilidade, o plantel atual e as obrigações pendentes. Devem informar a AFC da intenção de venda através do Discord ou por e-mail, liquidar todas as taxas pendentes, tais como os custos de inscrição em torneios, antes de concluir a transferência, e renunciar a todos os direitos sobre a vaga após a conclusão da transação."
+        },
+        "5": {
+          "title": "Responsabilidades da equipa de compras",
+          "content": "As equipas compradoras devem cumprir todos os compromissos financeiros, incluindo o preço da vaga e a taxa de transação da AFC. Devem garantir o cumprimento das regras do torneio e dos requisitos de elegibilidade, bem como enviar à AFC uma lista atualizada dos jogadores da equipa e os dados relevantes no prazo de 3 dias após a conclusão da compra."
+        },
+        "6": {
+          "title": "O papel da AFC nas transferências de vagas",
+          "content": "A AFC verifica as transferências para garantir o cumprimento dos requisitos de preço mínimo, o pagamento da taxa de transação e das regras de elegibilidade para os torneios. As transferências só são válidas após aprovação formal da AFC. As notificações de aprovação serão enviadas através do Discord ou por e-mail. A taxa de vaga será paga à AFC, após o que a AFC enviará o montante à equipa vendedora, após dedução da sua comissão. Todas as transferências serão registadas na base de dados da AFC."
+        },
+        "7": {
+          "title": "Resolução de litígios relativos à transferência de slots",
+          "content": "As disputas mais comuns incluem o não pagamento (se a equipa compradora não efetuar o pagamento, a transferência é cancelada e a equipa vendedora mantém a propriedade) e a prestação de informações falsas (se a equipa vendedora fornecer informações falsas, a transferência é anulada e podem ser aplicadas sanções). Os litígios devem ser comunicados através do Discord (canal #report-slot-transfer) ou por e-mail. A AFC mediará os litígios no prazo de 48 horas e emitirá uma resolução vinculativa."
+        },
+        "8": {
+          "title": "Penalizações por transferência de vagas",
+          "content": "Para as equipas vendedoras: a falta de comunicação dos resultados da AFC implica uma advertência na primeira infração e multas ou suspensão em caso de reincidência. A apresentação de informações falsas implica o cancelamento imediato e uma possível suspensão. Para as equipas compradoras: o não pagamento das taxas implica que a vaga não será transferida e que a participação poderá ser impedida. As violações relativas ao plantel resultam na desqualificação e na perda da vaga."
+        }
+      }
+    },
+    "contracts": {
+      "name": "Apresentação e gestão de contratos",
+      "description": "Orientações abrangentes para a apresentação, análise e aplicação de todos os contratos relacionados com os eSports.",
+      "rules": {
+        "0": {
+          "title": "Processo de apresentação de contratos",
+          "content": "Todos os contratos devem ser enviados através do canal de envio de contratos da AFC no Discord. Os contratos devem ser enviados em formato PDF para evitar alterações não autorizadas. Inclua todo o histórico de comunicação como prova do acordo."
+        },
+        "1": {
+          "title": "Formato de designação dos bilhetes",
+          "content": "Contrato de aquisição de jogador de eSports: «EPAC [Nome do jogador - Nome da equipa adquirente]». Empréstimo de jogador: «EPLC [Nome da equipa cedente - Nome da equipa beneficiária]». Venda de equipa: «TSAC [Nome da equipa a ser vendida]»."
+        },
+        "2": {
+          "title": "Dados obrigatórios do contrato",
+          "content": "Os documentos apresentados devem incluir: (1) Nomes completos e legais de todas as partes envolvidas, (2) Tipo de contrato, (3) Datas de início e fim do acordo, (4) Resumo dos termos principais (salário, obrigações, cláusulas de não concorrência para contratos de jogadores; taxa de empréstimo, responsabilidades salariais, condições de devolução para empréstimos de jogadores; preço de venda, estrutura de pagamento, detalhes da transferência de ativos para vendas de equipas), (5) Contrato em anexo em formato PDF, (6) Provas do acordo (e-mails/registos de chat)."
+        },
+        "3": {
+          "title": "Cláusulas contratuais obrigatórias",
+          "content": "Todos os contratos devem incluir: (1) Cláusula de não concorrência que impeça as partes de celebrar acordos concorrentes durante a vigência do contrato, (2) Cláusula de confidencialidade que proteja informações sensíveis, (3) Cláusula de rescisão que defina claramente as condições para a rescisão do contrato, (4) Cláusula de partilha de receitas (se aplicável), que defina a repartição do prémio total ou das receitas de patrocínio, (5) Condições de transição para empréstimos e vendas de equipas, especificando prazos e condições para as transferências."
+        },
+        "4": {
+          "title": "Orientações para contratos de jogadores de eSports",
+          "content": "As equipas devem definir claramente as condições salariais, os benefícios e as obrigações. Os contratos podem incluir um período de experiência de 30 dias para avaliar o desempenho dos jogadores. Especificar as condições para a rescisão mútua ou unilateral. Definir como serão repartidos os prémios dos torneios ou as receitas de patrocínio."
+        },
+        "5": {
+          "title": "Requisitos do contrato de venda da equipa",
+          "content": "O vendedor deve conceder acesso total à imagem da equipa, aos contratos dos jogadores e aos lugares nos torneios. Os vendedores devem divulgar quaisquer dívidas ou obrigações financeiras pendentes. Impedir que os compradores revendam a equipa num período especificado (por exemplo, 12 meses)."
+        },
+        "6": {
+          "title": "Verificação e aprovação de contratos",
+          "content": "Os moderadores da AFC analisam os contratos para garantir o cumprimento dos regulamentos da AFC e da legislação regional, a definição de obrigações claras e equilibradas para todas as partes e a inclusão de todas as cláusulas obrigatórias. Uma vez aprovado, o contrato recebe o carimbo «Aprovado pela AFC» e uma cópia é arquivada na base de dados da AFC no Discord."
+        },
+        "7": {
+          "title": "Resolução de conflitos contratuais",
+          "content": "A AFC atua como mediadora neutra em litígios decorrentes de contratos aprovados. Processo: (1) É criado um canal privado no Discord (ticket) para todas as partes e para os moderadores da AFC, (2) Cada parte apresenta o seu ponto de vista, (3) Os mediadores da AFC facilitam as discussões e propõem soluções, (4) É documentada e arquivada uma resolução vinculativa."
+        }
+      }
+    },
+    "sponsor-regulations": {
+      "name": "Regulamento de Patrocínio e Publicidade",
+      "description": "Regras que regem os patrocínios das equipas, as obrigações publicitárias e as atividades promocionais.",
+      "rules": {
+        "0": {
+          "title": "Processo de aprovação de patrocinadores",
+          "content": "Quaisquer atualizações relacionadas com patrocínios ou camisolas das equipas devem ser previamente aprovadas pelos responsáveis do torneio, com tempo suficiente para a preparação."
+        },
+        "1": {
+          "title": "Obrigações de marketing e promoção",
+          "content": "As equipas e os seus membros devem cumprir todos os requisitos de marketing e promoção estabelecidos pelo organizador do torneio. O incumprimento reiterado dos requisitos do organizador do torneio, tais como as obrigações publicitárias, constitui uma infração grave."
+        },
+        "2": {
+          "title": "Aprovação e exclusividade publicitárias",
+          "content": "As equipas necessitam de autorização prévia por escrito para quaisquer programas publicitários ou promocionais. Não podem participar em eventos de terceiros durante o período do torneio, a menos que tal seja aprovado. As equipas ou os jogadores não podem participar em competições de terceiros no dia do torneio sem a aprovação do organizador do torneio."
+        }
+      }
+    },
+    "competition-structure": {
+      "name": "Estrutura e calendário da competição",
+      "description": "Formatos das partidas, protocolos de agendamento e provas obrigatórias do torneio.",
+      "rules": {
+        "0": {
+          "title": "Formato do jogo",
+          "content": "Os jogos decorrem num formato de todos contra todos ou de eliminatórias, dependendo da fase do torneio. O torneio inclui fases online e offline, sendo que as rondas iniciais decorrem virtualmente e as finais são organizadas num local físico."
+        },
+        "1": {
+          "title": "Agendamento e Assiduidade",
+          "content": "O organizador do torneio é responsável por anunciar o calendário dos jogos, incluindo as datas e horários exatos. Todas as equipas devem respeitar o calendário anunciado e estar presentes à hora marcada. Chegar atrasado ao Dia da Imprensa ou aos dias de jogos do evento constitui uma infração menor."
+        },
+        "2": {
+          "title": "Provas de teste obrigatórias",
+          "content": "As equipas são obrigadas a participar nos ensaios e nos jogos de teste organizados antes dos eventos principais. A ausência sem autorização prévia pode implicar sanções."
+        },
+        "3": {
+          "title": "Restrições à comunicação durante os jogos",
+          "content": "Durante os jogos, só podem ser utilizados canais de comunicação aprovados e designados. É proibida a utilização não autorizada de mensagens de texto, e-mails ou outros meios de comunicação. É proibida a utilização de dispositivos e métodos de comunicação não autorizados durante os jogos."
+        }
+      }
+    },
+    "communication": {
+      "name": "Comunicação com os organizadores",
+      "description": "Requisitos de resposta, obrigações de confidencialidade e protocolos de comunicação.",
+      "rules": {
+        "0": {
+          "title": "Requisitos relativos ao tempo de resposta",
+          "content": "Os membros da equipa devem responder às comunicações oficiais dentro dos prazos especificados: no prazo de um dia útil, no caso dos e-mails, e no prazo de doze horas, caso sejam contactados através de vários canais."
+        },
+        "1": {
+          "title": "Pedidos de informações sobre pagamentos",
+          "content": "A não apresentação das informações necessárias para a distribuição dos prémios no prazo de 3 dias implicará a perda do direito ao prémio. As equipas devem apresentar os dados completos e precisos relativos ao pedido de prémio no prazo de três (3) dias após terem sido solicitadas pelo Organizador do Torneio."
+        },
+        "2": {
+          "title": "Requisitos de confidencialidade",
+          "content": "Os jogadores não devem divulgar qualquer informação confidencial recebida do Organizador do Torneio. Os membros das equipas estão proibidos de divulgar qualquer informação confidencial ou de propriedade exclusiva partilhada pelo Organizador do Torneio."
+        }
+      }
+    },
+    "disciplinary": {
+      "name": "Medidas Disciplinares e Infrações",
+      "description": "Classificação das infrações, procedimentos de investigação e regimes sancionatórios.",
+      "rules": {
+        "0": {
+          "title": "Infrações menores",
+          "content": "As infrações menores incluem: (1) Apresentação tardia dos dados relativos aos meios de comunicação e à equipa, quando solicitada pelos organizadores; (2) Utilização de contas alternativas no jogo sem informar os responsáveis do torneio; (3) Utilização de apelidos inadequados durante os jogos oficiais; (4) Atrasos no Media Day ou nos dias de jogos do evento."
+        },
+        "1": {
+          "title": "Infrações graves",
+          "content": "As infrações graves incluem: (1) Utilização de contas de jogo não registadas, (2) Não uso de vestuário adequado, (3) Publicação dos resultados das partidas antes da sua transmissão oficial, no caso de partidas pré-gravadas, (4) Instalação de software externo de terceiros ou utilização de navegadores durante a final em LAN sem autorização do administrador, (5) Incumprimento repetido dos requisitos do organizador do torneio, tais como obrigações publicitárias, (6) Utilização de hacks por qualquer membro da equipa, (7) Suborno."
+        },
+        "2": {
+          "title": "Procedimentos de investigação",
+          "content": "Os organizadores do torneio reservam-se o direito de investigar exaustivamente as infrações às regras. Os participantes devem cooperar, fornecendo informações precisas e não ocultando provas."
+        },
+        "3": {
+          "title": "Quadro de sanções",
+          "content": "As sanções aplicadas variam consoante a gravidade e a frequência da infração. Incluem: (1) Advertências verbais ou escritas públicas, (2) Desistência de jogos e torneios, (3) Deduções de pontos, (4) Perda de prémios, (5) Suspensão ou desqualificação de torneios atuais e futuros."
+        },
+        "4": {
+          "title": "Política relativa a infrações repetidas",
+          "content": "As violações repetidas das regras podem levar a consequências cada vez mais graves, incluindo sanções mais severas ou a desqualificação definitiva."
+        },
+        "5": {
+          "title": "Medidas provisórias",
+          "content": "Podem ser impostas sanções temporárias durante as investigações em curso, nomeadamente no caso de alegações graves, e estas podem ser revistas à medida que forem surgindo mais informações."
+        },
+        "6": {
+          "title": "Decisões finais",
+          "content": "O organizador do torneio reserva-se o direito de tomar decisões vinculativas relativamente a infrações e sanções, avaliando as violações das regras independentemente da intenção."
+        }
+      }
+    },
+    "prize-distribution": {
+      "name": "Distribuição e perda de prémios",
+      "description": "Estrutura dos prémios monetários, prazos de pagamento e condições para a perda do direito ao prémio.",
+      "rules": {
+        "0": {
+          "title": "Calendário de pagamentos",
+          "content": "Todos os prémios monetários serão pagos ao contacto designado por cada equipa no prazo de 90 dias após a conclusão da final do torneio, desde que todas as informações de pagamento necessárias tenham sido enviadas dentro do prazo especificado."
+        },
+        "1": {
+          "title": "Condições de atribuição do prémio",
+          "content": "A distribuição dos prémios está condicionada ao cumprimento, por parte da equipa, de todas as obrigações do torneio, incluindo a participação em todos os jogos e a realização das atividades promocionais exigidas. O prémio monetário será distribuído pelo Organizador do Torneio exclusivamente à equipa. Os jogadores devem concordar com as disposições internas da equipa relativas à distribuição."
+        },
+        "2": {
+          "title": "Prazos para a apresentação de pedidos de atribuição de prémios",
+          "content": "As equipas devem apresentar os dados completos e precisos relativos ao pedido de prémio, incluindo toda a informação exigida, no prazo de três (3) dias após a solicitação por parte do Organizador do Torneio. Atrasos ou a não apresentação da informação relativa ao prémio em tempo útil ou de forma completa podem resultar na perda do prémio monetário."
+        },
+        "3": {
+          "title": "Transferência de direitos de propriedade intelectual",
+          "content": "As equipas são obrigadas a ceder todos os direitos, títulos e interesses, incluindo os direitos de propriedade intelectual relacionados com os conteúdos criados no âmbito do torneio, como condição para receberem o prémio monetário."
+        }
+      }
+    },
+    "ip-media-rights": {
+      "name": "Propriedade Intelectual e Direitos de Mídia",
+      "description": "Direitos de propriedade, autorizações de utilização e exploração do conteúdo do torneio.",
+      "rules": {
+        "0": {
+          "title": "Direitos de propriedade",
+          "content": "O Organizador do Torneio reserva-se todos os direitos sobre quaisquer materiais criados no âmbito do torneio. Isto inclui conteúdos, transmissões e quaisquer obras derivadas."
+        },
+        "1": {
+          "title": "Permissões de utilização",
+          "content": "As equipas e os jogadores não adquirem a propriedade nem quaisquer direitos sobre a propriedade intelectual do torneio. A utilização não autorizada é considerada uma violação de direitos."
+        },
+        "2": {
+          "title": "Direitos de exploração",
+          "content": "O Organizador pode explorar o conteúdo do torneio em vários formatos de comunicação social sem restrições, podendo ceder esses direitos a terceiros, conforme considerar necessário."
+        }
+      }
+    },
+    "organizer-authority": {
+      "name": "Direitos de veto do organizador e alterações ao regulamento",
+      "description": "Os poderes discricionários e a autoridade do organizador do torneio relativamente ao formato da competição.",
+      "rules": {
+        "0": {
+          "title": "A critério do organizador",
+          "content": "O Organizador do Torneio detém a autoridade final na tomada de decisões sobre vários aspetos do torneio. Estes incluem o formato geral, o número de equipas participantes, a distribuição do prémio total (sem reduzir o montante previamente anunciado) e a configuração do estúdio."
+        },
+        "1": {
+          "title": "Alterações às regras",
+          "content": "Podem ser introduzidas alterações às regras do torneio com o objetivo de melhorar o seu funcionamento ou a imagem do torneio. Será feito um anúncio após qualquer atualização ou aditamento às regras."
+        },
+        "2": {
+          "title": "Autoridade de interpretação final",
+          "content": "Os administradores da AFC têm direito de veto final no que diz respeito à interpretação e alteração das regras. O organizador do torneio reserva-se o direito de tomar decisões vinculativas relativamente a infrações e sanções."
+        }
+      }
+    },
+    "monthly-ranking": {
+      "name": "Sistema de Classificação Mensal",
+      "description": "Sistema de avaliação do desempenho a curto prazo, atualizado mensalmente para as equipas e os jogadores.",
+      "rules": {
+        "0": {
+          "title": "Objetivo do sistema de classificação",
+          "content": "O sistema de classificação avalia o desempenho a curto prazo para identificar, mensalmente, as equipas ou os jogadores mais ativos e com melhor desempenho. Incentiva a competição constante e garante a participação contínua ao longo de cada época."
+        },
+        "1": {
+          "title": "Operação de classificação",
+          "content": "As classificações são atualizadas mensalmente e reiniciadas no início de cada novo mês. As equipas podem comparar a sua posição em relação a todas as outras equipas registadas na AFC, independentemente do seu nível de competição."
+        },
+        "2": {
+          "title": "Critérios de classificação das equipas",
+          "content": "Vitórias em torneios: 20 pontos por vitória. Eliminações em torneios (acumuladas): escala de 0 a 5 000 eliminações (1 ponto para 0 a 100 eliminações, 3 pontos para 101 a 300, 5 pontos para 301 a 500, 8 pontos para 501 a 1 000, 12 pontos para 1 001-1 500, 15 pontos para 1 501-2 000, 18 pontos para 2 001-2 500, 20 pontos para 2 501-3 000, 23 pontos para 3 001-3 500, 25 pontos para 3 501-4 000, 28 pontos para 4 001-4 500, 30 pontos para 4 501-5 000). Classificações em torneios: escala de classificação de 0 a 1 000+. Vitórias em jogos de treino: 0,5 pontos por vitória. Abates e classificações em jogos de treino: mesmas escalas que as métricas dos torneios."
+        },
+        "3": {
+          "title": "Limitação do peso da tela",
+          "content": "Os pontos baseados no Scrim não devem exceder 30 % do total de pontos de classificação acumulados por uma equipa por mês. Os dados dos torneios continuam a ser o fator determinante na definição da tabela de classificação."
+        },
+        "4": {
+          "title": "Sistema de Classificação de Jogadores",
+          "content": "Os jogadores são classificados mensalmente com base em: Abates em torneios (na mesma escala que os abates por equipa), MVPs (5 pontos por MVP), Finais de torneios (3 pontos por participação), Vitórias em torneios (20 pontos por vitória da equipa), abates em jogos de treino (na mesma escala que os abates da equipa em jogos de treino), vitórias em jogos de treino (0,5 pontos por vitória)."
+        }
+      }
+    },
+    "quarterly-tiering": {
+      "name": "Sistema de classificação trimestral",
+      "description": "Sistema de avaliação do desempenho a longo prazo que determina a classificação competitiva e os benefícios.",
+      "rules": {
+        "0": {
+          "title": "Objetivo da classificação por níveis",
+          "content": "A classificação por níveis define o nível geral de desempenho de cada equipa no ecossistema da AFC. Os níveis determinam o acesso a competições de nível superior, vantagens e reconhecimento na comunidade."
+        },
+        "1": {
+          "title": "Duração dos níveis e épocas",
+          "content": "Os níveis são atribuídos de três (3) em três meses. Existem quatro épocas competitivas por ano: Época 1 (janeiro-março), Época 2 (abril-junho), Época 3 (julho-setembro) e Época 4 (outubro-dezembro). Os níveis são reiniciados no início de cada nova época. Todos os pontos de nível acumulam-se ao longo de todo o ano para a tabela de classificação anual e para a atribuição de prémios."
+        },
+        "2": {
+          "title": "Retenção por nível",
+          "content": "Assim que uma equipa é classificada num nível, mantém esse nível durante todo o trimestre. Exemplo: uma equipa classificada no Nível 1 em março mantém esse nível de abril a junho, sendo que as alterações só ocorrem após a próxima avaliação."
+        },
+        "3": {
+          "title": "Critérios de classificação - Vitórias em torneios",
+          "content": "20 pontos por vitória no torneio."
+        },
+        "4": {
+          "title": "Critérios de classificação - Prémios monetários",
+          "content": "Os prémios monetários ganhos contribuem para os pontos de classificação de acordo com uma escala variável: ₦0-100 000 (5 pontos), ₦101 000-300 000 (10 pontos), ₦301 000-500 000 (15 pontos), ₦501 000-750 000 (20 pontos), ₦751 000-1 000 000 (25 pontos), 1 000 001-1 500 000 ₦ (30 pontos), 1 500 001-2 000 000 ₦ (35 pontos), ₦2 000 001-2 500 000 (40 pontos), ₦2 500 001-3 000 000 (45 pontos), ₦3 000 001-3 500 000 (50 pontos), ₦3 500 001-4 000 000 (55 pontos), 4 000 001-4 500 000 ₦ (60 pontos), 4 500 001-5 000 000 ₦ (65 pontos)."
+        },
+        "5": {
+          "title": "Critérios de classificação - Abates em torneios",
+          "content": "As mortes acumuladas no torneio contam numa escala: 0-100 (1 ponto), 101-300 (3 pontos), 301-500 (5 pontos), 501-1 000 (8 pontos), 1 001-1 500 (12 pontos), 1 501-2 000 (15 pontos), 2 001-2 500 (18 pontos), 2 501-3 000 (20 pontos), 3 001-3 500 (23 pontos), 3 501-4 000 (25 pontos), 4 001-4 500 (28 pontos), 4 501-5 000 (30 pontos)."
+        },
+        "6": {
+          "title": "Critérios de classificação por níveis - Classificação no torneio",
+          "content": "Pontos de classificação obtidos: 0-100 (0,02 por classificação), 101-300 (0,05), 301-500 (0,10), 501-1 000 (0,15), 1 001+ (0,20)."
+        },
+        "7": {
+          "title": "Critérios de classificação por níveis - Finais do torneio",
+          "content": "5 pontos por participação na final de um torneio."
+        },
+        "8": {
+          "title": "Critérios de classificação - Métricas das redes sociais",
+          "content": "Medido no Instagram e no TikTok em termos de seguidores, publicações e «gostos»: 0-500 (1 ponto), 501-1 000 (2 pontos), 1 001-2 500 (5 pontos), 2 501-5 000 (8 pontos), 5 001-10 000 (12 pontos), 10 001-20 000 (15 pontos), 20 001-50 000 (20 pontos), 50 001-75 000 (30 pontos), 75 001-100 000 (35 pontos), 100 000+ (40 pontos)."
+        },
+        "9": {
+          "title": "Critérios de classificação - Métricas do Scrim",
+          "content": "Métricas dos jogos de treino (peso máximo de 30% no total): Vitórias nos jogos de treino (0,5 por vitória), Mortes acumuladas nos jogos de treino (escala de 0,5 a 11 pontos), Classificações nos jogos de treino (escala de 0 a 0,2, tal como nos torneios)."
+        }
+      }
+    },
+    "tier-classifications": {
+      "name": "Classificações e benefícios por nível das equipas",
+      "description": "Níveis de classificação, limiares de pontos e privilégios associados a cada classificação.",
+      "rules": {
+        "0": {
+          "title": "Classificações por níveis",
+          "content": "As equipas são classificadas em três níveis: Nível 1 (Elite: 70 ou mais pontos), Nível 2 (Competitivo: 50-69 pontos), Nível 3 (Em desenvolvimento: menos de 50 pontos)."
+        },
+        "1": {
+          "title": "Benefícios da equipa de Nível 1",
+          "content": "As equipas do Nível 1 beneficiam dos seguintes privilégios: (1) Convites automáticos para os Torneios Invitational da AFC, (2) Visibilidade através de entrevistas e artigos sobre a comunidade, (3) Funções especiais de reconhecimento no Discord, (4) Acesso a jogos de treino privados da AFC ou de parceiros, (5) Qualificação para a AFC Community Cup."
+        },
+        "2": {
+          "title": "Classificação do torneio",
+          "content": "Os torneios são classificados em níveis com base no prémio total e na estrutura: Nível 1 (equivalente a ₦ 1 000+ ou evento oficial do FreeFire), Nível 2 (equivalente a ₦ 300–999 ou evento LAN), Nível 3 (inferior a 300 $). A classificação por níveis afeta o prestígio e a visibilidade na plataforma da AFC. Os pontos dos torneios mantêm-se consistentes em todos os níveis, mas os eventos de nível superior recebem um emblema de reconhecimento no site da AFC."
+        }
+      }
+    },
+    "metrics-compliance": {
+      "name": "Conformidade com o sistema de medição e sanções",
+      "description": "Regras que regem a verificação de dados, a reinicialização de pontos e os requisitos de conformidade.",
+      "rules": {
+        "0": {
+          "title": "Requisitos de inscrição",
+          "content": "As equipas devem inscrever-se no site oficial da AFC, em www.africanfreefirecommunity.com. Apenas as equipas listadas no site são elegíveis para o acompanhamento de métricas."
+        },
+        "1": {
+          "title": "Reinício da contagem de pontos em caso de infrações",
+          "content": "A prática de hacking, batota ou manipulação de contas implica a anulação total dos pontos, tanto para as equipas como para os jogadores. As equipas sem classificação mensal verão os seus pontos reduzidos a zero."
+        },
+        "2": {
+          "title": "Elegibilidade das equipas suspensas",
+          "content": "As equipas banidas ou incluídas na lista negra não podem somar pontos durante o período de suspensão."
+        },
+        "3": {
+          "title": "Requisitos de conduta profissional",
+          "content": "É obrigatório manter uma conduta profissional durante todas as atividades sancionadas pela AFC."
+        },
+        "4": {
+          "title": "Processo de verificação de dados",
+          "content": "Todos os dados de desempenho são verificados pelos administradores da AFC. O processo de verificação inclui: (1) validação dos resultados de torneios e jogos de treino, (2) verificações das métricas dos meios de comunicação e das redes sociais, (3) auditorias de consistência entre plataformas. Apenas os eventos aprovados e verificados pela AFC contribuem para as classificações e a divisão em níveis."
+        },
+        "5": {
+          "title": "Visibilidade dos dados",
+          "content": "A visualização pública apresenta o total de pontos e o nível atual de cada equipa. A visualização privada mostra a análise completa das métricas (abates, ganhos, média, jogos de treino), acessível no perfil de cada equipa. A tabela de classificação anual apresenta os pontos acumulados por ano relativos ao nível, utilizados para os Prémios AFC e para o reconhecimento."
+        }
+      }
+    }
+  }
+}

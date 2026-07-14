@@ -2,6 +2,7 @@
 
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -16,11 +17,13 @@ interface Step2Props {
 }
 
 export function Step2EventMode({ form }: Step2Props) {
+  // evSteps namespace: shared create-wizard step strings (admin + organizer forms).
+  const t = useTranslations("evSteps");
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          Step 2: Event Mode
+          {t("step2.title")}
           <InfoTip id="events.create.event_mode._section" className="ml-1.5" />
         </CardTitle>
       </CardHeader>
@@ -32,7 +35,7 @@ export function Step2EventMode({ form }: Step2Props) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Select Event Mode
+                {t("step2.selectMode")}
                 <InfoTip id="events.create.event_mode" className="ml-1" />
               </FormLabel>
               <FormControl>
@@ -44,7 +47,14 @@ export function Step2EventMode({ form }: Step2Props) {
                     >
                       <RadioGroupItem value={mode} />
                       <span className="capitalize text-sm">
-                        {mode === "physical" ? "Physical (LAN)" : mode}
+                        {/* mode ∈ {virtual, physical, hybrid} (hardcoded literal array), so all
+                            three step2.modes.* keys exist; t.has guard keeps a safe English
+                            fallback if the enum ever grows. */}
+                        {t.has(`step2.modes.${mode}`)
+                          ? t(`step2.modes.${mode}`)
+                          : mode === "physical"
+                            ? "Physical (LAN)"
+                            : mode}
                       </span>
                     </div>
                   ))}
@@ -74,11 +84,12 @@ export function Step3StageCount({
   onStageCountChange,
   onStageNameChange,
 }: Step3Props) {
+  const t = useTranslations("evSteps");
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          Step 3: Select Number of Stages
+          {t("step3.title")}
           <InfoTip id="events.create.stages._section" className="ml-1.5" />
         </CardTitle>
       </CardHeader>
@@ -90,7 +101,7 @@ export function Step3StageCount({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                How many stages?
+                {t("step3.howMany")}
                 <InfoTip id="events.create.number_of_stages" className="ml-1" />
               </FormLabel>
               <FormControl>
@@ -119,13 +130,13 @@ export function Step3StageCount({
         />
 
         <div className="space-y-3">
-          <FormLabel>Stage Names</FormLabel>
+          <FormLabel>{t("step3.stageNames")}</FormLabel>
           {stageNames.map((name, index) => (
             <Input
               key={index}
               value={name}
               onChange={(e) => onStageNameChange(index, e.target.value)}
-              placeholder={`Stage ${index + 1}`}
+              placeholder={t("step3.stagePlaceholder", { n: index + 1 })}
             />
           ))}
         </div>

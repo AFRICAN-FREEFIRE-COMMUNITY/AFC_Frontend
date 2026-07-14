@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DiscordRegistrationGate — shared "Require Discord to register" control.
+// DiscordRegistrationGate - shared "Require Discord to register" control.
 //
 // PURPOSE: one source of truth for the per-event Discord registration gate so the
 // CREATE wizard (Step1EventDetails) and the EDIT form (BasicInfoTab) render + behave
@@ -34,13 +34,14 @@
 //   • Auth: Bearer token from AuthContext (Cookies "auth_token" via useAuth()).
 //
 // The organizer create/edit flows reuse this verbatim (the whole event wizard is
-// English under (a)/, so labels here stay plain English — consistent with the rule).
+// English under (a)/, so labels here stay plain English - consistent with the rule).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { UseFormReturn } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,7 +60,7 @@ import { EventFormType } from "./types";
 
 interface DiscordRegistrationGateProps {
   // The shared event form (create passes `form` directly; edit passes its
-  // useFormContext() result). Typed loosely as the create EventFormType — the edit
+  // useFormContext() result). Typed loosely as the create EventFormType - the edit
   // form is structurally compatible for the three keys this control touches.
   form: UseFormReturn<EventFormType>;
   // On EDIT we want a pre-set guild that already has a saved invite link to count as
@@ -72,6 +73,7 @@ export function DiscordRegistrationGate({
   form,
   initiallyVerified = false,
 }: DiscordRegistrationGateProps) {
+  const t = useTranslations("evSteps");
   const { token } = useAuth();
   // Per-session verification result for the CURRENTLY entered guild id. Seeded true on
   // edit when the event already had an invite link (treated as already-verified).
@@ -110,11 +112,11 @@ export function DiscordRegistrationGate({
       if (url) {
         window.open(url, "_blank");
       } else {
-        toast.error("Could not get the bot invite link. Try again.");
+        toast.error(t("discord.toastNoInviteLink"));
       }
     } catch (e: any) {
       toast.error(
-        e.response?.data?.message || "Failed to get the bot invite link.",
+        e.response?.data?.message || t("discord.toastInviteFailed"),
       );
     } finally {
       setInviting(false);
@@ -142,7 +144,7 @@ export function DiscordRegistrationGate({
       setBotVerified(false);
       setVerifyState("missing");
       toast.error(
-        e.response?.data?.message || "Failed to verify the bot in the server.",
+        e.response?.data?.message || t("discord.toastVerifyFailed"),
       );
     } finally {
       setVerifying(false);
@@ -160,7 +162,7 @@ export function DiscordRegistrationGate({
         render={({ field }) => (
           <FormItem>
             <FormLabel htmlFor="discord-server-id">
-              Discord server ID (Guild ID)
+              {t("discord.guildId")}
             </FormLabel>
             <FormControl>
               <Input
@@ -176,16 +178,14 @@ export function DiscordRegistrationGate({
               />
             </FormControl>
             <p className="text-xs text-muted-foreground">
-              Leave blank to use the main AFC server (our bot is already there, no
-              invite or verification needed). For your own server, paste its Guild ID,
-              then invite the AFC bot and verify it below.
+              {t("discord.guildIdHelp")}
             </p>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {/* Invite + Verify actions — only meaningful for a custom (non-blank) guild.
+      {/* Invite + Verify actions - only meaningful for a custom (non-blank) guild.
           Both buttons are disabled while the guild id is blank. */}
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -196,7 +196,7 @@ export function DiscordRegistrationGate({
           disabled={isBlankGuild || inviting}
         >
           {inviting && <IconLoader2 className="mr-1 size-4 animate-spin" />}
-          Invite AFC bot to your server
+          {t("discord.inviteBot")}
         </Button>
         <Button
           type="button"
@@ -206,19 +206,19 @@ export function DiscordRegistrationGate({
           disabled={isBlankGuild || verifying}
         >
           {verifying && <IconLoader2 className="mr-1 size-4 animate-spin" />}
-          Verify bot is in server
+          {t("discord.verifyBot")}
         </Button>
       </div>
 
       {/* Verification status line (only for a custom guild that was verified/checked). */}
       {!isBlankGuild && verifyState === "found" && (
         <p className="flex items-center gap-1 text-xs font-medium text-green-600">
-          <IconCheck className="size-4" /> Bot is in your server
+          <IconCheck className="size-4" /> {t("discord.botFound")}
         </p>
       )}
       {!isBlankGuild && verifyState === "missing" && (
         <p className="flex items-center gap-1 text-xs font-medium text-destructive">
-          <IconX className="size-4" /> Bot not found - invite it first
+          <IconX className="size-4" /> {t("discord.botNotFound")}
         </p>
       )}
 
@@ -226,9 +226,9 @@ export function DiscordRegistrationGate({
           AFC server (blank guild) or a verified custom guild. */}
       <div className="flex items-center justify-between pt-1">
         <div className="space-y-0.5">
-          <Label htmlFor="require-discord">Require Discord to register</Label>
+          <Label htmlFor="require-discord">{t("discord.requireDiscord")}</Label>
           <p className="text-xs text-muted-foreground">
-            Players must be connected to Discord and a member of this server.
+            {t("discord.requireDiscordHelp")}
           </p>
         </div>
         <FormField
@@ -254,12 +254,11 @@ export function DiscordRegistrationGate({
       {/* Why the toggle is disabled (custom guild not yet verified). */}
       {!canEnableToggle && (
         <p className="text-xs text-muted-foreground">
-          Invite the AFC bot to your server and verify it before you can require
-          Discord. Or leave the Guild ID blank to use the main AFC server.
+          {t("discord.toggleDisabledHelp")}
         </p>
       )}
 
-      {/* Required invite link — shown only while the gate is ON. The save handlers block
+      {/* Required invite link - shown only while the gate is ON. The save handlers block
           submitting require_discord=true with an empty link (mirrors the backend 400). */}
       {requireDiscord && (
         <FormField
@@ -269,7 +268,7 @@ export function DiscordRegistrationGate({
           render={({ field }) => (
             <FormItem>
               <FormLabel htmlFor="discord-invite-link">
-                Discord invite link (required)
+                {t("discord.inviteLink")}
               </FormLabel>
               <FormControl>
                 <Input
@@ -280,8 +279,7 @@ export function DiscordRegistrationGate({
                 />
               </FormControl>
               <p className="text-xs text-muted-foreground">
-                Players will use this link to join the event&apos;s Discord. It is shown
-                on the public event page.
+                {t("discord.inviteLinkHelp")}
               </p>
               <FormMessage />
             </FormItem>

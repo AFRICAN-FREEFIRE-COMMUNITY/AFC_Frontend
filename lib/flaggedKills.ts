@@ -10,6 +10,7 @@
  *   GET   events/flagged-kills/?event_id=        -> list flags + the event default
  *   PATCH events/flagged-kills/set/              -> flip the event-wide default (recomputes totals)
  *   PATCH events/flagged-kills/flag/             -> override one flag's count_kills (recomputes)
+ *   PATCH events/flagged-kills/bulk/             -> apply MANY flag/team decisions in ONE recompute
  * Auth: Bearer token of an AFC event admin OR an org member with can_upload_results.
  */
 import { env } from "@/lib/env";
@@ -42,6 +43,11 @@ export type FlaggedKill = {
   registered_username: string | null;
   count_kills: boolean | null; // null = follow the event default
   effective_count: boolean; // resolved: does this player's kills count right now?
+  // Where the flag was raised (owner 2026-07-10 scoping). null when the match has no group.
+  stage_id: number | null;
+  stage_name: string | null;
+  group_id: number | null;
+  group_name: string | null;
 };
 
 // An in-game team block from a match-log upload that matched NO registered team (owner 2026-06-30).
@@ -55,9 +61,21 @@ export type UnmatchedTeamRow = {
   kills: number;
   attributed_team_id: number | null;
   attributed_team_name: string | null;
+  // Where the block came from (owner 2026-07-10 scoping). null when the match has no group.
+  stage_id: number | null;
+  stage_name: string | null;
+  group_id: number | null;
+  group_name: string | null;
 };
 
 export type EventTeamOption = { tournament_team_id: number; team_name: string };
+
+// The event's stage -> group structure, used to build the flagged-players combine picker.
+export type FlaggedStage = {
+  stage_id: number;
+  stage_name: string;
+  groups: { group_id: number; group_name: string }[];
+};
 
 export type FlaggedKillsResponse = {
   event_id: number;
@@ -66,6 +84,9 @@ export type FlaggedKillsResponse = {
   flag_count: number;
   unmatched_teams: UnmatchedTeamRow[];
   event_teams: EventTeamOption[];
+  // Stage/group structure for the combine picker + whether the response was scoped (owner 2026-07-10).
+  stages: FlaggedStage[];
+  scoped: boolean;
 };
 
 const authHeaders = (token: string, json = false): HeadersInit => ({
@@ -74,9 +95,19 @@ const authHeaders = (token: string, json = false): HeadersInit => ({
 });
 
 export const flaggedKillsApi = {
-  // List an event's flagged players + the event-wide count_flagged_kills default.
-  get: async (eventId: number | string, token: string): Promise<FlaggedKillsResponse> => {
-    const r = await fetch(`${BASE}/events/flagged-kills/?event_id=${eventId}`, {
+  // List an event's flagged players + the event-wide count_flagged_kills default. Optionally scope to
+  // specific stages/groups (owner 2026-07-10): pass stageIds/groupIds and only flags raised in those
+  // stages/groups come back. Omit both for the whole event. The response also carries the event's
+  // stage->group structure so the panel can render its combine picker.
+  get: async (
+    eventId: number | string,
+    token: string,
+    opts?: { stageIds?: number[]; groupIds?: number[] },
+  ): Promise<FlaggedKillsResponse> => {
+    const params = new URLSearchParams({ event_id: String(eventId) });
+    if (opts?.stageIds?.length) params.set("stage_ids", opts.stageIds.join(","));
+    if (opts?.groupIds?.length) params.set("group_ids", opts.groupIds.join(","));
+    const r = await fetch(`${BASE}/events/flagged-kills/?${params.toString()}`, {
       headers: authHeaders(token),
     });
     if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.message || "Failed to load flagged kills.");
@@ -118,6 +149,31 @@ export const flaggedKillsApi = {
       body: JSON.stringify({ block_id: blockId, tournament_team_id: tournamentTeamId }),
     });
     if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.message || "Failed to update.");
+    return r.json();
+  },
+
+  // Bulk accept/reject (owner 2026-07-13): apply MANY flagged-player decisions AND/OR unmatched-team
+  // attributions in ONE call that recomputes the event totals just ONCE. Each single setFlag/
+  // attributeUnmatchedTeam re-scores the whole event, so accepting/rejecting one by one felt slow;
+  // the panel's "Accept all" / "Reject all" / per-team buttons batch every decision through here.
+  // flags: [{flag_id, count_kills:true|false|null}], unmatched: [{block_id, tournament_team_id|null}].
+  bulkSet: async (
+    eventId: number | string,
+    payload: {
+      flags?: { flag_id: number; count_kills: boolean | null }[];
+      unmatched?: { block_id: number; tournament_team_id: number | null }[];
+    },
+    token: string,
+  ) => {
+    const r = await fetch(`${BASE}/events/flagged-kills/bulk/`, {
+      method: "PATCH",
+      headers: authHeaders(token, true),
+      body: JSON.stringify({ event_id: eventId, ...payload }),
+    });
+    if (!r.ok)
+      throw new Error(
+        (await r.json().catch(() => ({})))?.message || "Failed to apply bulk update.",
+      );
     return r.json();
   },
 };

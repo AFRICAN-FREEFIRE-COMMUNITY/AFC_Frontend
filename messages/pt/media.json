@@ -1,0 +1,32 @@
+{
+  "download": {
+    "esportSizeLabel": "Tamanho da imagem do Esport",
+    "esportNamingLabel": "Nome do ficheiro Esport",
+    "logoSizeLabel": "Tamanho do logótipo da equipa",
+    "originalSize": "Tamanho original",
+    "esportSizeRole": "Imagem do papel (108 x 130)",
+    "namingIgn": "Nome no jogo",
+    "namingUid": "UID do Free Fire",
+    "namingBoth": "Ambos (nome + UID)",
+    "logoSizeGloo": "Fundo de ecrã do Gloo (1000 x 1000)",
+    "logoSizeHead": "Imagem de perfil (108 x 130)",
+    "logosNamedNote": "Os logótipos das equipas têm sempre o nome da equipa.",
+    "eventButton": "Descarregar ficheiros multimédia",
+    "eventTitle": "Descarregar material multimédia do evento",
+    "eventDescription": "Todos os logótipos das equipas inscritas + imagens dos jogadores de e-sport inscritos neste evento, num único ficheiro ZIP. Escolha o tamanho e a nomenclatura dos ficheiros.",
+    "setTitle": "Descarregar conteúdos multimédia sobre desportos eletrónicos",
+    "setDescription": "Escolha quaisquer equipas e jogadores. Receberá um ficheiro ZIP com os logótipos das equipas e as imagens dos jogadores de e-sport, além de um manifesto com os nomes de todos aqueles que ainda não enviaram as suas imagens.",
+    "teamsLabel": "Equipas (logótipos)",
+    "teamsPlaceholder": "Pesquisar e adicionar uma equipa...",
+    "playersLabel": "Jogadores (imagens de e-sports)",
+    "playersPlaceholder": "Pesquisar e adicionar um jogador...",
+    "removeTeam": "Remover o «{name}»",
+    "removePlayer": "Remover o «{name}»",
+    "cancel": "Cancelar",
+    "preparing": "A preparar...",
+    "downloadZip": "Descarregar ZIP",
+    "downloaded": "O ficheiro ZIP com os ficheiros multimédia foi descarregado. Verifique o ficheiro manifest.txt para ver se falta alguma coisa.",
+    "downloadFailed": "Não foi possível descarregar o ficheiro ZIP com os ficheiros multimédia.",
+    "pickAtLeastOne": "Escolha pelo menos uma equipa ou um jogador."
+  }
+}

@@ -428,10 +428,10 @@ function OrganizerShell({ children }: { children: ReactNode }) {
             by the SidebarTrigger hamburger that toggles OrganizerSidebar. */}
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
           <div className="container mx-auto h-20 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               {/* Persistent hamburger - mirrors the admin's "Toggle Sidebar"
                   button (components/site-header.tsx). Always visible. */}
-              <SidebarTrigger className="-ml-1" />
+              <SidebarTrigger className="-ml-1 size-9 md:size-7" />
               <Separator
                 orientation="vertical"
                 className="data-[orientation=vertical]:h-4"
@@ -447,7 +447,7 @@ function OrganizerShell({ children }: { children: ReactNode }) {
                 <IconArrowLeft className="size-4" />
                 <span className="hidden sm:inline">{t("nav.back")}</span>
               </Button>
-              <Link href={"/home"} className="flex items-center space-x-2">
+              <Link href={"/home"} className="flex items-center space-x-2 min-w-0">
                 <Logo size="small" />
                 <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
                   African Free Fire Community

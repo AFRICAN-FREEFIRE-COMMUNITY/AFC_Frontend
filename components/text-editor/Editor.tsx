@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
@@ -10,6 +11,9 @@ import { Menubar } from "./Menubar";
 import { CustomTextStyle } from "./extensions";
 
 export function RichTextEditor({ field }: { field: any }) {
+  // i18n: "editor" ns (editor.wordCount ICU plural). Shared rich-text editor used by news and
+  // other forms, some on the non-exempt organizer surface.
+  const t = useTranslations("editor");
   const [wordCount, setWordCount] = useState(0);
 
   const editor = useEditor({
@@ -57,7 +61,7 @@ export function RichTextEditor({ field }: { field: any }) {
       <EditorContent editor={editor} />
       <div className="px-5 py-2 border-t border-input flex justify-end">
         <span className="text-xs text-muted-foreground">
-          {wordCount} {wordCount === 1 ? "word" : "words"}
+          {t("wordCount", { count: wordCount })}
         </span>
       </div>
     </div>

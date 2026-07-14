@@ -70,8 +70,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
+import { Tabs, TabsTrigger } from "@/components/ui/tabs";
 // Raw Radix TabsContent (unstyled), exactly like the admin event view page - the
 // per-tab spacing classes below assume it.
 import { TabsContent } from "@radix-ui/react-tabs";
@@ -792,14 +792,22 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
         </span>
       </div>
 
-      {/* ── banner (same treatment as the admin view page) ── */}
-      <div className="overflow-hidden rounded-md">
+      {/* ── banner (same treatment as the admin view page) ──
+          bg-muted keeps this box OPAQUE so a broken banner URL can never let the fixed
+          site-wide PageGradient feTurbulence dither show through as colored static (the
+          "hash thing", owner 2026-07-14). onError swaps in DEFAULT_IMAGE because the
+          `|| DEFAULT_IMAGE` guard only catches an EMPTY url, not a non-empty-but-unloadable
+          one (expired/hotlink-blocked/404/wrong content-type). */}
+      <div className="overflow-hidden rounded-md bg-muted">
         <Image
           src={details.event_banner_url || DEFAULT_IMAGE}
           alt={`${details.event_name}'s image`}
           width={1000}
           height={1000}
           className="w-full h-50 aspect-video object-cover"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = DEFAULT_IMAGE;
+          }}
         />
       </div>
 
@@ -824,15 +832,12 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
       </Dialog>
 
       <Tabs defaultValue="overview">
-        <ScrollArea>
-          <TabsList className="w-full">
+        <ScrollableTabsList className="w-full">
             <TabsTrigger value="overview">{t("eventDetail.tabs.overview")}</TabsTrigger>
             <TabsTrigger value="details">{t("eventDetail.tabs.details")}</TabsTrigger>
             <TabsTrigger value="registrations">{t("eventDetail.tabs.registrations")}</TabsTrigger>
             <TabsTrigger value="engagement">{t("eventDetail.tabs.engagement")}</TabsTrigger>
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        </ScrollableTabsList>
 
         {/* ── Overview tab ─────────────────────────────────────────────────── */}
         <TabsContent value="overview" className="mt-2 space-y-4">
@@ -861,7 +866,12 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
                   stageId={s.stage_id}
                   stageName={s.stage_name}
                   stageFormat={s.stage_format || ""}
-                  isManager
+                  // Split perms (P2, owner 2026-07-13): Generate/Regenerate needs can_edit_events,
+                  // result entry needs can_upload_results - so an organizer with only one no longer
+                  // sees a control that 403s. isManager stays as the base flag for the sub-components.
+                  isManager={canEdit || canUploadResults}
+                  canEdit={canEdit}
+                  canUpload={canUploadResults}
                   registeredTeams={(details.tournament_teams ?? [])
                     .filter((tt: any) => !tt.is_waitlisted && tt.tournament_team_id)
                     .map((tt: any) => ({
@@ -990,7 +1000,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
                 {details.stream_channels.map((url, i) => (
                   <div
                     key={i}
-                    className="bg-primary/10 text-primary text-sm font-medium hover:underline rounded-md py-2 px-4 border-none cursor-pointer"
+                    className="bg-primary/10 text-primary text-sm font-medium hover:underline rounded-md py-2 px-4 border-none cursor-pointer max-w-full break-all"
                   >
                     <a href={url} target="_blank" rel="noopener noreferrer">
                       {url}
@@ -1132,7 +1142,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
                         href={details.registration_link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-500 hover:underline text-xs md:text-sm truncate"
+                        className="text-blue-500 hover:underline text-xs md:text-sm block max-w-full truncate"
                       >
                         {details.registration_link}
                       </Link>

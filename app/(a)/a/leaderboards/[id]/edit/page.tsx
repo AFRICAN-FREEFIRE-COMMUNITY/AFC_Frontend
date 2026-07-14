@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 // MVPs tab (owner 2026-07-02): criteria-arranged event MVP. See _components/MvpTab.tsx.
 import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
 // Top Killers tab (owner 2026-07-05, complaint H): players ranked by summed kills. Sibling of MvpTab;
@@ -41,7 +42,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import {
   IconDeviceFloppy,
@@ -672,6 +672,13 @@ export default function EditLeaderboardPage({
   const currentStage = eventData?.stages?.find(
     (s: any) => s.stage_id.toString() === selectedStageId,
   );
+  // ── CS (Clash Squad / Head-to-Head) guard (P1#3, owner 2026-07-13) ───────────
+  // A "cs - *" stage is run as a knockout/round-robin BRACKET, not a BR lobby, so this
+  // BR-shaped editor (match grid, .log/OCR upload, scoring config) does not apply to it.
+  // When the selected stage is CS we hide the whole BR editor and point the admin to the
+  // bracket on the event page (mounted there via H2HBracketCard). Mirrors the same guard
+  // added to the organizer leaderboard page and the public TournamentStructure.
+  const isCsStage = String(currentStage?.stage_format || "").startsWith("cs -");
   const currentGroup = currentStage?.groups?.find(
     (g: any) => g.group_id.toString() === selectedGroupId,
   );
@@ -1281,20 +1288,43 @@ export default function EditLeaderboardPage({
         onValueChange={setSelectedStageId}
         data-tour="leaderboard-edit-stage-group"
       >
-        <ScrollArea>
-          <TabsList className="w-full justify-start">
-            {eventData?.stages?.map((s: any) => (
-              <TabsTrigger key={s.stage_id} value={s.stage_id.toString()}>
-                {s.stage_name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        <ScrollableTabsList className="w-full justify-start">
+          {eventData?.stages?.map((s: any) => (
+            <TabsTrigger key={s.stage_id} value={s.stage_id.toString()}>
+              {s.stage_name}
+            </TabsTrigger>
+          ))}
+        </ScrollableTabsList>
       </Tabs>
 
+      {/* CS bracket note (P1#3): the selected stage is a Clash Squad bracket, so the BR editor
+          below does not apply. Send the admin to the bracket on the event page instead. */}
+      {isCsStage && (
+        <Card className="border-primary/40">
+          <CardContent className="flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <IconTrophy className="mt-0.5 size-5 shrink-0 text-primary" />
+              <div>
+                <p className="font-medium">This stage runs as a Clash Squad bracket</p>
+                <p className="text-sm text-muted-foreground">
+                  Clash Squad results and standings are managed from the bracket on the event page,
+                  not from this Battle Royale editor.
+                </p>
+              </div>
+            </div>
+            {eventSlug && (
+              <Button asChild size="sm" className="shrink-0">
+                <Link href={`/a/events/${eventSlug}`}>
+                  <IconTrophy className="size-4" /> Go to the bracket
+                </Link>
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Group selector */}
-      {currentStage?.groups?.length > 1 && (
+      {!isCsStage && currentStage?.groups?.length > 1 && (
         <div className="flex items-center gap-2">
           <Label className="shrink-0">
             <IconUsers size={14} className="inline mr-1" />
@@ -1317,7 +1347,9 @@ export default function EditLeaderboardPage({
 
       {/* Edit sections */}
       {/* data-tour anchor (leaderboard-edit-match): admin tour "Edit individual match" step.
-          These tabs are where one match's results, totals, scoring and uploads are re-entered. */}
+          These tabs are where one match's results, totals, scoring and uploads are re-entered.
+          Hidden for CS stages (P1#3) - a bracket has no per-map BR grid/upload/scoring. */}
+      {!isCsStage && (
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         {/* Flagging gets its OWN tab for team events (owner 2026-06-30) so the admin no longer scrolls
             past the whole standings to reach the flagged-kills / unmatched-team controls. */}
@@ -1683,12 +1715,16 @@ export default function EditLeaderboardPage({
                   token={token}
                   canManage
                   onChanged={fetchData}
+                  // Flagged players follow the stage/group being viewed (owner 2026-07-10); combine picker overrides.
+                  selectedStageId={selectedStageId}
+                  selectedGroupId={selectedGroupId}
                 />
               </>
             )}
           </TabsContent>
         )}
       </Tabs>
+      )}
 
       {/* ── Upload Results Drawer ── */}
       <Sheet open={uploadDrawerOpen} onOpenChange={setUploadDrawerOpen}>

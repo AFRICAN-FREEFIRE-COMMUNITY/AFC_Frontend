@@ -8,9 +8,12 @@
 //     read-only (the owner implicitly has everything).
 //   • Per-row remove - guarded by an AlertDialog destructive confirm.
 //
-// ALL of the add / edit / remove UI is gated on the caller being able to manage
-// members: either role "owner", or my_permissions.can_manage_members. A viewer
-// without that permission sees the table only.
+// ALL of the add / edit / remove UI is OWNER-ONLY (owner, 2026-07-14): only the org owner
+// (isOwner, which also covers an AFC god-mode admin_override) sees it. A sub_organizer -
+// even one previously granted can_manage_members - sees the read-only roster (username /
+// full name / role / status) and NEVER the permissions or actions columns, because letting
+// a sub touch permissions would let them escalate their own access. Mirrors the backend
+// org_is_owner gate on add/edit/remove_organization_member.
 //
 // Data + mutations go through organizersApi:
 //   getOrganizationMembers(slug) · addOrganizationMember · editOrganizationMember ·
@@ -67,9 +70,13 @@ import {
 } from "../_components/OrganizerContext";
 
 // ── Permission catalogue ──────────────────────────────────────────────────────
-// The 8 can_* keys, paired with human labels for the toggle UIs. Order is the
+// The grantable can_* keys, paired with human labels for the toggle UIs. Order is the
 // catalogue order so the add-dialog and the per-row toggles stay consistent.
-
+//
+// NOTE (owner, 2026-07-14): can_manage_members is intentionally NOT listed here. Member +
+// permission management is owner-only, so granting it to a sub_organizer would be inert and
+// misleading. The field still exists on the model/type (kept for backward compat) but is no
+// longer offered as a grant.
 const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string }[] = [
   { key: "can_create_events", label: "Create events" },
   { key: "can_edit_events", label: "Edit events" },
@@ -78,7 +85,6 @@ const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string }[] = [
   { key: "can_submit_designs", label: "Submit designs" },
   { key: "can_view_metrics", label: "View metrics" },
   { key: "can_view_reviews", label: "View reviews" },
-  { key: "can_manage_members", label: "Manage members" },
 ];
 
 // Every permission off - the starting state for a new sub-organizer.
@@ -148,11 +154,12 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function OrganizerMembersPage() {
   const t = useTranslations("organizer");
-  const { slug, membership, isOwner } = useOrganizer();
+  const { slug, isOwner } = useOrganizer();
 
-  // The caller may manage members if they own the org or hold can_manage_members.
-  const canManageMembers =
-    isOwner || membership.permissions.can_manage_members === true;
+  // Member + permission management is OWNER-ONLY (owner, 2026-07-14). isOwner already covers
+  // an AFC god-mode admin_override membership. A sub_organizer never manages members, so they
+  // see only the read-only roster - matching the backend org_is_owner gate.
+  const canManageMembers = isOwner;
 
   // ── F5 org lifecycle (owner 2026-06-19) ──
   // A sub-organizer can LEAVE; the OWNER can SUSPEND / UNSUSPEND / DELETE (soft) their own org.
@@ -350,7 +357,7 @@ export default function OrganizerMembersPage() {
                   {t("members.addSubOrganizer")}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{t("members.addSubOrganizer")}</DialogTitle>
                 </DialogHeader>
@@ -514,7 +521,7 @@ export default function OrganizerMembersPage() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
+                                    className="text-red-600 border-red-200 hover:bg-red-50 h-8 text-xs"
                                     disabled={isBusy}
                                   >
                                     {isBusy ? (

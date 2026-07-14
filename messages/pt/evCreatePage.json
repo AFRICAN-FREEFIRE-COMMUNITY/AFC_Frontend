@@ -1,0 +1,72 @@
+{
+  "header": {
+    "title": "Criar novo evento",
+    "titleDuplicate": "Evento duplicado",
+    "description": "Crie um novo evento para a sua organização.",
+    "duplicateHint": "Está a duplicar um evento já existente. Todos os detalhes já foram preenchidos automaticamente; atualize o que for necessário e, em seguida, crie o evento."
+  },
+  "gate": {
+    "title": "Criar evento",
+    "noPermission": "Não tem permissão para criar eventos para esta organização.",
+    "backToEvents": "Voltar aos eventos"
+  },
+  "resume": {
+    "title": "Deseja retomar o evento que não foi guardado?",
+    "description": "Começou a criar um evento, mas não o concluiu. Retome onde parou ou comece do zero. Volte a anexar qualquer banner ou ficheiro de regras após retomar.",
+    "resume": "Currículo",
+    "startFresh": "Começar de novo"
+  },
+  "nav": {
+    "previous": "Anterior",
+    "next": "A seguir",
+    "reviewFinalize": "Revisar e finalizar",
+    "creating": "A criar...",
+    "createEvent": "Criar evento"
+  },
+  "toast": {
+    "draftRestored": "O rascunho foi restaurado. Se tivesse um ficheiro de banner ou de regras, volte a anexá-lo.",
+    "draftModeSelected": "Modo de rascunho selecionado. As opções de publicação foram automaticamente desmarcadas.",
+    "publishingSelected": "Opção «Publicar» selecionada. O modo «Rascunho» é automaticamente desmarcado.",
+    "fillRequiredStageFields": "Preencha todos os campos obrigatórios desta etapa",
+    "roundRobinTwoGroups": "Uma fase de rodízio requer, pelo menos, dois grupos de base.",
+    "baseGroupLabel": "Cada grupo de bases precisa de uma designação.",
+    "gamesPerDayMin": "O número de jogos por dia deve ser, no mínimo, 1.",
+    "completeGroupDetails": "Por favor, preencha corretamente todos os dados do grupo, incluindo a seleção de, pelo menos, um mapa por grupo",
+    "stageAtLeastOneGroup": "Um palco deve ter, pelo menos, um grupo.",
+    "stageSaved": "A fase foi guardada com sucesso",
+    "stageMoved": "Fase movida{name} {direction}",
+    "stageDeleted": "A etapa foi eliminada com sucesso",
+    "eventAtLeastOneStage": "Um evento deve ter, pelo menos, um palco.",
+    "numStagesMin": "O número de etapas deve ser, pelo menos, 1.",
+    "configureAllStages": "Por favor, configure todas as etapas do {total} antes de continuar. Apenas o {configured} está configurado.",
+    "stagesNotConfigured": "Uma ou mais etapas ainda não foram totalmente configuradas com grupos.",
+    "enterEventRules": "Por favor, introduza as regras do evento.",
+    "uploadRulesDocument": "Por favor, carregue o documento com as regras.",
+    "moreIssues": "({count}. e outros)",
+    "discordInviteRequired": "Adicione um link de convite do Discord para tornar o Discord obrigatório para o registo.",
+    "serverError": "Erro do servidor: Foi recebido um formato de resposta inesperado.",
+    "sponsorAttachFailed": "O evento foi criado, mas não foi possível associar os seguintes patrocinadores: {names}. Volte a adicioná-los no separador «Patrocinadores» do evento.",
+    "eventCreated": "O evento foi criado com sucesso!",
+    "createFailed": "Não foi possível criar o evento. Verifique os dados introduzidos.",
+    "unexpectedError": "Ocorreu um erro inesperado durante o envio.",
+    "someFieldsMissing": "Faltam alguns campos obrigatórios. Por favor, reveja cada passo.",
+    "pleaseFix": "Por favor, corrija: {details}",
+    "fieldRequired": "obrigatório",
+    "duplicating": "Duplicar «{name}». Editar os detalhes e, em seguida, criar.",
+    "duplicateLoadFailed": "Não foi possível carregar o evento para duplicação.",
+    "prizeDistributionOver": "A distribuição dos seus prémios totaliza {sum} {currency}, o que é {diff} {currency} MAIS do que o valor em dinheiro do prémio total ({cash} {currency}). Ajuste os montantes para que correspondam exatamente.",
+    "prizeDistributionUnder": "A distribuição dos teus prémios totaliza {sum} {currency}, o que é {diff} {currency} MENOS do que o valor monetário do prémio total ({cash} {currency}). Ajusta os montantes para que correspondam exatamente.",
+    "direction": {
+      "up": "para cima",
+      "down": "para baixo"
+    }
+  },
+  "prizeValidate": {
+    "required": "É necessário indicar o valor monetário do prémio total.",
+    "over": "A distribuição de prémios é SUPERIOR ao valor em dinheiro, segundo {amount} {currency}. Reduza-o para {target} {currency}.",
+    "under": "A distribuição dos prémios é feita com base no valor em dinheiro, por {amount} {currency}. Adicione {amount} {currency} para aceder a {target} {currency}."
+  },
+  "misc": {
+    "stageFallback": "Palco"
+  }
+}

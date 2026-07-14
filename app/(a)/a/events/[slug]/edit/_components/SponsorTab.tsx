@@ -22,6 +22,9 @@
 //    reviewSponsorsHref=/organizer/events/<slug>/sponsors + eventId)
 
 import { useEffect, useRef, useState } from "react";
+// i18n: this Sponsor tab is shared by the admin + organizer event-edit wizards. All copy is
+// internationalized via the "evEditTabs" namespace (messages/{en,fr,pt}/evEditTabs.json).
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,6 +95,7 @@ export default function SponsorTab({
   eventId = null,
 }: SponsorTabProps) {
   const { token } = useAuth();
+  const t = useTranslations("evEditTabs");
 
   // ── legacy sponsor-account list (old system, unchanged) ──
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -144,7 +148,14 @@ export default function SponsorTab({
     // Client-side mirror of the server's engagement schema - warn before the 400.
     const issues = sponsorshipIssues(rows);
     if (issues.length > 0) {
-      toast.error(issues[0] + (issues.length > 1 ? ` (+${issues.length - 1} more)` : ""));
+      // issues[0] text comes from the shared sponsorship-builder helper (out of this file's scope);
+      // only the "+N more" suffix is authored here, so only it is internationalized.
+      toast.error(
+        issues[0] +
+          (issues.length > 1
+            ? t("sponsor.moreIssues", { count: issues.length - 1 })
+            : ""),
+      );
       return;
     }
 
@@ -159,7 +170,7 @@ export default function SponsorTab({
         await sponsorsApi.detachEvent(id, eventId);
         saved.delete(id);
       } catch {
-        failed.push(`detach sponsor #${id}`);
+        failed.push(t("sponsor.detachPiece", { id }));
       }
     }
 
@@ -177,16 +188,16 @@ export default function SponsorTab({
         });
       } catch (err: any) {
         failed.push(
-          `${row.sponsor_name} (${err?.response?.data?.message || "request failed"})`,
+          `${row.sponsor_name} (${err?.response?.data?.message || t("sponsor.requestFailed")})`,
         );
       }
     }
 
     setSavingSponsorships(false);
     if (failed.length > 0) {
-      toast.error(`Some sponsor changes failed: ${failed.join(", ")}`);
+      toast.error(t("sponsor.toastSomeFailed", { list: failed.join(", ") }));
     } else {
-      toast.success("Sponsors saved!");
+      toast.success(t("sponsor.toastSaved"));
     }
   };
 
@@ -218,19 +229,20 @@ export default function SponsorTab({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Sponsors for this event</CardTitle>
+            <CardTitle>{t("sponsor.cardTitle")}</CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
-              Attach sponsor entities and build the engagements registrants must
-              complete (collect an ID, follow socials, create an account, join a group).
+              {t("sponsor.cardSubtitle")}
             </p>
           </div>
-          {rows.length > 0 && <Badge variant="default">{rows.length} attached</Badge>}
+          {rows.length > 0 && (
+            <Badge variant="default">{t("sponsor.attached", { count: rows.length })}</Badge>
+          )}
         </CardHeader>
         <CardContent>
           {rowsLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <IconLoader2 className="size-4 animate-spin" />
-              Loading sponsorships...
+              {t("sponsor.loadingSponsorships")}
             </div>
           ) : (
             <SponsorshipBuilder eventId={eventId} value={rows} onChange={setRows} />
@@ -241,7 +253,7 @@ export default function SponsorTab({
       <div className="flex justify-end">
         <Button onClick={saveSponsorships} disabled={savingSponsorships || rowsLoading}>
           {savingSponsorships && <IconLoader2 className="size-4 animate-spin mr-2" />}
-          {savingSponsorships ? "Saving..." : "Save Sponsors"}
+          {savingSponsorships ? t("sponsor.saving") : t("sponsor.saveSponsors")}
         </Button>
       </div>
 
@@ -252,10 +264,10 @@ export default function SponsorTab({
       <details className="group rounded-md border" open={sponsorForm.is_sponsored}>
         <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
           <IconChevronRight className="size-4 transition-transform group-open:rotate-90" />
-          Legacy sponsor fields
+          {t("sponsor.legacyFields")}
           {sponsorForm.is_sponsored && (
             <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs">
-              in use
+              {t("sponsor.inUse")}
             </Badge>
           )}
         </summary>
@@ -263,9 +275,7 @@ export default function SponsorTab({
         <div className="space-y-6 border-t px-4 py-4">
           <div className="flex items-start justify-between gap-3">
             <p className="text-xs text-muted-foreground">
-              The old single-sponsor flow (free-text name + one UUID field). Kept so
-              events created before the sponsor system redesign keep working. New
-              events should use the builder above instead.
+              {t("sponsor.legacyDesc")}
             </p>
             {/* "Review Sponsors" points at the ADMIN review page by default; callers
                 with their own review surface override it via reviewSponsorsHref (the
@@ -275,7 +285,7 @@ export default function SponsorTab({
               <Button size="sm" variant="secondary" asChild className="shrink-0">
                 <Link href={reviewSponsorsHref ?? `/a/events/${slug}/sponsors`}>
                   <IconUserCheck className="size-3.5 mr-1" />
-                  Review Sponsors
+                  {t("sponsor.reviewSponsors")}
                 </Link>
               </Button>
             )}
@@ -284,10 +294,9 @@ export default function SponsorTab({
           {/* Toggle */}
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
-              <Label htmlFor="sponsor-toggle">Enable Sponsor Requirement</Label>
+              <Label htmlFor="sponsor-toggle">{t("sponsor.enableRequirement")}</Label>
               <p className="text-xs text-muted-foreground">
-                Players will be prompted to input their sponsor ID during
-                registration.
+                {t("sponsor.enableRequirementHelp")}
               </p>
             </div>
             <Switch
@@ -303,9 +312,9 @@ export default function SponsorTab({
             <div className="space-y-4">
               {/* Sponsor / Company Name */}
               <div className="space-y-1.5">
-                <Label>Sponsor / Company Name</Label>
+                <Label>{t("sponsor.companyName")}</Label>
                 <Input
-                  placeholder="e.g. Garena, Supercell"
+                  placeholder={t("sponsor.companyPlaceholder")}
                   value={sponsorForm.sponsor_name}
                   onChange={(e) =>
                     setSponsorForm((p) => ({
@@ -318,19 +327,18 @@ export default function SponsorTab({
 
               {/* Sponsor Accounts Multi-Select */}
               <div className="space-y-1.5">
-                <Label>Sponsor Accounts</Label>
+                <Label>{t("sponsor.sponsorAccounts")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Select one or more sponsor accounts to associate with this
-                  event.
+                  {t("sponsor.sponsorAccountsHelp")}
                 </p>
                 {sponsorsLoading ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                     <IconLoader2 className="size-4 animate-spin" />
-                    Loading sponsors...
+                    {t("sponsor.loadingSponsors")}
                   </div>
                 ) : sponsors.length === 0 ? (
                   <p className="text-sm text-muted-foreground mt-1">
-                    No sponsors available.
+                    {t("sponsor.noSponsors")}
                   </p>
                 ) : (
                   <div className="rounded-md border divide-y max-h-48 overflow-y-auto">
@@ -357,18 +365,18 @@ export default function SponsorTab({
                 )}
                 {sponsorForm.sponsor_usernames.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    {sponsorForm.sponsor_usernames.length} sponsor
-                    {sponsorForm.sponsor_usernames.length !== 1 ? "s" : ""}{" "}
-                    selected
+                    {t("sponsor.sponsorsSelected", {
+                      count: sponsorForm.sponsor_usernames.length,
+                    })}
                   </p>
                 )}
               </div>
 
               {/* Requirement Description */}
               <div className="space-y-1.5">
-                <Label>Requirement Description</Label>
+                <Label>{t("sponsor.requirementDescription")}</Label>
                 <Textarea
-                  placeholder="e.g. Download the Garena app, create an account, and enter your Garena UUID below."
+                  placeholder={t("sponsor.requirementPlaceholder")}
                   value={sponsorForm.requirement_description}
                   onChange={(e) =>
                     setSponsorForm((p) => ({
@@ -382,9 +390,9 @@ export default function SponsorTab({
 
               {/* Field Label */}
               <div className="space-y-1.5">
-                <Label>Field Label</Label>
+                <Label>{t("sponsor.fieldLabel")}</Label>
                 <Input
-                  placeholder="e.g. Garena UUID, Player ID, Account ID"
+                  placeholder={t("sponsor.fieldLabelPlaceholder")}
                   value={sponsorForm.sponsor_field_label}
                   onChange={(e) =>
                     setSponsorForm((p) => ({
@@ -394,8 +402,7 @@ export default function SponsorTab({
                   }
                 />
                 <p className="text-xs text-muted-foreground">
-                  This label appears next to the input field players see during
-                  registration.
+                  {t("sponsor.fieldLabelHelp")}
                 </p>
               </div>
             </div>
@@ -404,7 +411,7 @@ export default function SponsorTab({
           <div className="flex justify-end">
             <Button variant="outline" onClick={onSave} disabled={saving}>
               {saving && <IconLoader2 className="size-4 animate-spin mr-2" />}
-              {saving ? "Saving..." : "Save Legacy Sponsor Settings"}
+              {saving ? t("sponsor.saving") : t("sponsor.saveLegacy")}
             </Button>
           </div>
         </div>

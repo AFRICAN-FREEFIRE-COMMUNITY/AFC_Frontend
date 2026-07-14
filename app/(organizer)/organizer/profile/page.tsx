@@ -400,9 +400,9 @@ export default function OrganizerProfilePage() {
             )}
 
             {socialLinks.map((link, idx) => (
-              <div key={idx} className="flex items-center gap-2">
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <Input
-                  className="w-1/3"
+                  className="w-full sm:w-1/3"
                   list="social-platform-suggestions"
                   placeholder={t("profile.platformPlaceholder")}
                   value={link.platform}
@@ -411,7 +411,7 @@ export default function OrganizerProfilePage() {
                   }
                 />
                 <Input
-                  className="flex-1"
+                  className="w-full sm:flex-1"
                   placeholder={t("profile.socialUrlPlaceholder")}
                   value={link.url}
                   onChange={(e) => updateSocialLink(idx, "url", e.target.value)}

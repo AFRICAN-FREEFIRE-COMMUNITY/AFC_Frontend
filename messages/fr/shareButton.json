@@ -1,0 +1,11 @@
+{
+  "shareOnTwitter": "Partager sur Twitter",
+  "shareOnWhatsApp": "Partager sur WhatsApp",
+  "shareOnTelegram": "Partager sur Telegram",
+  "copyProfileLink": "Copier le lien vers le profil",
+  "shareText": "Découvrez le profil d''{profileName} sur {platformName}",
+  "shareTextWithUrl": "Découvrez le profil d''{profileName} sur {platformName} : {profileUrl}",
+  "linkCopied": "Le lien a été copié dans le presse-papiers.",
+  "copyFailed": "Échec de la copie du lien.",
+  "thisProfile": "ce profil"
+}

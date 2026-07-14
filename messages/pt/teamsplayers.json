@@ -1,4 +1,10 @@
 {
+  "ordinal": {
+    "st": "st",
+    "nd": "nd",
+    "rd": "rd",
+    "th": "th"
+  },
   "common": {
     "cancel": "Cancelar",
     "back": "Voltar",
@@ -14,8 +20,8 @@
   "sentiment": {
     "fan": "Sou fã",
     "hater": "Sou um detractor",
-    "fans": "{número, plural, um {# fan} outro {# fans}}",
-    "haters": "{número, plural, um {# hater} outro {# haters}}",
+    "fans": "{count, plural,  one { # fã }  other { # fãs } }",
+    "haters": "{count, plural,  one { # hater }  other { # haters } }",
     "loginRequired": "Por favor, inicie sessão para comentar.",
     "failed": "Não foi possível guardar a sua reação. Por favor, tente novamente."
   },
@@ -49,7 +55,7 @@
     "showing": "Mostrando {start}-{end} de {total}",
     "loadError": "Ops! Falha ao carregar equipes",
     "tierLabel": "Nível {tier}",
-    "memberCount": "{count, plural, one {# membro} other {# membros}}",
+    "memberCount": "{count, plural,  one { # membro }  other { # membros } }",
     "founded": "Fundada em <date></date>",
     "yourRole": "Seu Papel",
     "owner": "Proprietário",
@@ -398,7 +404,7 @@
     "totalWithAmount": "Total",
     "earningsBreakdownSoon": "Um detalhamento dos prêmios por evento aparecerá aqui assim que os pagamentos dos eventos forem registrados.",
     "allTournamentsPlayed": "Todos os torneios jogados (toque em uma linha para detalhes)",
-    "eventCount": "{count, plural, one {# evento} other {# eventos}}",
+    "eventCount": "{count, plural,  one { # evento }  other { # eventos } }",
     "noTournamentsPlayed": "Nenhum torneio jogado ainda.",
     "event": "Evento",
     "date": "Data",
@@ -476,7 +482,7 @@
     "tiersComingSoon": "Níveis em breve, as classificações das equipes para",
     "tiersComingSoonNotPublished": "ainda não foram publicadas.",
     "loadingTiers": "Carregando níveis",
-    "teamCount": "{count, plural, one {# equipe} other {# equipes}}",
+    "teamCount": "{count, plural,  one { # equipa }  other { # equipas } }",
     "minPts": "{min}+ pts",
     "noEliteYet": "Nenhuma equipa alcançou ainda o Nível 1 nesta época.",
     "tournamentsPlayed": "{count}/2 torneios",
@@ -578,7 +584,7 @@
     "scrimsLabel": "Scrims",
     "tournamentsLabel": "Torneios",
     "booyahs": "Booyahs",
-    "eventsCount": "{count, plural, one {# evento} other {# eventos}} (toque em uma linha para estatísticas por partida)",
+    "eventsCount": "{count, plural,  one { # evento }  other { # eventos } } (toque numa linha para ver as estatísticas por jogo)",
     "noEventsPlayed": "Nenhum evento jogado ainda.",
     "registeredEventsTitle": "Eventos registados",
     "noRegisteredEvents": "Não há eventos registados agendados.",

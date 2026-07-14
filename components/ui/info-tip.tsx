@@ -1,8 +1,9 @@
 "use client";
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { HELP, type HelpId } from "@/lib/help-content";
+import { HELP, USER_HELP_IDS, type HelpId } from "@/lib/help-content";
 import { cn } from "@/lib/utils";
 
 type InfoTipProps = {
@@ -15,7 +16,15 @@ type InfoTipProps = {
 // Small ⓘ that reveals a one-liner. Hover opens on desktop, tap toggles on mobile,
 // focusable + Escape-closable for a11y. Renders nothing when there's no copy.
 export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
-  const content = text ?? (id ? HELP[id] : "");
+  // i18n: user-facing tips (the `USER_HELP_IDS` set in lib/help-content.ts) render
+  // their TRANSLATED copy from the `help` namespace (messages/{en,fr,pt}/help.json),
+  // keyed by the same dotted id which next-intl resolves as a nested path. Admin ids
+  // (i18n-exempt) fall back to the raw English HELP catalog. English is identical
+  // either way, since help.json/en holds the same strings as HELP.
+  const t = useTranslations("help");
+  const content =
+    text ??
+    (id ? (USER_HELP_IDS.has(id) ? t(id) : HELP[id]) : "");
   const [open, setOpen] = React.useState(false);
   if (!content) return null;
   return (

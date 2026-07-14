@@ -11,11 +11,18 @@ import {
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+// next-intl: this admin edit shell owns its page-header, tab labels, save/discard prompts and
+// toasts. Copy lives in the "evEditPage" namespace (messages/{en,fr,pt}) - the SAME namespace the
+// organizer edit twin uses, so both edit surfaces read identically across locales.
+import { useTranslations } from "next-intl";
 import { Form } from "@/components/ui/form";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
+// Mobile-first section navigator (dropdown on phones, scrollable tab strip on desktop) shared with
+// the organizer edit page so the two never drift (owner 2026-07-13 mobile-discoverability fix).
+import { EventEditSectionNav } from "@/components/events/EventEditSectionNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 // Shared prize-distribution helpers (see lib/eventFormats.ts). Renumber the map to a
@@ -62,7 +69,7 @@ import { SaveConfirmModal } from "./_components/SaveConfirmModal";
 import StagesGroupsTab from "./_components/StagesGroupsTab";
 import SponsorTab from "./_components/SponsorTab";
 import WaitlistTab from "./_components/WaitlistTab";
-// Linked-events (qualification links) editor — the SAME component the event DETAIL page mounts
+// Linked-events (qualification links) editor - the SAME component the event DETAIL page mounts
 // (components/event-links.tsx -> lib/eventLinks.ts -> events/<id>/links/* endpoints). Reused here so
 // an admin can create/fire/cancel per-stage qualification links straight from the edit flow. It
 // self-loads (eventLinksApi.list) and self-saves (create/fire/cancel/decide), so we only mount it
@@ -193,6 +200,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  // Translations for this page's own chrome (header, tab labels, toasts, validation prompts).
+  // Declared early so the eventTitle useState initializer below can read the loading label.
+  const t = useTranslations("evEditPage");
 
   // ── Core loading/UI state ──────────────────────────────────────────────────
   // Active edit tab persists in the URL (?tab=) so a RELOAD keeps you on the same
@@ -210,7 +220,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   };
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [eventTitle, setEventTitle] = useState("Loading Event...");
+  const [eventTitle, setEventTitle] = useState(t("loadingTitle"));
   const [pendingSubmit, startSubmitTransition] = useTransition();
   const [pendingSeeding, startPendingTransition] = useTransition();
 
@@ -334,7 +344,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     waitlist_discord_role_id: "",
     // Slot-assignment mode (owner 2026-06-17). Default earliest-registered.
     waitlist_mode: "first_registered",
-    // F3 registration requirements (owner 2026-06-19) — edited + saved via the Waitlist tab,
+    // F3 registration requirements (owner 2026-06-19) - edited + saved via the Waitlist tab,
     // which is the shared home for registration-behavior toggles in the edit form.
     require_team_logo: false,
     require_esport_images: false,
@@ -579,7 +589,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         setPreviewUrl(eventDetails.event_banner_url || "");
         setPreviewRuleUrl(eventDetails.uploaded_rules_url || "");
         setRulesInputMethod(eventDetails.event_rules ? "type" : "upload");
-        setEventTitle(`Edit Event: ${eventDetails.event_name}`);
+        setEventTitle(t("editEventTitle", { name: eventDetails.event_name }));
       }, 100);
     }
   }, [eventDetails, initialLoading, form]);
@@ -724,7 +734,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.detail ||
-        "Failed to fetch event details.";
+        t("toast.fetchDetailsFailed");
       toast.error(errorMessage);
       // DO NOT hard-redirect to /login on a failed load (owner 2026-07-04 random-logout fix): this
       // catch fired for ANY error - a transient 5xx, a timeout, a network blip - so a momentary
@@ -763,11 +773,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setLeaderboardData(response.data.leaderboard);
-      toast.success("Leaderboard updated");
+      toast.success(t("toast.leaderboardUpdated"));
       return response.data;
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "Failed to fetch leaderboard",
+        error.response?.data?.message || t("toast.leaderboardFailed"),
       );
     } finally {
       setLoadingLeaderboard(false);
@@ -782,11 +792,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           { event_id: eventDetails?.event_id, group_id: groupId },
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        toast.success(res.data.message || "Seeding successful");
+        toast.success(res.data.message || t("toast.seedingSuccess"));
         setIsSeedModalOpen(false);
       } catch (error: any) {
         toast.error(
-          error.response?.data?.message || "Oops! An error occurred.",
+          error.response?.data?.message || t("toast.genericError"),
         );
       }
     });
@@ -947,7 +957,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const handleRemoveStage = (indexToRemove: number) => {
     const currentStages = form.getValues("stages") || [];
     if (currentStages.length <= 1) {
-      toast.error("An event must have at least one stage.");
+      toast.error(t("toast.eventNeedsStage"));
       return;
     }
     setStageToRemove(indexToRemove);
@@ -976,7 +986,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         );
         if (!response.ok) throw new Error("Failed to delete stage");
       } catch {
-        toast.error("Failed to delete stage from server");
+        toast.error(t("toast.deleteStageFailed"));
         return;
       } finally {
         setLoadingRemove(false);
@@ -997,7 +1007,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     setStageNames(updatedNames);
 
     toast.success(
-      `Stage "${currentStages[stageToRemove]?.stage_name || `Stage ${stageToRemove + 1}`}" removed successfully`,
+      t("toast.stageRemoved", {
+        name:
+          currentStages[stageToRemove]?.stage_name ||
+          `Stage ${stageToRemove + 1}`,
+      }),
     );
     setIsRemoveConfirmOpen(false);
     setStageToRemove(null);
@@ -1069,7 +1083,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       // stage just has no Discord automation wired.
       stageModalData.teams_qualifying_from_stage === undefined
     ) {
-      toast.error("Please fill all required stage fields (Step 1)");
+      toast.error(t("toast.stageFieldsRequired"));
       return;
     }
 
@@ -1077,23 +1091,31 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     // the backend ignores for this format (mirrors the create wizard; the modal no
     // longer shows Step 2 for round-robin).
     const isRoundRobinStage = stageModalData.stage_format === "br - round robin";
+    // Clash Squad (cs - *) runs as a head-to-head BRACKET: it has no classic groups and no
+    // base groups to validate (the bracket is seeded from the registered teams on the event
+    // page). Like round-robin it sends groups: [] and the backend (P1#1 guard) skips group
+    // materialisation for it. Without this branch CS fell into the BR `else` below and the
+    // leftover default tempGroups failed "complete all group details" (P1#2, owner 2026-07-13).
+    const isClashSquadStage = (stageModalData.stage_format || "").startsWith("cs - ");
     if (isRoundRobinStage) {
       const baseGroups = stageModalData.round_robin?.round_robin_groups ?? [];
       if (baseGroups.length < 2) {
-        toast.error("A round-robin stage needs at least two base groups.");
+        toast.error(t("toast.rrNeedsTwoGroups"));
         return;
       }
       if (baseGroups.some((g) => !g.label.trim())) {
-        toast.error("Every base group needs a label.");
+        toast.error(t("toast.rrGroupNeedsLabel"));
         return;
       }
       if (
         stageModalData.round_robin.generate_schedule &&
         stageModalData.round_robin.games_per_day < 1
       ) {
-        toast.error("Games per day must be at least 1.");
+        toast.error(t("toast.gamesPerDayMin"));
         return;
       }
+    } else if (isClashSquadStage) {
+      // Nothing to validate: a bracket has no groups/maps. Falls through to send groups: [].
     } else {
       // group_discord_role_id is OPTIONAL (owner 2026-06-13): a per-group Discord role
       // is never compulsory. Everything else stays required.
@@ -1109,14 +1131,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       );
 
       if (invalidGroup) {
-        toast.error(
-          "Please complete all group details correctly, including selecting at least one map per group (Step 2)",
-        );
+        toast.error(t("toast.groupDetailsIncomplete"));
         return;
       }
 
       if (stageModalData.number_of_groups < 1) {
-        toast.error("A stage must have at least one group.");
+        toast.error(t("toast.stageNeedsGroup"));
         return;
       }
     }
@@ -1135,7 +1155,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       // Round-robin stages get their lobbies from the base groups (round_robin config), NOT the
       // classic per-group list; sending leftover tempGroups here makes the backend create a STRAY
       // extra group alongside the lobbies (same bug fixed in the create flow, 2026-06-29). Send [].
-      groups: isRoundRobinStage
+      // Clash Squad likewise has no groups (a bracket) - send [] so no phantom BR group is created.
+      groups: isRoundRobinStage || isClashSquadStage
         ? []
         : tempGroups.map((tg, i) => ({
             ...tg,
@@ -1178,9 +1199,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     await form.trigger();
     setIsStageModalOpen(false);
     setStageModalStep(1);
-    toast.success(
-      "Stage configuration updated. Click 'Save Changes' to finalize.",
-    );
+    toast.success(t("toast.stageConfigUpdated"));
   };
 
   // ── Sponsor save ───────────────────────────────────────────────────────────
@@ -1306,7 +1325,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         body: formData,
       });
 
-      toast.success("Sponsor settings saved!");
+      toast.success(t("toast.sponsorSaved"));
       setEventDetails((prev) =>
         prev
           ? {
@@ -1322,7 +1341,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       );
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || "Failed to save sponsor settings",
+        error?.response?.data?.message || t("toast.sponsorSaveFailed"),
       );
     } finally {
       setSavingSponsor(false);
@@ -1461,7 +1480,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         waitlistForm.waitlist_mode || "first_registered",
       );
 
-      // F3 registration requirements (owner 2026-06-19) — saved alongside the waitlist config.
+      // F3 registration requirements (owner 2026-06-19) - saved alongside the waitlist config.
       formData.append("require_team_logo", waitlistForm.require_team_logo ? "True" : "False");
       formData.append("require_esport_images", waitlistForm.require_esport_images ? "True" : "False");
       formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
@@ -1476,7 +1495,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         String(Number(waitlistForm.min_letter_avatars ?? 0) || 0),
       );
 
-      // fetch() only rejects on a NETWORK failure, not on HTTP 4xx/5xx — so check res.ok before
+      // fetch() only rejects on a NETWORK failure, not on HTTP 4xx/5xx - so check res.ok before
       // reporting success. Without this a 403/400/500 (e.g. not authorized to edit) still showed
       // "saved!" and optimistically flipped the toggles while the backend persisted nothing.
       // (Adversarial-review fix, owner 2026-06-19.)
@@ -1487,10 +1506,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body?.message || "Failed to save waitlist settings");
+        throw new Error(body?.message || t("toast.waitlistSaveFailed"));
       }
 
-      toast.success("Waitlist settings saved!");
+      toast.success(t("toast.waitlistSaved"));
       setEventDetails((prev) =>
         prev
           ? {
@@ -1513,7 +1532,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       );
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || error?.message || "Failed to save waitlist settings",
+        error?.response?.data?.message || error?.message || t("toast.waitlistSaveFailed"),
       );
     } finally {
       setSavingWaitlist(false);
@@ -1564,60 +1583,60 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       if (orig !== upd) changes.push({ label, from: orig, to: upd });
     };
 
-    check("Event Name", eventDetails.event_name, data.event_name);
+    check(t("changes.eventName"), eventDetails.event_name, data.event_name);
     check(
-      "Competition Type",
+      t("changes.competitionType"),
       eventDetails.competition_type,
       data.competition_type,
     );
     check(
-      "Participant Type",
+      t("changes.participantType"),
       eventDetails.participant_type,
       data.participant_type,
     );
-    check("Event Type", eventDetails.event_type, data.event_type);
+    check(t("changes.eventType"), eventDetails.event_type, data.event_type);
     check(
-      "Event Privacy",
-      eventDetails.is_public ? "Public" : "Private",
-      data.is_public === "True" ? "Public" : "Private",
+      t("changes.eventPrivacy"),
+      eventDetails.is_public ? t("changes.public") : t("changes.private"),
+      data.is_public === "True" ? t("changes.public") : t("changes.private"),
     );
     check(
-      "Max Participants",
+      t("changes.maxParticipants"),
       eventDetails.max_teams_or_players,
       data.max_teams_or_players,
     );
-    check("Event Mode", eventDetails.event_mode, data.event_mode);
-    check("Start Date", eventDetails.start_date, data.start_date);
-    check("End Date", eventDetails.end_date, data.end_date);
+    check(t("changes.eventMode"), eventDetails.event_mode, data.event_mode);
+    check(t("changes.startDate"), eventDetails.start_date, data.start_date);
+    check(t("changes.endDate"), eventDetails.end_date, data.end_date);
     check(
-      "Registration Open",
+      t("changes.registrationOpen"),
       eventDetails.registration_open_date,
       data.registration_open_date,
     );
     check(
-      "Registration Close",
+      t("changes.registrationClose"),
       eventDetails.registration_end_date,
       data.registration_end_date,
     );
     check(
-      "Registration Link",
+      t("changes.registrationLink"),
       eventDetails.registration_link ?? "",
       data.registration_link ?? "",
     );
-    check("Prize Pool", eventDetails.prizepool, data.prizepool);
-    check("Event Status", eventDetails.event_status, data.event_status);
+    check(t("changes.prizePool"), eventDetails.prizepool, data.prizepool);
+    check(t("changes.eventStatus"), eventDetails.event_status, data.event_status);
 
     if (selectedFile)
       changes.push({
-        label: "Event Banner",
-        from: "Previous banner",
-        to: `New file: ${selectedFile.name}`,
+        label: t("changes.eventBanner"),
+        from: t("changes.previousBanner"),
+        to: t("changes.newFile", { name: selectedFile.name }),
       });
     if (selectedRuleFile)
       changes.push({
-        label: "Rules Document",
-        from: "Previous document",
-        to: `New file: ${selectedRuleFile.name}`,
+        label: t("changes.rulesDocument"),
+        from: t("changes.previousDocument"),
+        to: t("changes.newFile", { name: selectedRuleFile.name }),
       });
 
     return changes;
@@ -1681,8 +1700,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     const diff = Math.abs(cash - sum);
     const ccy = (data.prize_currency || "USD").toString();
     return sum > cash
-      ? `Your prize distribution adds up to ${sum} ${ccy}, which is ${diff} ${ccy} MORE than the prize pool cash value (${cash} ${ccy}). Adjust the amounts so they match exactly.`
-      : `Your prize distribution adds up to ${sum} ${ccy}, which is ${diff} ${ccy} LESS than the prize pool cash value (${cash} ${ccy}). Adjust the amounts so they match exactly.`;
+      ? t("toast.prizeMismatchMore", { sum, ccy, diff, cash })
+      : t("toast.prizeMismatchLess", { sum, ccy, diff, cash });
   };
 
   const onSubmit = async (data: EventFormType) => {
@@ -1694,7 +1713,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       }
     }
     if (!eventDetails?.event_id) {
-      toast.error("Event ID is missing");
+      toast.error(t("toast.eventIdMissing"));
       return;
     }
 
@@ -1714,25 +1733,23 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     const regClose = new Date(data.registration_end_date);
 
     if (eventStart > eventEnd) {
-      toast.error("Event start date cannot be after event end date");
+      toast.error(t("toast.startAfterEnd"));
       setCurrentTab("basic_info");
       return;
     }
     if (regOpen > regClose) {
-      toast.error(
-        "Registration open date cannot be after registration close date",
-      );
+      toast.error(t("toast.regOpenAfterClose"));
       setCurrentTab("basic_info");
       return;
     }
     if (regClose > eventStart) {
-      toast.error("Registration must close before the event starts");
+      toast.error(t("toast.regCloseBeforeStart"));
       setCurrentTab("basic_info");
       return;
     }
     // Mirror the backend 400: require_discord=true demands a non-empty invite link.
     if (data.require_discord && !data.discord_invite_link?.trim()) {
-      toast.error("Add a Discord invite link to require Discord for registration.");
+      toast.error(t("toast.discordLinkRequired"));
       setCurrentTab("basic_info");
       return;
     }
@@ -1888,7 +1905,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-          toast.error("Server error: Unexpected response format.", {
+          toast.error(t("toast.unexpectedFormat"), {
             duration: 5000,
           });
           return;
@@ -1898,7 +1915,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
         if (response.ok) {
           toast.success(
-            `Event "${data.event_name}" saved as ${data.save_to_drafts ? "Draft" : "Published"} successfully!`,
+            t("toast.savedSuccess", {
+              name: data.event_name,
+              status: data.save_to_drafts
+                ? t("status.draft")
+                : t("status.published"),
+            }),
             { duration: 4000 },
           );
           // Live-update (owner 2026-06-20): re-pull the saved event so the form +
@@ -1909,22 +1931,22 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           if (response.status === 400) {
             toast.error(
               <div className="space-y-1">
-                <p className="font-semibold">Validation Error</p>
+                <p className="font-semibold">{t("validationErrorTitle")}</p>
                 <p className="text-sm">{errorMessage}</p>
               </div>,
               { duration: 5000 },
             );
           } else if (response.status === 401) {
-            toast.error("Your session has expired. Please log in again.");
+            toast.error(t("toast.sessionExpired"));
             router.push("/login");
           } else if (response.status === 403) {
-            toast.error("You don't have permission to edit this event.");
+            toast.error(t("toast.noEditPermission"));
           } else if (response.status === 404) {
-            toast.error("Event not found. It may have been deleted.");
+            toast.error(t("toast.eventNotFound"));
           } else if (response.status >= 500) {
-            toast.error("Server error occurred. Please try again later.");
+            toast.error(t("toast.serverError"));
           } else {
-            toast.error(errorMessage || "Failed to update event.");
+            toast.error(errorMessage || t("toast.updateFailed"));
           }
         }
       } catch (error: any) {
@@ -1932,9 +1954,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           error.message === "Failed to fetch" ||
           error.message?.includes("NetworkError")
         ) {
-          toast.error("Network error: Please check your internet connection.");
+          toast.error(t("toast.networkError"));
         } else {
-          toast.error("An unexpected error occurred. Please try again.");
+          toast.error(t("toast.unexpectedError"));
         }
       }
     });
@@ -1971,117 +1993,70 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       <Form {...form}>
         <form className="space-y-6">
           <Tabs value={currentTab} onValueChange={selectTab}>
-            <TabsList className="w-full justify-start overflow-x-auto mb-2">
-              {/*
-                Each tab carries a section-level ⓘ explaining what that area does.
-                The ⓘ (a real <button>) is rendered as a SIBLING of the
-                TabsTrigger - NOT inside it - because a <button> nested in a
-                <button> is invalid HTML (validateDOMNesting / hydration error).
-                Each trigger+ⓘ pair lives in a `relative inline-flex flex-1`
-                wrapper: the wrapper owns the flex sizing + the error-dot anchor,
-                while the trigger keeps `w-full` so it still fills the cell.
-              */}
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                {/* data-tour anchor (event-edit-basic): admin tour "Basic info tab" step. */}
-                <TabsTrigger
-                  value="basic_info"
-                  className="px-6 w-full"
-                  data-tour="event-edit-basic"
-                >
-                  Basic Info
-                </TabsTrigger>
-                <InfoTip id="events.edit.basic_info._section" className="ml-1" />
-                {tabErrors.basic_info && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="registered_teams" className="px-6 w-full">
-                  Registered Teams
-                </TabsTrigger>
-                <InfoTip
-                  id="events.edit.registered_teams._section"
-                  className="ml-1"
-                />
-                {tabErrors.registered_teams && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                {/* data-tour anchor (event-edit-stages): admin tour "Stages and groups tab" step. */}
-                <TabsTrigger
-                  value="stages_groups"
-                  className="px-6 w-full"
-                  data-tour="event-edit-stages"
-                >
-                  Stages & Groups
-                </TabsTrigger>
-                <InfoTip
-                  id="events.edit.stages_groups._section"
-                  className="ml-1"
-                />
-                {tabErrors.stages_groups && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                {/* data-tour anchor (event-edit-prizes): admin tour "Prize and rules tab" step. */}
-                <TabsTrigger
-                  value="prize_rules"
-                  className="px-6 w-full"
-                  data-tour="event-edit-prizes"
-                >
-                  Prize & Rules
-                </TabsTrigger>
-                <InfoTip id="events.edit.prize_rules._section" className="ml-1" />
-                {tabErrors.prize_rules && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </span>
-              {/* Linked Events tab (owner 2026-06-29): per-stage qualification links into other
-                  events. No InfoTip (no help-content id for it yet); no error-dot (it self-manages). */}
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="linked_events" className="px-6 w-full">
-                  Linked Events
-                </TabsTrigger>
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                {/* data-tour anchor (event-edit-actions): admin tour "Actions tab" step. */}
-                <TabsTrigger
-                  value="actions"
-                  className="px-6 w-full"
-                  data-tour="event-edit-actions"
-                >
-                  Event Actions
-                </TabsTrigger>
-                <InfoTip id="events.edit.actions._section" className="ml-1" />
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="sponsor" className="px-6 w-full">
-                  Sponsor
-                </TabsTrigger>
-                <InfoTip id="events.edit.sponsor._section" className="ml-1" />
-                {sponsorForm.is_sponsored && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
-                )}
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="waitlist" className="px-6 w-full">
-                  Waitlist
-                </TabsTrigger>
-                <InfoTip id="events.edit.waitlist._section" className="ml-1" />
-                {waitlistForm.is_waitlist_enabled && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
-                )}
-              </span>
-            </TabsList>
+            {/* Section navigator: a dropdown on phones (so an organizer/admin editing on mobile
+                can't miss a section), a scrollable tab strip on desktop. The per-tab InfoTip ⓘ ids +
+                guided-tour anchors + error/enabled dots that used to be inline are passed as data so
+                this page and the organizer edit page share ONE nav (see EventEditSectionNav). */}
+            <EventEditSectionNav
+              value={currentTab}
+              onValueChange={selectTab}
+              sections={[
+                {
+                  value: "basic_info",
+                  label: t("tabs.basicInfo"),
+                  infoTipId: "events.edit.basic_info._section",
+                  triggerTourAttr: "event-edit-basic",
+                  dot: tabErrors.basic_info ? "error" : null,
+                },
+                {
+                  value: "registered_teams",
+                  label: t("tabs.registeredTeams"),
+                  infoTipId: "events.edit.registered_teams._section",
+                  dot: tabErrors.registered_teams ? "error" : null,
+                },
+                {
+                  value: "stages_groups",
+                  label: t("tabs.stagesGroups"),
+                  infoTipId: "events.edit.stages_groups._section",
+                  triggerTourAttr: "event-edit-stages",
+                  dot: tabErrors.stages_groups ? "error" : null,
+                },
+                {
+                  value: "prize_rules",
+                  label: t("tabs.prizeRules"),
+                  infoTipId: "events.edit.prize_rules._section",
+                  triggerTourAttr: "event-edit-prizes",
+                  dot: tabErrors.prize_rules ? "error" : null,
+                },
+                // Linked Events (owner 2026-06-29): no InfoTip id, no error-dot (self-managed).
+                { value: "linked_events", label: t("tabs.linkedEvents") },
+                {
+                  value: "actions",
+                  label: t("tabs.actions"),
+                  infoTipId: "events.edit.actions._section",
+                  triggerTourAttr: "event-edit-actions",
+                },
+                {
+                  value: "sponsor",
+                  label: t("tabs.sponsor"),
+                  infoTipId: "events.edit.sponsor._section",
+                  dot: sponsorForm.is_sponsored ? "active" : null,
+                },
+                {
+                  value: "waitlist",
+                  label: t("tabs.waitlist"),
+                  infoTipId: "events.edit.waitlist._section",
+                  dot: waitlistForm.is_waitlist_enabled ? "active" : null,
+                },
+              ]}
+            />
 
             <TabsContent value="basic_info">
               <BasicInfoTab
                 eventDetails={eventDetails}
                 // Registration-requirement toggles moved to Basic Info (owner 2026-06-22)
                 // but still backed by the same waitlistForm state the page saves via
-                // saveWaitlistSettings — so the field bindings + save are unchanged.
+                // saveWaitlistSettings - so the field bindings + save are unchanged.
                 requirementsForm={waitlistForm}
                 setRequirementsForm={setWaitlistForm}
                 previewUrl={previewUrl}
@@ -2229,7 +2204,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           currentType={form.getValues("participant_type")}
           pendingType={pendingParticipantType}
           participantLabel={
-            eventDetails.participant_type === "squad" ? "teams" : "players"
+            eventDetails.participant_type === "squad"
+              ? t("participant.teams")
+              : t("participant.players")
           }
           onCancel={() => {
             setPendingParticipantType(null);

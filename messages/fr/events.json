@@ -1,6 +1,6 @@
 {
   "registeredTeams": {
-    "searchTeamsPlaceholder": "Les équipes de recherche...",
+    "searchTeamsPlaceholder": "Rechercher des équipes...",
     "searchPlayersPlaceholder": "Rechercher des joueurs...",
     "noTeamsMatch": "Aucune équipe ne correspond à « {query} »",
     "noPlayersMatch": "Aucun joueur ne correspond à « {query} »."
@@ -15,8 +15,25 @@
     "userFailed": "Nous n'avons pas pu enregistrer votre arrivée.",
     "userNotOpen": "L'enregistrement n'est pas encore ouvert.",
     "userClosed": "L'enregistrement est terminé.",
-    "userSquadProgress": "{done} {total}s membres de votre équipe se sont enregistrés.",
+    "userSquadProgress": "{done} sur {total} membres de votre équipe se sont enregistrés.",
     "userSquadReady": "Votre équipe est prête.",
     "userSquadWaiting": "En attendant mes coéquipiers."
+  },
+  "paymentRules": {
+    "label": "Paiement par pays",
+    "infoTip": "Facultatif. Définissez, pour chaque pays, si les équipes ou les joueurs de ce pays doivent s'acquitter des frais d'inscription ou s'ils peuvent participer gratuitement, et fixez éventuellement un montant différent. Une équipe reprend le pays de son équipe ; un joueur individuel reprend son propre pays. Cela ne modifie en rien le lien d'invitation à l'événement privé, qui reste obligatoire quel que soit le pays.",
+    "helpText": "Ne rien indiquer pour facturer à chaque pays le tarif d'entrée de base.",
+    "unlistedTitle": "Pays ne figurant pas dans la liste ci-dessous",
+    "unlistedPay": "Réglez les frais d'inscription de base.",
+    "unlistedFree": "Inscrivez-vous gratuitement (pas de frais d'inscription).",
+    "free": "Gratuit",
+    "pay": "Rémunération",
+    "baseWithFee": "Base {fee}",
+    "baseFee": "Tarif de base",
+    "remove": "Supprimer « {name} »",
+    "addCountry": "Ajouter un pays..."
+  },
+  "editNav": {
+    "chooseSection": "Choisissez la rubrique « Événements »"
   }
 }

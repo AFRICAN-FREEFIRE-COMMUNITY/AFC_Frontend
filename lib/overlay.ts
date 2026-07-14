@@ -347,6 +347,53 @@ export const overlaysApi = {
   },
 };
 
+// ── Clash Squad bracket payload (P1#6) ───────────────────────────────────────
+// The h2h overlay's mode:"bracket" ships the whole stage bracket tree. Mirrors the public bracket
+// GET (backend head_to_head_views._bracket_payload / _match_payload); the overlay renderer draws it
+// read-only. Also matches the shape components/h2h-bracket.tsx consumes on the event page.
+export interface H2HBracketSlot {
+  tournament_team_id: number;
+  team_name: string;
+}
+export interface H2HBracketMatch {
+  h2h_match_id: number;
+  bracket: string; // "winners" | "losers" | "league"
+  round_number: number;
+  position: number;
+  team_a: H2HBracketSlot | null;
+  team_b: H2HBracketSlot | null;
+  score_a: number | null;
+  score_b: number | null;
+  winner_id: number | null;
+  status: string; // "pending" | "ready" | "completed"
+  is_bye: boolean;
+}
+export interface H2HBracketRound {
+  round: number;
+  matches: H2HBracketMatch[];
+}
+export interface H2HBracketData {
+  stage_id: number;
+  stage_name: string;
+  stage_format: string;
+  fmt: string | null; // "single_elim" | "double_elim" | "league" | null
+  generated: boolean;
+  rounds: {
+    winners: H2HBracketRound[];
+    losers: H2HBracketRound[];
+    league: H2HBracketRound[];
+  };
+  standings: Array<{
+    tournament_team_id: number;
+    team_name: string;
+    placement: number | null;
+    wins: number;
+    losses: number;
+    rounds_won: number;
+    rounds_lost: number;
+  }>;
+}
+
 // PUBLIC config poll behind every overlay's stable link (no auth: the token is the capability).
 export interface OverlayConfigFeed {
   kind: OverlayKind;
@@ -375,12 +422,18 @@ export interface OverlayConfigFeed {
     roster: Array<{ name: string; image: string | null }>;
   };
   h2h?: {
-    mode: "team" | "player";
+    // "bracket" (P1#6, owner 2026-07-13): a Clash Squad stage has no BR stats to compare, so the
+    // overlay renders the stage BRACKET instead of the versus stat cards. `bracket` is then set and
+    // `competitors` is empty. See views_overlays._h2h_payload.
+    mode: "team" | "player" | "bracket";
     competitors: Array<{
       name: string;
       image: string | null;
       stats: Record<string, number>;
     }>;
+    // Present only for mode "bracket": the resolved stage bracket tree (same shape the public
+    // bracket GET returns, head_to_head_views._bracket_payload). null when no CS stage/bracket yet.
+    bracket?: H2HBracketData | null;
     design: {
       background: string | null;
       text_color: string;

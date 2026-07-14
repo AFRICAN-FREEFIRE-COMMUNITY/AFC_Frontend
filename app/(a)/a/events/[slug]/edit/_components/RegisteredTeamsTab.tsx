@@ -133,6 +133,11 @@ export default function RegisteredTeamsTab({
   // does not shadow the existing `(t: any) => ...` TEAM-row closures below (mirrors ActionsTab's bcT).
   // Applied to the same two filtered .map() chains that already drop waitlisted rows, so it composes.
   const evT = useTranslations("events");
+  // evEditTabs holds the rest of this shared admin/organizer registered-roster surface (buttons,
+  // status pills, no-show + letter-assign copy, confirm dialogs). Named etT (not t) so it does NOT
+  // shadow the existing `(t: any) => ...` team-row closures below; evT stays for the two search
+  // placeholders that already live in the "events" namespace.
+  const etT = useTranslations("evEditTabs");
   const [search, setSearch] = useState("");
   const query = search.trim().toLowerCase();
   const matchesQuery = (name?: string | null) =>
@@ -159,10 +164,14 @@ export default function RegisteredTeamsTab({
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success(opts.current ? "No-show cleared." : "Marked as no-show.");
+      toast.success(
+        opts.current
+          ? etT("registeredTeams.toastNoShowCleared")
+          : etT("registeredTeams.toastNoShowMarked"),
+      );
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Failed to update no-show.");
+      toast.error(e.response?.data?.message || etT("registeredTeams.toastNoShowFailed"));
     } finally {
       setNoShowBusy(null);
     }
@@ -194,13 +203,13 @@ export default function RegisteredTeamsTab({
       );
       toast.success(
         opts.open
-          ? "Roster editing allowed for this team."
-          : "Roster editing closed for this team.",
+          ? etT("registeredTeams.toastRosterOpened")
+          : etT("registeredTeams.toastRosterClosed"),
       );
       onRefresh?.();
     } catch (e: any) {
       toast.error(
-        e.response?.data?.message || "Failed to update the team's roster-edit window.",
+        e.response?.data?.message || etT("registeredTeams.toastRosterFailed"),
       );
     } finally {
       setRosterAllowBusy(null);
@@ -411,14 +420,17 @@ export default function RegisteredTeamsTab({
       );
       toast.success(
         assignTarget.letter
-          ? `Assigned letter ${assignTarget.letter} to ${assignTarget.teamName}. Team notified.`
-          : `Cleared ${assignTarget.teamName}'s letter.`,
+          ? etT("registeredTeams.toastLetterAssigned", {
+              letter: assignTarget.letter,
+              team: assignTarget.teamName,
+            })
+          : etT("registeredTeams.toastLetterCleared", { team: assignTarget.teamName }),
       );
       setAssignTarget(null);
       await fetchLetters();
     } catch (e: any) {
       // Backend 409 (letter_taken) names the conflicting team; surface its message.
-      toast.error(e.response?.data?.message || "Failed to assign the letter.");
+      toast.error(e.response?.data?.message || etT("registeredTeams.toastLetterFailed"));
     } finally {
       setAssignBusy(null);
     }
@@ -435,9 +447,13 @@ export default function RegisteredTeamsTab({
       <Badge
         variant="outline"
         className="rounded-full px-2 py-0.5 text-[10px] border-amber-500/60 text-amber-500 inline-flex items-center gap-1"
-        title={`${w.recent_count} no-show(s) in the last 7 days (${w.total} total)`}
+        title={etT("registeredTeams.repeatNoShowTitle", {
+          recent: w.recent_count,
+          total: w.total,
+        })}
       >
-        <IconAlertTriangle size={11} /> Repeat no-show ({w.recent_count})
+        <IconAlertTriangle size={11} />{" "}
+        {etT("registeredTeams.repeatNoShow", { count: w.recent_count })}
       </Badge>
     ) : null;
 
@@ -482,18 +498,20 @@ export default function RegisteredTeamsTab({
       );
       const names = (res.data?.suggestions ?? []).map((s: any) => s.name);
       if (names.length === 0) {
-        toast.success("No likely no-shows: every registered competitor has results entered.");
+        toast.success(etT("registeredTeams.toastNoLikelyNoShows"));
       } else {
         toast.warning(
-          `${names.length} registered ${isTeamEvent ? "team" : "player"}(s) have no results entered`,
+          isTeamEvent
+            ? etT("registeredTeams.detectTeams", { count: names.length })
+            : etT("registeredTeams.detectPlayers", { count: names.length }),
           {
-            description: `${names.join(", ")}. Review and mark any that didn't show using the No-show button.`,
+            description: etT("registeredTeams.detectReview", { names: names.join(", ") }),
             duration: 15000,
           },
         );
       }
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Failed to check for no-shows.");
+      toast.error(e.response?.data?.message || etT("registeredTeams.toastDetectFailed"));
     } finally {
       setDetectBusy(false);
     }
@@ -511,9 +529,9 @@ export default function RegisteredTeamsTab({
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
           <span>
-            Registered{" "}
-            {isTeamEvent ? "Teams" : "Players"} (
-            {teamCount})
+            {isTeamEvent
+              ? etT("registeredTeams.headerTeams", { count: teamCount })
+              : etT("registeredTeams.headerPlayers", { count: teamCount })}
           </span>
           <span className="inline-flex items-center gap-2 flex-wrap">
             {/* F1 suggest-only no-show detection: lists registered competitors with no results entered. */}
@@ -524,7 +542,7 @@ export default function RegisteredTeamsTab({
               disabled={detectBusy}
             >
               {detectBusy && <IconLoader2 className="size-4 animate-spin mr-1" />}
-              Check for no-shows
+              {etT("registeredTeams.checkNoShows")}
             </Button>
             {/* Letter Avatars (feature #7): announce every assigned letter to its team at once. The
                 modal renders its own "Broadcast assignments" trigger when letterAssignments is
@@ -578,12 +596,12 @@ export default function RegisteredTeamsTab({
             <TableHeader>
               <TableRow>
                 <TableHead>
-                  {isTeamEvent ? "Teams" : "Players"}
+                  {isTeamEvent ? etT("registeredTeams.colTeams") : etT("registeredTeams.colPlayers")}
                 </TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{etT("registeredTeams.colStatus")}</TableHead>
                 {/* Letter Avatars (feature #7): available letters + per-team Assign Select. Only for
                     team events that use letters (showLetters). */}
-                {showLetters && <TableHead>Letters</TableHead>}
+                {showLetters && <TableHead>{etT("registeredTeams.colLetters")}</TableHead>}
                 <TableHead></TableHead>
               </TableRow>
             </TableHeader>
@@ -599,7 +617,7 @@ export default function RegisteredTeamsTab({
                         {comp.username}
                         {/* Advisory watchlist flag for this player. */}
                         {watched.playerIds.has(comp.player_id) && (
-                          <WatchTag reason="On the advisory watchlist" />
+                          <WatchTag reason={etT("registeredTeams.watchTagReason")} />
                         )}
                         {warnBadge(userWarning(comp.player_id))}
                       </span>
@@ -634,7 +652,7 @@ export default function RegisteredTeamsTab({
                             })
                           }
                         >
-                          {(comp as any).is_no_show ? "No-show ✓" : "No-show"}
+                          {(comp as any).is_no_show ? etT("registeredTeams.noShowDone") : etT("registeredTeams.noShow")}
                         </Button>
                         {comp.status === "registered" ? (
                           <DisqualifyModal
@@ -701,13 +719,13 @@ export default function RegisteredTeamsTab({
                           variant="outline"
                           className="ml-1 rounded-full px-2 py-0.5 text-[10px]"
                         >
-                          {members.length} player{members.length === 1 ? "" : "s"}
+                          {etT("registeredTeams.playersCount", { count: members.length })}
                         </Badge>
                       </button>
                       {/* Advisory watchlist flag for this team (keyed on its site team_id). */}
                       {watched.teamIds.has(team.team_id) && (
                         <span className="ml-2 inline-flex">
-                          <WatchTag reason="On the advisory watchlist" />
+                          <WatchTag reason={etT("registeredTeams.watchTagReason")} />
                         </span>
                       )}
                       {warnBadge(teamWarning(team.team_id)) && (
@@ -750,7 +768,7 @@ export default function RegisteredTeamsTab({
                               ))
                             ) : (
                               <span className="text-[10px] text-muted-foreground">
-                                None owned
+                                {etT("registeredTeams.noneOwned")}
                               </span>
                             )}
                           </div>
@@ -775,11 +793,11 @@ export default function RegisteredTeamsTab({
                                 });
                               }}
                             >
-                              <SelectTrigger className="h-7 w-24 text-xs">
-                                <SelectValue placeholder="Assign" />
+                              <SelectTrigger className="h-9 w-24 text-xs">
+                                <SelectValue placeholder={etT("registeredTeams.assign")} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="__none__">Unassign</SelectItem>
+                                <SelectItem value="__none__">{etT("registeredTeams.unassign")}</SelectItem>
                                 {LETTERS_A_Z.map((L) => {
                                   const holder = takenByTeam.get(L);
                                   const takenByOther =
@@ -787,7 +805,7 @@ export default function RegisteredTeamsTab({
                                   return (
                                     <SelectItem key={L} value={L} disabled={takenByOther}>
                                       {L}
-                                      {takenByOther ? " (taken)" : ""}
+                                      {takenByOther ? etT("registeredTeams.taken") : ""}
                                     </SelectItem>
                                   );
                                 })}
@@ -816,7 +834,7 @@ export default function RegisteredTeamsTab({
                             })
                           }
                         >
-                          {team.is_no_show ? "No-show ✓" : "No-show"}
+                          {team.is_no_show ? etT("registeredTeams.noShowDone") : etT("registeredTeams.noShow")}
                         </Button>
                         {/* Per-team roster-edit allowance (owner 2026-06-24): let THIS team edit its
                             roster even when the event-wide window is closed / after results. Toggles
@@ -827,8 +845,8 @@ export default function RegisteredTeamsTab({
                           disabled={rosterAllowBusy === key}
                           title={
                             teamWindowOpen(team)
-                              ? "This team can currently edit its roster. Click to close."
-                              : "Allow this team to edit its roster (until the event ends)."
+                              ? etT("registeredTeams.rosterEditOpenTitle")
+                              : etT("registeredTeams.rosterEditClosedTitle")
                           }
                           onClick={() =>
                             toggleTeamRosterWindow({
@@ -838,7 +856,7 @@ export default function RegisteredTeamsTab({
                             })
                           }
                         >
-                          {teamWindowOpen(team) ? "Roster edit ✓" : "Allow roster edit"}
+                          {teamWindowOpen(team) ? etT("registeredTeams.rosterEdit") : etT("registeredTeams.allowRosterEdit")}
                         </Button>
                         <EditRosterModal
                           event_id={eventDetails.event_id}
@@ -880,7 +898,7 @@ export default function RegisteredTeamsTab({
                             }
                           />
                         )}
-                        {/* Remove the team from the event ENTIRELY (frees the slot) — distinct from
+                        {/* Remove the team from the event ENTIRELY (frees the slot) - distinct from
                             Disqualify which keeps them on record (owner 2026-06-22). Shown for any
                             status; backend blocks it once the team has match results. */}
                         <RemoveTeamModal
@@ -900,7 +918,7 @@ export default function RegisteredTeamsTab({
                       <TableCell colSpan={showLetters ? 4 : 3} className="p-0">
                         {members.length === 0 ? (
                           <p className="px-6 py-3 text-xs text-muted-foreground">
-                            No players on this team's roster.
+                            {etT("registeredTeams.emptyRoster")}
                           </p>
                         ) : (
                           <div className="px-6 py-2 divide-y divide-border/50">
@@ -916,11 +934,11 @@ export default function RegisteredTeamsTab({
                                 <span className="font-medium">{m.username}</span>
                                 {/* Advisory watchlist flag for this roster player. */}
                                 {watched.playerIds.has(m.player_id) && (
-                                  <WatchTag reason="On the advisory watchlist" />
+                                  <WatchTag reason={etT("registeredTeams.watchTagReason")} />
                                 )}
                                 {m.uid && (
                                   <span className="text-muted-foreground">
-                                    UID {m.uid}
+                                    {etT("registeredTeams.uid", { uid: m.uid })}
                                   </span>
                                 )}
                                 {m.full_name && (
@@ -949,7 +967,7 @@ export default function RegisteredTeamsTab({
 
               {/* Search empty-state (owner 2026-06-29): when a query is active but matches zero
                   non-waitlisted rows, show a "No teams/players match" line instead of a blank table.
-                  Only shown WHILE searching — an event with no registrants at all already reads as an
+                  Only shown WHILE searching - an event with no registrants at all already reads as an
                   empty table, so we don't want this firing then. colSpan spans every column including
                   the optional Letters column (mirrors the expanded-roster row's colSpan). */}
               {query !== "" &&
@@ -985,18 +1003,17 @@ export default function RegisteredTeamsTab({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Mark {confirmTarget?.name} as a no-show?
+              {etT("registeredTeams.confirmNoShowTitle", { name: confirmTarget?.name ?? "" })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This frees their slot for a waitlisted{" "}
-              {isTeamEvent ? "team" : "player"} and counts toward their no-show
-              record. Two or more no-shows in a week flags them with a warning
-              other organizers can see. You can undo this later.
+              {isTeamEvent
+                ? etT("registeredTeams.confirmNoShowDescTeam")
+                : etT("registeredTeams.confirmNoShowDescPlayer")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={noShowBusy !== null}>
-              Cancel
+              {etT("registeredTeams.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
@@ -1008,7 +1025,7 @@ export default function RegisteredTeamsTab({
               {noShowBusy !== null && (
                 <IconLoader2 className="size-4 animate-spin mr-1" />
               )}
-              Mark no-show
+              {etT("registeredTeams.markNoShow")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1025,18 +1042,23 @@ export default function RegisteredTeamsTab({
           <AlertDialogHeader>
             <AlertDialogTitle>
               {assignTarget?.letter
-                ? `Assign letter ${assignTarget.letter} to ${assignTarget?.teamName}?`
-                : `Clear ${assignTarget?.teamName}'s letter?`}
+                ? etT("registeredTeams.confirmAssignTitle", {
+                    letter: assignTarget.letter,
+                    team: assignTarget?.teamName ?? "",
+                  })
+                : etT("registeredTeams.confirmClearTitle", {
+                    team: assignTarget?.teamName ?? "",
+                  })}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {assignTarget?.letter
-                ? "Every member of this team will be notified of their assigned letter for this event. A letter can belong to only one team per event, so reassigning frees this team's previous letter. You can change it again anytime."
-                : "This removes the team's assigned letter and frees it for another team. You can assign a new one anytime."}
+                ? etT("registeredTeams.confirmAssignDesc")
+                : etT("registeredTeams.confirmClearDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={assignBusy !== null}>
-              Cancel
+              {etT("registeredTeams.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
@@ -1048,7 +1070,9 @@ export default function RegisteredTeamsTab({
               {assignBusy !== null && (
                 <IconLoader2 className="size-4 animate-spin mr-1" />
               )}
-              {assignTarget?.letter ? "Assign letter" : "Clear letter"}
+              {assignTarget?.letter
+                ? etT("registeredTeams.assignLetter")
+                : etT("registeredTeams.clearLetter")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

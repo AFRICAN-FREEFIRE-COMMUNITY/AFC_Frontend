@@ -299,7 +299,7 @@ export function LinkedEventsCard({
               read per stage when results are final.
             </CardDescription>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             {/* Chain map toggle (P3): the whole qualification cascade around this event. */}
             <Button size="sm" variant="outline" onClick={openChain}>
               <IconLink className="size-4" /> Chain map
@@ -418,7 +418,7 @@ export function LinkedEventsCard({
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  className="h-9 w-9 text-muted-foreground hover:text-destructive"
                   disabled={busy}
                   onClick={() => handleCancel(link)}
                   aria-label="Cancel link"
@@ -445,6 +445,7 @@ export function LinkedEventsCard({
             )}
 
             {(link.qualifications?.length ?? 0) > 0 && (
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="h-9">
@@ -470,29 +471,29 @@ export function LinkedEventsCard({
                         <div className="flex flex-wrap justify-end gap-1.5">
                           {q.status === "pending" && (
                             <>
-                              <Button size="sm" variant="outline" className="h-7 text-xs text-green-600 border-green-200"
+                              <Button size="sm" variant="outline" className="h-8 text-xs text-green-600 border-green-200"
                                 disabled={busy} onClick={() => decide(link.id, q, "allow")}>
                                 Allow
                               </Button>
-                              <Button size="sm" variant="outline" className="h-7 text-xs text-red-600 border-red-200"
+                              <Button size="sm" variant="outline" className="h-8 text-xs text-red-600 border-red-200"
                                 disabled={busy} onClick={() => decide(link.id, q, "reject")}>
                                 Reject
                               </Button>
                             </>
                           )}
                           {q.status === "promoted" && (
-                            <Button size="sm" variant="outline" className="h-7 text-xs text-red-600 border-red-200"
+                            <Button size="sm" variant="outline" className="h-8 text-xs text-red-600 border-red-200"
                               disabled={busy} onClick={() => decide(link.id, q, "decline")}>
                               Team declined?
                             </Button>
                           )}
                           {q.status === "declined" && (
                             <>
-                              <Button size="sm" variant="outline" className="h-7 text-xs text-green-600 border-green-200"
+                              <Button size="sm" variant="outline" className="h-8 text-xs text-green-600 border-green-200"
                                 disabled={busy} onClick={() => decide(link.id, q, "replace_next")}>
                                 Promote next in line
                               </Button>
-                              <Button size="sm" variant="outline" className="h-7 text-xs"
+                              <Button size="sm" variant="outline" className="h-8 text-xs"
                                 disabled={busy}
                                 onClick={() => setPickFor({ linkId: link.id, qualId: q.id })}>
                                 Pick a specific team
@@ -500,14 +501,14 @@ export function LinkedEventsCard({
                             </>
                           )}
                           {q.can_undo && (
-                            <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground"
+                            <Button size="sm" variant="ghost" className="h-8 text-xs text-muted-foreground"
                               disabled={busy} onClick={() => decide(link.id, q, "undo")}>
                               Undo
                             </Button>
                           )}
                         </div>
                         {pickFor?.linkId === link.id && pickFor?.qualId === q.id && (
-                          <div className="mt-2 w-64 ml-auto">
+                          <div className="mt-2 w-full max-w-full ml-auto">
                             <TeamSearchSelect
                               value={null}
                               onChange={handleReplacePick(link.id, q.id)}
@@ -520,6 +521,7 @@ export function LinkedEventsCard({
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
           </div>
         ))}
@@ -554,7 +556,7 @@ export function LinkedEventsCard({
 
       {/* ── create dialog ── */}
       <Dialog open={createOpen} onOpenChange={(o) => !busy && setCreateOpen(o)}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Link a stage to an event</DialogTitle>
             <DialogDescription>
@@ -644,7 +646,7 @@ export function LinkedEventsCard({
           if (!o && mergedRef.current) window.location.reload();
         }}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Import competitors from other events</DialogTitle>
             <DialogDescription>

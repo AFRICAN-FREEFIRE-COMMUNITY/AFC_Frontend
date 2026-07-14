@@ -25,6 +25,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
+// i18n: the range connector ("to") and the "(your time)" / "(host)" tags are
+// localized via the shared common namespace (messages/{en,fr,pt}/common.json ->
+// "eventTime.*"). next-intl resolves the same NEXT_LOCALE on the server and the
+// client, so the deterministic SSR / first-paint fallback stays hydration-safe.
+import { useTranslations } from "next-intl";
 import {
   formatLocalTime,
   formatTimeInZone,
@@ -59,6 +64,7 @@ export function LocalEventTime({
   tz,
   className,
 }: LocalEventTimeProps) {
+  const t = useTranslations("common");
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -66,7 +72,7 @@ export function LocalEventTime({
 
   // Deterministic SSR / first-paint fallback: the raw host wall-clock, no tz math.
   const rawRange = endTime
-    ? `${hhmm(startTime)} to ${hhmm(endTime)}`
+    ? `${hhmm(startTime)} ${t("eventTime.to")} ${hhmm(endTime)}`
     : hhmm(startTime);
 
   // Before mount, or with no host tz to convert from, show the raw range only.
@@ -89,7 +95,7 @@ export function LocalEventTime({
   const hostEnd = endInstant
     ? formatTimeInZone(endInstant, tz, { withZoneName: true })
     : formatTimeInZone(startInstant, tz, { withZoneName: true });
-  const hostRange = endInstant ? `${hostStart} to ${hostEnd}` : hostEnd;
+  const hostRange = endInstant ? `${hostStart} ${t("eventTime.to")} ${hostEnd}` : hostEnd;
 
   // If the viewer is already in the host tz, one line is enough (no "(host)").
   const viewerTz = getBrowserTimeZone();
@@ -101,12 +107,12 @@ export function LocalEventTime({
   const viewerStart = formatLocalTime(startInstant, "time");
   const viewerEnd = endInstant ? formatLocalTime(endInstant, "time") : "";
   const viewerRange = endInstant
-    ? `${viewerStart} to ${viewerEnd}`
+    ? `${viewerStart} ${t("eventTime.to")} ${viewerEnd}`
     : viewerStart;
 
   return (
     <span className={className}>
-      {viewerRange} (your time) • {hostRange} (host)
+      {viewerRange} {t("eventTime.yourTime")} • {hostRange} {t("eventTime.host")}
     </span>
   );
 }

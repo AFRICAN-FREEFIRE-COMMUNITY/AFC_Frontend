@@ -137,18 +137,58 @@ function unflatten(flat) {
   return root;
 }
 
-// ── token masking: protect placeholders + positional markers from translation ─
-// Two classes of non-translatable token are masked into uniform self-closing
-// sentinels <m id="N"/> so DeepL keeps them inline and in place:
-//   1. ICU placeholders:        {name}, {count}, ...
-//   2. EMPTY / self-closing tags that are positional MARKERS with no inner text:
-//      <player></player>, <menu></menu>, <date></date>, <subject></subject>, <x/>
+// ── ICU apostrophe-before-placeholder guard ──────────────────────────────────
+// A machine translation (esp. French elision: "de {x}" -> "d'{x}") can leave a lone
+// apostrophe immediately before a placeholder brace. In ICU MessageFormat a single '
+// before { starts a quoted literal, so {x} would render as the LITERAL text "{x}" instead
+// of the argument value. Doubling the apostrophe ('' = one literal ') keeps the placeholder
+// active. Only a SINGLE-brace placeholder trap is touched; an intentional '{{ literal-brace
+// escape (e.g. "Step '{{'current'}}'") is deliberately left alone. Applied to freshly
+// translated strings only, never to the English source/fallback.
+function fixIcuApostrophe(s) {
+  return typeof s === "string" ? s.replace(/(?<!')'(\{)(?!\{)/g, "''$1") : s;
+}
+
+// ── token masking: protect placeholders + ICU control syntax + markers ────────
+// Non-translatable tokens are masked into uniform self-closing sentinels
+// <m id="N"/> so DeepL keeps them inline and in place. Three classes:
+//   1. Simple ICU placeholders:  {name}, {count}, {price, number}, ...
+//   2. EMPTY / self-closing marker tags with no inner text:
+//      <player></player>, <menu></menu>, <date></date>, <x/>
+//   3. ICU MessageFormat CONTROL syntax of complex args (plural/select/
+//      selectordinal): the "{arg, plural," opener, every "one {" / "other {" /
+//      "=0 {" / "offset:1" / select-value category boundary, and the closing
+//      braces. Only the human sub-message TEXT inside each category stays
+//      translatable. (Root-cause fix, owner 2026-07-14: the old flat regex only
+//      matched non-nested {..}, so it exposed "count, plural, one"/"other" to
+//      DeepL, which translated those ICU keywords into French/PT prose -> invalid
+//      ICU -> next-intl fell back to printing the raw key. See maskTokens below.)
 // NON-empty paired rich tags (<bold>{x}</bold>, <strong>text</strong>) are LEFT
 // as real XML so DeepL's tag_handling=xml keeps each pair around its translated
 // inner text. (Masking a content pair as two independent sentinels - or leaving
 // an empty marker as a real empty tag - both let DeepL reorder/corrupt it; tested
 // 2026-06-20.)
-const MASK_RE = /\{[^{}]*\}|<([a-zA-Z][\w-]*)\s*>\s*<\/\1\s*>|<[a-zA-Z][^<>]*\/>/g;
+//
+// Empty paired tag (<player></player>) or self-closing (<x/>) marker.
+const TAG_MASK_RE = /<([a-zA-Z][\w-]*)\s*>\s*<\/\1\s*>|<[a-zA-Z][^<>]*\/>/g;
+
+// Is the inside of a {...} block an ICU complex arg (plural/select/selectordinal)?
+function isComplexArg(inner) {
+  return /^\s*[\w.]+\s*,\s*(?:plural|selectordinal|select)\s*,/s.test(inner);
+}
+
+// Index of the '}' matching the '{' at openIdx (brace-balanced). -1 if unbalanced.
+function matchBrace(str, openIdx) {
+  let depth = 0;
+  for (let i = openIdx; i < str.length; i++) {
+    if (str[i] === "{") depth++;
+    else if (str[i] === "}") {
+      depth--;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
 
 // Escape only & in the bare text so the rich tags stay valid XML for DeepL.
 // We deliberately do NOT escape < / > because every one of them is a legitimate
@@ -166,20 +206,88 @@ function unescapeXml(s) {
     .replace(/&amp;/g, "&");
 }
 
-// Replace each {placeholder} with a uniform self-closing sentinel and remember
-// the originals in order. Returns { masked, tokens }.
+// Mask every non-translatable token into an <m id="N"/> sentinel, remembering the
+// EXACT original substrings in order, and return { masked, tokens }. ICU-aware:
+// it recurses through plural/select/selectordinal args so the control skeleton is
+// masked while each category's human sub-message text stays translatable. Proven by
+// the round-trip unit cases in scripts (mask -> DeepL keeps <m/> -> restore == input).
 function maskTokens(text) {
   const tokens = [];
-  let last = 0;
-  let masked = "";
-  for (const m of text.matchAll(MASK_RE)) {
-    masked += escapeAmp(text.slice(last, m.index));
-    masked += `<m id="${tokens.length}"/>`;
-    tokens.push(m[0]);
-    last = m.index + m[0].length;
+  const push = (s) => {
+    tokens.push(s);
+    return `<m id="${tokens.length - 1}"/>`;
+  };
+
+  // Translatable free text: escape & and mask empty/self-closing MARKER tags. Non-empty
+  // paired rich tags (<b>..</b>) stay as real XML (only & escaped) for tag_handling=xml.
+  function emitText(slice) {
+    let out = "";
+    let last = 0;
+    for (const m of slice.matchAll(TAG_MASK_RE)) {
+      out += escapeAmp(slice.slice(last, m.index));
+      out += push(m[0]);
+      last = m.index + m[0].length;
+    }
+    return out + escapeAmp(slice.slice(last));
   }
-  masked += escapeAmp(text.slice(last));
-  return { masked, tokens };
+
+  // rest = " offset:1 one {..} other {..}" : repeated  KEY { submessage }
+  function walkCategories(rest) {
+    let out = "";
+    let i = 0;
+    while (i < rest.length) {
+      const brace = rest.indexOf("{", i);
+      if (brace === -1) {
+        const tail = rest.slice(i);
+        if (tail.trim()) out += push(tail); // trailing ICU control (e.g. lone offset)
+        break;
+      }
+      out += push(rest.slice(i, brace + 1)); // mask "  KEY {" (one/other/=0/offset:N/select-value)
+      const close = matchBrace(rest, brace);
+      if (close === -1) {
+        out += emitText(rest.slice(brace + 1));
+        break;
+      }
+      out += walk(rest.slice(brace + 1, close)); // recurse: text translatable, nested tokens masked
+      out += push("}"); // mask this category's closing brace
+      i = close + 1;
+    }
+    return out;
+  }
+
+  function walk(str) {
+    let out = "";
+    let i = 0;
+    while (i < str.length) {
+      const brace = str.indexOf("{", i);
+      if (brace === -1) {
+        out += emitText(str.slice(i));
+        break;
+      }
+      out += emitText(str.slice(i, brace));
+      const close = matchBrace(str, brace);
+      if (close === -1) {
+        out += emitText(str.slice(brace)); // unbalanced -> treat as literal text
+        break;
+      }
+      const whole = str.slice(brace, close + 1);
+      const inner = str.slice(brace + 1, close);
+      if (isComplexArg(inner)) {
+        const header = inner.match(
+          /^(\s*[\w.]+\s*,\s*(?:plural|selectordinal|select)\s*,)/s,
+        )[1];
+        out += push("{" + header); // mask "{arg, type,"
+        out += walkCategories(inner.slice(header.length));
+        out += push("}"); // mask the complex arg's closing brace
+      } else {
+        out += push(whole); // simple placeholder -> mask whole
+      }
+      i = close + 1;
+    }
+    return out;
+  }
+
+  return { masked: walk(text), tokens };
 }
 
 // Restore the original tokens. DeepL may emit the sentinel as <m id="0"/>,
@@ -342,7 +450,8 @@ async function run() {
       const texts = toTranslateKeys.map((k) => enFlat[k]);
       const translatedArr = await translateTexts(apiKey, host, targetLang, texts);
       const translated = {};
-      toTranslateKeys.forEach((k, i) => (translated[k] = translatedArr[i]));
+      // fixIcuApostrophe: guard against the French-elision "d'{x}" ICU trap (see helper above).
+      toTranslateKeys.forEach((k, i) => (translated[k] = fixIcuApostrophe(translatedArr[i])));
 
       // Merge: start from existing, overlay new translations, fall back to the
       // English source. Drop any keys that no longer exist in English.

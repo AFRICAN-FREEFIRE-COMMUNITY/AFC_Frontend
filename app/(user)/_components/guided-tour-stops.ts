@@ -64,6 +64,11 @@ import {
   IconUserSearch,
   IconTrophy,
   IconBook2,
+  IconHome,
+  IconListNumbers,
+  IconChartBar,
+  IconAward,
+  IconShoppingBag,
 } from "@tabler/icons-react";
 
 // The tabler package does not export its IconProps type, so derive the component
@@ -128,6 +133,35 @@ export const GUIDED_STOPS: GuidedStop[] = [
     title: "tour.stops.welcome.title",
     body: "tour.stops.welcome.body",
     kind: "intro",
+  },
+
+  // ── Home (route /home) ── the landing hub: quick stats + news + shop teaser.
+  {
+    id: "home",
+    icon: IconHome,
+    idle: "wave",
+    accent: "primary",
+    title: "tour.stops.home.title",
+    body: "tour.stops.home.body",
+    kind: "guide",
+    route: "/home",
+    launchLabel: "tour.stops.home.launchLabel",
+    steps: [
+      {
+        element: '[data-tour="home-header"]',
+        title: "tour.stops.home.steps.header.title",
+        description: "tour.stops.home.steps.header.description",
+        side: "bottom",
+        align: "start",
+      },
+      {
+        element: '[data-tour="home-boxes"]',
+        title: "tour.stops.home.steps.boxes.title",
+        description: "tour.stops.home.steps.boxes.description",
+        side: "bottom",
+        align: "center",
+      },
+    ],
   },
 
   // ── 1. Profile (route /profile/edit) ──
@@ -260,6 +294,115 @@ export const GUIDED_STOPS: GuidedStop[] = [
         description: "tour.stops.tournaments.steps.list.description",
         side: "top",
         align: "center",
+      },
+    ],
+  },
+
+  // ── Leaderboards (route /leaderboards) ── per-event standings.
+  {
+    id: "leaderboards",
+    icon: IconListNumbers,
+    idle: "pop",
+    accent: "gold",
+    title: "tour.stops.leaderboards.title",
+    body: "tour.stops.leaderboards.body",
+    kind: "guide",
+    route: "/leaderboards",
+    launchLabel: "tour.stops.leaderboards.launchLabel",
+    steps: [
+      {
+        element: '[data-tour="lb-header"]',
+        title: "tour.stops.leaderboards.steps.header.title",
+        description: "tour.stops.leaderboards.steps.header.description",
+        side: "bottom",
+        align: "start",
+      },
+      {
+        element: '[data-tour="lb-filter"]',
+        title: "tour.stops.leaderboards.steps.filter.title",
+        description: "tour.stops.leaderboards.steps.filter.description",
+        side: "bottom",
+        align: "start",
+      },
+    ],
+  },
+
+  // ── Rankings (route /rankings) ── the AFC ladder + tier system.
+  {
+    id: "rankings",
+    icon: IconChartBar,
+    idle: "pulse",
+    accent: "primary",
+    title: "tour.stops.rankings.title",
+    body: "tour.stops.rankings.body",
+    kind: "guide",
+    route: "/rankings",
+    launchLabel: "tour.stops.rankings.launchLabel",
+    steps: [
+      {
+        element: '[data-tour="rankings-header"]',
+        title: "tour.stops.rankings.steps.header.title",
+        description: "tour.stops.rankings.steps.header.description",
+        side: "bottom",
+        align: "start",
+      },
+      {
+        element: '[data-tour="rankings-tabs"]',
+        title: "tour.stops.rankings.steps.tabs.title",
+        description: "tour.stops.rankings.steps.tabs.description",
+        side: "bottom",
+        align: "start",
+      },
+    ],
+  },
+
+  // ── Awards (route /awards) ── community awards + voting.
+  {
+    id: "awards",
+    icon: IconAward,
+    idle: "bounce",
+    accent: "gold",
+    title: "tour.stops.awards.title",
+    body: "tour.stops.awards.body",
+    kind: "guide",
+    route: "/awards",
+    launchLabel: "tour.stops.awards.launchLabel",
+    steps: [
+      {
+        element: '[data-tour="awards-header"]',
+        title: "tour.stops.awards.steps.header.title",
+        description: "tour.stops.awards.steps.header.description",
+        side: "bottom",
+        align: "center",
+      },
+    ],
+  },
+
+  // ── Shop (route /shop) ── the store: diamonds + merch, cart + wishlist.
+  {
+    id: "shop",
+    icon: IconShoppingBag,
+    idle: "pop",
+    accent: "primary",
+    title: "tour.stops.shop.title",
+    body: "tour.stops.shop.body",
+    kind: "guide",
+    route: "/shop",
+    launchLabel: "tour.stops.shop.launchLabel",
+    steps: [
+      {
+        element: '[data-tour="shop-header"]',
+        title: "tour.stops.shop.steps.header.title",
+        description: "tour.stops.shop.steps.header.description",
+        side: "bottom",
+        align: "start",
+      },
+      {
+        element: '[data-tour="shop-cart"]',
+        title: "tour.stops.shop.steps.cart.title",
+        description: "tour.stops.shop.steps.cart.description",
+        side: "bottom",
+        align: "end",
       },
     ],
   },

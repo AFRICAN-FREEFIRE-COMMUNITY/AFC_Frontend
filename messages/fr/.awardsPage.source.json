@@ -1,0 +1,20 @@
+{
+  "subtitle": "Nigerian Free Fire Community Awards - celebrate the best creators and players in the community.",
+  "tabs.vote": "Vote",
+  "tabs.winners": "Winners",
+  "sections.content-creators": "Content Creators",
+  "sections.esports-awards": "Esports Awards",
+  "loading": "Loading...",
+  "votesSubmittedFor": "Votes submitted for {name}!",
+  "thankYouForVoting": "Thank you for voting.",
+  "submitting": "Submitting...",
+  "submitVotesFor": "Submit Votes for {name}",
+  "officialWinner": "Official Winner",
+  "communityFavorite": "Community Favorite",
+  "congratsTitle": "Congratulations to all Nominees!",
+  "congratsBody": "Every participant has contributed to making the Nigerian Free Fire community what it is today. See you in NFCA 2026!",
+  "toast.loginToVote": "Please log in to vote.",
+  "toast.selectNominee": "Select at least one nominee.",
+  "toast.votesSubmitted": "Votes submitted!",
+  "toast.submitFailed": "Failed to submit votes."
+}

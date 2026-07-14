@@ -1,4 +1,11 @@
 {
+  "applying": "A aplicar...",
+  "back": "Voltar",
+  "cancel": "Cancelar",
+  "delete": "Apagar",
+  "discard": "Ignorar",
+  "done": "Feito",
+  "refresh": "Atualizar",
   "actions": {
     "save": "Salvar",
     "cancel": "Cancelar",
@@ -22,7 +29,17 @@
     "players": "Jogadores",
     "shop": "Loja",
     "leaderboards": "Classificações",
-    "profile": "Perfil"
+    "profile": "Perfil",
+    "glossary": "Glossário",
+    "awards": "Prémios",
+    "tournamentsScrims": "Torneios e jogos de treino",
+    "rankingsTiers": "Classificações e Níveis",
+    "playerMarkets": "Mercados de jogadores",
+    "newsUpdates": "Notícias e atualizações",
+    "rules": "Regras",
+    "myOrders": "As minhas encomendas",
+    "about": "Sobre nós",
+    "contact": "Contacto"
   },
   "states": {
     "empty": "Nada aqui ainda",
@@ -87,6 +104,7 @@
     "takeMeThere": "Leve-me lá",
     "view": "Ver",
     "markRead": "Marcar como lido",
+    "markAllRead": "Marcar tudo como lido",
     "types": {
       "event": "Torneio",
       "news": "Notícias",
@@ -101,7 +119,7 @@
   },
   "cart": {
     "title": "Seu Carrinho",
-    "itemCount": "{count, plural, one {# item} other {# itens}}",
+    "itemCount": "{count, plural,  one { # item }  other { # itens } }",
     "clearAll": "Limpar Tudo",
     "empty": "Seu carrinho está um pouco vazio!",
     "goToShop": "Ir para a Loja",
@@ -164,5 +182,15 @@
     "passwordRequirements": "Requisitos da senha",
     "requirementMet": " - Requisito atendido",
     "requirementNotMet": " - Requisito não atendido"
+  },
+  "logoAlt": "Logótipo da AFC",
+  "phoneInput": {
+    "selectCountry": "Selecionar país",
+    "selectCountryPlaceholder": "Selecione um país"
+  },
+  "eventTime": {
+    "to": "para",
+    "yourTime": "(hora local)",
+    "host": "(apresentador)"
   }
 }

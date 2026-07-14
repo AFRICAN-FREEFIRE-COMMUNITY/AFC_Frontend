@@ -1,0 +1,26 @@
+{
+  "subtitle": "Prix de la communauté nigériane de Free Fire : rendons hommage aux meilleurs créateurs et joueurs de la communauté.",
+  "tabs": {
+    "vote": "Votez",
+    "winners": "Les lauréats"
+  },
+  "sections": {
+    "content-creators": "Créateurs de contenu",
+    "esports-awards": "Prix des sports électroniques"
+  },
+  "loading": "Chargement en cours...",
+  "votesSubmittedFor": "Votes exprimés pour « {name} » !",
+  "thankYouForVoting": "Merci d'avoir voté.",
+  "submitting": "Envoi en cours...",
+  "submitVotesFor": "Votez pour « {name} »",
+  "officialWinner": "Vainqueur officiel",
+  "communityFavorite": "Coup de cœur de la communauté",
+  "congratsTitle": "Félicitations à tous les nominés !",
+  "congratsBody": "Chaque participant a contribué à faire de la communauté nigériane de Free Fire ce qu'elle est aujourd'hui. Rendez-vous à la NFCA 2026 !",
+  "toast": {
+    "loginToVote": "Veuillez vous connecter pour voter.",
+    "selectNominee": "Sélectionnez au moins un candidat.",
+    "votesSubmitted": "Les votes ont été enregistrés !",
+    "submitFailed": "Impossible d'envoyer les votes."
+  }
+}

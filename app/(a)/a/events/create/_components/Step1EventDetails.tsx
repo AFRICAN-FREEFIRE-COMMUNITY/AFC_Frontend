@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -70,6 +71,10 @@ export function Step1EventDetails({
   hideEventType = false,
   hideRegistrationLink = false,
 }: Step1Props) {
+  // next-intl translator for this step's namespace (keys live in messages/*/evStep1.json).
+  // These builder components are shared: rendered by BOTH the admin event wizard and the
+  // organizer create/edit portal, so translating them localizes both surfaces at once.
+  const t = useTranslations("evStep1");
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -98,7 +103,7 @@ export function Step1EventDetails({
 
   const handleFileDrop = (file: File) => {
     if (!["image/png", "image/jpeg", "image/jpg", "image/webp"].includes(file.type)) {
-      toast.error("Only PNG, JPG, JPEG, or WEBP files are supported.");
+      toast.error(t("invalidFileType"));
       return;
     }
     setSelectedFile(file);
@@ -109,7 +114,7 @@ export function Step1EventDetails({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          Step 1: Event Details
+          {t("section")}
           <InfoTip id="events.create.step1._section" className="ml-1.5" />
         </CardTitle>
       </CardHeader>
@@ -121,8 +126,8 @@ export function Step1EventDetails({
           name="event_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Event Name</FormLabel>
-              <Input placeholder="Enter event name" {...field} />
+              <FormLabel>{t("eventName")}</FormLabel>
+              <Input placeholder={t("eventNamePlaceholder")} {...field} />
               <FormMessage />
             </FormItem>
           )}
@@ -133,40 +138,40 @@ export function Step1EventDetails({
           {[
             {
               name: "competition_type" as const,
-              label: "Competition Type",
+              label: t("competitionType"),
               // `tip` keys the centralized help copy so each select carries a why.
               tip: "events.create.competition_type" as HelpId,
               options: [
-                { value: "tournament", label: "Tournament" },
-                { value: "scrims", label: "Scrims" },
+                { value: "tournament", label: t("competition.tournament") },
+                { value: "scrims", label: t("competition.scrims") },
               ],
             },
             {
               name: "participant_type" as const,
-              label: "Participant Type",
+              label: t("participantType"),
               tip: "events.create.participant_type" as HelpId,
               options: [
-                { value: "solo", label: "Solo" },
-                { value: "duo", label: "Duo" },
-                { value: "squad", label: "Squad" },
+                { value: "solo", label: t("participant.solo") },
+                { value: "duo", label: t("participant.duo") },
+                { value: "squad", label: t("participant.squad") },
               ],
             },
             {
               name: "event_type" as const,
-              label: "Event Type",
+              label: t("eventType"),
               tip: "events.create.event_type" as HelpId,
               options: [
-                { value: "internal", label: "Internal event" },
-                { value: "external", label: "External event" },
+                { value: "internal", label: t("eventTypeOption.internal") },
+                { value: "external", label: t("eventTypeOption.external") },
               ],
             },
             {
               name: "is_public" as const,
-              label: "Event Privacy",
+              label: t("eventPrivacy"),
               tip: "events.create.is_public" as HelpId,
               options: [
-                { value: "True", label: "Public" },
-                { value: "False", label: "Private" },
+                { value: "True", label: t("privacy.public") },
+                { value: "False", label: t("privacy.private") },
               ],
             },
           ]
@@ -187,7 +192,7 @@ export function Step1EventDetails({
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
+                        <SelectValue placeholder={t("selectTypePlaceholder")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -213,7 +218,7 @@ export function Step1EventDetails({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Max Teams/Players
+                {t("maxTeamsPlayers")}
                 <InfoTip id="events.create.max_teams_or_players" className="ml-1" />
               </FormLabel>
               <FormControl>
@@ -225,7 +230,7 @@ export function Step1EventDetails({
                       : field.value.toString()
                   }
                   onChange={(e) => field.onChange(e.target.value)}
-                  placeholder="e.g., 128"
+                  placeholder={t("maxTeamsPlaceholder")}
                 />
               </FormControl>
               <FormMessage />
@@ -233,7 +238,7 @@ export function Step1EventDetails({
           )}
         />
 
-        {/* External Registration Link — AFC-only; organizer flow hides it
+        {/* External Registration Link, AFC-only; organizer flow hides it
             (hideRegistrationLink) since the link isn't needed for org events. */}
         {eventType && !hideRegistrationLink && (
           <FormField
@@ -242,7 +247,7 @@ export function Step1EventDetails({
             name="registration_link"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Link (Required for External)</FormLabel>
+                <FormLabel>{t("registrationLink")}</FormLabel>
                 <Input {...field} placeholder="https://registration.example.com" />
                 <FormMessage />
               </FormItem>
@@ -259,7 +264,7 @@ export function Step1EventDetails({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Registration Opens
+                  {t("registrationOpens")}
                   <InfoTip id="events.create.registration_open" className="ml-1" />
                 </FormLabel>
                 <FormControl>
@@ -275,7 +280,7 @@ export function Step1EventDetails({
             name="registration_end_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Closes</FormLabel>
+                <FormLabel>{t("registrationCloses")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -289,7 +294,7 @@ export function Step1EventDetails({
             name="registration_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Start Time<InfoTip id="events.create.registration_time" className="ml-1" /></FormLabel>
+                <FormLabel>{t("registrationStartTime")}<InfoTip id="events.create.registration_time" className="ml-1" /></FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -303,7 +308,7 @@ export function Step1EventDetails({
             name="registration_end_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration End Time</FormLabel>
+                <FormLabel>{t("registrationEndTime")}</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -328,11 +333,11 @@ export function Step1EventDetails({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Registration
+                  {t("registration")}
                   {/* Inline copy (no centralized HelpId needed): explains paid +
                       the escrow / post-event payout. No em/en dashes. */}
                   <InfoTip
-                    text="Choose whether players pay to register. Paid entry fees are held in escrow by the payment processor and released to the organizer after the event runs."
+                    text={t("registrationTip")}
                     className="ml-1"
                   />
                 </FormLabel>
@@ -344,11 +349,11 @@ export function Step1EventDetails({
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="free" id="registration_type_free" />
-                      <Label htmlFor="registration_type_free">Free</Label>
+                      <Label htmlFor="registration_type_free">{t("free")}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="paid" id="registration_type_paid" />
-                      <Label htmlFor="registration_type_paid">Paid</Label>
+                      <Label htmlFor="registration_type_paid">{t("paid")}</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -366,13 +371,13 @@ export function Step1EventDetails({
                 name="registration_fee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Entry Fee</FormLabel>
+                    <FormLabel>{t("entryFee")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
                         step="0.01"
-                        placeholder="e.g., 5"
+                        placeholder={t("entryFeePlaceholder")}
                         value={
                           field.value === undefined || field.value === null
                             ? ""
@@ -397,14 +402,14 @@ export function Step1EventDetails({
                 name="registration_fee_currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Currency</FormLabel>
+                    <FormLabel>{t("currency")}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value ?? "USD"}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
+                          <SelectValue placeholder={t("selectCurrency")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -448,7 +453,7 @@ export function Step1EventDetails({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Event Start Date
+                  {t("eventStartDate")}
                   <InfoTip id="events.create.event_dates" className="ml-1" />
                 </FormLabel>
                 <FormControl>
@@ -464,7 +469,7 @@ export function Step1EventDetails({
             name="end_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event End Date</FormLabel>
+                <FormLabel>{t("eventEndDate")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -478,7 +483,7 @@ export function Step1EventDetails({
             name="event_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Start Time<InfoTip id="events.create.event_time" className="ml-1" /></FormLabel>
+                <FormLabel>{t("eventStartTime")}<InfoTip id="events.create.event_time" className="ml-1" /></FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -492,7 +497,7 @@ export function Step1EventDetails({
             name="event_end_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event End Time</FormLabel>
+                <FormLabel>{t("eventEndTime")}</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -509,7 +514,7 @@ export function Step1EventDetails({
           name="banner"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tournament Banner</FormLabel>
+              <FormLabel>{t("banner")}</FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!previewUrl ? (
@@ -532,11 +537,11 @@ export function Step1EventDetails({
                           <IconPhoto size={32} className="text-primary dark:text-white" />
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Drop your image here, or{" "}
-                          <span className="text-primary font-medium hover:underline">browse</span>
+                          {t("dropImagePrefix")}{" "}
+                          <span className="text-primary font-medium hover:underline">{t("browse")}</span>
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Supports: PNG, JPG, JPEG, WEBP
+                          {t("supports")}
                         </p>
                       </div>
                     </div>
@@ -547,7 +552,7 @@ export function Step1EventDetails({
                           width={1000}
                           height={1000}
                           src={previewUrl}
-                          alt="Featured image"
+                          alt={t("featuredImageAlt")}
                           className="aspect-video size-full object-cover"
                         />
                       </div>
@@ -563,7 +568,7 @@ export function Step1EventDetails({
                             if (fileInputRef.current) fileInputRef.current.value = "";
                           }}
                         >
-                          <IconX size={16} className="mr-2" /> Remove
+                          <IconX size={16} className="mr-2" /> {t("remove")}
                         </Button>
                         <Button
                           type="button"
@@ -571,7 +576,7 @@ export function Step1EventDetails({
                           className="flex-1"
                           onClick={() => fileInputRef.current?.click()}
                         >
-                          <IconUpload size={16} className="mr-2" /> Replace
+                          <IconUpload size={16} className="mr-2" /> {t("replace")}
                         </Button>
                       </div>
                     </div>
@@ -595,7 +600,7 @@ export function Step1EventDetails({
 
         {/* Stream Channels */}
         <div className="space-y-3">
-          <FormLabel>Streaming Channel Links</FormLabel>
+          <FormLabel>{t("streamLinks")}</FormLabel>
           {streamFields.map((field, index) => (
             <div key={field.id} className="flex gap-2">
               <FormField
@@ -608,13 +613,13 @@ export function Step1EventDetails({
               />
               {streamFields.length > 1 && (
                 <Button type="button" variant="destructive" size="sm" onClick={() => removeStream(index)}>
-                  Remove
+                  {t("remove")}
                 </Button>
               )}
             </div>
           ))}
           <Button type="button" variant="outline" size="sm" onClick={() => appendStream("")}>
-            + Add Streaming Link
+            {t("addStreamLink")}
           </Button>
         </div>
 
@@ -627,9 +632,9 @@ export function Step1EventDetails({
           name="registration_restriction"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Registration Restrictions</FormLabel>
+              <FormLabel>{t("restrictions")}</FormLabel>
               <FormDescription>
-                Control who can register for this event based on their location
+                {t("restrictionsDescription")}
               </FormDescription>
               <FormControl>
                 <div className="space-y-6">
@@ -647,7 +652,13 @@ export function Step1EventDetails({
                       <div key={type} className="flex items-center space-x-2">
                         <RadioGroupItem value={type} id={type} />
                         <Label htmlFor={type} className="capitalize">
-                          {type.replace("_", " ")}
+                          {/* Dynamic key built from the restriction-type value. All three
+                              (none / by_region / by_country) are enumerated in evStep1.json,
+                              but we still guard with t.has() so a missing key never throws
+                              MISSING_MESSAGE, falling back to the raw English wording. */}
+                          {t.has(`restrictionType.${type}`)
+                            ? t(`restrictionType.${type}`)
+                            : type.replace("_", " ")}
                         </Label>
                       </div>
                     ))}
@@ -655,7 +666,7 @@ export function Step1EventDetails({
 
                   {form.watch("registration_restriction") !== "none" && (
                     <div className="p-4 border rounded-lg bg-card space-y-4">
-                      <Label className="text-destructive">Restriction Mode</Label>
+                      <Label className="text-destructive">{t("restrictionMode")}</Label>
                       <RadioGroup
                         value={form.watch("restriction_mode") ?? "allow_only"}
                         className="flex gap-4"
@@ -666,13 +677,13 @@ export function Step1EventDetails({
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="allow_only" id="allow_only" />
                           <Label htmlFor="allow_only" className="text-green-500">
-                            Allow Only Selected
+                            {t("allowOnly")}
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <RadioGroupItem value="block_selected" id="block_selected" />
                           <Label htmlFor="block_selected" className="text-red-500">
-                            Block Selected
+                            {t("blockSelected")}
                           </Label>
                         </div>
                       </RadioGroup>
@@ -690,7 +701,10 @@ export function Step1EventDetails({
                                     onCheckedChange={() => toggleRegion(region, regionCountries)}
                                   />
                                   <span>
-                                    {region} ({regionCountries.length} countries)
+                                    {t("regionCountryCount", {
+                                      region,
+                                      count: regionCountries.length,
+                                    })}
                                   </span>
                                 </div>
                               </AccordionTrigger>
@@ -730,7 +744,7 @@ export function Step1EventDetails({
               <FormMessage />
               {form.watch("registration_restriction") !== "none" && (
                 <div className="flex flex-wrap gap-1 mt-2.5">
-                  <span className="text-muted-foreground text-sm">Selected locations:</span>{" "}
+                  <span className="text-muted-foreground text-sm">{t("selectedLocations")}</span>{" "}
                   {selectedCountries.map((country) => (
                     <Badge key={country} variant="secondary">
                       {country}
@@ -749,19 +763,18 @@ export function Step1EventDetails({
         <div className="space-y-3 rounded-lg border p-4">
           <div>
             <Label>
-              Registration requirements
+              {t("requirements")}
               <InfoTip id="events.create.registration_requirements._section" className="ml-1" />
             </Label>
             <p className="text-xs text-muted-foreground">
-              Block registration until competitors have uploaded the media you need for
-              graphics and broadcasts.
+              {t("requirementsDescription")}
             </p>
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="require-team-logo">Require team logo<InfoTip id="events.create.require_team_logo" className="ml-1" /></Label>
+              <Label htmlFor="require-team-logo">{t("requireTeamLogo")}<InfoTip id="events.create.require_team_logo" className="ml-1" /></Label>
               <p className="text-xs text-muted-foreground">
-                Teams cannot register until their team logo is uploaded.
+                {t("requireTeamLogoDesc")}
               </p>
             </div>
             <FormField
@@ -783,10 +796,9 @@ export function Step1EventDetails({
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="require-esport-images">Require player esport images<InfoTip id="events.create.require_esport_images" className="ml-1" /></Label>
+              <Label htmlFor="require-esport-images">{t("requireEsportImages")}<InfoTip id="events.create.require_esport_images" className="ml-1" /></Label>
               <p className="text-xs text-muted-foreground">
-                Every registering player must have their esport image uploaded on their
-                profile.
+                {t("requireEsportImagesDesc")}
               </p>
             </div>
             <FormField
@@ -808,9 +820,9 @@ export function Step1EventDetails({
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="require-player-profile-image">Require player profile image<InfoTip id="events.create.require_player_profile_image" className="ml-1" /></Label>
+              <Label htmlFor="require-player-profile-image">{t("requireProfileImage")}<InfoTip id="events.create.require_player_profile_image" className="ml-1" /></Label>
               <p className="text-xs text-muted-foreground">
-                Every registering player must have a profile image uploaded.
+                {t("requireProfileImageDesc")}
               </p>
             </div>
             <FormField
@@ -832,9 +844,9 @@ export function Step1EventDetails({
           </div>
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="require-player-uid">Require player Free Fire UID<InfoTip id="events.create.require_player_uid" className="ml-1" /></Label>
+              <Label htmlFor="require-player-uid">{t("requireUid")}<InfoTip id="events.create.require_player_uid" className="ml-1" /></Label>
               <p className="text-xs text-muted-foreground">
-                Every registering player must have their Free Fire UID set on their profile.
+                {t("requireUidDesc")}
               </p>
             </div>
             <FormField
@@ -865,15 +877,14 @@ export function Step1EventDetails({
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <Label htmlFor="require-letter-avatars">
-                Require letter avatars
+                {t("requireLetterAvatars")}
                 <InfoTip
-                  text="Teams or players must have at least this many Free Fire letter avatars (A-Z) available before they can register. A team's available letters are the combined letters its members own plus any manual extras added on the team editor."
+                  text={t("requireLetterAvatarsTip")}
                   className="ml-1"
                 />
               </Label>
               <p className="text-xs text-muted-foreground">
-                Set the minimum number of letter avatars (1 to 26) competitors must have available to
-                register.
+                {t("requireLetterAvatarsDesc")}
               </p>
             </div>
             <FormField

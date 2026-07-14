@@ -9,6 +9,7 @@
 // afc_tournament_and_scrims/views_autoseed.py + the flag on Event (auto_seed_on_start / auto_seeded_at).
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
@@ -26,6 +27,8 @@ export default function AutoSeedCard({
   eventId?: number;
   initialEnabled?: boolean;
 }) {
+  // Shared admin + organizer edit-flow card -> keys live in evEditTabs.autoSeed (en/fr/pt).
+  const t = useTranslations("evEditTabs");
   const [enabled, setEnabled] = useState(!!initialEnabled);
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
@@ -41,10 +44,10 @@ export default function AutoSeedCard({
       fd.append("event_id", String(eventId));
       fd.append("auto_seed_on_start", next ? "True" : "False");
       await axios.post(`${base}/edit-event/`, fd, { headers: authHeaders() });
-      toast.success(next ? "Fully-automatic seeding turned on." : "Fully-automatic seeding turned off.");
+      toast.success(next ? t("autoSeed.toastOn") : t("autoSeed.toastOff"));
     } catch (err: any) {
       setEnabled(!next); // revert on failure
-      toast.error(err?.response?.data?.message || "Could not save the setting.");
+      toast.error(err?.response?.data?.message || t("autoSeed.toastSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -55,9 +58,9 @@ export default function AutoSeedCard({
     setSeeding(true);
     try {
       const res = await axios.post(`${base}/auto-seed/now/`, { event_id: eventId }, { headers: authHeaders() });
-      toast.success(res?.data?.message || "Teams seeded into groups.");
+      toast.success(res?.data?.message || t("autoSeed.toastSeeded"));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Could not auto-seed.");
+      toast.error(err?.response?.data?.message || t("autoSeed.toastSeedFailed"));
     } finally {
       setSeeding(false);
     }
@@ -67,26 +70,24 @@ export default function AutoSeedCard({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <IconWand className="text-primary size-5" /> Fully-automatic event
+          <IconWand className="text-primary size-5" /> {t("autoSeed.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-muted-foreground text-sm">
-          When on, once this event's start time passes it automatically seeds the available teams
-          (registered, not waitlisted; and checked-in when check-in is on) into the entry stage's
-          groups. You then just enter each group's room ID and password.
+          {t("autoSeed.desc")}
         </p>
         <div className="flex items-center justify-between rounded-md border p-3">
-          <Label htmlFor="auto-seed" className="text-sm">Auto-seed teams into groups at start</Label>
+          <Label htmlFor="auto-seed" className="text-sm">{t("autoSeed.toggleLabel")}</Label>
           <Switch id="auto-seed" checked={enabled} onCheckedChange={save} disabled={saving} />
         </div>
         <div>
           <Button size="sm" variant="outline" onClick={seedNow} disabled={seeding}>
             {seeding ? <IconLoader2 className="mr-1 size-4 animate-spin" /> : <IconWand className="mr-1 size-4" />}
-            Seed available teams now
+            {t("autoSeed.seedNow")}
           </Button>
           <p className="text-muted-foreground mt-1 text-xs">
-            Runs the same seed immediately (only if the entry stage isn't already seeded).
+            {t("autoSeed.seedNowHelp")}
           </p>
         </div>
       </CardContent>

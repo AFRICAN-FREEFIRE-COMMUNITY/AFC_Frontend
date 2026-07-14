@@ -1,4 +1,9 @@
+"use client";
+
 import { AlertTriangle } from "lucide-react";
+// i18n: this warning modal is shared by the admin + organizer event-edit flows. All copy is
+// internationalized via the "evEditTabs" namespace (messages/{en,fr,pt}/evEditTabs.json).
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,6 +30,7 @@ export function ParticipantTypeWarningModal({
   onCancel,
   onConfirm,
 }: ParticipantTypeWarningModalProps) {
+  const t = useTranslations("evEditTabs");
   return (
     <Dialog
       open={open}
@@ -38,31 +44,34 @@ export function ParticipantTypeWarningModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />
-            Change Participant Type?
+            {t("participantWarning.title")}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-3 py-2">
           <p className="text-sm text-muted-foreground">
-            You are changing the participant type from{" "}
+            {t("participantWarning.bodyFrom")}{" "}
             <span className="font-semibold capitalize text-foreground">
               {currentType}
             </span>{" "}
-            to{" "}
+            {t("participantWarning.bodyTo")}{" "}
             <span className="font-semibold capitalize text-foreground">
               {pendingType}
             </span>
             .
           </p>
           <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-            <strong>Warning:</strong> All currently registered{" "}
-            {participantLabel}{" "}
-            will be <strong>automatically removed</strong> from this event when
-            you save. This action cannot be undone.
+            {/* t.rich embeds the emphasized "automatically removed" inline; {label} is the
+                localized participant noun (teams/players) passed from the parent. */}
+            <strong>{t("participantWarning.warningLabel")}</strong>{" "}
+            {t.rich("participantWarning.warningBody", {
+              label: participantLabel,
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </div>
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onCancel}>
-            Cancel
+            {t("participantWarning.cancel")}
           </Button>
           <Button
             variant="destructive"
@@ -72,7 +81,7 @@ export function ParticipantTypeWarningModal({
               }
             }}
           >
-            Yes, Change Type
+            {t("participantWarning.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

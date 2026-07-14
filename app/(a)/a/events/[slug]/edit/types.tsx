@@ -491,13 +491,21 @@ export const validateStageData = (
       });
     }
 
+    // Clash Squad (cs - *) stages run as a head-to-head BRACKET generated from the event page
+    // (H2HBracketCard), NOT as BR lobbies, so they carry NO stage.groups and NO round-robin base
+    // groups - requiring "at least one group" wrongly blocked saving a CS stage (P1#2, owner
+    // 2026-07-13). Detect CS FIRST and skip the group-count requirement entirely for it. The
+    // per-group schedule checks further down are already guarded by `stage.groups.length > 0`.
+    const isCsForGroupCount = /^cs\s*-/i.test(stage.stage_format || "");
     // Round-robin stages keep their groups in round_robin.round_robin_groups (base groups A/B/C),
     // NOT in stage.groups - checking stage.groups here wrongly failed every RR stage with
     // "At least one group is required" (owner 2026-07-03). Detect RR FIRST, then count the right list.
     const isRRForGroupCount =
       /round.?robin/i.test(stage.stage_format || "") ||
       ((stage.round_robin?.round_robin_groups?.length ?? 0) > 0);
-    if (isRRForGroupCount) {
+    if (isCsForGroupCount) {
+      // No group requirement: the bracket is seeded from the registered teams on the event page.
+    } else if (isRRForGroupCount) {
       if ((stage.round_robin?.round_robin_groups?.length ?? 0) === 0) {
         errors.push({
           field: `stages.${sIdx}.round_robin`,

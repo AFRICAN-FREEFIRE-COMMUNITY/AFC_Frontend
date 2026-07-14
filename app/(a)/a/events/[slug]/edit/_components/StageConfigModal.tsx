@@ -1,6 +1,9 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
+// i18n (namespace "evEditStages"): this modal + its sub-sections are mounted by BOTH the admin and
+// organizer event-edit pages, so all authoring copy is localized (en/fr/pt). English kept verbatim.
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +41,8 @@ import {
   type RoundRobinConfig,
   type RoundRobinTeamOption,
 } from "../../../_components/RoundRobinPanel";
+// Shared Clash Squad (bracket) explainer (CS sub-project) - same panel used by the create flow.
+import { ClashSquadPanel } from "../../../_components/ClashSquadPanel";
 
 // ── Reusable Prize Pool Section ────────────────────────────────────────────────
 
@@ -58,8 +63,11 @@ function PrizePoolSection({
   onPrizepoolChange,
   onPrizepoolCashChange,
   onDistributionChange,
+  // Callers always pass a localized label (stagePrizePool / groupPrizePool); the default is a
+  // never-rendered fallback kept only to preserve the prop's optionality.
   label = "Prize Pool",
 }: PrizePoolSectionProps) {
+  const t = useTranslations("evEditStages");
   const addPosition = () => {
     const nextPos = Object.keys(prizeDistribution).length + 1;
     const suffix =
@@ -85,34 +93,35 @@ function PrizePoolSection({
       <div className="grid gap-3">
         <div>
           <Label className="mb-2 block text-xs text-muted-foreground">
-            Prize Label{" "}
-            <span className="text-zinc-400">(e.g. "5000 Diamonds")</span>
+            {t("prizeLabelField")}{" "}
+            <span className="text-zinc-400">{t("prizeLabelExample")}</span>
           </Label>
           <Input
             value={prizepool}
             onChange={(e) => onPrizepoolChange(e.target.value)}
-            placeholder="e.g. 5000 Diamonds"
+            placeholder={t("prizeLabelPlaceholder")}
           />
         </div>
         <div>
           <Label className="mb-2 block text-xs text-muted-foreground">
-            Cash Value <span className="text-zinc-400">(e.g. "$500")</span>
+            {t("cashValue")}{" "}
+            <span className="text-zinc-400">{t("cashValueExample")}</span>
           </Label>
           <Input
             value={prizepoolCashValue}
             onChange={(e) => onPrizepoolCashChange(e.target.value)}
-            placeholder="e.g. $500"
+            placeholder={t("cashValuePlaceholder")}
           />
         </div>
       </div>
 
       <div className="space-y-2">
         <Label className="block text-xs text-muted-foreground">
-          Prize Distribution
+          {t("prizeDistribution")}
         </Label>
         {Object.keys(prizeDistribution).length === 0 && (
           <p className="text-xs text-muted-foreground italic">
-            No positions yet. Click below to add one.
+            {t("noPositions")}
           </p>
         )}
         {Object.entries(prizeDistribution).map(([key, value]) => (
@@ -125,7 +134,7 @@ function PrizePoolSection({
             <Input
               value={value}
               onChange={(e) => updatePosition(key, e.target.value)}
-              placeholder="e.g. $200 or 1000 Diamonds"
+              placeholder={t("distributionPlaceholder")}
               className="flex-1"
             />
             <Button
@@ -147,7 +156,7 @@ function PrizePoolSection({
           onClick={addPosition}
           className="w-full"
         >
-          <Plus className="w-3.5 h-3.5 mr-1" /> Add Prize Position
+          <Plus className="w-3.5 h-3.5 mr-1" /> {t("addPrizePosition")}
         </Button>
       </div>
     </div>
@@ -173,6 +182,7 @@ function AdvancementRoutingSection({
   editingStageIndex,
   groupOptions,
 }: AdvancementRoutingSectionProps) {
+  const t = useTranslations("evEditStages");
   const list = rules ?? [];
   const branchingOn = list.length > 0;
 
@@ -206,12 +216,11 @@ function AdvancementRoutingSection({
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-primary">
-            Advancement Routing (optional)
+            {t("advancementRouting")}
             <InfoTip id="events.create.advancement_routing" className="ml-1" />
           </p>
           <p className="text-xs text-muted-foreground">
-            Split this stage's finishers into different later stages (e.g. top 1 to 8 to
-            the Finals, 9 to 16 to the Play-In). Off uses the single qualifier above.
+            {t("advancementRoutingDesc")}
           </p>
         </div>
         <Switch
@@ -230,7 +239,7 @@ function AdvancementRoutingSection({
         <div className="space-y-3">
           {laterStages.length === 0 && (
             <p className="text-xs text-muted-foreground italic">
-              Add a later stage to route finishers into.
+              {t("addLaterStageToRoute")}
             </p>
           )}
           {list.map((rule, i) => (
@@ -238,7 +247,7 @@ function AdvancementRoutingSection({
               <div className="flex flex-wrap items-end gap-2">
                 <div className="w-20">
                   <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
-                    From #
+                    {t("fromNum")}
                   </label>
                   <Input
                     type="number"
@@ -254,7 +263,7 @@ function AdvancementRoutingSection({
                 </div>
                 <div className="w-20">
                   <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
-                    To #
+                    {t("toNum")}
                   </label>
                   <Input
                     type="number"
@@ -270,7 +279,7 @@ function AdvancementRoutingSection({
                 </div>
                 <div className="flex-1 min-w-[140px]">
                   <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
-                    From
+                    {t("fromLabel")}
                   </label>
                   <Select
                     value={
@@ -290,7 +299,7 @@ function AdvancementRoutingSection({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="stage">All groups (whole stage)</SelectItem>
+                      <SelectItem value="stage">{t("allGroups")}</SelectItem>
                       {groupOptions.map((g) => (
                         <SelectItem key={g.index} value={String(g.index)}>
                           {g.label}
@@ -303,7 +312,7 @@ function AdvancementRoutingSection({
               <div className="flex items-end gap-2">
                 <div className="flex-1">
                   <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
-                    Advance to
+                    {t("advanceToLabel")}
                   </label>
                   <Select
                     value={
@@ -316,12 +325,12 @@ function AdvancementRoutingSection({
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a later stage" />
+                      <SelectValue placeholder={t("selectLaterStage")} />
                     </SelectTrigger>
                     <SelectContent>
                       {laterStages.map(({ name, idx }) => (
                         <SelectItem key={idx} value={String(idx)}>
-                          {name || `Stage ${idx + 1}`}
+                          {name || t("stageN", { number: idx + 1 })}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -347,7 +356,7 @@ function AdvancementRoutingSection({
               onClick={addRow}
               className="w-full"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" /> Add Routing Rule
+              <Plus className="w-3.5 h-3.5 mr-1" /> {t("addRoutingRule")}
             </Button>
           )}
         </div>
@@ -438,26 +447,32 @@ export function StageConfigModal({
   hideDiscord = false,
 }: StageConfigModalProps) {
   const form = useFormContext<EventFormType>();
+  const t = useTranslations("evEditStages");
 
   // Round-robin stages are defined ENTIRELY by the base groups + schedule in the
   // Round-Robin panel: the classic "Number of Groups" field and the Step-2 per-group
   // config (match count / maps) are ignored by the backend for this format, so they are
   // hidden and Step 2 is skipped (owner 2026-06-13, matching the create wizard).
   const isRoundRobin = stageModalData.stage_format === "br - round robin";
+  // Clash Squad (cs - *) runs as a head-to-head bracket (generated from the event page),
+  // so like round-robin it has no classic groups and no Step-2 config; it saves from Step 1.
+  const isClashSquad = (stageModalData.stage_format || "").startsWith("cs - ");
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] overflow-auto justify-start flex-col gap-0">
         <DialogHeader>
           <DialogTitle>
-            {stageModalStep === 1 ? "Stage Details" : "Configure Groups"}
+            {stageModalStep === 1 ? t("stageDetails") : t("configureGroups")}
           </DialogTitle>
           <p className="text-sm text-muted-foreground mb-4">
-            Step {stageModalStep} of 2 (Configuration for{" "}
-            {editingStageIndex !== null
-              ? stageNames[editingStageIndex]
-              : "New Stage"}
-            )
+            {t("stepOf", {
+              step: stageModalStep,
+              name:
+                editingStageIndex !== null
+                  ? stageNames[editingStageIndex]
+                  : t("newStage"),
+            })}
           </p>
         </DialogHeader>
 
@@ -465,7 +480,7 @@ export function StageConfigModal({
         {stageModalStep === 1 && (
           <div className="space-y-4">
             <div>
-              <Label className="mb-2.5">Stage Name</Label>
+              <Label className="mb-2.5">{t("stageName")}</Label>
               <Input
                 value={stageModalData.stage_name}
                 onChange={(e) =>
@@ -474,13 +489,13 @@ export function StageConfigModal({
                     stage_name: e.target.value,
                   })
                 }
-                placeholder="e.g., Group Stage, Finals"
+                placeholder={t("stageNamePlaceholder")}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label className="mb-2.5">Start Date</Label>
+                <Label className="mb-2.5">{t("startDate")}</Label>
                 <Input
                   type="date"
                   value={stageModalData.start_date}
@@ -493,7 +508,7 @@ export function StageConfigModal({
                 />
               </div>
               <div>
-                <Label className="mb-2.5">End Date</Label>
+                <Label className="mb-2.5">{t("endDate")}</Label>
                 <Input
                   type="date"
                   value={stageModalData.end_date}
@@ -509,7 +524,7 @@ export function StageConfigModal({
 
             <div>
               <Label className="mb-2.5">
-                Stage Format
+                {t("stageFormat")}
                 {/* Reuse the create-wizard copy - identical scoring control. */}
                 <InfoTip id="events.create.stage_format" className="ml-1" />
               </Label>
@@ -523,7 +538,7 @@ export function StageConfigModal({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select format" />
+                  <SelectValue placeholder={t("selectFormat")} />
                 </SelectTrigger>
                 <SelectContent>
                   {STAGE_FORMATS.map((format) => (
@@ -549,13 +564,20 @@ export function StageConfigModal({
               />
             )}
 
+            {/* ── Clash Squad (bracket) explainer (CS sub-project): shown for any "cs - *"
+                format INSTEAD of the BR group/map wizard. No inputs - the bracket is
+                generated + scored on the event page. Stage saves straight from Step 1. */}
+            {isClashSquad && (
+              <ClashSquadPanel stageFormat={stageModalData.stage_format} />
+            )}
+
             {/* ── Scoring modes (sub-project A): Champion-Point + Point-Rush ──────────
                 Both are independent per-stage toggles. Champion-Point is a match-point
                 win rule; Point-Rush banks this stage's placement bonus into a later
                 stage. They can be on together. */}
             <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
               <p className="text-sm font-semibold text-primary">
-                Scoring Modes (optional)
+                {t("scoringModes")}
               </p>
 
               {/* Champion-Point toggle + threshold */}
@@ -563,15 +585,14 @@ export function StageConfigModal({
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <Label>
-                      Champion-Point
+                      {t("championPoint")}
                       <InfoTip
                         id="events.create.champion_point"
                         className="ml-1"
                       />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      First team to Booyah while already at/above the threshold
-                      wins the stage.
+                      {t("championPointDesc")}
                     </p>
                   </div>
                   <Switch
@@ -586,7 +607,7 @@ export function StageConfigModal({
                 </div>
                 {stageModalData.champion_point_enabled && (
                   <div>
-                    <Label className="mb-2.5">Champion Point Threshold</Label>
+                    <Label className="mb-2.5">{t("championPointThreshold")}</Label>
                     <Input
                       type="number"
                       min={1}
@@ -600,7 +621,7 @@ export function StageConfigModal({
                               : Number(e.target.value),
                         })
                       }
-                      placeholder="e.g. 80"
+                      placeholder={t("thresholdPlaceholder")}
                     />
                   </div>
                 )}
@@ -613,12 +634,11 @@ export function StageConfigModal({
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <Label>
-                      Point-Rush
+                      {t("pointRush")}
                       <InfoTip id="events.create.point_rush" className="ml-1" />
                     </Label>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Award per-lobby placement bonuses here and bank them into a
-                      later stage.
+                      {t("pointRushDesc")}
                     </p>
                   </div>
                   <Switch
@@ -637,12 +657,12 @@ export function StageConfigModal({
                     {/* Reward table: rows of placement → bonus points (add/remove). */}
                     <div className="space-y-2">
                       <Label className="block text-xs text-muted-foreground">
-                        Placement Rewards
+                        {t("placementRewards")}
                       </Label>
                       {Object.keys(stageModalData.point_rush_reward).length ===
                         0 && (
                         <p className="text-xs text-muted-foreground italic">
-                          No rewards yet. Click below to add a placement.
+                          {t("noRewards")}
                         </p>
                       )}
                       {Object.entries(stageModalData.point_rush_reward).map(
@@ -652,7 +672,7 @@ export function StageConfigModal({
                             className="flex items-center gap-2"
                           >
                             <span className="text-xs text-muted-foreground w-16 shrink-0">
-                              Place {placement}
+                              {t("placeN", { placement })}
                             </span>
                             <Input
                               type="number"
@@ -670,7 +690,7 @@ export function StageConfigModal({
                                   },
                                 })
                               }
-                              placeholder="bonus points"
+                              placeholder={t("bonusPointsPlaceholder")}
                               className="flex-1"
                             />
                             <Button
@@ -714,13 +734,13 @@ export function StageConfigModal({
                         }}
                         className="w-full"
                       >
-                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Placement Reward
+                        <Plus className="w-3.5 h-3.5 mr-1" /> {t("addPlacementReward")}
                       </Button>
                     </div>
 
                     {/* Target stage: only stages AFTER the one being edited. */}
                     <div>
-                      <Label className="mb-2.5">Carry-Over Target Stage</Label>
+                      <Label className="mb-2.5">{t("carryOverTarget")}</Label>
                       <Select
                         value={
                           stageModalData.point_rush_target_index === undefined
@@ -735,7 +755,7 @@ export function StageConfigModal({
                         }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a later stage" />
+                          <SelectValue placeholder={t("selectLaterStage")} />
                         </SelectTrigger>
                         <SelectContent>
                           {stageNames
@@ -748,7 +768,7 @@ export function StageConfigModal({
                             )
                             .map(({ name, idx }) => (
                               <SelectItem key={idx} value={String(idx)}>
-                                {name || `Stage ${idx + 1}`}
+                                {name || t("stageN", { number: idx + 1 })}
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -759,7 +779,7 @@ export function StageConfigModal({
                           idx > editingStageIndex,
                       ).length === 0 && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Add a later stage to use as the carry-over target.
+                          {t("addLaterStageCarryOver")}
                         </p>
                       )}
                     </div>
@@ -769,7 +789,7 @@ export function StageConfigModal({
             </div>
 
             <div>
-              <Label className="mb-2.5">Teams Qualifying from this Stage</Label>
+              <Label className="mb-2.5">{t("teamsQualifyingStage")}</Label>
               <Input
                 type="number"
                 min={0}
@@ -799,29 +819,29 @@ export function StageConfigModal({
               stageNames={stageNames}
               editingStageIndex={editingStageIndex}
               groupOptions={
-                isRoundRobin
+                // No classic groups for round-robin OR Clash Squad -> stage-wide routing only.
+                isRoundRobin || isClashSquad
                   ? []
                   : tempGroups
                       .slice(0, stageModalData.number_of_groups)
                       .map((g: any, idx: number) => ({
                         index: idx,
-                        label: g.group_name || `Group ${idx + 1}`,
+                        label: g.group_name || t("groupN", { number: idx + 1 }),
                       }))
               }
             />
 
             {/* Classic "Number of Groups" - NOT used for round-robin (its base groups
-                above define the structure), so it is hidden for that format. */}
+                above define the structure) or Clash Squad (a bracket has no groups), so it
+                is hidden for those formats. RR shows a note; CS is covered by ClashSquadPanel. */}
             {isRoundRobin ? (
               <p className="text-xs text-muted-foreground rounded-md border border-dashed p-3">
-                This is a round-robin stage. Its lobbies come from the base groups and
-                schedule above, so there is no separate "number of groups" or per-group
-                map setup. "Games per day" above sets how many matches each lobby runs.
+                {t("roundRobinNote")}
               </p>
-            ) : (
+            ) : isClashSquad ? null : (
               <div>
                 <Label className="mb-2.5">
-                  Number of Groups
+                  {t("numberOfGroups")}
                   <InfoTip id="events.create.number_of_groups" className="ml-1" />
                 </Label>
                 <Input
@@ -841,12 +861,12 @@ export function StageConfigModal({
               </div>
             )}
 
-            {/* Stage Discord Role ID — hidden in the organizer flow (hideDiscord).
+            {/* Stage Discord Role ID - hidden in the organizer flow (hideDiscord).
                 The empty stage_discord_role_id still rides in the payload so the
                 stage shape stays identical to the admin one. */}
             {!hideDiscord && (
               <div>
-                <Label className="mb-2.5">Stage Discord Role ID</Label>
+                <Label className="mb-2.5">{t("stageDiscordRoleId")}</Label>
                 <Input
                   value={stageModalData.stage_discord_role_id}
                   onChange={(e) =>
@@ -855,7 +875,7 @@ export function StageConfigModal({
                       stage_discord_role_id: e.target.value,
                     })
                   }
-                  placeholder="e.g: 1234567890"
+                  placeholder={t("discordRolePlaceholder")}
                 />
               </div>
             )}
@@ -864,7 +884,7 @@ export function StageConfigModal({
 
             {/* Stage-level prize pool */}
             <PrizePoolSection
-              label="Stage Prize Pool (optional)"
+              label={t("stagePrizePool")}
               prizepool={stageModalData.prizepool}
               prizepoolCashValue={stageModalData.prizepool_cash_value}
               prizeDistribution={stageModalData.prize_distribution}
@@ -885,12 +905,13 @@ export function StageConfigModal({
               }
             />
 
-            {/* Group preview only for classic formats - round-robin has no Step 2. */}
-            {!isRoundRobin && (
+            {/* Group preview only for classic formats - round-robin and Clash Squad have no Step 2. */}
+            {!isRoundRobin && !isClashSquad && (
               <div className="pt-4 border-t">
                 <p className="text-xs text-muted-foreground mb-3">
-                  You will configure {stageModalData.number_of_groups} group(s) in
-                  the next step
+                  {t("configureGroupsNext", {
+                    count: stageModalData.number_of_groups,
+                  })}
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {tempGroups
@@ -915,17 +936,17 @@ export function StageConfigModal({
             {/* Stage summary */}
             <div className="border border-primary/50 rounded-lg p-4">
               <p className="text-sm">
-                <span className="font-semibold">Stage:</span>{" "}
+                <span className="font-semibold">{t("stageColon")}</span>{" "}
                 {stageModalData.stage_name}
               </p>
               <p className="text-xs text-muted-foreground mt-2">
-                {formatDate(stageModalData.start_date)} to{" "}
+                {formatDate(stageModalData.start_date)} {t("dateTo")}{" "}
                 {formatDate(stageModalData.end_date)} •{" "}
                 {formattedWord[stageModalData.stage_format]}
               </p>
               {stageModalData.prizepool && (
                 <p className="text-xs text-primary mt-1">
-                  Stage Prize: {stageModalData.prizepool}
+                  {t("stagePrizeColon")} {stageModalData.prizepool}
                   {stageModalData.prizepool_cash_value
                     ? ` (${stageModalData.prizepool_cash_value})`
                     : ""}
@@ -937,7 +958,7 @@ export function StageConfigModal({
               <div key={index} className="border rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-sm md:text-base">
-                    Group {index + 1}
+                    {t("groupN", { number: index + 1 })}
                   </h4>
                   <span className="text-xs text-muted-foreground">
                     {group.group_name}
@@ -946,7 +967,7 @@ export function StageConfigModal({
 
                 {/* Group Name */}
                 <div>
-                  <Label className="mb-2.5">Group Name</Label>
+                  <Label className="mb-2.5">{t("groupName")}</Label>
                   <Input
                     value={group.group_name}
                     onChange={(e) =>
@@ -956,14 +977,14 @@ export function StageConfigModal({
                         e.target.value,
                       )
                     }
-                    placeholder={`Group ${index + 1}`}
+                    placeholder={t("groupN", { number: index + 1 })}
                   />
                 </div>
 
                 {/* Playing Date & Time */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label className="mb-2.5">Playing Date</Label>
+                    <Label className="mb-2.5">{t("playingDate")}</Label>
                     <Input
                       type="date"
                       value={group.playing_date}
@@ -977,7 +998,7 @@ export function StageConfigModal({
                     />
                   </div>
                   <div>
-                    <Label className="mb-2.5">Playing Time</Label>
+                    <Label className="mb-2.5">{t("playingTime")}</Label>
                     <Input
                       type="time"
                       value={group.playing_time}
@@ -995,7 +1016,7 @@ export function StageConfigModal({
                 {/* Teams Qualifying */}
                 <div>
                   <Label className="mb-2.5">
-                    Teams Qualifying from this Group
+                    {t("teamsQualifyingGroup")}
                   </Label>
                   <Input
                     type="number"
@@ -1017,21 +1038,21 @@ export function StageConfigModal({
                     one match per map, so there is no separate count to type. */}
                 <div>
                   <Label className="mb-2.5">
-                    Match count
+                    {t("matchCount")}
                     <InfoTip id="events.create.match_count" className="ml-1" />
                   </Label>
                   <p className="text-sm text-muted-foreground rounded-md border border-dashed p-3">
-                    {(group.match_maps?.length || 0)} match
-                    {(group.match_maps?.length || 0) === 1 ? "" : "es"} (one per map
-                    selected below). Add or remove maps to change this.
+                    {t("matchCountNote", {
+                      count: group.match_maps?.length || 0,
+                    })}
                   </p>
                 </div>
 
-                {/* Discord Role — hidden in the organizer flow (hideDiscord).
+                {/* Discord Role - hidden in the organizer flow (hideDiscord).
                     The empty group_discord_role_id still rides in the payload. */}
                 {!hideDiscord && (
                   <div>
-                    <Label className="mb-2.5">Discord Role ID</Label>
+                    <Label className="mb-2.5">{t("discordRoleId")}</Label>
                     <Input
                       value={group.group_discord_role_id}
                       onChange={(e) =>
@@ -1041,7 +1062,7 @@ export function StageConfigModal({
                           e.target.value,
                         )
                       }
-                      placeholder="e.g: 1234567890"
+                      placeholder={t("discordRolePlaceholder")}
                     />
                   </div>
                 )}
@@ -1049,7 +1070,7 @@ export function StageConfigModal({
                 {/* Maps */}
                 <div>
                   <Label className="mb-2.5">
-                    Maps to be Played <span className="text-red-500">*</span>
+                    {t("mapsToPlay")} <span className="text-red-500">*</span>
                     <InfoTip id="events.create.match_maps" className="ml-1" />
                   </Label>
                   <div className="flex flex-wrap gap-2">
@@ -1091,12 +1112,12 @@ export function StageConfigModal({
                   </div>
                   {(!group.match_maps || group.match_maps.length === 0) && (
                     <p className="text-xs text-red-500 mt-1">
-                      Please select at least one map
+                      {t("selectAtLeastOneMap")}
                     </p>
                   )}
                   {group.match_maps && group.match_maps.length > 0 && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Selected: {group.match_maps.join(", ")}
+                      {t("selectedMaps", { maps: group.match_maps.join(", ") })}
                     </p>
                   )}
                 </div>
@@ -1105,31 +1126,31 @@ export function StageConfigModal({
                     from autofilling the saved login EMAIL into Room ID and the saved PASSWORD into
                     Room password (owner 2026-06-18 "default keeps coming back" = browser autofill). */}
                 <div>
-                  <Label className="mb-2.5">Room ID</Label>
+                  <Label className="mb-2.5">{t("roomId")}</Label>
                   <Input
                     value={group.room_id}
                     onChange={(e) =>
                       updateGroupDetailLogic(index, "room_id", e.target.value)
                     }
-                    placeholder={`Room ${index + 1}`}
+                    placeholder={t("roomN", { number: index + 1 })}
                     autoComplete="off"
                   />
                 </div>
 
                 <div>
-                  <Label className="mb-2.5">Room name</Label>
+                  <Label className="mb-2.5">{t("roomName")}</Label>
                   <Input
                     value={group.room_name}
                     onChange={(e) =>
                       updateGroupDetailLogic(index, "room_name", e.target.value)
                     }
-                    placeholder="Room name"
+                    placeholder={t("roomNamePlaceholder")}
                     autoComplete="off"
                   />
                 </div>
 
                 <div>
-                  <Label className="mb-2.5">Room password</Label>
+                  <Label className="mb-2.5">{t("roomPassword")}</Label>
                   <div className="relative">
                     <Input
                       type={passwordVisibility[index] ? "text" : "password"}
@@ -1142,7 +1163,7 @@ export function StageConfigModal({
                         )
                       }
                       className="pr-10"
-                      placeholder="Enter room password"
+                      placeholder={t("roomPasswordPlaceholder")}
                       autoComplete="new-password"
                     />
                     <Button
@@ -1153,8 +1174,8 @@ export function StageConfigModal({
                       onClick={() => toggleVisibility(index)}
                       aria-label={
                         passwordVisibility[index]
-                          ? "Hide password"
-                          : "Show password"
+                          ? t("hidePassword")
+                          : t("showPassword")
                       }
                     >
                       {passwordVisibility[index] ? (
@@ -1170,7 +1191,7 @@ export function StageConfigModal({
 
                 {/* Group-level prize pool */}
                 <PrizePoolSection
-                  label="Group Prize Pool (optional)"
+                  label={t("groupPrizePool")}
                   prizepool={group.prizepool ?? ""}
                   prizepoolCashValue={group.prizepool_cash_value ?? ""}
                   prizeDistribution={group.prize_distribution ?? {}}
@@ -1198,7 +1219,7 @@ export function StageConfigModal({
                 onClick={() => setStageModalStep(1)}
                 className="w-full"
               >
-                Back
+                {t("back")}
               </Button>
             )}
           </div>
@@ -1212,7 +1233,7 @@ export function StageConfigModal({
                 setStageModalStep(1);
               }}
             >
-              Cancel
+              {t("cancel")}
             </Button>
 
             {stageModalStep === 1 ? (
@@ -1228,29 +1249,29 @@ export function StageConfigModal({
                     // compulsory for admins or organizers, so it is not gated here.
                     stageModalData.teams_qualifying_from_stage === undefined
                   ) {
-                    toast.error(
-                      "Please fill all required stage fields (Step 1)",
-                    );
+                    toast.error(t("fillRequiredStep1"));
                     return;
                   }
-                  // Round-robin: no classic groups, no Step 2 - save from Step 1
-                  // (handleSaveStageLogic validates the base groups for this format).
-                  if (isRoundRobin) {
+                  // Round-robin AND Clash Squad: no classic groups, no Step 2 - save from
+                  // Step 1 (validateStageData skips the group requirement for both formats).
+                  if (isRoundRobin || isClashSquad) {
                     handleSaveStageLogic();
                     return;
                   }
                   if (stageModalData.number_of_groups < 1) {
-                    toast.error("Number of groups must be at least 1.");
+                    toast.error(t("groupsAtLeastOne"));
                     return;
                   }
                   setStageModalStep(2);
                 }}
               >
-                {isRoundRobin ? "Save Stage" : "Next: Configure Groups"}
+                {isRoundRobin || isClashSquad
+                  ? t("saveStage")
+                  : t("nextConfigureGroups")}
               </Button>
             ) : (
               <Button type="button" onClick={handleSaveStageLogic}>
-                Save Stage
+                {t("saveStage")}
               </Button>
             )}
           </div>

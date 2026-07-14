@@ -1,0 +1,318 @@
+<!doctype html>
+<!--
+  AFC Team Statistics tab - DETAILED DESIGN PREVIEW v2 (mock data, in-context, clickable).
+  In the real team detail page chrome (green title + Overview/Members/Statistics/Social/Requests).
+  Interactive: time-range filter, performance metric switcher (growth/decline curve), ranking+tier
+  history, earnings-by-event breakdown, and an expandable per-tournament list (per-match kills).
+  No em dashes anywhere (hard rule).
+-->
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Team Statistics - Detailed Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --background: oklch(0.141 0.005 285.823); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.21 0.006 285.885); --primary: oklch(0.624 0.170 149.09);
+    --gold: oklch(0.79 0.17 83.63); --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067); --border: oklch(1 0 0 / 10%);
+    --radius: 0.65rem; --red: oklch(0.62 0.20 25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--background);color:var(--foreground);min-height:100vh;position:relative;line-height:1.5;}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,color-mix(in oklch,var(--primary) 18%,transparent),transparent 55%,color-mix(in oklch,var(--gold) 18%,transparent));}
+  .container{position:relative;z-index:1;width:92%;max-width:1180px;margin:0 auto;padding:34px 0 90px;}
+  .pagehead{display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+  .back{width:40px;height:40px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);display:grid;place-items:center;font-size:18px;cursor:pointer;}
+  h1{font-size:clamp(1.875rem,3vw,2.25rem);font-weight:700;color:var(--primary);letter-spacing:-0.01em;}
+  .ident{display:flex;align-items:center;gap:14px;margin:6px 0 22px 56px;color:var(--muted-foreground);font-size:.9rem;flex-wrap:wrap;}
+  .tierbadge{font-size:.7rem;font-weight:700;border-radius:999px;padding:3px 11px;border:1px solid color-mix(in oklch,var(--gold) 55%,transparent);color:var(--gold);background:color-mix(in oklch,var(--gold) 12%,transparent);}
+
+  .tabs{display:flex;gap:4px;background:var(--muted);border-radius:var(--radius);padding:4px;margin-bottom:26px;overflow-x:auto;}
+  .tab{flex:1;min-width:96px;text-align:center;font-size:.82rem;font-weight:600;padding:9px 12px;border-radius:calc(var(--radius) - 3px);color:var(--muted-foreground);cursor:pointer;white-space:nowrap;}
+  .tab.active{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+
+  .rowbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+  .eyebrow{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground);}
+  .seg{display:inline-flex;gap:3px;background:var(--muted);border-radius:var(--radius);padding:3px;}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--muted-foreground);font-family:inherit;font-size:.76rem;font-weight:600;padding:6px 13px;border-radius:calc(var(--radius) - 4px);cursor:pointer;white-space:nowrap;}
+  .seg button.on{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+  .filter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .custom{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--muted-foreground);}
+  .custom input{background:var(--background);border:1px solid var(--border);border-radius:calc(var(--radius) - 3px);color:var(--foreground);font-family:inherit;font-size:.78rem;padding:6px 9px;color-scheme:dark;}
+  .applybtn{background:var(--primary);color:#06281a;border:0;font-family:inherit;font-weight:700;font-size:.76rem;border-radius:calc(var(--radius) - 3px);padding:7px 14px;cursor:pointer;}
+  .rangeflag{font-size:.74rem;color:var(--primary);font-weight:600;}
+
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px;}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:17px 19px;}
+  .stat .lbl{font-size:.74rem;color:var(--muted-foreground);}
+  .stat .val{font-size:1.6rem;font-weight:700;margin-top:5px;}
+  .stat .sub{font-size:.72rem;color:var(--muted-foreground);margin-top:2px;}
+  .stat .val.green{color:var(--primary);} .stat .val.gold{color:var(--gold);}
+  .up{color:var(--primary);} .down{color:var(--red);}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;}
+  .panel h3{font-size:1rem;font-weight:700;}
+  .two{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start;margin-bottom:30px;}
+  .chart{width:100%;height:220px;}
+  .chart .grid line{stroke:var(--border);}
+  .axl{fill:var(--muted-foreground);font-size:9px;} .vlab{fill:var(--foreground);font-size:8.5px;font-weight:600;}
+  .trend{font-size:.8rem;font-weight:600;border-radius:999px;padding:3px 10px;display:inline-flex;gap:5px;align-items:center;}
+  .trend.up{color:var(--primary);background:color-mix(in oklch,var(--primary) 12%,transparent);border:1px solid color-mix(in oklch,var(--primary) 40%,transparent);}
+  .trend.down{color:var(--red);background:color-mix(in oklch,var(--red) 12%,transparent);border:1px solid color-mix(in oklch,var(--red) 40%,transparent);}
+
+  /* tier/ranking history timeline */
+  .timeline .row{display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid color-mix(in oklch,var(--border) 60%,transparent);font-size:.85rem;}
+  .timeline .row:first-child{border-top:0;}
+  .timeline .mo{color:var(--muted-foreground);font-size:.78rem;}
+  .tchip{font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 9px;border:1px solid var(--border);}
+  .tchip.t1{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 55%,transparent);}
+  .tchip.t2{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .tchip.t3{color:var(--muted-foreground);}
+  .delta{font-weight:700;font-size:.8rem;}
+
+  /* earnings by event */
+  .earn{display:flex;align-items:center;gap:12px;margin-bottom:11px;font-size:.85rem;}
+  .earn .ev{width:160px;flex-shrink:0;}
+  .earn .bar{flex:1;height:9px;border-radius:999px;background:var(--muted);overflow:hidden;}
+  .earn .bar span{display:block;height:100%;border-radius:999px;background:var(--gold);}
+  .earn .amt{width:64px;text-align:right;font-weight:700;}
+
+  /* tournaments table (expandable) */
+  table{width:100%;border-collapse:collapse;font-size:.82rem;}
+  th{text-align:left;color:var(--muted-foreground);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;padding:11px 16px;}
+  th.c,td.c{text-align:center;} th.r,td.r{text-align:right;}
+  td{padding:11px 16px;border-top:1px solid color-mix(in oklch,var(--border) 60%,transparent);}
+  tr.trow{cursor:pointer;} tr.trow:hover td{background:color-mix(in oklch,var(--primary) 5%,transparent);}
+  .ev2{font-weight:600;} .place{font-weight:700;} .place.win{color:var(--gold);}
+  .pill{font-size:.66rem;font-weight:600;border-radius:999px;padding:2px 9px;border:1px solid var(--border);color:var(--muted-foreground);}
+  .caret{display:inline-block;width:14px;color:var(--muted-foreground);transition:transform .15s;}
+  tr.open .caret{transform:rotate(90deg);color:var(--primary);}
+  .detail td{background:var(--background);padding:0;}
+  .detail .inner{padding:6px 16px 14px 40px;}
+  .detail h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-foreground);margin:10px 0 8px;}
+  .mtable{font-size:.78rem;} .mtable td,.mtable th{padding:7px 12px;}
+  .dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:4px;}
+  .dbox{background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);padding:11px 13px;}
+  .dbox .l{font-size:.68rem;color:var(--muted-foreground);} .dbox .v{font-weight:700;font-size:1.05rem;margin-top:2px;}
+  .hide{display:none;}
+  @media(max-width:860px){.cards,.dgrid{grid-template-columns:repeat(2,1fr);}.two{grid-template-columns:1fr;}.earn .ev{width:110px;}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="pagehead"><div class="back">&larr;</div><h1>V-ENT ESPORTS</h1></div>
+  <div class="ident"><span class="tierbadge">Tier 1</span><span>Nigeria</span><span>6 members</span><span>Founded Nov 2025</span></div>
+
+  <div class="tabs">
+    <div class="tab" onclick="showTab('overview')">Overview</div>
+    <div class="tab" onclick="showTab('members')">Members</div>
+    <div class="tab active" onclick="showTab('statistics')">Statistics</div>
+    <div class="tab" onclick="showTab('social')">Social Media</div>
+    <div class="tab" onclick="showTab('requests')">Requests</div>
+  </div>
+
+  <div id="statistics">
+    <!-- time-range filter -->
+    <div class="rowbar">
+      <span class="eyebrow">Performance over</span>
+      <div class="filter">
+        <div class="seg" id="rangeSeg">
+          <button onclick="setRange('3m',this)">3 months</button>
+          <button onclick="setRange('6m',this)">6 months</button>
+          <button class="on" onclick="setRange('12m',this)">12 months</button>
+          <button onclick="setRange('all',this)">All time</button>
+        </div>
+        <span class="custom">From <input type="date" id="from" value="2025-06-01"> to <input type="date" id="to" value="2025-12-31"></span>
+        <button class="applybtn" onclick="applyCustom()">Apply</button>
+        <span class="rangeflag" id="rangeFlag"></span>
+      </div>
+    </div>
+    <div class="cards" id="cards"></div>
+
+    <!-- performance curve with metric switcher -->
+    <div class="two">
+      <div class="panel">
+        <div class="rowbar" style="margin-bottom:14px">
+          <h3>Performance curve</h3>
+          <div class="seg" id="metricSeg">
+            <button class="on" onclick="setMetric('placement',this)">Placement</button>
+            <button onclick="setMetric('kills',this)">Kills</button>
+            <button onclick="setMetric('points',this)">Points</button>
+            <button onclick="setMetric('earnings',this)">Earnings</button>
+          </div>
+        </div>
+        <svg class="chart" id="curve" viewBox="0 0 520 195"></svg>
+        <div style="margin-top:10px"><span class="trend up" id="trendTag">&#9650; improving</span> <span id="trendTxt" style="font-size:.76rem;color:var(--muted-foreground)"></span></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-bottom:14px">Ranking &amp; tier history</h3>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+
+    <!-- earnings breakdown -->
+    <div class="rowbar"><span class="eyebrow">Earnings by event</span><span style="font-size:.85rem;color:var(--muted-foreground)">Total <b style="color:var(--gold)">$12,450</b></span></div>
+    <div class="panel" style="margin-bottom:30px" id="earnings"></div>
+
+    <!-- all tournaments (expandable) -->
+    <div class="rowbar"><span class="eyebrow">All tournaments played (tap a row for details)</span><span style="font-size:.85rem;color:var(--muted-foreground)" id="tcount"></span></div>
+    <div class="panel" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr>
+          <th style="width:26px"></th><th>Event</th><th>Date</th><th>Format</th>
+          <th class="c">Placement</th><th class="c">Kills</th><th class="c">Points</th><th class="r">Prize</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="overview" class="hide"><div class="panel">Overview tab (existing).</div></div>
+  <div id="members" class="hide"><div class="panel">Members tab (existing).</div></div>
+  <div id="social" class="hide"><div class="panel">Social Media tab (existing).</div></div>
+  <div id="requests" class="hide"><div class="panel">Requests tab (existing).</div></div>
+</div>
+
+<script>
+  // ---- mock data ----
+  const RANGES = {
+    '3m':  {t:8,  k:612,  w:2, e:'$3,300', ap:'#3.1', wr:'25%', kc:'+12% vs prev', wc:'+1'},
+    '6m':  {t:17, k:1284, w:4, e:'$5,900', ap:'#3.8', wr:'24%', kc:'+8% vs prev',  wc:'+2'},
+    '12m': {t:42, k:3184, w:9, e:'$12,450',ap:'#4.2', wr:'21%', kc:'+19% vs prev', wc:'+4'},
+    'all': {t:61, k:4530, w:12,e:'$16,800',ap:'#4.6', wr:'20%', kc:'lifetime',     wc:'12 total'},
+    'custom':{t:24,k:1820,w:5,e:'$6,400',ap:'#3.9',wr:'21%',kc:'custom range',wc:'5',lbl:'custom range'},
+  };
+  // Full 12-month series (Jan->Dec 2025) so the time-range filter can SLICE the
+  // performance curve, not just the stat cards. Each preset shows the last N months.
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const METRICS = {
+    placement: {vals:[8,7,7,6,5,6,4,5,3,4,2,1], ymin:1, ymax:8, invert:true, up:true, fmt:v=>'#'+v, note:'average team finish climbing toward #1'},
+    kills:     {vals:[60,72,68,85,88,102,95,142,120,160,135,188], ymin:0, ymax:200, up:true, fmt:v=>v, note:'team kills per event, peak 188 at Detty December'},
+    points:    {vals:[40,55,60,72,61,80,74,120,100,150,130,171], ymin:0, ymax:200, up:true, fmt:v=>v, note:'total points per event rising'},
+    earnings:  {vals:[0,100,150,250,300,200,600,450,900,700,1500,2500], ymin:0, ymax:2600, up:true, fmt:v=>'$'+(v>=1000?(v/1000).toFixed(1)+'k':v), note:'prize earnings accelerating recently'},
+  };
+  // Custom range -> [startMonthIdx, endMonthIdx) window; null = use the active preset.
+  let customWin = null;
+  const TIERHIST = [
+    {mo:'Dec 25', tier:1, tname:'Tier 1', rank:3,  delta:'+2', up:true,  note:'Promoted to Tier 1'},
+    {mo:'Nov 25', tier:2, tname:'Tier 2', rank:5,  delta:'+3', up:true,  note:''},
+    {mo:'Oct 25', tier:2, tname:'Tier 2', rank:8,  delta:'-1', up:false, note:''},
+    {mo:'Sep 25', tier:2, tname:'Tier 2', rank:7,  delta:'+4', up:true,  note:'Promoted to Tier 2'},
+    {mo:'Aug 25', tier:3, tname:'Tier 3', rank:14, delta:'new',up:true,  note:'First ranked month'},
+  ];
+  const EARNINGS = [
+    {ev:'Detty December Solos', amt:2500}, {ev:'Rivals Showdown', amt:1200},
+    {ev:'AFC Pro League S2', amt:900}, {ev:'Dynasty Cup Nigeria', amt:600},
+    {ev:'Naija Clash Open', amt:450},
+  ];
+  const TOURNS = [
+    {ev:'Detty December Solos', dt:'Dec 2025', fmt:'BR Normal', pl:'1st', win:true, k:188, p:'171.0', prize:'$2,500',
+      matches:[{m:'M1', map:'Bermuda', pl:'#1', k:14, p:23},{m:'M2', map:'Purgatory', pl:'#2', k:11, p:18},{m:'M3', map:'Kalahari', pl:'#1', k:13, p:24}]},
+    {ev:'Dynasty Cup Nigeria', dt:'Nov 2025', fmt:'BR Normal', pl:'3rd', win:false, k:142, p:'120.0', prize:'$600',
+      matches:[{m:'M1', map:'Bermuda', pl:'#3', k:9, p:15},{m:'M2', map:'Alpine', pl:'#4', k:7, p:12}]},
+    {ev:'AFC Pro League S2', dt:'Oct 2025', fmt:'Clash Squad', pl:'2nd', win:false, k:96, p:'88.0', prize:'$900',
+      matches:[{m:'Final', map:'Clash Squad', pl:'#2', k:18, p:31}]},
+    {ev:'Rivals Showdown', dt:'Sep 2025', fmt:'BR Round Robin', pl:'1st', win:true, k:171, p:'150.0', prize:'$1,200',
+      matches:[{m:'Day 1', map:'Bermuda', pl:'#1', k:22, p:34},{m:'Day 2', map:'Purgatory', pl:'#2', k:16, p:28}]},
+    {ev:'Lagos Open', dt:'Aug 2025', fmt:'BR Normal', pl:'5th', win:false, k:88, p:'61.0', prize:'-',
+      matches:[{m:'M1', map:'Bermuda', pl:'#6', k:5, p:9},{m:'M2', map:'Kalahari', pl:'#5', k:8, p:14}]},
+  ];
+
+  let range='12m', metric='placement';
+
+  function renderCards(){
+    const r=RANGES[range];
+    document.getElementById('rangeFlag').textContent='Showing '+({'3m':'last 3 months','6m':'last 6 months','12m':'last 12 months','all':'all time','custom':r.lbl})[range];
+    document.getElementById('cards').innerHTML = `
+      <div class="stat"><div class="lbl">Tournaments</div><div class="val">${r.t}</div><div class="sub">in range</div></div>
+      <div class="stat"><div class="lbl">Total Kills</div><div class="val green">${r.k.toLocaleString()}</div><div class="sub up">${r.kc}</div></div>
+      <div class="stat"><div class="lbl">Wins (1st)</div><div class="val gold">${r.w}</div><div class="sub up">${r.wc} new</div></div>
+      <div class="stat"><div class="lbl">Earnings</div><div class="val">${r.e}</div><div class="sub">prize money</div></div>
+      <div class="stat"><div class="lbl">Avg Placement</div><div class="val">${r.ap}</div><div class="sub">lower is better</div></div>
+      <div class="stat"><div class="lbl">Win Rate</div><div class="val">${r.wr}</div><div class="sub">1st-place share</div></div>
+      <div class="stat"><div class="lbl">Current Tier</div><div class="val gold">Tier 1</div><div class="sub">Elite grade</div></div>
+      <div class="stat"><div class="lbl">Ranking</div><div class="val green">#3</div><div class="sub up">&#9650; up 2 this month</div></div>`;
+  }
+  // Which slice of the 12-month series the active range shows.
+  function curveWindow(n){
+    if(range==='custom' && customWin) return customWin;
+    const count = range==='3m'?3 : range==='6m'?6 : 12;   // 12m + all => full year
+    return [Math.max(0,n-count), n];
+  }
+  function renderCurve(){
+    const m=METRICS[metric];
+    let [s,e]=curveWindow(m.vals.length);
+    if(e-s<2) s=Math.max(0,e-2);                 // need >=2 points to draw a line
+    const vals=m.vals.slice(s,e), labs=MONTHS.slice(s,e);
+    const L=46,R=508,T=14,B=164,W=R-L,H=B-T,n=vals.length;
+    const x=i=>L+W*i/(n-1);
+    const y=v=>m.invert?(T+(v-m.ymin)/(m.ymax-m.ymin)*H):(B-(v-m.ymin)/(m.ymax-m.ymin)*H);
+    let grid='',yl='';
+    for(let t=0;t<=4;t++){const yy=(T+H*t/4).toFixed(1);const vv=m.invert?(m.ymin+(m.ymax-m.ymin)*t/4):(m.ymax-(m.ymax-m.ymin)*t/4);
+      grid+=`<line x1="${L}" y1="${yy}" x2="${R}" y2="${yy}"/>`;
+      yl+=`<text x="${L-7}" y="${(+yy+3).toFixed(1)}" text-anchor="end" class="axl">${m.fmt(Math.round(vv*10)/10)}</text>`;}
+    let xl='';labs.forEach((d,i)=>xl+=`<text x="${x(i).toFixed(1)}" y="${B+15}" text-anchor="middle" class="axl">${d}</text>`);
+    const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    let dots='';vals.forEach((v,i)=>dots+=`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.6" fill="oklch(0.624 0.170 149.09)"/><text x="${x(i).toFixed(1)}" y="${(y(v)-7).toFixed(1)}" text-anchor="middle" class="vlab">${m.fmt(v)}</text>`);
+    document.getElementById('curve').innerHTML=`<g class="grid">${grid}</g>${yl}${xl}<polygon fill="oklch(0.624 0.170 149.09 / 12%)" points="${pts} ${R},${B} ${L},${B}"/><polyline fill="none" stroke="oklch(0.624 0.170 149.09)" stroke-width="2.5" points="${pts}"/>${dots}`;
+    const tag=document.getElementById('trendTag');tag.className='trend '+(m.up?'up':'down');tag.innerHTML=m.up?'&#9650; improving':'&#9660; declining';
+    document.getElementById('trendTxt').textContent=m.note;
+  }
+  function renderTimeline(){
+    document.getElementById('timeline').innerHTML = TIERHIST.map(h=>`
+      <div class="row">
+        <span class="mo">${h.mo}</span>
+        <span><span class="tchip t${h.tier}">${h.tname}</span> ${h.note?`<span style="color:var(--muted-foreground);font-size:.76rem"> ${h.note}</span>`:''}</span>
+        <span class="delta ${h.up?'up':'down'}">#${h.rank} ${h.delta!=='new'?`(${h.up?'&#9650;':'&#9660;'}${h.delta})`:''}</span>
+      </div>`).join('');
+  }
+  function renderEarnings(){
+    const max=Math.max(...EARNINGS.map(e=>e.amt));
+    document.getElementById('earnings').innerHTML = EARNINGS.map(e=>`
+      <div class="earn"><span class="ev">${e.ev}</span><span class="bar"><span style="width:${Math.round(e.amt/max*100)}%"></span></span><span class="amt">$${e.amt.toLocaleString()}</span></div>`).join('');
+  }
+  function renderTourns(){
+    document.getElementById('tcount').textContent = TOURNS.length + ' events';
+    document.getElementById('tbody').innerHTML = TOURNS.map((t,i)=>`
+      <tr class="trow" onclick="toggle(${i})">
+        <td><span class="caret" id="c${i}">&#9656;</span></td>
+        <td class="ev2">${t.ev}</td><td>${t.dt}</td><td><span class="pill">${t.fmt}</span></td>
+        <td class="c place ${t.win?'win':''}">${t.win?'&#127942; ':''}${t.pl}</td>
+        <td class="c">${t.k}</td><td class="c">${t.p}</td><td class="r">${t.prize}</td>
+      </tr>
+      <tr class="detail hide" id="d${i}"><td colspan="8"><div class="inner">
+        <div class="dgrid">
+          <div class="dbox"><div class="l">Final placement</div><div class="v">${t.pl}</div></div>
+          <div class="dbox"><div class="l">Total kills</div><div class="v">${t.k}</div></div>
+          <div class="dbox"><div class="l">Total points</div><div class="v">${t.p}</div></div>
+          <div class="dbox"><div class="l">Prize won</div><div class="v">${t.prize}</div></div>
+        </div>
+        <h4>Per-match breakdown</h4>
+        <table class="mtable"><thead><tr><th>Match</th><th>Map</th><th class="c">Placement</th><th class="c">Kills</th><th class="r">Points</th></tr></thead>
+        <tbody>${t.matches.map(mm=>`<tr><td>${mm.m}</td><td>${mm.map}</td><td class="c">${mm.pl}</td><td class="c">${mm.k}</td><td class="r">${mm.p}</td></tr>`).join('')}</tbody></table>
+      </div></td></tr>`).join('');
+  }
+  function setRange(r,el){range=r;customWin=null;[...document.querySelectorAll('#rangeSeg button')].forEach(b=>b.classList.remove('on'));el.classList.add('on');renderCards();renderCurve();}
+  function applyCustom(){
+    range='custom';[...document.querySelectorAll('#rangeSeg button')].forEach(b=>b.classList.remove('on'));
+    const f=document.getElementById('from').value,t=document.getElementById('to').value;
+    RANGES.custom.lbl=f+' to '+t;
+    // Map the chosen dates onto the 12-month (2025) series so the curve slices to match.
+    const fi=f?Math.min(11,Math.max(0,new Date(f).getMonth())):0;
+    const ti=t?Math.min(11,Math.max(0,new Date(t).getMonth())):11;
+    customWin=[Math.min(fi,ti), Math.max(fi,ti)+1];
+    renderCards();renderCurve();
+  }
+  function setMetric(m,el){metric=m;[...document.querySelectorAll('#metricSeg button')].forEach(b=>b.classList.remove('on'));el.classList.add('on');renderCurve();}
+  function toggle(i){document.getElementById('d'+i).classList.toggle('hide');document.getElementById('c'+i).parentElement.parentElement.classList.toggle('open');}
+  function showTab(id){['overview','members','statistics','social','requests'].forEach(t=>document.getElementById(t).classList.toggle('hide',t!==id));document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.textContent.trim().toLowerCase().startsWith(id.slice(0,5))));}
+
+  renderCards();renderCurve();renderTimeline();renderEarnings();renderTourns();
+</script>
+</body>
+</html>

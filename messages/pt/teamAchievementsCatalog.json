@@ -1,0 +1,73 @@
+{
+  "ladderDesc": "Contacte {count} {unit}.",
+  "section": {
+    "lifetime": "Vida útil",
+    "monthly": "Mensal",
+    "daily": "Diário"
+  },
+  "group": {
+    "teamWins": "Vitórias da equipa",
+    "teamKills": "Mortes por companheiros de equipa",
+    "tournamentsPlayed": "Torneios disputados",
+    "booyahs": "Booyahs",
+    "team": "Equipa",
+    "scrims": "Telas de ensaio",
+    "monthly": "Mensal",
+    "daily": "Diário"
+  },
+  "unit": {
+    "teamWins": "vitórias da equipa",
+    "teamKills": "mortes da equipa",
+    "tournamentsPlayed": "torneios disputados",
+    "booyahs": "vitórias em primeiro lugar"
+  },
+  "title": {
+    "total_team_wins_1": "Primeira vitória",
+    "total_team_wins_5": "Rising Squad",
+    "total_team_wins_10": "Fundada",
+    "total_team_wins_25": "Central elétrica",
+    "total_team_wins_50": "Juggernaut",
+    "total_team_wins_100": "Dinastia",
+    "total_team_wins_250": "Dinastia Lendária",
+    "total_team_kills_500": "Agressivo",
+    "total_team_kills_1000": "Sanguinário",
+    "total_team_kills_2500": "Implacável",
+    "total_team_kills_5000": "Devastador",
+    "total_team_kills_10000": "Aniquiladores",
+    "total_team_kills_25000": "Apex Squad",
+    "total_tournaments_played_1": "Estreia",
+    "total_tournaments_played_5": "Clientes habituais",
+    "total_tournaments_played_10": "Veteranos",
+    "total_tournaments_played_25": "Temperado",
+    "total_tournaments_played_50": "Lendas do Circuito",
+    "total_booyahs_1": "Primeiro Booyah",
+    "total_booyahs_5": "Série de vitórias do Booyah",
+    "total_booyahs_25": "Caçadores do Booyah",
+    "total_booyahs_50": "Booyah Kings",
+    "total_booyahs_100": "Dinastia Booyah",
+    "founded": "Fundada",
+    "full_squad": "Plantel completo",
+    "scrim_1": "Primeiro treino de preparação",
+    "scrim_10": "Moedores",
+    "scrim_25": "Profissionais da Prática",
+    "scrim_50": "Máquina de tela",
+    "monthly_wins": "Vencedores do mês",
+    "monthly_tournament": "Concorrentes mensais",
+    "monthly_kills": "Ataque Mensal",
+    "daily_match": "Jogo do Dia",
+    "daily_register": "Inscrição diária"
+  },
+  "desc": {
+    "founded": "Criar a equipa.",
+    "full_squad": "Ter, pelo menos, 4 membros ativos na lista.",
+    "scrim_1": "Joguem um jogo de treino em equipa.",
+    "scrim_10": "Joguem 10 jogos de treino em equipa.",
+    "scrim_25": "Jogar 25 jogos de treino em equipa.",
+    "scrim_50": "Jogar 50 jogos de treino em equipa.",
+    "monthly_wins": "Ganhar 3 jogos como equipa este mês.",
+    "monthly_tournament": "Participem num torneio em equipa este mês.",
+    "monthly_kills": "Consegue 500 abates em equipa este mês.",
+    "daily_match": "Joguem um jogo em equipa hoje.",
+    "daily_register": "Inscreve a equipa num evento ainda hoje."
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "back": "Back to Player Market",
+  "recruiting": "Recruiting",
+  "available": "Available",
+  "expired": "Expired",
+  "postedBy": "Posted by",
+  "unknown": "Unknown",
+  "altPost": "Post",
+  "rolesNeeded": "Roles Needed",
+  "minTier": "Min. Tier",
+  "commitmentLabel": "Commitment",
+  "openTo": "Open To",
+  "recruitmentCriteria": "Recruitment Criteria",
+  "primaryRole": "Primary Role",
+  "secondaryRole": "Secondary Role",
+  "availabilityLabel": "Availability",
+  "openToPlayFor": "Open To Play For",
+  "about": "About",
+  "postExpires": "Post expires:",
+  "viewOnMarket": "View on Player Market",
+  "apply": {
+    "cta": "Apply to This Team",
+    "applying": "Applying...",
+    "sent": "Application Sent",
+    "success": "Application sent to {team}!",
+    "teamFallback": "team",
+    "error": "Failed to send application."
+  },
+  "roles": {
+    "IGL": "In-Game Leader",
+    "RUSHER": "Rusher",
+    "SUPPORT": "Support",
+    "SNIPER": "Sniper",
+    "GRENADE": "Grenade"
+  },
+  "tiers": {
+    "TIER_1": "Tier 1",
+    "TIER_2": "Tier 2",
+    "TIER_3": "Tier 3"
+  },
+  "commitment": {
+    "FULL_TIME": "Full Time",
+    "PART_TIME": "Part Time"
+  },
+  "availability": {
+    "TRIAL": "Trial",
+    "PERMANENT": "Permanent",
+    "SCRIMS_ONLY": "Scrims Only"
+  },
+  "meta": {
+    "notFound": "Post Not Found | AFC Player Market",
+    "teamFallback": "A team",
+    "playerFallback": "A player",
+    "rolesFallback": "players",
+    "teamTitle": "{team} is Recruiting",
+    "teamLooking": "{team} is looking for {roles}",
+    "fromCountry": " from {country}",
+    "commitmentPart": "{commitment} commitment",
+    "minimumTier": ", minimum {tier}",
+    "applyLine": "Apply on AFC Player Market.",
+    "playerTitle": "{player} is Looking for a Team",
+    "playerAvailable": "{player}{role} is available",
+    "playerRoleParen": " ({role})",
+    "availBasis": " - {avail} basis",
+    "connectLine": "Connect on AFC Player Market."
+  }
+}

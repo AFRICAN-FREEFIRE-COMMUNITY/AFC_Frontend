@@ -55,6 +55,7 @@ const DEFAULT_BASE_PATH = "/a/leaderboards/standalone";
 export function StandaloneCreateWizard(props: {
   basePath?: string;
   organizationId?: number | null;
+  allowRankingFlag?: boolean;
 }) {
   return (
     <Suspense fallback={<FullLoader />}>
@@ -66,6 +67,7 @@ export function StandaloneCreateWizard(props: {
 function StandaloneCreateWizardInner({
   basePath = DEFAULT_BASE_PATH,
   organizationId,
+  allowRankingFlag = true,
 }: {
   // Route prefix the wizard redirects to after publish (admin default vs organizer value).
   basePath?: string;
@@ -74,6 +76,10 @@ function StandaloneCreateWizardInner({
   // organizers in _resolve_organization_for_create); the admin page omits it
   // (undefined = AFC-native leaderboard).
   organizationId?: number | null;
+  // "Counts toward AFC rankings" is admin-surface-only (owner 2026-07-13). Default true
+  // (admin page); the organizer create page passes false so the toggle never shows in the
+  // organizer portal even when a godmode admin is the viewer. Threaded to BasicsStep.
+  allowRankingFlag?: boolean;
 }) {
   const router = useRouter();
   // EDIT deep-link: the view pages' "Edit" buttons land on create?id=<draft id>. Before this
@@ -207,6 +213,7 @@ function StandaloneCreateWizardInner({
           <BasicsStep
             onCreated={handleCreated}
             organizationId={organizationId}
+            allowRankingFlag={allowRankingFlag}
             initial={leaderboard}
           />
         )}

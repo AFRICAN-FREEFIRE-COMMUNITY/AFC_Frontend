@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { generateHTML } from "@tiptap/html";
 import { JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -20,6 +21,9 @@ export const RenderDescription = ({
   truncate?: boolean;
   className?: string;
 }) => {
+  // i18n: "editor" ns. Only the parse-failure fallback below is user-facing here; the rendered
+  // rich text itself is stored content, not a UI string.
+  const t = useTranslations("editor");
   const output = useMemo(() => {
     if (!json) {
       return "<p></p>";
@@ -47,9 +51,9 @@ export const RenderDescription = ({
         Image,
       ]);
     } catch (error) {
-      return "<p>Content could not be rendered</p>";
+      return `<p>${t("contentError")}</p>`;
     }
-  }, [json]);
+  }, [json, t]);
 
   // rich-content provides all base typography; prose classes dropped
   // since @tailwindcss/typography is not installed in this project.

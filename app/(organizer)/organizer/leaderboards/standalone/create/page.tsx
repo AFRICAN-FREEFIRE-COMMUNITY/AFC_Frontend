@@ -47,6 +47,10 @@ export default function OrganizerCreateStandaloneLeaderboardPage() {
       <StandaloneCreateWizard
         basePath="/organizer/leaderboards/standalone"
         organizationId={membership.organization.organization_id}
+        // "Counts toward AFC rankings" is admin-surface-only (owner 2026-07-13): never show it in
+        // the organizer portal, even to a godmode admin viewing this page. The admin create page
+        // leaves the default (true). Backend also forces the flag off for organizer creates.
+        allowRankingFlag={false}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generatePageMetadata } from "@/lib/seo";
 import { PageHeader } from "@/components/PageHeader";
@@ -16,37 +17,31 @@ export const metadata: Metadata = generatePageMetadata({
   url: "/about",
 });
 
-export default function AboutPage() {
+// Async Server Component: page copy is localized via getTranslations("aboutPage")
+// (keys in messages/en/aboutPage.json, machine-translated to fr/pt). The metadata
+// export above is left as canonical English on purpose (SEO title/description),
+// matching the privacy-policy page convention.
+export default async function AboutPage() {
+  const t = await getTranslations("aboutPage");
   return (
     <div>
-      <PageHeader title="About AFC" />
+      <PageHeader title={t("pageTitle")} />
       <div className="space-y-4">
         <Card className="gap-1.5">
           <CardHeader>
-            <CardTitle>Our Mission</CardTitle>
+            <CardTitle>{t("missionTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="text-sm md:text-base text-muted-foreground">
-            <p>
-              The African Free Fire Community (AFC) is dedicated to fostering a
-              competitive and supportive environment for Freefire players across
-              Africa. Our mission is to promote esports, develop talent, and
-              create opportunities for players to showcase their skills on a
-              global stage.
-            </p>
+            <p>{t("mission")}</p>
           </CardContent>
         </Card>
 
         <Card className="gap-1.5">
           <CardHeader>
-            <CardTitle>Our Vision</CardTitle>
+            <CardTitle>{t("visionTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="text-sm md:text-base text-muted-foreground">
-            <p>
-              We envision a thriving African Free Fire esports scene that is
-              recognized worldwide for its talent, passion, and professionalism.
-              Through our efforts, we aim to elevate African players and teams
-              to compete at the highest levels of international tournaments.
-            </p>
+            <p>{t("vision")}</p>
           </CardContent>
         </Card>
 
@@ -55,61 +50,45 @@ export default function AboutPage() {
             must state the app's purpose AND what Google user data is used and why. */}
         <Card className="gap-1.5">
           <CardHeader>
-            <CardTitle>What the AFC Hub does</CardTitle>
+            <CardTitle>{t("hubTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm md:text-base text-muted-foreground">
+            <p>{t("hub")}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="gap-1.5">
+          <CardHeader>
+            <CardTitle>{t("googleTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="text-sm md:text-base text-muted-foreground">
             <p>
-              The AFC Hub is a competitive Free Fire esports platform. Players create a
-              profile, build and manage teams, register for tournaments and scrims, climb
-              the monthly rankings, and track their match stats and achievements, all in
-              one place.
+              {t.rich("googleSignin", {
+                // Inline <privacy> tag in the translation wraps the Privacy Policy link.
+                privacy: (chunks) => (
+                  <a
+                    href="/privacy-policy"
+                    className="text-primary hover:underline"
+                  >
+                    {chunks}
+                  </a>
+                ),
+              })}
             </p>
           </CardContent>
         </Card>
 
         <Card className="gap-1.5">
           <CardHeader>
-            <CardTitle>Signing in with Google</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm md:text-base text-muted-foreground">
-            <p>
-              Signing in with Google is optional. If you choose it, AFC only uses your
-              name and email address to create and sign you into your AFC account. We
-              never post to your Google account or access any other Google data. See our{" "}
-              <a href="/privacy-policy" className="text-primary hover:underline">
-                Privacy Policy
-              </a>{" "}
-              for how your data is handled.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="gap-1.5">
-          <CardHeader>
-            <CardTitle>Our Values</CardTitle>
+            <CardTitle>{t("valuesTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="text-sm md:text-base text-muted-foreground">
             <ul className="list-disc pl-5 space-y-1">
-              <li>
-                Integrity: We uphold the highest standards of fair play and
-                sportsmanship.
-              </li>
-              <li>
-                Community: We foster a supportive and inclusive environment for
-                all players.
-              </li>
-              <li>
-                Excellence: We strive for continuous improvement and excellence
-                in all our endeavors.
-              </li>
-              <li>
-                Innovation: We embrace new technologies and strategies to
-                advance the Freefire esports scene.
-              </li>
-              <li>
-                Empowerment: We provide resources and opportunities for players
-                to develop their skills and achieve their goals.
-              </li>
+              <li>{t("valueIntegrity")}</li>
+              <li>{t("valueCommunity")}</li>
+              <li>{t("valueExcellence")}</li>
+              <li>{t("valueInnovation")}</li>
+              <li>{t("valueEmpowerment")}</li>
             </ul>
           </CardContent>
         </Card>

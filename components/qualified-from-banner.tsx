@@ -16,6 +16,7 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,6 +35,7 @@ interface InboundRow {
 }
 
 export function QualifiedFromBanner({ eventId }: { eventId: number }) {
+  const t = useTranslations("qualifiedBanner");
   const [rows, setRows] = useState<InboundRow[]>([]);
 
   // Live refresh (owner 2026-07-02): tick in the deps below (silent-fail, spinnerless fetch).
@@ -62,12 +64,15 @@ export function QualifiedFromBanner({ eventId }: { eventId: number }) {
     <Card className="border-gold/40 bg-gold/5">
       <CardContent className="space-y-2 py-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-gold">
-          <IconTrophy className="size-4" /> Qualified field
+          <IconTrophy className="size-4" /> {t("title")}
         </div>
         {rows.map((r, i) => (
           <div key={i} className="flex flex-wrap items-center gap-1.5 text-xs">
             <span className="text-muted-foreground">
-              Top {r.qualify_count} from {r.source_stage_name} of
+              {t("topFrom", {
+                count: r.qualify_count,
+                stage: r.source_stage_name,
+              })}
             </span>
             <b>{r.source_event_name}</b>
             {r.qualifiers.map((name) => (

@@ -83,23 +83,25 @@ interface SponsorshipBuilderProps {
 }
 
 // ── engagement type catalogue ─────────────────────────────────────────────────
-// Labels match the mockup's add-entry select; badge colors mirror the mockup's
-// per-type badges (collect id green / follow socials blue / create account gold /
+// The type CODES are stable (they mirror afc_sponsors/engagements.py); their user-facing
+// labels are i18n'd via the "sponsor" ns at render time (builder.engType.<code> for the
+// add-entry select, builder.badge.<code> for the per-entry badge). Badge colors mirror the
+// mockup's per-type badges (collect id green / follow socials blue / create account gold /
 // join group orange) using the AFC outline rounded-full badge idiom.
 type EngagementType = SponsorEngagement["type"];
 
-const ENGAGEMENT_TYPES: Array<{ value: EngagementType; label: string }> = [
-  { value: "collect_id", label: "Collect an ID" },
-  { value: "follow_social", label: "Follow socials" },
-  { value: "create_account", label: "Create an account" },
-  { value: "join_group", label: "Join a group" },
+const ENGAGEMENT_TYPE_VALUES: EngagementType[] = [
+  "collect_id",
+  "follow_social",
+  "create_account",
+  "join_group",
 ];
 
-const TYPE_BADGE: Record<EngagementType, { label: string; cls: string }> = {
-  collect_id: { label: "collect id", cls: "border-green-500/60 text-green-500" },
-  follow_social: { label: "follow socials", cls: "border-blue-500/60 text-blue-400" },
-  create_account: { label: "create account", cls: "border-yellow-500/60 text-yellow-500" },
-  join_group: { label: "join group", cls: "border-orange-500/60 text-orange-500" },
+const TYPE_BADGE_CLS: Record<EngagementType, string> = {
+  collect_id: "border-green-500/60 text-green-500",
+  follow_social: "border-blue-500/60 text-blue-400",
+  create_account: "border-yellow-500/60 text-yellow-500",
+  join_group: "border-orange-500/60 text-orange-500",
 };
 
 // The actions a follow_social engagement can ask for (server validates the same set).
@@ -124,28 +126,53 @@ function newEngagement(type: EngagementType): SponsorEngagement {
 // so the SAVE paths (SponsorTab save button + the create wizards' step-7 Next gate)
 // can warn BEFORE the configure endpoint 400s. Keep in sync with
 // afc_sponsors/engagements.py.
-export function sponsorshipIssues(rows: SponsorshipDraft[]): string[] {
+//
+// i18n: this is a PURE function (no React context), so it takes an OPTIONAL translator `t`
+// bound to the "sponsor" ns (builder.issues.*). When passed, every message is localized;
+// when omitted it falls back to the identical English string. The admin callers under
+// app/(a)/ (i18n-exempt) omit it and keep their exact English behavior; the organizer
+// create page can pass `useTranslations("sponsor")` to localize the same warnings.
+type IssueTranslator = (key: string, values?: Record<string, string | number>) => string;
+
+export function sponsorshipIssues(
+  rows: SponsorshipDraft[],
+  t?: IssueTranslator,
+): string[] {
   const issues: string[] = [];
   for (const row of rows) {
     row.engagements.forEach((e, i) => {
-      const where = `${row.sponsor_name}: entry ${i + 1}`;
+      // Shared "<sponsor>: entry <n>" prefix reused by every message below.
+      const where = t
+        ? t("builder.issues.where", { sponsor: row.sponsor_name, n: i + 1 })
+        : `${row.sponsor_name}: entry ${i + 1}`;
+      // Localized message when a translator is provided, else the English fallback (the
+      // english arg is the exact suffix appended after `where`, matching the ns value).
+      const msg = (key: string, english: string) =>
+        t ? t(`builder.issues.${key}`, { where }) : `${where}${english}`;
       switch (e.type) {
         case "collect_id":
-          if (!e.label?.trim()) issues.push(`${where} (Collect an ID) needs a field label.`);
+          if (!e.label?.trim())
+            issues.push(msg("collectIdLabel", " (Collect an ID) needs a field label."));
           break;
         case "follow_social":
-          if (!e.platform?.trim()) issues.push(`${where} (Follow socials) needs a platform.`);
-          if (!e.url?.trim()) issues.push(`${where} (Follow socials) needs a page URL.`);
+          if (!e.platform?.trim())
+            issues.push(msg("followPlatform", " (Follow socials) needs a platform."));
+          if (!e.url?.trim())
+            issues.push(msg("followUrl", " (Follow socials) needs a page URL."));
           if (!e.actions || e.actions.length === 0)
-            issues.push(`${where} (Follow socials) needs at least one action.`);
+            issues.push(msg("followAction", " (Follow socials) needs at least one action."));
           break;
         case "create_account":
-          if (!e.label?.trim()) issues.push(`${where} (Create an account) needs a field label.`);
-          if (!e.signup_url?.trim()) issues.push(`${where} (Create an account) needs a signup URL.`);
+          if (!e.label?.trim())
+            issues.push(msg("createAccountLabel", " (Create an account) needs a field label."));
+          if (!e.signup_url?.trim())
+            issues.push(msg("createAccountUrl", " (Create an account) needs a signup URL."));
           break;
         case "join_group":
-          if (!e.platform?.trim()) issues.push(`${where} (Join a group) needs a platform.`);
-          if (!e.invite_url?.trim()) issues.push(`${where} (Join a group) needs an invite link.`);
+          if (!e.platform?.trim())
+            issues.push(msg("joinPlatform", " (Join a group) needs a platform."));
+          if (!e.invite_url?.trim())
+            issues.push(msg("joinInvite", " (Join a group) needs an invite link."));
           break;
       }
     });
@@ -233,7 +260,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
   // Hits sponsorsApi.create (POST sponsors/create/); the backend now lets event-creating
   // organizers through (afc_sponsors.views._can_create_sponsor), so this works for both the
   // admin and organizer create wizards. On success the returned sponsor is auto-added to the
-  // picked list via addSponsor — no extra search needed (a just-picked sponsor is filtered out
+  // picked list via addSponsor (no extra search needed; a just-picked sponsor is filtered out
   // of the typeahead by `pickable`).
   const handleCreateSponsor = async () => {
     const name = cName.trim();
@@ -324,16 +351,15 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
     <div className="space-y-3">
       {/* Section intro (mockup copy: pick existing sponsors, no free-text names) */}
       <p className="text-xs text-muted-foreground">
-        Pick existing sponsors (no free-text names). An event can carry multiple
-        sponsors; each brings its own engagements.
-        {!eventId && " Sponsors are attached right after the event is created."}
+        {t("builder.intro")}
+        {!eventId && ` ${t("builder.introCreateSuffix")}`}
       </p>
 
       {/* ── Sponsor typeahead (search input + dropdown over sponsorsApi.list) ── */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search a sponsor..."
+          placeholder={t("builder.searchPlaceholder")}
           className="pl-9"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -346,7 +372,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
           <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-md border bg-popover shadow-md">
             {searching ? (
               <div className="flex items-center gap-2 px-3 py-3 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> Searching...
+                <Loader2 className="size-4 animate-spin" /> {t("builder.searching")}
               </div>
             ) : pickable.length === 0 ? (
               // Empty-state copy is now neutral: organizers can create sponsors too, so the
@@ -374,7 +400,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">{s.name}</span>
                       <span className="block truncate text-xs text-muted-foreground">
-                        {s.events_count} event{s.events_count === 1 ? "" : "s"} so far
+                        {t("builder.eventsCount", { count: s.events_count })}
                       </span>
                     </span>
                     <Plus className="size-4 shrink-0 text-primary" />
@@ -406,7 +432,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
       {/* ── One card per attached sponsor ── */}
       {value.length === 0 && (
         <p className="rounded-md border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
-          No sponsors added yet. Search above to attach one.
+          {t("builder.noneAdded")}
         </p>
       )}
 
@@ -422,22 +448,22 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
               variant="outline"
               className="rounded-full border-gold/60 px-2 py-0.5 text-xs text-gold"
             >
-              {eventId ? "attached" : "will attach on create"}
+              {eventId ? t("builder.attached") : t("builder.willAttach")}
             </Badge>
             <label className="ml-2 flex cursor-pointer items-center gap-2 text-xs">
               <Switch
                 checked={row.requires_approval}
                 onCheckedChange={(v) => patchRow(row.sponsor_id, { requires_approval: v })}
               />
-              Sponsor must approve registrations
+              {t("builder.mustApprove")}
             </label>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="ml-auto size-7 text-muted-foreground hover:text-destructive"
+              className="ml-auto size-8 text-muted-foreground hover:text-destructive"
               onClick={() => removeSponsor(row.sponsor_id)}
-              aria-label={`Remove ${row.sponsor_name}`}
+              aria-label={t("builder.removeSponsor", { name: row.sponsor_name })}
             >
               <X className="size-4" />
             </Button>
@@ -445,17 +471,16 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
 
           {/* ── engagement list ── */}
           <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Engagements
+            {t("builder.engagementsHeading")}
           </p>
 
           {row.engagements.length === 0 && (
             <p className="mt-1 text-xs text-muted-foreground">
-              No engagements yet. Add one below; registrants complete them in this order.
+              {t("builder.noEngagements")}
             </p>
           )}
 
           {row.engagements.map((e, i) => {
-            const badge = TYPE_BADGE[e.type];
             return (
               <div
                 key={`${row.sponsor_id}-${i}`}
@@ -465,22 +490,22 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className={`rounded-full px-2 py-0.5 text-xs ${badge.cls}`}
+                    className={`rounded-full px-2 py-0.5 text-xs ${TYPE_BADGE_CLS[e.type]}`}
                   >
-                    {badge.label}
+                    {t(`builder.badge.${e.type}`)}
                   </Badge>
                   <span className="truncate text-xs font-medium">
-                    {e.label || e.platform || e.url || `Entry ${i + 1}`}
+                    {e.label || e.platform || e.url || t("builder.entryN", { n: i + 1 })}
                   </span>
                   <div className="ml-auto flex items-center gap-0.5">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="size-6 text-muted-foreground"
+                      className="size-8 text-muted-foreground"
                       disabled={i === 0}
                       onClick={() => moveEngagement(row.sponsor_id, i, "up")}
-                      aria-label="Move up"
+                      aria-label={t("builder.moveUp")}
                     >
                       <ArrowUp className="size-3.5" />
                     </Button>
@@ -488,10 +513,10 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="size-6 text-muted-foreground"
+                      className="size-8 text-muted-foreground"
                       disabled={i === row.engagements.length - 1}
                       onClick={() => moveEngagement(row.sponsor_id, i, "down")}
-                      aria-label="Move down"
+                      aria-label={t("builder.moveDown")}
                     >
                       <ArrowDown className="size-3.5" />
                     </Button>
@@ -499,9 +524,9 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="size-6 text-muted-foreground hover:text-destructive"
+                      className="size-8 text-muted-foreground hover:text-destructive"
                       onClick={() => removeEngagement(row.sponsor_id, i)}
-                      aria-label="Delete engagement"
+                      aria-label={t("builder.deleteEngagement")}
                     >
                       <X className="size-3.5" />
                     </Button>
@@ -515,10 +540,10 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                       {/* Each collect_id entry is its OWN labelled field at registration,
                           so one sponsor can ask for several values (multi-label ask). */}
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Field label</Label>
+                        <Label className="text-xs text-muted-foreground">{t("builder.fields.collectIdLabel")}</Label>
                         <Input
                           className="h-8 text-sm"
-                          placeholder="e.g. ydpay UID"
+                          placeholder={t("builder.fields.collectIdLabelPlaceholder")}
                           value={e.label ?? ""}
                           onChange={(ev) =>
                             patchEngagement(row.sponsor_id, i, { label: ev.target.value })
@@ -527,11 +552,11 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
-                          Help text (optional)
+                          {t("builder.fields.collectIdHelp")}
                         </Label>
                         <Input
                           className="h-8 text-sm"
-                          placeholder="e.g. Find it in the app under Profile"
+                          placeholder={t("builder.fields.collectIdHelpPlaceholder")}
                           value={e.help ?? ""}
                           onChange={(ev) =>
                             patchEngagement(row.sponsor_id, i, { help: ev.target.value })
@@ -544,10 +569,10 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                   {e.type === "follow_social" && (
                     <>
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Platform</Label>
+                        <Label className="text-xs text-muted-foreground">{t("builder.fields.followPlatform")}</Label>
                         <Input
                           className="h-8 text-sm"
-                          placeholder="e.g. Instagram, X, TikTok"
+                          placeholder={t("builder.fields.followPlatformPlaceholder")}
                           value={e.platform ?? ""}
                           onChange={(ev) =>
                             patchEngagement(row.sponsor_id, i, { platform: ev.target.value })
@@ -555,10 +580,10 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Page URL</Label>
+                        <Label className="text-xs text-muted-foreground">{t("builder.fields.followUrl")}</Label>
                         <Input
                           className="h-8 text-sm"
-                          placeholder="e.g. instagram.com/ydpay"
+                          placeholder={t("builder.fields.followUrlPlaceholder")}
                           value={e.url ?? ""}
                           onChange={(ev) =>
                             patchEngagement(row.sponsor_id, i, { url: ev.target.value })
@@ -566,7 +591,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Actions</Label>
+                        <Label className="text-xs text-muted-foreground">{t("builder.fields.followActions")}</Label>
                         <div className="flex h-8 items-center gap-4">
                           {SOCIAL_ACTIONS.map((action) => (
                             <label
@@ -577,14 +602,14 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                                 checked={(e.actions ?? []).includes(action)}
                                 onCheckedChange={() => toggleAction(row.sponsor_id, i, action)}
                               />
-                              {action}
+                              {t(`builder.socialAction.${action}`)}
                             </label>
                           ))}
                         </div>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
-                          Collect registrant profile link
+                          {t("builder.fields.followCollectProfile")}
                         </Label>
                         <label className="flex h-8 cursor-pointer items-center gap-1.5 text-xs">
                           <Checkbox
@@ -595,7 +620,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                               })
                             }
                           />
-                          yes, ask for their profile link
+                          {t("builder.fields.followCollectProfileYes")}
                         </label>
                       </div>
                     </>
@@ -604,10 +629,10 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                   {e.type === "create_account" && (
                     <>
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Signup URL</Label>
+                        <Label className="text-xs text-muted-foreground">{t("builder.fields.createSignupUrl")}</Label>
                         <Input
                           className="h-8 text-sm"
-                          placeholder="e.g. app.sponsor.com/signup"
+                          placeholder={t("builder.fields.createSignupUrlPlaceholder")}
                           value={e.signup_url ?? ""}
                           onChange={(ev) =>
                             patchEngagement(row.sponsor_id, i, { signup_url: ev.target.value })
@@ -616,11 +641,11 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-muted-foreground">
-                          Collected field label
+                          {t("builder.fields.createLabel")}
                         </Label>
                         <Input
                           className="h-8 text-sm"
-                          placeholder="e.g. App username"
+                          placeholder={t("builder.fields.createLabelPlaceholder")}
                           value={e.label ?? ""}
                           onChange={(ev) =>
                             patchEngagement(row.sponsor_id, i, { label: ev.target.value })
@@ -633,7 +658,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                   {e.type === "join_group" && (
                     <>
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Platform</Label>
+                        <Label className="text-xs text-muted-foreground">{t("builder.fields.joinPlatform")}</Label>
                         {/* whatsapp collects phone + country code, discord collects the
                             discord username - copy mirrors the approved mockup. */}
                         <Select
@@ -643,23 +668,23 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                           }
                         >
                           <SelectTrigger className="h-8 text-sm">
-                            <SelectValue placeholder="Pick a platform" />
+                            <SelectValue placeholder={t("builder.fields.joinPlatformPlaceholder")} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="whatsapp">
-                              WhatsApp (collects phone + country code)
+                              {t("builder.fields.joinWhatsapp")}
                             </SelectItem>
                             <SelectItem value="discord">
-                              Discord (collects discord username)
+                              {t("builder.fields.joinDiscord")}
                             </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Invite link</Label>
+                        <Label className="text-xs text-muted-foreground">{t("builder.fields.joinInviteUrl")}</Label>
                         <Input
                           className="h-8 text-sm"
-                          placeholder="e.g. chat.whatsapp.com/your-community"
+                          placeholder={t("builder.fields.joinInviteUrlPlaceholder")}
                           value={e.invite_url ?? ""}
                           onChange={(ev) =>
                             patchEngagement(row.sponsor_id, i, { invite_url: ev.target.value })
@@ -685,9 +710,9 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ENGAGEMENT_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
+                {ENGAGEMENT_TYPE_VALUES.map((val) => (
+                  <SelectItem key={val} value={val}>
+                    {t(`builder.engType.${val}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -700,7 +725,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
               onClick={() => addEngagement(row.sponsor_id)}
             >
               <Plus className="mr-1 size-3.5" />
-              Add engagement
+              {t("builder.addEngagement")}
             </Button>
           </div>
         </div>
@@ -709,8 +734,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
       {/* multi collect_id note from the mockup */}
       {value.length > 0 && (
         <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
-          Each &quot;collect id&quot; entry is its own labelled field at registration, so one
-          sponsor can ask for several values.
+          {t("builder.multiCollectNote")}
         </p>
       )}
 

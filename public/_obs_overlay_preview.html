@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<!--
+  OBS overlay v3 preview — LIVE DOM render of a leaderboard design (not a baked PNG), so it can
+  animate, be transparent, and update only the values (stable layout, smooth re-sort).
+  Left  = "OBS overlay link" config: leaderboard target + design + size + TRANSPARENT + ANIMATION +
+          which COLUMNS + top-N + refresh -> copyable link. Access note: organizer=own, super=all.
+  Right = OBS Browser Source: DOM board that self-updates; rows re-sort with a smooth FLIP move,
+          numbers count up, layout never jumps. Toggle transparent to see gameplay behind.
+  Throwaway: frontend/public/_obs_overlay_preview.html (underscore -> untracked -> never ships).
+-->
+<html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AFC OBS Overlay v3 — Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..900&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --background:oklch(0.141 0.005 285.823); --card:oklch(0.21 0.006 285.885); --card2:oklch(0.25 0.006 285.885);
+    --foreground:oklch(0.985 0 0); --muted:oklch(0.705 0.015 286.067);
+    --primary:oklch(0.624 0.170 149.09); --gold:oklch(0.79 0.17 83.63);
+    --border:oklch(1 0 0 / 12%); --radius:0.65rem;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"DM Sans",system-ui,sans-serif;background:var(--background);color:var(--foreground);
+    padding:24px;display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start;min-height:100vh}
+  h1{font-size:21px;font-weight:800;color:var(--primary)} .sub{font-size:12.5px;color:var(--muted);margin:2px 0 18px}
+  .cfg{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+  .cfg h2{font-size:14px;font-weight:700} .cfg .h2s{font-size:11.5px;color:var(--muted);margin:2px 0 14px}
+  .field{margin-bottom:12px} .field>label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+  select,input[type=text]{width:100%;background:var(--background);color:var(--foreground);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font:inherit;font-size:13.5px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .seg{display:flex;background:var(--background);border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px}
+  .seg button{flex:1;border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;font-size:12.5px;padding:6px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:var(--card2);color:var(--foreground)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);cursor:pointer;user-select:none}
+  .chip.on{background:color-mix(in oklab,var(--primary) 22%,transparent);border-color:var(--primary);color:var(--foreground)}
+  .urlbox{display:flex;gap:7px;margin-top:4px} .urlbox input{flex:1;font-family:ui-monospace,monospace;font-size:10.5px;color:var(--gold)}
+  .btn{background:var(--primary);color:#04120a;border:0;border-radius:8px;padding:8px 13px;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}
+  .hint{margin-top:12px;font-size:11px;line-height:1.5;color:var(--muted);border-top:1px solid var(--border);padding-top:10px}
+  .hint b{color:var(--foreground)} .acc{color:var(--gold)}
+
+  /* OBS frame */
+  .obs h2{font-size:14px;font-weight:700} .obs .h2s{font-size:11.5px;color:var(--muted);margin:2px 0 10px}
+  .frame{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+  .frame.solid{background:radial-gradient(1000px 460px at 15% -10%,color-mix(in oklab,var(--primary) 20%,transparent),transparent 60%),radial-gradient(900px 460px at 100% 110%,color-mix(in oklab,var(--gold) 14%,transparent),transparent 55%),var(--background)}
+  .frame.tp{background:linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.3)),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='20' height='20' fill='%23474747'/%3E%3Crect x='20' y='20' width='20' height='20' fill='%23474747'/%3E%3Crect x='20' width='20' height='20' fill='%23606060'/%3E%3Crect y='20' width='20' height='20' fill='%23606060'/%3E%3C/svg%3E");background-size:cover,40px 40px}
+  .board{position:absolute;top:36px;left:40px;width:520px}
+  .bhead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .blogo{width:40px;height:40px;border-radius:9px;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--gold));color:#04120a;font-weight:900;font-size:15px}
+  .btitle{font-weight:800;font-size:22px;background:linear-gradient(90deg,var(--primary),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .bsub{font-size:11px;font-weight:600;letter-spacing:1.6px;text-transform:uppercase;color:var(--muted)}
+  .frame.tp .btitle,.frame.tp .trow,.frame.tp .cols{text-shadow:0 1px 3px rgba(0,0,0,.75)}
+  .cols,.trow{display:grid;align-items:center;grid-template-columns:var(--grid)}
+  .cols{padding:8px 14px;font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+  .cols .n,.trow .n{text-align:right}
+  .tbody{position:relative}
+  .trow{padding:9px 14px;font-size:16px;font-weight:600;border-radius:8px;will-change:transform}
+  .frame.solid .trow{background:color-mix(in oklab,var(--card) 82%,transparent)}
+  .frame.tp .trow{background:color-mix(in oklab,#05070a 55%,transparent)}
+  .trow+.trow{margin-top:6px}
+  .trow .rank{font-weight:900;color:var(--muted);font-variant-numeric:tabular-nums}
+  .trow.p1 .rank{color:var(--gold)} .trow.p2 .rank{color:#cbd5e1} .trow.p3 .rank{color:#e0a06a}
+  .trow .team{display:flex;align-items:center;gap:10px;min-width:0}
+  .trow .tag{width:26px;height:26px;border-radius:6px;flex:0 0 auto;display:grid;place-items:center;font-size:10px;font-weight:800;color:#04120a;background:linear-gradient(135deg,var(--primary),var(--gold))}
+  .trow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+  .trow .n{font-variant-numeric:tabular-nums;font-weight:700}
+  .trow .total{color:var(--primary);font-weight:900} .trow.p1 .total{color:var(--gold)}
+  .trow.flash{animation:flash 1s ease}
+  @keyframes flash{0%{background:color-mix(in oklab,var(--primary) 32%,transparent)}100%{}}
+  .note{margin-top:9px;font-size:11px;color:var(--muted);line-height:1.5}
+</style></head>
+<body>
+  <div>
+    <h1>Live leaderboard overlay</h1>
+    <div class="sub">Live-rendered from your design. Animated. Preview.</div>
+    <div class="cfg">
+      <h2>OBS overlay link</h2>
+      <div class="h2s">Organizers see only their own events + designs. Super admins see all.</div>
+
+      <div class="field"><label>Leaderboard</label>
+        <select id="lb"><option>DYNASTY CUP MADAGASCAR — event</option><option>DYNASTY CUP NIGERIA — event</option><option>Weekly Scrims Ladder — standalone</option></select></div>
+      <div class="row2">
+        <div class="field"><label>Stage</label><select id="stage"><option>Group Stage</option><option>Grand Finals</option></select></div>
+        <div class="field"><label>Group</label><select id="group"><option>Group A</option><option>Cumulative</option></select></div>
+      </div>
+      <div class="field"><label>Design</label><select id="design"><option>Auto (default)</option><option selected>DYNASTY CUP</option><option>Minimal Dark</option></select></div>
+
+      <div class="row2">
+        <div class="field"><label>Background</label>
+          <div class="seg" id="bg"><button class="on" data-b="design">Design art</button><button data-b="transparent">Transparent</button></div></div>
+        <div class="field"><label>Size</label>
+          <div class="seg" id="size"><button class="on" data-s="youtube">16:9</button><button data-s="instagram">Portrait</button></div></div>
+      </div>
+
+      <div class="field"><label>Animation</label>
+        <select id="anim"><option value="fade">Fade + count-up (recommended)</option><option value="slide">Slide up</option><option value="flash">Flash on change</option><option value="none">None (instant)</option></select></div>
+      <div class="field"><label>Reveal on load</label>
+        <div class="seg" id="reveal"><button class="on" data-r="stagger">Staggered</button><button data-r="all">All at once</button></div></div>
+
+      <div class="field"><label>Columns shown</label>
+        <div class="chips" id="cols">
+          <span class="chip on" data-c="kills">Kills</span><span class="chip on" data-c="place">Place pts</span>
+          <span class="chip" data-c="booyah">Booyah</span><span class="chip on" data-c="total">Total</span></div></div>
+      <div class="row2">
+        <div class="field"><label>Top N</label><select id="topn"><option>10</option><option selected>12</option><option>16</option></select></div>
+        <div class="field"><label>Refresh</label><select id="iv"><option value="10">10s</option><option value="15">15s</option><option value="30">30s</option></select></div></div>
+
+      <div class="field" style="margin-bottom:4px"><label>Overlay link</label>
+        <div class="urlbox"><input id="url" readonly/><button class="btn" id="copy">Copy</button></div></div>
+      <div class="hint"><b>OBS → Sources → + → Browser</b>, paste, set your size. Updates on stream the moment you upload results. No footer, no watermark. <span class="acc">Regenerate token</span> to kill a shared link.</div>
+    </div>
+  </div>
+
+  <div class="obs">
+    <h2>OBS Browser Source</h2>
+    <div class="h2s">Values update live; rows re-sort smoothly; layout never jumps.</div>
+    <div class="frame solid" id="frame">
+      <div class="board">
+        <div class="bhead"><div class="blogo">AFC</div><div><div class="btitle" id="bt">DYNASTY CUP</div><div class="bsub" id="bs">Group Stage · Group A</div></div></div>
+        <div class="cols" id="colhead"></div>
+        <div class="tbody" id="tbody"></div>
+      </div>
+    </div>
+    <div class="note">This is your <b>design</b> rendered live (background art shows here on prod; Transparent removes it for overlaying gameplay). Same numbers as the site.</div>
+  </div>
+
+<script>
+  const TEAMS=[["FROZEN EMPIRE","FE"],["SPACE X","SX"],["Team ESYN","ES"],["SYNCHRON-X","SY"],["Stars E-sport","ST"],["INVICTUS","IN"],["KAYS","KA"],["OSU E-SPORT","OS"],["TEAM TOXIC","TT"],["Nigma Galaxy","NG"],["Falcons","FC"],["Bloodline","BL"],["Alliance","AL"],["Godlike","GD"],["Buzz Clan","BZ"],["Dominion","DM"]];
+  let data=TEAMS.map((t,i)=>({name:t[0],tag:t[1],kills:30-i*1.3|0,place:56-i*3|0,booyah:(i<3?2:i<6?1:0)}));
+  const cols={kills:true,place:true,booyah:false,total:true};
+  let anim="fade",reveal="stagger",topn=12,bgMode="design";
+  const tbody=document.getElementById('tbody'),colhead=document.getElementById('colhead');
+  const prevY=new Map(); const prevVal=new Map();
+
+  function total(r){return r.kills+r.place;}
+  function ordered(){return data.map(r=>({...r,total:total(r)})).sort((a,b)=>b.total-a.total||b.kills-a.kills).slice(0,topn);}
+  function grid(){let c=['46px','1fr'];if(cols.kills)c.push('62px');if(cols.place)c.push('66px');if(cols.booyah)c.push('66px');if(cols.total)c.push('76px');return c.join(' ');}
+  function heads(){let h='<div class="r rank" style="text-align:center">#</div><div>Team</div>';
+    if(cols.kills)h+='<div class="n">Kills</div>';if(cols.place)h+='<div class="n">Place</div>';if(cols.booyah)h+='<div class="n">Booyah</div>';if(cols.total)h+='<div class="n">Total</div>';return h;}
+
+  function paint(firstLoad,changed){
+    const rows=ordered(); const g=grid();
+    document.querySelector('.board').style.setProperty('--grid',g);
+    colhead.innerHTML=heads();
+    // FLIP: capture old positions
+    const olds=new Map(); [...tbody.children].forEach(el=>olds.set(el.dataset.k, el.getBoundingClientRect().top));
+    tbody.innerHTML='';
+    rows.forEach((r,i)=>{
+      const d=document.createElement('div'); d.className='trow p'+(i+1); d.dataset.k=r.name;
+      let cells=`<div class="r rank" style="text-align:center">#${i+1}</div><div class="team"><span class="tag">${r.tag}</span><span class="nm">${r.name}</span></div>`;
+      if(cols.kills)cells+=`<div class="n" data-v="${r.kills}">${r.kills}</div>`;
+      if(cols.place)cells+=`<div class="n" data-v="${r.place}">${r.place}</div>`;
+      if(cols.booyah)cells+=`<div class="n" data-v="${r.booyah}">${r.booyah}</div>`;
+      if(cols.total)cells+=`<div class="n total" data-v="${r.total}">${r.total}</div>`;
+      d.innerHTML=cells; tbody.appendChild(d);
+      if(firstLoad){ if(anim!=='none'){ d.animate([{opacity:0,transform:anim==='slide'?'translateY(12px)':'none'},{opacity:1,transform:'none'}],{duration:420,delay:reveal==='stagger'?i*55:0,easing:'ease-out'});}}
+      if(changed&&changed.has(r.name)&&anim==='flash') d.classList.add('flash');
+    });
+    // FLIP: animate moves
+    if(!firstLoad){ [...tbody.children].forEach(el=>{ const o=olds.get(el.dataset.k); if(o==null)return; const n=el.getBoundingClientRect().top; const dy=o-n; if(dy){ el.animate([{transform:`translateY(${dy}px)`},{transform:'none'}],{duration:600,easing:'cubic-bezier(.2,.7,.2,1)'});}});}
+    // count-up numbers
+    if(anim==='fade'&&!firstLoad){ tbody.querySelectorAll('.n[data-v]').forEach(c=>{ const nv=+c.dataset.v; const k=c.parentElement.dataset.k+c.className; const ov=prevVal.get(k); prevVal.set(k,nv); if(ov!=null&&ov!==nv){ let s=ov,st=(nv-ov)/12,f=0; const t=setInterval(()=>{f++;s+=st;c.textContent=Math.round(s);if(f>=12){c.textContent=nv;clearInterval(t);}},22);}});}
+    else { tbody.querySelectorAll('.n[data-v]').forEach(c=>prevVal.set(c.parentElement.dataset.k+c.className,+c.dataset.v)); }
+  }
+  paint(true);
+
+  // controls
+  function seg(id,cb){document.getElementById(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...e.currentTarget.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');cb(b.dataset);});}
+  seg('bg',d=>{bgMode=d.b;document.getElementById('frame').className='frame '+(bgMode==='transparent'?'tp':'solid');buildUrl();});
+  seg('size',()=>buildUrl()); seg('reveal',d=>{reveal=d.r;buildUrl();paint(true);});
+  document.getElementById('anim').addEventListener('change',e=>{anim=e.target.value;buildUrl();paint(true);});
+  document.getElementById('topn').addEventListener('change',e=>{topn=+e.target.value;buildUrl();paint(true);});
+  document.getElementById('iv').addEventListener('change',buildUrl);
+  document.getElementById('cols').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;cols[c.dataset.c]=!cols[c.dataset.c];c.classList.toggle('on');buildUrl();paint(true);});
+  ['lb','stage','group','design'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{
+    document.getElementById('bt').textContent=document.getElementById('design').value.includes('DYNASTY')?'DYNASTY CUP':document.getElementById('lb').value.split(' — ')[0];
+    document.getElementById('bs').textContent=document.getElementById('stage').value+' · '+document.getElementById('group').value;buildUrl();}));
+  document.getElementById('copy').addEventListener('click',e=>{navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('url').value);e.target.textContent='Copied';setTimeout(()=>e.target.textContent='Copy',1200);});
+
+  function buildUrl(){
+    const size=document.querySelector('#size button.on').dataset.s;
+    const on=[...document.querySelectorAll('#cols .chip.on')].map(c=>c.dataset.c).join(',');
+    const p=new URLSearchParams({type:'event',event:'163',stage:'491',group:'658',size,bg:bgMode,anim,reveal,cols:on,top:String(topn),interval:document.getElementById('iv').value});
+    document.getElementById('url').value='https://africanfreefirecommunity.com/overlay/leaderboard/ovl_7Fq2x9?'+p.toString();
+  }
+  buildUrl();
+
+  // live sim: nudge values -> smooth re-sort + count-up (STABLE layout, only values move)
+  setInterval(()=>{
+    const changed=new Set();
+    data.forEach(r=>{ if(Math.random()<0.5){ r.kills+=Math.random()*3|0; r.place+=Math.random()*5|0; changed.add(r.name);}});
+    paint(false,changed);
+  },3500);
+</script>
+</body></html>

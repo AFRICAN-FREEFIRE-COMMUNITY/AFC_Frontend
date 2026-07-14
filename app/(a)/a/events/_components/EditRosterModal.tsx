@@ -75,7 +75,7 @@ interface CurrentRosterMember {
 
 // A player in the team's FULL member pool, returned by /team/get-team-details/.
 // id is the user_id; uid is the in-game UID; in_game_role is the player's POSITION
-// (rusher / support / grenader / sniper) — get_team_details already returns it per
+// (rusher / support / grenader / sniper) - get_team_details already returns it per
 // member (afc_team.views.get_team_details -> members_data["in_game_role"]). We surface
 // it here so an admin can see each player's role while picking the lineup.
 interface PoolMember {

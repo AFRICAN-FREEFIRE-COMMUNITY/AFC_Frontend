@@ -1051,6 +1051,9 @@
     "removeFailed": "Could not remove the player."
   },
   "eventLeaderboard": {
+    "csBracketTitle": "This stage runs as a Clash Squad bracket",
+    "csBracketHint": "Clash Squad results and standings are managed from the bracket on the event page, not here.",
+    "csBracketGoto": "Go to the bracket",
     "manageTitle": "Manage Leaderboard",
     "noPermission": "You do not have permission to manage results for this organization.",
     "backToLeaderboards": "Back to leaderboards",
@@ -1407,6 +1410,10 @@
     "h2hMode": "Compare",
     "h2hTeams": "Teams (this event)",
     "h2hPlayers": "Players (this event)",
+    "h2hBracket": "Clash Squad bracket",
+    "h2hStage": "Bracket stage",
+    "h2hStagePick": "Pick a stage",
+    "h2hBracketHint": "Shows this stage's Clash Squad bracket. Pick the Clash Squad stage.",
     "h2hSlot": "Competitor {n}",
     "h2hOptional": "(optional)",
     "h2hPick": "Pick...",

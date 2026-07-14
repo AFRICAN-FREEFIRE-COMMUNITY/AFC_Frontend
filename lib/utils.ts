@@ -119,6 +119,12 @@ export const extractSocialMediaUrls = (socialMediaArray: any) => {
   return socialUrls;
 };
 
+// i18n: these English strings are the source-of-truth + en fallback. The user-facing
+// localized versions live in the "eventFormats" namespace (messages/{en,fr,pt}/eventFormats.json),
+// keyed by the SAME codes as this map (format codes, tier_1..tier_4, allow_only/block_selected).
+// The public-facing organizer event page (app/(organizer)/organizer/events/[slug]/page.tsx, owned
+// by the organizer workstream) resolves the localized label via useTranslations("eventFormats")
+// with these codes, falling back to this map. Admin surfaces under app/(a)/ are i18n-exempt.
 export const formattedWord: Record<string, string> = {
   "br - normal": "Battle Royale - Normal",
   "br - roundrobin": "Battle Royale - Knockout",

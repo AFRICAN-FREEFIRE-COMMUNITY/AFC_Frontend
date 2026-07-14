@@ -324,7 +324,7 @@
     },
     "loading": "Chargement des membres…",
     "title": "Membres",
-    "memberCount": "{nombre, pluriel, l'un {# member} l'autre {# members}}",
+    "memberCount": "{count, plural,  one { # membre }  other { # membres } }",
     "addSubOrganizer": "Ajouter un co-organisateur",
     "userLabel": "Utilisateur",
     "searchPlaceholder": "Rechercher par nom d'utilisateur ou par nom...",
@@ -354,7 +354,7 @@
     "remove": {
       "button": "Supprimer",
       "confirmTitle": "Supprimer « {name} » ?",
-      "confirmDesc": "Cette opération entraîne le retrait d'{name} de l'organisation. Il perdra tous ses droits d'accès. Cette action est irréversible."
+      "confirmDesc": "Cette opération entraîne le retrait d''{name} de l'organisation. Il perdra tous ses droits d'accès. Cette action est irréversible."
     },
     "org": {
       "controlsTitle": "Contrôles organisationnels",
@@ -412,7 +412,7 @@
   "reviews": {
     "anonymityNotice": "Les notes et les commentaires sont anonymes : seuls le texte et la date du commentaire sont affichés, jamais l'identité de la personne qui l'a laissé.",
     "noRatings": "Pas encore d'avis",
-    "ratingCount": "({nombre, pluriel, un {# rating} autre {# ratings}})",
+    "ratingCount": "({count, plural,  one { # rating }  other { # ratings } })",
     "title": "Avis",
     "lockDescription": "Notes et avis sur vos événements.",
     "noPermission": "Vous n'avez pas l'autorisation de consulter les avis concernant cette organisation.",
@@ -460,7 +460,7 @@
       "eventsRun": "Événements organisés",
       "completed": "{count} terminé",
       "eventViews": "Vues d'événements",
-      "uniqueViewers": "{nombre, pluriel, un {{formatted} visiteur unique} autre {{formatted} visiteurs uniques}}",
+      "uniqueViewers": "{count, plural,  one { {formatted} visiteurs uniques }  other { {formatted} visiteurs uniques } }",
       "uniquePlayers": "Joueurs uniques",
       "registeredInRange": "enregistré dans la plage",
       "uniqueTeams": "Des équipes uniques",
@@ -475,7 +475,7 @@
       "avgParticipants": "Nombre moyen de participants",
       "perEvent": "par événement",
       "averageRating": "Note moyenne",
-      "fromRatings": "{nombre, pluriel, un {d'après l'évaluation de {formatted}} autre {d'après les évaluations de {formatted}}}",
+      "fromRatings": "{count, plural,  one { Source : {formatted} Évaluation : }  other { Source : {formatted} Évaluations : } }",
       "fillRate": "Taux de remplissage",
       "ofRegistrationCapacity": "de capacité d'enregistrement",
       "completionRate": "Taux de réussite",
@@ -522,7 +522,7 @@
     },
     "events": {
       "perEventBreakdown": "Répartition par événement",
-      "count": "{nombre, pluriel, un {événement {formatted}} et d'autres {événements {formatted}}}",
+      "count": "{count, plural,  one { {formatted} événement }  other { {formatted} événements } }",
       "mostRecentShown": "(les plus récents s'affichent en premier)",
       "emptyTable": "Aucun événement n'a eu lieu pendant cette période. Essayez d'élargir la plage de dates."
     },
@@ -572,7 +572,7 @@
       "start": "Démarrer",
       "end": "Fin",
       "status": "Statut",
-      "playerCount": "{nombre, pluriel, =1 {# player} autre {# players}}"
+      "playerCount": "{count, plural,  =1 { # joueur }  other { # joueurs } }"
     },
     "teamFallback": "Équipe n° {id}",
     "userFallback": "Utilisateur n° {id}",
@@ -618,7 +618,7 @@
       "notBlacklistedWindow": "n'a pas été mis sur liste noire au cours de la période sélectionnée.",
       "notBlacklistedAll": "n'a pas été mis sur liste noire.",
       "blacklisted": "mis sur liste noire",
-      "timesCount": "{nombre, pluriel, =1 {# time} autre {# times}}",
+      "timesCount": "{count, plural,  =1 { # heure }  other { # heures } }",
       "activeCount": "({count} actif)",
       "colOrganization": "Organisation",
       "colTeam": "Équipe",
@@ -804,7 +804,7 @@
       "prizePool": "Cagnotte",
       "daysUntilStart": "Jours restants avant le début",
       "totalStages": "Nombre total d'étapes",
-      "days": "{count, plural, one {# jour} other {# jours}}"
+      "days": "{count, plural,  one { # jour }  other { # jours } }"
     },
     "config": {
       "title": "Configuration de l'événement",
@@ -942,7 +942,7 @@
     "loadEventError": "Échec du chargement de l'événement.",
     "loadError": "Impossible de charger les inscriptions des sponsors.",
     "sponsorIdDefault": "Identifiant du parrain",
-    "counts": "{tous, pluriel, un {# registrant} autre {# registrants}} · {pending} en attente · {confirmed} confirmé · {rejected} rejeté",
+    "counts": "{all, plural,  one { # demandeur }  other { # demandeurs } } · {pending} en attente · {confirmed} confirmés · {rejected} rejetés",
     "searchPlaceholder": "Recherche par nom d'utilisateur, identifiant de parrain ou équipe...",
     "filterPlaceholder": "Filtrer par statut",
     "filterAll": "Tout ({count})",
@@ -1051,6 +1051,9 @@
     "removeFailed": "Impossible de supprimer le lecteur."
   },
   "eventLeaderboard": {
+    "csBracketTitle": "Cette phase se déroule sous la forme d'un tournoi par élimination directe de type « Clash Squad ».",
+    "csBracketHint": "Les résultats et le classement de Clash Squad sont gérés à partir du tableau figurant sur la page de l'événement, et non ici.",
+    "csBracketGoto": "Accéder au tableau",
     "manageTitle": "Gérer le classement",
     "noPermission": "Vous ne disposez pas des droits nécessaires pour gérer les résultats de cette organisation.",
     "backToLeaderboards": "Retour aux classements",
@@ -1067,7 +1070,7 @@
       "editLeaderboard": "Modifier le classement"
     },
     "createLeaderboard": "Créer un classement",
-    "tournamentDescription": "{type} Tournoi • Étapes de l'{count}",
+    "tournamentDescription": "{type} Tournoi • Étapes de l''{count}",
     "solo": "En solo",
     "team": "Équipe",
     "matchLabel": "{number} de match ({map})",
@@ -1186,7 +1189,7 @@
       "playerStatsTitle": "Statistiques des joueurs",
       "playerStatsDesc": "Modifiez le nombre de victimes, les dégâts infligés et les passes décisives de chaque joueur pour chaque équipe. Cliquez sur une équipe pour développer la liste.",
       "noPlayerData": "Aucune donnée sur les joueurs n'est disponible pour cette équipe.",
-      "playerCount": "{count, plural, one {# joueur} other {# joueurs}}",
+      "playerCount": "{count, plural,  one { # joueur }  other { # joueurs } }",
       "matchLeaderboardTitle": "Classement des matchs",
       "matchLeaderboardDesc": "Classement calculé pour cette carte. Modifiez les points de bonus et de pénalité, puis enregistrez en haut de la page.",
       "killPts": "Points d'élimination",
@@ -1199,7 +1202,7 @@
       "saveSuccess": "Les résultats du match ont été enregistrés !",
       "saveError": "Échec de l'enregistrement des résultats du match",
       "noMapsToSave": "Aucune carte n'a encore été enregistrée dans ce groupe.",
-      "savedAllMaps": "{count, plural, one {# carte enregistrée} other {# cartes enregistrées}} dans ce groupe.",
+      "savedAllMaps": "J'ai enregistré tous les liens suivants dans ce groupe : {count, plural,  one { # carte }  other { # cartes } }.",
       "savedSomeMaps": "{ok} carte(s) sur {total} enregistrée(s). Échec pour {failed} : {reason}",
       "saveGroupError": "Impossible d'enregistrer les cartes du groupe",
       "retryHint": "Ouvrez la carte qui pose problème et réessayez."
@@ -1407,6 +1410,10 @@
     "h2hMode": "Comparer",
     "h2hTeams": "Équipes (cet événement)",
     "h2hPlayers": "Joueurs (cet événement)",
+    "h2hBracket": "Tableau du Clash Squad",
+    "h2hStage": "Phase à élimination directe",
+    "h2hStagePick": "Choisissez une étape",
+    "h2hBracketHint": "Affiche le tableau du Clash Squad de cette étape. Choisissez l'étape du Clash Squad.",
     "h2hSlot": "{n}, concurrent",
     "h2hOptional": "(facultatif)",
     "h2hPick": "Choisis...",
@@ -1424,7 +1431,7 @@
   "mediaAudit": {
     "title": "Médias audiovisuels",
     "description": "Les logos des équipes et les images des joueurs d'e-sport s'affichent sur les superpositions à une taille fixe. Corrigez les décalages, signalez les visuels de mauvaise qualité (leur propriétaire sera averti afin de les remplacer) ou masquez un logo ou une image pour cet événement uniquement.",
-    "summary": "{teams} les équipes et les joueurs de l'{players}, absents des médias",
+    "summary": "{teams} les équipes et les joueurs de l''{players}, absents des médias",
     "teamLogos": "Logos des équipes",
     "playerImages": "Images de joueurs d'e-sport",
     "missing": "manquant",

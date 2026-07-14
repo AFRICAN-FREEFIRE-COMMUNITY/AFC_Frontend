@@ -66,7 +66,7 @@ import {
 } from "@tabler/icons-react";
 import { MoreHorizontal, ArrowLeft, CheckCircle } from "lucide-react";
 import Link from "next/link";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { AddProductModal } from "../_components/AddProductModal";
 
 import { Skeleton } from "@/components/ui/skeleton"; // For loading states
@@ -375,14 +375,11 @@ export default function InventoryManagementPage() {
         onValueChange={setStatusFilter}
         data-tour="shop-inventory-status-filter"
       >
-        <ScrollArea>
-          <TabsList className="w-full">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="inactive">Inactive</TabsTrigger>
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        <ScrollableTabsList className="w-full">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="inactive">Inactive</TabsTrigger>
+        </ScrollableTabsList>
       </Tabs>
 
       {/* Products Table */}

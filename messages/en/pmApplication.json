@@ -1,0 +1,110 @@
+{
+  "status": {
+    "PENDING": "Pending",
+    "SHORTLISTED": "Shortlisted",
+    "INVITED": "Invited",
+    "ACCEPTED": "Accepted",
+    "TRIAL_EXTENDED": "Trial Extended",
+    "TRIAL_ONGOING": "Trial Ongoing",
+    "REJECTED": "Rejected"
+  },
+  "tier": {
+    "TIER_1": "Tier 1",
+    "TIER_2": "Tier 2",
+    "TIER_3": "Tier 3"
+  },
+  "commitment": {
+    "FULL_TIME": "Full Time",
+    "PART_TIME": "Part Time"
+  },
+  "header": {
+    "title": "Application #{id}",
+    "applied": "Applied {date}"
+  },
+  "trial": {
+    "expired": "Trial period has expired",
+    "expiresIn": "Trial expires in {time}"
+  },
+  "units": {
+    "days": "{n}d",
+    "hours": "{n}h",
+    "minutes": "{n}m",
+    "seconds": "{n}s"
+  },
+  "time": {
+    "justNow": "just now",
+    "minsAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago"
+  },
+  "toast": {
+    "loadFailed": "Failed to load application details.",
+    "statusUpdated": "Status updated.",
+    "statusFailed": "Failed to update status.",
+    "contactUnlocked": "Contact info unlocked.",
+    "contactFailed": "Failed to unlock contact.",
+    "trialUpdated": "Trial updated.",
+    "trialFailed": "Failed to update trial.",
+    "messageFailed": "Failed to send message."
+  },
+  "loading": "Loading...",
+  "notFound": {
+    "title": "Application not found.",
+    "back": "Back to Player Markets"
+  },
+  "team": {
+    "title": "Team",
+    "tier": "Tier",
+    "country": "Country"
+  },
+  "post": {
+    "title": "Post Requirements",
+    "rolesNeeded": "Roles Needed",
+    "commitment": "Commitment",
+    "minTier": "Min Tier",
+    "country": "Country",
+    "expiry": "Post Expiry"
+  },
+  "stats": {
+    "title": "Player Stats",
+    "tournamentWins": "T. Wins",
+    "tournamentKills": "T. Kills",
+    "finals": "Finals",
+    "scrimKills": "Scrim Kills",
+    "scrimWins": "Scrim Wins"
+  },
+  "contact": {
+    "title": "Contact",
+    "discord": "Discord",
+    "uid": "UID",
+    "loading": "Loading...",
+    "view": "View Contact Info",
+    "unlocking": "Unlocking...",
+    "unlock": "Unlock Contact Info"
+  },
+  "applicationMessage": "Application Message",
+  "rejectionReason": "Rejection Reason",
+  "actions": {
+    "title": "Actions",
+    "acceptPlayer": "Accept Player",
+    "extendTrial": "Extend Trial",
+    "reject": "Reject",
+    "shortlist": "Shortlist",
+    "inviteToTrial": "Invite to Trial"
+  },
+  "chat": {
+    "title": "Trial Chat",
+    "loading": "Loading messages...",
+    "notAvailable": "Chat not available",
+    "notAvailableHint": "Chat becomes available once a trial is started",
+    "empty": "No messages yet",
+    "emptyHint": "Start the conversation below",
+    "closed": "This application is closed.",
+    "locked": "Chat is not yet available.",
+    "placeholder": "Type a message..."
+  },
+  "tabs": {
+    "details": "Details",
+    "chat": "Chat",
+    "locked": "(locked)"
+  }
+}

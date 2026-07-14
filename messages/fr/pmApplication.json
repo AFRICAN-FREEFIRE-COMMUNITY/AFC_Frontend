@@ -1,0 +1,110 @@
+{
+  "status": {
+    "PENDING": "En attente",
+    "SHORTLISTED": "Sélectionnés",
+    "INVITED": "Invité",
+    "ACCEPTED": "Accepté",
+    "TRIAL_EXTENDED": "Prolongation du procès",
+    "TRIAL_ONGOING": "Procès en cours",
+    "REJECTED": "Rejeté"
+  },
+  "tier": {
+    "TIER_1": "Niveau 1",
+    "TIER_2": "Niveau 2",
+    "TIER_3": "Niveau 3"
+  },
+  "commitment": {
+    "FULL_TIME": "Temps plein",
+    "PART_TIME": "À temps partiel"
+  },
+  "header": {
+    "title": "Dossier n° {id}",
+    "applied": "{date} appliquée"
+  },
+  "trial": {
+    "expired": "La période d'essai a expiré",
+    "expiresIn": "La période d'essai expire dans {time}"
+  },
+  "units": {
+    "days": "{n} d",
+    "hours": "{n} h",
+    "minutes": "{n} m",
+    "seconds": "{n} s"
+  },
+  "time": {
+    "justNow": "il y a quelques instants",
+    "minsAgo": "{n} il y a m",
+    "hoursAgo": "{n} il y a h"
+  },
+  "toast": {
+    "loadFailed": "Impossible de charger les informations relatives à l'application.",
+    "statusUpdated": "Statut mis à jour.",
+    "statusFailed": "Échec de la mise à jour du statut.",
+    "contactUnlocked": "Coordonnées déverrouillées.",
+    "contactFailed": "Échec du déverrouillage du contact.",
+    "trialUpdated": "Mise à jour de la version d'essai.",
+    "trialFailed": "Échec de la mise à jour de la version d'essai.",
+    "messageFailed": "L'envoi du message a échoué."
+  },
+  "loading": "Chargement en cours...",
+  "notFound": {
+    "title": "Application introuvable.",
+    "back": "Retour à la rubrique « Marchés des joueurs »"
+  },
+  "team": {
+    "title": "Équipe",
+    "tier": "Niveau",
+    "country": "Pays"
+  },
+  "post": {
+    "title": "Conditions requises pour le poste",
+    "rolesNeeded": "Postes à pourvoir",
+    "commitment": "Engagement",
+    "minTier": "Niveau minimum",
+    "country": "Pays",
+    "expiry": "Expiration de l'annonce"
+  },
+  "stats": {
+    "title": "Statistiques des joueurs",
+    "tournamentWins": "T. Victoires",
+    "tournamentKills": "T. Kills",
+    "finals": "Finales",
+    "scrimKills": "Morts derrière le rideau",
+    "scrimWins": "Victoires de Scrim"
+  },
+  "contact": {
+    "title": "Contact",
+    "discord": "Discord",
+    "uid": "UID",
+    "loading": "Chargement en cours...",
+    "view": "Afficher les coordonnées",
+    "unlocking": "Déverrouillage...",
+    "unlock": "Déverrouiller les coordonnées"
+  },
+  "applicationMessage": "Message de l'application",
+  "rejectionReason": "Motif du refus",
+  "actions": {
+    "title": "Actions",
+    "acceptPlayer": "Accepter le joueur",
+    "extendTrial": "Prolonger la période d'essai",
+    "reject": "Refuser",
+    "shortlist": "Liste restreinte",
+    "inviteToTrial": "Invitation à un essai"
+  },
+  "chat": {
+    "title": "Discussion sur la version d'essai",
+    "loading": "Chargement des messages...",
+    "notAvailable": "Le chat n'est pas disponible",
+    "notAvailableHint": "Le chat devient disponible dès le début de la période d'essai",
+    "empty": "Pas encore de messages",
+    "emptyHint": "Lancez la conversation ci-dessous",
+    "closed": "Cette candidature est clôturée.",
+    "locked": "Le chat n'est pas encore disponible.",
+    "placeholder": "Écrivez un message..."
+  },
+  "tabs": {
+    "details": "Détails",
+    "chat": "Chat",
+    "locked": "(verrouillé)"
+  }
+}

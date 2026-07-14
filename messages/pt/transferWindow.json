@@ -1,0 +1,9 @@
+{
+  "openTitle": "🟢 O período de transferências está ABERTO",
+  "closedTitle": "🔴 O período de transferências está ENCERRADO",
+  "openBody": "São permitidas alterações no plantel.",
+  "openBodyWithDate": "São permitidas alterações no plantel; o período de transferências encerra-{date}.",
+  "closedBody": "As alterações no plantel estão suspensas; os jogadores não podem sair, ser retirados ou dissolver as equipas até que a janela de transferências volte a abrir.",
+  "openBadge": "ABERTO",
+  "closedBadge": "ENCERRADO"
+}

@@ -60,6 +60,25 @@ import {
   type TeamAchievementContext,
 } from "./teamAchievements";
 
+// ── i18n: achievement-group display string -> message key ─────────────────────
+// The team catalog (teamAchievements.ts) stores group/title/description/unit in
+// English as the data + fallback source; the UI renders the TRANSLATED text from
+// the `teamAchievementsCatalog` namespace (messages/{en,fr,pt}/teamAchievementsCatalog.json).
+// This maps a group's English display string (e.g. "Team Kills") to its message key
+// ("teamKills") so group headers, ladder units, and ladder descriptions localize
+// without changing the data module. Mirrors ProfileContent's ACHIEVEMENT_GROUP_KEY.
+// Unknown groups fall back to the raw string so nothing renders blank.
+const TEAM_ACHIEVEMENT_GROUP_KEY: Record<string, string> = {
+  "Team Wins": "teamWins",
+  "Team Kills": "teamKills",
+  "Tournaments Played": "tournamentsPlayed",
+  Booyahs: "booyahs",
+  Team: "team",
+  Scrims: "scrims",
+  Monthly: "monthly",
+  Daily: "daily",
+};
+
 // The team object the parent passes (the full get-team-details payload, typed `any`
 // upstream). We only read the few fields buildTeamAchievementContext() needs.
 type TeamAchievementsTabProps = {
@@ -71,9 +90,12 @@ type TeamAchievementsTabProps = {
 // ──────────────────────────────────────────────────────────────────────────────
 const TeamAchievementsTab = ({ team }: TeamAchievementsTabProps) => {
   // i18n: achievements tab chrome (messages/en/teamsplayers.json -> "teamAchievements").
-  // Catalog content (titles / descriptions / section + group labels) stays as data
-  // in teamAchievements.ts, mirroring how lib/glossary-data.ts is handled.
   const t = useTranslations("teamsplayers");
+  // i18n: catalog content (section labels, group headers, ladder titles / descriptions
+  // / units). English lives in teamAchievements.ts as data + fallback; the TRANSLATED
+  // strings come from the `teamAchievementsCatalog` namespace. Mirrors how the player
+  // profile renders its catalog from profile.json -> achievementsCatalog.
+  const tCat = useTranslations("teamAchievementsCatalog");
   // Which section is showing (lifetime is the substantive, computable one first).
   const [section, setSection] = useState<TeamAchievementCategory>("lifetime");
 
@@ -136,7 +158,9 @@ const TeamAchievementsTab = ({ team }: TeamAchievementsTabProps) => {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {s.label}
+            {/* Localized section label (Lifetime / Monthly / Daily). The catalog's
+                English `label` is the fallback; translation keyed by section id. */}
+            {tCat(`section.${s.id}`)}
           </button>
         ))}
       </div>
@@ -181,6 +205,8 @@ function TeamAchievementGroup({
   items: TeamAchievement[];
   ctx: TeamAchievementContext;
 }) {
+  // Catalog translator (group headers). Chrome ("x / y") is plain text.
+  const tCat = useTranslations("teamAchievementsCatalog");
   // The id of the next tier to chase: the first NOT-earned tier in catalog order.
   // For metric ladders this is the next threshold; once all are earned it is null.
   const nextLockedId = items.find((a) => !isEarned(a, ctx))?.id ?? null;
@@ -188,11 +214,17 @@ function TeamAchievementGroup({
   // How many of this group's tiers are earned (small "x / y" group progress).
   const earnedInGroup = items.filter((a) => isEarned(a, ctx)).length;
 
+  // Localized group header (Team Kills / Booyahs / ...). The catalog's English
+  // `group` string is mapped to its message key; unknown groups fall back to the
+  // raw string so nothing renders blank.
+  const groupKey = TEAM_ACHIEVEMENT_GROUP_KEY[group];
+  const groupLabel = groupKey ? tCat(`group.${groupKey}`) : group;
+
   return (
     <div>
       {/* group header: label + earned count for the ladder */}
       <div className="flex items-center justify-between mb-2">
-        <h4 className="text-sm font-semibold text-foreground">{group}</h4>
+        <h4 className="text-sm font-semibold text-foreground">{groupLabel}</h4>
         <span className="text-xs text-muted-foreground">
           {earnedInGroup} / {items.length}
         </span>
@@ -232,9 +264,37 @@ function TeamAchievementCard({
   isNext?: boolean;
 }) {
   const t = useTranslations("teamsplayers");
+  // Catalog translator for the entry's own strings (title / description / unit).
+  const tCat = useTranslations("teamAchievementsCatalog");
   const Icon = achievement.icon;
   const earned = isEarned(achievement, ctx);
   const goal = isGoal(achievement);
+
+  // ── Localized title + description for this catalog entry ──────────────────────
+  // English lives in teamAchievements.ts as data + fallback; the UI renders the
+  // TRANSLATED text from the `teamAchievementsCatalog` namespace. Title is keyed by
+  // the entry id. Description is either a parameterized ladder phrase ("Reach 1,000
+  // team kills.") for metric ladders, or a per-id sentence for milestones/goals. A
+  // ladder is identified by having a metric + threshold. Mirrors AchievementCard.
+  const isLadder =
+    achievement.metric != null && achievement.threshold != null;
+  const groupKey = TEAM_ACHIEVEMENT_GROUP_KEY[achievement.group];
+  // Translated unit noun for the ladder description + progress label. ONLY the metric
+  // ladder groups (teamWins / teamKills / booyahs / tournamentsPlayed) carry a unit.* key;
+  // the milestone groups (Team / Scrims / Monthly / Daily) do not, so guard with
+  // tCat.has() and fall back to the lowercased English group. Without the guard the
+  // groups that map to a keyless groupKey throw IntlError MISSING_MESSAGE on every card.
+  const unitLabel =
+    groupKey && tCat.has(`unit.${groupKey}`)
+      ? tCat(`unit.${groupKey}`)
+      : achievement.group.toLowerCase();
+  const achTitle = tCat(`title.${achievement.id}`);
+  const achDescription = isLadder
+    ? tCat("ladderDesc", {
+        count: achievement.threshold!.toLocaleString(),
+        unit: unitLabel,
+      })
+    : tCat(`desc.${achievement.id}`);
 
   // Progress numbers for the next locked tier of a metric ladder. metricValue is
   // null for milestones/goals (no numeric progress), so the bar only shows on the
@@ -253,10 +313,10 @@ function TeamAchievementCard({
       )
     : 0;
 
-  // The unit noun for the progress label. The how-to-earn copy says "Reach N <unit>"
-  // so we re-derive the unit from the group for the progress line ("740 / 1000 team
-  // kills"). Lowercased group reads naturally for every ladder name we ship.
-  const progressUnit = achievement.group.toLowerCase();
+  // The unit noun for the progress label ("740 / 1000 team kills"). Reuses unitLabel so
+  // both the how-to-earn copy and the progress line read consistently (and share the
+  // same tCat.has() guard against milestone groups that have no unit.* key).
+  const progressUnit = unitLabel;
 
   // Card container treatment: earned (green), next-to-chase (primary ring), else a
   // plain muted card. Identical class set to the player card.
@@ -288,7 +348,7 @@ function TeamAchievementCard({
               earned || isNext ? "text-foreground" : "text-muted-foreground"
             }`}
           >
-            {achievement.title}
+            {achTitle}
           </p>
           {/* point value badge (gold when earned, outline-muted otherwise) */}
           <Badge
@@ -303,7 +363,7 @@ function TeamAchievementCard({
 
         {/* how-to-earn text (always shown so the catalog explains itself) */}
         <p className="text-xs text-muted-foreground mt-0.5">
-          {achievement.description}
+          {achDescription}
         </p>
 
         {/* progress toward the next locked tier's threshold (metric ladders only) */}

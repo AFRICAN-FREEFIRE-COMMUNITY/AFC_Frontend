@@ -11,6 +11,9 @@
 // Admin surface → English copy.
 
 import { useCallback, useEffect, useState } from "react";
+// i18n: this co-organizers panel is mounted on the admin + organizer event-edit pages. All copy is
+// internationalized via the "evEditTabs" namespace (messages/{en,fr,pt}/evEditTabs.json).
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { organizersApi } from "@/lib/organizers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,15 +31,17 @@ import {
 } from "@/components/ui/select";
 import { IconLoader2, IconUsersGroup, IconTrash } from "@tabler/icons-react";
 
-// The scoped grant toggles (mirror the backend can_* + OrganizationMember names).
-const GRANTS: { key: string; label: string }[] = [
-  { key: "can_edit_events", label: "Edit event" },
-  { key: "can_upload_results", label: "Upload results" },
-  { key: "can_manage_registrations", label: "Manage registrations" },
-  { key: "can_submit_designs", label: "Submit designs" },
-  { key: "can_view_metrics", label: "View metrics" },
-  { key: "can_view_reviews", label: "View reviews" },
-  { key: "can_manage_members", label: "Manage members" },
+// The scoped grant toggles (mirror the backend can_* + OrganizationMember names). i18n: labelKey
+// resolves into the "evEditTabs" namespace at render (fully enumerated: every one of these keys
+// exists in messages/{en,fr,pt}/evEditTabs.json).
+const GRANTS: { key: string; labelKey: string }[] = [
+  { key: "can_edit_events", labelKey: "coOrganizers.grantEditEvents" },
+  { key: "can_upload_results", labelKey: "coOrganizers.grantUploadResults" },
+  { key: "can_manage_registrations", labelKey: "coOrganizers.grantManageRegistrations" },
+  { key: "can_submit_designs", labelKey: "coOrganizers.grantSubmitDesigns" },
+  { key: "can_view_metrics", labelKey: "coOrganizers.grantViewMetrics" },
+  { key: "can_view_reviews", labelKey: "coOrganizers.grantViewReviews" },
+  { key: "can_manage_members", labelKey: "coOrganizers.grantManageMembers" },
 ];
 
 interface CoOrg {
@@ -62,6 +67,10 @@ export default function CoOrganizersPanel({
   eventId: number;
   primaryOrgSlug?: string | null;
 }) {
+  const t = useTranslations("evEditTabs");
+  // Guarded translate for the grant labels + co-org status (keys built from variables): falls back
+  // to the English key stem if a key is ever missing so a dynamic lookup can never throw.
+  const tg = (key: string, fallback: string) => (t.has(key) ? t(key) : fallback);
   const [coOrgs, setCoOrgs] = useState<CoOrg[]>([]);
   const [orgs, setOrgs] = useState<Array<{ slug: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
@@ -92,7 +101,7 @@ export default function CoOrganizersPanel({
 
   const invite = async () => {
     if (!targetSlug) {
-      toast.error("Pick an organization to invite.");
+      toast.error(t("coOrganizers.toastPickOrg"));
       return;
     }
     setBusy(true);
@@ -103,13 +112,13 @@ export default function CoOrganizersPanel({
         permissions: grant,
         payout_percent: payout ? Number(payout) : 0,
       });
-      toast.success("Co-organizer invited.");
+      toast.success(t("coOrganizers.toastInvited"));
       setTargetSlug("");
       setGrant({ can_view_metrics: true });
       setPayout("");
       fetchList();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to invite co-organizer.");
+      toast.error(e?.response?.data?.message || t("coOrganizers.toastInviteFailed"));
     } finally {
       setBusy(false);
     }
@@ -119,10 +128,15 @@ export default function CoOrganizersPanel({
     setBusy(true);
     try {
       await organizersApi.respondCoOrganizer(co.id, action);
-      toast.success(`Invite ${action}ed.`);
+      // action is a fixed enum ("accept" | "decline"); both success keys are enumerated in evEditTabs.
+      toast.success(
+        action === "accept"
+          ? t("coOrganizers.toastRespondedAccept")
+          : t("coOrganizers.toastRespondedDecline"),
+      );
       fetchList();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to respond.");
+      toast.error(e?.response?.data?.message || t("coOrganizers.toastRespondFailed"));
     } finally {
       setBusy(false);
     }
@@ -132,16 +146,16 @@ export default function CoOrganizersPanel({
     setBusy(true);
     try {
       await organizersApi.revokeCoOrganizer(co.id);
-      toast.success("Co-organizer removed.");
+      toast.success(t("coOrganizers.toastRemoved"));
       fetchList();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Failed to remove.");
+      toast.error(e?.response?.data?.message || t("coOrganizers.toastRemoveFailed"));
     } finally {
       setBusy(false);
     }
   };
 
-  // Orgs already invited/co-owning are filtered out of the picker — AND the event's own PRIMARY org
+  // Orgs already invited/co-owning are filtered out of the picker - AND the event's own PRIMARY org
   // (it already owns the event; selecting it would just 400). (Adversarial-review fix, owner 2026-06-19.)
   const existingSlugs = new Set(coOrgs.map((c) => c.slug));
   if (primaryOrgSlug) existingSlugs.add(primaryOrgSlug);
@@ -152,11 +166,10 @@ export default function CoOrganizersPanel({
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <IconUsersGroup size={18} className="text-primary" />
-          Co-organizers
+          {t("coOrganizers.title")}
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          Invite another organization to co-own this event. They must accept; once accepted they can
-          help manage it (per the permissions you grant) and it appears under both organizations.
+          {t("coOrganizers.subtitle")}
         </p>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -164,10 +177,10 @@ export default function CoOrganizersPanel({
         <div className="space-y-3 rounded-lg border p-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>Organization</Label>
+              <Label>{t("coOrganizers.organization")}</Label>
               <Select value={targetSlug} onValueChange={setTargetSlug}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Pick an organization" />
+                  <SelectValue placeholder={t("coOrganizers.pickOrganization")} />
                 </SelectTrigger>
                 <SelectContent>
                   {pickable.map((o) => (
@@ -179,19 +192,19 @@ export default function CoOrganizersPanel({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Payout share % (optional)</Label>
+              <Label>{t("coOrganizers.payoutShare")}</Label>
               <Input
                 type="number"
                 min={0}
                 max={100}
-                placeholder="e.g. 40"
+                placeholder={t("coOrganizers.payoutPlaceholder")}
                 value={payout}
                 onChange={(e) => setPayout(e.target.value)}
               />
             </div>
           </div>
           <div>
-            <Label className="text-xs">What can they do?</Label>
+            <Label className="text-xs">{t("coOrganizers.whatCanTheyDo")}</Label>
             <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {GRANTS.map((g) => (
                 <label key={g.key} className="flex items-center gap-2 text-xs">
@@ -199,7 +212,7 @@ export default function CoOrganizersPanel({
                     checked={!!grant[g.key]}
                     onCheckedChange={(v) => setGrant((p) => ({ ...p, [g.key]: v }))}
                   />
-                  {g.label}
+                  {tg(g.labelKey, g.labelKey)}
                 </label>
               ))}
             </div>
@@ -207,7 +220,7 @@ export default function CoOrganizersPanel({
           <div className="flex justify-end">
             <Button onClick={invite} disabled={busy || !targetSlug}>
               {busy && <IconLoader2 className="size-4 animate-spin mr-1" />}
-              Invite co-organizer
+              {t("coOrganizers.invite")}
             </Button>
           </div>
         </div>
@@ -215,10 +228,10 @@ export default function CoOrganizersPanel({
         {/* Current co-organizers */}
         {loading ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <IconLoader2 className="size-4 animate-spin" /> Loading…
+            <IconLoader2 className="size-4 animate-spin" /> {t("coOrganizers.loading")}
           </p>
         ) : coOrgs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No co-organizers yet.</p>
+          <p className="text-sm text-muted-foreground">{t("coOrganizers.empty")}</p>
         ) : (
           <div className="space-y-2">
             {coOrgs.map((co) => (
@@ -228,21 +241,28 @@ export default function CoOrganizersPanel({
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm capitalize">{co.name}</span>
+                  {/* co.status is a fixed enum (pending | accepted | declined); all three status
+                      keys are enumerated in evEditTabs. tg guards the variable-built key. */}
                   <Badge variant="outline" className={statusVariant[co.status]}>
-                    {co.status}
+                    {tg(
+                      `coOrganizers.status${co.status.charAt(0).toUpperCase()}${co.status.slice(1)}`,
+                      co.status,
+                    )}
                   </Badge>
                   {co.payout_percent > 0 && (
-                    <span className="text-xs text-muted-foreground">{co.payout_percent}% payout</span>
+                    <span className="text-xs text-muted-foreground">
+                      {t("coOrganizers.payoutPercent", { percent: co.payout_percent })}
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
                   {co.status === "pending" && (
                     <>
                       <Button size="sm" variant="outline" disabled={busy} onClick={() => respond(co, "accept")}>
-                        Accept
+                        {t("coOrganizers.accept")}
                       </Button>
                       <Button size="sm" variant="ghost" disabled={busy} onClick={() => respond(co, "decline")}>
-                        Decline
+                        {t("coOrganizers.decline")}
                       </Button>
                     </>
                   )}
@@ -252,7 +272,7 @@ export default function CoOrganizersPanel({
                     className="size-8"
                     disabled={busy}
                     onClick={() => revoke(co)}
-                    aria-label="Remove co-organizer"
+                    aria-label={t("coOrganizers.removeAria")}
                   >
                     <IconTrash size={15} />
                   </Button>

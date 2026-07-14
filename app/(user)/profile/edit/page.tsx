@@ -335,7 +335,6 @@ const Page = () => {
                       <Input
                         type="file"
                         accept="image/*"
-                        placeholder="shadcn"
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
@@ -670,7 +669,7 @@ const Page = () => {
                           flagComponent={FlagComponent}
                           countrySelectComponent={CountrySelect}
                           inputComponent={PhoneInput}
-                          placeholder="+234 801 234 5678"
+                          placeholder={t("edit.whatsapp.numberPlaceholder")}
                           value={field.value ?? ""}
                           onChange={(value) => field.onChange(value ?? "")}
                         />

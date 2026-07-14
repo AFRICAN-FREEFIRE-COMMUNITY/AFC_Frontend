@@ -113,7 +113,7 @@ const DownloadControl = ({
         <span
           role="button"
           title={t("mediaAudit.download")}
-          className="hover:bg-accent inline-flex h-6 cursor-pointer items-center rounded-md px-1.5 text-[0.65rem]"
+          className="hover:bg-accent inline-flex h-9 cursor-pointer items-center rounded-md px-1.5 text-[0.65rem]"
         >
           <IconDownload className="size-3" />
         </span>
@@ -236,7 +236,7 @@ const MediaRow = ({
         <p className="truncate text-xs font-medium">{label}</p>
         {sub ? <p className="text-muted-foreground truncate text-[0.65rem]">{sub}</p> : null}
       </div>
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex flex-wrap items-center gap-1">
         {/* Per-item download with custom name + size (owner 2026-07-04). Only when an image exists. */}
         {onDownload && img ? (
           <DownloadControl defaultName={label} onDownload={onDownload} t={t} />
@@ -258,7 +258,7 @@ const MediaRow = ({
             <span
               role="button"
               title={t("mediaAudit.upload")}
-              className="hover:bg-accent inline-flex h-6 cursor-pointer items-center rounded-md px-1.5 text-[0.65rem]"
+              className="hover:bg-accent inline-flex h-9 cursor-pointer items-center rounded-md px-1.5 text-[0.65rem]"
             >
               {uploadingState ? (
                 <IconLoader2 className="size-3 animate-spin" />
@@ -279,7 +279,7 @@ const MediaRow = ({
                 {t("mediaAudit.flaggedBadge")}
               </Badge>
             ) : (
-              <Button variant="ghost" size="sm" className="h-6 px-1.5 text-[0.65rem]" onClick={onFlag}>
+              <Button variant="ghost" size="sm" className="h-9 px-1.5 text-[0.65rem]" onClick={onFlag}>
                 <IconFlag className="size-3" />
                 {t("mediaAudit.flag")}
               </Button>
@@ -287,7 +287,7 @@ const MediaRow = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 px-1.5 text-[0.65rem]"
+              className="h-9 px-1.5 text-[0.65rem]"
               onClick={() => onSuppress(suppressedState)}
             >
               {suppressedState ? t("mediaAudit.restore") : t("mediaAudit.suppress")}

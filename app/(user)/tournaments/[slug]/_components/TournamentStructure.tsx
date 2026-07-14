@@ -41,6 +41,12 @@ import { eventLinksApi, type PublicLinksStructure } from "@/lib/eventLinks";
 import { env } from "@/lib/env";
 // Subtle clickable name -> public player/team profile (standings rows).
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
+// Clash-Squad (head-to-head) stages have NO groups (the bracket owns the structure), so the public
+// Structure view shows the SAME read-only bracket card the admin/organizer event pages mount. Its
+// GET bracket endpoint (headToHeadApi.getBracket) is public, and isManager={false} strips every
+// generate/report control, so spectators see the tree + standings without any edit affordance
+// (CS remediation P1#5, owner 2026-07-13).
+import { H2HBracketCard } from "@/components/h2h-bracket";
 
 // Local mirrors of the Stage/StageGroup shapes from EventDetailsWrapper (kept local so
 // this component stays self-contained; `any` rows because leaderboard keys vary solo/squad).
@@ -524,7 +530,18 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
           )}
         </div>
 
-        {!stage.groups || stage.groups.length === 0 ? (
+        {String(stage.stage_format || "").startsWith("cs") ? (
+          // Clash-Squad stage: show the read-only head-to-head bracket instead of the group grid
+          // (a CS stage has no groups). registeredTeams=[] because the public viewer never seeds/
+          // generates — that control is manager-only and hidden by isManager={false}.
+          <H2HBracketCard
+            stageId={stage.stage_id}
+            stageName={stage.stage_name}
+            stageFormat={stage.stage_format}
+            isManager={false}
+            registeredTeams={[]}
+          />
+        ) : !stage.groups || stage.groups.length === 0 ? (
           <div className="p-10 text-center border-2 border-dashed border-border rounded-md text-muted-foreground">
             {t("structure.noGroups")}
           </div>

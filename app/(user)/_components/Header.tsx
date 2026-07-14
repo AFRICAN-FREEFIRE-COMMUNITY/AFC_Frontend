@@ -83,7 +83,7 @@ export const Header = () => {
           </Link>
 
           <nav className="hidden md:flex items-center gap-2 font-medium text-muted-foreground text-sm">
-            {homeNavLinks.map(({ slug, label }, index) => (
+            {homeNavLinks.map(({ slug, label, navKey }, index) => (
               <Button
                 size={"sm"}
                 key={index}
@@ -95,7 +95,9 @@ export const Header = () => {
                   href={slug}
                   className="hover:text-primary transition-colors"
                 >
-                  {label}
+                  {/* Translate via the shared common.nav.* key; fall back to the
+                      English label if an entry has no navKey yet. */}
+                  {navKey ? t(`nav.${navKey}`) : label}
                 </Link>
               </Button>
             ))}

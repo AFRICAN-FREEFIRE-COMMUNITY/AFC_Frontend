@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -33,7 +33,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Search, MoreHorizontal, Eye, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -224,16 +224,13 @@ export default function page() {
         className="mb-6"
         data-tour="shop-orders-status-tabs"
       >
-        <ScrollArea>
-          <TabsList className="w-full">
-            <TabsTrigger value="all">All ({orderCounts.all})</TabsTrigger>
-            <TabsTrigger value="pending">
-              Pending ({orderCounts.pending})
-            </TabsTrigger>
-            <TabsTrigger value="paid">Paid ({orderCounts.paid})</TabsTrigger>
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        <ScrollableTabsList className="w-full">
+          <TabsTrigger value="all">All ({orderCounts.all})</TabsTrigger>
+          <TabsTrigger value="pending">
+            Pending ({orderCounts.pending})
+          </TabsTrigger>
+          <TabsTrigger value="paid">Paid ({orderCounts.paid})</TabsTrigger>
+        </ScrollableTabsList>
       </Tabs>
 
       {/* Section ⓘ heads the orders table (sibling of the muted label). */}

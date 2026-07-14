@@ -1,0 +1,470 @@
+<!doctype html>
+<!--
+  AFC Tournaments & Scrims page - ORGANIZERS TAB DESIGN PREVIEW (mock data, in-context, clickable).
+  =================================================================================================
+  WHAT THIS IS
+  This is the real /tournaments page (app/(user)/tournaments/page.tsx) WITH a new "Organizers"
+  tab added alongside the existing Tournaments / Scrims tabs. Same chrome: PageHeader green title,
+  search + filter row, status buttons, full-width shadcn pill TabsList.
+
+  THE NEW FEATURE (Organizers tab)
+  1. GRID view  : lists organizer / organization pages as cards. Each card shows logo, name,
+                  verified badge (when org.is_verified), event count, location, tier, and a short
+                  blurb. The grid mirrors the EventCard 1/2/3-column layout already on this page.
+  2. DETAIL view: clicking an organizer card drills into that organizer's public page - its header
+                  (logo + verified + stats) plus its OWN Tournaments / Scrims sub-tabs listing only
+                  the events that organizer hosts (reuses the real EventCard idiom).
+
+  This maps onto data the codebase already carries: Event.organization_id / organization_name /
+  organization_slug, and the existing /organizations/[slug] route the EventCard badge links to.
+  An "Organizers" tab is the directory front-door for those org pages.
+
+  DESIGN SYSTEM
+  Identical tokens to the two approved mockups (team-stats-mockup.html, player-profile-mockup.html):
+  oklch palette, DM Sans, pill tabs (bg-muted / active bg-background), bg-card rounded panels,
+  outline rounded-full badges, green page title, gradient overlay.
+
+  HARD RULES honored: NO em/en dashes anywhere in copy. Mock data only. Fully clickable.
+-->
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Organizers Tab - Tournaments & Scrims Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  /* ── design tokens (verbatim from the approved AFC mockups) ── */
+  :root{
+    --background: oklch(0.141 0.005 285.823); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.21 0.006 285.885); --primary: oklch(0.624 0.170 149.09);
+    --gold: oklch(0.79 0.17 83.63); --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067); --border: oklch(1 0 0 / 10%);
+    --radius: 0.65rem; --red: oklch(0.62 0.20 25); --blue: oklch(0.62 0.19 256);
+    --secondary: oklch(0.274 0.006 286.033);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--background);color:var(--foreground);min-height:100vh;position:relative;line-height:1.5;}
+  /* fixed gradient overlay from-primary/20 via-transparent to-gold/20 */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,color-mix(in oklch,var(--primary) 18%,transparent),transparent 55%,color-mix(in oklch,var(--gold) 18%,transparent));}
+  /* container: 92% desktop, centered (matches @utility container) */
+  .container{position:relative;z-index:1;width:92%;max-width:1180px;margin:0 auto;padding:30px 0 90px;}
+
+  /* ── PageHeader: green title (text-3xl md:text-4xl font-bold text-primary) ── */
+  h1{font-size:clamp(1.875rem,3vw,2.25rem);font-weight:700;color:var(--primary);letter-spacing:-0.01em;margin-bottom:16px;}
+
+  /* ── search + filter row (mirrors the real page) ── */
+  .toolbar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .searchwrap{position:relative;flex:1;min-width:220px;}
+  .searchwrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted-foreground);}
+  .searchwrap input{width:100%;background:color-mix(in oklch,var(--background) 50%,transparent);backdrop-filter:blur(4px);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font-family:inherit;font-size:.85rem;padding:9px 12px 9px 36px;}
+  .searchwrap input::placeholder{color:var(--muted-foreground);}
+  select.sel{background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font-family:inherit;font-size:.78rem;padding:8px 10px;cursor:pointer;color-scheme:dark;min-width:150px;}
+
+  /* status filter buttons (size sm, outline / default) */
+  .statusrow{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .sbtn{appearance:none;font-family:inherit;font-size:.75rem;font-weight:500;border-radius:calc(var(--radius) - 3px);padding:6px 12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--foreground);display:inline-flex;align-items:center;gap:5px;text-transform:capitalize;}
+  .sbtn .cnt{opacity:.7;font-size:.72rem;}
+  .sbtn.on{background:var(--primary);color:#06281a;border-color:transparent;font-weight:600;}
+
+  /* ── shadcn pill TabsList (bg-muted, active bg-background fill) ── */
+  .tabs{display:flex;gap:4px;background:var(--muted);border-radius:var(--radius);padding:4px;margin-bottom:18px;width:100%;}
+  .tab{flex:1;text-align:center;font-size:.82rem;font-weight:600;padding:8px 12px;border-radius:calc(var(--radius) - 3px);color:var(--muted-foreground);cursor:pointer;white-space:nowrap;}
+  .tab.active{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+
+  /* ── EventCard idiom (overflow-hidden, banner aspect-video, title hover:text-primary) ── */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;}
+  .ecard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;}
+  .ecard .banner{aspect-ratio:16/9;width:100%;display:grid;place-items:center;font-weight:700;font-size:1.05rem;color:#06281a;position:relative;}
+  .ecard .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:7px;flex:1;}
+  .ecard .ttl{font-size:1rem;font-weight:600;cursor:pointer;}
+  .ecard:hover .ttl{color:var(--primary);text-decoration:underline;}
+  .ecard .meta{font-size:.8rem;color:var(--muted-foreground);}
+  .ecard .status{font-size:.82rem;font-weight:500;}
+  .status.upcoming{color:var(--blue);} .status.ongoing{color:var(--primary);} .status.completed{color:var(--muted-foreground);}
+  .vbtn{margin-top:auto;text-align:center;font-size:.82rem;font-weight:500;border:1px solid var(--border);border-radius:calc(var(--radius) - 3px);padding:8px;cursor:pointer;background:transparent;color:var(--foreground);}
+  .vbtn:hover{background:color-mix(in oklch,var(--primary) 8%,transparent);}
+
+  /* outline org badge on an event card (links to org page) */
+  .orgbadge{align-self:flex-start;font-size:.72rem;font-weight:500;border:1px solid var(--border);border-radius:999px;padding:2px 9px;color:var(--foreground);cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .orgbadge:hover{border-color:color-mix(in oklch,var(--primary) 50%,transparent);color:var(--primary);}
+
+  /* ── ORGANIZER directory cards (the new feature) ── */
+  .orgcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:border-color .15s,transform .15s;}
+  .orgcard:hover{border-color:color-mix(in oklch,var(--primary) 45%,transparent);transform:translateY(-2px);}
+  .orgcard .top{display:flex;align-items:center;gap:13px;}
+  .logo{width:54px;height:54px;border-radius:var(--radius);display:grid;place-items:center;font-weight:700;font-size:1.25rem;color:#06281a;flex-shrink:0;}
+  .orgcard .nm{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:6px;line-height:1.2;}
+  .orgcard .loc{font-size:.78rem;color:var(--muted-foreground);margin-top:2px;}
+  /* verified check badge (gold tick), shown only when org.is_verified */
+  .verified{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:999px;background:var(--gold);color:#1a1205;font-size:10px;font-weight:800;flex-shrink:0;}
+  .orgcard .blurb{font-size:.82rem;color:var(--muted-foreground);min-height:38px;}
+  .orgcard .foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+  /* outline rounded-full badges (tier / count / status) */
+  .badge{font-size:.72rem;font-weight:500;border-radius:999px;padding:2px 9px;border:1px solid var(--border);color:var(--muted-foreground);display:inline-flex;align-items:center;gap:4px;}
+  .badge.green{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .badge.gold{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 55%,transparent);}
+  .badge.blue{color:var(--blue);border-color:color-mix(in oklch,var(--blue) 50%,transparent);}
+  .badge.orange{color:oklch(0.72 0.16 60);border-color:color-mix(in oklch,oklch(0.72 0.16 60) 55%,transparent);}
+
+  /* ── organizer DETAIL view (the drill-down org page) ── */
+  .crumb{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted-foreground);cursor:pointer;margin-bottom:14px;}
+  .crumb:hover{color:var(--primary);}
+  .orghead{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}
+  .orghead .logo{width:72px;height:72px;font-size:1.7rem;}
+  .orghead .name{font-size:1.55rem;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .orghead .sub{color:var(--muted-foreground);font-size:.85rem;margin-top:3px;}
+  .orghead .verified{width:20px;height:20px;font-size:12px;}
+  .ohstats{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap;}
+  .ostat{background:var(--background);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);padding:10px 16px;text-align:center;min-width:88px;}
+  .ostat .v{font-size:1.3rem;font-weight:700;}
+  .ostat .v.green{color:var(--primary);} .ostat .v.gold{color:var(--gold);}
+  .ostat .l{font-size:.68rem;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+  .links{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .links a{font-size:.76rem;color:var(--muted-foreground);text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:3px 10px;cursor:pointer;}
+  .links a:hover{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+
+  .empty{grid-column:1/-1;text-align:center;color:var(--muted-foreground);padding:48px 0;font-size:.9rem;}
+  .hide{display:none;}
+  @media(max-width:900px){.grid3{grid-template-columns:repeat(2,1fr);}.ohstats{margin-left:0;width:100%;}}
+  @media(max-width:560px){.grid3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- PageHeader (real component): green title -->
+  <h1>Tournaments &amp; Scrims</h1>
+
+  <!-- search + filter row (replicates the real page toolbar) -->
+  <div class="toolbar">
+    <div class="searchwrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" type="search" placeholder="Search organizers by name or location..." oninput="render()">
+    </div>
+    <!-- verified-only filter (organizer-tab specific) -->
+    <select class="sel" id="verFilter" onchange="render()">
+      <option value="all">All organizers</option>
+      <option value="verified">Verified only</option>
+      <option value="afc">AFC official</option>
+    </select>
+    <!-- sort organizers -->
+    <select class="sel" id="orgSort" onchange="render()">
+      <option value="events">Most events</option>
+      <option value="name">Name (A to Z)</option>
+      <option value="newest">Newest first</option>
+    </select>
+  </div>
+
+  <!-- status filter buttons (kept for parity; drive event counts on org pages) -->
+  <div class="statusrow" id="statusRow"></div>
+
+  <!-- ── shadcn pill tabs: NEW "Organizers" tab added after Tournaments / Scrims ── -->
+  <div class="tabs">
+    <div class="tab" data-tab="tournaments" onclick="showTab('tournaments')">Tournaments (18)</div>
+    <div class="tab" data-tab="scrims" onclick="showTab('scrims')">Scrims (11)</div>
+    <div class="tab active" data-tab="organizers" onclick="showTab('organizers')">Organizers (6)</div>
+  </div>
+
+  <!-- existing tabs (stubbed for context) -->
+  <div id="tournaments" class="hide">
+    <div class="grid3" id="tournGrid"></div>
+  </div>
+  <div id="scrims" class="hide">
+    <div class="grid3" id="scrimGrid"></div>
+  </div>
+
+  <!-- NEW: Organizers tab. Two states: directory grid + per-organizer detail -->
+  <div id="organizers">
+    <!-- state A: organizer directory grid -->
+    <div id="orgDirectory">
+      <div class="grid3" id="orgGrid"></div>
+    </div>
+
+    <!-- state B: single organizer detail (its hosted tournaments & scrims) -->
+    <div id="orgDetail" class="hide"></div>
+  </div>
+</div>
+
+<script>
+  /* =========================================================================
+     MOCK DATA
+     Organizers map to the codebase's organization concept (organization_id /
+     organization_name / organization_slug). Each carries hosted events that the
+     detail view splits into Tournaments vs Scrims (competition_type).
+     ========================================================================= */
+
+  // helper: deterministic accent per org so logos/banners stay consistent
+  const ACCENTS = {
+    afc:    'oklch(0.624 0.170 149.09)', // primary green
+    vortex: 'oklch(0.62 0.19 256)',      // blue
+    naija:  'oklch(0.79 0.17 83.63)',    // gold
+    apex:   'oklch(0.62 0.20 25)',       // red
+    rivals: 'oklch(0.66 0.18 300)',      // violet
+    savanna:'oklch(0.72 0.16 60)',       // orange
+  };
+
+  const ORGS = [
+    {
+      slug:'afc-official', key:'afc', name:'AFC Official', verified:true, official:true,
+      location:'Pan-African', tier:'Tier 1', founded:'2024',
+      blurb:'The African Freefire Community in-house team. Flagship leagues and majors across the continent.',
+      socials:['Website','Twitter','YouTube'],
+      events:[
+        {id:1, name:'AFC Pro League S3', date:'2026-06-20', status:'upcoming',  type:'tournament', prize:'$8,000', teams:48},
+        {id:2, name:'AFC Majors Finals',  date:'2026-05-30', status:'ongoing',   type:'tournament', prize:'$15,000', teams:16},
+        {id:3, name:'AFC Open Qualifier', date:'2026-04-12', status:'completed', type:'tournament', prize:'$3,000', teams:64},
+        {id:4, name:'AFC Weekly Scrim 24',date:'2026-06-15', status:'upcoming',  type:'scrims', prize:'-', teams:32},
+        {id:5, name:'AFC Weekly Scrim 23',date:'2026-06-08', status:'completed', type:'scrims', prize:'-', teams:30},
+      ],
+    },
+    {
+      slug:'vortex-esports', key:'vortex', name:'Vortex Esports', verified:true, official:false,
+      location:'Nigeria', tier:'Tier 1', founded:'2024',
+      blurb:'Lagos-based org running high-stakes invitationals and a structured weekly scrim ladder.',
+      socials:['Website','Twitter','Discord'],
+      events:[
+        {id:11, name:'Vortex Invitational', date:'2026-06-25', status:'upcoming',  type:'tournament', prize:'$5,000', teams:24},
+        {id:12, name:'Vortex Rivals Cup',   date:'2026-05-18', status:'completed', type:'tournament', prize:'$2,500', teams:32},
+        {id:13, name:'Vortex Ladder Night', date:'2026-06-14', status:'ongoing',   type:'scrims', prize:'-', teams:20},
+        {id:14, name:'Vortex Practice Set', date:'2026-06-21', status:'upcoming',  type:'scrims', prize:'-', teams:18},
+      ],
+    },
+    {
+      slug:'naija-clash', key:'naija', name:'Naija Clash League', verified:true, official:false,
+      location:'Nigeria', tier:'Tier 2', founded:'2025',
+      blurb:'Grassroots Clash Squad specialists. Community-first brackets with a strong amateur scene.',
+      socials:['Twitter','Discord'],
+      events:[
+        {id:21, name:'Naija Clash Open #6', date:'2026-06-22', status:'upcoming',  type:'tournament', prize:'$1,200', teams:32},
+        {id:22, name:'Naija Clash Open #5', date:'2026-05-10', status:'completed', type:'tournament', prize:'$1,000', teams:32},
+        {id:23, name:'Clash Warmup Friday', date:'2026-06-19', status:'upcoming',  type:'scrims', prize:'-', teams:16},
+      ],
+    },
+    {
+      slug:'apex-arena', key:'apex', name:'Apex Arena', verified:false, official:false,
+      location:'Ghana', tier:'Tier 2', founded:'2025',
+      blurb:'West African BR circuit. Newer org building a name through consistent weekend cups.',
+      socials:['Twitter'],
+      events:[
+        {id:31, name:'Apex Weekend Cup 9', date:'2026-06-21', status:'upcoming',  type:'tournament', prize:'$800', teams:24},
+        {id:32, name:'Apex Weekend Cup 8', date:'2026-06-07', status:'completed', type:'tournament', prize:'$800', teams:24},
+        {id:33, name:'Apex Scrim Block A', date:'2026-06-16', status:'ongoing',   type:'scrims', prize:'-', teams:14},
+      ],
+    },
+    {
+      slug:'rivals-gg', key:'rivals', name:'Rivals.gg', verified:true, official:false,
+      location:'Kenya', tier:'Tier 1', founded:'2024',
+      blurb:'East African powerhouse. Premium production and a flagship Showdown series.',
+      socials:['Website','Twitter','YouTube','Discord'],
+      events:[
+        {id:41, name:'Rivals Showdown S4',  date:'2026-07-02', status:'upcoming',  type:'tournament', prize:'$6,000', teams:20},
+        {id:42, name:'Rivals Showdown S3',  date:'2026-04-28', status:'completed', type:'tournament', prize:'$5,500', teams:20},
+        {id:43, name:'Rivals Bootcamp Scrim',date:'2026-06-18', status:'upcoming', type:'scrims', prize:'-', teams:20},
+        {id:44, name:'Rivals Open Scrim',   date:'2026-06-11', status:'completed', type:'scrims', prize:'-', teams:24},
+      ],
+    },
+    {
+      slug:'savanna-series', key:'savanna', name:'Savanna Series', verified:false, official:false,
+      location:'South Africa', tier:'Tier 3', founded:'2026',
+      blurb:'Brand new this season. Hosting its first qualifiers and free community scrims.',
+      socials:['Twitter'],
+      events:[
+        {id:51, name:'Savanna Qualifier #1', date:'2026-06-28', status:'upcoming', type:'tournament', prize:'$500', teams:32},
+        {id:52, name:'Savanna Free Scrim',   date:'2026-06-17', status:'upcoming', type:'scrims', prize:'-', teams:12},
+      ],
+    },
+  ];
+
+  // flat event list (used by the standalone Tournaments / Scrims tab stubs)
+  const ALL_EVENTS = ORGS.flatMap(o => o.events.map(e => ({...e, org:o})));
+
+  /* ---- status filter buttons (parity with real page) ---- */
+  let statusFilter='all';
+  function statusCounts(){
+    const c={all:ALL_EVENTS.length,upcoming:0,ongoing:0,completed:0};
+    ALL_EVENTS.forEach(e=>c[e.status]++);
+    return c;
+  }
+  function renderStatusRow(){
+    const c=statusCounts();
+    document.getElementById('statusRow').innerHTML =
+      ['all','upcoming','ongoing','completed'].map(s=>`
+        <button class="sbtn ${statusFilter===s?'on':''}" onclick="setStatus('${s}')">
+          ${s==='all'?'All':s}<span class="cnt">(${c[s]})</span>
+        </button>`).join('');
+  }
+  function setStatus(s){ statusFilter=s; renderStatusRow(); render(); }
+
+  /* ---- shared bits ---- */
+  function initials(name){ return name.replace(/[^A-Za-z0-9 ]/g,'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+  function tierClass(t){ return t==='Tier 1'?'gold':t==='Tier 2'?'green':t==='Tier 3'?'blue':''; }
+  function fmtDate(d){ return new Date(d+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}); }
+  function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+  /* ---- EventCard (the real /tournaments card idiom) ----
+     Takes the event PLUS its owning organizer explicitly, so it works whether the
+     event came from the flat ALL_EVENTS list or straight off an org.events array.
+     showOrg = true renders the outline org badge (used on the standalone tabs). ---- */
+  function eventCard(e, org, showOrg){
+    const accent = ACCENTS[org.key];
+    return `
+      <div class="ecard">
+        <div class="banner" style="background:linear-gradient(135deg,${accent},color-mix(in oklch,${accent} 55%,#000))">${e.name}</div>
+        <div class="body">
+          <div class="ttl">${e.name}</div>
+          <div class="meta">Date: ${fmtDate(e.date)}</div>
+          <div class="status ${e.status}">${cap(e.status)}</div>
+          <div class="meta">${e.prize!=='-'?'Prize: '+e.prize+' · ':''}${e.teams} teams</div>
+          ${showOrg?`<span class="orgbadge" onclick="event.stopPropagation();openOrg('${org.slug}')">${org.verified?'<span class="verified" style="width:13px;height:13px;font-size:8px">✓</span>':''}${org.name}</span>`:''}
+          <button class="vbtn">View Details</button>
+        </div>
+      </div>`;
+  }
+
+  /* ---- standalone Tournaments / Scrims tab stubs (filtered by status) ---- */
+  function renderEventTabs(){
+    const f = e => statusFilter==='all' || e.status===statusFilter;
+    const t = ALL_EVENTS.filter(e=>e.type==='tournament' && f(e));
+    const s = ALL_EVENTS.filter(e=>e.type==='scrims' && f(e));
+    document.getElementById('tournGrid').innerHTML = t.length? t.map(e=>eventCard(e,e.org,true)).join('') : `<div class="empty">No tournaments match this filter.</div>`;
+    document.getElementById('scrimGrid').innerHTML  = s.length? s.map(e=>eventCard(e,e.org,true)).join('') : `<div class="empty">No scrims match this filter.</div>`;
+  }
+
+  /* =========================================================================
+     ORGANIZER DIRECTORY (state A): logo, name, verified badge, # events, tier
+     ========================================================================= */
+  function orgCard(o){
+    const accent = ACCENTS[o.key];
+    const cnt = o.events.length;
+    return `
+      <div class="orgcard" onclick="openOrg('${o.slug}')">
+        <div class="top">
+          <div class="logo" style="background:linear-gradient(135deg,${accent},color-mix(in oklch,${accent} 55%,#000))">${initials(o.name)}</div>
+          <div>
+            <div class="nm">${o.name}${o.verified?`<span class="verified" title="Verified organizer">✓</span>`:''}</div>
+            <div class="loc">${o.location} · since ${o.founded}</div>
+          </div>
+        </div>
+        <div class="blurb">${o.blurb}</div>
+        <div class="foot">
+          <span class="badge green">${cnt} events</span>
+          <span class="badge ${tierClass(o.tier)}">${o.tier}</span>
+          ${o.official?`<span class="badge gold">AFC Official</span>`:o.verified?`<span class="badge gold">Verified</span>`:`<span class="badge orange">Unverified</span>`}
+        </div>
+      </div>`;
+  }
+
+  function renderOrgGrid(){
+    const q = document.getElementById('search').value.trim().toLowerCase();
+    const vf = document.getElementById('verFilter').value;
+    const sort = document.getElementById('orgSort').value;
+
+    let list = ORGS.filter(o =>
+      (!q || o.name.toLowerCase().includes(q) || o.location.toLowerCase().includes(q)) &&
+      (vf==='all' || (vf==='verified'&&o.verified) || (vf==='afc'&&o.official))
+    );
+    list = [...list].sort((a,b)=>
+      sort==='name'   ? a.name.localeCompare(b.name) :
+      sort==='newest' ? b.founded.localeCompare(a.founded) :
+                        b.events.length - a.events.length   // events
+    );
+
+    document.getElementById('orgGrid').innerHTML = list.length
+      ? list.map(orgCard).join('')
+      : `<div class="empty">No organizers match "${q}".</div>`;
+  }
+
+  /* =========================================================================
+     ORGANIZER DETAIL (state B): org header + its own Tournaments / Scrims tabs
+     ========================================================================= */
+  let detailSubTab='tournaments';
+  function openOrg(slug){
+    const o = ORGS.find(x=>x.slug===slug);
+    if(!o) return;
+    showTab('organizers');                 // make sure the org tab is active
+    document.getElementById('orgDirectory').classList.add('hide');
+    const el = document.getElementById('orgDetail');
+    el.classList.remove('hide');
+    detailSubTab='tournaments';
+    el.dataset.slug = slug;
+    renderOrgDetail();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function backToDirectory(){
+    document.getElementById('orgDetail').classList.add('hide');
+    document.getElementById('orgDirectory').classList.remove('hide');
+  }
+  function setSubTab(t){ detailSubTab=t; renderOrgDetail(); }
+
+  function renderOrgDetail(){
+    const el = document.getElementById('orgDetail');
+    const o = ORGS.find(x=>x.slug===el.dataset.slug);
+    const accent = ACCENTS[o.key];
+    const f = e => statusFilter==='all' || e.status===statusFilter;
+    const tourns = o.events.filter(e=>e.type==='tournament' && f(e));
+    const scrims = o.events.filter(e=>e.type==='scrims' && f(e));
+    const upcoming = o.events.filter(e=>e.status==='upcoming').length;
+    const totalPrize = o.events.filter(e=>e.prize!=='-')
+      .reduce((s,e)=>s+Number(e.prize.replace(/[^0-9]/g,'')),0);
+
+    const list = detailSubTab==='tournaments'?tourns:scrims;
+    const grid = list.length
+      ? list.map(e=>eventCard(e,o,false)).join('')
+      : `<div class="empty">No ${detailSubTab} from this organizer match the current filter.</div>`;
+
+    el.innerHTML = `
+      <div class="crumb" onclick="backToDirectory()">&larr; All organizers</div>
+
+      <div class="orghead">
+        <div class="logo" style="background:linear-gradient(135deg,${accent},color-mix(in oklch,${accent} 55%,#000))">${initials(o.name)}</div>
+        <div>
+          <div class="name">${o.name}${o.verified?`<span class="verified" title="Verified">✓</span>`:''}</div>
+          <div class="sub">${o.location} · ${o.tier} · organizing since ${o.founded}</div>
+          <div class="sub" style="max-width:520px;margin-top:6px">${o.blurb}</div>
+          <div class="links">${o.socials.map(s=>`<a>${s}</a>`).join('')}</div>
+        </div>
+        <div class="ohstats">
+          <div class="ostat"><div class="v green">${o.events.length}</div><div class="l">Events</div></div>
+          <div class="ostat"><div class="v">${upcoming}</div><div class="l">Upcoming</div></div>
+          <div class="ostat"><div class="v gold">$${totalPrize.toLocaleString()}</div><div class="l">Prize pool</div></div>
+        </div>
+      </div>
+
+      <!-- organizer's OWN tournaments / scrims sub-tabs -->
+      <div class="tabs">
+        <div class="tab ${detailSubTab==='tournaments'?'active':''}" onclick="setSubTab('tournaments')">Tournaments (${tourns.length})</div>
+        <div class="tab ${detailSubTab==='scrims'?'active':''}" onclick="setSubTab('scrims')">Scrims (${scrims.length})</div>
+      </div>
+      <div class="grid3">${grid}</div>`;
+  }
+
+  /* ---- top-level tab switcher (Tournaments / Scrims / Organizers) ---- */
+  function showTab(id){
+    ['tournaments','scrims','organizers'].forEach(t=>{
+      document.getElementById(t).classList.toggle('hide', t!==id);
+    });
+    document.querySelectorAll('.tabs > .tab[data-tab]').forEach(el=>
+      el.classList.toggle('active', el.dataset.tab===id));
+    // switching back to Organizers always lands on the directory
+    if(id==='organizers'){
+      document.getElementById('orgDetail').classList.add('hide');
+      document.getElementById('orgDirectory').classList.remove('hide');
+    }
+  }
+
+  /* ---- master render ---- */
+  function render(){
+    renderOrgGrid();
+    renderEventTabs();
+    // if a detail view is open, keep it in sync with status filter
+    const det = document.getElementById('orgDetail');
+    if(!det.classList.contains('hide') && det.dataset.slug) renderOrgDetail();
+  }
+
+  renderStatusRow();
+  render();
+</script>
+</body>
+</html>

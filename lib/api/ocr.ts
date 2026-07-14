@@ -17,7 +17,8 @@ import { authHeaders } from "@/lib/http";
  *   - MapSelectionStep.tsx  consumes uploadOcrScreenshot (pick a map, drop a screenshot).
  *   - ImageUploadStep.tsx   consumes uploadOcrScreenshot + ocrFromStoredImage (re-run OCR on a
  *                           screenshot already stored on the match).
- *   - OCRReviewTable.tsx    consumes getOcrSession (tab-restore), patchOcrRow (per-edit save),
+ *   - OCRReviewTable.tsx    consumes getSessionRoster (roster-scoped matched-player picker),
+ *                           getOcrSession (tab-restore), patchOcrRow (per-edit save),
  *                           commitOcrSession (write to the leaderboard) and discardOcrSession.
  * The flow is mounted from app/(a)/a/leaderboards/[id]/edit/page.tsx (the Upload Results drawer).
  *
@@ -141,6 +142,28 @@ export interface CommitOcrError {
   unacknowledged?: string[]; // raw_names that are a team mismatch but not yet acknowledged
 }
 
+/**
+ * One player REGISTERED to the event this OCR session belongs to. This is the source list for the
+ * roster-scoped "matched player" picker in OCRReviewTable (it replaced the old top_candidates-only
+ * dropdown + inert free-text box). team_id / team_name are null for solo events.
+ * Returned by GET /events/ocr-session/<id>/roster/.
+ */
+export interface OcrRosterPlayer {
+  user_id: number;
+  username: string;
+  team_id: number | null;
+  team_name: string | null;
+}
+
+/**
+ * Roster response for one OCR session. `event_type` tells the picker whether to show each player's
+ * team_name (team events) and which identity fields to persist when a row is matched.
+ */
+export interface OcrRoster {
+  players: OcrRosterPlayer[];
+  event_type: "solo" | "team";
+}
+
 export const ocrApi = {
   // ── Upload + (re)extract ───────────────────────────────────────────────────
   /**
@@ -165,6 +188,18 @@ export const ocrApi = {
   }) => aPost<OcrSession>("ocr-from-image/", body),
 
   // ── Session read / edit / commit / discard ─────────────────────────────────
+  /**
+   * GET /events/ocr-session/<id>/roster/ - the players REGISTERED to the event this session
+   * belongs to (a bounded list, filtered client-side). Powers OCRReviewTable's roster-scoped
+   * "matched player" combobox. That one table is reused by the admin event OCR page, the organizer
+   * OCR page, the organizer leaderboard and the admin leaderboard editor, so this single call
+   * covers all four surfaces. Returns { players, event_type } (event_type = "solo" | "team").
+   * Same Bearer-from-cookie auth (authHeaders) as every other call here.
+   * Consumed by OCRReviewTable.tsx on mount (keyed by sessionId).
+   */
+  getSessionRoster: (sessionId: string) =>
+    aGet<OcrRoster>(`ocr-session/${sessionId}/roster/`),
+
   /**
    * GET /events/ocr-session/<id>/ - refetch a draft (tab-restore).
    * Consumed by OCRReviewTable.tsx when it needs to reload a session it was handed only the id of.

@@ -4,7 +4,7 @@
 // DuplicateEventButton
 // ----------------------------------------------------------------------------
 // A confirm-gated row action that clones an event into a fresh draft via
-// POST /events/<event_id>/duplicate-event/ (eventsApi.duplicateEvent — see
+// POST /events/<event_id>/duplicate-event/ (eventsApi.duplicateEvent - see
 // lib/api/events.ts). It is shared by BOTH events lists so the two surfaces behave
 // identically:
 //   • admin     → app/(a)/a/_components/EventsAdminContent.tsx (next to View/Edit/Delete)
@@ -15,8 +15,8 @@
 // `onSuccess` (e.g. the admin list's re-fetch). The button styling mirrors the other
 // outline row actions (variant="outline", size="sm") per the AFC design constants.
 //
-// The duplicate endpoint copies CONFIG + stage/group structure only — never results,
-// registrations, teams, matches, leaderboards, payments, sponsors, or analytics — so the
+// The duplicate endpoint copies CONFIG + stage/group structure only - never results,
+// registrations, teams, matches, leaderboards, payments, sponsors, or analytics - so the
 // confirm copy says exactly that to set expectations.
 // ─────────────────────────────────────────────────────────────────────────────
 

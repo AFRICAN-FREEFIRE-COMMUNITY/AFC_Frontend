@@ -403,7 +403,7 @@ export default function OrganizerSponsorsPage({
           />
           {search && (
             <button
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-1 top-1/2 -translate-y-1/2 flex size-8 items-center justify-center text-muted-foreground hover:text-foreground"
               onClick={() => setSearch("")}
             >
               <IconX className="size-4" />
@@ -477,7 +477,7 @@ export default function OrganizerSponsorsPage({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
+                                className="text-green-600 border-green-200 hover:bg-green-50 h-9 text-xs"
                                 disabled={isActing}
                                 onClick={() =>
                                   handleConfirm(c.competitor_id, c.username)
@@ -495,7 +495,7 @@ export default function OrganizerSponsorsPage({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
+                                className="text-red-600 border-red-200 hover:bg-red-50 h-9 text-xs"
                                 disabled={isActing}
                                 onClick={() =>
                                   openRejectDialog(c.competitor_id, c.username)

@@ -14,5 +14,18 @@
   "checkin.userClosed": "Check-in has closed.",
   "checkin.userSquadProgress": "{done} of {total} of your team have checked in.",
   "checkin.userSquadReady": "Your team is ready.",
-  "checkin.userSquadWaiting": "Waiting on teammates."
+  "checkin.userSquadWaiting": "Waiting on teammates.",
+  "paymentRules.label": "Per-country payment",
+  "paymentRules.infoTip": "Optional. Set, per country, whether teams or players from that country pay the entry fee or join for free, and optionally charge a different amount. A squad uses its team country; a solo player uses their own country. This does not change the private-event invite link, which is still required regardless of country.",
+  "paymentRules.helpText": "Leave empty to charge every country the base entry fee.",
+  "paymentRules.unlistedTitle": "Countries not listed below",
+  "paymentRules.unlistedPay": "Pay the base entry fee.",
+  "paymentRules.unlistedFree": "Join for free (no entry fee).",
+  "paymentRules.free": "Free",
+  "paymentRules.pay": "Pay",
+  "paymentRules.baseWithFee": "Base {fee}",
+  "paymentRules.baseFee": "Base fee",
+  "paymentRules.remove": "Remove {name}",
+  "paymentRules.addCountry": "Add a country...",
+  "editNav.chooseSection": "Choose event section"
 }

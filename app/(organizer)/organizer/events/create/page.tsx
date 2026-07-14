@@ -60,6 +60,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -140,6 +141,11 @@ const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
 };
 
 export default function OrganizerCreateEventPage() {
+  // i18n (evCreatePage ns): this orchestrator's own chrome - page header, permission
+  // gate, draft-resume dialog, nav buttons, and every step-validation / submit toast.
+  // The reused wizard step components (Step1EventDetails, StageModal, ...) own their
+  // own strings via their own namespaces; this only covers strings authored here.
+  const t = useTranslations("evCreatePage");
   const router = useRouter();
   const { membership, isOwner } = useOrganizer();
   const { token } = useAuth();
@@ -292,7 +298,7 @@ export default function OrganizerCreateEventPage() {
     setCurrentStep(eventDraft.currentStep || 1);
     setRulesInputMethod(eventDraft.rulesInputMethod === "upload" ? "upload" : "type");
     markEventDraftResumed();
-    toast.info("Draft restored. If you had a banner or rules file, re-attach it.");
+    toast.info(t("toast.draftRestored"));
   };
   const hasFinalAction =
     saveToDraftsWatch || publishToTournamentsWatch || publishToNewsWatch;
@@ -307,12 +313,10 @@ export default function OrganizerCreateEventPage() {
     if (isDraft && isPublish) {
       form.setValue("publish_to_tournaments", false);
       form.setValue("publish_to_news", false);
-      toast.info(
-        "Draft mode selected. Publishing options automatically unchecked.",
-      );
+      toast.info(t("toast.draftModeSelected"));
     } else if (isPublish && isDraft) {
       form.setValue("save_to_drafts", false);
-      toast.info("Publishing selected. Draft mode automatically unchecked.");
+      toast.info(t("toast.publishingSelected"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveToDraftsWatch, publishToTournamentsWatch, publishToNewsWatch]);
@@ -467,30 +471,35 @@ export default function OrganizerCreateEventPage() {
       !stageModalData.end_date ||
       stageModalData.teams_qualifying_from_stage === undefined
     ) {
-      toast.error("Please fill all required stage fields");
+      toast.error(t("toast.fillRequiredStageFields"));
       return;
     }
 
     // Round-robin stages validate their BASE GROUPS, not the classic per-group config
     // the backend ignores for this format (mirrors the admin create page).
     const isRoundRobinStage = stageModalData.stage_format === "br - round robin";
+    // Clash Squad (cs - *) runs as a head-to-head BRACKET seeded from the registered teams on
+    // the event page - no groups/maps to validate; sends groups: [] (P1#2, owner 2026-07-13).
+    const isClashSquadStage = (stageModalData.stage_format || "").startsWith("cs - ");
     if (isRoundRobinStage) {
       const baseGroups = stageModalData.round_robin?.round_robin_groups ?? [];
       if (baseGroups.length < 2) {
-        toast.error("A round-robin stage needs at least two base groups.");
+        toast.error(t("toast.roundRobinTwoGroups"));
         return;
       }
       if (baseGroups.some((g) => !g.label.trim())) {
-        toast.error("Every base group needs a label.");
+        toast.error(t("toast.baseGroupLabel"));
         return;
       }
       if (
         stageModalData.round_robin.generate_schedule &&
         stageModalData.round_robin.games_per_day < 1
       ) {
-        toast.error("Games per day must be at least 1.");
+        toast.error(t("toast.gamesPerDayMin"));
         return;
       }
+    } else if (isClashSquadStage) {
+      // Nothing to validate: a bracket has no groups/maps. Falls through to send groups: [].
     } else {
       const invalidGroup = tempGroups.find(
         (g) =>
@@ -503,14 +512,12 @@ export default function OrganizerCreateEventPage() {
           g.match_maps.length === 0,
       );
       if (invalidGroup) {
-        toast.error(
-          "Please complete all group details correctly, including selecting at least one map per group",
-        );
+        toast.error(t("toast.completeGroupDetails"));
         return;
       }
 
       if (stageModalData.number_of_groups < 1) {
-        toast.error("A stage must have at least one group.");
+        toast.error(t("toast.stageAtLeastOneGroup"));
         return;
       }
     }
@@ -522,7 +529,8 @@ export default function OrganizerCreateEventPage() {
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
       stage_format: stageModalData.stage_format,
-      groups: tempGroups,
+      // Clash Squad has no groups (a bracket) - send [] so the backend creates no phantom BR group.
+      groups: isClashSquadStage ? [] : tempGroups,
       teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
       prizepool: stageModalData.prizepool,
       prizepool_cash_value: stageModalData.prizepool_cash_value,
@@ -554,7 +562,7 @@ export default function OrganizerCreateEventPage() {
       setStageNames(updatedNames);
     }
 
-    toast.success("Stage saved successfully");
+    toast.success(t("toast.stageSaved"));
     setIsStageModalOpen(false);
     setStageModalStep(1);
   };
@@ -575,7 +583,17 @@ export default function OrganizerCreateEventPage() {
         currentNames[index],
       ];
       setStageNames(currentNames);
-      toast.success(`Moved stage ${stageNames[index] || "Stage"} ${direction}`);
+      // direction is strictly "up" | "down"; guard the dynamic key defensively so a
+      // missing translation can never throw MISSING_MESSAGE at render.
+      const directionLabel = t.has(`toast.direction.${direction}`)
+        ? t(`toast.direction.${direction}`)
+        : direction;
+      toast.success(
+        t("toast.stageMoved", {
+          name: stageNames[index] || t("misc.stageFallback"),
+          direction: directionLabel,
+        }),
+      );
     }
   };
 
@@ -589,9 +607,9 @@ export default function OrganizerCreateEventPage() {
       currentNames.splice(index, 1);
       setStageNames(currentNames);
       form.setValue("number_of_stages", currentNames.length);
-      toast.success("Stage deleted successfully");
+      toast.success(t("toast.stageDeleted"));
     } else {
-      toast.error("An event must have at least one stage.");
+      toast.error(t("toast.eventAtLeastOneStage"));
     }
   };
 
@@ -629,7 +647,7 @@ export default function OrganizerCreateEventPage() {
           shouldFocus: true,
         });
         if (isValid && form.getValues("number_of_stages") < 1) {
-          toast.error("Number of stages must be at least 1.");
+          toast.error(t("toast.numStagesMin"));
           isValid = false;
         }
         break;
@@ -639,7 +657,10 @@ export default function OrganizerCreateEventPage() {
         const configuredStages = form.getValues("stages").length;
         if (configuredStages < numStages) {
           toast.error(
-            `Please configure all ${numStages} stages before proceeding. Only ${configuredStages} configured.`,
+            t("toast.configureAllStages", {
+              total: numStages,
+              configured: configuredStages,
+            }),
           );
           return;
         }
@@ -647,9 +668,7 @@ export default function OrganizerCreateEventPage() {
           .getValues("stages")
           .every((s) => s.groups && s.groups.length > 0);
         if (!allValid) {
-          toast.error(
-            "One or more stages have not been fully configured with groups.",
-          );
+          toast.error(t("toast.stagesNotConfigured"));
           return;
         }
         isValid = true;
@@ -663,13 +682,13 @@ export default function OrganizerCreateEventPage() {
       case 6:
         if (rulesInputMethod === "type") {
           if (!form.getValues("event_rules")?.trim()) {
-            toast.error("Please enter the event rules.");
+            toast.error(t("toast.enterEventRules"));
             return;
           }
           form.setValue("rules_document", "");
         } else {
           if (!form.getValues("rules_document")) {
-            toast.error("Please upload the rules document.");
+            toast.error(t("toast.uploadRulesDocument"));
             return;
           }
           form.setValue("event_rules", "");
@@ -685,8 +704,13 @@ export default function OrganizerCreateEventPage() {
           (form.getValues("sponsorships") as SponsorshipDraft[] | undefined) ?? [],
         );
         if (issues.length > 0) {
+          // issues[0] text comes from the shared sponsorshipIssues() helper (own ns/source);
+          // only the "+N more" counter suffix is authored + translated here.
           toast.error(
-            issues[0] + (issues.length > 1 ? ` (+${issues.length - 1} more)` : ""),
+            issues[0] +
+              (issues.length > 1
+                ? " " + t("toast.moreIssues", { count: issues.length - 1 })
+                : ""),
           );
           return;
         }
@@ -711,7 +735,7 @@ export default function OrganizerCreateEventPage() {
   const onSubmit = (data: EventFormType) => {
     // Mirror the backend 400: require_discord=true demands a non-empty invite link.
     if (data.require_discord && !data.discord_invite_link?.trim()) {
-      toast.error("Add a Discord invite link to require Discord for registration.");
+      toast.error(t("toast.discordInviteRequired"));
       setCurrentStep(1);
       return;
     }
@@ -945,7 +969,7 @@ export default function OrganizerCreateEventPage() {
 
         const contentType = response.headers.get("content-type");
         if (!contentType?.includes("application/json")) {
-          toast.error("Server error: Received unexpected response format.");
+          toast.error(t("toast.serverError"));
           return;
         }
 
@@ -976,11 +1000,13 @@ export default function OrganizerCreateEventPage() {
             }
             if (failedSponsors.length > 0) {
               toast.error(
-                `Event created, but attaching failed for: ${failedSponsors.join(", ")}. Re-add them from the event's Sponsor tab.`,
+                t("toast.sponsorAttachFailed", {
+                  names: failedSponsors.join(", "),
+                }),
               );
             }
           }
-          toast.success(res.message || "Event created successfully!");
+          toast.success(res.message || t("toast.eventCreated"));
           clearEventDraft(); // wizard submitted -> drop the saved localStorage draft
           router.push("/organizer/events");
         } else if (response.status === 400 && res.code === "paid_terms_required") {
@@ -993,11 +1019,11 @@ export default function OrganizerCreateEventPage() {
             res.message ||
               res.detail ||
               res.error ||
-              "Failed to create event. Please check your inputs.",
+              t("toast.createFailed"),
           );
         }
       } catch {
-        toast.error("An unexpected error occurred during submission.");
+        toast.error(t("toast.unexpectedError"));
       }
     });
   };
@@ -1016,7 +1042,7 @@ export default function OrganizerCreateEventPage() {
   };
   const onInvalidSubmit = (errors: Record<string, unknown>) => {
     // Walk the RHF error tree down to leaf messages. Fields nest (stages[i].groups[j].<field>), so a
-    // top-level "stages" error is useless — this pinpoints the EXACT stage/group/field + its message.
+    // top-level "stages" error is useless: this pinpoints the EXACT stage/group/field + its message.
     const leaves: { path: string; message: string }[] = [];
     const walk = (node: any, path: string) => {
       if (!node || typeof node !== "object") return;
@@ -1033,7 +1059,7 @@ export default function OrganizerCreateEventPage() {
     const topField = (leaves[0]?.path || Object.keys(errors || {})[0] || "").split(".")[0];
     if (topField) setCurrentStep(FIELD_STEP[topField] ?? 1);
     if (!leaves.length) {
-      toast.error("Some required fields are missing. Please review each step.");
+      toast.error(t("toast.someFieldsMissing"));
       return;
     }
     // "stages.2.groups.1.match_maps" -> "Stage 3 > Group 2 > Match Maps".
@@ -1049,10 +1075,16 @@ export default function OrganizerCreateEventPage() {
       return parts.join(" › ");
     };
     // Replace Zod's raw "Invalid input: expected string, received undefined" with a plain "required".
+    // NOTE: humanizePath() derives the field label from the schema field path (e.g. "Match Maps")
+    // and stays English - those are structural field identifiers, not authored copy (see report).
     const clean = (m: string) =>
-      /invalid input|expected .* received (undefined|nan|null)|^required$/i.test(m) ? "required" : m;
+      /invalid input|expected .* received (undefined|nan|null)|^required$/i.test(m)
+        ? t("toast.fieldRequired")
+        : m;
     const lines = leaves.slice(0, 4).map((l) => `${humanizePath(l.path)}: ${clean(l.message)}`);
-    toast.error(`Please fix: ${lines.join("   •   ")}`, { duration: 9000 });
+    toast.error(t("toast.pleaseFix", { details: lines.join("   •   ") }), {
+      duration: 9000,
+    });
   };
 
   // ── Paid-event submit gate ─────────────────────────────────────────────────────
@@ -1105,7 +1137,9 @@ export default function OrganizerCreateEventPage() {
         (_pv.prize_currency as string) || "USD",
       );
       if (_pe) {
-        toast.error(_pe, { duration: 9000 });
+        // validatePrizeDistribution returns a {code, values} descriptor now (i18n); localize it here
+        // with this page's evCreatePage translator. Key: prizeValidate.required|over|under.
+        toast.error(t(_pe.code, _pe.values), { duration: 9000 });
         setCurrentStep(5);
         return;
       }
@@ -1132,18 +1166,17 @@ export default function OrganizerCreateEventPage() {
   if (!canCreateEvents) {
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Create Event" back />
+        <PageHeader title={t("gate.title")} back />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <div className="flex size-12 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <IconLock className="size-6" />
             </div>
             <p className="text-sm text-muted-foreground">
-              You don&apos;t have permission to create events for this
-              organization.
+              {t("gate.noPermission")}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/organizer/events">Back to events</Link>
+              <Link href="/organizer/events">{t("gate.backToEvents")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -1159,17 +1192,17 @@ export default function OrganizerCreateEventPage() {
       <EventDraftResumeDialog
         open={!!eventDraft}
         savedAt={eventDraft?.savedAt}
-        title="Resume your unsaved event?"
-        description="You started creating an event and didn't finish. Resume where you left off, or start fresh. Re-attach any banner or rules file after resuming."
-        resumeLabel="Resume"
-        discardLabel="Start fresh"
+        title={t("resume.title")}
+        description={t("resume.description")}
+        resumeLabel={t("resume.resume")}
+        discardLabel={t("resume.startFresh")}
         onResume={resumeEventDraft}
         onDiscard={discardEventDraft}
       />
       <div data-tour="org-event-create-title">
         <PageHeader
-          title="Create New Event"
-          description="Set up a new event for your organization."
+          title={t("header.title")}
+          description={t("header.description")}
           back
         />
       </div>
@@ -1254,7 +1287,7 @@ export default function OrganizerCreateEventPage() {
                 onClick={() => setCurrentStep((s) => s - 1)}
                 disabled={isPending}
               >
-                Previous
+                {t("nav.previous")}
               </Button>
             )}
 
@@ -1265,7 +1298,7 @@ export default function OrganizerCreateEventPage() {
                   onClick={handleNextStep}
                   disabled={isPending}
                 >
-                  {currentStep === 6 ? "Review & Finalize" : "Next"}
+                  {currentStep === 6 ? t("nav.reviewFinalize") : t("nav.next")}
                 </Button>
               ) : (
                 <Button
@@ -1276,7 +1309,7 @@ export default function OrganizerCreateEventPage() {
                   onClick={handleCreateClick}
                   disabled={currentStep !== 9 || isPending || !hasFinalAction}
                 >
-                  {isPending ? "Creating..." : "Create Event"}
+                  {isPending ? t("nav.creating") : t("nav.createEvent")}
                 </Button>
               )}
             </div>

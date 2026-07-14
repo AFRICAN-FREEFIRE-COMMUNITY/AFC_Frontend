@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { InfoTip } from "@/components/ui/info-tip";
 import { toast } from "sonner";
@@ -15,6 +16,8 @@ interface ApplyButtonProps {
 }
 
 export default function ApplyButton({ postId, teamName }: ApplyButtonProps) {
+  // i18n: shares the `pmPost` namespace with the parent page (page.tsx).
+  const t = useTranslations("pmPost");
   const { token } = useAuth();
   const { openAuthModal } = useAuthModal();
   const [applied, setApplied] = useState(false);
@@ -37,11 +40,13 @@ export default function ApplyButton({ postId, teamName }: ApplyButtonProps) {
             { post_id: String(postId) },
             { headers: { Authorization: `Bearer ${token}` } },
           );
-          toast.success(`Application sent to ${teamName ?? "team"}!`);
+          toast.success(
+            t("apply.success", { team: teamName ?? t("apply.teamFallback") }),
+          );
           setApplied(true);
         } catch (error: any) {
           toast.error(
-            error?.response?.data?.message || "Failed to send application.",
+            error?.response?.data?.message || t("apply.error"),
           );
         }
       });
@@ -51,7 +56,7 @@ export default function ApplyButton({ postId, teamName }: ApplyButtonProps) {
   if (applied) {
     return (
       <Button disabled className="flex-1">
-        Application Sent
+        {t("apply.sent")}
       </Button>
     );
   }
@@ -59,7 +64,7 @@ export default function ApplyButton({ postId, teamName }: ApplyButtonProps) {
   return (
     <span className="flex flex-1 items-center gap-1.5">
       <Button onClick={handleApply} disabled={isPending} className="flex-1">
-        {isPending ? "Applying..." : "Apply to This Team"}
+        {isPending ? t("apply.applying") : t("apply.cta")}
       </Button>
       <InfoTip id="player_market.apply" />
     </span>

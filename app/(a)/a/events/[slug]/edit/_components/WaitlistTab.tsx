@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import axios from "axios";
+// i18n: this Waitlist tab is shared by the admin + organizer event-edit wizards. All copy is
+// internationalized via the "evEditTabs" namespace (messages/{en,fr,pt}/evEditTabs.json).
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,22 +63,23 @@ interface WaitlistEntry {
   tournament_team_id?: number;
 }
 
-// The 3 modes, with short admin-facing copy. Admin surface = English (i18n-exempt).
-const MODE_OPTIONS: { value: string; label: string; help: string }[] = [
+// The 3 slot-assignment modes. i18n: labelKey/helpKey resolve into the "evEditTabs" namespace at
+// render (fully enumerated: every one of these keys exists in messages/{en,fr,pt}/evEditTabs.json).
+const MODE_OPTIONS: { value: string; labelKey: string; helpKey: string }[] = [
   {
     value: "first_registered",
-    label: "Earliest registered",
-    help: "The team/player who joined the waitlist first gets the open slot.",
+    labelKey: "waitlist.modeFirstRegisteredLabel",
+    helpKey: "waitlist.modeFirstRegisteredHelp",
   },
   {
     value: "fcfs_room",
-    label: "First to join room",
-    help: "All waitlist teams get the room ID + password; first to join the room claims the slot. You confirm who got in.",
+    labelKey: "waitlist.modeFcfsRoomLabel",
+    helpKey: "waitlist.modeFcfsRoomHelp",
   },
   {
     value: "manual_admin",
-    label: "You pick",
-    help: "You manually choose which waitlist team/player takes each open slot.",
+    labelKey: "waitlist.modeManualAdminLabel",
+    helpKey: "waitlist.modeManualAdminHelp",
   },
 ];
 
@@ -114,6 +118,10 @@ export default function WaitlistTab({
   hideDiscord = false,
 }: WaitlistTabProps) {
   const { token } = useAuth();
+  const t = useTranslations("evEditTabs");
+  // Guarded translate for the mode label/help keys (built from the MODE_OPTIONS list): falls back to
+  // the key stem if a key is ever missing so a dynamic lookup can never throw a MISSING_MESSAGE.
+  const tg = (key: string, fallback: string) => (t.has(key) ? t(key) : fallback);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const mode = waitlistForm.waitlist_mode || "first_registered";
@@ -136,10 +144,14 @@ export default function WaitlistTab({
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success(`${entry.name ?? "Competitor"} promoted into the event.`);
+      toast.success(
+        t("waitlist.toastPromoted", {
+          name: entry.name ?? t("waitlist.toastCompetitorFallback"),
+        }),
+      );
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Failed to promote.");
+      toast.error(e.response?.data?.message || t("waitlist.toastPromoteFailed"));
     } finally {
       setBusyId(null);
     }
@@ -155,10 +167,10 @@ export default function WaitlistTab({
         { event_id: eventId },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success(res.data?.message || "Next waitlist entry promoted.");
+      toast.success(res.data?.message || t("waitlist.toastNextPromoted"));
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Failed to promote next.");
+      toast.error(e.response?.data?.message || t("waitlist.toastPromoteNextFailed"));
     } finally {
       setBusyId(null);
     }
@@ -166,24 +178,22 @@ export default function WaitlistTab({
 
   return (
     <div className="space-y-4">
-      {/* Registration requirements moved to Basic Info (owner 2026-06-22) — see the note at
+      {/* Registration requirements moved to Basic Info (owner 2026-06-22) - see the note at
           the top of this file. This tab is waitlist-only now. */}
       <Card>
         <CardHeader>
-          <CardTitle>Waitlist</CardTitle>
+          <CardTitle>{t("waitlist.cardTitle")}</CardTitle>
           <p className="text-xs text-muted-foreground mt-1">
-            Allow players to join a waitlist when the event reaches max
-            capacity, so a no-show's slot can be filled by a backup.
+            {t("waitlist.cardSubtitle")}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Toggle */}
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
-              <Label htmlFor="waitlist-toggle">Enable Waitlist</Label>
+              <Label htmlFor="waitlist-toggle">{t("waitlist.enableWaitlist")}</Label>
               <p className="text-xs text-muted-foreground">
-                Players can join the waitlist when the event is full and be
-                admitted if spots open up.
+                {t("waitlist.enableWaitlistHelp")}
               </p>
             </div>
             <Switch
@@ -198,12 +208,12 @@ export default function WaitlistTab({
           {waitlistForm.is_waitlist_enabled && (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="waitlist-capacity">Waitlist Capacity</Label>
+                <Label htmlFor="waitlist-capacity">{t("waitlist.capacity")}</Label>
                 <Input
                   id="waitlist-capacity"
                   type="number"
                   min={1}
-                  placeholder="e.g. 20"
+                  placeholder={t("waitlist.capacityPlaceholder")}
                   value={waitlistForm.waitlist_capacity}
                   onChange={(e) =>
                     setWaitlistForm((p) => ({
@@ -213,14 +223,14 @@ export default function WaitlistTab({
                   }
                 />
                 <p className="text-xs text-muted-foreground">
-                  Maximum number of players allowed on the waitlist.
+                  {t("waitlist.capacityHelp")}
                 </p>
               </div>
 
               {/* Slot-assignment MODE (owner 2026-06-17): how a no-show's slot is filled. Shown to
                   players on the event page so they know the rule. */}
               <div className="space-y-2">
-                <Label>How open slots are filled</Label>
+                <Label>{t("waitlist.howSlotsFilled")}</Label>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {MODE_OPTIONS.map((opt) => (
                     <button
@@ -236,24 +246,29 @@ export default function WaitlistTab({
                           : "hover:bg-muted",
                       )}
                     >
-                      <span className="block font-medium">{opt.label}</span>
+                      <span className="block font-medium">{tg(opt.labelKey, opt.labelKey)}</span>
                     </button>
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {MODE_OPTIONS.find((o) => o.value === mode)?.help}
+                  {(() => {
+                    // The active mode's help. helpKey is enumerated in MODE_OPTIONS; tg guards the
+                    // lookup so an unknown mode can never throw at render.
+                    const helpKey = MODE_OPTIONS.find((o) => o.value === mode)?.helpKey;
+                    return helpKey ? tg(helpKey, helpKey) : "";
+                  })()}
                 </p>
               </div>
 
-              {/* Waitlist Discord Role ID — hidden in the organizer flow (hideDiscord). */}
+              {/* Waitlist Discord Role ID - hidden in the organizer flow (hideDiscord). */}
               {!hideDiscord && (
                 <div className="space-y-1.5">
                   <Label htmlFor="waitlist-discord-role">
-                    Waitlist Discord Role ID
+                    {t("waitlist.discordRole")}
                   </Label>
                   <Input
                     id="waitlist-discord-role"
-                    placeholder="e.g. 123456789012345678"
+                    placeholder={t("waitlist.discordRolePlaceholder")}
                     value={waitlistForm.waitlist_discord_role_id}
                     onChange={(e) =>
                       setWaitlistForm((p) => ({
@@ -263,7 +278,7 @@ export default function WaitlistTab({
                     }
                   />
                   <p className="text-xs text-muted-foreground">
-                    Discord role assigned to players on the waitlist.
+                    {t("waitlist.discordRoleHelp")}
                   </p>
                 </div>
               )}
@@ -275,14 +290,14 @@ export default function WaitlistTab({
       <div className="flex justify-end">
         <Button onClick={onSave} disabled={saving}>
           {saving && <IconLoader2 className="size-4 animate-spin mr-2" />}
-          {saving ? "Saving..." : "Save Waitlist Settings"}
+          {saving ? t("waitlist.saving") : t("waitlist.saveSettings")}
         </Button>
       </div>
 
       {eventDetails && (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-2">
-            <CardTitle>People on Waitlist ({roster.length})</CardTitle>
+            <CardTitle>{t("waitlist.peopleOnWaitlist", { count: roster.length })}</CardTitle>
             {/* first_registered convenience: promote the earliest-registered in one click. */}
             {eventId && roster.length > 0 && mode === "first_registered" && (
               <Button
@@ -294,24 +309,23 @@ export default function WaitlistTab({
                 {busyId === "next" && (
                   <IconLoader2 className="size-4 animate-spin mr-1" />
                 )}
-                Promote next
+                {t("waitlist.promoteNext")}
               </Button>
             )}
           </CardHeader>
           <CardContent className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
             {mode === "fcfs_room" && roster.length > 0 && (
               <p className="mb-3 rounded-md border border-dashed p-2 text-xs text-muted-foreground">
-                Release room details to the group (Event Actions {">"} Broadcast {">"} room details)
-                so the waitlist can see them, then Promote whoever joined the room first.
+                {t("waitlist.fcfsNotice")}
               </p>
             )}
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead>{isSquad ? "Team" : "Player"}</TableHead>
-                  <TableHead>Registered At</TableHead>
-                  {eventId && <TableHead className="text-right">Action</TableHead>}
+                  <TableHead className="w-12">{t("waitlist.colNumber")}</TableHead>
+                  <TableHead>{isSquad ? t("waitlist.colTeam") : t("waitlist.colPlayer")}</TableHead>
+                  <TableHead>{t("waitlist.colRegisteredAt")}</TableHead>
+                  {eventId && <TableHead className="text-right">{t("waitlist.colAction")}</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -347,7 +361,7 @@ export default function WaitlistTab({
                             {busyId === key && (
                               <IconLoader2 className="size-4 animate-spin mr-1" />
                             )}
-                            Promote
+                            {t("waitlist.promote")}
                           </Button>
                         </TableCell>
                       )}
@@ -361,7 +375,7 @@ export default function WaitlistTab({
                       colSpan={eventId ? 4 : 3}
                       className="text-center text-muted-foreground py-8"
                     >
-                      No one on the waitlist yet.
+                      {t("waitlist.emptyWaitlist")}
                     </TableCell>
                   </TableRow>
                 )}

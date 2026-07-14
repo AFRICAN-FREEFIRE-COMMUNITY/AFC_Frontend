@@ -3,8 +3,8 @@
 //
 // Organizer parity port (owner 2026-07-02) of the ADMIN OCR page
 // app/(a)/a/events/[slug]/ocr/page.tsx: the sessions table (one row per OCR'd
-// result screenshot), the Review dialog (session status + extracted rows), and
-// the per-row Commit / Discard actions - scoped to THIS organizer's own event.
+// result screenshot), the Review dialog (now the shared editable OCRReviewTable),
+// and the per-row Commit / Discard actions - scoped to THIS organizer's own event.
 //
 // ── WHAT CHANGED vs THE ADMIN PAGE ──
 //   • Ownership guard: the slug must resolve to one of THIS org's events
@@ -31,6 +31,20 @@
 //     from the "organizer" namespace (eventOcr.*), en → fr/pt via
 //     pnpm i18n:translate; Created timestamps render in the VIEWER's timezone
 //     via <LocalTime /> (never a raw toLocale* call).
+//   • REVIEW DIALOG = SHARED EDITABLE TABLE (owner 2026-07-14). The Review dialog
+//     used to render a read-only JSON dump of draft_rows; it now hosts the SAME
+//     editable OCRReviewTable the admin leaderboard editor uses
+//     (app/(a)/a/leaderboards/_components/OCRReviewTable.tsx). The organizer can
+//     re-match players, edit kills, and commit inline. That table PATCHes/commits
+//     via ocrApi (/events/ocr-session/<id>/ + .../commit/), which accept the exact
+//     can_upload_results grant this page already gates on (L112), so no new perms
+//     are needed. onCommitted refetches the sessions list + closes the dialog; the
+//     table's onBack (also fired after its own in-table Discard) closes + refetches
+//     so a discarded draft leaves the list. New dialog + confirm copy lives in the
+//     shared "ocr" namespace (ocr.organizerPage.* + shared ocr.common.*), NOT the
+//     "organizer" (eventOcr.*) namespace this page's list still uses.
+//   • DISCARD CONFIRM (owner 2026-07-14, B4). The per-row Discard (DELETE) is gated
+//     behind a shadcn AlertDialog confirm so a mis-click can't silently drop a draft.
 //
 // ── CONSUMES (backend afc_ocr, all org-allowed per the 2026-07-02 parity audit) ──
 //   GET    /events/ocr-sessions/?event_id=<id>   → the sessions list (org-scoped)
@@ -55,7 +69,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { FullLoader } from "@/components/Loader";
 import { LocalTime } from "@/components/LocalTime";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -70,9 +84,22 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { IconCheck, IconLock, IconTrash, IconRefresh, IconTrophy } from "@tabler/icons-react";
+// The shared editable OCR review table (admin leaderboard editor). We host it in
+// the Review dialog so organizers get the SAME correct-and-commit surface admins do.
+// It PATCHes/commits via ocrApi against /events/ocr-session/<id>/ (+ /commit/).
+import { OCRReviewTable } from "@/app/(a)/a/leaderboards/_components/OCRReviewTable";
 import { useOrganizer } from "../../../_components/OrganizerContext";
 
 type Params = { slug: string };
@@ -87,6 +114,10 @@ interface OcrSession {
   status: string;
   created_by?: string;
   created_at: string;
+  // Which OCR engine produced this session (Local vN / Gemini / Hybrid), if the
+  // backend surfaced it. Optional: passed straight through to OCRReviewTable's
+  // "Engine:" badge, which simply omits itself when this is null/undefined.
+  engine?: string | null;
   // Detail-only (GET /events/ocr-session/<id>/): the extracted, reviewable rows.
   draft_rows?: any[];
 }
@@ -106,6 +137,10 @@ export default function OrganizerOcrPage({ params }: { params: Promise<Params> }
   // i18n: organizer-facing surface, namespace "organizer" (eventOcr.*);
   // English values live in messages/en/organizer.json -> fr/pt via pnpm i18n:translate.
   const t = useTranslations("organizer");
+  // The NEW review-dialog + discard-confirm copy lives in the SHARED "ocr" namespace
+  // (ocr.organizerPage.* for this page, plus the orchestrator-owned shared ocr.common.*),
+  // so it stays in sync with the admin OCR surfaces that render the same table.
+  const tOcr = useTranslations("ocr");
 
   // Same org permission the backend enforces on every OCR endpoint
   // (org_can_event(user, "can_upload_results", event)).
@@ -123,6 +158,9 @@ export default function OrganizerOcrPage({ params }: { params: Promise<Params> }
   const [viewSession, setViewSession] = useState<OcrSession | null>(null);
   const [committing, setCommitting] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  // Session id awaiting the discard AlertDialog confirm (B4): the row Discard button
+  // only opens this gate; handleDelete fires from the confirm's destructive action.
+  const [confirmDiscardId, setConfirmDiscardId] = useState<string | null>(null);
 
   // ── 1) Resolve the slug to one of THIS org's events ──────────────────────────
   // The matched row supplies the numeric event_id the list endpoint requires for
@@ -382,11 +420,14 @@ export default function OrganizerOcrPage({ params }: { params: Promise<Params> }
                               : t("eventOcr.commit")}
                           </Button>
                         )}
+                        {/* Discard: opens the AlertDialog confirm (B4) instead of
+                            deleting immediately - handleDelete fires from the confirm. */}
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="destructive"
                           disabled={deleting === session.session_id}
-                          onClick={() => handleDelete(session.session_id)}
+                          onClick={() => setConfirmDiscardId(session.session_id)}
+                          aria-label={tOcr("organizerPage.discardAria")}
                         >
                           <IconTrash className="h-3.5 w-3.5" />
                         </Button>
@@ -400,48 +441,69 @@ export default function OrganizerOcrPage({ params }: { params: Promise<Params> }
         </CardContent>
       </Card>
 
-      {/* Review dialog: session status + the extracted draft rows (the detail GET
-          returns draft_rows; rendered as formatted JSON, same as the admin page's
-          extracted-data block). */}
+      {/* Review dialog: hosts the SHARED editable OCRReviewTable so the organizer can
+          correct matched players / kills and commit inline (was a read-only JSON dump).
+          The detail GET (/events/ocr-session/<id>/) supplies draft_rows; the table's own
+          PATCH/commit calls (ocrApi -> /events/ocr-session/<id>/ + /commit/) accept the
+          can_upload_results grant this page already holds, so they work unchanged.
+          onCommitted refetches the list + closes; onBack (also fired after the table's own
+          Discard) refetches too so a discarded draft leaves the list. Wide + scrollable so
+          the 7-column table fits; the table owns the Back / Discard / Commit actions, so the
+          dialog needs no footer of its own. */}
       <Dialog open={!!viewSession} onOpenChange={(o) => { if (!o) setViewSession(null); }}>
         {viewSession && (
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] sm:max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{t("eventOcr.dialogTitle")}</DialogTitle>
+              <DialogTitle>{tOcr("organizerPage.reviewDialogTitle")}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className={`text-xs ${STATUS_COLORS[viewSession.status] ?? ""}`}>
-                  {statusLabel(viewSession.status)}
-                </Badge>
-                <span className="text-xs text-muted-foreground font-mono">{viewSession.session_id}</span>
-              </div>
-              {!!viewSession.draft_rows?.length && (
-                <div>
-                  <p className="text-sm font-semibold mb-2">{t("eventOcr.extractedData")}</p>
-                  <pre className="text-xs bg-muted rounded-md p-3 overflow-x-auto whitespace-pre-wrap">
-                    {JSON.stringify(viewSession.draft_rows, null, 2)}
-                  </pre>
-                </div>
-              )}
+            {/* Session context above the table: real status badge + full session id. */}
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge variant="outline" className={`text-xs ${STATUS_COLORS[viewSession.status] ?? ""}`}>
+                {statusLabel(viewSession.status)}
+              </Badge>
+              <span className="text-xs text-muted-foreground font-mono break-all">{viewSession.session_id}</span>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setViewSession(null)}>
-                {t("eventOcr.close")}
-              </Button>
-              {viewSession.status === "pending_review" && (
-                <Button
-                  onClick={() => { handleCommit(viewSession.session_id); setViewSession(null); }}
-                  disabled={committing === viewSession.session_id}
-                >
-                  <IconCheck className="h-4 w-4 mr-1.5" />
-                  {t("eventOcr.commitResults")}
-                </Button>
-              )}
-            </DialogFooter>
+            <OCRReviewTable
+              sessionId={viewSession.session_id}
+              draftRows={viewSession.draft_rows ?? []}
+              matchId={viewSession.match_id ?? 0}
+              engine={viewSession.engine ?? null}
+              onCommitted={() => { fetchSessions(eventId); setViewSession(null); }}
+              onBack={() => { fetchSessions(eventId); setViewSession(null); }}
+            />
           </DialogContent>
         )}
       </Dialog>
+
+      {/* Discard confirm (B4): gates the per-row DELETE so a mis-click can't silently
+          drop a draft. The destructive action calls handleDelete with the pending id
+          (DELETE /events/ocr-session/<id>/ -> soft "discarded"); Radix closes the gate,
+          which clears confirmDiscardId via onOpenChange. */}
+      <AlertDialog
+        open={!!confirmDiscardId}
+        onOpenChange={(o) => { if (!o) setConfirmDiscardId(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tOcr("organizerPage.confirmDiscardTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {tOcr("organizerPage.confirmDiscardBody")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting === confirmDiscardId}>
+              {tOcr("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: "destructive" })}
+              disabled={deleting === confirmDiscardId}
+              onClick={() => { if (confirmDiscardId) handleDelete(confirmDiscardId); }}
+            >
+              {tOcr("common.discard")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

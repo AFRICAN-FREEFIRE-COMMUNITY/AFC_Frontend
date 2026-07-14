@@ -1,0 +1,109 @@
+{
+  "teams": {
+    "roster": {
+      "_page": "Gérez l'effectif de votre équipe : définissez le rôle de chaque membre dans le jeu et au sein de l'encadrement, ou retirez-le de l'effectif. Seuls le propriétaire de l'équipe et les entraîneurs peuvent gérer l'effectif ; les capitaines n'en ont pas le droit.",
+      "in_game_role": "Le rôle occupé par un joueur (attaquant, tireur d'élite, soutien, grenadier). Seuls les JOUEURS – capitaine, vice-capitaine ou membre – peuvent avoir un rôle dans le jeu, et une équipe peut en aligner au maximum 6.",
+      "management_role": "Le rôle d'un membre au sein de l'équipe. Les JOUEURS (capitaine, vice-capitaine, membre) participent aux compétitions et peuvent occuper un rôle dans le jeu. Le PERSONNEL (entraîneur, manager, analyste) n'assure qu'un rôle de soutien, n'est jamais aligné en tant que joueur, et une équipe ne peut compter qu'un seul représentant de chaque catégorie. Le passage d'un membre du statut de joueur à celui de membre du personnel n'est autorisé que pendant la période des transferts."
+    },
+    "create": {
+      "team_tag": "Un préfixe court ou une abréviation désignant votre équipe (par exemple « AFC »), qui apparaîtra à côté du nom complet. Facultatif : laissez ce champ vide si vous ne souhaitez pas en indiquer.",
+      "join_settings": "Le mode « Ouvert » permet à n'importe quel joueur de rejoindre votre équipe instantanément. Le mode « Sur demande » signifie que les joueurs demandent à rejoindre votre équipe et que vous devez approuver ou refuser chaque demande.",
+      "invite_members": "Invitez dès maintenant des joueurs via leur adresse e-mail AFC ou leur nom d'utilisateur. Chaque personne reçoit une invitation qu'elle doit accepter avant d'être ajoutée à l'équipe."
+    }
+  },
+  "tournaments": {
+    "register": {
+      "type": {
+        "_section": "Choisissez votre mode de participation : en solo (un seul joueur) ou en équipe (pour inscrire votre effectif). L'option non autorisée pour cet événement apparaîtra en gris."
+      },
+      "afc_uid": "Votre identifiant AFC (UID) est l'identifiant utilisé dans le jeu et associé à votre profil. Il est indispensable pour participer aux compétitions et est enregistré dans votre profil ; vous n'avez donc à le saisir qu'une seule fois.",
+      "select_members": {
+        "_section": "Choisissez les joueurs de votre équipe qui participeront à cette épreuve. Vous devez choisir un nombre de joueurs compris entre le minimum et le maximum autorisés pour cette épreuve."
+      },
+      "rules": {
+        "_section": "Veuillez lire le règlement du tournoi ainsi que les éventuelles consignes de conduite ou les règles relatives aux équipements. Si le règlement complet est joint, téléchargez-le et lisez-le attentivement avant de poursuivre."
+      },
+      "rules_accept": "Vous devez cocher cette case pour confirmer que vous avez lu et accepté le règlement. L'inscription ne pourra pas se poursuivre tant que cette case ne sera pas cochée.",
+      "sponsor": {
+        "_section": "Le sponsor de cet événement exige une tâche (par exemple, installer une application) et un identifiant par joueur. Chaque identifiant doit être unique. Il est vérifié par rapport à tous les joueurs déjà inscrits ; ainsi, toute valeur déjà utilisée par quelqu'un d'autre est rejetée."
+      },
+      "discord_link": {
+        "_section": "Associez votre compte Discord à AFC. Cette opération ne fait que connecter les deux comptes. Vous rejoindrez le serveur AFC à l'étape suivante. Les détails des matchs sont partagés sur Discord."
+      },
+      "discord_join": {
+        "_section": "Rejoignez le serveur Discord de l'AFC, puis confirmez. Cette étape est distincte de l'association de votre compte. Ces deux étapes sont nécessaires pour finaliser votre inscription."
+      },
+      "discord_status": {
+        "_section": "Pour l'inscription de l'équipe, chaque membre sélectionné doit associer individuellement son compte Discord et rejoindre le serveur AFC. Partagez le lien du serveur avec toutes les personnes dont le statut apparaît encore en rouge, puis actualisez la page."
+      }
+    }
+  },
+  "shop": {
+    "checkout": {
+      "coupon": "Saisissez un code promotionnel, puis appuyez sur « Appliquer » pour bénéficier d'une réduction sur cet article. Les codes en pourcentage donnent droit à une réduction proportionnelle au pourcentage indiqué ; les codes à montant fixe donnent droit à une réduction d'un montant fixe. Chaque code s'applique uniquement à l'article auquel il a été associé.",
+      "tax": "Une taxe de 7,5 % s'ajoute au montant intermédiaire (après déduction de toute réduction par coupon).",
+      "total": "Montant à payer : votre sous-total après remise, majoré de 7,5 % de taxes. Facturé en nairas (₦).",
+      "pay_now": "Passez votre commande et ouvrez Paystack dans un nouvel onglet pour effectuer votre paiement en toute sécurité. Votre code d'échange vous sera envoyé par e-mail une fois le paiement confirmé."
+    },
+    "diamonds": {
+      "customer_details": {
+        "_section": "Nous utilisons ces coordonnées, et notamment votre adresse e-mail, pour vous envoyer votre code d'échange de diamants. Les diamants Free Fire sont envoyés par e-mail ; vous n'avez donc pas besoin d'indiquer ici un identifiant de jeu ou un identifiant de joueur dans le jeu."
+      },
+      "claim": {
+        "_section": "Une fois le paiement effectué, un code d'activation vous sera envoyé par e-mail (généralement dans un délai de 5 à 10 minutes). Utilisez-le sur le site officiel de Free Fire pour ajouter les diamants à votre compte. Le code n'est pas appliqué automatiquement à votre identifiant de jeu."
+      },
+      "order_status": "Une fois le paiement effectué sur Paystack, nous le validons automatiquement et vérifions son statut toutes les 30 secondes. Le message « En attente de vérification » signifie simplement que nous n'avons pas encore reçu de confirmation. Si le montant a été débité, vous pouvez cliquer sur « Réessayer maintenant » ou contacter le service client.",
+      "order_detail_status": "« En attente » signifie que nous attendons toujours la confirmation du paiement. « Payé » signifie que le paiement a été validé et que votre code d'échange de diamants a été envoyé à l'adresse e-mail que vous avez indiquée."
+    }
+  },
+  "player_market": {
+    "create_post": "Créez l'un des deux types d'annonce suivants : une annonce de recrutement d'équipe (vous êtes une équipe à la recherche de joueurs) ou une annonce de joueur disponible (vous êtes un joueur à la recherche d'une équipe).",
+    "one_active_post": "Vous ne pouvez avoir qu'une seule annonce active à la fois, qu'il s'agisse d'annonces de recrutement d'équipe ou d'annonces de joueurs disponibles. Fermez votre annonce actuelle ou attendez qu'elle arrive à expiration avant d'en créer une nouvelle. Une annonce expirée n'est plus prise en compte.",
+    "post_expiry": "La date à partir de laquelle votre annonce ne s'affiche plus sur la plateforme. Passé cette date, l'annonce n'est plus active et vous pouvez en créer une nouvelle.",
+    "tryout_limit": "Vous pouvez participer à deux sélections actives au maximum en même temps. Tant que vous participez à deux sélections en cours, vous ne pouvez pas accepter de nouvelle invitation à une sélection (et les équipes ne peuvent pas vous inviter à en rejoindre une) tant que l'une d'entre elles n'est pas terminée.",
+    "rules_summary": "Règles du marché des joueurs : (1) un message actif à la fois. (2) Vous pouvez participer à deux sélections actives au maximum à la fois. (3) Soyez honnête dans vos annonces. Toute annonce mensongère, humoristique ou inexacte peut entraîner votre exclusion du marché. (4) Une exclusion du marché vous empêche de créer des annonces, de postuler et d'inviter d'autres joueurs.",
+    "report_rules": "Les signalements sont transmis en privé aux modérateurs de l'AFC. Une preuve (une capture d'écran) est requise ; veuillez donc joindre cette preuve avant d'envoyer votre signalement. Soyez honnête : tout signalement mensonger, fantaisiste ou infondé peut entraîner votre exclusion, en tant qu'auteur du signalement, de la place de marché.",
+    "recruitment_criteria": "Notes en texte libre décrivant ce que vous attendez d'un coéquipier (expérience, style de jeu, disponibilité). Les candidats peuvent les consulter avant de postuler. Cela n'élimine automatiquement aucun candidat.",
+    "apply": "Envoyez votre candidature à cette équipe. Votre identifiant Discord et votre UID resteront masqués. Ils ne seront divulgués à l'équipe que si celle-ci vous invite à une période d'essai.",
+    "invite_message": "Invitez directement ce joueur à un essai, sans passer par l'étape de candidature. Votre message présente votre équipe ; dès qu'il aura accepté, une discussion privée consacrée à l'essai s'ouvrira entre vous deux.",
+    "trial_invites": "Les équipes qui vous ont invité directement à participer à une période d'essai. Acceptez pour commencer la période d'essai et ouvrir une conversation privée avec l'équipe, ou refusez pour ignorer l'invitation.",
+    "unlock_contact": "Affichez le Discord et l'UID de ce joueur afin de pouvoir le contacter en dehors de la plateforme. Cette fonctionnalité n'est disponible qu'une fois que la demande a dépassé le stade de l'invitation ; elle n'est pas disponible tant que la demande est encore en attente.",
+    "accept_player": "Mettez fin à la période d'essai et recrutez ce joueur dans votre équipe. Cela finalise la procédure : la discussion se termine et aucune autre action n'est possible.",
+    "extend_trial": "Accordez un délai supplémentaire pour la période d'essai au lieu de prendre une décision tout de suite ; cela s'avère utile lorsque vous avez besoin de quelques jours supplémentaires avant d'accepter ou de refuser le joueur.",
+    "trial_chat": "Une discussion privée entre l'équipe et le joueur pendant toute la durée de la période d'essai. Elle n'est accessible qu'une fois la période d'essai commencée et prend fin lorsque la candidature est finalisée."
+  },
+  "profile": {
+    "edit": {
+      "uid": "Votre UID de joueur Free Fire, c'est-à-dire l'identifiant numérique présent dans votre profil Free Fire, et non votre nom d'utilisateur AFC. Il sert à vous identifier lors des tournois et dans les résultats des parties.",
+      "in_game_name": "Votre pseudo public sur Free Fire, affiché sur AFC sous la forme @votrenom. Saisissez-le exactement tel qu'il apparaît dans le jeu ; le copier-coller est désactivé afin d'empêcher l'utilisation de caractères Unicode fantaisistes qui pourraient perturber la recherche de correspondances."
+    },
+    "discord_connect": "Associez votre compte Discord afin que le bot AFC puisse vous attribuer les rôles appropriés pour le serveur et l'événement, et débloquer les fonctionnalités réservées à Discord. Une fenêtre contextuelle s'ouvre pour vous permettre de donner votre autorisation sur Discord ; une fois l'association effectuée, ce bouton devient « Se déconnecter »."
+  },
+  "leaderboards": {
+    "public": {
+      "_page": "Classements par compétition. Choisissez une compétition, puis une phase, un groupe et un match pour voir le classement des équipes ou des joueurs. Les points sont attribués selon le système de notation défini par l'organisateur pour cette compétition.",
+      "view_filter": "Le « Classement général » regroupe tous les matchs de ce groupe dans un seul tableau cumulatif. Choisissez plutôt un match en particulier pour consulter uniquement le classement de ce match.",
+      "points_column": "Total des points = points de classement correspondant à votre place finale, plus les points attribués par adversaire éliminé, selon le système de notation défini par l'organisateur pour cet événement."
+    }
+  },
+  "rankings": {
+    "public": {
+      "monthly_standings": "Un classement en temps réel regroupant toutes les compétitions, classées par score total. Il est mis à jour au fur et à mesure que les résultats sont connus et réinitialisé le 1er de chaque mois, indépendamment des niveaux saisonniers.",
+      "score_column": "Un score global issu des résultats des tournois et des matchs d'entraînement : nombre de kills et classements (comprimés pour éviter qu'ils ne s'envolent), les grands tournois rapportant plus de points, plus des bonus pour les victoires et les places en finale. Appuyez sur une ligne pour voir le détail.",
+      "tiers_intro": "Note attribuée à une équipe pour l'ensemble de la saison, réévaluée chaque trimestre ; seules les équipes sont classées par niveau. Le badge « X/2 tournois » signifie qu'une équipe doit participer à au moins deux tournois au cours du trimestre pour se classer au-dessus du niveau « Débutant »."
+    }
+  },
+  "media": {
+    "download": {
+      "esportSize": "L'option « Original » conserve la résolution complète de l'image téléchargée. L'option « Image de rôle » redimensionne chaque image d'e-sport à 108 x 130, soit la taille des emplacements de joueurs utilisée dans les graphismes.",
+      "esportNaming": "Comment chaque fichier image d'e-sport est nommé : le nom du joueur dans le jeu, son UID Free Fire, ou les deux combinés (nom puis UID).",
+      "logoSize": "L'original conserve sa résolution maximale. Le fond d'écran Gloo mesure 1 000 x 1 000 (affichage/réseaux sociaux) ; la photo de profil mesure 108 x 130. Les fichiers contenant les logos des équipes portent toujours le nom de l'équipe en question."
+    }
+  },
+  "ocr": {
+    "confidence": "Dans quelle mesure le lecteur est-il sûr que ce nom affiché à l'écran correspond bien au joueur en question ? Le vert indique une forte correspondance, l'orange une correspondance incertaine et le rouge une hypothèse peu fiable. Vérifiez toujours les valeurs les plus basses.",
+    "team_mismatch": "Ce joueur a été sélectionné dans une équipe différente de celle dans laquelle il est inscrit ; il s'agit généralement d'un remplaçant. Cochez la case « Accepter » pour confirmer le remplacement avant de valider, ou sélectionnez plutôt le bon joueur.",
+    "corrected_text": "Le texte exact tel qu'il apparaît sur la capture d'écran, même s'il comporte des fautes d'orthographe dans le jeu. Cela sert uniquement à former le lecteur ; cela ne modifie ni la nature de la ligne ni le score.",
+    "engine": "Quel lecteur a généré ce résultat (le modèle interne ou le modèle externe) ? Cette information n'apparaît que lorsqu'elle est disponible, afin que vous puissiez voir quel lecteur a généré la capture d'écran."
+  }
+}

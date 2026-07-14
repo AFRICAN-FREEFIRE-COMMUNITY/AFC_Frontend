@@ -168,8 +168,9 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
           <p
             className={`text-sm font-medium ${statusColors[event.event_status] ?? "text-muted-foreground"}`}
           >
-            {event.event_status.charAt(0).toUpperCase() +
-              event.event_status.slice(1)}
+            {/* i18n: localized status label (tournaments -> list.status.*) instead of
+                capitalizing the raw backend enum, which only read in English. */}
+            {t(`list.status.${event.event_status}`)}
           </p>
           <TournamentTierBadge tier={event.tournament_tier} />
         </div>

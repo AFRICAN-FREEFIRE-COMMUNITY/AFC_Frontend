@@ -1,6 +1,9 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
+// i18n (namespace "evEditStages"): this confirm dialog is rendered by StagesGroupsTab, which the
+// ADMIN and ORGANIZER event-edit pages both mount, so its copy must be localized (en/fr/pt).
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +27,8 @@ export function RemoveStageModal({
   onConfirm,
 }: RemoveStageModalProps) {
   const form = useFormContext<EventFormType>();
+  // Shared namespace with the rest of the stage/group edit flow (StagesGroupsTab, StageConfigModal, SeedStageModal).
+  const t = useTranslations("evEditStages");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -31,23 +36,23 @@ export function RemoveStageModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="w-5 h-5" />
-            Remove Stage?
+            {t("removeStageTitle")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <p className="text-sm text-muted-foreground">
-            Are you sure you want to remove this stage?
+            {t("removeStageConfirm")}
           </p>
 
           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
             <p className="text-sm text-destructive font-medium">
-              ⚠️ This action cannot be undone
+              {t("cannotUndo")}
             </p>
             <ul className="text-xs text-muted-foreground mt-2 space-y-1 ml-4 list-disc">
-              <li>All groups in this stage will be removed</li>
-              <li>All match data will be lost</li>
-              <li>Stage order will be updated automatically</li>
+              <li>{t("removeListGroups")}</li>
+              <li>{t("removeListMatchData")}</li>
+              <li>{t("removeListOrder")}</li>
             </ul>
           </div>
         </div>
@@ -58,7 +63,7 @@ export function RemoveStageModal({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             type="button"
@@ -66,7 +71,7 @@ export function RemoveStageModal({
             onClick={onConfirm}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Remove Stage
+            {t("removeStage")}
           </Button>
         </DialogFooter>
       </DialogContent>

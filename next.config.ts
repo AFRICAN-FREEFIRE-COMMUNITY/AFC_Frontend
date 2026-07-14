@@ -99,6 +99,18 @@ const nextConfig: NextConfig = {
         hostname: "127.0.0.1",
         port: "8000",
       },
+      // Some local setups run the backend on :8010 (see frontend/.env.local
+      // NEXT_PUBLIC_BACKEND_API_URL). Same dev-only media host, different port.
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8010",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "8010",
+      },
     ],
   },
 };

@@ -10,7 +10,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -56,7 +56,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { FullLoader, Loader } from "@/components/Loader";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { PageHeader } from "@/components/PageHeader";
 import axios from "axios";
 import { env } from "@/lib/env";
@@ -510,30 +510,27 @@ export const ProfileContent = () => {
         <Card className="md:col-span-2">
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <ScrollArea>
-                <TabsList className="w-full mb-4">
-                  <TabsTrigger value="overview">
-                    {t("tabs.overview")}
-                  </TabsTrigger>
-                  {/* Owner's OWN full stats window (rich cards + curve + tables). */}
-                  <TabsTrigger value="stats">{t("tabs.stats")}</TabsTrigger>
-                  <TabsTrigger value="history">{t("tabs.history")}</TabsTrigger>
-                  <TabsTrigger value="achievements">
-                    {t("tabs.achievements")}
-                  </TabsTrigger>
-                  <TabsTrigger value="applications">
-                    {t("tabs.applications")}
-                  </TabsTrigger>
-                  {/* Player reports the user filed + the admin's answers. */}
-                  <TabsTrigger value="reports">
-                    {tReports("mine.tabLabel")}
-                  </TabsTrigger>
-                  {user.role === "admin" && (
-                    <TabsTrigger value="admin">{t("tabs.admin")}</TabsTrigger>
-                  )}
-                </TabsList>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
+              <ScrollableTabsList className="w-full mb-4">
+                <TabsTrigger value="overview">
+                  {t("tabs.overview")}
+                </TabsTrigger>
+                {/* Owner's OWN full stats window (rich cards + curve + tables). */}
+                <TabsTrigger value="stats">{t("tabs.stats")}</TabsTrigger>
+                <TabsTrigger value="history">{t("tabs.history")}</TabsTrigger>
+                <TabsTrigger value="achievements">
+                  {t("tabs.achievements")}
+                </TabsTrigger>
+                <TabsTrigger value="applications">
+                  {t("tabs.applications")}
+                </TabsTrigger>
+                {/* Player reports the user filed + the admin's answers. */}
+                <TabsTrigger value="reports">
+                  {tReports("mine.tabLabel")}
+                </TabsTrigger>
+                {user.role === "admin" && (
+                  <TabsTrigger value="admin">{t("tabs.admin")}</TabsTrigger>
+                )}
+              </ScrollableTabsList>
 
               <TabsContent value="overview">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

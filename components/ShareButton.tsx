@@ -17,6 +17,7 @@ import {
 import { IconBrandTelegram, IconBrandWhatsapp } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 type SocialHandles = {
   twitter?: string;
@@ -41,11 +42,16 @@ export function ShareButton({
   className,
   handles = {},
   url,
-  profileName = "this profile",
+  profileName,
   platformName = "grabcash",
   text = "",
   ...props
 }: ShareButtonProps) {
+  // i18n: "shareButton" namespace (messages/{en,fr,pt}/shareButton.json).
+  // Client component, so useTranslations is used here.
+  const t = useTranslations("shareButton");
+  // Fall back to a localized "this profile" when no profileName is provided.
+  const resolvedProfileName = profileName || t("thisProfile");
   const [isVisible, setIsVisible] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [buttonDimensions, setButtonDimensions] = useState({
@@ -58,7 +64,7 @@ export function ShareButton({
   const socialPlatforms = [
     {
       icon: Twitter,
-      label: "Share on Twitter",
+      label: t("shareOnTwitter"),
       key: "twitter" as keyof SocialHandles,
       hasDirectSharing: true,
       getShareUrl: (
@@ -66,13 +72,13 @@ export function ShareButton({
         profileName: string,
         platformName: string,
       ) => {
-        const text = `Check out ${profileName}'s profile on ${platformName}`;
+        const text = t("shareText", { profileName, platformName });
         return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(profileUrl)}`;
       },
     },
     {
       icon: IconBrandWhatsapp,
-      label: "Share on WhatsApp",
+      label: t("shareOnWhatsApp"),
       key: "whatsapp" as keyof SocialHandles,
       hasDirectSharing: true,
       getShareUrl: (
@@ -80,7 +86,11 @@ export function ShareButton({
         profileName: string,
         platformName: string,
       ) => {
-        const text = `Check out ${profileName}'s profile on ${platformName}: ${profileUrl}`;
+        const text = t("shareTextWithUrl", {
+          profileName,
+          platformName,
+          profileUrl,
+        });
         // Use web.whatsapp.com for desktop, whatsapp:// for mobile
         const isMobile =
           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -95,7 +105,7 @@ export function ShareButton({
     },
     {
       icon: IconBrandTelegram,
-      label: "Share on Telegram",
+      label: t("shareOnTelegram"),
       key: "telegram" as keyof SocialHandles,
       hasDirectSharing: true,
       getShareUrl: (
@@ -103,7 +113,7 @@ export function ShareButton({
         profileName: string,
         platformName: string,
       ) => {
-        const text = `Check out ${profileName}'s profile on ${platformName}`;
+        const text = t("shareText", { profileName, platformName });
         return `https://t.me/share/url?url=${encodeURIComponent(profileUrl)}&text=${encodeURIComponent(text)}`;
       },
     },
@@ -124,7 +134,11 @@ export function ShareButton({
   }> = socialPlatforms.map((platform) => ({
     icon: platform.icon,
     label: platform.label,
-    url: platform.getShareUrl(currentProfileUrl, profileName, platformName),
+    url: platform.getShareUrl(
+      currentProfileUrl,
+      resolvedProfileName,
+      platformName,
+    ),
     disabled: false,
     type: "social" as ButtonType,
     action: platform.hasDirectSharing ? "share" : "copy",
@@ -133,7 +147,7 @@ export function ShareButton({
   // Always add copy to clipboard as the last button
   shareButtons.push({
     icon: LinkIcon,
-    label: "Copy profile link",
+    label: t("copyProfileLink"),
     url: currentProfileUrl,
     disabled: false,
     type: "copy" as ButtonType,
@@ -158,10 +172,10 @@ export function ShareButton({
       navigator.clipboard
         .writeText(button.url)
         .then(() => {
-          toast.success(`Link copied to clipboard.`);
+          toast.success(t("linkCopied"));
         })
         .catch((err) => {
-          toast.error(`Failed to copy link.`);
+          toast.error(t("copyFailed"));
         });
     } else {
       // Open share dialog for platforms that support it
@@ -177,7 +191,7 @@ export function ShareButton({
       } else {
         // For platforms without direct sharing, copy the link
         navigator.clipboard.writeText(button.url).then(() => {
-          toast.success(`Link copied to clipboard.`);
+          toast.success(t("linkCopied"));
         });
       }
     }

@@ -1,0 +1,289 @@
+<!doctype html>
+<!--
+  AFC Player Profile - DETAILED PREVIEW v3 (mock data, clickable).
+  Now matches the REAL player-detail chrome: PageHeader green title + a profile card
+  (Avatar + name + @handle + role badge) + the AFC tab set (Overview / Statistics /
+  Recent Matches / Events Played / Team History / Performance History).
+  Adds a CUSTOM date-range picker (presets + From/To dates) that drives every stat.
+  Detailed: per-event individual kills/points, per-match drill-down, ranking+tier history,
+  earnings share, growth/decline curves. No em dashes (hard rule).
+-->
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Player Profile - Preview v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --background: oklch(0.141 0.005 285.823); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.21 0.006 285.885); --primary: oklch(0.624 0.170 149.09);
+    --gold: oklch(0.79 0.17 83.63); --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067); --border: oklch(1 0 0 / 10%);
+    --radius: 0.65rem; --red: oklch(0.62 0.20 25); --secondary: oklch(0.274 0.006 286.033);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--background);color:var(--foreground);min-height:100vh;position:relative;line-height:1.5;}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,color-mix(in oklch,var(--primary) 18%,transparent),transparent 55%,color-mix(in oklch,var(--gold) 18%,transparent));}
+  .container{position:relative;z-index:1;width:92%;max-width:1180px;margin:0 auto;padding:34px 0 90px;}
+
+  /* PageHeader (real component idiom) */
+  .pagehead{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+  .back{width:40px;height:40px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);display:grid;place-items:center;font-size:18px;cursor:pointer;}
+  h1{font-size:clamp(1.875rem,3vw,2.25rem);font-weight:700;color:var(--primary);letter-spacing:-0.01em;}
+
+  /* profile card (matches admin players/[id]: rounded-lg border bg-card p-6, Avatar + name + @handle + role badge) */
+  .pcard{border:1px solid var(--border);background:var(--card);border-radius:var(--radius);padding:24px;}
+  .phead{display:flex;align-items:center;gap:16px;margin-bottom:22px;}
+  .av{width:56px;height:56px;border-radius:999px;background:color-mix(in oklch,var(--primary) 25%,var(--card));display:grid;place-items:center;font-weight:700;font-size:1.3rem;}
+  .phead .nm{font-size:1.4rem;font-weight:700;}
+  .phead .at{color:var(--muted-foreground);font-size:.85rem;}
+  .badge{display:inline-block;font-size:.7rem;font-weight:600;border-radius:999px;padding:3px 10px;background:var(--secondary);color:var(--foreground);margin-top:5px;text-transform:capitalize;}
+  .badge.team{background:transparent;border:1px solid color-mix(in oklch,var(--primary) 50%,transparent);color:var(--primary);cursor:pointer;}
+  .badge.tier{background:transparent;border:1px solid color-mix(in oklch,var(--gold) 55%,transparent);color:var(--gold);}
+
+  /* AFC pill tabs (full width, like the real TabsList) */
+  .tabs{display:flex;gap:4px;background:var(--muted);border-radius:var(--radius);padding:4px;margin-bottom:22px;overflow-x:auto;}
+  .tab{flex:1;min-width:120px;text-align:center;font-size:.8rem;font-weight:600;padding:9px 10px;border-radius:calc(var(--radius) - 3px);color:var(--muted-foreground);cursor:pointer;white-space:nowrap;}
+  .tab.active{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+
+  /* date-range filter */
+  .filter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px;}
+  .seg{display:inline-flex;gap:3px;background:var(--muted);border-radius:var(--radius);padding:3px;}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--muted-foreground);font-family:inherit;font-size:.76rem;font-weight:600;padding:6px 13px;border-radius:calc(var(--radius) - 4px);cursor:pointer;white-space:nowrap;}
+  .seg button.on{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+  .custom{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--muted-foreground);}
+  .custom input{background:var(--background);border:1px solid var(--border);border-radius:calc(var(--radius) - 3px);color:var(--foreground);font-family:inherit;font-size:.78rem;padding:6px 9px;color-scheme:dark;}
+  .applybtn{background:var(--primary);color:#06281a;border:0;font-family:inherit;font-weight:700;font-size:.76rem;border-radius:calc(var(--radius) - 3px);padding:7px 14px;cursor:pointer;}
+  .rangeflag{font-size:.74rem;color:var(--primary);font-weight:600;}
+
+  .eyebrow{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-foreground);margin:28px 0 14px;}
+  .eyebrow:first-child{margin-top:0;}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+  .stat .lbl{font-size:.73rem;color:var(--muted-foreground);}
+  .stat .val{font-size:1.55rem;font-weight:700;margin-top:5px;}
+  .stat .sub{font-size:.72rem;color:var(--muted-foreground);margin-top:2px;}
+  .stat .val.green{color:var(--primary);} .stat .val.gold{color:var(--gold);}
+  .up{color:var(--primary);} .down{color:var(--red);}
+
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;}
+  .panel h3{font-size:1rem;font-weight:700;}
+  .two{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:start;margin-top:28px;}
+  .rowbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .chart{width:100%;height:220px;} .chart .grid line{stroke:var(--border);}
+  .axl{fill:var(--muted-foreground);font-size:9px;} .vlab{fill:var(--foreground);font-size:8.5px;font-weight:600;}
+  .trend{font-size:.8rem;font-weight:600;border-radius:999px;padding:3px 10px;display:inline-flex;gap:5px;align-items:center;}
+  .trend.up{color:var(--primary);background:color-mix(in oklch,var(--primary) 12%,transparent);border:1px solid color-mix(in oklch,var(--primary) 40%,transparent);}
+
+  .timeline .row{display:grid;grid-template-columns:62px 1fr auto;gap:12px;align-items:center;padding:9px 0;border-top:1px solid color-mix(in oklch,var(--border) 60%,transparent);font-size:.85rem;}
+  .timeline .row:first-child{border-top:0;}
+  .timeline .mo{color:var(--muted-foreground);font-size:.78rem;}
+  .tchip{font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 9px;border:1px solid var(--border);}
+  .tchip.t1{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 55%,transparent);}
+  .tchip.t2{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .tchip.t3{color:var(--muted-foreground);}
+  .delta{font-weight:700;font-size:.8rem;}
+  .earn{display:flex;align-items:center;gap:12px;margin-bottom:11px;font-size:.85rem;}
+  .earn .ev{width:160px;flex-shrink:0;} .earn .bar{flex:1;height:9px;border-radius:999px;background:var(--muted);overflow:hidden;}
+  .earn .bar span{display:block;height:100%;border-radius:999px;background:var(--gold);} .earn .amt{width:64px;text-align:right;font-weight:700;}
+
+  table{width:100%;border-collapse:collapse;font-size:.82rem;}
+  th{text-align:left;color:var(--muted-foreground);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;padding:11px 16px;}
+  th.c,td.c{text-align:center;} th.r,td.r{text-align:right;}
+  td{padding:11px 16px;border-top:1px solid color-mix(in oklch,var(--border) 60%,transparent);}
+  tr.trow{cursor:pointer;} tr.trow:hover td{background:color-mix(in oklch,var(--primary) 5%,transparent);}
+  .ev2{font-weight:600;} .place{font-weight:700;} .place.win{color:var(--gold);}
+  .pill{font-size:.66rem;font-weight:600;border-radius:999px;padding:2px 9px;border:1px solid var(--border);color:var(--muted-foreground);}
+  .caret{display:inline-block;width:14px;color:var(--muted-foreground);transition:transform .15s;}
+  tr.open .caret{transform:rotate(90deg);color:var(--primary);}
+  .detail td{background:var(--background);padding:0;}
+  .detail .inner{padding:6px 16px 14px 40px;}
+  .detail h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-foreground);margin:10px 0 8px;}
+  .mtable{font-size:.78rem;} .mtable td,.mtable th{padding:7px 12px;}
+  .dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:4px;}
+  .dbox{background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);padding:11px 13px;}
+  .dbox .l{font-size:.68rem;color:var(--muted-foreground);} .dbox .v{font-weight:700;font-size:1.05rem;margin-top:2px;}
+  .hide{display:none;}
+  @media(max-width:860px){.cards,.dgrid{grid-template-columns:repeat(2,1fr);}.two{grid-template-columns:1fr;}.earn .ev{width:110px;}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="pagehead"><div class="back">&larr;</div><h1>VT KingHydra</h1></div>
+
+  <div class="pcard">
+    <div class="phead">
+      <div class="av">K</div>
+      <div>
+        <div class="nm">VT KingHydra</div>
+        <div class="at">@kinghydra &middot; UID 5172834901</div>
+        <span class="badge">Rusher</span>
+        <span class="badge team">V-ENT ESPORTS</span>
+        <span class="badge tier">Tier 1 player</span>
+      </div>
+    </div>
+
+    <!-- AFC tab set (matches the real player-detail tabs) -->
+    <div class="tabs">
+      <div class="tab" onclick="showTab('overview')">Overview</div>
+      <div class="tab active" onclick="showTab('statistics')">Statistics</div>
+      <div class="tab" onclick="showTab('events')">Events Played</div>
+      <div class="tab" onclick="showTab('performance')">Performance History</div>
+      <div class="tab" onclick="showTab('team')">Team History</div>
+    </div>
+
+    <!-- date-range filter (applies to every stat) -->
+    <div class="filter">
+      <div class="seg" id="rangeSeg">
+        <button onclick="setRange('3m',this)">3 months</button>
+        <button onclick="setRange('6m',this)">6 months</button>
+        <button class="on" onclick="setRange('12m',this)">12 months</button>
+        <button onclick="setRange('all',this)">All time</button>
+      </div>
+      <span class="custom">From <input type="date" id="from" value="2025-06-01"> to <input type="date" id="to" value="2025-12-31"></span>
+      <button class="applybtn" onclick="applyCustom()">Apply</button>
+      <span class="rangeflag" id="rangeFlag"></span>
+    </div>
+
+    <!-- STATISTICS tab -->
+    <div id="statistics">
+      <div class="cards" id="cards"></div>
+      <div class="two">
+        <div class="panel">
+          <div class="rowbar"><h3>Performance curve</h3>
+            <div class="seg" id="metricSeg">
+              <button class="on" onclick="setMetric('kills',this)">Kills</button>
+              <button onclick="setMetric('placement',this)">Placement</button>
+              <button onclick="setMetric('points',this)">Points</button>
+              <button onclick="setMetric('kd',this)">K/D</button>
+            </div>
+          </div>
+          <svg class="chart" id="curve" viewBox="0 0 520 195"></svg>
+          <div style="margin-top:10px"><span class="trend up" id="trendTag">&#9650; improving</span> <span id="trendTxt" style="font-size:.76rem;color:var(--muted-foreground)"></span></div>
+        </div>
+        <div class="panel">
+          <h3 style="margin-bottom:14px">Ranking &amp; tier history</h3>
+          <div class="timeline" id="timeline"></div>
+        </div>
+      </div>
+      <div class="rowbar" style="margin-top:28px"><span class="eyebrow" style="margin:0">Earnings share by event</span><span style="font-size:.85rem;color:var(--muted-foreground)">Total <b style="color:var(--gold)">$3,120</b></span></div>
+      <div class="panel" id="earnings"></div>
+    </div>
+
+    <!-- EVENTS PLAYED tab -->
+    <div id="events" class="hide">
+      <div class="rowbar"><span class="eyebrow" style="margin:0">Events played (tap a row for per-match stats)</span><span style="font-size:.85rem;color:var(--muted-foreground)" id="tcount"></span></div>
+      <div class="panel" style="padding:0;overflow:hidden">
+        <table>
+          <thead><tr><th style="width:26px"></th><th>Event</th><th>Team</th><th>Date</th><th class="c">Team place</th><th class="c">My kills</th><th class="c">My points</th><th class="r">MVP</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="performance" class="hide"><div class="panel">Performance History: the curve + ranking/tier history above, shown full-width here over the selected date range.</div></div>
+    <div id="team" class="hide"><div class="panel">Team History: V-ENT ESPORTS (Nov 2025 to present, Rusher) &middot; Apex Rising (Jun to Oct 2025, Member).</div></div>
+    <div id="overview" class="hide"><div class="panel">Overview: a summary of the highlights from the tabs above.</div></div>
+  </div>
+</div>
+
+<script>
+  const RANGES = {
+    '3m':  {t:6,  k:268, kpm:8.4, mvp:1, ap:'#2.4', wr:'33%', e:'$820',   k1:'+15% vs prev', lbl:'last 3 months'},
+    '6m':  {t:14, k:601, kpm:8.0, mvp:3, ap:'#3.0', wr:'29%', e:'$1,640', k1:'+9% vs prev',  lbl:'last 6 months'},
+    '12m': {t:38, k:1642,kpm:7.8, mvp:5, ap:'#3.6', wr:'18%', e:'$3,120', k1:'+22% vs prev', lbl:'last 12 months'},
+    'all': {t:51, k:2180,kpm:7.5, mvp:6, ap:'#4.0', wr:'16%', e:'$3,780', k1:'lifetime',     lbl:'all time'},
+    'custom':{t:22,k:946, kpm:8.1, mvp:3, ap:'#3.2', wr:'23%', e:'$2,040', k1:'custom range', lbl:'custom range'},
+  };
+  // Full 12-month series (Jan->Dec 2025) so the time-range filter can SLICE the
+  // performance curve, not just the stat cards. Each preset shows the last N months.
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const METRICS = {
+    kills:     {vals:[3,5,8,7,9,12,10,14,16,15,19,22], ymin:0, ymax:25, fmt:v=>v,            note:'kills per event, peak 22 at Rivals Showdown'},
+    placement: {vals:[8,7,6,5,5,4,3,4,2,3,2,1], ymin:1, ymax:8, invert:true, fmt:v=>'#'+v, note:'average finishing position, lower is better'},
+    points:    {vals:[15,20,22,28,25,34,31,42,40,48,52,55], ymin:0, ymax:60, fmt:v=>v,          note:'total points per event'},
+    kd:        {vals:[0.8,1.0,1.2,1.5,1.8,2.0,2.2,2.4,2.6,2.9,3.1,3.4], ymin:0, ymax:4, fmt:v=>v.toFixed(1), note:'kill/death ratio, top 5% of players'},
+  };
+  // Custom range -> [startMonthIdx, endMonthIdx) window; null = use the active preset.
+  let customWin = null;
+  const TIERHIST=[
+    {mo:'Dec 25',tier:1,tname:'Tier 1 player',rank:11,delta:'+4',up:true,note:'Reached Tier 1'},
+    {mo:'Nov 25',tier:2,tname:'Tier 2 player',rank:15,delta:'+6',up:true,note:''},
+    {mo:'Oct 25',tier:2,tname:'Tier 2 player',rank:21,delta:'-3',up:false,note:''},
+    {mo:'Sep 25',tier:3,tname:'Tier 3 player',rank:18,delta:'+9',up:true,note:''},
+    {mo:'Aug 25',tier:3,tname:'Tier 3 player',rank:27,delta:'new',up:true,note:'First ranked month'},
+  ];
+  const EARNINGS=[{ev:'Detty December Solos',amt:1100},{ev:'Rivals Showdown',amt:640},{ev:'AFC Pro League S2',amt:520},{ev:'Dynasty Cup Nigeria',amt:380},{ev:'Naija Clash Open',amt:230}];
+  const EVENTS=[
+    {ev:'Detty December Solos',team:'Solo',dt:'Dec 2025',tp:'2nd',k:14,p:'88.0',mvp:true,matches:[{m:'M1',map:'Bermuda',pl:'#2',k:6,p:31,mvp:false},{m:'M2',map:'Purgatory',pl:'#1',k:5,p:34,mvp:true},{m:'M3',map:'Kalahari',pl:'#4',k:3,p:23,mvp:false}]},
+    {ev:'Dynasty Cup Nigeria',team:'V-ENT ESPORTS',dt:'Nov 2025',tp:'1st',k:9,p:'42.0',mvp:false,matches:[{m:'M1',map:'Bermuda',pl:'#1',k:5,p:24,mvp:false},{m:'M2',map:'Alpine',pl:'#1',k:4,p:18,mvp:false}]},
+    {ev:'AFC Pro League S2',team:'V-ENT ESPORTS',dt:'Oct 2025',tp:'2nd',k:18,p:'31.0',mvp:true,matches:[{m:'Final',map:'Clash Squad',pl:'#2',k:18,p:31,mvp:true}]},
+    {ev:'Rivals Showdown',team:'V-ENT ESPORTS',dt:'Sep 2025',tp:'1st',k:22,p:'62.0',mvp:true,matches:[{m:'Day 1',map:'Bermuda',pl:'#1',k:12,p:34,mvp:true},{m:'Day 2',map:'Purgatory',pl:'#2',k:10,p:28,mvp:false}]},
+    {ev:'Lagos Open',team:'V-ENT ESPORTS',dt:'Aug 2025',tp:'5th',k:6,p:'22.0',mvp:false,matches:[{m:'M1',map:'Bermuda',pl:'#6',k:2,p:9,mvp:false},{m:'M2',map:'Kalahari',pl:'#5',k:4,p:13,mvp:false}]},
+  ];
+  let range='12m',metric='kills';
+  function renderCards(){const r=RANGES[range];document.getElementById('rangeFlag').textContent='Showing '+r.lbl;document.getElementById('cards').innerHTML=`
+    <div class="stat"><div class="lbl">Tournaments</div><div class="val">${r.t}</div><div class="sub">in range</div></div>
+    <div class="stat"><div class="lbl">Total Kills</div><div class="val green">${r.k.toLocaleString()}</div><div class="sub up">${r.k1}</div></div>
+    <div class="stat"><div class="lbl">Kills / Match</div><div class="val">${r.kpm}</div><div class="sub">top 5% of players</div></div>
+    <div class="stat"><div class="lbl">MVP Awards</div><div class="val gold">${r.mvp}</div><div class="sub">in range</div></div>
+    <div class="stat"><div class="lbl">Avg Placement</div><div class="val">${r.ap}</div><div class="sub">lower is better</div></div>
+    <div class="stat"><div class="lbl">Win Rate</div><div class="val">${r.wr}</div><div class="sub">1st-place share</div></div>
+    <div class="stat"><div class="lbl">Earnings (share)</div><div class="val">${r.e}</div><div class="sub">from team prizes</div></div>
+    <div class="stat"><div class="lbl">Player Ranking</div><div class="val green">#11</div><div class="sub up">&#9650; up 4 this month</div></div>`;}
+  // Which slice of the 12-month series the active range shows.
+  function curveWindow(n){
+    if(range==='custom' && customWin) return customWin;
+    const count = range==='3m'?3 : range==='6m'?6 : 12;   // 12m + all => full year
+    return [Math.max(0,n-count), n];
+  }
+  function renderCurve(){
+    const m=METRICS[metric];
+    let [s,e]=curveWindow(m.vals.length);
+    if(e-s<2) s=Math.max(0,e-2);                 // need >=2 points to draw a line
+    const vals=m.vals.slice(s,e), labs=MONTHS.slice(s,e);
+    const L=46,R=508,T=14,B=164,W=R-L,H=B-T,n=vals.length;
+    const x=i=>L+W*i/(n-1);
+    const y=v=>m.invert?(T+(v-m.ymin)/(m.ymax-m.ymin)*H):(B-(v-m.ymin)/(m.ymax-m.ymin)*H);
+    let grid='',yl='';
+    for(let t=0;t<=4;t++){const yy=(T+H*t/4).toFixed(1);const vv=m.invert?(m.ymin+(m.ymax-m.ymin)*t/4):(m.ymax-(m.ymax-m.ymin)*t/4);
+      grid+=`<line x1="${L}" y1="${yy}" x2="${R}" y2="${yy}"/>`;
+      yl+=`<text x="${L-7}" y="${(+yy+3).toFixed(1)}" text-anchor="end" class="axl">${m.fmt(Math.round(vv*10)/10)}</text>`;}
+    let xl='';labs.forEach((d,i)=>xl+=`<text x="${x(i).toFixed(1)}" y="${B+15}" text-anchor="middle" class="axl">${d}</text>`);
+    const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    let dots='';vals.forEach((v,i)=>dots+=`<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.6" fill="oklch(0.624 0.170 149.09)"/><text x="${x(i).toFixed(1)}" y="${(y(v)-7).toFixed(1)}" text-anchor="middle" class="vlab">${m.fmt(v)}</text>`);
+    document.getElementById('curve').innerHTML=`<g class="grid">${grid}</g>${yl}${xl}<polygon fill="oklch(0.624 0.170 149.09 / 12%)" points="${pts} ${R},${B} ${L},${B}"/><polyline fill="none" stroke="oklch(0.624 0.170 149.09)" stroke-width="2.5" points="${pts}"/>${dots}`;
+    document.getElementById('trendTxt').textContent=m.note;}
+  function renderTimeline(){document.getElementById('timeline').innerHTML=TIERHIST.map(h=>`
+    <div class="row"><span class="mo">${h.mo}</span><span><span class="tchip t${h.tier}">${h.tname}</span> ${h.note?`<span style="color:var(--muted-foreground);font-size:.76rem"> ${h.note}</span>`:''}</span>
+    <span class="delta ${h.up?'up':'down'}">#${h.rank} ${h.delta!=='new'?`(${h.up?'&#9650;':'&#9660;'}${h.delta})`:''}</span></div>`).join('');}
+  function renderEarnings(){const max=Math.max(...EARNINGS.map(e=>e.amt));document.getElementById('earnings').innerHTML=EARNINGS.map(e=>`
+    <div class="earn"><span class="ev">${e.ev}</span><span class="bar"><span style="width:${Math.round(e.amt/max*100)}%"></span></span><span class="amt">$${e.amt.toLocaleString()}</span></div>`).join('');}
+  function renderEvents(){document.getElementById('tcount').textContent=EVENTS.length+' events';document.getElementById('tbody').innerHTML=EVENTS.map((t,i)=>`
+    <tr class="trow" onclick="toggle(${i})"><td><span class="caret" id="c${i}">&#9656;</span></td><td class="ev2">${t.ev}</td><td>${t.team}</td><td>${t.dt}</td><td class="c">${t.tp}</td><td class="c">${t.k}</td><td class="c">${t.p}</td><td class="r">${t.mvp?'&#11088;':'-'}</td></tr>
+    <tr class="detail hide" id="d${i}"><td colspan="8"><div class="inner">
+      <div class="dgrid"><div class="dbox"><div class="l">My kills</div><div class="v">${t.k}</div></div><div class="dbox"><div class="l">My points</div><div class="v">${t.p}</div></div><div class="dbox"><div class="l">Team placement</div><div class="v">${t.tp}</div></div><div class="dbox"><div class="l">MVP</div><div class="v">${t.mvp?'Yes &#11088;':'No'}</div></div></div>
+      <h4>My per-match stats</h4><table class="mtable"><thead><tr><th>Match</th><th>Map</th><th class="c">My placement</th><th class="c">My kills</th><th class="c">My points</th><th class="r">MVP</th></tr></thead>
+      <tbody>${t.matches.map(mm=>`<tr><td>${mm.m}</td><td>${mm.map}</td><td class="c">${mm.pl}</td><td class="c">${mm.k}</td><td class="c">${mm.p}</td><td class="r">${mm.mvp?'&#11088;':'-'}</td></tr>`).join('')}</tbody></table>
+    </div></td></tr>`).join('');}
+  function setRange(r,el){range=r;customWin=null;[...document.querySelectorAll('#rangeSeg button')].forEach(b=>b.classList.remove('on'));el.classList.add('on');renderCards();renderCurve();}
+  function applyCustom(){
+    range='custom';[...document.querySelectorAll('#rangeSeg button')].forEach(b=>b.classList.remove('on'));
+    const f=document.getElementById('from').value,t=document.getElementById('to').value;
+    RANGES.custom.lbl=f+' to '+t;
+    // Map the chosen dates onto the 12-month (2025) series so the curve slices to match.
+    const fi=f?Math.min(11,Math.max(0,new Date(f).getMonth())):0;
+    const ti=t?Math.min(11,Math.max(0,new Date(t).getMonth())):11;
+    customWin=[Math.min(fi,ti), Math.max(fi,ti)+1];
+    renderCards();renderCurve();
+  }
+  function setMetric(m,el){metric=m;[...document.querySelectorAll('#metricSeg button')].forEach(b=>b.classList.remove('on'));el.classList.add('on');renderCurve();}
+  function toggle(i){document.getElementById('d'+i).classList.toggle('hide');document.getElementById('c'+i).parentElement.parentElement.classList.toggle('open');}
+  function showTab(id){['overview','statistics','events','performance','team'].forEach(t=>document.getElementById(t).classList.toggle('hide',t!==id));document.querySelectorAll('.tab').forEach(el=>{const m={'Overview':'overview','Statistics':'statistics','Events Played':'events','Performance History':'performance','Team History':'team'};el.classList.toggle('active',m[el.textContent.trim()]===id);});}
+  renderCards();renderCurve();renderTimeline();renderEarnings();renderEvents();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "shareOnTwitter": "Share on Twitter",
+  "shareOnWhatsApp": "Share on WhatsApp",
+  "shareOnTelegram": "Share on Telegram",
+  "copyProfileLink": "Copy profile link",
+  "shareText": "Check out {profileName}'s profile on {platformName}",
+  "shareTextWithUrl": "Check out {profileName}'s profile on {platformName}: {profileUrl}",
+  "linkCopied": "Link copied to clipboard.",
+  "copyFailed": "Failed to copy link.",
+  "thisProfile": "this profile"
+}

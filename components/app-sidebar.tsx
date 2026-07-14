@@ -14,9 +14,14 @@ import { Logo } from "./Logo";
 import { useAuth } from "@/contexts/AuthContext";
 import { adminNavLinks } from "@/constants/nav-links";
 import { IconBuildingStore } from "@tabler/icons-react";
+// i18n: the "Admin Panel" header text is resolved from the adminNav namespace
+// (messages/{en,fr,pt}/adminNav.json). The nav-item labels themselves are
+// translated inside NavMain via each item's navKey.
+import { useTranslations } from "next-intl";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
+  const t = useTranslations("adminNav");
 
   // Vendors get a "Vendor Dashboard" entry pointing at the /vendor portal. The portal is
   // otherwise only reachable by typing the URL (a vendor is a DB record, not a role, so it
@@ -28,6 +33,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     if (!user?.is_vendor) return adminNavLinks;
     const vendorEntry = {
       label: "Vendor Dashboard",
+      navKey: "vendorDashboard",
       slug: "/vendor",
       icon: IconBuildingStore,
     };
@@ -44,7 +50,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className="cursor-pointer flex items-center justify-start gap-2">
           <Logo />{" "}
           <span className="font-medium text-sm text-muted-foreground">
-            Admin Panel
+            {t("panelTitle")}
           </span>
         </div>
       </SidebarHeader>

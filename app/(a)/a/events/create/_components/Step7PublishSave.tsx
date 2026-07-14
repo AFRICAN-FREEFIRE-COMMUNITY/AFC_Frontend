@@ -2,6 +2,7 @@
 
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +14,7 @@ interface Step7Props {
 }
 
 export function Step7PublishSave({ form }: Step7Props) {
+  const t = useTranslations("evSteps");
   const saveToDraftsWatch = form.watch("save_to_drafts");
   const publishToTournamentsWatch = form.watch("publish_to_tournaments");
   const publishToNewsWatch = form.watch("publish_to_news");
@@ -21,13 +23,13 @@ export function Step7PublishSave({ form }: Step7Props) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          Step 7: Publish &amp; Save
+          {t("step7.title")}
           <InfoTip id="events.create.publish._section" className="ml-1.5" />
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2 pt-4 border-t">
-          <p className="text-sm font-medium">Where would you like to publish this event?</p>
+          <p className="text-sm font-medium">{t("step7.whereToPublish")}</p>
 
           <FormField
             // @ts-ignore
@@ -43,7 +45,7 @@ export function Step7PublishSave({ form }: Step7Props) {
                   />
                 </FormControl>
                 <FormLabel className="!mt-0 cursor-pointer">
-                  Publish to Tournaments
+                  {t("step7.publishToTournaments")}
                   <InfoTip id="events.create.publish_to_tournaments" className="ml-1" />
                 </FormLabel>
               </FormItem>
@@ -64,7 +66,7 @@ export function Step7PublishSave({ form }: Step7Props) {
                   />
                 </FormControl>
                 <FormLabel className="!mt-0 cursor-pointer">
-                  Save as Draft
+                  {t("step7.saveAsDraft")}
                   <InfoTip id="events.create.save_to_drafts" className="ml-1" />
                 </FormLabel>
               </FormItem>

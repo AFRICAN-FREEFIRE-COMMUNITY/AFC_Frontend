@@ -10,6 +10,7 @@ import {
 import { useState, useTransition } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -18,13 +19,13 @@ import { Loader } from "@/components/Loader";
 import { AlertTriangle } from "lucide-react";
 import { IconPlayerPlay } from "@tabler/icons-react";
 
-// SeedToGroupModal — the stage-header "Seed to groups" action (mounted per stage by StagesGroupsTab,
+// SeedToGroupModal - the stage-header "Seed to groups" action (mounted per stage by StagesGroupsTab,
 // on BOTH the admin and organizer edit pages). Job: deal THIS stage's competitors into THIS stage's
 // own groups (shuffle or registration order).
 //
 // NOTE (owner 2026-07-10): the "seed the NEXT stage by this round-robin's combined standings" flow used
 // to live here as a hidden Switch, but the owner could not find it. It now has its own first-class,
-// visible button — AdvanceToNextStageModal — on the round-robin stage header, so this modal is back to
+// visible button - AdvanceToNextStageModal - on the round-robin stage header, so this modal is back to
 // its single job. The combined-standings endpoint (seed-next-stage-by-standings) is called from there.
 export const SeedToGroupModal = ({
   stageId,
@@ -40,6 +41,9 @@ export const SeedToGroupModal = ({
   const [shuffle, setShuffle] = useState(false);
   const [clearExisting, setClearExisting] = useState(false);
   const { token } = useAuth();
+  // i18n: strings live under the evEditStages namespace ("seedToGroup" group),
+  // shared with the sibling AdvanceToNextStageModal and the StagesGroupsTab that mounts this.
+  const t = useTranslations("evEditStages");
 
   const isTeam = participantType !== "solo";
 
@@ -52,21 +56,21 @@ export const SeedToGroupModal = ({
             { stage_id: stageId, shuffle, clear_existing: clearExisting },
             { headers: { Authorization: `Bearer ${token}` } },
           );
-          toast.success(res.data.message || "Stage seeded successfully");
+          toast.success(res.data.message || t("seedToGroup.toastSuccess"));
         } else {
           const res = await axios.post(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seed-stage-competitors-to-groups/`,
             { stage_id: stageId },
             { headers: { Authorization: `Bearer ${token}` } },
           );
-          toast.success(res.data.message || "Stage seeded successfully");
+          toast.success(res.data.message || t("seedToGroup.toastSuccess"));
         }
 
         setOpen(false);
         onSuccess?.();
       } catch (e: any) {
         toast.error(
-          e.response?.data?.message || "Failed to seed stage to groups",
+          e.response?.data?.message || t("seedToGroup.toastError"),
         );
       }
     });
@@ -81,7 +85,7 @@ export const SeedToGroupModal = ({
       <DialogTrigger asChild>
         <Button className="flex-1" variant="outline" size="md">
           <IconPlayerPlay />
-          Seed to groups
+          {t("seedToGroup.trigger")}
         </Button>
       </DialogTrigger>
 
@@ -91,9 +95,11 @@ export const SeedToGroupModal = ({
             <AlertTriangle className="h-7 w-7 text-green-600" />
           </div>
 
-          <DialogTitle className="text-xl">Seed to Groups?</DialogTitle>
+          <DialogTitle className="text-xl">
+            {t("seedToGroup.title")}
+          </DialogTitle>
           <DialogDescription className="mt-2 text-base">
-            Are you sure you want to seed competitors to groups now?
+            {t("seedToGroup.description")}
           </DialogDescription>
 
           {/* Team events can shuffle and/or clear existing group assignments before seeding. */}
@@ -101,18 +107,22 @@ export const SeedToGroupModal = ({
             <div className="space-y-2 mt-4">
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted text-left">
                 <div>
-                  <p className="text-sm font-medium">Shuffle competitors</p>
+                  <p className="text-sm font-medium">
+                    {t("seedToGroup.shuffleLabel")}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    Randomize competitor placement across groups
+                    {t("seedToGroup.shuffleHelp")}
                   </p>
                 </div>
                 <Switch checked={shuffle} onCheckedChange={setShuffle} />
               </div>
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted text-left">
                 <div>
-                  <p className="text-sm font-medium">Clear existing seeding</p>
+                  <p className="text-sm font-medium">
+                    {t("seedToGroup.clearLabel")}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    Remove existing group assignments before seeding
+                    {t("seedToGroup.clearHelp")}
                   </p>
                 </div>
                 <Switch
@@ -130,7 +140,7 @@ export const SeedToGroupModal = ({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("seedToGroup.cancel")}
             </Button>
             <Button
               className="flex-1"
@@ -138,10 +148,10 @@ export const SeedToGroupModal = ({
               disabled={pending}
             >
               {pending ? (
-                <Loader text="Seeding..." />
+                <Loader text={t("seedToGroup.seeding")} />
               ) : (
                 <>
-                  <IconPlayerPlay /> Seed
+                  <IconPlayerPlay /> {t("seedToGroup.seed")}
                 </>
               )}
             </Button>

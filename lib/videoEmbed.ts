@@ -1,4 +1,5 @@
-// lib/videoEmbed.ts - parse a gameplay video LINK (YouTube / TikTok) into a safe embed URL.
+// lib/videoEmbed.ts - parse a gameplay video LINK (YouTube / TikTok / Instagram / X / Facebook)
+// into a safe embed URL that PLAYS on the AFC site instead of sending the viewer out to the app.
 //
 // WHY THIS EXISTS
 // Player-market posts carry an OPTIONAL gameplay video link (owner 2026-06-12: video by link, not
@@ -8,25 +9,39 @@
 // the parsed host + video id, so we NEVER embed an arbitrary URL - an unparseable link falls back
 // to a plain outbound link.
 //
+// CSP / SECURITY NOTE: every provider below resolves to a PLAIN official-embed iframe (YouTube
+// nocookie, TikTok v2 player, Instagram /embed, X's platform.twitter.com/embed/Tweet.html,
+// Facebook's /plugins/video.php). We deliberately do NOT inject any third-party widget script
+// (twttr.widgets / connect.facebook.net) - a plain iframe is lighter and stays CSP-safe (no
+// new script-src origins, no runtime <script> injection). The embed HOST (platform.twitter.com,
+// www.facebook.com) is only ever the iframe target we build; it is never taken from user input.
+//
 // CONSUMED BY: app/(user)/player-markets/page.tsx (the View Player dialog renders the embed; the
 // create/edit forms use isAllowedVideoUrl for client-side validation before submit).
 
 export interface VideoEmbed {
-  provider: "youtube" | "tiktok" | "instagram";
-  /** Safe iframe src derived from the video id - never the raw user URL. */
+  provider: "youtube" | "tiktok" | "instagram" | "twitter" | "facebook";
+  /** Safe iframe src derived from the parsed link - never the raw user URL verbatim. */
   embedUrl: string;
 }
 
 // Human-readable platform list (owner 2026-06-12: "tell them the platform links we are
 // accepting"). Shown in the form helper text + validation toasts; the backend names the same
-// list in its 400 message (_VIDEO_PLATFORMS_LABEL in afc_player_market/views.py).
-export const VIDEO_PLATFORMS_LABEL = "YouTube, TikTok or Instagram";
+// list in its 400 message (_VIDEO_PLATFORMS_LABEL in afc_player_market/views.py). Brand names,
+// so it is passed as the {platforms} param into the already-translated i18n strings rather than
+// being a translatable string itself.
+export const VIDEO_PLATFORMS_LABEL = "YouTube, TikTok, Instagram, X (Twitter) or Facebook";
 
 // Hosts the backend accepts; mirror of _VIDEO_HOSTS in afc_player_market/views.py.
 const ALLOWED_HOSTS = new Set([
   "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be",
-  "tiktok.com", "www.tiktok.com", "vm.tiktok.com",
+  // TikTok: full links + the vm./vt. share short links (resolved server-side to a /video/<id> URL).
+  "tiktok.com", "www.tiktok.com", "vm.tiktok.com", "vt.tiktok.com",
   "instagram.com", "www.instagram.com", "m.instagram.com", "instagr.am",
+  // X / Twitter: status links on either domain (embedded via platform.twitter.com/embed).
+  "twitter.com", "www.twitter.com", "mobile.twitter.com", "x.com", "www.x.com", "mobile.x.com",
+  // Facebook: watch/video/reel links + the fb.watch share short link (resolved server-side).
+  "facebook.com", "www.facebook.com", "m.facebook.com", "web.facebook.com", "fb.watch",
 ]);
 
 function parseUrl(raw: string | null | undefined): URL | null {
@@ -77,14 +92,51 @@ export function parseVideoEmbed(raw: string | null | undefined): VideoEmbed | nu
     return null;
   }
 
-  // ── TikTok ── .../video/<digits> -> the v2 embed player. vm.tiktok.com short links carry no
-  // id in the URL, so they fall through to the outbound-link rendering.
+  // ── TikTok ── .../video/<digits> -> the v2 embed player. vm./vt. share short links carry no
+  // id in the URL; the backend (_resolve_video_url) follows the redirect and stores the canonical
+  // /video/<id> URL, so by the time we render here a short link has already become embeddable. An
+  // unresolved short link (network failure at save time) has no id and falls through to the
+  // outbound-link rendering.
   if (host.includes("tiktok.com")) {
     const match = url.pathname.match(/\/video\/(\d+)/);
     if (match) {
       return { provider: "tiktok", embedUrl: `https://www.tiktok.com/embed/v2/${match[1]}` };
     }
     return null;
+  }
+
+  // ── X / Twitter ── /<user>/status/<digits> (also /statuses/ and /i/web/status/) -> the official
+  // single-tweet iframe. platform.twitter.com/embed/Tweet.html is the exact frame X's own
+  // widgets.js builds, so we get the tweet + its inline video WITHOUT loading any widget script
+  // (CSP-safe). theme=dark matches the AFC dark UI.
+  if (host === "twitter.com" || host.endsWith(".twitter.com") || host === "x.com" || host.endsWith(".x.com")) {
+    const match = url.pathname.match(/\/status(?:es)?\/(\d+)/);
+    if (match) {
+      return {
+        provider: "twitter",
+        embedUrl: `https://platform.twitter.com/embed/Tweet.html?id=${match[1]}&theme=dark`,
+      };
+    }
+    return null;
+  }
+
+  // ── Facebook ── watch/video/reel permalinks -> the official video plugin iframe. We hand the
+  // FULL post URL to plugins/video.php as the `href`; the plugin resolves and renders the video
+  // server-side (again, no connect.facebook.net SDK script needed, so it stays CSP-safe). fb.watch
+  // share short links are resolved to a canonical facebook.com URL by the backend before storage
+  // (mirrors the TikTok short-link handling); a genuine video permalink is required for the plugin
+  // to render, otherwise Facebook shows nothing and we would rather fall back to the outbound link.
+  // KNOWN LIMITATION: a private / login-walled Facebook video cannot be embedded by anyone; the
+  // plugin renders empty for those. There is no public-iframe workaround, so such links effectively
+  // rely on the outbound-link fallback in the consumer.
+  if (host === "facebook.com" || host.endsWith(".facebook.com") || host === "fb.watch") {
+    // A bare fb.watch/<code> that never got resolved has no video permalink to feed the plugin;
+    // treat it as unembeddable so the caller renders a tappable outbound link instead.
+    if (host === "fb.watch") return null;
+    return {
+      provider: "facebook",
+      embedUrl: `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url.href)}&show_text=false`,
+    };
   }
 
   // ── Instagram ── /reel/<code>, /p/<code>, /tv/<code> -> the public /embed endpoint (works for

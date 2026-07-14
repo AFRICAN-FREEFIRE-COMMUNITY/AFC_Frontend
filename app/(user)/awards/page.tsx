@@ -69,6 +69,9 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+// next-intl client hook: pulls the "awardsPage" namespace (messages/<locale>/awardsPage.json)
+// so every user-facing label/toast on this public NFCA awards page renders in the viewer's locale.
+import { useTranslations } from "next-intl";
 
 // Using your existing interface structure
 interface WinnerNominee {
@@ -424,6 +427,7 @@ const VOTING_OPEN = false;
 
 export default function page() {
   const { token } = useAuth();
+  const t = useTranslations("awardsPage");
   const [winnersData] = useState<SectionWinners[]>(MANUAL_WINNERS);
   const [activeTab, setActiveTab] = useState<string>(MANUAL_WINNERS[0].id);
 
@@ -475,13 +479,13 @@ export default function page() {
   };
 
   const handleSubmitVotes = async (sectionId: number) => {
-    if (!token) { toast.error("Please log in to vote."); return; }
+    if (!token) { toast.error(t("toast.loginToVote")); return; }
     const section = voteSections.find((s) => s.id === sectionId);
     if (!section) return;
     const votes = section.categories
       .filter((c) => selections[c.category_id] !== undefined)
       .map((c) => ({ category_id: c.category_id, nominee_id: selections[c.category_id] }));
-    if (votes.length === 0) { toast.error("Select at least one nominee."); return; }
+    if (votes.length === 0) { toast.error(t("toast.selectNominee")); return; }
     setSubmitting(true);
     try {
       await axios.post(
@@ -489,10 +493,10 @@ export default function page() {
         { section_id: sectionId, votes },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success("Votes submitted!");
+      toast.success(t("toast.votesSubmitted"));
       setVotedSections((prev) => new Set(prev).add(sectionId));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to submit votes.");
+      toast.error(err?.response?.data?.message || t("toast.submitFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -500,7 +504,9 @@ export default function page() {
 
   return (
     <div className="py-10">
-      <div className="text-center mb-10">
+      {/* data-tour anchor (awards-header): guided-tour "Awards" stop spotlights the awards hero so
+          a player learns this is where community awards + voting live. */}
+      <div className="text-center mb-10" data-tour="awards-header">
         <div className="flex items-center justify-center gap-4 mb-4">
           <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-600 bg-clip-text text-transparent">
@@ -509,7 +515,7 @@ export default function page() {
           <Crown className="h-10 w-10 text-yellow-500 animate-bounce" />
         </div>
         <p className="text-muted-foreground text-base max-w-2xl mx-auto">
-          Nigerian Free Fire Community Awards - celebrate the best creators and players in the community.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -518,12 +524,12 @@ export default function page() {
           {VOTING_OPEN && voteSections.length > 0 && (
             <TabsTrigger value="vote" className="flex-1">
               <Vote className="h-4 w-4 mr-1.5" />
-              Vote
+              {t("tabs.vote")}
             </TabsTrigger>
           )}
           <TabsTrigger value="winners" className="flex-1">
             <Trophy className="h-4 w-4 mr-1.5" />
-            Winners
+            {t("tabs.winners")}
           </TabsTrigger>
         </TabsList>
 
@@ -531,7 +537,7 @@ export default function page() {
         {VOTING_OPEN && voteSections.length > 0 && (
           <TabsContent value="vote">
             {loadingVote ? (
-              <div className="text-center py-16 text-muted-foreground text-sm">Loading...</div>
+              <div className="text-center py-16 text-muted-foreground text-sm">{t("loading")}</div>
             ) : (
               <div className="space-y-6">
                 {voteSections.length > 1 && (
@@ -557,8 +563,8 @@ export default function page() {
                         <Card className="border-green-700/40 bg-green-900/10 text-center py-10">
                           <CardContent>
                             <CheckCircle2 className="h-12 w-12 text-green-400 mx-auto mb-3" />
-                            <p className="font-semibold text-green-400">Votes submitted for {section.name}!</p>
-                            <p className="text-xs text-muted-foreground mt-1">Thank you for voting.</p>
+                            <p className="font-semibold text-green-400">{t("votesSubmittedFor", { name: section.name })}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{t("thankYouForVoting")}</p>
                           </CardContent>
                         </Card>
                       ) : (
@@ -597,7 +603,7 @@ export default function page() {
                               disabled={submitting}
                               className="min-w-[160px]"
                             >
-                              {submitting ? "Submitting..." : `Submit Votes for ${section.name}`}
+                              {submitting ? t("submitting") : t("submitVotesFor", { name: section.name })}
                             </Button>
                           </div>
                         </>
@@ -616,9 +622,12 @@ export default function page() {
               {winnersData.map((section) => (
                 <TabsTrigger
                   key={section.id}
-                  value={section.name.toLowerCase().replace(/\s+/g, "-")}
+                  // Tab value keyed on the stable section id (e.g. "content-creators"),
+                  // not the display name, so tab matching survives translation. The visible
+                  // label is looked up from the awardsPage.sections.<id> message.
+                  value={section.id}
                 >
-                  {section.name}
+                  {t(`sections.${section.id}`)}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -626,7 +635,7 @@ export default function page() {
             {winnersData.map((section) => (
               <TabsContent
                 key={section.id}
-                value={section.name.toLowerCase().replace(/\s+/g, "-")}
+                value={section.id}
               >
                 <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                   {section.categories.map((category) => (
@@ -648,12 +657,12 @@ export default function page() {
                           </h3>
                           <Badge className="flex items-center text-yellow-600 bg-yellow-500/10">
                             <Trophy className="h-4 w-4 mr-2" />
-                            Official Winner
+                            {t("officialWinner")}
                           </Badge>
                         </div>
                         <div className="mt-6 pt-4 border-t border-muted">
                           <div className="flex justify-between items-center text-xs text-muted-foreground">
-                            <span>Community Favorite</span>
+                            <span>{t("communityFavorite")}</span>
                             <div className="flex gap-1">
                               <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
                               <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
@@ -671,9 +680,9 @@ export default function page() {
 
           <div className="mt-20 text-center p-12 rounded-3xl bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 border border-primary/10">
             <Trophy className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Congratulations to all Nominees!</h2>
+            <h2 className="text-2xl font-bold mb-2">{t("congratsTitle")}</h2>
             <p className="text-muted-foreground">
-              Every participant has contributed to making the Nigerian Free Fire community what it is today. See you in NFCA 2026!
+              {t("congratsBody")}
             </p>
           </div>
         </TabsContent>

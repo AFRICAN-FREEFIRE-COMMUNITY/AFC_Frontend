@@ -1,0 +1,72 @@
+{
+  "header": {
+    "title": "Create New Event",
+    "titleDuplicate": "Duplicate Event",
+    "description": "Set up a new event for your organization.",
+    "duplicateHint": "You're duplicating an existing event. All details have been pre-filled, update what you need, then create."
+  },
+  "gate": {
+    "title": "Create Event",
+    "noPermission": "You don't have permission to create events for this organization.",
+    "backToEvents": "Back to events"
+  },
+  "resume": {
+    "title": "Resume your unsaved event?",
+    "description": "You started creating an event and didn't finish. Resume where you left off, or start fresh. Re-attach any banner or rules file after resuming.",
+    "resume": "Resume",
+    "startFresh": "Start fresh"
+  },
+  "nav": {
+    "previous": "Previous",
+    "next": "Next",
+    "reviewFinalize": "Review & Finalize",
+    "creating": "Creating...",
+    "createEvent": "Create Event"
+  },
+  "toast": {
+    "draftRestored": "Draft restored. If you had a banner or rules file, re-attach it.",
+    "draftModeSelected": "Draft mode selected. Publishing options automatically unchecked.",
+    "publishingSelected": "Publishing selected. Draft mode automatically unchecked.",
+    "fillRequiredStageFields": "Please fill all required stage fields",
+    "roundRobinTwoGroups": "A round-robin stage needs at least two base groups.",
+    "baseGroupLabel": "Every base group needs a label.",
+    "gamesPerDayMin": "Games per day must be at least 1.",
+    "completeGroupDetails": "Please complete all group details correctly, including selecting at least one map per group",
+    "stageAtLeastOneGroup": "A stage must have at least one group.",
+    "stageSaved": "Stage saved successfully",
+    "stageMoved": "Moved stage {name} {direction}",
+    "stageDeleted": "Stage deleted successfully",
+    "eventAtLeastOneStage": "An event must have at least one stage.",
+    "numStagesMin": "Number of stages must be at least 1.",
+    "configureAllStages": "Please configure all {total} stages before proceeding. Only {configured} configured.",
+    "stagesNotConfigured": "One or more stages have not been fully configured with groups.",
+    "enterEventRules": "Please enter the event rules.",
+    "uploadRulesDocument": "Please upload the rules document.",
+    "moreIssues": "(+{count} more)",
+    "discordInviteRequired": "Add a Discord invite link to require Discord for registration.",
+    "serverError": "Server error: Received unexpected response format.",
+    "sponsorAttachFailed": "Event created, but attaching failed for: {names}. Re-add them from the event's Sponsor tab.",
+    "eventCreated": "Event created successfully!",
+    "createFailed": "Failed to create event. Please check your inputs.",
+    "unexpectedError": "An unexpected error occurred during submission.",
+    "someFieldsMissing": "Some required fields are missing. Please review each step.",
+    "pleaseFix": "Please fix: {details}",
+    "fieldRequired": "required",
+    "duplicating": "Duplicating \"{name}\". Edit the details then create.",
+    "duplicateLoadFailed": "Failed to load event for duplication.",
+    "prizeDistributionOver": "Your prize distribution adds up to {sum} {currency}, which is {diff} {currency} MORE than the prize pool cash value ({cash} {currency}). Adjust the amounts so they match exactly.",
+    "prizeDistributionUnder": "Your prize distribution adds up to {sum} {currency}, which is {diff} {currency} LESS than the prize pool cash value ({cash} {currency}). Adjust the amounts so they match exactly.",
+    "direction": {
+      "up": "up",
+      "down": "down"
+    }
+  },
+  "prizeValidate": {
+    "required": "Prize pool cash value is required.",
+    "over": "Prize distribution is OVER the cash value by {amount} {currency}. Reduce it to {target} {currency}.",
+    "under": "Prize distribution is UNDER the cash value by {amount} {currency}. Add {amount} {currency} more to reach {target} {currency}."
+  },
+  "misc": {
+    "stageFallback": "Stage"
+  }
+}

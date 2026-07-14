@@ -29,7 +29,7 @@ export function AdminOverrideBanner({
 }: AdminOverrideBannerProps) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-gold/40 bg-gold/15 px-4 py-2 text-sm">
-      <div className="flex items-center gap-2 font-semibold text-gold">
+      <div className="flex items-center gap-2 font-semibold text-gold min-w-0">
         <ShieldAlert className="h-4 w-4 shrink-0" />
         <span className="truncate">{label}</span>
       </div>

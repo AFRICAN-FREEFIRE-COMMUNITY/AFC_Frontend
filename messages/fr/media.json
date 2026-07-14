@@ -1,0 +1,32 @@
+{
+  "download": {
+    "esportSizeLabel": "Taille de l'image Esport",
+    "esportNamingLabel": "Nom du fichier Esport",
+    "logoSizeLabel": "Taille du logo de l'équipe",
+    "originalSize": "Taille d'origine",
+    "esportSizeRole": "Image du rôle (108 x 130)",
+    "namingIgn": "Pseudo dans le jeu",
+    "namingUid": "UID Free Fire",
+    "namingBoth": "Les deux (nom + UID)",
+    "logoSizeGloo": "Fond d'écran Gloo (1 000 x 1 000)",
+    "logoSizeHead": "Photo de profil (108 x 130)",
+    "logosNamedNote": "Les logos des équipes portent toujours le nom de l'équipe.",
+    "eventButton": "Télécharger les fichiers multimédias",
+    "eventTitle": "Télécharger les fichiers multimédias de l'événement",
+    "eventDescription": "Tous les logos des équipes inscrites ainsi que les images des joueurs inscrits à cet événement, regroupés dans un seul fichier ZIP. Choisissez la taille et le format de nommage des fichiers.",
+    "setTitle": "Télécharger des médias consacrés à l'e-sport",
+    "setDescription": "Choisissez les équipes et les joueurs de votre choix. Vous recevrez un fichier ZIP contenant les logos des équipes et les images e-sport des joueurs, ainsi qu'une liste répertoriant tous ceux qui n'ont pas encore mis en ligne leurs fichiers.",
+    "teamsLabel": "Équipes (logos)",
+    "teamsPlaceholder": "Rechercher et ajouter une équipe...",
+    "playersLabel": "Joueurs (images d'e-sport)",
+    "playersPlaceholder": "Rechercher et ajouter un joueur...",
+    "removeTeam": "Supprimer « {name} »",
+    "removePlayer": "Supprimer « {name} »",
+    "cancel": "Annuler",
+    "preparing": "Préparation...",
+    "downloadZip": "Télécharger le fichier ZIP",
+    "downloaded": "Le fichier ZIP contenant les fichiers multimédias a été téléchargé. Vérifiez le fichier manifest.txt pour voir s'il manque quelque chose.",
+    "downloadFailed": "Échec du téléchargement du fichier ZIP contenant les fichiers multimédias.",
+    "pickAtLeastOne": "Choisissez au moins une équipe ou un joueur."
+  }
+}

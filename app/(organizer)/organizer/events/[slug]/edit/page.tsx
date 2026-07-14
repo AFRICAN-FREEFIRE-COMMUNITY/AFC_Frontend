@@ -25,7 +25,7 @@
 //                              stage + per-group Discord Role ID inputs and drops the
 //                              stage-discord requirement from its Step 1 gate.
 //   The whole stage-editing STATE + handlers are page-level on the admin edit page
-//   too, so they are ported here 1:1 — with the single change that this page's
+//   too, so they are ported here 1:1 - with the single change that this page's
 //   handleSaveStageLogic does NOT require stage_discord_role_id (Discord is omitted).
 //
 // DISCORD OMISSION (the only intentional divergence from the admin edit page):
@@ -49,7 +49,7 @@
 //     event's organization, so this works for org-scoped events with no backend change.
 //
 // GATING: rendered only when the caller can edit events
-//   (isOwner OR membership.permissions.can_edit_events) — mirrors how the create page
+//   (isOwner OR membership.permissions.can_edit_events) - mirrors how the create page
 //   gates on can_create_events and the metrics page gates on can_view_metrics.
 //
 // DESIGN: AFC constants throughout (DM Sans, green-primary PageHeader title, pill
@@ -59,12 +59,18 @@
 "use client";
 
 import { useState, useTransition, useRef, useEffect, use } from "react";
+// next-intl: this organizer edit shell owns its page-header, tab labels, save/discard
+// prompts and toasts. Copy lives in the "evEditPage" namespace (messages/{en,fr,pt}).
+import { useTranslations } from "next-intl";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Form } from "@/components/ui/form";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+// Shared mobile-first section navigator (dropdown on phones, scrollable strip on desktop) - same
+// component the admin edit page uses, so both edit surfaces stay in lock-step (owner 2026-07-13).
+import { EventEditSectionNav } from "@/components/events/EventEditSectionNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
@@ -85,7 +91,7 @@ import { FullLoader } from "@/components/Loader";
 import { useOrganizer } from "../../../_components/OrganizerContext";
 
 // Reuse the admin edit schema + helpers + every admin edit tab/modal (Approach A).
-// Importing from the admin edit folder keeps a single source of truth — the organizer
+// Importing from the admin edit folder keeps a single source of truth - the organizer
 // edit flow can't drift from the admin edit flow's validation, field set, or UI.
 import {
   EventFormSchema,
@@ -118,7 +124,7 @@ import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
 // admin edit page. Backend (organizers.py co-organizer endpoints) only lets the PRIMARY org's
 // OWNER (or an AFC admin) invite/revoke, so this page mounts it only when isOwner (below).
 import CoOrganizersPanel from "@/app/(a)/a/events/[slug]/edit/_components/CoOrganizersPanel";
-// Linked-events (qualification links) editor — the SAME component the admin edit page + the event
+// Linked-events (qualification links) editor - the SAME component the admin edit page + the event
 // DETAIL pages mount (components/event-links.tsx -> lib/eventLinks.ts -> events/<id>/links/*). The
 // backend already authorises the event's organizer on those endpoints, so reusing it here gives the
 // organizer the same create/fire/cancel surface with no divergence. Self-loads + self-saves; we just
@@ -251,6 +257,9 @@ export default function OrganizerEditEventPage({
   const resolvedParams = use(params);
   const { slug } = resolvedParams;
   const router = useRouter();
+  // Translations for this page's own chrome (header, tab labels, toasts, gates). Declared
+  // early so the eventTitle useState initializer below can read the loading label.
+  const t = useTranslations("evEditPage");
 
   // ── Org context: gate the page + verify the event belongs to THIS org ────────
   const { slug: orgSlug, membership, isOwner } = useOrganizer();
@@ -275,7 +284,7 @@ export default function OrganizerEditEventPage({
   };
   const [loadingEvent, setLoadingEvent] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [eventTitle, setEventTitle] = useState("Loading Event...");
+  const [eventTitle, setEventTitle] = useState(t("loadingTitle"));
   const [pendingSubmit, startSubmitTransition] = useTransition();
   const [pendingSeeding, startPendingTransition] = useTransition();
   // True once we've confirmed the fetched event is NOT homed to the selected org.
@@ -502,7 +511,7 @@ export default function OrganizerEditEventPage({
   // ============================================================================
 
   useEffect(() => {
-    // Only fetch when the caller is allowed to edit — a gated member never loads
+    // Only fetch when the caller is allowed to edit - a gated member never loads
     // the event (mirrors how the metrics page skips its fetch when not permitted).
     if (!slug || authLoading || !token || !canEditEvents) {
       if (!canEditEvents) {
@@ -637,7 +646,7 @@ export default function OrganizerEditEventPage({
         setPreviewUrl(eventDetails.event_banner_url || "");
         setPreviewRuleUrl(eventDetails.uploaded_rules_url || "");
         setRulesInputMethod(eventDetails.event_rules ? "type" : "upload");
-        setEventTitle(`Edit Event: ${eventDetails.event_name}`);
+        setEventTitle(t("editEventTitle", { name: eventDetails.event_name }));
       }, 100);
     }
   }, [eventDetails, initialLoading, form]);
@@ -813,10 +822,10 @@ export default function OrganizerEditEventPage({
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data?.detail ||
-        "Failed to fetch event details.";
+        t("toast.fetchDetailsFailed");
       toast.error(errorMessage);
       // Unlike the admin page (which bounces to /login), an org member who can't
-      // load the event is sent back to their events list — that's the org surface
+      // load the event is sent back to their events list - that's the org surface
       // they came from, and the 401 interceptor already handles a real session loss.
       router.push("/organizer/events");
     } finally {
@@ -850,11 +859,11 @@ export default function OrganizerEditEventPage({
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setLeaderboardData(response.data.leaderboard);
-      toast.success("Leaderboard updated");
+      toast.success(t("toast.leaderboardUpdated"));
       return response.data;
     } catch (error: any) {
       toast.error(
-        error.response?.data?.message || "Failed to fetch leaderboard",
+        error.response?.data?.message || t("toast.leaderboardFailed"),
       );
     } finally {
       setLoadingLeaderboard(false);
@@ -869,11 +878,11 @@ export default function OrganizerEditEventPage({
           { event_id: eventDetails?.event_id, group_id: groupId },
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        toast.success(res.data.message || "Seeding successful");
+        toast.success(res.data.message || t("toast.seedingSuccess"));
         setIsSeedModalOpen(false);
       } catch (error: any) {
         toast.error(
-          error.response?.data?.message || "Oops! An error occurred.",
+          error.response?.data?.message || t("toast.genericError"),
         );
       }
     });
@@ -1023,7 +1032,7 @@ export default function OrganizerEditEventPage({
   const handleRemoveStage = (indexToRemove: number) => {
     const currentStages = form.getValues("stages") || [];
     if (currentStages.length <= 1) {
-      toast.error("An event must have at least one stage.");
+      toast.error(t("toast.eventNeedsStage"));
       return;
     }
     setStageToRemove(indexToRemove);
@@ -1052,7 +1061,7 @@ export default function OrganizerEditEventPage({
         );
         if (!response.ok) throw new Error("Failed to delete stage");
       } catch {
-        toast.error("Failed to delete stage from server");
+        toast.error(t("toast.deleteStageFailed"));
         return;
       } finally {
         setLoadingRemove(false);
@@ -1073,7 +1082,11 @@ export default function OrganizerEditEventPage({
     setStageNames(updatedNames);
 
     toast.success(
-      `Stage "${currentStages[stageToRemove]?.stage_name || `Stage ${stageToRemove + 1}`}" removed successfully`,
+      t("toast.stageRemoved", {
+        name:
+          currentStages[stageToRemove]?.stage_name ||
+          `Stage ${stageToRemove + 1}`,
+      }),
     );
     setIsRemoveConfirmOpen(false);
     setStageToRemove(null);
@@ -1134,7 +1147,7 @@ export default function OrganizerEditEventPage({
   };
 
   // Stage save. IDENTICAL to the admin edit page's handler EXCEPT it does NOT require
-  // stage_discord_role_id — the organizer flow hides every Discord input, so a missing
+  // stage_discord_role_id - the organizer flow hides every Discord input, so a missing
   // stage Discord id must not block the save. The empty id still rides in the payload.
   const handleSaveStageLogic = async () => {
     if (
@@ -1144,30 +1157,37 @@ export default function OrganizerEditEventPage({
       !stageModalData.end_date ||
       stageModalData.teams_qualifying_from_stage === undefined
     ) {
-      toast.error("Please fill all required stage fields (Step 1)");
+      toast.error(t("toast.stageFieldsRequired"));
       return;
     }
 
     // Round-robin stages validate their BASE GROUPS, not the classic per-group config
     // the backend ignores for this format (mirrors the admin edit + create flows).
     const isRoundRobinStage = stageModalData.stage_format === "br - round robin";
+    // Clash Squad (cs - *) runs as a head-to-head BRACKET seeded from the registered teams on
+    // the event page - no groups/maps to validate. Send groups: [] so no phantom BR group is
+    // created (P1#1 backend guard also skips CS). Without this it fell into the BR `else` and
+    // the default tempGroups failed "complete all group details" (P1#2, owner 2026-07-13).
+    const isClashSquadStage = (stageModalData.stage_format || "").startsWith("cs - ");
     if (isRoundRobinStage) {
       const baseGroups = stageModalData.round_robin?.round_robin_groups ?? [];
       if (baseGroups.length < 2) {
-        toast.error("A round-robin stage needs at least two base groups.");
+        toast.error(t("toast.rrNeedsTwoGroups"));
         return;
       }
       if (baseGroups.some((g) => !g.label.trim())) {
-        toast.error("Every base group needs a label.");
+        toast.error(t("toast.rrGroupNeedsLabel"));
         return;
       }
       if (
         stageModalData.round_robin.generate_schedule &&
         stageModalData.round_robin.games_per_day < 1
       ) {
-        toast.error("Games per day must be at least 1.");
+        toast.error(t("toast.gamesPerDayMin"));
         return;
       }
+    } else if (isClashSquadStage) {
+      // Nothing to validate: a bracket has no groups/maps. Falls through to send groups: [].
     } else {
       // Group validation also drops the group_discord_role_id requirement (Discord omitted).
       const invalidGroup = tempGroups.find(
@@ -1182,14 +1202,12 @@ export default function OrganizerEditEventPage({
       );
 
       if (invalidGroup) {
-        toast.error(
-          "Please complete all group details correctly, including selecting at least one map per group (Step 2)",
-        );
+        toast.error(t("toast.groupDetailsIncomplete"));
         return;
       }
 
       if (stageModalData.number_of_groups < 1) {
-        toast.error("A stage must have at least one group.");
+        toast.error(t("toast.stageNeedsGroup"));
         return;
       }
     }
@@ -1205,10 +1223,13 @@ export default function OrganizerEditEventPage({
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
       stage_format: stageModalData.stage_format,
-      groups: tempGroups.map((tg, i) => ({
-        ...tg,
-        matches: (existingStage?.groups[i] as any)?.matches || [],
-      })),
+      // Clash Squad has no groups (a bracket) - send [] so the backend creates no phantom BR group.
+      groups: isClashSquadStage
+        ? []
+        : tempGroups.map((tg, i) => ({
+            ...tg,
+            matches: (existingStage?.groups[i] as any)?.matches || [],
+          })),
       stage_discord_role_id: stageModalData.stage_discord_role_id, // empty (omitted)
       teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
       total_teams_in_stage: stageModalData.total_teams_in_stage,
@@ -1240,9 +1261,7 @@ export default function OrganizerEditEventPage({
     await form.trigger();
     setIsStageModalOpen(false);
     setStageModalStep(1);
-    toast.success(
-      "Stage configuration updated. Click 'Save Changes' to finalize.",
-    );
+    toast.success(t("toast.stageConfigUpdated"));
   };
 
   // ── Sponsor save (ported 1:1 from the admin edit page) ──────────────────────
@@ -1367,7 +1386,7 @@ export default function OrganizerEditEventPage({
         body: formData,
       });
 
-      toast.success("Sponsor settings saved!");
+      toast.success(t("toast.sponsorSaved"));
       setEventDetails((prev) =>
         prev
           ? {
@@ -1383,7 +1402,7 @@ export default function OrganizerEditEventPage({
       );
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || "Failed to save sponsor settings",
+        error?.response?.data?.message || t("toast.sponsorSaveFailed"),
       );
     } finally {
       setSavingSponsor(false);
@@ -1507,7 +1526,7 @@ export default function OrganizerEditEventPage({
       );
 
       // Waitlist fields. waitlist_discord_role_id stays whatever it was (empty for
-      // organizer-created events) — the Discord input is hidden so the organizer
+      // organizer-created events) - the Discord input is hidden so the organizer
       // never edits it, but we still send the (empty) field so the shape matches.
       formData.append(
         "is_waitlist_enabled",
@@ -1545,7 +1564,7 @@ export default function OrganizerEditEventPage({
         body: formData,
       });
 
-      toast.success("Waitlist settings saved!");
+      toast.success(t("toast.waitlistSaved"));
       setEventDetails((prev) =>
         prev
           ? {
@@ -1567,7 +1586,7 @@ export default function OrganizerEditEventPage({
       );
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || "Failed to save waitlist settings",
+        error?.response?.data?.message || t("toast.waitlistSaveFailed"),
       );
     } finally {
       setSavingWaitlist(false);
@@ -1618,60 +1637,60 @@ export default function OrganizerEditEventPage({
       if (orig !== upd) changes.push({ label, from: orig, to: upd });
     };
 
-    check("Event Name", eventDetails.event_name, data.event_name);
+    check(t("changes.eventName"), eventDetails.event_name, data.event_name);
     check(
-      "Competition Type",
+      t("changes.competitionType"),
       eventDetails.competition_type,
       data.competition_type,
     );
     check(
-      "Participant Type",
+      t("changes.participantType"),
       eventDetails.participant_type,
       data.participant_type,
     );
-    check("Event Type", eventDetails.event_type, data.event_type);
+    check(t("changes.eventType"), eventDetails.event_type, data.event_type);
     check(
-      "Event Privacy",
-      eventDetails.is_public ? "Public" : "Private",
-      data.is_public === "True" ? "Public" : "Private",
+      t("changes.eventPrivacy"),
+      eventDetails.is_public ? t("changes.public") : t("changes.private"),
+      data.is_public === "True" ? t("changes.public") : t("changes.private"),
     );
     check(
-      "Max Participants",
+      t("changes.maxParticipants"),
       eventDetails.max_teams_or_players,
       data.max_teams_or_players,
     );
-    check("Event Mode", eventDetails.event_mode, data.event_mode);
-    check("Start Date", eventDetails.start_date, data.start_date);
-    check("End Date", eventDetails.end_date, data.end_date);
+    check(t("changes.eventMode"), eventDetails.event_mode, data.event_mode);
+    check(t("changes.startDate"), eventDetails.start_date, data.start_date);
+    check(t("changes.endDate"), eventDetails.end_date, data.end_date);
     check(
-      "Registration Open",
+      t("changes.registrationOpen"),
       eventDetails.registration_open_date,
       data.registration_open_date,
     );
     check(
-      "Registration Close",
+      t("changes.registrationClose"),
       eventDetails.registration_end_date,
       data.registration_end_date,
     );
     check(
-      "Registration Link",
+      t("changes.registrationLink"),
       eventDetails.registration_link ?? "",
       data.registration_link ?? "",
     );
-    check("Prize Pool", eventDetails.prizepool, data.prizepool);
-    check("Event Status", eventDetails.event_status, data.event_status);
+    check(t("changes.prizePool"), eventDetails.prizepool, data.prizepool);
+    check(t("changes.eventStatus"), eventDetails.event_status, data.event_status);
 
     if (selectedFile)
       changes.push({
-        label: "Event Banner",
-        from: "Previous banner",
-        to: `New file: ${selectedFile.name}`,
+        label: t("changes.eventBanner"),
+        from: t("changes.previousBanner"),
+        to: t("changes.newFile", { name: selectedFile.name }),
       });
     if (selectedRuleFile)
       changes.push({
-        label: "Rules Document",
-        from: "Previous document",
-        to: `New file: ${selectedRuleFile.name}`,
+        label: t("changes.rulesDocument"),
+        from: t("changes.previousDocument"),
+        to: t("changes.newFile", { name: selectedRuleFile.name }),
       });
 
     return changes;
@@ -1722,7 +1741,7 @@ export default function OrganizerEditEventPage({
 
   const onSubmit = async (data: EventFormType) => {
     if (!eventDetails?.event_id) {
-      toast.error("Event ID is missing");
+      toast.error(t("toast.eventIdMissing"));
       return;
     }
 
@@ -1742,20 +1761,18 @@ export default function OrganizerEditEventPage({
     const regClose = new Date(data.registration_end_date);
 
     if (eventStart > eventEnd) {
-      toast.error("Event start date cannot be after event end date");
+      toast.error(t("toast.startAfterEnd"));
       setCurrentTab("basic_info");
       return;
     }
     if (regOpen > regClose) {
-      toast.error(
-        "Registration open date cannot be after registration close date",
-      );
+      toast.error(t("toast.regOpenAfterClose"));
       setCurrentTab("basic_info");
       return;
     }
     // Mirror the backend 400: require_discord=true demands a non-empty invite link.
     if (data.require_discord && !data.discord_invite_link?.trim()) {
-      toast.error("Add a Discord invite link to require Discord for registration.");
+      toast.error(t("toast.discordLinkRequired"));
       setCurrentTab("basic_info");
       return;
     }
@@ -1914,7 +1931,7 @@ export default function OrganizerEditEventPage({
 
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
-          toast.error("Server error: Unexpected response format.", {
+          toast.error(t("toast.unexpectedFormat"), {
             duration: 5000,
           });
           return;
@@ -1924,7 +1941,12 @@ export default function OrganizerEditEventPage({
 
         if (response.ok) {
           toast.success(
-            `Event "${data.event_name}" saved as ${data.save_to_drafts ? "Draft" : "Published"} successfully!`,
+            t("toast.savedSuccess", {
+              name: data.event_name,
+              status: data.save_to_drafts
+                ? t("status.draft")
+                : t("status.published"),
+            }),
             { duration: 4000 },
           );
           // Live-update (owner 2026-06-20): re-pull the saved event so changes show
@@ -1935,22 +1957,22 @@ export default function OrganizerEditEventPage({
           if (response.status === 400) {
             toast.error(
               <div className="space-y-1">
-                <p className="font-semibold">Validation Error</p>
+                <p className="font-semibold">{t("validationErrorTitle")}</p>
                 <p className="text-sm">{errorMessage}</p>
               </div>,
               { duration: 5000 },
             );
           } else if (response.status === 401) {
-            toast.error("Your session has expired. Please log in again.");
+            toast.error(t("toast.sessionExpired"));
             router.push("/login");
           } else if (response.status === 403) {
-            toast.error("You don't have permission to edit this event.");
+            toast.error(t("toast.noEditPermission"));
           } else if (response.status === 404) {
-            toast.error("Event not found. It may have been deleted.");
+            toast.error(t("toast.eventNotFound"));
           } else if (response.status >= 500) {
-            toast.error("Server error occurred. Please try again later.");
+            toast.error(t("toast.serverError"));
           } else {
-            toast.error(errorMessage || "Failed to update event.");
+            toast.error(errorMessage || t("toast.updateFailed"));
           }
         }
       } catch (error: any) {
@@ -1958,9 +1980,9 @@ export default function OrganizerEditEventPage({
           error.message === "Failed to fetch" ||
           error.message?.includes("NetworkError")
         ) {
-          toast.error("Network error: Please check your internet connection.");
+          toast.error(t("toast.networkError"));
         } else {
-          toast.error("An unexpected error occurred. Please try again.");
+          toast.error(t("toast.unexpectedError"));
         }
       }
     });
@@ -1976,17 +1998,17 @@ export default function OrganizerEditEventPage({
   if (!canEditEvents) {
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Edit Event" back />
+        <PageHeader title={t("pageTitle")} back />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <div className="flex size-12 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <IconLock className="size-6" />
             </div>
             <p className="text-sm text-muted-foreground">
-              You do not have permission to edit events.
+              {t("gate.noPermission")}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/organizer/events">Back to events</Link>
+              <Link href="/organizer/events">{t("backToEvents")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -2000,22 +2022,22 @@ export default function OrganizerEditEventPage({
   if (notMyOrgEvent) {
     return (
       <div className="flex flex-col gap-5">
-        <PageHeader title="Edit Event" back />
+        <PageHeader title={t("pageTitle")} back />
         <Card>
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <div className="flex size-12 items-center justify-center rounded-md bg-muted text-muted-foreground">
               <IconCalendarOff className="size-6" />
             </div>
             <p className="max-w-sm text-sm text-muted-foreground">
-              We could not find that event under{" "}
-              <span className="font-medium text-foreground">
-                {membership.organization.name}
-              </span>
-              . It may belong to a different organization, or it may have been
-              removed.
+              {t.rich("notMine.body", {
+                org: membership.organization.name,
+                strong: (chunks) => (
+                  <span className="font-medium text-foreground">{chunks}</span>
+                ),
+              })}
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/organizer/events">Back to events</Link>
+              <Link href="/organizer/events">{t("backToEvents")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -2043,74 +2065,50 @@ export default function OrganizerEditEventPage({
       <Form {...form}>
         <form className="space-y-6">
           <Tabs value={currentTab} onValueChange={selectTab}>
-            <TabsList
-              data-tour="org-event-edit-tabs"
-              className="w-full justify-start overflow-x-auto mb-2"
-            >
-              {/* Each trigger keeps the error-dot anchor pattern from the admin edit
-                  page (the InfoTip ⓘ buttons are dropped here — the organizer surface
-                  doesn't ship the help-content ids — but the error dots stay). */}
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="basic_info" className="px-6 w-full">
-                  Basic Info
-                </TabsTrigger>
-                {tabErrors.basic_info && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="registered_teams" className="px-6 w-full">
-                  Registered Teams
-                </TabsTrigger>
-                {tabErrors.registered_teams && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="stages_groups" className="px-6 w-full">
-                  Stages & Groups
-                </TabsTrigger>
-                {tabErrors.stages_groups && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="prize_rules" className="px-6 w-full">
-                  Prize & Rules
-                </TabsTrigger>
-                {tabErrors.prize_rules && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </span>
-              {/* Linked Events tab (owner 2026-06-29): per-stage qualification links into other
-                  events. Same tab the admin edit page adds (parity). */}
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="linked_events" className="px-6 w-full">
-                  Linked Events
-                </TabsTrigger>
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="actions" className="px-6 w-full">
-                  Event Actions
-                </TabsTrigger>
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="sponsor" className="px-6 w-full">
-                  Sponsor
-                </TabsTrigger>
-                {sponsorForm.is_sponsored && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
-                )}
-              </span>
-              <span className="relative inline-flex flex-1 items-center justify-center">
-                <TabsTrigger value="waitlist" className="px-6 w-full">
-                  Waitlist
-                </TabsTrigger>
-                {waitlistForm.is_waitlist_enabled && (
-                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary" />
-                )}
-              </span>
-            </TabsList>
+            {/* Section navigator: dropdown on phones (organizers editing on mobile were missing the
+                sideways-scrolling tabs), scrollable strip on desktop. Shares EventEditSectionNav with
+                the admin edit page; the organizer surface ships no InfoTip ids, so only labels + error/
+                enabled dots + the strip-level tour anchor are passed. */}
+            <EventEditSectionNav
+              value={currentTab}
+              onValueChange={selectTab}
+              listTourAttr="org-event-edit-tabs"
+              sections={[
+                {
+                  value: "basic_info",
+                  label: t("tabs.basicInfo"),
+                  dot: tabErrors.basic_info ? "error" : null,
+                },
+                {
+                  value: "registered_teams",
+                  label: t("tabs.registeredTeams"),
+                  dot: tabErrors.registered_teams ? "error" : null,
+                },
+                {
+                  value: "stages_groups",
+                  label: t("tabs.stagesGroups"),
+                  dot: tabErrors.stages_groups ? "error" : null,
+                },
+                {
+                  value: "prize_rules",
+                  label: t("tabs.prizeRules"),
+                  dot: tabErrors.prize_rules ? "error" : null,
+                },
+                // Linked Events (owner 2026-06-29): parity with the admin edit page.
+                { value: "linked_events", label: t("tabs.linkedEvents") },
+                { value: "actions", label: t("tabs.actions") },
+                {
+                  value: "sponsor",
+                  label: t("tabs.sponsor"),
+                  dot: sponsorForm.is_sponsored ? "active" : null,
+                },
+                {
+                  value: "waitlist",
+                  label: t("tabs.waitlist"),
+                  dot: waitlistForm.is_waitlist_enabled ? "active" : null,
+                },
+              ]}
+            />
 
             <TabsContent value="basic_info">
               <BasicInfoTab
@@ -2288,7 +2286,9 @@ export default function OrganizerEditEventPage({
           currentType={form.getValues("participant_type")}
           pendingType={pendingParticipantType}
           participantLabel={
-            eventDetails.participant_type === "squad" ? "teams" : "players"
+            eventDetails.participant_type === "squad"
+              ? t("participant.teams")
+              : t("participant.players")
           }
           onCancel={() => {
             setPendingParticipantType(null);

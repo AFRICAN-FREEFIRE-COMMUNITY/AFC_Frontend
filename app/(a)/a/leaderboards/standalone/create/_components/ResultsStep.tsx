@@ -20,10 +20,14 @@
 //   3. The pickers ALSO search existing GHOST teams/players (includeGhosts on the shared search
 //      selects); a picked ghost is added via the kind=ghost_existing participant contract.
 //
+// i18n: user-facing copy lives under the `ocr` namespace, group `stdSteps` (author English only;
+// pnpm i18n:translate fills fr/pt). Generic verbs come from the shared `ocr.common.*` group.
+//
 // CONSUMED BY: StandaloneCreateWizard. Reads/writes the shared participants + matches lists via
 // props and reports newly-created/removed maps back up so Review can re-fetch fresh standings.
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +48,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+// AlertDialog gates the two destructive server DELETEs on this step (B4, same treatment as
+// ParticipantsStep #6): removeParticipant hits DELETE .../participants/<pid>/ and removeMap hits
+// DELETE .../matches/<mid>/. Both wipe entered results, so each trash button only stages a pending
+// target and the delete runs solely from AlertDialogAction.
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   IconDeviceFloppy,
   IconLoader2,
@@ -117,6 +135,8 @@ export function ResultsStep({
   onBack: () => void;
   onNext: () => void;
 }) {
+  // `ocr` namespace, `stdSteps` group; `t("common.*")` reaches the shared generic verbs.
+  const t = useTranslations("ocr");
   const [activeMatchId, setActiveMatchId] = useState<number | null>(
     matches[0]?.id ?? null,
   );
@@ -130,6 +150,11 @@ export function ResultsStep({
   const [showAdd, setShowAdd] = useState(false);
   const [showGhost, setShowGhost] = useState(false);
   const [adding, setAdding] = useState(false);
+  // Pending destructive targets: non-null opens the matching confirm dialog. Only AlertDialogAction
+  // runs the server DELETE (participant DELETE, or map DELETE) - both wipe entered results.
+  const [removeParticipantTarget, setRemoveParticipantTarget] =
+    useState<StandaloneParticipant | null>(null);
+  const [removeMapTarget, setRemoveMapTarget] = useState<StandaloneMatch | null>(null);
 
   // ── Rosters (team format) ── participant id -> player list, fetched lazily from the roster
   // endpoint and cached so switching maps never refetches. inFlight guards duplicate fetches
@@ -255,10 +280,10 @@ export function ResultsStep({
     try {
       const res = await standaloneLeaderboardsApi.addParticipant(leaderboardId, body);
       onParticipantsChange([...participants, res.participant]);
-      toast.success(`Added ${res.participant.name}.`);
+      toast.success(t("stdSteps.toast.added", { name: res.participant.name }));
       setShowGhost(false);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to add the participant.");
+      toast.error(err?.response?.data?.message || t("stdSteps.toast.failedAdd"));
     } finally {
       setAdding(false);
     }
@@ -267,7 +292,9 @@ export function ResultsStep({
   const handleTeamPick = (teamId: number | null, team?: PickedTeam) => {
     if (teamId == null) return;
     if (participants.some((p) => p.team_id === teamId)) {
-      toast.info(`${team?.team_name ?? "That team"} is already added.`);
+      toast.info(
+        t("stdSteps.toast.alreadyAdded", { name: team?.team_name ?? t("stdSteps.thatTeam") }),
+      );
       return;
     }
     addParticipant({ kind: "real", team_id: teamId });
@@ -276,7 +303,7 @@ export function ResultsStep({
   const handleUserPick = (_username: string | null, user?: PickedUser) => {
     if (!user) return;
     if (participants.some((p) => p.user_id === user.user_id)) {
-      toast.info(`${user.username} is already added.`);
+      toast.info(t("stdSteps.toast.alreadyAdded", { name: user.username }));
       return;
     }
     addParticipant({ kind: "real", user_id: user.user_id });
@@ -287,7 +314,7 @@ export function ResultsStep({
   // through the SAME kind=ghost_existing contract the OCR review uses, so nothing is duplicated.
   const handleGhostTeamPick = (g: PickedGhostTeam) => {
     if (participants.some((p) => p.ghost_team_id === g.ghost_team_id)) {
-      toast.info(`${g.team_name} is already added.`);
+      toast.info(t("stdSteps.toast.alreadyAdded", { name: g.team_name }));
       return;
     }
     addParticipant({ kind: "ghost_existing", ghost_team_id: g.ghost_team_id });
@@ -295,13 +322,14 @@ export function ResultsStep({
 
   const handleGhostPlayerPick = (g: PickedGhostPlayer) => {
     if (participants.some((p) => p.ghost_player_id === g.ghost_player_id)) {
-      toast.info(`${g.ign} is already added.`);
+      toast.info(t("stdSteps.toast.alreadyAdded", { name: g.ign }));
       return;
     }
     addParticipant({ kind: "ghost_existing", ghost_player_id: g.ghost_player_id });
   };
 
-  // Remove a participant (also drops their rows from every map's editable set).
+  // Remove a participant (server DELETE; also drops their rows from every map's editable set).
+  // Only reached from the confirm dialog's action.
   const removeParticipant = async (p: StandaloneParticipant) => {
     try {
       await standaloneLeaderboardsApi.removeParticipant(leaderboardId, p.id);
@@ -313,9 +341,9 @@ export function ResultsStep({
         }
         return next;
       });
-      toast.success(`Removed ${p.name}.`);
+      toast.success(t("stdSteps.toast.removed", { name: p.name }));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to remove the participant.");
+      toast.error(err?.response?.data?.message || t("stdSteps.toast.failedRemove"));
     }
   };
 
@@ -330,14 +358,15 @@ export function ResultsStep({
       const updated = [...matches, res.match];
       onMatchesChange(updated);
       setActiveMatchId(res.match.id);
-      toast.success(`Added map ${res.match.match_number}.`);
+      toast.success(t("stdSteps.toast.mapAdded", { number: res.match.match_number }));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to add a map.");
+      toast.error(err?.response?.data?.message || t("stdSteps.toast.failedAddMap"));
     } finally {
       setAddingMap(false);
     }
   };
 
+  // Server DELETE .../matches/<mid>/. Only reached from the confirm dialog's action.
   const removeMap = async (m: StandaloneMatch) => {
     try {
       await standaloneLeaderboardsApi.removeMatch(m.id);
@@ -349,9 +378,9 @@ export function ResultsStep({
         return next;
       });
       if (activeMatchId === m.id) setActiveMatchId(updated[0]?.id ?? null);
-      toast.success(`Removed map ${m.match_number}.`);
+      toast.success(t("stdSteps.toast.mapRemoved", { number: m.match_number }));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to remove the map.");
+      toast.error(err?.response?.data?.message || t("stdSteps.toast.failedRemoveMap"));
     }
   };
 
@@ -362,7 +391,7 @@ export function ResultsStep({
     if (activeMatchId === null) return;
     const rows = rowsByMatch[activeMatchId] ?? [];
     if (rows.length === 0) {
-      toast.error("No participants to score on this map.");
+      toast.error(t("stdSteps.toast.noParticipantsToScore"));
       return;
     }
     setSavingMatch(true);
@@ -385,9 +414,9 @@ export function ResultsStep({
             : {}),
         })),
       });
-      toast.success("Map results saved.");
+      toast.success(t("stdSteps.toast.mapResultsSaved"));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to save results.");
+      toast.error(err?.response?.data?.message || t("stdSteps.toast.failedSaveResults"));
     } finally {
       setSavingMatch(false);
     }
@@ -398,7 +427,7 @@ export function ResultsStep({
       variant="outline"
       className="rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
     >
-      Ghost
+      {t("stdSteps.badge.ghost")}
     </Badge>
   );
   const realBadge = (
@@ -406,7 +435,7 @@ export function ResultsStep({
       variant="outline"
       className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
     >
-      Real
+      {t("stdSteps.badge.real")}
     </Badge>
   );
 
@@ -414,16 +443,16 @@ export function ResultsStep({
     <Card className="gap-0">
       <CardHeader>
         <CardTitle className="flex items-center">
-          Results per map
+          {t("stdSteps.results.title")}
           <InfoTip
-            text="Add the competing teams or players, add a map for each match played, then enter placement and per-player kills. Points are computed automatically from your scoring config."
+            text={t("stdSteps.results.infoTip")}
             className="ml-1.5"
           />
         </CardTitle>
         <CardDescription>
           {format === "team"
-            ? "Add teams, then enter placement and each player's kills per map. Team kills are the sum of player kills."
-            : "Add players, then enter placement and kills per map."}
+            ? t("stdSteps.results.descTeam")
+            : t("stdSteps.results.descSolo")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -433,9 +462,11 @@ export function ResultsStep({
         {(participants.length === 0 || showAdd) && (
           <div className="space-y-3 rounded-md border bg-muted/20 p-3">
             <Label>
-              {format === "team" ? "Add a team to score" : "Add a player to score"}
+              {format === "team"
+                ? t("stdSteps.results.addTeamToScore")
+                : t("stdSteps.results.addPlayerToScore")}
               <InfoTip
-                text="Anyone you add here joins the leaderboard and gets a result row on every map. The search also finds existing ghost teams and players."
+                text={t("stdSteps.results.addInfoTip")}
                 className="ml-1"
               />
             </Label>
@@ -444,7 +475,7 @@ export function ResultsStep({
                 value={null}
                 onChange={handleTeamPick}
                 disabled={adding}
-                placeholder="Search a team (real or ghost)..."
+                placeholder={t("stdSteps.searchTeamPlaceholder")}
                 includeGhosts
                 onPickGhost={handleGhostTeamPick}
               />
@@ -453,7 +484,7 @@ export function ResultsStep({
                 value={null}
                 onChange={handleUserPick}
                 disabled={adding}
-                placeholder="Search a player (real or ghost)..."
+                placeholder={t("stdSteps.searchPlayerPlaceholder")}
                 includeGhosts
                 onPickGhost={handleGhostPlayerPick}
               />
@@ -473,7 +504,7 @@ export function ResultsStep({
                 onClick={() => setShowGhost(true)}
               >
                 <IconUserPlus size={14} className="mr-1" />
-                Not found? Create as ghost
+                {t("stdSteps.createAsGhost")}
               </Button>
             )}
           </div>
@@ -481,7 +512,9 @@ export function ResultsStep({
         {participants.length > 0 && !showAdd && (
           <Button type="button" variant="outline" size="sm" onClick={() => setShowAdd(true)}>
             <IconUserPlus size={14} className="mr-1" />
-            Add another {format === "team" ? "team" : "player"}
+            {format === "team"
+              ? t("stdSteps.results.addAnotherTeam")
+              : t("stdSteps.results.addAnotherPlayer")}
           </Button>
         )}
 
@@ -489,12 +522,15 @@ export function ResultsStep({
             map existed were invisible until a map was added). Same list idiom as step 2. */}
         <div className="space-y-2">
           <Label>
-            {format === "team" ? "Teams" : "Players"} added ({participants.length})
+            {format === "team"
+              ? t("stdSteps.results.teamsAdded", { count: participants.length })
+              : t("stdSteps.results.playersAdded", { count: participants.length })}
           </Label>
           {participants.length === 0 ? (
             <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
-              No {format === "team" ? "teams" : "players"} yet. Add them above; they appear here
-              and get a result row on every map.
+              {format === "team"
+                ? t("stdSteps.results.emptyTeams")
+                : t("stdSteps.results.emptyPlayers")}
             </p>
           ) : (
             <div className="divide-y rounded-md border">
@@ -506,8 +542,7 @@ export function ResultsStep({
                     {/* Roster size hint once the roster has loaded (team format). */}
                     {format === "team" && rosterByPid[p.id] !== undefined && (
                       <span className="text-xs text-muted-foreground">
-                        {rosterByPid[p.id].length} player
-                        {rosterByPid[p.id].length !== 1 ? "s" : ""}
+                        {t("stdSteps.results.playerCount", { count: rosterByPid[p.id].length })}
                       </span>
                     )}
                   </div>
@@ -515,9 +550,9 @@ export function ResultsStep({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    onClick={() => removeParticipant(p)}
-                    aria-label={`Remove ${p.name}`}
+                    className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                    onClick={() => setRemoveParticipantTarget(p)}
+                    aria-label={t("stdSteps.removeAria", { name: p.name })}
                   >
                     <IconTrash size={15} />
                   </Button>
@@ -537,13 +572,13 @@ export function ResultsStep({
                 onClick={() => setActiveMatchId(m.id)}
               >
                 <IconMapPin size={14} className="mr-1" />
-                {m.match_map || `Map ${m.match_number}`}
+                {m.match_map || t("stdSteps.results.mapLabel", { number: m.match_number })}
               </Button>
               <button
                 type="button"
-                onClick={() => removeMap(m)}
-                className="ml-1 text-muted-foreground hover:text-destructive"
-                aria-label={`Remove map ${m.match_number}`}
+                onClick={() => setRemoveMapTarget(m)}
+                className="ml-1 inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:text-destructive"
+                aria-label={t("stdSteps.results.removeMapAria", { number: m.match_number })}
               >
                 <IconTrash size={14} />
               </button>
@@ -556,20 +591,21 @@ export function ResultsStep({
             disabled={addingMap}
           >
             <IconPlus size={14} className="mr-1" />
-            {addingMap ? "Adding..." : "Add map"}
+            {addingMap ? t("stdSteps.results.adding") : t("stdSteps.results.addMap")}
           </Button>
         </div>
 
         {matches.length === 0 ? (
           <p className="rounded-md border border-dashed py-10 text-center text-sm text-muted-foreground">
-            No maps yet. Add a map to start entering results.
+            {t("stdSteps.results.noMaps")}
           </p>
         ) : currentRows.length === 0 ? (
           // A map exists but nobody to score yet: point at the add panel above instead of
           // rendering an empty editor.
           <p className="rounded-md border border-dashed py-10 text-center text-sm text-muted-foreground">
-            No {format === "team" ? "teams" : "players"} to score yet. Add them above and they
-            will appear here with placement and kills inputs.
+            {format === "team"
+              ? t("stdSteps.results.noTeamsToScore")
+              : t("stdSteps.results.noPlayersToScore")}
           </p>
         ) : format === "team" ? (
           // ── TEAM format: one card per team (the ManualMatchResultStep idiom) ── placement +
@@ -584,7 +620,9 @@ export function ResultsStep({
                   </div>
                   <div className="flex items-end gap-4">
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Placement</Label>
+                      <Label className="text-xs text-muted-foreground">
+                        {t("stdSteps.results.placement")}
+                      </Label>
                       <Input
                         type="number"
                         min="0"
@@ -596,7 +634,9 @@ export function ResultsStep({
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Team kills</Label>
+                      <Label className="text-xs text-muted-foreground">
+                        {t("stdSteps.results.teamKills")}
+                      </Label>
                       {/* ALWAYS editable (owner 2026-06-12: some results only have team data).
                           Derived mode shows the live player sum; typing here overrides it. */}
                       <Input
@@ -616,7 +656,7 @@ export function ResultsStep({
                           onClick={() => useDerivedKills(activeMatchId!, idx)}
                           className="block text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
                         >
-                          manual total, use player sum ({playersSum(row)})
+                          {t("stdSteps.results.manualTotalUsePlayerSum", { sum: playersSum(row) })}
                         </button>
                       )}
                     </div>
@@ -636,11 +676,13 @@ export function ResultsStep({
                           {p.name}
                         </span>
                         <div className="flex items-center gap-1.5">
-                          <Label className="text-[10px] text-muted-foreground">Kills</Label>
+                          <Label className="text-[10px] text-muted-foreground">
+                            {t("stdSteps.results.kills")}
+                          </Label>
                           <Input
                             type="number"
                             min="0"
-                            className="h-7 w-16 text-xs"
+                            className="h-8 w-16 text-xs"
                             value={p.kills || ""}
                             onChange={(e) =>
                               updatePlayerKills(
@@ -665,9 +707,15 @@ export function ResultsStep({
             <Table>
               <TableHeader>
                 <TableRow className="h-10">
-                  <TableHead className="p-2 text-xs text-foreground">Participant</TableHead>
-                  <TableHead className="w-28 p-2 text-xs text-foreground">Placement</TableHead>
-                  <TableHead className="w-28 p-2 text-xs text-foreground">Kills</TableHead>
+                  <TableHead className="p-2 text-xs text-foreground">
+                    {t("stdSteps.results.participant")}
+                  </TableHead>
+                  <TableHead className="w-28 p-2 text-xs text-foreground">
+                    {t("stdSteps.results.placement")}
+                  </TableHead>
+                  <TableHead className="w-28 p-2 text-xs text-foreground">
+                    {t("stdSteps.results.kills")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -723,11 +771,11 @@ export function ResultsStep({
             <Button onClick={saveMap} disabled={savingMatch}>
               {savingMatch ? (
                 <span className="flex items-center gap-2">
-                  <IconLoader2 size={14} className="animate-spin" /> Saving...
+                  <IconLoader2 size={14} className="animate-spin" /> {t("common.saving")}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  <IconDeviceFloppy size={14} /> Save this map
+                  <IconDeviceFloppy size={14} /> {t("stdSteps.results.saveThisMap")}
                 </span>
               )}
             </Button>
@@ -736,11 +784,80 @@ export function ResultsStep({
 
         <div className="flex justify-between pt-2">
           <Button variant="ghost" onClick={onBack}>
-            Back
+            {t("common.back")}
           </Button>
-          <Button onClick={onNext}>Continue to review</Button>
+          <Button onClick={onNext}>{t("stdSteps.results.continueToReview")}</Button>
         </div>
       </CardContent>
+
+      {/* ── Confirm before removing a participant (server DELETE) ── the trash button only stages
+          `removeParticipantTarget`; the delete runs solely from AlertDialogAction. */}
+      <AlertDialog
+        open={removeParticipantTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemoveParticipantTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("stdSteps.confirmRemoveParticipant.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {removeParticipantTarget
+                ? t("stdSteps.confirmRemoveParticipant.desc", {
+                    name: removeParticipantTarget.name,
+                  })
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-white hover:bg-destructive/90"
+              onClick={() => {
+                if (removeParticipantTarget) removeParticipant(removeParticipantTarget);
+                setRemoveParticipantTarget(null);
+              }}
+            >
+              {t("common.remove")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Confirm before removing a map (server DELETE, wipes that map's results) ── */}
+      <AlertDialog
+        open={removeMapTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setRemoveMapTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("stdSteps.confirmRemoveMap.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {removeMapTarget
+                ? t("stdSteps.confirmRemoveMap.desc", {
+                    map:
+                      removeMapTarget.match_map ||
+                      t("stdSteps.results.mapLabel", { number: removeMapTarget.match_number }),
+                  })
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-white hover:bg-destructive/90"
+              onClick={() => {
+                if (removeMapTarget) removeMap(removeMapTarget);
+                setRemoveMapTarget(null);
+              }}
+            >
+              {t("common.remove")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

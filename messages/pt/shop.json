@@ -4,6 +4,7 @@
   },
   "list": {
     "pageTitle": "Loja AFC",
+    "diamondsCategory": "Diamantes",
     "cart": "Carrinho",
     "categoryLabel": "Categoria",
     "allCategories": "Todos",
@@ -12,8 +13,8 @@
     "loading": "Carregando Loja...",
     "noProducts": "Nenhum produto encontrado",
     "outOfStock": "Esgotado",
-    "shipsToYou": "{count, plural, one {# opção} other {# opções}}, enviado para você",
-    "options": "{count, plural, one {# opção} other {# opções}}",
+    "shipsToYou": "{count, plural,  one { # opção }  other { # opções } }, envio para a sua morada",
+    "options": "{count, plural,  one { # opção }  other { # opções } }",
     "from": "de",
     "view": "Ver",
     "buyNow": "Comprar Agora",
@@ -176,7 +177,7 @@
     "moreItems": "+{count} mais",
     "additionalItems": "Itens Adicionais:",
     "totalSpent": "Total gasto",
-    "acrossPaidOrders": "{número, plural, um {# paid order} outro {# paid orders}}",
+    "acrossPaidOrders": "{count, plural,  one { # encomendas pagas }  other { # encomendas pagas } }",
     "table": {
       "id": "ID",
       "items": "Itens",

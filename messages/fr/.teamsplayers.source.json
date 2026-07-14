@@ -1,4 +1,8 @@
 {
+  "ordinal.st": "st",
+  "ordinal.nd": "nd",
+  "ordinal.rd": "rd",
+  "ordinal.th": "th",
   "common.cancel": "Cancel",
   "common.back": "Back",
   "common.view": "View",

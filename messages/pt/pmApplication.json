@@ -1,0 +1,110 @@
+{
+  "status": {
+    "PENDING": "Em espera",
+    "SHORTLISTED": "Selecionados",
+    "INVITED": "Convidado",
+    "ACCEPTED": "Aceite",
+    "TRIAL_EXTENDED": "Prorrogação do julgamento",
+    "TRIAL_ONGOING": "Julgamento em curso",
+    "REJECTED": "Rejeitado"
+  },
+  "tier": {
+    "TIER_1": "Nível 1",
+    "TIER_2": "Nível 2",
+    "TIER_3": "Nível 3"
+  },
+  "commitment": {
+    "FULL_TIME": "A tempo inteiro",
+    "PART_TIME": "A tempo parcial"
+  },
+  "header": {
+    "title": "Candidatura n.º {id}",
+    "applied": "{date} Aplicada"
+  },
+  "trial": {
+    "expired": "O período de avaliação expirou",
+    "expiresIn": "O período de avaliação termina em {time}"
+  },
+  "units": {
+    "days": "{n} d",
+    "hours": "{n} h",
+    "minutes": "{n} m",
+    "seconds": "{n} s"
+  },
+  "time": {
+    "justNow": "há pouco",
+    "minsAgo": "{n} há m",
+    "hoursAgo": "{n} h atrás"
+  },
+  "toast": {
+    "loadFailed": "Não foi possível carregar os detalhes da aplicação.",
+    "statusUpdated": "O estado foi atualizado.",
+    "statusFailed": "Não foi possível atualizar o estado.",
+    "contactUnlocked": "Informações de contacto desbloqueadas.",
+    "contactFailed": "Não foi possível desbloquear o contacto.",
+    "trialUpdated": "Versão de avaliação atualizada.",
+    "trialFailed": "Não foi possível atualizar a versão de avaliação.",
+    "messageFailed": "Não foi possível enviar a mensagem."
+  },
+  "loading": "A carregar...",
+  "notFound": {
+    "title": "Aplicação não encontrada.",
+    "back": "Voltar aos Mercados de Jogadores"
+  },
+  "team": {
+    "title": "Equipa",
+    "tier": "Nível",
+    "country": "País"
+  },
+  "post": {
+    "title": "Requisitos para a publicação",
+    "rolesNeeded": "Funções a preencher",
+    "commitment": "Compromisso",
+    "minTier": "Nível mínimo",
+    "country": "País",
+    "expiry": "Posto expirado"
+  },
+  "stats": {
+    "title": "Estatísticas dos jogadores",
+    "tournamentWins": "T. Vitórias",
+    "tournamentKills": "T. Kills",
+    "finals": "Finais",
+    "scrimKills": "Mortes no Scrim",
+    "scrimWins": "Vitórias do Scrim"
+  },
+  "contact": {
+    "title": "Contacto",
+    "discord": "Discord",
+    "uid": "UID",
+    "loading": "A carregar...",
+    "view": "Ver informações de contacto",
+    "unlocking": "A desbloquear...",
+    "unlock": "Desbloquear informações de contacto"
+  },
+  "applicationMessage": "Mensagem da aplicação",
+  "rejectionReason": "Motivo da rejeição",
+  "actions": {
+    "title": "Ações",
+    "acceptPlayer": "Aceitar jogador",
+    "extendTrial": "Prolongar o período de avaliação",
+    "reject": "Rejeitar",
+    "shortlist": "Lista de finalistas",
+    "inviteToTrial": "Convite para o período de avaliação"
+  },
+  "chat": {
+    "title": "Conversa experimental",
+    "loading": "A carregar mensagens...",
+    "notAvailable": "O chat não está disponível",
+    "notAvailableHint": "O chat fica disponível assim que for iniciado um período de teste",
+    "empty": "Ainda não há mensagens",
+    "emptyHint": "Inicie a conversa abaixo",
+    "closed": "Esta candidatura está encerrada.",
+    "locked": "O chat ainda não está disponível.",
+    "placeholder": "Escreva uma mensagem..."
+  },
+  "tabs": {
+    "details": "Detalhes",
+    "chat": "Conversa",
+    "locked": "(bloqueado)"
+  }
+}

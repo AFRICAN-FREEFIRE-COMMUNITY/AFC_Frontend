@@ -1,4 +1,10 @@
+"use client";
+
 import { Loader } from "@/components/Loader";
+// i18n: shared save-confirm modal for the admin + organizer event-edit flows. Copy comes from the
+// "evEditTabs" namespace. The per-change `label` shown in the list is a localized string built by
+// the parent edit page (out of this component's scope).
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,6 +29,7 @@ export function SaveConfirmModal({
   onCancel,
   onConfirm,
 }: SaveConfirmModalProps) {
+  const t = useTranslations("evEditTabs");
   return (
     <Dialog
       open={open}
@@ -34,18 +41,17 @@ export function SaveConfirmModal({
     >
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Confirm Save Changes</DialogTitle>
+          <DialogTitle>{t("saveConfirm.title")}</DialogTitle>
         </DialogHeader>
         <div className="py-2 space-y-3">
           {changes.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No changes detected. Are you sure you want to save?
+              {t("saveConfirm.noChanges")}
             </p>
           ) : (
             <>
               <p className="text-sm text-muted-foreground">
-                The following {changes.length} change
-                {changes.length !== 1 ? "s" : ""} will be saved:
+                {t("saveConfirm.changesIntro", { count: changes.length })}
               </p>
               <div className="rounded-md border divide-y max-h-64 overflow-y-auto">
                 {changes.map((c, i) => (
@@ -66,10 +72,14 @@ export function SaveConfirmModal({
         </div>
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onCancel}>
-            Go Back
+            {t("saveConfirm.goBack")}
           </Button>
           <Button onClick={onConfirm} disabled={pendingSubmit}>
-            {pendingSubmit ? <Loader text="Saving..." /> : "Confirm & Save"}
+            {pendingSubmit ? (
+              <Loader text={t("saveConfirm.saving")} />
+            ) : (
+              t("saveConfirm.confirmSave")
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

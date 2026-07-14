@@ -1,0 +1,67 @@
+{
+  "back": "Retour à la rubrique « Marché des joueurs »",
+  "recruiting": "Recrutement",
+  "available": "Disponible",
+  "expired": "Périmé",
+  "postedBy": "Publié par",
+  "unknown": "Inconnu",
+  "altPost": "Message",
+  "rolesNeeded": "Postes à pourvoir",
+  "minTier": "Niveau minimum",
+  "commitmentLabel": "Engagement",
+  "openTo": "Ouvert à",
+  "recruitmentCriteria": "Critères de recrutement",
+  "primaryRole": "Fonction principale",
+  "secondaryRole": "Rôle secondaire",
+  "availabilityLabel": "Disponibilité",
+  "openToPlayFor": "Disponible pour jouer pour",
+  "about": "À propos",
+  "postExpires": "Date d'expiration de l'annonce :",
+  "viewOnMarket": "Consulter le marché des joueurs",
+  "apply": {
+    "cta": "Postuler pour rejoindre cette équipe",
+    "applying": "En cours de...",
+    "sent": "Candidature envoyée",
+    "success": "Candidature envoyée à {team} !",
+    "teamFallback": "équipe",
+    "error": "L'envoi de la candidature a échoué."
+  },
+  "roles": {
+    "IGL": "Chef de groupe dans le jeu",
+    "RUSHER": "Rusher",
+    "SUPPORT": "Assistance",
+    "SNIPER": "Tireur d'élite",
+    "GRENADE": "Grenade"
+  },
+  "tiers": {
+    "TIER_1": "Niveau 1",
+    "TIER_2": "Niveau 2",
+    "TIER_3": "Niveau 3"
+  },
+  "commitment": {
+    "FULL_TIME": "Temps plein",
+    "PART_TIME": "À temps partiel"
+  },
+  "availability": {
+    "TRIAL": "Procès",
+    "PERMANENT": "Permanent",
+    "SCRIMS_ONLY": "Uniquement des échantillons"
+  },
+  "meta": {
+    "notFound": "Article introuvable | AFC Player Market",
+    "teamFallback": "Une équipe",
+    "playerFallback": "Un joueur",
+    "rolesFallback": "joueurs",
+    "teamTitle": "{team} recrute",
+    "teamLooking": "{team} recherche {roles}",
+    "fromCountry": " Source : {country}",
+    "commitmentPart": "{commitment} engagement",
+    "minimumTier": ",{tier} minimale",
+    "applyLine": "Postulez sur AFC Player Market.",
+    "playerTitle": "{player} cherche une équipe",
+    "playerAvailable": "{player} {role} est disponible",
+    "playerRoleParen": " ({role})",
+    "availBasis": " - sur la base de «{avail} »",
+    "connectLine": "Rejoignez-nous sur AFC Player Market."
+  }
+}

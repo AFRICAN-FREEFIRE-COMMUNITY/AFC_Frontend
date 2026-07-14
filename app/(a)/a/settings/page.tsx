@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 // Shared audit-log table, also used by the standalone /a/history page. Powers the "Admin
 // Activities" tab; Radix unmounts inactive tab content so it only fetches when opened.
 import { AuditLogPanel } from "@/app/(a)/a/_components/AuditLogPanel";
@@ -90,7 +90,7 @@ import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { formatWord } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -800,18 +800,15 @@ const page = () => {
         </div>
       </div>
       <Tabs defaultValue="admins" className="space-y-4">
-        <ScrollArea>
-          <TabsList className="w-full" data-tour="settings-misc-tabs-header">
-            <TabsTrigger value="admins">Admin Users</TabsTrigger>
-            <TabsTrigger value="all-users">All Users</TabsTrigger>
-            <TabsTrigger value="roles">Roles & Permissions</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="login-history">Login History</TabsTrigger>
-            {/* Audit log = head-admin only. */}
-            {canSeeAudit && <TabsTrigger value="activities">Admin Activities</TabsTrigger>}
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        <ScrollableTabsList className="w-full" data-tour="settings-misc-tabs-header">
+          <TabsTrigger value="admins">Admin Users</TabsTrigger>
+          <TabsTrigger value="all-users">All Users</TabsTrigger>
+          <TabsTrigger value="roles">Roles & Permissions</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="login-history">Login History</TabsTrigger>
+          {/* Audit log = head-admin only. */}
+          {canSeeAudit && <TabsTrigger value="activities">Admin Activities</TabsTrigger>}
+        </ScrollableTabsList>
 
         <TabsContent value="admins" className="space-y-4">
           <AdminInfoCard token={token} />

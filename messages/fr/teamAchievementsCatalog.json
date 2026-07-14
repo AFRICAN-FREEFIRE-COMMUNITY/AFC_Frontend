@@ -1,0 +1,73 @@
+{
+  "ladderDesc": "Vous pouvez contacter {count} à l'adresse {unit}.",
+  "section": {
+    "lifetime": "Durée de vie",
+    "monthly": "Mensuel",
+    "daily": "Quotidien"
+  },
+  "group": {
+    "teamWins": "Victoires de l'équipe",
+    "teamKills": "Tirs entre coéquipiers",
+    "tournamentsPlayed": "Tournois disputés",
+    "booyahs": "Booyahs",
+    "team": "Équipe",
+    "scrims": "Toiles de protection",
+    "monthly": "Mensuel",
+    "daily": "Quotidien"
+  },
+  "unit": {
+    "teamWins": "victoires de l'équipe",
+    "teamKills": "tirs entre coéquipiers",
+    "tournamentsPlayed": "tournois disputés",
+    "booyahs": "victoires"
+  },
+  "title": {
+    "total_team_wins_1": "Première victoire",
+    "total_team_wins_5": "Rising Squad",
+    "total_team_wins_10": "Fondée",
+    "total_team_wins_25": "Véritable concentré de puissance",
+    "total_team_wins_50": "Juggernaut",
+    "total_team_wins_100": "Dynastie",
+    "total_team_wins_250": "Une dynastie légendaire",
+    "total_team_kills_500": "Agressif",
+    "total_team_kills_1000": "Sanguinaire",
+    "total_team_kills_2500": "Impitoyable",
+    "total_team_kills_5000": "Dévastateur",
+    "total_team_kills_10000": "Les Annihilateurs",
+    "total_team_kills_25000": "Apex Squad",
+    "total_tournaments_played_1": "Débuts",
+    "total_tournaments_played_5": "Habitués",
+    "total_tournaments_played_10": "Anciens combattants",
+    "total_tournaments_played_25": "Assaisonné",
+    "total_tournaments_played_50": "Les légendes du circuit",
+    "total_booyahs_1": "Premier « Booyah »",
+    "total_booyahs_5": "Série de victoires « Booyah »",
+    "total_booyahs_25": "Les chasseurs de Booyah",
+    "total_booyahs_50": "Les Booyah Kings",
+    "total_booyahs_100": "La dynastie Booyah",
+    "founded": "Fondée",
+    "full_squad": "Effectif complet",
+    "scrim_1": "Premier match d'entraînement",
+    "scrim_10": "Broyeurs",
+    "scrim_25": "Les pros de l'entraînement",
+    "scrim_50": "Machine à voile",
+    "monthly_wins": "Gagnants du mois",
+    "monthly_tournament": "Concurrents mensuels",
+    "monthly_kills": "L'assaut mensuel",
+    "daily_match": "Match du jour",
+    "daily_register": "Inscription quotidienne"
+  },
+  "desc": {
+    "founded": "Constituez l'équipe.",
+    "full_squad": "Avoir au moins 4 membres actifs dans l'effectif.",
+    "scrim_1": "Disputez un match d'entraînement en équipe.",
+    "scrim_10": "Disputez 10 matchs d'entraînement en équipe.",
+    "scrim_25": "Disputez 25 matchs d'entraînement en équipe.",
+    "scrim_50": "Disputez 50 matchs d'entraînement en équipe.",
+    "monthly_wins": "Remportez 3 matchs en équipe ce mois-ci.",
+    "monthly_tournament": "Ce mois-ci, participez à un tournoi en équipe.",
+    "monthly_kills": "Réalisez 500 éliminations en équipe ce mois-ci.",
+    "daily_match": "Jouez un match en équipe aujourd'hui.",
+    "daily_register": "Inscrivez votre équipe à un événement dès aujourd'hui."
+  }
+}

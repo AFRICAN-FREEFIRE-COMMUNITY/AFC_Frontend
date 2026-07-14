@@ -42,6 +42,7 @@ import {
 import { ITEMS_PER_PAGE } from "@/constants";
 import { IconCheck, IconLoader2, IconSearch, IconX } from "@tabler/icons-react";
 import axios from "axios";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
@@ -78,10 +79,17 @@ interface RejectDialogState {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: Status }) {
+  const t = useTranslations("sponsorDashboard");
   const map: Record<Status, string> = {
     pending: "bg-yellow-100 text-yellow-700",
     active: "bg-green-100 text-green-700",
     rejected: "bg-red-100 text-red-700",
+  };
+  // Localized label for the status pill (raw status stays the data key).
+  const label: Record<Status, string> = {
+    pending: t("statusPending"),
+    active: t("statusActive"),
+    rejected: t("statusRejected"),
   };
   return (
     <span
@@ -90,7 +98,7 @@ function StatusBadge({ status }: { status: Status }) {
         map[status],
       )}
     >
-      {status}
+      {label[status]}
     </span>
   );
 }
@@ -103,6 +111,7 @@ function StatusBadge({ status }: { status: Status }) {
 // role + SponsorEvent rows) keep the original dashboard below, untouched, until the P2 cutover.
 
 export default function SponsorDashboardPage() {
+  const t = useTranslations("sponsorDashboard");
   const { loading: outerAuthLoading, token: outerToken } = useAuth();
   // null = membership check in flight; [] = no entity memberships (render legacy).
   const [mine, setMine] = useState<SponsorRow[] | null>(null);
@@ -119,7 +128,7 @@ export default function SponsorDashboardPage() {
     return (
       <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
         <IconLoader2 className="size-5 animate-spin" />
-        Loading your dashboard...
+        {t("loadingDashboard")}
       </div>
     );
   }
@@ -132,6 +141,7 @@ export default function SponsorDashboardPage() {
 // ── LEGACY dashboard (the original page, unchanged) ───────────────────────────
 
 function LegacySponsorDashboard() {
+  const t = useTranslations("sponsorDashboard");
   const { token, loading: authLoading, user } = useAuth();
 
   const [players, setPlayers] = useState<Player[]>([]);
@@ -179,7 +189,7 @@ function LegacySponsorDashboard() {
 
         setPlayers(mapped);
       } catch {
-        toast.error("Failed to load your sponsored events.");
+        toast.error(t("toastLoadFailed"));
       } finally {
         setLoading(false);
       }
@@ -236,9 +246,9 @@ function LegacySponsorDashboard() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       updateStatus(id, "active");
-      toast.success(`${username} active.`);
+      toast.success(t("toastConfirmed", { username }));
     } catch {
-      toast.error(`Failed to confirm ${username}.`);
+      toast.error(t("toastConfirmFailed", { username }));
     } finally {
       setPendingActions((prev) => {
         const next = new Map(prev);
@@ -268,10 +278,10 @@ function LegacySponsorDashboard() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       updateStatus(rejectDialog.id, "rejected");
-      toast.success(`${rejectDialog.username} rejected.`);
+      toast.success(t("toastRejected", { username: rejectDialog.username }));
       setRejectDialog((prev) => ({ ...prev, open: false }));
     } catch {
-      toast.error(`Failed to reject ${rejectDialog.username}.`);
+      toast.error(t("toastRejectFailed", { username: rejectDialog.username }));
     } finally {
       setRejectDialog((prev) => ({ ...prev, loading: false }));
       setPendingActions((prev) => {
@@ -288,7 +298,7 @@ function LegacySponsorDashboard() {
     return (
       <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
         <IconLoader2 className="size-5 animate-spin" />
-        Loading your events...
+        {t("loadingEvents")}
       </div>
     );
   }
@@ -301,13 +311,12 @@ function LegacySponsorDashboard() {
       <div data-tour="sponsor-dashboard-header">
         <PageHeader
           title={`Welcome, ${user?.full_name}` ? user?.full_name : ""}
-          description={
-            <>
-              {counts.all} registrant{counts.all !== 1 ? "s" : ""} ·{" "}
-              {counts.pending} pending · {counts.active} active ·{" "}
-              {counts.rejected} rejected
-            </>
-          }
+          description={t("summary", {
+            all: counts.all,
+            pending: counts.pending,
+            active: counts.active,
+            rejected: counts.rejected,
+          })}
         />
       </div>
 
@@ -319,7 +328,7 @@ function LegacySponsorDashboard() {
         <div className="relative flex-1">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Search by username, event, team, or sponsor ID…"
+            placeholder={t("searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -338,14 +347,20 @@ function LegacySponsorDashboard() {
           onValueChange={(v) => setStatusFilter(v as StatusFilter)}
         >
           <SelectTrigger className="w-full sm:w-44">
-            <SelectValue placeholder="Filter by status" />
+            <SelectValue placeholder={t("filterByStatus")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All ({counts.all})</SelectItem>
-            <SelectItem value="pending">Pending ({counts.pending})</SelectItem>
-            <SelectItem value="active">Active ({counts.active})</SelectItem>
+            <SelectItem value="all">
+              {t("filterAll", { count: counts.all })}
+            </SelectItem>
+            <SelectItem value="pending">
+              {t("filterPending", { count: counts.pending })}
+            </SelectItem>
+            <SelectItem value="active">
+              {t("filterActive", { count: counts.active })}
+            </SelectItem>
             <SelectItem value="rejected">
-              Rejected ({counts.rejected})
+              {t("filterRejected", { count: counts.rejected })}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -359,8 +374,8 @@ function LegacySponsorDashboard() {
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             {players.length === 0
-              ? "No registrations found for your sponsored events."
-              : "No results match your search or filter."}
+              ? t("emptyNoRegistrations")
+              : t("emptyNoResults")}
           </CardContent>
         </Card>
       ) : (
@@ -370,11 +385,13 @@ function LegacySponsorDashboard() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead>Sponsor ID</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("columnUsername")}</TableHead>
+                    <TableHead>{t("columnTeam")}</TableHead>
+                    <TableHead>{t("columnSponsorId")}</TableHead>
+                    <TableHead>{t("columnStatus")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("columnActions")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -387,7 +404,7 @@ function LegacySponsorDashboard() {
                         <TableCell>
                           {p.user_id_from_sponsor ?? (
                             <span className="text-muted-foreground italic text-xs">
-                              Not provided
+                              {t("notProvided")}
                             </span>
                           )}
                         </TableCell>
@@ -410,7 +427,7 @@ function LegacySponsorDashboard() {
                                 ) : (
                                   <IconCheck className="size-3" />
                                 )}
-                                Confirm
+                                {t("confirm")}
                               </Button>
                               <Button
                                 size="sm"
@@ -427,7 +444,7 @@ function LegacySponsorDashboard() {
                                 ) : (
                                   <IconX className="size-3" />
                                 )}
-                                Reject
+                                {t("reject")}
                               </Button>
                             </div>
                           ) : (
@@ -445,10 +462,14 @@ function LegacySponsorDashboard() {
 
             <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
-                Showing{" "}
-                {filtered.length === 0 ? 0 : (page - 1) * ITEMS_PER_PAGE + 1}-
-                {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of{" "}
-                {filtered.length}
+                {t("showing", {
+                  start:
+                    filtered.length === 0
+                      ? 0
+                      : (page - 1) * ITEMS_PER_PAGE + 1,
+                  end: Math.min(page * ITEMS_PER_PAGE, filtered.length),
+                  total: filtered.length,
+                })}
               </p>
               {totalPages > 1 && (
                 <Pagination>
@@ -526,14 +547,17 @@ function LegacySponsorDashboard() {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Reject {rejectDialog.username}?</DialogTitle>
+            <DialogTitle>
+              {t("rejectDialogTitle", { username: rejectDialog.username })}
+            </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2 py-2">
             <label className="text-sm text-muted-foreground">
-              Reason <span className="text-xs">(optional)</span>
+              {t("reasonLabel")}{" "}
+              <span className="text-xs">{t("optional")}</span>
             </label>
             <Textarea
-              placeholder="Enter a rejection reason..."
+              placeholder={t("rejectReasonPlaceholder")}
               value={rejectDialog.reason}
               onChange={(e) =>
                 setRejectDialog((prev) => ({
@@ -553,7 +577,7 @@ function LegacySponsorDashboard() {
                 setRejectDialog((prev) => ({ ...prev, open: false }))
               }
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -563,7 +587,7 @@ function LegacySponsorDashboard() {
               {rejectDialog.loading && (
                 <IconLoader2 className="size-4 animate-spin mr-2" />
               )}
-              Reject
+              {t("reject")}
             </Button>
           </DialogFooter>
         </DialogContent>

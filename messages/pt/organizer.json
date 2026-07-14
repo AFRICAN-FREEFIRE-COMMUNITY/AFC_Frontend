@@ -324,7 +324,7 @@
     },
     "loading": "A carregar membros...",
     "title": "Membros",
-    "memberCount": "{número, plural, um {# member} outro {# members}}",
+    "memberCount": "{count, plural,  one { # membro }  other { # membros } }",
     "addSubOrganizer": "Adicionar suborganizador",
     "userLabel": "Utilizador",
     "searchPlaceholder": "Pesquisar por nome de utilizador ou nome...",
@@ -412,7 +412,7 @@
   "reviews": {
     "anonymityNotice": "As avaliações e os comentários são anónimos; apenas o texto do comentário e a data são apresentados, nunca quem o deixou.",
     "noRatings": "Ainda não há avaliações",
-    "ratingCount": "({count, plural, one{# rating}other{# ratings}})",
+    "ratingCount": "({count, plural,  one { # rating }  other { # ratings } })",
     "title": "Críticas",
     "lockDescription": "Avaliações e comentários sobre os seus eventos.",
     "noPermission": "Não tem permissão para ver as avaliações desta organização.",
@@ -460,7 +460,7 @@
       "eventsRun": "Eventos realizados",
       "completed": "{count} concluído",
       "eventViews": "Visualizações do evento",
-      "uniqueViewers": "{count, plural, um {{formatted} visitante único} outro {{formatted} visitantes únicos}}",
+      "uniqueViewers": "{count, plural,  one { {formatted} visitantes únicos }  other { {formatted} visitantes únicos } }",
       "uniquePlayers": "Jogadores únicos",
       "registeredInRange": "registado no intervalo",
       "uniqueTeams": "Equipas únicas",
@@ -475,7 +475,7 @@
       "avgParticipants": "Participantes, em média",
       "perEvent": "por evento",
       "averageRating": "Classificação média",
-      "fromRatings": "{número, plural, uma {da avaliação em {formatted}} outra {das avaliações em {formatted}}}",
+      "fromRatings": "{count, plural,  one { de {formatted} classificação }  other { de {formatted} classificações } }",
       "fillRate": "Taxa de preenchimento",
       "ofRegistrationCapacity": "de capacidade de registo",
       "completionRate": "Taxa de conclusão",
@@ -522,7 +522,7 @@
     },
     "events": {
       "perEventBreakdown": "Discriminação por evento",
-      "count": "{número, plural, um {{formatted} evento} outro {{formatted} eventos}}",
+      "count": "{count, plural,  one { {formatted} evento }  other { {formatted} eventos } }",
       "mostRecentShown": "(mostrados os mais recentes)",
       "emptyTable": "Não há eventos com atividade neste intervalo de tempo. Experimente um intervalo mais alargado."
     },
@@ -572,7 +572,7 @@
       "start": "Início",
       "end": "Fim",
       "status": "Estado",
-      "playerCount": "{count, plural, =1 {# player} other {# players}}"
+      "playerCount": "{count, plural,  =1 { # jogador }  other { # jogadores } }"
     },
     "teamFallback": "Equipa n.º {id}",
     "userFallback": "Utilizador n.º {id}",
@@ -618,7 +618,7 @@
       "notBlacklistedWindow": "não foi colocado na lista negra durante o período selecionado.",
       "notBlacklistedAll": "não foi colocado na lista negra.",
       "blacklisted": "na lista negra",
-      "timesCount": "{count, plural, =1 {# time} other {# times}}",
+      "timesCount": "{count, plural,  =1 { # hora }  other { # horas } }",
       "activeCount": "(O {count} está ativo)",
       "colOrganization": "Organização",
       "colTeam": "Equipa",
@@ -804,7 +804,7 @@
       "prizePool": "Prémio total",
       "daysUntilStart": "Dias que faltam para o início",
       "totalStages": "Total de etapas",
-      "days": "{count, plural, one {# dia} other {# dias}}"
+      "days": "{count, plural,  one { # dia }  other { # dias } }"
     },
     "config": {
       "title": "Configuração do evento",
@@ -942,7 +942,7 @@
     "loadEventError": "Não foi possível carregar o evento.",
     "loadError": "Não foi possível carregar os registos dos patrocinadores.",
     "sponsorIdDefault": "ID do patrocinador",
-    "counts": "{todos, plural, um {# registrant} outro {# registrants}} · {pending} pendente · {confirmed} confirmado · {rejected} rejeitado",
+    "counts": "{all, plural,  one { # requerente }  other { # requerentes } } · {pending} pendente · {confirmed} confirmado · {rejected} rejeitado",
     "searchPlaceholder": "Pesquisar por nome de utilizador, ID de patrocinador ou equipa...",
     "filterPlaceholder": "Filtrar por estado",
     "filterAll": "Todos ({count})",
@@ -1051,6 +1051,9 @@
     "removeFailed": "Não foi possível remover o leitor."
   },
   "eventLeaderboard": {
+    "csBracketTitle": "Esta fase decorre sob o formato de um torneio Clash Squad",
+    "csBracketHint": "Os resultados e a classificação do Clash Squad são geridos a partir do quadro de jogos na página do evento, e não aqui.",
+    "csBracketGoto": "Ir para a tabela",
     "manageTitle": "Gerir a tabela de classificação",
     "noPermission": "Não tem permissão para gerir os resultados desta organização.",
     "backToLeaderboards": "Voltar às tabelas de classificação",
@@ -1186,7 +1189,7 @@
       "playerStatsTitle": "Estatísticas dos jogadores",
       "playerStatsDesc": "Edita as mortes, os danos e as assistências de cada jogador de cada equipa. Clica numa equipa para a expandir.",
       "noPlayerData": "Não há dados dos jogadores disponíveis para esta equipa.",
-      "playerCount": "{count, plural, one {# jogador} other {# jogadores}}",
+      "playerCount": "{count, plural,  one { # jogador }  other { # jogadores } }",
       "matchLeaderboardTitle": "Classificação do Jogo",
       "matchLeaderboardDesc": "Classificação calculada para este mapa. Edita os pontos de bónus e de penalização e, em seguida, guarda acima.",
       "killPts": "Pontos de abate",
@@ -1199,7 +1202,7 @@
       "saveSuccess": "Resultados dos jogos guardados!",
       "saveError": "Não foi possível guardar os resultados do jogo",
       "noMapsToSave": "Ainda não há resultados de mapas para guardar neste grupo.",
-      "savedAllMaps": "{count, plural, one {# mapa guardado} other {# mapas guardados}} neste grupo.",
+      "savedAllMaps": "Guardei tudo isto neste grupo: {count, plural,  one { # mapa }  other { # mapas } }.",
       "savedSomeMaps": "{ok} de {total} mapas guardados. Falha em {failed}: {reason}",
       "saveGroupError": "Não foi possível guardar os mapas do grupo",
       "retryHint": "abre o mapa que não está a funcionar e tenta novamente"
@@ -1407,6 +1410,10 @@
     "h2hMode": "Comparar",
     "h2hTeams": "Equipas (este evento)",
     "h2hPlayers": "Jogadores (deste evento)",
+    "h2hBracket": "Tabela do Clash Squad",
+    "h2hStage": "Fase de eliminatórias",
+    "h2hStagePick": "Escolhe uma fase",
+    "h2hBracketHint": "Mostra o quadro do Clash Squad desta fase. Escolhe a fase do Clash Squad.",
     "h2hSlot": "Concorrente{n}",
     "h2hOptional": "(opcional)",
     "h2hPick": "Escolha...",

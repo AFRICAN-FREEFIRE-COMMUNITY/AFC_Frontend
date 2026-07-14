@@ -1,0 +1,494 @@
+<!doctype html>
+<!--
+  AFC SPONSOR SYSTEM REDESIGN - DESIGN PREVIEW v2 (mock data, in-context, clickable).
+  =================================================================================================
+  REVISED per owner feedback (2026-06-12):
+   - UI now mirrors the CURRENT sponsor dashboard page (app/(sponsor)/sponsor/dashboard/page.tsx)
+     verbatim: same search + status-filter row, same Card p-0 table, same LIGHT pill status badges
+     (pending yellow / active green / rejected red), same h-7 outline Confirm/Reject buttons with
+     check/x icons, same "Showing x-y of z" + pagination footer, same Reject dialog with a REASON
+     textarea (reason is REQUIRED here; it rides in the player's rejection email).
+   - Decided rows no longer collapse to "decided": the Actions column shows WHAT was decided
+     ("Confirmed" / "Rejected: <reason>") plus an UNDO button.
+   - Rejecting notifies the player by EMAIL + IN-APP NOTIFICATION with the reason and PROMPTS THEM
+     TO RE-INPUT the correct info; the resubmission returns to your pending queue (a demo row shows
+     the resubmitted state).
+  Views: 1) sponsor dashboard (ydpay-scoped) -> event drill-down, 2) admin /a/sponsors,
+  3) event-wizard sponsor tab (picker + engagement builder).
+  HARD RULES honored: NO em/en dashes in copy. Mock data only. Fully clickable.
+-->
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sponsor System Redesign - Preview v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --background: oklch(0.141 0.005 285.823); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.21 0.006 285.885); --primary: oklch(0.624 0.170 149.09);
+    --gold: oklch(0.79 0.17 83.63); --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067); --border: oklch(1 0 0 / 10%);
+    --radius: 0.65rem; --red: oklch(0.62 0.20 25); --blue: oklch(0.62 0.19 256);
+    --orange: oklch(0.72 0.16 60);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--background);color:var(--foreground);min-height:100vh;position:relative;line-height:1.5;}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,color-mix(in oklch,var(--primary) 18%,transparent),transparent 55%,color-mix(in oklch,var(--gold) 18%,transparent));}
+  .container{position:relative;z-index:1;width:92%;max-width:1180px;margin:0 auto;padding:30px 0 90px;}
+  h1{font-size:clamp(1.875rem,3vw,2.25rem);font-weight:700;color:var(--primary);letter-spacing:-0.01em;margin-bottom:4px;}
+  .sub{color:var(--muted-foreground);font-size:.85rem;margin-bottom:18px;}
+
+  .switch{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap;}
+  .swbtn{font-family:inherit;font-size:.78rem;font-weight:600;border-radius:999px;padding:7px 14px;cursor:pointer;border:1px dashed color-mix(in oklch,var(--gold) 55%,transparent);background:transparent;color:var(--gold);}
+  .swbtn.on{background:var(--gold);color:#1a1205;border-style:solid;}
+
+  /* pill tabs (engagements) */
+  .tabs{display:flex;gap:4px;background:var(--muted);border-radius:var(--radius);padding:4px;margin-bottom:14px;width:100%;overflow-x:auto;}
+  .tab{flex:1;text-align:center;font-size:.8rem;font-weight:600;padding:8px 12px;border-radius:calc(var(--radius) - 3px);color:var(--muted-foreground);cursor:pointer;white-space:nowrap;}
+  .tab.active{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;}
+  .card.pad{padding:18px;}
+  .card h3{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .card .desc{font-size:.8rem;color:var(--muted-foreground);margin-top:2px;}
+
+  /* CURRENT-PAGE search + filter row (Input with left icon, Select w-44) */
+  .toolbar{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+  .searchwrap{position:relative;flex:1;min-width:230px;}
+  .searchwrap .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted-foreground);font-size:.85rem;}
+  .searchwrap input{width:100%;background:transparent;border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font-family:inherit;font-size:.85rem;padding:9px 12px 9px 34px;}
+  .searchwrap input::placeholder{color:var(--muted-foreground);}
+  select.sel{background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font-family:inherit;font-size:.82rem;padding:9px 12px;cursor:pointer;color-scheme:dark;width:176px;}
+
+  /* CURRENT-PAGE table idiom (Card p-0, plain rows) */
+  table{width:100%;border-collapse:collapse;font-size:.82rem;}
+  thead th{text-align:left;color:var(--muted-foreground);font-weight:500;padding:11px 16px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  thead th.r, td.r{text-align:right;}
+  tbody td{padding:11px 16px;border-bottom:1px solid color-mix(in oklch,var(--border) 60%,transparent);vertical-align:middle;}
+  tbody tr:hover{background:color-mix(in oklch,var(--muted) 35%,transparent);}
+  .nil{color:var(--muted-foreground);font-style:italic;font-size:.74rem;}
+
+  /* CURRENT-PAGE light pill StatusBadge (bg-*-100 text-*-700) */
+  .pill{padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:500;text-transform:capitalize;display:inline-block;}
+  .pill.pending{background:#fef9c3;color:#a16207;}
+  .pill.active{background:#dcfce7;color:#15803d;}
+  .pill.rejected{background:#fee2e2;color:#b91c1c;}
+
+  /* CURRENT-PAGE small outline action buttons (h-7 text-xs, green/red) */
+  .abtn{appearance:none;font-family:inherit;font-size:.72rem;font-weight:500;border-radius:calc(var(--radius) - 3px);padding:4px 10px;height:28px;cursor:pointer;background:transparent;display:inline-flex;align-items:center;gap:5px;}
+  .abtn.ok{color:#16a34a;border:1px solid #bbf7d0;} .abtn.ok:hover{background:rgba(22,163,74,.12);}
+  .abtn.no{color:#dc2626;border:1px solid #fecaca;} .abtn.no:hover{background:rgba(220,38,38,.12);}
+  .abtn.undo{color:var(--muted-foreground);border:1px solid var(--border);} .abtn.undo:hover{color:var(--foreground);}
+  .decided{font-size:.74rem;color:var(--muted-foreground);display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+  .decided b{color:var(--foreground);font-weight:600;}
+  .decided .rsn{max-width:260px;text-align:right;}
+
+  .btn{appearance:none;font-family:inherit;font-size:.78rem;font-weight:600;border-radius:calc(var(--radius) - 3px);padding:8px 14px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--foreground);display:inline-flex;align-items:center;gap:6px;}
+  .btn.primary{background:var(--primary);color:#06281a;border-color:transparent;}
+  .btn.danger{background:#dc2626;color:#fff;border-color:transparent;}
+  .btn.sm{font-size:.72rem;padding:5px 10px;}
+  .btn:hover{filter:brightness(1.12);}
+
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .grow{flex:1;}
+  input.inp{background:transparent;border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font-family:inherit;font-size:.78rem;padding:8px 10px;min-width:200px;}
+  textarea.ta{width:100%;background:transparent;border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font-family:inherit;font-size:.82rem;padding:9px 11px;resize:vertical;}
+  label.lbl{font-size:.72rem;color:var(--muted-foreground);display:block;margin-bottom:4px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
+
+  /* footer: Showing x-y of z + pagination (current idiom) */
+  .tfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 16px;border-top:1px solid var(--border);flex-wrap:wrap;}
+  .tfoot .info{font-size:.72rem;color:var(--muted-foreground);}
+  .pgn{display:flex;gap:4px;}
+  .pg{font-size:.74rem;border:1px solid var(--border);border-radius:7px;padding:4px 10px;cursor:pointer;color:var(--muted-foreground);}
+  .pg.cur{background:var(--muted);color:var(--foreground);}
+
+  .sponsorpick{display:inline-flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:9px 14px;margin-bottom:16px;}
+  .slogo{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:.85rem;color:#06281a;background:var(--gold);flex-shrink:0;}
+
+  .badge{font-size:.72rem;font-weight:500;border-radius:999px;padding:2px 9px;border:1px solid var(--border);color:var(--muted-foreground);display:inline-flex;align-items:center;gap:4px;}
+  .badge.green{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .badge.gold{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 55%,transparent);}
+  .badge.blue{color:var(--blue);border-color:color-mix(in oklch,var(--blue) 50%,transparent);}
+  .badge.orange{color:var(--orange);border-color:color-mix(in oklch,var(--orange) 55%,transparent);}
+
+  .ecard{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);padding:13px 15px;cursor:pointer;margin-top:8px;background:var(--background);}
+  .ecard:hover{border-color:color-mix(in oklch,var(--primary) 45%,transparent);}
+  .ecard .nm{font-weight:600;font-size:.9rem;}
+  .ecard .mt{font-size:.74rem;color:var(--muted-foreground);}
+
+  .engrow{border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);padding:12px;margin-top:10px;background:color-mix(in oklch,var(--muted) 35%,transparent);}
+  .engrow .hdr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .engrow .fields{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .x{margin-left:auto;color:var(--muted-foreground);cursor:pointer;font-size:1rem;border:none;background:none;}
+  .x:hover{color:#dc2626;}
+  .chk{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;cursor:pointer;}
+  .chk input{accent-color:var(--primary);}
+  .tgl{position:relative;width:38px;height:21px;border-radius:999px;background:var(--muted);cursor:pointer;border:1px solid var(--border);transition:background .15s;display:inline-block;vertical-align:middle;}
+  .tgl::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:999px;background:#fff;transition:left .15s;}
+  .tgl.on{background:var(--primary);} .tgl.on::after{left:19px;}
+
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:grid;place-items:center;}
+  .dialog{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;width:min(440px,94vw);box-shadow:0 18px 60px rgba(0,0,0,.6);}
+  .dialog h3{font-size:1.05rem;font-weight:700;margin-bottom:10px;}
+  .dfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#fff;color:#111;font-size:.8rem;font-weight:600;border-radius:10px;padding:10px 18px;box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;max-width:88vw;text-align:center;}
+  #toast.show{opacity:1;}
+  .hide{display:none;}
+  .crumb{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted-foreground);cursor:pointer;margin-bottom:12px;}
+  .crumb:hover{color:var(--primary);}
+  .note{font-size:.74rem;color:var(--muted-foreground);border:1px dashed var(--border);border-radius:calc(var(--radius) - 2px);padding:8px 12px;margin-top:10px;}
+  .resub{font-size:.7rem;color:var(--blue);}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1 id="pagetitle">Welcome, Timuwa</h1>
+  <div class="sub" id="pagesub">48 registrants &middot; <span id="hd-pending">5</span> pending &middot; <span id="hd-active">41</span> active &middot; <span id="hd-rejected">2</span> rejected</div>
+
+  <div class="switch">
+    <button class="swbtn on" id="sw-dash" onclick="showView('dash')">1. Sponsor dashboard</button>
+    <button class="swbtn" id="sw-admin" onclick="showView('admin')">2. Admin: Sponsors</button>
+    <button class="swbtn" id="sw-wizard" onclick="showView('wizard')">3. Event wizard: Sponsor tab</button>
+  </div>
+
+  <!-- ════════ VIEW 1: SPONSOR DASHBOARD ════════ -->
+  <div id="view-dash">
+    <div class="sponsorpick">
+      <div class="slogo">yd</div>
+      <div>
+        <div style="font-weight:700;font-size:.92rem;">ydpay <span class="badge gold" style="margin-left:4px;">Sponsor</span></div>
+        <div style="font-size:.72rem;color:var(--muted-foreground);">You are a member of 1 sponsor</div>
+      </div>
+    </div>
+
+    <div id="dash-events">
+      <div class="card pad">
+        <h3>Your sponsored events</h3>
+        <div class="desc">Events AFC attached ydpay to. Open one to see its engagement data.</div>
+        <div class="ecard" onclick="openEvent()">
+          <div class="slogo" style="background:var(--primary);">DC</div>
+          <div class="grow">
+            <div class="nm">Dynasty Cup Nigeria</div>
+            <div class="mt">2 engagements / 48 registrants / 5 pending your decision</div>
+          </div>
+          <span class="badge blue">upcoming</span>
+        </div>
+        <div class="ecard" onclick="toast('Mock: only Dynasty Cup Nigeria is wired in this preview.')">
+          <div class="slogo" style="background:var(--primary);">DG</div>
+          <div class="grow">
+            <div class="nm">Dynasty Cup Ghana</div>
+            <div class="mt">2 engagements / 31 registrants / 0 pending</div>
+          </div>
+          <span class="badge blue">upcoming</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="dash-event" class="hide">
+      <span class="crumb" onclick="closeEvent()">&#8592; Back to your events</span>
+      <div class="card pad" style="margin-bottom:12px;">
+        <div class="row">
+          <div class="grow">
+            <h3>Dynasty Cup Nigeria <span class="badge blue">upcoming</span> <span class="badge gold">requires your approval</span></h3>
+            <div class="desc">You see usernames + the values registrants gave ydpay. AFC never shares account emails or phone numbers.</div>
+          </div>
+          <button class="btn" onclick="toast('CSV downloaded (mock): dynasty-cup-nigeria-ydpay-uid.csv')">&#8681; Export CSV</button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" id="t-uid" onclick="engTab('uid')">ydpay UID (collect id)</div>
+        <div class="tab" id="t-social" onclick="engTab('social')">Follow + like (socials)</div>
+        <div class="tab" id="t-group" onclick="engTab('group')">WhatsApp group</div>
+      </div>
+
+      <!-- engagement: collect_id, CURRENT-PAGE idiom: toolbar + Card p-0 table + footer -->
+      <div id="eng-uid">
+        <div class="toolbar">
+          <div class="searchwrap"><span class="ic">&#128269;</span><input placeholder="Search by username, team, or ydpay UID..." oninput="toast('Mock: live search, same matchesSearch helper as the current page.')" /></div>
+          <select class="sel" onchange="toast('Mock: status filter')">
+            <option>All (7)</option><option>Pending</option><option>Active</option><option>Rejected</option>
+          </select>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Username</th><th>Team</th><th>ydpay UID</th><th>Status</th><th class="r">Actions</th></tr></thead>
+            <tbody id="uid-rows"></tbody>
+          </table>
+          <div class="tfoot">
+            <span class="info">Showing 1-7 of 7</span>
+            <div class="pgn"><span class="pg">&#8249; Previous</span><span class="pg cur">1</span><span class="pg">Next &#8250;</span></div>
+          </div>
+        </div>
+        <div class="note">Rejecting requires a reason. The player gets an EMAIL + an in-app notification with your reason and a prompt to re-enter the correct value; their resubmission returns here as pending (see SHED005).</div>
+      </div>
+
+      <!-- engagement: follow_social -->
+      <div class="hide" id="eng-social">
+        <div class="card">
+          <table>
+            <thead><tr><th>Username</th><th>Instagram profile</th><th>X profile</th><th>Actions done</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:600;">Layott</td><td>instagram.com/layott.ff</td><td>x.com/layott_ff</td><td><span class="badge green">follow</span> <span class="badge green">like</span> <span class="badge green">share</span></td><td><span class="pill active">active</span></td></tr>
+              <tr><td style="font-weight:600;">SHED005</td><td>instagram.com/shed.005</td><td>x.com/shed005</td><td><span class="badge green">follow</span> <span class="badge green">like</span> <span class="badge green">share</span></td><td><span class="pill active">active</span></td></tr>
+              <tr><td style="font-weight:600;">NOXY</td><td>instagram.com/noxy.cvs</td><td>x.com/noxycvs</td><td><span class="badge green">follow</span> <span class="badge orange">like</span> <span class="badge orange">share</span></td><td><span class="pill pending">pending</span></td></tr>
+            </tbody>
+          </table>
+          <div class="tfoot"><span class="info">Showing 1-3 of 3</span></div>
+        </div>
+      </div>
+
+      <!-- engagement: join_group -->
+      <div class="hide" id="eng-group">
+        <div class="card">
+          <table>
+            <thead><tr><th>Username</th><th>Country code</th><th>Phone</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:600;">Layott</td><td>+234</td><td>801 234 5678</td><td><span class="pill active">active</span></td></tr>
+              <tr><td style="font-weight:600;">RES.OBAHMAD</td><td>+234</td><td>703 555 0142</td><td><span class="pill active">active</span></td></tr>
+              <tr><td style="font-weight:600;">BiGZOE</td><td>+233</td><td>244 010 990</td><td><span class="pill pending">pending</span></td></tr>
+            </tbody>
+          </table>
+          <div class="tfoot"><span class="info">Showing 1-3 of 3</span></div>
+        </div>
+        <div class="note">The phone shown is the value the registrant submitted to join YOUR group, never their account phone.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW 2: ADMIN SPONSORS ════════ -->
+  <div id="view-admin" class="hide">
+    <div class="card pad">
+      <div class="row">
+        <div class="grow">
+          <h3>Sponsors</h3>
+          <div class="desc">Sponsor entities. Members assigned here see ONLY their sponsor's dashboard.</div>
+        </div>
+        <button class="btn primary" onclick="toast('Mock: opens the Create sponsor form (name, logo, socials, website).')">+ Create sponsor</button>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <table>
+          <thead><tr><th>Sponsor</th><th>Members</th><th>Events</th><th>Status</th><th class="r">Actions</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="row"><span class="slogo" style="width:26px;height:26px;font-size:.7rem;">yd</span><b>ydpay</b></span></td>
+              <td>timuwa, ydops1</td>
+              <td>10 (Dynasty Cup series)</td>
+              <td><span class="pill active">active</span></td>
+              <td class="r"><button class="abtn undo" onclick="toast('Mock: member typeahead (UserSearchSelect) + role, like org member add.')">Manage members</button> <button class="abtn undo" onclick="toast('Mock: edit profile')">Edit</button></td>
+            </tr>
+            <tr>
+              <td><span class="row"><span class="slogo" style="width:26px;height:26px;font-size:.7rem;background:var(--blue);">FM</span><b>FreeMobile NG</b></span></td>
+              <td>fm_admin</td>
+              <td>1</td>
+              <td><span class="pill active">active</span></td>
+              <td class="r"><button class="abtn undo" onclick="toast('Mock: member typeahead')">Manage members</button> <button class="abtn undo" onclick="toast('Mock: edit profile')">Edit</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">Members get the one-time "You now have the Sponsor Dashboard" coachmark the moment they are assigned (same mechanism as the other dashboards).</div>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW 3: EVENT WIZARD SPONSOR TAB ════════ -->
+  <div id="view-wizard" class="hide">
+    <div class="card pad">
+      <h3>Sponsors for this event</h3>
+      <div class="desc">Pick existing sponsors (no free-text names). An event can carry MULTIPLE sponsors; each brings its own engagements.</div>
+      <div class="row" style="margin-top:12px;">
+        <input class="inp grow" placeholder="Search a sponsor..." onfocus="toast('Mock: typeahead over active Sponsors (admins can create inline).')" />
+      </div>
+
+      <div class="engrow" style="margin-top:14px;">
+        <div class="hdr">
+          <span class="slogo" style="width:26px;height:26px;font-size:.7rem;">yd</span>
+          <b>ydpay</b>
+          <span class="badge gold">attached</span>
+          <span class="chk" style="margin-left:14px;"><span class="tgl on" onclick="this.classList.toggle('on');toast(this.classList.contains('on')?'Sponsor approval required: ON':'Sponsor approval required: OFF')"></span> Requires sponsor approval</span>
+          <button class="x" onclick="toast('Mock: detach ydpay from this event')">&#10005;</button>
+        </div>
+
+        <div style="font-size:.74rem;color:var(--muted-foreground);margin-top:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;">Engagements</div>
+        <div id="englist">
+          <div class="engrow">
+            <div class="hdr"><span class="badge green">collect id</span> <b style="font-size:.82rem;">ydpay UID</b><button class="x" onclick="this.closest('.engrow').remove();toast('Engagement removed')">&#10005;</button></div>
+            <div class="fields">
+              <div><label class="lbl">Field label</label><input class="inp" value="ydpay UID" /></div>
+              <div><label class="lbl">Help text (optional)</label><input class="inp" value="Find it in the ydpay app under Profile" /></div>
+            </div>
+          </div>
+          <div class="engrow">
+            <div class="hdr"><span class="badge blue">follow socials</span> <b style="font-size:.82rem;">Instagram + X</b><button class="x" onclick="this.closest('.engrow').remove();toast('Engagement removed')">&#10005;</button></div>
+            <div class="fields">
+              <div><label class="lbl">Page URL</label><input class="inp" value="instagram.com/ydpay" /></div>
+              <div><label class="lbl">Actions</label>
+                <span class="chk"><input type="checkbox" checked />follow</span>
+                <span class="chk"><input type="checkbox" checked />like</span>
+                <span class="chk"><input type="checkbox" checked />share</span>
+              </div>
+              <div><label class="lbl">Collect registrant profile link</label><span class="chk"><input type="checkbox" checked />yes, one per platform</span></div>
+            </div>
+          </div>
+          <div class="engrow">
+            <div class="hdr"><span class="badge orange">join group</span> <b style="font-size:.82rem;">WhatsApp community</b><button class="x" onclick="this.closest('.engrow').remove();toast('Engagement removed')">&#10005;</button></div>
+            <div class="fields">
+              <div><label class="lbl">Platform</label><select class="sel" style="width:auto;"><option>WhatsApp (collects phone + country code)</option><option>Discord (collects discord username)</option></select></div>
+              <div><label class="lbl">Invite link</label><input class="inp" value="chat.whatsapp.com/ydpay-community" /></div>
+            </div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <select class="sel" id="newengtype" style="width:auto;">
+            <option value="collect_id">Collect an id / username (extra field label)</option>
+            <option value="follow_social">Follow socials (+ like / share)</option>
+            <option value="create_account">Create an account on the sponsor's app</option>
+            <option value="join_group">Join a group (WhatsApp / Discord)</option>
+          </select>
+          <button class="btn sm primary" onclick="addEngagement()">+ Add engagement</button>
+        </div>
+      </div>
+      <div class="note">Each "collect id" entry is its own labelled field at registration, so one sponsor can ask for several values (the multiple-field-labels ask).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ REJECT DIALOG (mirrors the current page's dialog, reason REQUIRED) ════════ -->
+<div class="overlay hide" id="rdlg">
+  <div class="dialog">
+    <h3 id="rdlg-title">Reject SHED005?</h3>
+    <label class="lbl" style="text-transform:none;font-weight:500;font-size:.8rem;">Reason <span style="opacity:.7;">(required, sent to the player)</span></label>
+    <textarea class="ta" id="rdlg-reason" rows="3" placeholder="e.g. This UID does not exist on ydpay. Check the app and re-enter it."></textarea>
+    <div class="dfoot">
+      <button class="btn" onclick="document.getElementById('rdlg').classList.add('hide')">Cancel</button>
+      <button class="btn danger" onclick="confirmReject()">Reject</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script>
+  // statuses mirror the current page: pending | active | rejected.
+  // resub=true renders the "resubmitted after rejection" hint under a pending row.
+  var uidRows = [
+    {u:"Layott",      t:"V-ENT ESPORTS", v:"ydp-88291", s:"active",   why:"", resub:false},
+    {u:"RES.OBAHMAD", t:"RATED ESPORTS", v:"ydp-10422", s:"active",   why:"", resub:false},
+    {u:"SHED005",     t:"NEXT GAMERS",   v:"ydp-55781", s:"pending",  why:"", resub:true},
+    {u:"NOXY",        t:"PUNKY CVS",     v:"ydp-90133", s:"pending",  why:"", resub:false},
+    {u:"BiGZOE",      t:"NEXT GAMERS",   v:"ydp-71006", s:"pending",  why:"", resub:false},
+    {u:"VT.HABEEB",   t:"V-ENT ESPORTS", v:"ydp-30518", s:"active",   why:"", resub:false},
+    {u:"FLUX V1RUX",  t:"V-ENT ESPORTS", v:"",          s:"rejected", why:"UID not provided", resub:false}
+  ];
+  var rejectIdx = null;
+  // remember the pre-decision state per row so Undo can restore it
+  var prev = {};
+
+  function pill(s){ return '<span class="pill '+s+'">'+s+'</span>'; }
+
+  function renderUid(){
+    var html = "";
+    for (var i=0;i<uidRows.length;i++){
+      var r = uidRows[i];
+      html += '<tr><td style="font-weight:600;">'+r.u+'</td><td>'+r.t+'</td><td>'+(r.v || '<span class="nil">Not provided</span>')+'</td><td>'+pill(r.s);
+      if (r.resub && r.s==="pending") html += '<div class="resub">resubmitted after rejection</div>';
+      html += '</td><td class="r">';
+      if (r.s==="pending"){
+        html += '<button class="abtn ok" onclick="confirmRow('+i+')">&#10003; Confirm</button> ' +
+                '<button class="abtn no" onclick="openReject('+i+')">&#10005; Reject</button>';
+      } else if (r.s==="active"){
+        // owner feedback: show WHAT was decided, never a bare "decided"
+        html += '<span class="decided"><span><b>Confirmed</b> by you</span>' +
+                '<button class="abtn undo" onclick="undoRow('+i+')">&#8634; Undo</button></span>';
+      } else {
+        html += '<span class="decided"><span><b>Rejected:</b></span><span class="rsn">'+(r.why||"no reason")+'</span>' +
+                '<button class="abtn undo" onclick="undoRow('+i+')">&#8634; Undo</button></span>';
+      }
+      html += '</td></tr>';
+    }
+    document.getElementById("uid-rows").innerHTML = html;
+    var p=0,a=0,rj=0;
+    for (var j=0;j<uidRows.length;j++){ if(uidRows[j].s==="pending")p++; else if(uidRows[j].s==="active")a++; else rj++; }
+    document.getElementById("hd-pending").textContent = p+2;
+    document.getElementById("hd-active").textContent = 37+a;
+    document.getElementById("hd-rejected").textContent = rj+1;
+  }
+  function confirmRow(i){
+    prev[i] = uidRows[i].s;
+    uidRows[i].s = "active"; uidRows[i].resub = false;
+    renderUid(); toast(uidRows[i].u+" confirmed.");
+  }
+  function openReject(i){
+    rejectIdx = i;
+    document.getElementById("rdlg-title").textContent = "Reject "+uidRows[i].u+"?";
+    document.getElementById("rdlg-reason").value = "";
+    document.getElementById("rdlg").classList.remove("hide");
+  }
+  function confirmReject(){
+    var reason = document.getElementById("rdlg-reason").value.trim();
+    if (!reason){ toast("A reason is required. It is sent to the player."); return; }
+    prev[rejectIdx] = uidRows[rejectIdx].s;
+    uidRows[rejectIdx].s = "rejected"; uidRows[rejectIdx].why = reason; uidRows[rejectIdx].resub = false;
+    document.getElementById("rdlg").classList.add("hide");
+    renderUid();
+    toast(uidRows[rejectIdx].u+" rejected. They get an email + in-app notification with your reason and a prompt to re-enter the correct value.");
+  }
+  function undoRow(i){
+    uidRows[i].s = prev[i] || "pending"; uidRows[i].why = "";
+    renderUid(); toast("Decision undone. "+uidRows[i].u+" is back to "+uidRows[i].s+".");
+  }
+
+  function openEvent(){ document.getElementById("dash-events").classList.add("hide"); document.getElementById("dash-event").classList.remove("hide"); }
+  function closeEvent(){ document.getElementById("dash-event").classList.add("hide"); document.getElementById("dash-events").classList.remove("hide"); }
+
+  function engTab(k){
+    ["uid","social","group"].forEach(function(x){
+      document.getElementById("t-"+x).classList.toggle("active", x===k);
+      document.getElementById("eng-"+x).classList.toggle("hide", x!==k);
+    });
+  }
+
+  var titles = {
+    dash:   ["Welcome, Timuwa","48 registrants · 5 pending · 41 active · 2 rejected"],
+    admin:  ["Manage Sponsors","Admin view (/a/sponsors): create sponsor profiles and assign their members."],
+    wizard: ["Create Event: Sponsors","The wizard's Sponsor tab: pick sponsors, build their engagements."]
+  };
+  function showView(k){
+    ["dash","admin","wizard"].forEach(function(x){
+      document.getElementById("view-"+x).classList.toggle("hide", x!==k);
+      document.getElementById("sw-"+x).classList.toggle("on", x===k);
+    });
+    document.getElementById("pagetitle").textContent = titles[k][0];
+    document.getElementById("pagesub").innerHTML = titles[k][1];
+  }
+
+  var engTemplates = {
+    collect_id:    '<div class="hdr"><span class="badge green">collect id</span> <b style="font-size:.82rem;">New field</b><button class="x" onclick="this.closest(\'.engrow\').remove();toast(\'Engagement removed\')">&#10005;</button></div><div class="fields"><div><label class="lbl">Field label</label><input class="inp" placeholder="e.g. ydpay merchant code" /></div><div><label class="lbl">Help text (optional)</label><input class="inp" /></div></div>',
+    follow_social: '<div class="hdr"><span class="badge blue">follow socials</span> <b style="font-size:.82rem;">New platform</b><button class="x" onclick="this.closest(\'.engrow\').remove();toast(\'Engagement removed\')">&#10005;</button></div><div class="fields"><div><label class="lbl">Page URL</label><input class="inp" placeholder="instagram.com/..." /></div><div><label class="lbl">Actions</label><span class="chk"><input type="checkbox" checked />follow</span> <span class="chk"><input type="checkbox" />like</span> <span class="chk"><input type="checkbox" />share</span></div><div><label class="lbl">Collect registrant profile link</label><span class="chk"><input type="checkbox" checked />yes</span></div></div>',
+    create_account:'<div class="hdr"><span class="badge gold">create account</span> <b style="font-size:.82rem;">Sponsor app signup</b><button class="x" onclick="this.closest(\'.engrow\').remove();toast(\'Engagement removed\')">&#10005;</button></div><div class="fields"><div><label class="lbl">Signup URL</label><input class="inp" placeholder="app.sponsor.com/signup" /></div><div><label class="lbl">Collected field label</label><input class="inp" value="App username" /></div></div>',
+    join_group:    '<div class="hdr"><span class="badge orange">join group</span> <b style="font-size:.82rem;">New group</b><button class="x" onclick="this.closest(\'.engrow\').remove();toast(\'Engagement removed\')">&#10005;</button></div><div class="fields"><div><label class="lbl">Platform</label><select class="sel" style="width:auto;"><option>WhatsApp (collects phone + country code)</option><option>Discord (collects discord username)</option></select></div><div><label class="lbl">Invite link</label><input class="inp" placeholder="invite link" /></div></div>'
+  };
+  function addEngagement(){
+    var t = document.getElementById("newengtype").value;
+    var d = document.createElement("div");
+    d.className = "engrow";
+    d.innerHTML = engTemplates[t];
+    document.getElementById("englist").appendChild(d);
+    toast("Engagement added. Configure it, then save the event.");
+  }
+
+  var toastTimer = null;
+  function toast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 3000);
+  }
+
+  renderUid();
+</script>
+</body>
+</html>

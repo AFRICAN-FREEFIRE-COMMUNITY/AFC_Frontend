@@ -25,7 +25,7 @@
 // ── STRUCTURE (mirrors the sibling leaderboard page) ──
 //   'use client'; slug unwrapped via React `use(params)`; token from useAuth();
 //   { membership, isOwner } from useOrganizer(). Gated on
-//   can_manage_registrations || isOwner — the SAME permission the backend enforces
+//   can_manage_registrations || isOwner - the SAME permission the backend enforces
 //   and the SAME gate the events-list "Groups & Rosters" button uses. A member
 //   without it gets the IconLock lock-card the leaderboard page shows.
 //
@@ -82,11 +82,11 @@ import { useOrganizer } from "../../../_components/OrganizerContext";
 // already have on the event-edit "Stages & Groups" tab, surfaced here for an organizer's OWN events.
 // All three are the SHARED admin components, reused verbatim (never rebuilt) so behaviour + backend
 // wiring stay identical to the admin surface:
-//   • GroupTeamMover  — drag a team between a stage's groups. Self-contained DnD; POSTs
+//   • GroupTeamMover  - drag a team between a stage's groups. Self-contained DnD; POSTs
 //                       /events/seeding/move-team/ (org-inclusive via seeding_management._seeding_gate).
-//   • AddTeamsModal   — add already-registered teams straight into ONE group (mode="group" -> POST
+//   • AddTeamsModal   - add already-registered teams straight into ONE group (mode="group" -> POST
 //                       /events/add-teams-to-group/, org-inclusive since 2026-07-02).
-//   • RemoveTeamModal — remove a team from the event entirely (POST /events/remove-team-from-event/,
+//   • RemoveTeamModal - remove a team from the event entirely (POST /events/remove-team-from-event/,
 //                       org-inclusive via _resolve_event_team; backend blocks once results exist).
 // Gate: this page only renders past the canView guard (can_manage_registrations || isOwner), which is
 // the EXACT permission each of those backend endpoints enforces, so no extra front-end gating is
@@ -176,7 +176,7 @@ export default function OrganizerEventGroupsPage({
 
   // ── 1) Confirm the slug is one of THIS org's events ───────────────────────────
   // Scope get-all-events by organization_id and match the route slug. A slug not in
-  // this list is treated as notMine — an org can only view its own events' rosters.
+  // this list is treated as notMine - an org can only view its own events' rosters.
   useEffect(() => {
     if (!canView) {
       setResolving(false);
@@ -209,7 +209,7 @@ export default function OrganizerEventGroupsPage({
   // ── 2) Load the group rosters for the resolved event ──────────────────────────
   // POSTs { slug } (the backend accepts slug or event_id; the organizer FE sends
   // slug to match the rest of /organizer/events/*). Never errors the page on failure
-  // — leaves an empty state so a partially-seeded event still renders.
+  // - leaves an empty state so a partially-seeded event still renders.
   // Extracted from the load effect so the F1 group-management controls below can re-pull the tree in
   // place after a mutation (AddTeamsModal / RemoveTeamModal onSuccess). Flipping `loading` briefly also
   // remounts the GroupTeamMover (which owns a SEPARATE fetch), so an add/remove is reflected there too.
@@ -245,7 +245,7 @@ export default function OrganizerEventGroupsPage({
   // ── SOLO per-player remove (owner 2026-07-06) ─────────────────────────────────────────────────
   // A solo player row can be pulled out of just its group or the whole stage. The backend
   // (seeding_management.remove_competitor_from_group / _from_stage) HARD-BLOCKS a player who already
-  // has entered match results (400 + message) so real stats are never orphaned — we surface that.
+  // has entered match results (400 + message) so real stats are never orphaned - we surface that.
   // Solo rows only carry user_id (the roster payload has no competitor id), so we send user_id; the
   // endpoint resolves it to the RegisteredCompetitors within this event.
   const [pendingSoloRemove, setPendingSoloRemove] = useState<{
@@ -532,7 +532,7 @@ export default function OrganizerEventGroupsPage({
                                           name: p.username,
                                         })
                                       }
-                                      className="rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                      className="flex size-8 items-center justify-center rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                     >
                                       <IconTrash size={14} />
                                     </button>

@@ -1,0 +1,91 @@
+{
+  "pageTitle": "Edit Event",
+  "loadingTitle": "Loading Event...",
+  "editEventTitle": "Edit Event: {name}",
+  "backToEvents": "Back to events",
+  "gate": {
+    "noPermission": "You do not have permission to edit events."
+  },
+  "notMine": {
+    "body": "We could not find that event under <strong>{org}</strong>. It may belong to a different organization, or it may have been removed."
+  },
+  "tabs": {
+    "basicInfo": "Basic Info",
+    "registeredTeams": "Registered Teams",
+    "stagesGroups": "Stages & Groups",
+    "prizeRules": "Prize & Rules",
+    "linkedEvents": "Linked Events",
+    "actions": "Event Actions",
+    "sponsor": "Sponsor",
+    "waitlist": "Waitlist"
+  },
+  "participant": {
+    "teams": "teams",
+    "players": "players"
+  },
+  "status": {
+    "draft": "Draft",
+    "published": "Published"
+  },
+  "validationErrorTitle": "Validation Error",
+  "toast": {
+    "leaderboardUpdated": "Leaderboard updated",
+    "leaderboardFailed": "Failed to fetch leaderboard",
+    "seedingSuccess": "Seeding successful",
+    "genericError": "Oops! An error occurred.",
+    "stageFieldsRequired": "Please fill all required stage fields (Step 1)",
+    "rrNeedsTwoGroups": "A round-robin stage needs at least two base groups.",
+    "rrGroupNeedsLabel": "Every base group needs a label.",
+    "gamesPerDayMin": "Games per day must be at least 1.",
+    "groupDetailsIncomplete": "Please complete all group details correctly, including selecting at least one map per group (Step 2)",
+    "stageNeedsGroup": "A stage must have at least one group.",
+    "stageConfigUpdated": "Stage configuration updated. Click 'Save Changes' to finalize.",
+    "eventNeedsStage": "An event must have at least one stage.",
+    "deleteStageFailed": "Failed to delete stage from server",
+    "stageRemoved": "Stage \"{name}\" removed successfully",
+    "fetchDetailsFailed": "Failed to fetch event details.",
+    "sponsorSaved": "Sponsor settings saved!",
+    "sponsorSaveFailed": "Failed to save sponsor settings",
+    "waitlistSaved": "Waitlist settings saved!",
+    "waitlistSaveFailed": "Failed to save waitlist settings",
+    "eventIdMissing": "Event ID is missing",
+    "startAfterEnd": "Event start date cannot be after event end date",
+    "regOpenAfterClose": "Registration open date cannot be after registration close date",
+    "regCloseBeforeStart": "Registration must close before the event starts",
+    "discordLinkRequired": "Add a Discord invite link to require Discord for registration.",
+    "prizeMismatchMore": "Your prize distribution adds up to {sum} {ccy}, which is {diff} {ccy} MORE than the prize pool cash value ({cash} {ccy}). Adjust the amounts so they match exactly.",
+    "prizeMismatchLess": "Your prize distribution adds up to {sum} {ccy}, which is {diff} {ccy} LESS than the prize pool cash value ({cash} {ccy}). Adjust the amounts so they match exactly.",
+    "savedSuccess": "Event \"{name}\" saved as {status} successfully!",
+    "unexpectedFormat": "Server error: Unexpected response format.",
+    "sessionExpired": "Your session has expired. Please log in again.",
+    "noEditPermission": "You don't have permission to edit this event.",
+    "eventNotFound": "Event not found. It may have been deleted.",
+    "serverError": "Server error occurred. Please try again later.",
+    "updateFailed": "Failed to update event.",
+    "networkError": "Network error: Please check your internet connection.",
+    "unexpectedError": "An unexpected error occurred. Please try again."
+  },
+  "changes": {
+    "eventName": "Event Name",
+    "competitionType": "Competition Type",
+    "participantType": "Participant Type",
+    "eventType": "Event Type",
+    "eventPrivacy": "Event Privacy",
+    "public": "Public",
+    "private": "Private",
+    "maxParticipants": "Max Participants",
+    "eventMode": "Event Mode",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "registrationOpen": "Registration Open",
+    "registrationClose": "Registration Close",
+    "registrationLink": "Registration Link",
+    "prizePool": "Prize Pool",
+    "eventStatus": "Event Status",
+    "eventBanner": "Event Banner",
+    "previousBanner": "Previous banner",
+    "newFile": "New file: {name}",
+    "rulesDocument": "Rules Document",
+    "previousDocument": "Previous document"
+  }
+}

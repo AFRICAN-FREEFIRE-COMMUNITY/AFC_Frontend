@@ -1,0 +1,73 @@
+{
+  "ladderDesc": "Reach {count} {unit}.",
+  "section": {
+    "lifetime": "Lifetime",
+    "monthly": "Monthly",
+    "daily": "Daily"
+  },
+  "group": {
+    "teamWins": "Team Wins",
+    "teamKills": "Team Kills",
+    "tournamentsPlayed": "Tournaments Played",
+    "booyahs": "Booyahs",
+    "team": "Team",
+    "scrims": "Scrims",
+    "monthly": "Monthly",
+    "daily": "Daily"
+  },
+  "unit": {
+    "teamWins": "team wins",
+    "teamKills": "team kills",
+    "tournamentsPlayed": "tournaments played",
+    "booyahs": "first place finishes"
+  },
+  "title": {
+    "total_team_wins_1": "First Victory",
+    "total_team_wins_5": "Rising Squad",
+    "total_team_wins_10": "Established",
+    "total_team_wins_25": "Powerhouse",
+    "total_team_wins_50": "Juggernaut",
+    "total_team_wins_100": "Dynasty",
+    "total_team_wins_250": "Legendary Dynasty",
+    "total_team_kills_500": "Aggressive",
+    "total_team_kills_1000": "Bloodthirsty",
+    "total_team_kills_2500": "Ruthless",
+    "total_team_kills_5000": "Devastating",
+    "total_team_kills_10000": "Annihilators",
+    "total_team_kills_25000": "Apex Squad",
+    "total_tournaments_played_1": "Debut",
+    "total_tournaments_played_5": "Regulars",
+    "total_tournaments_played_10": "Veterans",
+    "total_tournaments_played_25": "Seasoned",
+    "total_tournaments_played_50": "Circuit Legends",
+    "total_booyahs_1": "First Booyah",
+    "total_booyahs_5": "Booyah Streak",
+    "total_booyahs_25": "Booyah Hunters",
+    "total_booyahs_50": "Booyah Kings",
+    "total_booyahs_100": "Booyah Dynasty",
+    "founded": "Founded",
+    "full_squad": "Full Squad",
+    "scrim_1": "First Scrim",
+    "scrim_10": "Grinders",
+    "scrim_25": "Practice Pros",
+    "scrim_50": "Scrim Machine",
+    "monthly_wins": "Monthly Winners",
+    "monthly_tournament": "Monthly Competitors",
+    "monthly_kills": "Monthly Onslaught",
+    "daily_match": "Daily Match",
+    "daily_register": "Daily Sign-Up"
+  },
+  "desc": {
+    "founded": "Create the team.",
+    "full_squad": "Have at least 4 active members on the roster.",
+    "scrim_1": "Play 1 scrim as a team.",
+    "scrim_10": "Play 10 scrims as a team.",
+    "scrim_25": "Play 25 scrims as a team.",
+    "scrim_50": "Play 50 scrims as a team.",
+    "monthly_wins": "Win 3 matches as a team this month.",
+    "monthly_tournament": "Play a tournament as a team this month.",
+    "monthly_kills": "Rack up 500 team kills this month.",
+    "daily_match": "Play a match as a team today.",
+    "daily_register": "Register the team for an event today."
+  }
+}

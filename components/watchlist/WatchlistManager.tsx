@@ -271,7 +271,7 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-7 text-destructive hover:text-destructive"
+                          className="h-9 text-destructive hover:text-destructive"
                           onClick={() => remove(e)}
                         >
                           <IconTrash className="mr-1 size-3.5" />

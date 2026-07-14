@@ -1,0 +1,20 @@
+{
+  "br - normal": "Battle Royale - Normal",
+  "br - roundrobin": "Battle Royale - Eliminatórias",
+  "br - round robin": "Battle Royale - Torneio de todos contra todos",
+  "br - point rush": "Battle Royale - Corrida pelos Pontos",
+  "br - champion rush": "Battle Royale - Champion Rush",
+  "cs - normal": "Clash Squad - Normal",
+  "cs - league": "Clash Squad - Liga",
+  "cs - knockout": "Clash Squad - Knockout",
+  "cs - double elimination": "Clash Squad - Eliminatória dupla",
+  "cs - round robin": "Clash Squad - Torneio de todos contra todos",
+  "battle_royale": "Battle Royale",
+  "clash_squad": "Clash Squad",
+  "tier_1": "Nível 1",
+  "tier_2": "Nível 2",
+  "tier_3": "Nível 3",
+  "tier_4": "Nível 4",
+  "allow_only": "Permitir apenas",
+  "block_selected": "Bloquear o selecionado"
+}

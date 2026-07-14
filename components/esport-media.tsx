@@ -20,6 +20,7 @@
 // DESIGN: AFC constants - rounded-md, text-xs/sm, outline badges. No em dashes.
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { toast } from "sonner";
@@ -103,29 +104,32 @@ function MediaOptionFields({
   showLogo?: boolean;
   showEsport?: boolean;
 }) {
+  // i18n: "media" ns (messages/en/media.json -> download.*). InfoTip ids stay as-is (they key the
+  // help-content registry, not the visible label).
+  const t = useTranslations("media");
   const set = (patch: Partial<MediaOptions>) => onChange({ ...value, ...patch });
   return (
     <div className="space-y-3 rounded-md border p-3">
       {showEsport && (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label className="text-xs">Esport image size<InfoTip id="media.download.esportSize" className="ml-1" /></Label>
+            <Label className="text-xs">{t("download.esportSizeLabel")}<InfoTip id="media.download.esportSize" className="ml-1" /></Label>
             <Select value={value.esportSize} onValueChange={(v) => set({ esportSize: v as MediaOptions["esportSize"] })}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="original">Original size</SelectItem>
-                <SelectItem value="role">Role picture (108 x 130)</SelectItem>
+                <SelectItem value="original">{t("download.originalSize")}</SelectItem>
+                <SelectItem value="role">{t("download.esportSizeRole")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Esport file name<InfoTip id="media.download.esportNaming" className="ml-1" /></Label>
+            <Label className="text-xs">{t("download.esportNamingLabel")}<InfoTip id="media.download.esportNaming" className="ml-1" /></Label>
             <Select value={value.esportNaming} onValueChange={(v) => set({ esportNaming: v as MediaOptions["esportNaming"] })}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ign">In-game name</SelectItem>
-                <SelectItem value="uid">Free Fire UID</SelectItem>
-                <SelectItem value="both">Both (name + UID)</SelectItem>
+                <SelectItem value="ign">{t("download.namingIgn")}</SelectItem>
+                <SelectItem value="uid">{t("download.namingUid")}</SelectItem>
+                <SelectItem value="both">{t("download.namingBoth")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -133,16 +137,16 @@ function MediaOptionFields({
       )}
       {showLogo && (
         <div className="space-y-1">
-          <Label className="text-xs">Team logo size<InfoTip id="media.download.logoSize" className="ml-1" /></Label>
+          <Label className="text-xs">{t("download.logoSizeLabel")}<InfoTip id="media.download.logoSize" className="ml-1" /></Label>
           <Select value={value.logoSize} onValueChange={(v) => set({ logoSize: v as MediaOptions["logoSize"] })}>
             <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="original">Original size</SelectItem>
-              <SelectItem value="gloo">Gloo wallpaper (1000 x 1000)</SelectItem>
-              <SelectItem value="head">Head pic (108 x 130)</SelectItem>
+              <SelectItem value="original">{t("download.originalSize")}</SelectItem>
+              <SelectItem value="gloo">{t("download.logoSizeGloo")}</SelectItem>
+              <SelectItem value="head">{t("download.logoSizeHead")}</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-[11px] text-muted-foreground">Team logos are always named after the team.</p>
+          <p className="text-[11px] text-muted-foreground">{t("download.logosNamedNote")}</p>
         </div>
       )}
     </div>
@@ -158,6 +162,8 @@ export function DownloadEventMediaButton({
   eventId: number;
   size?: "sm" | "md";
 }) {
+  // i18n: "media" ns (download.*). Consumed on the admin + organizer per-event surfaces.
+  const t = useTranslations("media");
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [options, setOptions] = useState<MediaOptions>(DEFAULT_OPTIONS);
@@ -166,10 +172,10 @@ export function DownloadEventMediaButton({
     setBusy(true);
     try {
       await downloadEsportMedia({ eventId }, options);
-      toast.success("Media ZIP downloaded. Check manifest.txt for anything missing.");
+      toast.success(t("download.downloaded"));
       setOpen(false);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to download the media ZIP.");
+      toast.error(err?.response?.data?.message || t("download.downloadFailed"));
     } finally {
       setBusy(false);
     }
@@ -179,25 +185,24 @@ export function DownloadEventMediaButton({
     <>
       <Button type="button" variant="outline" size={size} onClick={() => setOpen(true)}>
         <IconDownload size={14} className="mr-1" />
-        Download media
+        {t("download.eventButton")}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Download event media</DialogTitle>
+            <DialogTitle>{t("download.eventTitle")}</DialogTitle>
             <DialogDescription>
-              Every registered team logo + rostered player esport image for this event, in one ZIP.
-              Choose the size and file naming.
+              {t("download.eventDescription")}
             </DialogDescription>
           </DialogHeader>
           <MediaOptionFields value={options} onChange={setOptions} />
           <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("download.cancel")}</Button>
             <Button type="button" onClick={run} disabled={busy}>
               {busy ? (
-                <span className="flex items-center gap-2"><IconLoader2 size={14} className="animate-spin" />Preparing...</span>
+                <span className="flex items-center gap-2"><IconLoader2 size={14} className="animate-spin" />{t("download.preparing")}</span>
               ) : (
-                <span className="flex items-center gap-2"><IconDownload size={14} />Download ZIP</span>
+                <span className="flex items-center gap-2"><IconDownload size={14} />{t("download.downloadZip")}</span>
               )}
             </Button>
           </DialogFooter>
@@ -215,6 +220,8 @@ export function DownloadEsportMediaDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  // i18n: "media" ns (download.*). Consumed on the admin Teams page "Download media" dialog.
+  const t = useTranslations("media");
   const [teams, setTeams] = useState<PickedTeam[]>([]);
   const [players, setPlayers] = useState<PickedUser[]>([]);
   const [options, setOptions] = useState<MediaOptions>(DEFAULT_OPTIONS);
@@ -228,20 +235,20 @@ export function DownloadEsportMediaDialog({
 
   const run = async () => {
     if (!teams.length && !players.length) {
-      toast.error("Pick at least one team or player.");
+      toast.error(t("download.pickAtLeastOne"));
       return;
     }
     setBusy(true);
     try {
       await downloadEsportMedia(
-        { teamIds: teams.map((t) => t.team_id), playerIds: players.map((p) => p.user_id) },
+        { teamIds: teams.map((tm) => tm.team_id), playerIds: players.map((p) => p.user_id) },
         options,
       );
-      toast.success("Media ZIP downloaded. Check manifest.txt for anything missing.");
+      toast.success(t("download.downloaded"));
       onOpenChange(false);
       reset();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to download the media ZIP.");
+      toast.error(err?.response?.data?.message || t("download.downloadFailed"));
     } finally {
       setBusy(false);
     }
@@ -257,37 +264,36 @@ export function DownloadEsportMediaDialog({
     >
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Download esport media</DialogTitle>
+          <DialogTitle>{t("download.setTitle")}</DialogTitle>
           <DialogDescription>
-            Pick any teams and players. You get one ZIP with the team logos and player esport
-            images, plus a manifest naming anyone who has not uploaded theirs yet.
+            {t("download.setDescription")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Teams (logos)</Label>
+            <Label>{t("download.teamsLabel")}</Label>
             <TeamSearchSelect
               value={null}
               onChange={(id, team) => {
                 if (id == null || !team) return;
                 setTeams((prev) =>
-                  prev.some((t) => t.team_id === team.team_id) ? prev : [...prev, team],
+                  prev.some((tm) => tm.team_id === team.team_id) ? prev : [...prev, team],
                 );
               }}
-              placeholder="Search and add a team..."
+              placeholder={t("download.teamsPlaceholder")}
             />
             {teams.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {teams.map((t) => (
-                  <Badge key={t.team_id} variant="secondary" className="gap-1 pr-1">
-                    {t.team_name}
+                {teams.map((tm) => (
+                  <Badge key={tm.team_id} variant="secondary" className="gap-1 pr-1">
+                    {tm.team_name}
                     <button
                       type="button"
-                      aria-label={`Remove ${t.team_name}`}
+                      aria-label={t("download.removeTeam", { name: tm.team_name })}
                       className="rounded-full p-0.5 hover:bg-muted-foreground/20"
                       onClick={() =>
-                        setTeams((prev) => prev.filter((x) => x.team_id !== t.team_id))
+                        setTeams((prev) => prev.filter((x) => x.team_id !== tm.team_id))
                       }
                     >
                       <IconX size={12} />
@@ -299,7 +305,7 @@ export function DownloadEsportMediaDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Players (esport images)</Label>
+            <Label>{t("download.playersLabel")}</Label>
             <UserSearchSelect
               value={null}
               onChange={(_u, user) => {
@@ -308,7 +314,7 @@ export function DownloadEsportMediaDialog({
                   prev.some((p) => p.user_id === user.user_id) ? prev : [...prev, user],
                 );
               }}
-              placeholder="Search and add a player..."
+              placeholder={t("download.playersPlaceholder")}
             />
             {players.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
@@ -317,7 +323,7 @@ export function DownloadEsportMediaDialog({
                     {p.username}
                     <button
                       type="button"
-                      aria-label={`Remove ${p.username}`}
+                      aria-label={t("download.removePlayer", { name: p.username })}
                       className="rounded-full p-0.5 hover:bg-muted-foreground/20"
                       onClick={() =>
                         setPlayers((prev) => prev.filter((x) => x.user_id !== p.user_id))
@@ -337,18 +343,18 @@ export function DownloadEsportMediaDialog({
 
         <DialogFooter className="gap-2">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("download.cancel")}
           </Button>
           <Button type="button" onClick={run} disabled={busy}>
             {busy ? (
               <span className="flex items-center gap-2">
                 <IconLoader2 size={14} className="animate-spin" />
-                Preparing...
+                {t("download.preparing")}
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <IconDownload size={14} />
-                Download ZIP
+                {t("download.downloadZip")}
               </span>
             )}
           </Button>

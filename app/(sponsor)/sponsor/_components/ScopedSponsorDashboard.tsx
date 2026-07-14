@@ -34,6 +34,7 @@
 // badges, Card p-0 table, showing-x-of-y footer) per the owner's design-parity feedback.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -115,6 +116,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] }) {
   const { user } = useAuth();
+  const t = useTranslations("sponsorScoped");
 
   // ── state ──
   // events: the MERGED flat list across every membership. null = parallel fetch in flight.
@@ -158,7 +160,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
       ),
     ).then((perSponsor) => {
       if (cancelled) return;
-      if (anyFailed) toast.error("Some of your sponsors' events failed to load.");
+      if (anyFailed) toast.error(t("someSponsorsFailedToLoad"));
       setEvents(perSponsor.flat());
     });
     return () => {
@@ -191,7 +193,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
       .submissions(e.sponsor_id, e.event_id)
       .then((res) => setRows(res.results))
       .catch(() => {
-        toast.error("Failed to load submissions.");
+        toast.error(t("failedToLoadSubmissions"));
         setRows([]);
       });
     // P3 probe, fetched alongside: page 1 of the engagement submissions (All tab,
@@ -229,13 +231,16 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
           root, so we wrap it. The same anchor name lives on the legacy dashboard. */}
       <div data-tour="sponsor-dashboard-header">
         <PageHeader
-          title={`Welcome, ${user?.full_name || user?.in_game_name || ""}`}
+          title={t("welcome", { name: user?.full_name || user?.in_game_name || "" })}
           description={
             openEvent
-              ? `${openEvent.event_name} submissions for ${openEvent.sponsor_name}`
+              ? t("eventSubmissionsFor", {
+                  eventName: openEvent.event_name,
+                  sponsorName: openEvent.sponsor_name,
+                })
               : sponsors.length > 1
-                ? "All events across your sponsors"
-                : `Your ${sponsors[0].name} sponsor dashboard`
+                ? t("allEventsAcrossSponsors")
+                : t("yourSponsorDashboard", { name: sponsors[0].name })
           }
         />
       </div>
@@ -249,7 +254,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
           filter row). The legacy dashboard's search+status row carries the same anchor. */}
       <div data-tour="sponsor-dashboard-filters" className="flex items-center gap-2 flex-wrap">
         <Badge variant="outline" className="rounded-full border-gold px-2 py-0.5 text-xs" style={{ color: "var(--gold)" }}>
-          Sponsor
+          {t("sponsorBadge")}
         </Badge>
         {sponsors.length > 1 ? (
           <Select
@@ -263,7 +268,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL_SPONSORS}>All sponsors</SelectItem>
+              <SelectItem value={ALL_SPONSORS}>{t("allSponsors")}</SelectItem>
               {sponsors.map((s) => (
                 <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
               ))}
@@ -281,16 +286,16 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
         // ── events list (ALL memberships merged; rows tagged with a sponsor chip) ──
         events === null ? (
           <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground text-sm">
-            <IconLoader2 className="size-5 animate-spin" /> Loading your events...
+            <IconLoader2 className="size-5 animate-spin" /> {t("loadingEvents")}
           </div>
         ) : visibleEvents.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               {events.length === 0
                 ? sponsors.length > 1
-                  ? "No events are attached to your sponsors yet."
-                  : `No events are attached to ${sponsors[0].name} yet.`
-                : "No events for this sponsor yet."}
+                  ? t("noEventsAttachedSponsors")
+                  : t("noEventsAttachedOne", { name: sponsors[0].name })
+                : t("noEventsForSponsor")}
             </CardContent>
           </Card>
         ) : (
@@ -313,7 +318,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
                     </Badge>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {e.registrants} registrant{e.registrants !== 1 ? "s" : ""}
+                    {t("registrantsCount", { count: e.registrants })}
                   </div>
                 </div>
                 <span className="text-xs font-medium capitalize text-muted-foreground">
@@ -328,7 +333,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <Button variant="ghost" size="sm" onClick={() => setOpenEvent(null)}>
-              <IconArrowLeft className="size-4" /> Back to your events
+              <IconArrowLeft className="size-4" /> {t("backToEvents")}
             </Button>
             {/* The legacy CSV rides with the legacy surface only; the engagement
                 panel ships its own tab + status scoped Export CSV. */}
@@ -344,7 +349,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
                   )
                 }
               >
-                <IconDownload className="size-4" /> Export CSV
+                <IconDownload className="size-4" /> {t("exportCsv")}
               </Button>
             )}
           </div>
@@ -352,7 +357,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
           {engData === null ? (
             // P3 probe in flight: which surface this event gets is not known yet.
             <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground text-sm">
-              <IconLoader2 className="size-5 animate-spin" /> Loading submissions...
+              <IconLoader2 className="size-5 animate-spin" /> {t("loadingSubmissions")}
             </div>
           ) : engData.engagements.length > 0 ? (
             // ── NEW surface (P3/P4): per-engagement tables + approval queue ──
@@ -369,7 +374,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
               <div className="relative">
                 <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by username, team, or submitted value..."
+                  placeholder={t("searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-9"
@@ -386,14 +391,14 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
 
               {rows === null ? (
                 <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground text-sm">
-                  <IconLoader2 className="size-5 animate-spin" /> Loading submissions...
+                  <IconLoader2 className="size-5 animate-spin" /> {t("loadingSubmissions")}
                 </div>
               ) : filtered.length === 0 ? (
                 <Card>
                   <CardContent className="py-12 text-center text-muted-foreground">
                     {rows.length === 0
-                      ? "No registrations for this event yet."
-                      : "No results match your search."}
+                      ? t("noRegistrations")
+                      : t("noResults")}
                   </CardContent>
                 </Card>
               ) : (
@@ -403,10 +408,10 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Username</TableHead>
-                            <TableHead>Team</TableHead>
-                            <TableHead>Submitted value</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead>{t("colUsername")}</TableHead>
+                            <TableHead>{t("colTeam")}</TableHead>
+                            <TableHead>{t("colSubmittedValue")}</TableHead>
+                            <TableHead>{t("colStatus")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -417,7 +422,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
                               <TableCell>
                                 {r.value ?? (
                                   <span className="text-muted-foreground italic text-xs">
-                                    Not provided
+                                    {t("notProvided")}
                                   </span>
                                 )}
                               </TableCell>
@@ -431,7 +436,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
                     </div>
                     <div className="px-4 py-3 border-t">
                       <p className="text-xs text-muted-foreground">
-                        Showing {filtered.length} of {rows.length}
+                        {t("showingOf", { shown: filtered.length, total: rows.length })}
                       </p>
                     </div>
                   </CardContent>

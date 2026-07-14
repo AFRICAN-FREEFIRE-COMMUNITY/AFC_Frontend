@@ -723,7 +723,7 @@ export default function OrganizerMetricsPage() {
         <>
       {/* ── Headline scorecards ─────────────────────────────────────────────── */}
       {/* The at-a-glance strip: the numbers an organizer checks first. */}
-      <div data-tour="org-metrics-stats" className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+      <div data-tour="org-metrics-stats" className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
         <StatCard
           icon={<IconCalendarEvent className="size-5" />}
           label={t("metrics.cards.eventsRun")}
@@ -808,7 +808,7 @@ export default function OrganizerMetricsPage() {
 
       {/* ── Detail under pill Tabs (keeps the surface scannable as it grows). ── */}
       <Tabs defaultValue="trends" className="w-full">
-        <TabsList data-tour="org-metrics-tabs" className="h-9">
+        <TabsList data-tour="org-metrics-tabs" className="h-9 w-full justify-start overflow-x-auto">
           <TabsTrigger value="trends">{t("metrics.tab.trends")}</TabsTrigger>
           <TabsTrigger value="breakdown">{t("metrics.tab.breakdown")}</TabsTrigger>
           <TabsTrigger value="leaderboards">{t("metrics.tab.leaderboards")}</TabsTrigger>
@@ -1306,7 +1306,7 @@ function EventDetailPanel({ e }: { e: EventRow }) {
   const fill =
     e.capacity > 0 ? Math.round((e.participants / e.capacity) * 100) : null;
   return (
-    <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4 w-[88vw] sm:w-auto">
       {/* Registrations */}
       <DetailGroup title={t("metrics.detail.registrations")}>
         <DetailRow

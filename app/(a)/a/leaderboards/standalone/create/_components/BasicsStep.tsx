@@ -83,6 +83,7 @@ function placementObjToRanks(obj: Record<string, number> | null | undefined): Ra
 export function BasicsStep({
   onCreated,
   organizationId,
+  allowRankingFlag = true,
   initial,
 }: {
   onCreated: (lb: StandaloneLeaderboardHeader) => void;
@@ -92,6 +93,13 @@ export function BasicsStep({
   // page passes the selected org from OrganizerContext; the admin page omits it
   // (null/undefined = AFC-native leaderboard).
   organizationId?: number | null;
+  // "Counts toward AFC rankings" is an AFC-admin-ONLY concept that must live only on the
+  // main ADMIN leaderboard surface (owner 2026-07-13). isAfcAdmin alone is not enough: a
+  // godmode admin browsing the ORGANIZER create page would otherwise still see it (the
+  // organizer portal must never surface it). So the wizard passes allowRankingFlag=false
+  // from the organizer surface; the admin page leaves it at the default true. The toggle
+  // (and the played_on/tier inputs) render only when isAfcAdmin AND allowRankingFlag.
+  allowRankingFlag?: boolean;
   // EDIT MODE (owner 2026-06-12: "when you try to edit a draft you shouldnt have to renter the
   // name... it should simply just be continue so you dont create another draft"). When the wizard
   // already holds a draft (deep-link create?id=<id>, or the admin stepped back to Basics after
@@ -111,6 +119,11 @@ export function BasicsStep({
       ["head_admin", "event_admin"].includes(r.toLowerCase()),
     );
   }, [user]);
+
+  // The ranking flag shows only when the viewer is an AFC admin AND we are on a surface that
+  // allows it (the admin leaderboard page). allowRankingFlag=false on the organizer surface
+  // hides it even for a godmode admin, so the organizer portal never exposes it (owner 2026-07-13).
+  const showRankingFlag = isAfcAdmin && allowRankingFlag;
 
   // Edit mode: every field initialises from the existing draft so nothing has to be re-typed.
   const [name, setName] = useState(initial?.name ?? "");
@@ -165,8 +178,8 @@ export function BasicsStep({
       if (organizationId) {
         body.organization_id = organizationId;
       }
-      // Only an AFC admin may set the flag; for everyone else it's omitted (backend forces false).
-      if (isAfcAdmin) {
+      // Only the admin surface may set the flag; elsewhere it's omitted (backend forces false).
+      if (showRankingFlag) {
         body.counts_toward_rankings = countsTowardRankings;
         // Stream P3: the ranking date + tier are only meaningful when the leaderboard is ranked,
         // so only attach them when the toggle is on. played_on sends null when left blank.
@@ -283,9 +296,9 @@ export function BasicsStep({
                     <button
                       type="button"
                       onClick={() => removeRank(r.id)}
-                      className="text-muted-foreground hover:text-destructive"
+                      className="inline-flex size-6 items-center justify-center rounded text-muted-foreground hover:text-destructive"
                     >
-                      <IconX size={12} />
+                      <IconX size={14} />
                     </button>
                   )}
                 </div>
@@ -339,8 +352,8 @@ export function BasicsStep({
           </div>
         </div>
 
-        {/* counts_toward_rankings — AFC admins only (organizers never see it). */}
-        {isAfcAdmin && (
+        {/* counts_toward_rankings — AFC admin surface only (organizer portal never shows it). */}
+        {showRankingFlag && (
           <div className="space-y-4 rounded-md border p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">

@@ -1,0 +1,359 @@
+<!doctype html>
+<!--
+  AFC EVENT LINKING / QUALIFICATION CHAINS - DESIGN PREVIEW (mock data, in-context, clickable).
+  =================================================================================================
+  WHAT THIS IS
+  The "Linked events" card that slots into the existing admin event page (/a/events/[slug]) and
+  the organizer twin (/organizer/events/[slug]) per tasks/event-linking-design.md v2:
+
+  1. OUTBOUND links: per-STAGE qualification rules this event feeds out ("top 6 of Semi Finals
+     qualify into AFC Champions League", "top 2 of Grand Finals qualify into Dynasty Cup Grand
+     Finals") with status, roster mode and the per-link qualification table.
+  2. QUALIFICATION table per link: placement, team, status (promoted / pending / declined /
+     replaced), and the owner-decided actions: teams can self-DECLINE; the admin then promotes
+     NEXT IN LINE or a SPECIFIC team; window-bypassed promotions land pending for Allow/Reject.
+  3. CREATE LINK dialog: source stage select, target event search, top N, auto-promote toggle,
+     roster mode (copy | captain re-picks) - the per-link roster decision the owner asked for.
+  4. INBOUND view: what the TARGET event's card shows (who feeds it + qualified badges).
+
+  Everything applies identically to organizers on their own events.
+
+  DESIGN SYSTEM: identical tokens to the approved AFC mockups (oklch palette, DM Sans, green
+  page title, pill tabs, bg-card rounded panels, outline rounded-full badges, text-xs tables,
+  gradient overlay). HARD RULES honored: NO em/en dashes in copy. Mock data only. Clickable.
+-->
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Event Linking - Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --background: oklch(0.141 0.005 285.823); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.21 0.006 285.885); --primary: oklch(0.624 0.170 149.09);
+    --gold: oklch(0.79 0.17 83.63); --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067); --border: oklch(1 0 0 / 10%);
+    --radius: 0.65rem; --red: oklch(0.62 0.20 25); --blue: oklch(0.62 0.19 256);
+    --orange: oklch(0.72 0.16 60);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--background);color:var(--foreground);min-height:100vh;position:relative;line-height:1.5;}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,color-mix(in oklch,var(--primary) 18%,transparent),transparent 55%,color-mix(in oklch,var(--gold) 18%,transparent));}
+  .container{position:relative;z-index:1;width:92%;max-width:1180px;margin:0 auto;padding:30px 0 90px;}
+  h1{font-size:clamp(1.875rem,3vw,2.25rem);font-weight:700;color:var(--primary);letter-spacing:-0.01em;margin-bottom:4px;}
+  .sub{color:var(--muted-foreground);font-size:.85rem;margin-bottom:18px;}
+
+  .switch{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap;}
+  .swbtn{font-family:inherit;font-size:.78rem;font-weight:600;border-radius:999px;padding:7px 14px;cursor:pointer;border:1px dashed color-mix(in oklch,var(--gold) 55%,transparent);background:transparent;color:var(--gold);}
+  .swbtn.on{background:var(--gold);color:#1a1205;border-style:solid;}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:14px;}
+  .card h3{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .card .desc{font-size:.8rem;color:var(--muted-foreground);margin-top:2px;}
+
+  .badge{font-size:.72rem;font-weight:500;border-radius:999px;padding:2px 9px;border:1px solid var(--border);color:var(--muted-foreground);display:inline-flex;align-items:center;gap:4px;}
+  .badge.green{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .badge.gold{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 55%,transparent);}
+  .badge.blue{color:var(--blue);border-color:color-mix(in oklch,var(--blue) 50%,transparent);}
+  .badge.orange{color:var(--orange);border-color:color-mix(in oklch,var(--orange) 55%,transparent);}
+  .badge.red{color:var(--red);border-color:color-mix(in oklch,var(--red) 55%,transparent);}
+
+  table{width:100%;border-collapse:collapse;font-size:.75rem;}
+  thead th{text-align:left;color:var(--foreground);font-weight:600;padding:9px 8px;border-bottom:1px solid var(--border);white-space:nowrap;height:40px;}
+  tbody td{padding:8px;border-bottom:1px solid color-mix(in oklch,var(--border) 60%,transparent);vertical-align:middle;}
+  tbody tr:hover{background:color-mix(in oklch,var(--muted) 40%,transparent);}
+
+  .btn{appearance:none;font-family:inherit;font-size:.78rem;font-weight:600;border-radius:calc(var(--radius) - 3px);padding:8px 14px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--foreground);display:inline-flex;align-items:center;gap:6px;}
+  .btn.primary{background:var(--primary);color:#06281a;border-color:transparent;}
+  .btn.sm{font-size:.72rem;padding:5px 10px;}
+  .btn.ok{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .btn.no{color:var(--red);border-color:color-mix(in oklch,var(--red) 50%,transparent);}
+  .btn:hover{filter:brightness(1.12);}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .grow{flex:1;}
+  select.sel,input.inp{background:var(--background);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font-family:inherit;font-size:.78rem;padding:8px 10px;color-scheme:dark;}
+  label.lbl{font-size:.72rem;color:var(--muted-foreground);display:block;margin-bottom:4px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
+
+  /* link block: one outbound rule + its qualification table */
+  .linkblock{border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);padding:14px;margin-top:12px;background:color-mix(in oklch,var(--muted) 30%,transparent);}
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.86rem;font-weight:600;}
+  .flow .arrow{color:var(--primary);font-weight:800;}
+  .meta{font-size:.74rem;color:var(--muted-foreground);margin-top:3px;}
+
+  .tgl{position:relative;width:38px;height:21px;border-radius:999px;background:var(--muted);cursor:pointer;border:1px solid var(--border);transition:background .15s;display:inline-block;vertical-align:middle;}
+  .tgl::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:999px;background:#fff;transition:left .15s;}
+  .tgl.on{background:var(--primary);} .tgl.on::after{left:19px;}
+  .chk{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;cursor:pointer;}
+  .chk input{accent-color:var(--primary);}
+
+  /* dialog */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:grid;place-items:center;}
+  .dialog{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;width:min(560px,94vw);box-shadow:0 18px 60px rgba(0,0,0,.6);}
+  .dialog h3{font-size:1.05rem;font-weight:700;margin-bottom:4px;}
+  .dialog .desc{font-size:.78rem;color:var(--muted-foreground);margin-bottom:14px;}
+  .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .dgrid .full{grid-column:1/-1;}
+  .dfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;}
+  .radio{display:flex;flex-direction:column;gap:6px;font-size:.78rem;}
+  .radio label{display:flex;align-items:flex-start;gap:7px;cursor:pointer;}
+  .radio input{accent-color:var(--primary);margin-top:3px;}
+  .radio .h{color:var(--muted-foreground);font-size:.72rem;}
+
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#fff;color:#111;font-size:.8rem;font-weight:600;border-radius:10px;padding:10px 18px;box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:60;}
+  #toast.show{opacity:1;}
+  .hide{display:none;}
+  .note{font-size:.74rem;color:var(--muted-foreground);border:1px dashed var(--border);border-radius:calc(var(--radius) - 2px);padding:8px 12px;margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1 id="pagetitle">Dynasty Cup Nigeria</h1>
+  <div class="sub" id="pagesub">The "Linked events" card on the admin event page (organizers get the same card on their own events).</div>
+
+  <div class="switch">
+    <button class="swbtn on" id="sw-out" onclick="showView('out')">1. Source event: outbound links</button>
+    <button class="swbtn" id="sw-in" onclick="showView('in')">2. Target event: inbound view</button>
+  </div>
+
+  <!-- ════════ VIEW 1: OUTBOUND (source event card) ════════ -->
+  <div id="view-out">
+    <div class="card">
+      <div class="row">
+        <div class="grow">
+          <h3>Linked events <span class="badge gold">qualification</span></h3>
+          <div class="desc">Stages of THIS event that qualify teams into other events. Standings are read PER STAGE when that stage's results are finalized.</div>
+        </div>
+        <button class="btn primary" onclick="document.getElementById('dlg').classList.remove('hide')">+ Link a stage to an event</button>
+      </div>
+
+      <!-- link 1: semis -> champions league -->
+      <div class="linkblock">
+        <div class="flow">
+          <span class="badge blue">Semi Finals</span> <span class="arrow">&#8594;</span>
+          top <b>6</b> qualify into <span style="color:var(--primary);">AFC Champions League</span>
+          <span class="badge green">auto promote</span> <span class="badge">roster: captain re-picks</span>
+          <span class="badge orange" style="margin-left:auto;">waiting on stage results</span>
+        </div>
+        <div class="meta">Fires when Semi Finals standings are finalized. Created by admin ladilawalt.</div>
+      </div>
+
+      <!-- link 2: finals -> grand finals, with live qualification table -->
+      <div class="linkblock">
+        <div class="flow">
+          <span class="badge blue">Grand Finals</span> <span class="arrow">&#8594;</span>
+          top <b>2</b> qualify into <span style="color:var(--primary);">Dynasty Cup Grand Finals</span>
+          <span class="badge green">auto promote</span> <span class="badge">roster: copied</span>
+          <span class="badge green" style="margin-left:auto;" id="link2status">fired</span>
+        </div>
+        <div class="meta">Stage standings finalized 2026-06-10. Qualifications below; teams can decline their own slot. Every decision can be undone.</div>
+
+        <!-- STANDINGS-EDITED banner (owner: edits to settled source standings must surface on the
+             connected event AND notify the link creator). Hidden until the simulation button fires. -->
+        <div class="linkblock hide" id="changebanner" style="border-color:color-mix(in oklch,var(--gold) 55%,transparent);background:color-mix(in oklch,var(--gold) 8%,transparent);">
+          <div class="flow" style="font-size:.8rem;">
+            <span class="badge gold">standings edited</span>
+            The Grand Finals standings were CHANGED after this link fired: #2 is now PUNKY CVS (was RATED ESPORTS).
+          </div>
+          <div class="meta">ladilawalt (link creator) was notified in-app and by the bell icon. Review the difference and decide.</div>
+          <div class="row" style="margin-top:8px;">
+            <button class="btn sm ok" onclick="applyChange()">Apply the change (swap #2 to PUNKY CVS)</button>
+            <button class="btn sm" onclick="dismissChange()">Keep the current qualification</button>
+          </div>
+        </div>
+
+        <table style="margin-top:10px;">
+          <thead><tr><th style="width:46px;">#</th><th>Team</th><th>Status</th><th>Note</th><th style="width:280px;">Action</th></tr></thead>
+          <tbody id="qrows"></tbody>
+        </table>
+        <div class="row" style="margin-top:10px;">
+          <button class="btn sm" style="border-style:dashed;color:var(--gold);border-color:color-mix(in oklch,var(--gold) 55%,transparent);" onclick="simulateEdit()">Preview: simulate the source standings being edited</button>
+        </div>
+      </div>
+      <div class="note">Permissions: admins link ANY events; organizers see this same card and can only link stages of THEIR OWN events to their own targets.</div>
+    </div>
+  </div>
+
+  <!-- ════════ VIEW 2: INBOUND (target event card) ════════ -->
+  <div id="view-in" class="hide">
+    <div class="card">
+      <h3>Qualifies from <span class="badge gold">10 sources</span></h3>
+      <div class="desc">What Dynasty Cup Grand Finals shows: every qualifier stage feeding it, and who has arrived so far.</div>
+      <table style="margin-top:10px;">
+        <thead><tr><th>Source event / stage</th><th>Rule</th><th>Arrived</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><b>Dynasty Cup Nigeria</b> / Grand Finals</td><td>top 2</td><td>V-ENT ESPORTS, RATED ESPORTS</td><td><span class="badge green">fulfilled</span></td></tr>
+          <tr><td><b>Dynasty Cup Ghana</b> / Grand Finals</td><td>top 2</td><td>ACCRA KINGS</td><td><span class="badge orange">1 pending window approval</span></td></tr>
+          <tr><td><b>Dynasty Cup Kenya</b> / Grand Finals</td><td>top 2</td><td>none yet</td><td><span class="badge blue">waiting on stage</span></td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:14px;font-size:.8rem;font-weight:600;">Registered competitors (with qualification badges)</div>
+      <table style="margin-top:6px;">
+        <thead><tr><th>Team</th><th>How they got in</th></tr></thead>
+        <tbody>
+          <tr><td><b>V-ENT ESPORTS</b></td><td><span class="badge gold">Qualified: Dynasty Cup Nigeria #1</span></td></tr>
+          <tr><td><b>RATED ESPORTS</b></td><td><span class="badge gold">Qualified: Dynasty Cup Nigeria #2</span></td></tr>
+          <tr><td><b>ACCRA KINGS</b></td><td><span class="badge gold">Qualified: Dynasty Cup Ghana #1</span></td></tr>
+        </tbody>
+      </table>
+      <div class="note">A qualified team's captain sees a "You qualified for Dynasty Cup Grand Finals" notification with Accept / Decline. Declining frees the slot; the admin then promotes the next in line or any specific team.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ CREATE LINK DIALOG ════════ -->
+<div class="overlay hide" id="dlg">
+  <div class="dialog">
+    <h3>Link a stage to an event</h3>
+    <div class="desc">Top N of the chosen stage's standings qualify into the target event when the stage's results are finalized.</div>
+    <div class="dgrid">
+      <div>
+        <label class="lbl">Source stage (this event)</label>
+        <select class="sel" style="width:100%;"><option>Semi Finals</option><option selected>Grand Finals</option><option>Group Stage</option></select>
+      </div>
+      <div>
+        <label class="lbl">Top N qualify</label>
+        <input class="inp" style="width:100%;" type="number" value="2" min="1" />
+      </div>
+      <div class="full">
+        <label class="lbl">Target event</label>
+        <input class="inp" style="width:100%;" value="Dynasty Cup Grand Finals" onfocus="toast('Mock: event typeahead (admins: any event; organizers: their own events only).')" />
+      </div>
+      <div>
+        <label class="lbl">Auto promote</label>
+        <span class="chk"><span class="tgl on" onclick="this.classList.toggle('on')"></span> promote the moment standings settle</span>
+      </div>
+      <div>
+        <label class="lbl">Roster at promotion</label>
+        <div class="radio">
+          <label><input type="radio" name="rm" checked /><span>Copy finishing roster<div class="h">registers the roster the team finished the stage with</div></span></label>
+          <label><input type="radio" name="rm" /><span>Captain re-picks<div class="h">captain confirms or edits via Edit Registration before roster lock</div></span></label>
+        </div>
+      </div>
+    </div>
+    <div class="dfoot">
+      <button class="btn" onclick="document.getElementById('dlg').classList.add('hide')">Cancel</button>
+      <button class="btn primary" onclick="document.getElementById('dlg').classList.add('hide');toast('Link created (mock). It will fire when the stage standings are finalized.')">Create link</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script>
+  // qualification rows for link 2 (Grand Finals -> Dynasty Cup Grand Finals, top 2)
+  // statuses: promoted | pending (window/gate) | declined | replaced
+  var quals = [
+    {p:1, team:"V-ENT ESPORTS", s:"promoted",  note:"roster copied; registered in target"},
+    {p:2, team:"RATED ESPORTS", s:"pending",   note:"target registration window closed: allow or reject"},
+  ];
+  var nextInLine = ["NEXT GAMERS ESPORTS", "PUNKY CVS", "ACCRA KINGS"];
+
+  // pre-decision snapshots so every decision is UNDOable (owner feedback).
+  var snap = {};
+
+  function qbadge(s){
+    var map = {promoted:"green", pending:"orange", declined:"red", replaced:"gold"};
+    return '<span class="badge '+map[s]+'">'+s+'</span>';
+  }
+  function undoBtn(i){
+    return snap[i] ? ' <button class="btn sm" style="color:var(--muted-foreground);" onclick="undoQ('+i+')">&#8634; Undo</button>' : '';
+  }
+  function render(){
+    var html = "";
+    for (var i=0;i<quals.length;i++){
+      var q = quals[i];
+      html += '<tr><td style="font-weight:700;">#'+q.p+'</td><td style="font-weight:600;">'+q.team+'</td><td>'+qbadge(q.s)+'</td><td style="color:var(--muted-foreground);">'+q.note+'</td><td>';
+      if (q.s==="pending"){
+        html += '<button class="btn sm ok" onclick="allow('+i+')">&#10003; Allow</button> '+
+                '<button class="btn sm no" onclick="declineRow('+i+', false)">&#10005; Reject</button>' + undoBtn(i);
+      } else if (q.s==="promoted"){
+        html += '<button class="btn sm no" onclick="declineRow('+i+', true)">Team declined?</button>' + undoBtn(i);
+      } else if (q.s==="declined"){
+        html += '<button class="btn sm ok" onclick="replaceNext('+i+')">Promote next in line</button> '+
+                '<button class="btn sm" onclick="replacePick('+i+')">Pick a specific team</button>' + undoBtn(i);
+      } else {
+        html += undoBtn(i) || '<span style="color:var(--muted-foreground);font-size:.72rem;">resolved</span>';
+      }
+      html += '</td></tr>';
+    }
+    document.getElementById("qrows").innerHTML = html;
+  }
+  function remember(i){ snap[i] = {s: quals[i].s, note: quals[i].note, team: quals[i].team}; }
+  function undoQ(i){
+    var s = snap[i]; if (!s) return;
+    quals[i].s = s.s; quals[i].note = s.note + " (decision undone)"; quals[i].team = s.team;
+    delete snap[i];
+    render(); toast("Decision undone. "+quals[i].team+" is back to "+quals[i].s+".");
+  }
+  function allow(i){
+    remember(i);
+    quals[i].s = "promoted"; quals[i].note = "window bypass allowed by admin; roster copied";
+    render(); toast(quals[i].team+" promoted into Dynasty Cup Grand Finals. You can undo this.");
+  }
+  function declineRow(i, selfDecline){
+    remember(i);
+    quals[i].s = "declined";
+    quals[i].note = selfDecline ? "captain declined the slot" : "rejected by admin";
+    render(); toast(quals[i].team+" slot is now open. Promote the next in line, pick a specific team, or undo.");
+  }
+  function replaceNext(i){
+    remember(i);
+    var rep = nextInLine.shift() || "NEXT TEAM";
+    quals[i].s = "replaced"; quals[i].note = "replaced by "+rep+" (next in line, #"+(quals[i].p+1)+" of the stage)";
+    render(); toast(rep+" promoted as the replacement. You can undo this.");
+  }
+  function replacePick(i){
+    remember(i);
+    quals[i].s = "replaced"; quals[i].note = "replaced by PUNKY CVS (admin pick via team search)";
+    render(); toast("PUNKY CVS promoted as the replacement (mock team picker). You can undo this.");
+  }
+
+  // ── standings-edited propagation (owner: edited source standings must show on the connected
+  // event and notify the link creator in-app) ──
+  function simulateEdit(){
+    document.getElementById("changebanner").classList.remove("hide");
+    document.getElementById("link2status").textContent = "standings edited";
+    document.getElementById("link2status").className = "badge gold";
+    toast("In-app notification sent to ladilawalt: 'Grand Finals standings of Dynasty Cup Nigeria changed after your link fired.'");
+  }
+  function applyChange(){
+    remember(1);
+    quals[1] = {p:2, team:"PUNKY CVS", s:"promoted", note:"standings edit applied: replaced RATED ESPORTS as #2; roster copied"};
+    document.getElementById("changebanner").classList.add("hide");
+    document.getElementById("link2status").textContent = "fired";
+    document.getElementById("link2status").className = "badge green";
+    render(); toast("Change applied. RATED ESPORTS was withdrawn from the target; PUNKY CVS promoted. Undo available.");
+  }
+  function dismissChange(){
+    document.getElementById("changebanner").classList.add("hide");
+    document.getElementById("link2status").textContent = "fired";
+    document.getElementById("link2status").className = "badge green";
+    toast("Kept the current qualification. The notification stays in the creator's history.");
+  }
+
+  var titles = {
+    out: ["Dynasty Cup Nigeria", "The \"Linked events\" card on the admin event page (organizers get the same card on their own events)."],
+    in:  ["Dynasty Cup Grand Finals", "The TARGET event's view: its feeder stages and the qualified competitors."]
+  };
+  function showView(k){
+    ["out","in"].forEach(function(x){
+      document.getElementById("view-"+x).classList.toggle("hide", x!==k);
+      document.getElementById("sw-"+x).classList.toggle("on", x===k);
+    });
+    document.getElementById("pagetitle").textContent = titles[k][0];
+    document.getElementById("pagesub").textContent = titles[k][1];
+  }
+
+  var toastTimer = null;
+  function toast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+  }
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,819 @@
+<!doctype html>
+<!--
+  ============================================================================
+  AFC GENERAL SHOP PRODUCTS - APPROVAL MOCKUP (mock data, in-context, clickable)
+  ============================================================================
+  Purpose: show the shop selling ARBITRARY PHYSICAL PRODUCTS (thumbsleeves, phone
+  coolers, gaming phones, jerseys) ALONGSIDE the existing Free Fire diamonds, on
+  BOTH surfaces:
+    - USER side  : product grid (image / price / "from" price / variants / category
+                   tabs / search) -> product detail drawer with variant picker.
+    - ADMIN side : products management table (list + filters) + Add/Edit Product
+                   modal with a dynamic variant field-array.
+
+  In-context: this is the REAL shop page chrome with the new feature dropped in.
+  It mirrors:
+    - app/(user)/shop/_components/ShopClient.tsx   (PageHeader green title, pill
+      category Tabs, search input, 3-col card grid, "Buy Now", out-of-stock badge)
+    - app/(a)/a/shop/inventory/page.tsx            (filter Tabs, products Table with
+      text-xs density, status Badge, row dropdown -> Edit/Delete/Toggle)
+    - app/(a)/a/shop/_components/AddProductModal.tsx (name + category Select +
+      description + limited-stock Switch + variants field-array)
+
+  A top "surface switcher" (User shop / Admin products) lets the reviewer flip
+  between the two sides in one file. It is a MOCKUP-ONLY control, not part of the
+  real app; the real app reaches these via /shop and /a/shop/inventory.
+
+  Backend note baked into the copy: Product/ProductVariant is ALREADY mostly
+  generic (product_type is a CharField with choices, variant has price/sku/title/
+  stock_qty + a free-form JSON `meta`, image fields on both). What blocks physical
+  goods today is the FRONTEND `shopProductTypes = ["diamonds"]` constant + the
+  diamond-only copy, plus a few physical-goods fields (weight/shipping, attribute
+  options like size/color). See the "Model readiness" ribbon on the admin side.
+
+  HARD RULES honored: NO em/en dashes anywhere. DM Sans. Green page title.
+  oklch dark theme + primary/gold gradient. Pill (segment) tabs, not underline.
+  Cards rounded-md. Tables text-xs. Outline rounded-full status badges.
+  ============================================================================
+-->
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AFC Shop - General Products Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  /* ── design tokens: lifted verbatim from the two approved mockups + globals.css ── */
+  :root{
+    --background: oklch(0.141 0.005 285.823); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.21 0.006 285.885); --primary: oklch(0.624 0.170 149.09);
+    --gold: oklch(0.79 0.17 83.63); --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067); --border: oklch(1 0 0 / 10%);
+    --radius: 0.65rem; --red: oklch(0.62 0.20 25); --secondary: oklch(0.274 0.006 286.033);
+    --blue: oklch(0.62 0.19 256);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--background);color:var(--foreground);min-height:100vh;position:relative;line-height:1.5;}
+  /* fixed gradient overlay: from-primary/20 via-transparent to-gold/20 */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,color-mix(in oklch,var(--primary) 18%,transparent),transparent 55%,color-mix(in oklch,var(--gold) 18%,transparent));}
+  .container{position:relative;z-index:1;width:92%;max-width:1180px;margin:0 auto;padding:30px 0 90px;}
+  a{color:inherit;text-decoration:none;}
+
+  /* ── PageHeader idiom: back chip + green bold title ── */
+  .pagehead{display:flex;align-items:center;gap:16px;margin-bottom:6px;}
+  .back{width:40px;height:40px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);display:grid;place-items:center;font-size:18px;cursor:pointer;}
+  h1{font-size:clamp(1.875rem,3vw,2.25rem);font-weight:700;color:var(--primary);letter-spacing:-0.01em;}
+  .headrow{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+
+  /* ── buttons (shadcn idiom) ── */
+  .btn{appearance:none;border:1px solid transparent;background:var(--primary);color:#06281a;font-family:inherit;font-weight:600;font-size:.82rem;border-radius:calc(var(--radius) - 2px);padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:filter .15s,background .15s;}
+  .btn:hover{filter:brightness(1.07);}
+  .btn.outline{background:transparent;color:var(--foreground);border-color:var(--border);}
+  .btn.outline:hover{background:color-mix(in oklch,var(--foreground) 6%,transparent);}
+  .btn.ghost{background:transparent;color:var(--muted-foreground);border-color:transparent;padding:7px 9px;}
+  .btn.ghost:hover{background:color-mix(in oklch,var(--foreground) 6%,transparent);color:var(--foreground);}
+  .btn.sm{font-size:.76rem;padding:7px 11px;}
+  .btn.danger{background:transparent;color:var(--red);border-color:transparent;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* ── pill (segment) tabs: bg-muted track, active = bg-background fill ── */
+  .tabs{display:inline-flex;gap:4px;background:var(--muted);border-radius:var(--radius);padding:4px;overflow-x:auto;max-width:100%;}
+  .tabs.full{display:flex;width:100%;}
+  .tab{flex:0 0 auto;text-align:center;font-size:.82rem;font-weight:600;padding:8px 16px;border-radius:calc(var(--radius) - 3px);color:var(--muted-foreground);cursor:pointer;white-space:nowrap;border:0;background:transparent;font-family:inherit;}
+  .tabs.full .tab{flex:1;}
+  .tab.active{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+
+  /* ── surface switcher (mockup-only chrome) ── */
+  .surfbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:22px;}
+  .surfbar .note{font-size:.74rem;color:var(--muted-foreground);}
+  .surfbar .note b{color:var(--gold);}
+
+  /* ── search input ── */
+  .search{position:relative;margin-bottom:16px;}
+  .search input{width:100%;background:color-mix(in oklch,var(--background) 60%,transparent);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font-family:inherit;font-size:.86rem;padding:10px 12px 10px 38px;}
+  .search input::placeholder{color:var(--muted-foreground);}
+  .search .ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted-foreground);font-size:1rem;}
+
+  /* ── product grid (user) ── */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .pcard{background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 1px);overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .15s,border-color .15s;}
+  .pcard:hover{box-shadow:0 8px 26px rgba(0,0,0,.4);border-color:color-mix(in oklch,var(--primary) 35%,var(--border));}
+  .pcard .imgwrap{position:relative;aspect-ratio:16/9;background:var(--muted);display:grid;place-items:center;overflow:hidden;}
+  .pcard .emoji{font-size:3.4rem;filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));}
+  .pcard .oos{position:absolute;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;}
+  .pcard .oos span{background:var(--red);color:#fff;font-size:.78rem;font-weight:700;border-radius:999px;padding:6px 14px;}
+  .ribbon{position:absolute;top:9px;left:9px;display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{font-size:.66rem;font-weight:700;border-radius:999px;padding:3px 9px;border:1px solid var(--border);background:color-mix(in oklch,var(--background) 70%,transparent);backdrop-filter:blur(3px);}
+  .chip.cat{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 45%,transparent);text-transform:capitalize;}
+  .chip.dia{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 50%,transparent);}
+  .chip.phys{color:var(--blue);border-color:color-mix(in oklch,var(--blue) 50%,transparent);}
+  .pcard .body{padding:15px;display:flex;flex-direction:column;gap:7px;flex:1;}
+  .pcard .nm{font-size:1rem;font-weight:600;line-height:1.25;}
+  .pcard .meta{font-size:.74rem;color:var(--muted-foreground);}
+  .pcard .dia-amt{display:inline-flex;align-items:center;gap:4px;color:var(--gold);font-size:.8rem;font-weight:600;}
+  .pcard .price{font-size:1.2rem;font-weight:700;margin-top:auto;}
+  .pcard .price .from{font-size:.7rem;font-weight:500;color:var(--muted-foreground);margin-right:4px;text-transform:uppercase;letter-spacing:.04em;}
+  .pcard .vcount{font-size:.7rem;color:var(--muted-foreground);}
+  .pcard .body .btn{width:100%;justify-content:center;margin-top:4px;}
+
+  .empty{text-align:center;padding:48px 0;color:var(--muted-foreground);}
+  .empty .ic{font-size:2.4rem;opacity:.5;}
+
+  /* ── tables (admin), text-xs density ── */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 1px);padding:22px;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+  .card h3{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:7px;}
+  .card .sub{font-size:.8rem;color:var(--muted-foreground);margin-top:3px;}
+  table{width:100%;border-collapse:collapse;font-size:.78rem;}
+  thead th{text-align:left;color:var(--foreground);font-weight:600;font-size:.74rem;padding:8px;height:40px;border-bottom:1px solid var(--border);}
+  th.c,td.c{text-align:center;} th.r,td.r{text-align:right;}
+  tbody td{padding:8px;border-top:1px solid color-mix(in oklch,var(--border) 60%,transparent);vertical-align:middle;}
+  tbody tr:hover td{background:color-mix(in oklch,var(--primary) 4%,transparent);}
+  .pname{display:flex;flex-direction:column;}
+  .pname .top{display:flex;align-items:center;gap:7px;font-weight:600;}
+  .pname .ptype{font-size:.7rem;color:var(--muted-foreground);text-transform:capitalize;margin-left:24px;}
+  .ic-sq{width:18px;height:18px;display:grid;place-items:center;font-size:.95rem;}
+
+  /* outline rounded-full status badges */
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;border-radius:999px;padding:2px 9px;border:1px solid var(--border);text-transform:capitalize;}
+  .badge.ok{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .badge.off{color:var(--muted-foreground);}
+  .badge.warn{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 50%,transparent);}
+  .badge.lim{color:var(--blue);border-color:color-mix(in oklch,var(--blue) 50%,transparent);}
+  .badge.solid{background:var(--primary);color:#06281a;border-color:transparent;}
+  .badge.solid.muted{background:var(--secondary);color:var(--foreground);}
+
+  /* row dropdown */
+  .menu{position:relative;display:inline-block;}
+  .menu .pop{position:absolute;right:0;top:30px;background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);padding:5px;min-width:148px;box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:40;display:none;}
+  .menu.open .pop{display:block;}
+  .menu .pop button{width:100%;text-align:left;background:transparent;border:0;color:var(--foreground);font-family:inherit;font-size:.8rem;padding:7px 9px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+  .menu .pop button:hover{background:color-mix(in oklch,var(--foreground) 7%,transparent);}
+  .menu .pop button.danger{color:var(--red);}
+
+  /* model-readiness ribbon */
+  .ribbon-note{display:flex;gap:12px;align-items:flex-start;background:color-mix(in oklch,var(--primary) 8%,var(--card));border:1px solid color-mix(in oklch,var(--primary) 30%,transparent);border-radius:calc(var(--radius) - 1px);padding:13px 16px;margin-bottom:18px;font-size:.8rem;color:var(--muted-foreground);}
+  .ribbon-note .tag{flex-shrink:0;font-size:1.1rem;}
+  .ribbon-note b{color:var(--foreground);}
+  .ribbon-note code{background:color-mix(in oklch,var(--background) 70%,transparent);border:1px solid var(--border);border-radius:5px;padding:1px 5px;font-size:.74rem;color:var(--gold);}
+
+  /* stat row (admin summary) */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:calc(var(--radius) - 1px);padding:15px 17px;}
+  .stat .lbl{font-size:.74rem;color:var(--muted-foreground);}
+  .stat .val{font-size:1.5rem;font-weight:700;margin-top:4px;}
+  .stat .val.green{color:var(--primary);} .stat .val.gold{color:var(--gold);} .stat .val.blue{color:var(--blue);}
+
+  /* pagination */
+  .pager{display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-size:.78rem;color:var(--muted-foreground);flex-wrap:wrap;gap:10px;}
+  .pager .pages{display:flex;gap:5px;}
+  .pager .pages button{min-width:32px;height:32px;border:1px solid var(--border);background:transparent;color:var(--foreground);border-radius:7px;font-family:inherit;font-size:.78rem;cursor:pointer;}
+  .pager .pages button.on{background:var(--muted);}
+  .pager .pages button:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ── modal / drawer overlay ── */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(2px);z-index:80;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;}
+  .overlay.open{display:flex;}
+  .modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:680px;box-shadow:0 24px 60px rgba(0,0,0,.6);animation:pop .16s ease;}
+  .modal.wide{max-width:760px;}
+  @keyframes pop{from{opacity:0;transform:translateY(8px) scale(.99);}to{opacity:1;transform:none;}}
+  .modal .mhead{padding:20px 22px 6px;}
+  .modal .mhead h2{font-size:1.15rem;font-weight:700;}
+  .modal .mhead p{font-size:.82rem;color:var(--muted-foreground);margin-top:3px;}
+  .modal .mbody{padding:14px 22px 4px;}
+  .modal .mfoot{padding:16px 22px 20px;display:flex;justify-content:flex-end;gap:9px;border-top:1px solid var(--border);margin-top:12px;}
+  .closex{float:right;background:transparent;border:0;color:var(--muted-foreground);font-size:1.3rem;cursor:pointer;line-height:1;}
+
+  /* form fields (shadcn Form idiom) */
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:.8rem;font-weight:500;margin-bottom:6px;}
+  .field .hint{font-size:.72rem;color:var(--muted-foreground);margin-top:5px;}
+  .field input,.field select,.field textarea{width:100%;background:var(--background);border:1px solid var(--border);border-radius:calc(var(--radius) - 3px);color:var(--foreground);font-family:inherit;font-size:.84rem;padding:9px 10px;color-scheme:dark;}
+  .field textarea{resize:vertical;min-height:64px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .switchrow{display:flex;align-items:center;gap:10px;font-size:.84rem;}
+  .switch{width:38px;height:22px;border-radius:999px;background:var(--muted);border:1px solid var(--border);position:relative;cursor:pointer;flex-shrink:0;transition:background .15s;}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:999px;background:var(--foreground);transition:transform .15s;}
+  .switch.on{background:var(--primary);} .switch.on::after{transform:translateX(16px);background:#06281a;}
+  .info{display:inline-grid;place-items:center;width:14px;height:14px;border-radius:999px;border:1px solid var(--muted-foreground);color:var(--muted-foreground);font-size:.6rem;font-weight:700;cursor:help;margin-left:5px;vertical-align:middle;}
+
+  .hr{border:0;border-top:1px solid var(--border);margin:18px 0;}
+  .vhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .vhead h4{font-size:.85rem;font-weight:600;}
+  /* variant block in Add/Edit modal */
+  .vblock{border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);padding:14px;margin-bottom:12px;position:relative;background:color-mix(in oklch,var(--background) 40%,transparent);}
+  .vblock .rm{position:absolute;top:9px;right:9px;}
+  /* attribute key:value pairs stored into variant.meta (size/color etc) */
+  .attrs{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .attr{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;}
+  .attr input{padding:7px 9px;font-size:.8rem;}
+
+  /* ── product detail drawer (user) ── */
+  .drawer{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:760px;box-shadow:0 24px 60px rgba(0,0,0,.6);animation:pop .16s ease;overflow:hidden;}
+  .drawer .dgridwrap{display:grid;grid-template-columns:1fr 1.1fr;gap:0;}
+  .drawer .dimg{aspect-ratio:1/1;background:var(--muted);display:grid;place-items:center;font-size:5rem;}
+  .drawer .dinfo{padding:22px;}
+  .drawer .dinfo h2{font-size:1.4rem;font-weight:700;margin:8px 0 4px;}
+  .drawer .dinfo .desc{font-size:.82rem;color:var(--muted-foreground);margin-bottom:16px;}
+  .voption{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid var(--border);border-radius:calc(var(--radius) - 2px);padding:11px 13px;cursor:pointer;margin-bottom:9px;transition:border-color .12s,background .12s;}
+  .voption:hover{border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .voption.sel{border-color:var(--primary);background:color-mix(in oklch,var(--primary) 7%,transparent);}
+  .voption .vt{font-weight:600;font-size:.86rem;}
+  .voption .va{font-size:.72rem;color:var(--muted-foreground);}
+  .voption .vp{font-weight:700;font-size:.95rem;}
+  .voption.oos{opacity:.5;cursor:not-allowed;}
+  .qtyrow{display:flex;align-items:center;justify-content:space-between;margin:16px 0;}
+  .qty{display:inline-flex;align-items:center;gap:10px;}
+  .qty button{width:34px;height:34px;border:1px solid var(--border);background:transparent;color:var(--foreground);border-radius:8px;font-size:1.1rem;cursor:pointer;}
+  .qty .n{font-size:1.1rem;font-weight:700;width:28px;text-align:center;}
+  .dlabel{font-size:.74rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted-foreground);margin-bottom:9px;}
+
+  /* toast */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid color-mix(in oklch,var(--primary) 45%,transparent);color:var(--foreground);font-size:.84rem;font-weight:500;padding:11px 18px;border-radius:10px;box-shadow:0 12px 34px rgba(0,0,0,.5);z-index:200;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;display:flex;align-items:center;gap:9px;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast .dot{color:var(--primary);}
+
+  @media(max-width:880px){
+    .grid{grid-template-columns:repeat(2,1fr);}
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .drawer .dgridwrap{grid-template-columns:1fr;}
+    .drawer .dimg{aspect-ratio:16/9;}
+    table{font-size:.74rem;}
+  }
+  @media(max-width:560px){.grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── MOCKUP-ONLY surface switcher (flip between the two real pages) ── -->
+  <div class="surfbar">
+    <div class="tabs" id="surfTabs">
+      <button class="tab active" onclick="setSurface('user',this)">User shop (/shop)</button>
+      <button class="tab" onclick="setSurface('admin',this)">Admin products (/a/shop/inventory)</button>
+    </div>
+    <div class="note">Preview switcher only. <b>Diamonds + physical products coexist</b> in one catalog.</div>
+  </div>
+
+  <!-- ============================ USER SHOP ============================ -->
+  <section id="surf-user">
+    <!-- PageHeader: back chip + green title, "Cart" outline button on the right (matches ShopClient.tsx) -->
+    <div class="headrow">
+      <div class="pagehead"><div class="back">&larr;</div><h1>AFC Shop</h1></div>
+      <button class="btn outline" onclick="toast('Cart has 2 items')">&#128722; Cart</button>
+    </div>
+
+    <!-- category pill tabs: diamonds stays, physical categories added -->
+    <div class="tabs full" id="catTabs" style="margin-bottom:16px"></div>
+
+    <!-- search -->
+    <div class="search">
+      <span class="ic">&#128269;</span>
+      <input id="userSearch" type="search" placeholder="Search diamonds..." oninput="renderUserGrid()">
+    </div>
+
+    <!-- product grid -->
+    <div class="grid" id="userGrid"></div>
+    <div id="userEmpty" class="empty hide"><div class="ic">&#128269;</div><p style="margin-top:8px;font-weight:600;color:var(--foreground)">No products found</p></div>
+  </section>
+
+  <!-- ============================ ADMIN PRODUCTS ============================ -->
+  <section id="surf-admin" class="hide">
+    <div class="headrow">
+      <div class="pagehead"><div class="back">&larr;</div><h1>Inventory Management</h1></div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap">
+        <button class="btn outline sm" onclick="toast('Opens coupon metrics')">&#128202; Coupon Metrics</button>
+        <button class="btn" onclick="openAddProduct()">&#10753; Add Product</button>
+      </div>
+    </div>
+
+    <!-- model-readiness ribbon: the headline answer for the reviewer -->
+    <div class="ribbon-note">
+      <span class="tag">&#9989;</span>
+      <div>
+        <b>The Product model is already generic.</b> <code>product_type</code> is a choices CharField (diamonds / bundle / gun_skin today, just add rows),
+        and <code>ProductVariant</code> carries <code>title</code>, <code>price</code>, <code>sku</code>, <code>stock_qty</code>, an image, and a free-form
+        <code>meta</code> JSON for attributes like size or color. To sell physical goods we mainly (1) widen the frontend
+        <code>shopProductTypes</code> constant past <code>["diamonds"]</code>, (2) swap diamond-only copy for generic copy, and (3) add a few physical fields
+        (weight, requires shipping, attribute options). No schema rebuild needed.
+      </div>
+    </div>
+
+    <!-- summary stats -->
+    <div class="stats" id="adminStats"></div>
+
+    <!-- status filter pills (All / Active / Inactive) + category filter pills -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+      <div class="tabs" id="adminStatusTabs"></div>
+      <div class="tabs" id="adminCatTabs"></div>
+    </div>
+
+    <!-- products table -->
+    <div class="card" style="padding:18px 18px 14px">
+      <h3>Catalog Products</h3>
+      <p class="sub">Manage diamonds and physical merchandise. Click the row menu to edit, toggle, or delete.</p>
+      <div style="overflow-x:auto;margin-top:12px">
+        <table>
+          <thead><tr>
+            <th>Name</th><th>Category</th><th>Status</th><th>Stock</th><th>Price</th><th class="c">Variants</th><th>Updated</th><th></th>
+          </tr></thead>
+          <tbody id="adminBody"></tbody>
+        </table>
+      </div>
+      <div class="pager">
+        <span id="adminCount"></span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ── product detail drawer (user) ── -->
+<div class="overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+  <div class="drawer" id="detailDrawer"></div>
+</div>
+
+<!-- ── Add / Edit product modal (admin) ── -->
+<div class="overlay" id="productOverlay" onclick="if(event.target===this)closeProduct()">
+  <div class="modal wide">
+    <div class="mhead">
+      <button class="closex" onclick="closeProduct()">&times;</button>
+      <h2 id="pmTitle">Add New Product</h2>
+      <p>Fill in the product details and its variants. Works for diamonds and physical goods alike.</p>
+    </div>
+    <div class="mbody">
+      <div class="grid2">
+        <div class="field">
+          <label>Product Name</label>
+          <input id="f_name" placeholder="e.g. AFC Pro Thumbsleeves">
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <!-- widened past the diamond-only list: this is the shopProductTypes change made real -->
+          <select id="f_type" onchange="onTypeChange()">
+            <option value="diamonds">Diamonds</option>
+            <option value="thumbsleeves">Thumbsleeves</option>
+            <option value="coolers">Phone coolers</option>
+            <option value="phones">Gaming phones</option>
+            <option value="jerseys">Jerseys</option>
+            <option value="accessories">Accessories</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea id="f_desc" placeholder="Short product description shown on the detail page."></textarea>
+      </div>
+
+      <div class="grid2">
+        <div class="switchrow">
+          <div class="switch" id="sw_limited" onclick="this.classList.toggle('on')"></div>
+          <span>Limited stock<span class="info" title="When on, each variant tracks stock_qty and can sell out.">i</span></span>
+        </div>
+        <!-- physical-only toggle: shows the reviewer the one genuinely new field -->
+        <div class="switchrow" id="shipRow">
+          <div class="switch" id="sw_ship" onclick="this.classList.toggle('on')"></div>
+          <span>Requires shipping<span class="info" title="Physical goods collect a delivery address at checkout. Diamonds deliver to the game UID instead.">i</span></span>
+        </div>
+      </div>
+
+      <hr class="hr">
+
+      <div class="vhead">
+        <h4>Product Variants<span class="info" title="A variant is one buyable option: a diamond pack, a jersey size, a phone storage tier.">i</span></h4>
+        <button class="btn outline sm" onclick="addVariantBlock()">&#43; Add Variant</button>
+      </div>
+      <div id="variantList"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn outline" onclick="closeProduct()">Cancel</button>
+      <button class="btn" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- toast -->
+<div id="toast"><span class="dot">&#9679;</span><span id="toastMsg"></span></div>
+
+<script>
+/* ============================================================================
+   MOCK DATA
+   Mirrors the real API shape (Product { id, name, type, status, is_limited_stock,
+   image, variants[] }, Variant { id, sku, title, price, diamonds_amount,
+   stock_qty, is_active, in_stock }). Physical products use variant.meta for
+   attribute options (size / color / storage) and a requires_shipping flag.
+   Prices in NGN to match the user grid's en-NG currency formatter.
+   ============================================================================ */
+const NGN = n => new Intl.NumberFormat('en-NG',{style:'currency',currency:'NGN',minimumFractionDigits:0}).format(Number(n));
+const USD = n => '$'+Number(n).toFixed(2);
+
+/* category registry: diamonds + the new physical categories.
+   `icon` is a stand-in for the real product image. */
+const CATEGORIES = [
+  {value:'diamonds',     label:'Diamonds',      icon:'\u{1F48E}', physical:false},
+  {value:'thumbsleeves', label:'Thumbsleeves',  icon:'\u{1F9E4}', physical:true},
+  {value:'coolers',      label:'Phone coolers', icon:'❄️', physical:true},
+  {value:'phones',       label:'Gaming phones', icon:'\u{1F4F1}', physical:true},
+  {value:'jerseys',      label:'Jerseys',       icon:'\u{1F455}', physical:true},
+];
+
+const PRODUCTS = [
+  /* ── diamonds (existing behavior, kept intact) ── */
+  {id:1, name:'Free Fire Diamonds', type:'diamonds', status:'active', is_limited_stock:false, icon:'\u{1F48E}',
+   description:'Top up Free Fire diamonds delivered straight to your game UID. No shipping needed.', requires_shipping:false,
+   variants:[
+     {id:101, sku:'DIA-100',  title:'100 Diamonds',  price:1500,  diamonds_amount:100,  stock_qty:0, is_active:true, in_stock:true,  meta:{}},
+     {id:102, sku:'DIA-310',  title:'310 Diamonds',  price:4200,  diamonds_amount:310,  stock_qty:0, is_active:true, in_stock:true,  meta:{}},
+     {id:103, sku:'DIA-520',  title:'520 Diamonds',  price:6800,  diamonds_amount:520,  stock_qty:0, is_active:true, in_stock:true,  meta:{}},
+     {id:104, sku:'DIA-1060', title:'1060 Diamonds', price:13500, diamonds_amount:1060, stock_qty:0, is_active:true, in_stock:true,  meta:{}},
+   ]},
+
+  /* ── physical: thumbsleeves (variant attributes via meta: size) ── */
+  {id:2, name:'AFC Pro Thumbsleeves', type:'thumbsleeves', status:'active', is_limited_stock:true, icon:'\u{1F9E4}',
+   description:'Silver-fibre gaming thumbsleeves for sweat-free swipes. Sold as a pair.', requires_shipping:true,
+   variants:[
+     {id:201, sku:'TS-SM', title:'Small',  price:3500, diamonds_amount:0, stock_qty:120, is_active:true, in_stock:true,  meta:{size:'S'}},
+     {id:202, sku:'TS-MD', title:'Medium', price:3500, diamonds_amount:0, stock_qty:64,  is_active:true, in_stock:true,  meta:{size:'M'}},
+     {id:203, sku:'TS-LG', title:'Large',  price:3500, diamonds_amount:0, stock_qty:0,   is_active:true, in_stock:false, meta:{size:'L'}},
+   ]},
+
+  /* ── physical: phone cooler ── */
+  {id:3, name:'AFC Magnetic Phone Cooler', type:'coolers', status:'active', is_limited_stock:true, icon:'❄️',
+   description:'Semiconductor cooling fan that clamps to your phone for long ranked sessions. USB-C.', requires_shipping:true,
+   variants:[
+     {id:301, sku:'CL-STD', title:'Standard (black)', price:18500, diamonds_amount:0, stock_qty:40, is_active:true, in_stock:true,  meta:{color:'Black'}},
+     {id:302, sku:'CL-RGB', title:'RGB edition',      price:24000, diamonds_amount:0, stock_qty:18, is_active:true, in_stock:true,  meta:{color:'RGB'}},
+   ]},
+
+  /* ── physical: gaming phone (multiple storage variants) ── */
+  {id:4, name:'AFC Edition Gaming Phone X2', type:'phones', status:'active', is_limited_stock:true, icon:'\u{1F4F1}',
+   description:'120Hz AMOLED, shoulder triggers, 6000mAh. Tuned for Free Fire at max settings.', requires_shipping:true,
+   variants:[
+     {id:401, sku:'PH-128', title:'128GB / 8GB RAM', price:285000, diamonds_amount:0, stock_qty:9, is_active:true, in_stock:true,  meta:{storage:'128GB',ram:'8GB'}},
+     {id:402, sku:'PH-256', title:'256GB / 12GB RAM',price:345000, diamonds_amount:0, stock_qty:4, is_active:true, in_stock:true,  meta:{storage:'256GB',ram:'12GB'}},
+   ]},
+
+  /* ── physical: jersey (size attributes) ── */
+  {id:5, name:'AFC Official Team Jersey 2026', type:'jerseys', status:'active', is_limited_stock:true, icon:'\u{1F455}',
+   description:'Breathable home jersey in the AFC colourway. Player-grade fabric, sublimated print.', requires_shipping:true,
+   variants:[
+     {id:501, sku:'JS-S',  title:'Small',  price:12000, diamonds_amount:0, stock_qty:30, is_active:true, in_stock:true,  meta:{size:'S'}},
+     {id:502, sku:'JS-M',  title:'Medium', price:12000, diamonds_amount:0, stock_qty:22, is_active:true, in_stock:true,  meta:{size:'M'}},
+     {id:503, sku:'JS-L',  title:'Large',  price:12000, diamonds_amount:0, stock_qty:15, is_active:true, in_stock:true,  meta:{size:'L'}},
+     {id:504, sku:'JS-XL', title:'X-Large',price:12000, diamonds_amount:0, stock_qty:0,  is_active:true, in_stock:false, meta:{size:'XL'}},
+   ]},
+
+  /* ── physical: second jersey, set to Inactive to exercise the admin status filter ── */
+  {id:6, name:'AFC Retro Jersey (2025)', type:'jerseys', status:'inactive', is_limited_stock:true, icon:'\u{1F455}',
+   description:'Last season home kit. Limited remaining stock.', requires_shipping:true,
+   variants:[
+     {id:601, sku:'JSR-M', title:'Medium', price:9000, diamonds_amount:0, stock_qty:5, is_active:true, in_stock:true, meta:{size:'M'}},
+   ]},
+
+  /* ── physical: out-of-stock cooler to exercise the OOS overlay ── */
+  {id:7, name:'AFC Trigger Buttons (pair)', type:'coolers', status:'active', is_limited_stock:true, icon:'\u{1F3AE}',
+   description:'Capacitive L1/R1 trigger buttons. Currently sold out, restocking soon.', requires_shipping:true,
+   variants:[
+     {id:701, sku:'TB-STD', title:'Universal', price:4500, diamonds_amount:0, stock_qty:0, is_active:true, in_stock:false, meta:{}},
+   ]},
+];
+
+/* helpers shared with the real components */
+function catMeta(type){ return CATEGORIES.find(c=>c.value===type) || {label:type, icon:'\u{1F4E6}', physical:true}; }
+function startingPrice(p){ return Math.min(...p.variants.map(v=>+v.price)); }
+function priceRange(p){
+  const ps=p.variants.map(v=>+v.price); const mn=Math.min(...ps), mx=Math.max(...ps);
+  return mn===mx ? NGN(mn) : NGN(mn)+' - '+NGN(mx);
+}
+function totalStock(p){ return p.variants.reduce((a,v)=>a+v.stock_qty,0); }
+function isOOS(p){ return p.variants.every(v=>!v.in_stock); }
+
+/* ============================================================================
+   USER SHOP RENDERING
+   ============================================================================ */
+let activeCat = 'diamonds';
+
+function renderCatTabs(){
+  document.getElementById('catTabs').innerHTML = CATEGORIES.map(c=>
+    `<button class="tab ${c.value===activeCat?'active':''}" onclick="setCat('${c.value}',this)">${c.label}</button>`
+  ).join('');
+}
+function setCat(v,el){
+  activeCat=v;
+  document.querySelectorAll('#catTabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('userSearch').placeholder = 'Search '+catMeta(v).label.toLowerCase()+'...';
+  renderUserGrid();
+}
+function renderUserGrid(){
+  const q = document.getElementById('userSearch').value.trim().toLowerCase();
+  // user shop only shows active products, filtered by the selected category (matches ShopClient)
+  let list = PRODUCTS.filter(p=>p.status==='active' && p.type===activeCat);
+  if(q) list = list.filter(p=>p.name.toLowerCase().includes(q));
+
+  const grid = document.getElementById('userGrid');
+  const empty = document.getElementById('userEmpty');
+  if(list.length===0){ grid.innerHTML=''; empty.classList.remove('hide'); return; }
+  empty.classList.add('hide');
+
+  grid.innerHTML = list.map(p=>{
+    const cm = catMeta(p.type);
+    const oos = isOOS(p);
+    const dia = p.type==='diamonds' ? p.variants[0]?.diamonds_amount : 0;
+    return `
+      <div class="pcard" onclick="openDetail(${p.id})">
+        <div class="imgwrap">
+          <span class="emoji">${p.icon}</span>
+          <div class="ribbon">
+            <span class="chip ${cm.physical?'phys':'dia'}">${cm.physical?'Physical':'Topup'}</span>
+            ${p.is_limited_stock?'<span class="chip">Limited</span>':''}
+          </div>
+          ${oos?'<div class="oos"><span>Out of Stock</span></div>':''}
+        </div>
+        <div class="body">
+          <span class="nm">${p.name}</span>
+          ${dia>0?`<span class="dia-amt">&#128142; ${dia.toLocaleString()} diamonds</span>`:`<span class="meta">${p.variants.length} option${p.variants.length>1?'s':''} available</span>`}
+          <span class="price"><span class="from">from</span>${NGN(startingPrice(p))}</span>
+          <button class="btn" onclick="event.stopPropagation();openDetail(${p.id})">${oos?'View':'Buy Now'}</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── product detail drawer (variant picker + qty + add to cart) ── */
+let detailProduct=null, detailVariant=null, detailQty=1;
+function openDetail(id){
+  detailProduct = PRODUCTS.find(p=>p.id===id);
+  detailVariant = detailProduct.variants.find(v=>v.in_stock && v.is_active) || detailProduct.variants[0];
+  detailQty = 1;
+  renderDetail();
+  document.getElementById('detailOverlay').classList.add('open');
+}
+function closeDetail(){ document.getElementById('detailOverlay').classList.remove('open'); }
+function pickVariant(vid){
+  const v = detailProduct.variants.find(x=>x.id===vid);
+  if(!v.in_stock || !v.is_active) return;
+  detailVariant=v; renderDetail();
+}
+function changeQty(d){ detailQty = Math.max(1, Math.min(99, detailQty+d)); renderDetail(); }
+function renderDetail(){
+  const p=detailProduct, sel=detailVariant, cm=catMeta(p.type);
+  const subtotal = (+sel.price)*detailQty;
+  // attribute chips from variant.meta (size / color / storage)
+  const attrLine = sel.meta && Object.keys(sel.meta).length
+    ? Object.entries(sel.meta).map(([k,val])=>`${k}: ${val}`).join(' · ') : '';
+  document.getElementById('detailDrawer').innerHTML = `
+    <div class="dgridwrap">
+      <div class="dimg">${p.icon}</div>
+      <div class="dinfo">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="badge ${cm.physical?'lim':'warn'}">${cm.label}</span>
+          <button class="closex" onclick="closeDetail()">&times;</button>
+        </div>
+        <h2>${p.name}</h2>
+        <p class="desc">${p.description}</p>
+
+        <div class="dlabel">Select option</div>
+        ${p.variants.map(v=>{
+          const dis = !v.in_stock || !v.is_active;
+          const va = v.diamonds_amount>0 ? `&#128142; ${v.diamonds_amount.toLocaleString()} diamonds`
+                    : (v.meta&&Object.keys(v.meta).length ? Object.entries(v.meta).map(([k,val])=>k+': '+val).join(' · ') : 'SKU '+v.sku);
+          return `<div class="voption ${v.id===sel.id?'sel':''} ${dis?'oos':''}" onclick="${dis?'':`pickVariant(${v.id})`}">
+            <div><div class="vt">${v.title}</div><div class="va">${va}</div></div>
+            <div style="text-align:right"><div class="vp">${NGN(v.price)}</div>${dis?'<div class="va" style="color:var(--red)">Out of stock</div>':''}</div>
+          </div>`;
+        }).join('')}
+
+        <div class="qtyrow">
+          <div class="qty">
+            <button onclick="changeQty(-1)">&minus;</button>
+            <span class="n">${detailQty}</span>
+            <button onclick="changeQty(1)">&plus;</button>
+          </div>
+          <div style="text-align:right">
+            <div class="va" style="font-size:.74rem;color:var(--muted-foreground)">Subtotal</div>
+            <div style="font-size:1.5rem;font-weight:700;color:var(--primary)">${NGN(subtotal)}</div>
+          </div>
+        </div>
+
+        ${p.requires_shipping
+          ? `<p class="va" style="font-size:.76rem;margin-bottom:12px">&#128230; Physical item. A delivery address is collected at checkout.</p>`
+          : `<p class="va" style="font-size:.76rem;margin-bottom:12px">&#9889; Digital topup. Delivered to your game UID, no shipping.</p>`}
+
+        <button class="btn" style="width:100%;justify-content:center" ${!sel.in_stock?'disabled':''}
+          onclick="toast('${p.name} (${sel.title}) x${detailQty} added to cart')">
+          &#128722; Add to Cart
+        </button>
+      </div>
+    </div>`;
+}
+
+/* ============================================================================
+   ADMIN PRODUCTS RENDERING
+   ============================================================================ */
+let adminStatus='all', adminCat='all';
+
+function renderAdminStats(){
+  const total = PRODUCTS.length;
+  const active = PRODUCTS.filter(p=>p.status==='active').length;
+  const physical = PRODUCTS.filter(p=>catMeta(p.type).physical).length;
+  const diamonds = PRODUCTS.filter(p=>p.type==='diamonds').length;
+  document.getElementById('adminStats').innerHTML = `
+    <div class="stat"><div class="lbl">Total products</div><div class="val">${total}</div></div>
+    <div class="stat"><div class="lbl">Active</div><div class="val green">${active}</div></div>
+    <div class="stat"><div class="lbl">Physical goods</div><div class="val blue">${physical}</div></div>
+    <div class="stat"><div class="lbl">Diamond topups</div><div class="val gold">${diamonds}</div></div>`;
+}
+function renderAdminTabs(){
+  document.getElementById('adminStatusTabs').innerHTML =
+    ['all','active','inactive'].map(s=>`<button class="tab ${s===adminStatus?'active':''}" onclick="setAdminStatus('${s}',this)">${s[0].toUpperCase()+s.slice(1)}</button>`).join('');
+  const cats = [{value:'all',label:'All categories'}, ...CATEGORIES];
+  document.getElementById('adminCatTabs').innerHTML =
+    cats.map(c=>`<button class="tab ${c.value===adminCat?'active':''}" onclick="setAdminCat('${c.value}',this)">${c.label}</button>`).join('');
+}
+function setAdminStatus(s,el){ adminStatus=s; document.querySelectorAll('#adminStatusTabs .tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); renderAdminTable(); }
+function setAdminCat(c,el){ adminCat=c; document.querySelectorAll('#adminCatTabs .tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); renderAdminTable(); }
+
+function renderAdminTable(){
+  let list = PRODUCTS.slice();
+  if(adminStatus!=='all') list = list.filter(p=>p.status===adminStatus);
+  if(adminCat!=='all') list = list.filter(p=>p.type===adminCat);
+
+  document.getElementById('adminBody').innerHTML = list.map((p,i)=>{
+    const cm = catMeta(p.type);
+    const statusBadge = p.status==='active'
+      ? '<span class="badge solid">Active</span>'
+      : '<span class="badge solid muted">Inactive</span>';
+    return `
+      <tr>
+        <td>
+          <div class="pname">
+            <span class="top"><span class="ic-sq">${p.icon}</span>${p.name}</span>
+            <span class="ptype">${cm.physical?'Physical good':'Digital topup'}</span>
+          </div>
+        </td>
+        <td><span class="badge ${cm.physical?'lim':'warn'}">${cm.label}</span></td>
+        <td>${statusBadge}</td>
+        <td>
+          <span>${cm.physical?totalStock(p):'∞'}</span>
+          ${p.is_limited_stock?'<span class="badge lim" style="margin-left:6px;font-size:.62rem;padding:1px 7px">Limited</span>':''}
+        </td>
+        <td>${priceRange(p)}</td>
+        <td class="c">${p.variants.length}</td>
+        <td style="color:var(--muted-foreground)">Jun 0${(i%6)+1}, 2026</td>
+        <td class="r">
+          <div class="menu" id="m${p.id}">
+            <button class="btn ghost" onclick="toggleMenu(${p.id},event)">&#8943;</button>
+            <div class="pop">
+              <button onclick="openEditProduct(${p.id})">&#9998; Edit</button>
+              <button onclick="toggleStatus(${p.id})">${p.status==='active'?'&#8856; Deactivate':'&#10003; Activate'}</button>
+              <button class="danger" onclick="deleteProduct(${p.id})">&#128465; Delete</button>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted-foreground)">No products found.</td></tr>';
+
+  document.getElementById('adminCount').textContent = 'Showing '+list.length+' of '+PRODUCTS.length+' products';
+}
+function toggleMenu(id,e){
+  e.stopPropagation();
+  const el=document.getElementById('m'+id);
+  const wasOpen=el.classList.contains('open');
+  document.querySelectorAll('.menu').forEach(m=>m.classList.remove('open'));
+  if(!wasOpen) el.classList.add('open');
+}
+document.addEventListener('click',()=>document.querySelectorAll('.menu').forEach(m=>m.classList.remove('open')));
+
+function toggleStatus(id){
+  const p=PRODUCTS.find(x=>x.id===id);
+  p.status = p.status==='active' ? 'inactive' : 'active';
+  renderAdminStats(); renderAdminTable(); renderUserGrid();
+  toast(p.name+' set to '+p.status);
+}
+function deleteProduct(id){
+  const idx=PRODUCTS.findIndex(x=>x.id===id);
+  const nm=PRODUCTS[idx].name;
+  PRODUCTS.splice(idx,1);
+  renderAdminStats(); renderAdminTable(); renderUserGrid();
+  toast(nm+' deleted');
+}
+
+/* ============================================================================
+   ADD / EDIT PRODUCT MODAL (variant field-array, mirrors AddProductModal.tsx)
+   ============================================================================ */
+let editingId=null;
+
+function openAddProduct(){
+  editingId=null;
+  document.getElementById('pmTitle').textContent='Add New Product';
+  document.getElementById('f_name').value='';
+  document.getElementById('f_type').value='thumbsleeves';
+  document.getElementById('f_desc').value='';
+  document.getElementById('sw_limited').classList.add('on');
+  document.getElementById('sw_ship').classList.add('on');
+  document.getElementById('variantList').innerHTML='';
+  addVariantBlock();
+  onTypeChange();
+  document.getElementById('productOverlay').classList.add('open');
+}
+function openEditProduct(id){
+  const p=PRODUCTS.find(x=>x.id===id);
+  editingId=id;
+  document.getElementById('pmTitle').textContent='Edit Product';
+  document.getElementById('f_name').value=p.name;
+  document.getElementById('f_type').value=p.type;
+  document.getElementById('f_desc').value=p.description||'';
+  document.getElementById('sw_limited').classList.toggle('on', !!p.is_limited_stock);
+  document.getElementById('sw_ship').classList.toggle('on', !!p.requires_shipping);
+  document.getElementById('variantList').innerHTML='';
+  p.variants.forEach(v=>addVariantBlock(v));
+  onTypeChange();
+  document.querySelectorAll('.menu').forEach(m=>m.classList.remove('open'));
+  document.getElementById('productOverlay').classList.add('open');
+}
+function closeProduct(){ document.getElementById('productOverlay').classList.remove('open'); }
+
+let vSeq=0;
+/* a variant block: title / sku / price / stock, plus a meta attribute editor
+   (size, color, storage) that maps to ProductVariant.meta JSON */
+function addVariantBlock(v){
+  const id='vb'+(vSeq++);
+  const isDia = document.getElementById('f_type').value==='diamonds';
+  const wrap=document.createElement('div');
+  wrap.className='vblock'; wrap.id=id;
+  const attrs = v && v.meta ? Object.entries(v.meta) : [];
+  wrap.innerHTML = `
+    <button class="btn danger sm rm" onclick="removeVariant('${id}')">&#128465;</button>
+    <div class="grid2">
+      <div class="field" style="margin-bottom:10px"><label>Variant title</label><input value="${v?v.title:''}" placeholder="${isDia?'310 Diamonds':'Medium'}"></div>
+      <div class="field" style="margin-bottom:10px"><label>SKU</label><input value="${v?v.sku:''}" placeholder="${isDia?'DIA-310':'JS-M'}"></div>
+      <div class="field" style="margin-bottom:10px"><label>Price (NGN)</label><input type="number" value="${v?v.price:''}" placeholder="3500"></div>
+      <div class="field" style="margin-bottom:10px"><label>Stock qty</label><input type="number" value="${v?v.stock_qty:''}" placeholder="64"></div>
+    </div>
+    <div class="diaField field" style="margin-bottom:10px;${isDia?'':'display:none'}">
+      <label>Diamonds amount</label><input type="number" value="${v?v.diamonds_amount:''}" placeholder="310">
+    </div>
+    <div class="attrWrap" style="${isDia?'display:none':''}">
+      <label style="font-size:.78rem;font-weight:500">Attributes <span class="info" title="Stored in variant.meta JSON. Free-form key:value pairs like size:M, color:Black, storage:128GB.">i</span></label>
+      <div class="attrs" id="${id}-attrs">
+        ${attrs.map(([k,val])=>attrRow(k,val)).join('')}
+      </div>
+      <button class="btn outline sm" style="margin-top:8px" onclick="addAttr('${id}')">&#43; Add attribute</button>
+    </div>`;
+  document.getElementById('variantList').appendChild(wrap);
+}
+function attrRow(k,v){
+  return `<div class="attr"><input placeholder="key (size)" value="${k||''}"><input placeholder="value (M)" value="${v||''}"><button class="btn danger sm" onclick="this.parentElement.remove()">&times;</button></div>`;
+}
+function addAttr(id){
+  const c=document.getElementById(id+'-attrs');
+  const d=document.createElement('div'); d.innerHTML=attrRow('',''); c.appendChild(d.firstChild);
+}
+function removeVariant(id){
+  const list=document.getElementById('variantList');
+  if(list.children.length<=1){ toast('A product needs at least one variant'); return; }
+  document.getElementById(id).remove();
+}
+/* toggle diamond-amount vs attribute editor when category changes */
+function onTypeChange(){
+  const isDia = document.getElementById('f_type').value==='diamonds';
+  document.querySelectorAll('#variantList .diaField').forEach(e=>e.style.display=isDia?'':'none');
+  document.querySelectorAll('#variantList .attrWrap').forEach(e=>e.style.display=isDia?'none':'');
+  // diamonds never ship; physical goods do, by default
+  document.getElementById('sw_ship').classList.toggle('on', !isDia);
+}
+function saveProduct(){
+  const name=document.getElementById('f_name').value.trim();
+  if(!name){ toast('Enter a product name'); return; }
+  closeProduct();
+  toast(editingId? ('"'+name+'" updated') : ('"'+name+'" created'));
+}
+
+/* ============================================================================
+   SURFACE SWITCH + TOAST + INIT
+   ============================================================================ */
+function setSurface(s,el){
+  document.querySelectorAll('#surfTabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('surf-user').classList.toggle('hide', s!=='user');
+  document.getElementById('surf-admin').classList.toggle('hide', s!=='admin');
+}
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* hide helper */
+const styleHide=document.createElement('style'); styleHide.textContent='.hide{display:none !important;}'; document.head.appendChild(styleHide);
+
+/* boot */
+renderCatTabs(); renderUserGrid();
+renderAdminStats(); renderAdminTabs(); renderAdminTable();
+</script>
+</body>
+</html>

@@ -18,7 +18,7 @@
 // /a/leaderboards/create) are separate pages and are unaffected.
 //
 // useSearchParams in a client page mirrors the existing repo convention
-// (app/(a)/a/events/create/page.tsx) — no Suspense wrapper needed here.
+// (app/(a)/a/events/create/page.tsx) - no Suspense wrapper needed here.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";

@@ -1,6 +1,6 @@
 {
   "registeredTeams": {
-    "searchTeamsPlaceholder": "Equipas de busca...",
+    "searchTeamsPlaceholder": "Pesquisar equipas...",
     "searchPlayersPlaceholder": "Pesquisar jogadores...",
     "noTeamsMatch": "Não há equipas que correspondam a «{query}»",
     "noPlayersMatch": "Não há jogadores que correspondam a «{query}»"
@@ -15,8 +15,25 @@
     "userFailed": "Não foi possível efetuar o seu check-in.",
     "userNotOpen": "O check-in ainda não começou.",
     "userClosed": "O check-in já terminou.",
-    "userSquadProgress": "{done} {total}, da vossa equipa, já se registaram.",
+    "userSquadProgress": "{done} de {total} membros da sua equipa já se registaram.",
     "userSquadReady": "A vossa equipa está pronta.",
     "userSquadWaiting": "À espera dos colegas de equipa."
+  },
+  "paymentRules": {
+    "label": "Pagamento por país",
+    "infoTip": "Opcional. Defina, por país, se as equipas ou os jogadores desse país pagam a taxa de inscrição ou participam gratuitamente e, opcionalmente, cobre um valor diferente. Uma equipa utiliza o país da equipa; um jogador individual utiliza o seu próprio país. Isto não altera o link de convite para o evento privado, que continua a ser necessário independentemente do país.",
+    "helpText": "Deixe em branco para cobrar a taxa de entrada base a todos os países.",
+    "unlistedTitle": "Países que não constam da lista abaixo",
+    "unlistedPay": "Pague a taxa de inscrição básica.",
+    "unlistedFree": "Inscreva-se gratuitamente (sem taxa de inscrição).",
+    "free": "Gratuito",
+    "pay": "Pagamento",
+    "baseWithFee": "Base{fee}",
+    "baseFee": "Taxa base",
+    "remove": "Remover o «{name}»",
+    "addCountry": "Adicionar um país..."
+  },
+  "editNav": {
+    "chooseSection": "Escolha a secção de eventos"
   }
 }

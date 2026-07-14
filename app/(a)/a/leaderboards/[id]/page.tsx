@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 // Flagged-kill controls (owner 2026-06-16): manage "ringer" kills (UIDs that played for a team
 // they're not on) for this TEAM event. Backend: events/flagged-kills/* (lib/flaggedKills).
 import { FlaggedKillsPanel } from "@/components/leaderboards/FlaggedKillsPanel";
@@ -50,7 +51,6 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -396,16 +396,13 @@ export default function IndividualLeaderboardPage({
       {/* Stage tabs - hidden while editing a match */}
       {!editingMatch && (
         <Tabs value={selectedStageId} onValueChange={setSelectedStageId}>
-          <ScrollArea>
-            <TabsList className="w-full justify-start">
-              {eventData.stages.map((s: any) => (
-                <TabsTrigger key={s.stage_id} value={s.stage_id.toString()}>
-                  {s.stage_name}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          <ScrollableTabsList className="w-full justify-start">
+            {eventData.stages.map((s: any) => (
+              <TabsTrigger key={s.stage_id} value={s.stage_id.toString()}>
+                {s.stage_name}
+              </TabsTrigger>
+            ))}
+          </ScrollableTabsList>
         </Tabs>
       )}
 
@@ -723,6 +720,9 @@ export default function IndividualLeaderboardPage({
             token={token}
             canManage
             onChanged={fetchLeaderboard}
+            // Flagged players follow the stage/group being viewed (owner 2026-07-10); combine picker overrides.
+            selectedStageId={selectedStageId}
+            selectedGroupId={selectedGroupId}
           />
         </div>
       )}

@@ -270,7 +270,7 @@ function OverlayCard({
     stages.find((s) => String(s.stage_id) === String(cfg.stage_id ?? ""))?.groups ?? [];
 
   return (
-    <div className="bg-card space-y-3 rounded-md border p-3 shadow-sm" style={{ width: PREVIEW_W + 26 }}>
+    <div className="bg-card space-y-3 rounded-md border p-3 shadow-sm" style={{ width: PREVIEW_W + 26, maxWidth: "100%" }}>
       {/* ── Name row: inline rename + kind badge. ── */}
       <div className="flex items-center gap-2">
         {renaming ? (
@@ -292,7 +292,7 @@ function OverlayCard({
             <span className="text-foreground truncate text-sm font-semibold">{row.name}</span>
             <button
               type="button"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground inline-flex size-8 items-center justify-center"
               onClick={() => {
                 setNameDraft(row.name);
                 setRenaming(true);
@@ -321,7 +321,7 @@ function OverlayCard({
       {/* ── Live preview: the overlay's REAL stable link, scaled. ── */}
       <div
         className="relative overflow-hidden rounded-md border bg-black"
-        style={{ width: PREVIEW_W, height: PREVIEW_W * (9 / 16) }}
+        style={{ width: PREVIEW_W, height: PREVIEW_W * (9 / 16), maxWidth: "100%" }}
       >
         <iframe
           key={nonce}
@@ -845,6 +845,8 @@ function OverlayCard({
               <SelectContent>
                 <SelectItem value="team">{t("studio.h2hTeams")}</SelectItem>
                 <SelectItem value="player">{t("studio.h2hPlayers")}</SelectItem>
+                {/* Clash Squad bracket (P1#6): render the stage bracket instead of a stat compare. */}
+                <SelectItem value="bracket">{t("studio.h2hBracket")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -866,43 +868,75 @@ function OverlayCard({
               </SelectContent>
             </Select>
           </div>
-          {[0, 1, 2].map((slot) => {
-            const ids: number[] = Array.isArray(cfg.competitor_ids) ? cfg.competitor_ids : [];
-            const setSlot = (v: string) => {
-              const next = [...ids];
-              next[slot] = Number(v);
-              saveCfg({ competitor_ids: next.filter(Boolean).slice(0, 3) });
-            };
-            const options =
-              (cfg.mode || "team") === "player"
-                ? h2hPlayers.map((x) => ({ id: x.user_id, label: x.in_game_name }))
-                : booyahTeams.map((x) => ({ id: x.team_id, label: x.team_name }));
-            return (
-              <div key={slot} className="space-y-1">
-                <Label className="text-xs">
-                  {t("studio.h2hSlot", { n: slot + 1 })}
-                  {slot === 2 ? ` ${t("studio.h2hOptional")}` : ""}
-                </Label>
-                <Select value={ids[slot] ? String(ids[slot]) : ""} onValueChange={setSlot}>
-                  <SelectTrigger className="h-8 w-full text-xs">
-                    <SelectValue placeholder={t("studio.h2hPick")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {options.map((o) => (
-                      <SelectItem key={o.id} value={String(o.id)}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            );
-          })}
+          {/* Bracket mode (P1#6): pick which Clash Squad stage's bracket to show. No competitor
+              slots - the bracket is the whole stage. The backend falls back to the event's first
+              CS stage if none is picked, and renders nothing for a non-CS stage. */}
+          {cfg.mode === "bracket" ? (
+            <div className="col-span-2 space-y-1">
+              <Label className="text-xs">{t("studio.h2hStage")}</Label>
+              <Select
+                value={String(cfg.stage_id ?? "")}
+                onValueChange={(v) => saveCfg({ stage_id: Number(v) })}
+              >
+                <SelectTrigger className="h-8 w-full text-xs">
+                  <SelectValue placeholder={t("studio.h2hStagePick")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {stages.map((s) => (
+                    <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                      {s.stage_name || `${t("studio.stage")} ${s.stage_id}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                {t("studio.h2hBracketHint")}
+              </p>
+            </div>
+          ) : (
+            [0, 1, 2].map((slot) => {
+              const ids: number[] = Array.isArray(cfg.competitor_ids) ? cfg.competitor_ids : [];
+              const setSlot = (v: string) => {
+                const next = [...ids];
+                next[slot] = Number(v);
+                saveCfg({ competitor_ids: next.filter(Boolean).slice(0, 3) });
+              };
+              const options =
+                (cfg.mode || "team") === "player"
+                  ? h2hPlayers.map((x) => ({ id: x.user_id, label: x.in_game_name }))
+                  : booyahTeams.map((x) => ({ id: x.team_id, label: x.team_name }));
+              return (
+                <div key={slot} className="space-y-1">
+                  <Label className="text-xs">
+                    {t("studio.h2hSlot", { n: slot + 1 })}
+                    {slot === 2 ? ` ${t("studio.h2hOptional")}` : ""}
+                  </Label>
+                  <Select value={ids[slot] ? String(ids[slot]) : ""} onValueChange={setSlot}>
+                    <SelectTrigger className="h-8 w-full text-xs">
+                      <SelectValue placeholder={t("studio.h2hPick")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((o) => (
+                        <SelectItem key={o.id} value={String(o.id)}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })
+          )}
           <div className="col-span-2 flex gap-2">
             <Button
               size="sm"
               onClick={() => save({ active: true })}
-              disabled={busy || (Array.isArray(cfg.competitor_ids) ? cfg.competitor_ids : []).length < 2}
+              disabled={
+                busy ||
+                // Bracket mode needs no competitor slots; team/player modes need at least 2.
+                (cfg.mode !== "bracket" &&
+                  (Array.isArray(cfg.competitor_ids) ? cfg.competitor_ids : []).length < 2)
+              }
             >
               <IconPlayerPlay className="size-4" />
               {t("studio.trigger")}
@@ -1016,23 +1050,23 @@ function OverlayCard({
 
       {/* ── Actions: the stable link + duplicate/delete. ── */}
       <div className="flex items-center gap-1 border-t pt-2">
-        <Button variant="outline" size="sm" className="h-7 px-2" onClick={copy}>
+        <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={copy}>
           <IconCopy className="size-3.5" />
           {t("studio.copyLink")}
         </Button>
-        <Button variant="outline" size="sm" className="h-7 px-2" asChild>
+        <Button variant="outline" size="sm" className="h-8 px-2.5" asChild>
           <a href={url} target="_blank" rel="noopener noreferrer">
             <IconExternalLink className="size-3.5" />
           </a>
         </Button>
         <div className="ml-auto flex gap-1">
-          <Button variant="outline" size="sm" className="h-7 px-2" onClick={doDuplicate} disabled={busy}>
+          <Button variant="outline" size="sm" className="h-8 px-2.5" onClick={doDuplicate} disabled={busy}>
             <IconCopyPlus className="size-3.5" />
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="hover:text-destructive h-7 px-2"
+            className="hover:text-destructive h-8 px-2.5"
             onClick={doDelete}
             disabled={busy}
           >

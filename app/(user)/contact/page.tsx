@@ -9,6 +9,7 @@ import {
 } from "@tabler/icons-react";
 import { generatePageMetadata } from "@/lib/seo";
 import { PageHeader } from "@/components/PageHeader";
+import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = generatePageMetadata({
   title: "Contact Us",
@@ -23,10 +24,18 @@ export const metadata: Metadata = generatePageMetadata({
   url: "/contact",
 });
 
-export default function ContactPage() {
+// Server Component. User-facing labels are localized via getTranslations
+// ("contactPage" namespace, messages/en/contactPage.json). The SEO metadata
+// object above is left as canonical English (matches the privacy-policy /
+// terms-of-service convention) so the page indexes cleanly; English falls back
+// for all locales through i18n/request.ts. Brand names (Discord, Twitter,
+// Tiktok, Facebook, Instagram, Youtube, AFC) are intentionally not translated.
+export default async function ContactPage() {
+  const t = await getTranslations("contactPage");
+
   return (
     <div>
-      <PageHeader title="Contact Us" />
+      <PageHeader title={t("title")} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-2">
         <div className="col-span-4">
@@ -35,12 +44,12 @@ export default function ContactPage() {
         <div className="col-span-3">
           <Card>
             <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
+              <CardTitle>{t("contactInformation")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-muted-foreground text-sm">Email</h3>
+                  <h3 className="text-muted-foreground text-sm">{t("email")}</h3>
                   <a
                     className="hover:underline hover:text-primary text-base"
                     href={`mailto:info@africanfreefirecommunity.com`}
@@ -51,7 +60,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-muted-foreground text-sm">Discord</h3>
                   <p>
-                    Join our Discord server:{" "}
+                    {t("discordJoin")}{" "}
                     <a
                       href="https://discord.gg/african-freefire-community-afc-920726990607237160
 "
@@ -63,7 +72,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-muted-foreground text-sm">
-                    Social Media
+                    {t("socialMedia")}
                   </h3>
                   <ul className="text-base mt-1 space-y-1">
                     <li>

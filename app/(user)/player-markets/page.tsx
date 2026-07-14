@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   Select,
@@ -36,7 +36,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import {
   IconSearch,
   IconUsers,
@@ -111,7 +112,13 @@ import Link from "next/link";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const ROLES: { value: string; label: string }[] = [
+// Option catalogs. `value` is the backend enum code (never translated); `label` here is
+// only the English fallback. Inside PlayerMarketPage these are re-derived into localized
+// arrays (same {value,label} shape, same names ROLES/TIERS/...) via the shared pmPost.*
+// keys, so every <Select> .map + labelFor() below renders in the viewer's language. The
+// role/tier/commitment/availability wording is authored once in messages/*/pmPost.json and
+// reused here + on the player-markets/[id] detail page (buildLabelMaps there).
+const ROLE_OPTIONS: { value: string; label: string }[] = [
   { value: "IGL", label: "In-Game Leader" },
   { value: "RUSHER", label: "Rusher" },
   { value: "SUPPORT", label: "Support" },
@@ -119,18 +126,18 @@ const ROLES: { value: string; label: string }[] = [
   { value: "GRENADE", label: "Grenade" },
 ];
 
-const TIERS: { value: string; label: string }[] = [
+const TIER_OPTIONS: { value: string; label: string }[] = [
   { value: "TIER_1", label: "Tier 1" },
   { value: "TIER_2", label: "Tier 2" },
   { value: "TIER_3", label: "Tier 3" },
 ];
 
-const COMMITMENTS: { value: string; label: string }[] = [
+const COMMITMENT_OPTIONS: { value: string; label: string }[] = [
   { value: "FULL_TIME", label: "Full Time" },
   { value: "PART_TIME", label: "Part Time" },
 ];
 
-const AVAILABILITIES: { value: string; label: string }[] = [
+const AVAILABILITY_OPTIONS: { value: string; label: string }[] = [
   { value: "TRIAL", label: "Trial" },
   { value: "PERMANENT", label: "Permanent" },
   { value: "SCRIMS_ONLY", label: "Scrims Only" },
@@ -225,9 +232,12 @@ function getTierColor(tier: string) {
 // ─── Share Button ────────────────────────────────────────────────────────────
 
 function ShareButton({ url, text }: { url: string; text: string }) {
+  // Sub-component t hook: ShareButton lives outside PlayerMarketPage, so it needs its own
+  // playerMarket namespace binding to translate the Share/Copy labels + brand items.
+  const t = useTranslations("playerMarket");
   const handleCopy = () => {
     navigator.clipboard.writeText(url);
-    toast.success("Link copied to clipboard!");
+    toast.success(t("share.copied"));
   };
 
   const openShare = (platform: string) => {
@@ -249,38 +259,38 @@ function ShareButton({ url, text }: { url: string; text: string }) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="text-xs">
           <IconShare className="h-3.5 w-3.5 mr-1" />
-          Share
+          {t("share.share")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem onClick={handleCopy}>
           <IconCopy className="h-4 w-4 mr-2" />
-          Copy Link
+          {t("share.copyLink")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => openShare("twitter")}>
           <IconBrandX className="h-4 w-4 mr-2" />
-          Twitter / X
+          {t("share.twitter")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openShare("whatsapp")}>
           <IconBrandWhatsapp className="h-4 w-4 mr-2" />
-          WhatsApp
+          {t("share.whatsapp")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openShare("facebook")}>
           <IconBrandFacebook className="h-4 w-4 mr-2" />
-          Facebook
+          {t("share.facebook")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openShare("telegram")}>
           <IconBrandTelegram className="h-4 w-4 mr-2" />
-          Telegram
+          {t("share.telegram")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openShare("reddit")}>
           <IconBrandReddit className="h-4 w-4 mr-2" />
-          Reddit
+          {t("share.reddit")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openShare("linkedin")}>
           <IconBrandLinkedin className="h-4 w-4 mr-2" />
-          LinkedIn
+          {t("share.linkedin")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -290,12 +300,15 @@ function ShareButton({ url, text }: { url: string; text: string }) {
 function CountryMultiSelect({
   value,
   onChange,
-  placeholder = "Select countries...",
+  // Placeholder / search / empty strings default to undefined so the component can fall back
+  // to its own translated defaults (t below) when a caller doesn't pass them; a caller (e.g. the
+  // players-tab state filter) may still override with its own translated strings.
+  placeholder,
   // Options default to the global country list, but the same picker is reused for the
   // residential-STATE filter (feature 3) by passing that country's subdivisions in.
   options = countries,
-  searchPlaceholder = "Search countries...",
-  emptyLabel = "No countries found",
+  searchPlaceholder,
+  emptyLabel,
   disabled = false,
 }: {
   value: string[];
@@ -308,6 +321,9 @@ function CountryMultiSelect({
   emptyLabel?: string;
   disabled?: boolean;
 }) {
+  // Sub-component t hook: CountryMultiSelect lives outside PlayerMarketPage, so it binds the
+  // playerMarket namespace itself to supply the default placeholder / search / empty / clear strings.
+  const t = useTranslations("playerMarket");
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -333,7 +349,9 @@ function CountryMultiSelect({
         onClick={() => !disabled && setOpen((o) => !o)}
       >
         {value.length === 0 ? (
-          <span className="text-muted-foreground">{placeholder}</span>
+          <span className="text-muted-foreground">
+            {placeholder ?? t("countrySelect.selectPlaceholder")}
+          </span>
         ) : (
           value.map((c) => (
             <span
@@ -360,7 +378,7 @@ function CountryMultiSelect({
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
           <div className="p-2">
             <Input
-              placeholder={searchPlaceholder}
+              placeholder={searchPlaceholder ?? t("countrySelect.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onClick={(e) => e.stopPropagation()}
@@ -371,7 +389,7 @@ function CountryMultiSelect({
             <div className="p-1">
               {filtered.length === 0 ? (
                 <p className="text-xs text-center text-muted-foreground py-4">
-                  {emptyLabel}
+                  {emptyLabel ?? t("countrySelect.empty")}
                 </p>
               ) : (
                 filtered.map((c) => (
@@ -405,7 +423,7 @@ function CountryMultiSelect({
                 onClick={() => onChange([])}
                 className="text-xs text-muted-foreground hover:text-foreground"
               >
-                Clear all ({value.length} selected)
+                {t("countrySelect.clearAll", { count: value.length })}
               </button>
             </div>
           )}
@@ -437,6 +455,9 @@ function ScreenshotPicker({
   tooManyMessage: string;
   labels: { add: string; remove: string };
 }) {
+  // Sub-component t hook: ScreenshotPicker lives outside PlayerMarketPage, so it binds the
+  // playerMarket namespace itself for the per-thumbnail alt text.
+  const t = useTranslations("playerMarket");
   // Object URLs for previews; revoked on change/unmount so we don't leak blob handles.
   const [previews, setPreviews] = useState<string[]>([]);
   useEffect(() => {
@@ -486,7 +507,7 @@ function ScreenshotPicker({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={src}
-                alt={`Screenshot ${idx + 1}`}
+                alt={t("screenshots.altIndexed", { index: idx + 1 })}
                 className="h-full w-full object-cover"
               />
               <button
@@ -529,6 +550,24 @@ function PlayerMarketPage() {
   // i18n for the NEW "Player Available Post" strings (phone picker, screenshots, location,
   // UID, state filter). Author English lives in messages/en/playerMarket.json.
   const t = useTranslations("playerMarket");
+
+  // Localized role/tier/commitment/availability LABELS. The wording is authored once in the
+  // shared pmPost.* namespace (reused by the /player-markets/[id] detail page) so "Sniper",
+  // "Rusher", "In-Game Leader", "Tier 1", etc. show in the viewer's language. These locals
+  // deliberately shadow the module-level *_OPTIONS with the plain names ROLES/TIERS/... so the
+  // ~40 <Select> .map() + labelFor() call sites below pick up the translation with no per-site
+  // change. Values stay the backend enum codes; only the display label is swapped.
+  const tPm = useTranslations("pmPost");
+  const ROLES = ROLE_OPTIONS.map((o) => ({ ...o, label: tPm(`roles.${o.value}`) }));
+  const TIERS = TIER_OPTIONS.map((o) => ({ ...o, label: tPm(`tiers.${o.value}`) }));
+  const COMMITMENTS = COMMITMENT_OPTIONS.map((o) => ({
+    ...o,
+    label: tPm(`commitment.${o.value}`),
+  }));
+  const AVAILABILITIES = AVAILABILITY_OPTIONS.map((o) => ({
+    ...o,
+    label: tPm(`availability.${o.value}`),
+  }));
 
   // Live refresh (owner 2026-07-02): heartbeat tick for the read-only fetch effects below
   // (posts lists, applications, trial invites). tick > 0 = a background refresh, which
@@ -730,9 +769,9 @@ function PlayerMarketPage() {
       );
       setTeamPosts((prev) => prev.filter((p) => p.id !== postId));
       setPlayerPosts((prev) => prev.filter((p) => p.id !== postId));
-      toast.success("Post deleted.");
+      toast.success(t("toasts.postDeleted"));
     } catch {
-      toast.error("Failed to delete post.");
+      toast.error(t("toasts.deleteFailed"));
     } finally {
       setIsDeletingPost(null);
     }
@@ -776,7 +815,7 @@ function PlayerMarketPage() {
       setEditingPost({ id: postId, type });
       setEditPostOpen(true);
     } catch {
-      toast.error("Failed to load post details.");
+      toast.error(t("toasts.loadDetailsFailed"));
     } finally {
       setIsLoadingEditPost(false);
     }
@@ -791,7 +830,7 @@ function PlayerMarketPage() {
       !editTeamCountries.length ||
       !editTeamExpiry
     ) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t("toasts.fillRequired"));
       return;
     }
     setIsEditSubmitting(true);
@@ -809,7 +848,7 @@ function PlayerMarketPage() {
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success("Post updated successfully!");
+      toast.success(t("toasts.postUpdated"));
       setTeamPosts((prev) =>
         prev.map((p) =>
           p.id === editingPost.id
@@ -827,7 +866,7 @@ function PlayerMarketPage() {
       setEditPostOpen(false);
       setEditingPost(null);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to update post.");
+      toast.error(error?.response?.data?.message || t("toasts.updateFailed"));
     } finally {
       setIsEditSubmitting(false);
     }
@@ -842,12 +881,12 @@ function PlayerMarketPage() {
       !editPlayerExpiry ||
       !editPlayerDevice.trim()
     ) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t("toasts.fillRequired"));
       return;
     }
     // Optional gameplay link: when present it must be YouTube/TikTok (backend rejects the rest).
     if (!isAllowedVideoUrl(editPlayerVideo)) {
-      toast.error(`The gameplay video link must be a ${VIDEO_PLATFORMS_LABEL} link.`);
+      toast.error(t("toasts.videoPlatform", { platforms: VIDEO_PLATFORMS_LABEL }));
       return;
     }
     setIsEditSubmitting(true);
@@ -879,7 +918,7 @@ function PlayerMarketPage() {
         fd,
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success("Post updated successfully!");
+      toast.success(t("toasts.postUpdated"));
       // The gallery changed (removed + added with server-assigned ids/urls), so reflect the text
       // edits optimistically AND silently re-fetch the player list to refresh the card galleries.
       setPlayerPosts((prev) =>
@@ -909,7 +948,7 @@ function PlayerMarketPage() {
       setEditPostOpen(false);
       setEditingPost(null);
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to update post.");
+      toast.error(error?.response?.data?.message || t("toasts.updateFailed"));
     } finally {
       setIsEditSubmitting(false);
     }
@@ -967,7 +1006,7 @@ function PlayerMarketPage() {
             )
             .then((r) => setTeamApplications(r.data))
             .catch(() => {
-              if (!background) toast.error("Failed to load team applications.");
+              if (!background) toast.error(t("toasts.loadTeamAppsFailed"));
             })
             .finally(() => setLoadingTeamApps(false));
         } else {
@@ -980,7 +1019,7 @@ function PlayerMarketPage() {
             )
             .then((r) => setMyApplications(r.data))
             .catch(() => {
-              if (!background) toast.error("Failed to load your applications.");
+              if (!background) toast.error(t("toasts.loadMyAppsFailed"));
             })
             .finally(() => setLoadingMyApps(false));
 
@@ -998,7 +1037,7 @@ function PlayerMarketPage() {
           )
           .then((r) => setMyApplications(r.data))
           .catch(() => {
-            if (!background) toast.error("Failed to load your applications.");
+            if (!background) toast.error(t("toasts.loadMyAppsFailed"));
           })
           .finally(() => setLoadingMyApps(false));
       });
@@ -1061,7 +1100,7 @@ function PlayerMarketPage() {
       )
       .then((r) => setMyTrialInvites(r.data))
       .catch(() => {
-        if (tick === 0) toast.error("Failed to load trial invites.");
+        if (tick === 0) toast.error(t("toasts.loadInvitesFailed"));
       })
       .finally(() => setLoadingInvites(false));
   }, [token, tick]);
@@ -1083,7 +1122,7 @@ function PlayerMarketPage() {
       )
       .then((res) => setTeamPosts(res.data))
       .catch(() => {
-        if (tick === 0) toast.error("Failed to load team posts.");
+        if (tick === 0) toast.error(t("toasts.loadTeamPostsFailed"));
       })
       .finally(() => setLoadingTeams(false));
 
@@ -1094,7 +1133,7 @@ function PlayerMarketPage() {
       )
       .then((res) => setPlayerPosts(res.data))
       .catch(() => {
-        if (tick === 0) toast.error("Failed to load player posts.");
+        if (tick === 0) toast.error(t("toasts.loadPlayerPostsFailed"));
       })
       .finally(() => setLoadingPlayers(false));
   }, [token, tick]);
@@ -1215,13 +1254,13 @@ function PlayerMarketPage() {
       !newTeamCountries.length ||
       !newTeamExpiry
     ) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t("toasts.fillRequired"));
       return;
     }
     // One-month cap (feature "L-market-expiry-cap"): re-check the bound here so a hand-edited
     // date field can't slip a far-future expiry past the input min/max. Mirrors the backend.
     if (newTeamExpiry < todayStr || newTeamExpiry > maxExpiryStr) {
-      toast.error("Post expiry must be within 1 month from today.");
+      toast.error(t("toasts.expiryWithinMonth"));
       return;
     }
     setIsSubmitting(true);
@@ -1239,11 +1278,11 @@ function PlayerMarketPage() {
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success("Team recruitment post created successfully!");
+      toast.success(t("toasts.teamPostCreated"));
       setCreatePostOpen(false);
       resetCreateForm();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to create post.");
+      toast.error(error?.response?.data?.message || t("toasts.createFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -1257,18 +1296,18 @@ function PlayerMarketPage() {
       !newPlayerExpiry ||
       !newPlayerDevice.trim()
     ) {
-      toast.error("Please fill in all required fields.");
+      toast.error(t("toasts.fillRequired"));
       return;
     }
     // Optional gameplay link: when present it must be YouTube/TikTok (backend rejects the rest).
     if (!isAllowedVideoUrl(newPlayerVideo)) {
-      toast.error(`The gameplay video link must be a ${VIDEO_PLATFORMS_LABEL} link.`);
+      toast.error(t("toasts.videoPlatform", { platforms: VIDEO_PLATFORMS_LABEL }));
       return;
     }
     // One-month cap (feature "L-market-expiry-cap"): re-check the bound here so a hand-edited
     // date field can't slip a far-future expiry past the input min/max. Mirrors the backend.
     if (newPlayerExpiry < todayStr || newPlayerExpiry > maxExpiryStr) {
-      toast.error("Post expiry must be within 1 month from today.");
+      toast.error(t("toasts.expiryWithinMonth"));
       return;
     }
     setIsSubmitting(true);
@@ -1293,11 +1332,11 @@ function PlayerMarketPage() {
         fd,
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success("Player availability post created successfully!");
+      toast.success(t("toasts.playerPostCreated"));
       setCreatePostOpen(false);
       resetCreateForm();
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to create post.");
+      toast.error(error?.response?.data?.message || t("toasts.createFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -1311,11 +1350,15 @@ function PlayerMarketPage() {
         { post_id: String(postId) },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success(`Application sent to ${teamName ?? "team"}!`);
+      toast.success(
+        t("toasts.applicationSent", {
+          team: teamName ?? t("teamsTab.teamFallback"),
+        }),
+      );
       setViewTeam(null);
     } catch (error: any) {
       toast.error(
-        error?.response?.data?.message || "Failed to send application.",
+        error?.response?.data?.message || t("toasts.applicationFailed"),
       );
     } finally {
       setIsApplying(false);
@@ -1337,11 +1380,11 @@ function PlayerMarketPage() {
         { post_id: String(viewPlayer.id), message: inviteMessage },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success(`Trial invite sent to ${viewPlayer.player}!`);
+      toast.success(t("toasts.trialInviteSent", { player: viewPlayer.player }));
       setViewPlayer(null);
       setInviteMessage("");
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to send invite.");
+      toast.error(error?.response?.data?.message || t("toasts.inviteFailed"));
     } finally {
       setIsInviting(false);
     }
@@ -1359,7 +1402,9 @@ function PlayerMarketPage() {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       toast.success(
-        action === "ACCEPT" ? "Trial invite accepted!" : "Invite declined.",
+        action === "ACCEPT"
+          ? t("toasts.inviteAccepted")
+          : t("toasts.inviteDeclined"),
       );
       // Optimistic status: the backend records a declined invite as "REJECTED"
       // (not "DECLINED"), so the optimistic value must match what the refetch
@@ -1372,7 +1417,7 @@ function PlayerMarketPage() {
         ),
       );
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Failed to respond.");
+      toast.error(error?.response?.data?.message || t("toasts.respondFailed"));
     } finally {
       setIsRespondingToInvite(null);
     }
@@ -1383,8 +1428,8 @@ function PlayerMarketPage() {
       <div className="flex flex-col items-start md:items-center md:flex-row w-full justify-between gap-4">
         <PageHeader
           back
-          title="Player Market"
-          description="Find teammates or advertise your availability"
+          title={t("header.title")}
+          description={t("header.description")}
         />
         <div className="flex gap-2 w-full md:w-auto">
           {token && (
@@ -1394,7 +1439,7 @@ function PlayerMarketPage() {
               onClick={() => setChatSidebarOpen(true)}
             >
               <IconMessage className="h-4 w-4 mr-1.5" />
-              Chats
+              {t("header.chats")}
             </Button>
           )}
           {/* data-tour anchor (guided welcome tour): Create Post button. Targeted by
@@ -1408,7 +1453,7 @@ function PlayerMarketPage() {
             }}
           >
             <IconPlus className="h-4 w-4 mr-1" />
-            Create Post
+            {t("common.createPost")}
           </Button>
         </div>
       </div>
@@ -1421,13 +1466,7 @@ function PlayerMarketPage() {
         <CardContent className="flex items-start gap-3">
           <IconInfoCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
           <div className="text-sm text-muted-foreground">
-            <p>
-              All recruitment and trials are governed by AFC rules.
-              Communication unlocks after trial invitation. Teams & players
-              should make sure to screen record and screenshot incidents they
-              might have faced during their trial, that they might want to
-              report.
-            </p>
+            <p>{t("rules.notice")}</p>
           </div>
         </CardContent>
       </Card>
@@ -1441,35 +1480,35 @@ function PlayerMarketPage() {
       <Card className="bg-card border">
         <CardContent className="space-y-2">
           <div className="flex items-center gap-1.5">
-            <h3 className="text-sm font-semibold">Player Market rules</h3>
+            <h3 className="text-sm font-semibold">{t("rules.heading")}</h3>
             <InfoTip id="player_market.rules_summary" />
           </div>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
             <li className="flex items-start gap-1.5">
               <IconCheck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
               <span>
-                One active post at a time.
+                {t("rules.oneActive")}
                 <InfoTip id="player_market.one_active_post" className="ml-1" />
               </span>
             </li>
             <li className="flex items-start gap-1.5">
               <IconCheck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
               <span>
-                At most 2 active tryouts at once.
+                {t("rules.twoTryouts")}
                 <InfoTip id="player_market.tryout_limit" className="ml-1" />
               </span>
             </li>
             <li className="flex items-start gap-1.5">
               <IconFlag className="h-3.5 w-3.5 text-red-500 mt-0.5 shrink-0" />
               <span>
-                Report honestly. False reports can get you banned.
+                {t("rules.reportHonestly")}
                 <InfoTip id="player_market.report_rules" className="ml-1" />
               </span>
             </li>
             <li className="flex items-start gap-1.5">
               <IconShield className="h-3.5 w-3.5 text-yellow-500 mt-0.5 shrink-0" />
               <span>
-                A market ban blocks posting, applying, and inviting.
+                {t("rules.banBlocks")}
                 <InfoTip id="player_market.rules_summary" className="ml-1" />
               </span>
             </li>
@@ -1484,11 +1523,9 @@ function PlayerMarketPage() {
           <div className="text-xs text-muted-foreground">
             <p>
               <span className="font-medium text-yellow-600 dark:text-yellow-400">
-                Temporary Notice:
+                {t("tierNotice.label")}
               </span>{" "}
-              All teams and players are currently assigned Tier 3 status. Tier
-              standings will be automatically updated over time based on
-              activity and performance.
+              {t("tierNotice.body")}
             </p>
           </div>
         </CardContent>
@@ -1496,23 +1533,22 @@ function PlayerMarketPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <ScrollArea>
-          {/* data-tour anchor (guided welcome tour): the Teams Recruiting / Players
-              Open to Join tabs. Targeted by guided-tour-stops.ts -> market stop ->
-              "market-tabs". */}
-          <TabsList className="w-full" data-tour="market-tabs">
+        {/* data-tour anchor (guided welcome tour): the Teams Recruiting / Players
+            Open to Join tabs. Targeted by guided-tour-stops.ts -> market stop ->
+            "market-tabs". */}
+        <ScrollableTabsList className="w-full" data-tour="market-tabs">
             <TabsTrigger value="teams" className="flex-1">
               <IconUsers className="h-4 w-4 mr-1.5" />
-              Teams Recruiting
+              {t("tabs.teamsRecruiting")}
             </TabsTrigger>
             <TabsTrigger value="players" className="flex-1">
               <IconUser className="h-4 w-4 mr-1.5" />
-              Players Open to Join
+              {t("tabs.playersOpen")}
             </TabsTrigger>
             {token && !isTeamLeader && (
               <TabsTrigger value="my-applications" className="flex-1">
                 <IconClipboardList className="h-4 w-4 mr-1.5" />
-                My Applications
+                {t("tabs.myApplications")}
               </TabsTrigger>
             )}
             {/* Trial Invites is gated on token ONLY (not !isTeamLeader): a player who
@@ -1520,7 +1556,7 @@ function PlayerMarketPage() {
             {token && (
               <TabsTrigger value="my-invites" className="flex-1">
                 <IconCalendar className="h-4 w-4 mr-1.5" />
-                Trial Invites
+                {t("tabs.trialInvites")}
                 {myTrialInvites.filter((i) => i.status === "PENDING").length >
                   0 && (
                   <span className="ml-1.5 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
@@ -1535,24 +1571,22 @@ function PlayerMarketPage() {
             {token && isTeamLeader && (
               <TabsTrigger value="team-applications" className="flex-1">
                 <IconUsers className="h-4 w-4 mr-1.5" />
-                Team Applications
+                {t("tabs.teamApplications")}
               </TabsTrigger>
             )}
             {token && currentTeam && (
               <TabsTrigger value="my-team" className="flex-1">
                 <IconShield className="h-4 w-4 mr-1.5" />
-                My Team
+                {t("tabs.myTeam")}
               </TabsTrigger>
             )}
             {token && (
               <TabsTrigger value="my-posts" className="flex-1">
                 <IconClipboardList className="h-4 w-4 mr-1.5" />
-                My Posts
+                {t("tabs.myPosts")}
               </TabsTrigger>
             )}
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        </ScrollableTabsList>
 
         {/* ─── Teams Recruiting Tab ─────────────────────────────────── */}
         <TabsContent value="teams" className="mt-4 space-y-4">
@@ -1561,7 +1595,7 @@ function PlayerMarketPage() {
             <div className="relative flex-1">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search teams..."
+                placeholder={t("teamsTab.search")}
                 value={teamSearch}
                 onChange={(e) => setTeamSearch(e.target.value)}
                 className="pl-9"
@@ -1572,10 +1606,10 @@ function PlayerMarketPage() {
               onValueChange={setTeamCommitmentFilter}
             >
               <SelectTrigger className="w-full md:w-[160px]">
-                <SelectValue placeholder="Commitment" />
+                <SelectValue placeholder={t("teamsTab.commitment")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="all">{t("teamsTab.allLevels")}</SelectItem>
                 {COMMITMENTS.map((c) => (
                   <SelectItem key={c.value} value={c.value}>
                     {c.label}
@@ -1585,13 +1619,13 @@ function PlayerMarketPage() {
             </Select>
             <Select value={teamTierFilter} onValueChange={setTeamTierFilter}>
               <SelectTrigger className="w-full md:w-[160px]">
-                <SelectValue placeholder="Min Tier" />
+                <SelectValue placeholder={t("teamsTab.minTier")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Tiers</SelectItem>
-                {TIERS.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
-                    {t.label}
+                <SelectItem value="all">{t("teamsTab.allTiers")}</SelectItem>
+                {TIERS.map((tier) => (
+                  <SelectItem key={tier.value} value={tier.value}>
+                    {tier.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -1601,13 +1635,13 @@ function PlayerMarketPage() {
           {/* Team Cards Grid */}
           {loadingTeams ? (
             <div className="text-center py-12 text-muted-foreground">
-              <p className="text-sm">Loading...</p>
+              <p className="text-sm">{t("common.loading")}</p>
             </div>
           ) : filteredTeams.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <IconUsers className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="font-medium">No teams found</p>
-              <p className="text-sm">Try adjusting your filters</p>
+              <p className="font-medium">{t("teamsTab.noneFound")}</p>
+              <p className="text-sm">{t("common.adjustFilters")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -1622,7 +1656,7 @@ function PlayerMarketPage() {
                       <Avatar className="h-12 w-12">
                         <AvatarImage
                           src={DEFAULT_PROFILE_PICTURE}
-                          alt={team.team ?? "Team"}
+                          alt={team.team ?? t("common.team")}
                         />
                         <AvatarFallback>
                           {(team.team ?? "T").charAt(0)}
@@ -1634,11 +1668,11 @@ function PlayerMarketPage() {
                           {team.team ? (
                             <TeamLink name={team.team} />
                           ) : (
-                            "Unknown Team"
+                            t("common.unknownTeam")
                           )}
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          Expires {formatDate(team.expiry)}
+                          {t("common.expires", { date: formatDate(team.expiry) })}
                         </p>
                       </div>
                     </div>
@@ -1688,7 +1722,7 @@ function PlayerMarketPage() {
                         Mirrors the "Open To" block on the standalone [id]/page.tsx. */}
                     {team.countries && team.countries.length > 0 && (
                       <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-1">
-                        <span className="font-medium">Open to:</span>
+                        <span className="font-medium">{t("teamsTab.openTo")}</span>
                         {team.countries.map((c) => c.name).join(", ")}
                       </p>
                     )}
@@ -1700,7 +1734,9 @@ function PlayerMarketPage() {
                       <div className="flex items-center gap-1">
                         <ShareButton
                           url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/team-${team.id}`}
-                          text={`${team.team ?? "A team"} is recruiting on AFC Player Market!`}
+                          text={t("teamsTab.shareText", {
+                            team: team.team ?? t("teamsTab.aTeam"),
+                          })}
                         />
                         {team.is_owner ? (
                           /* Owner controls (owner 2026-06-30): Edit/Delete YOUR OWN post inline on
@@ -1715,7 +1751,7 @@ function PlayerMarketPage() {
                               onClick={() => openEditPost(team.id, "team")}
                             >
                               <IconPencil className="h-3.5 w-3.5 mr-1" />
-                              {isLoadingEditPost ? "Loading..." : "Edit"}
+                              {isLoadingEditPost ? t("common.loading") : t("common.edit")}
                             </Button>
                             <Button
                               variant="ghost"
@@ -1725,7 +1761,7 @@ function PlayerMarketPage() {
                               onClick={() => handleDeletePost(team.id)}
                             >
                               <IconTrash className="h-3.5 w-3.5 mr-1" />
-                              {isDeletingPost === team.id ? "Deleting..." : "Delete"}
+                              {isDeletingPost === team.id ? t("common.deleting") : t("common.delete")}
                             </Button>
                           </>
                         ) : (
@@ -1738,12 +1774,12 @@ function PlayerMarketPage() {
                               setReportTarget({
                                 postId: team.id,
                                 subjectType: "team",
-                                subjectName: team.team ?? "this team",
+                                subjectName: team.team ?? t("teamsTab.thisTeam"),
                               })
                             }
                           >
                             <IconFlag className="h-3.5 w-3.5 mr-1" />
-                            Report
+                            {t("common.report")}
                           </Button>
                         )}
                       </div>
@@ -1753,7 +1789,7 @@ function PlayerMarketPage() {
                         className="text-xs"
                         onClick={() => setViewTeam(team)}
                       >
-                        View Details
+                        {t("common.viewDetails")}
                         <IconChevronRight className="h-3.5 w-3.5 ml-0.5" />
                       </Button>
                     </div>
@@ -1771,7 +1807,7 @@ function PlayerMarketPage() {
             <div className="relative flex-1">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search players..."
+                placeholder={t("playersTab.search")}
                 value={playerSearch}
                 onChange={(e) => setPlayerSearch(e.target.value)}
                 className="pl-9"
@@ -1782,10 +1818,10 @@ function PlayerMarketPage() {
               onValueChange={setPlayerAvailabilityFilter}
             >
               <SelectTrigger className="w-full md:w-[160px]">
-                <SelectValue placeholder="Availability" />
+                <SelectValue placeholder={t("playersTab.availability")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="all">{t("playersTab.all")}</SelectItem>
                 {AVAILABILITIES.map((a) => (
                   <SelectItem key={a.value} value={a.value}>
                     {a.label}
@@ -1798,10 +1834,10 @@ function PlayerMarketPage() {
               onValueChange={setPlayerRoleFilter}
             >
               <SelectTrigger className="w-full md:w-[160px]">
-                <SelectValue placeholder="Role" />
+                <SelectValue placeholder={t("playersTab.role")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="all">{t("playersTab.allRoles")}</SelectItem>
                 {ROLES.map((r, index) => (
                   <SelectItem key={r.value} value={r.value}>
                     {r.label}
@@ -1859,13 +1895,13 @@ function PlayerMarketPage() {
           {/* Player Cards Grid */}
           {loadingPlayers ? (
             <div className="text-center py-12 text-muted-foreground">
-              <p className="text-sm">Loading...</p>
+              <p className="text-sm">{t("common.loading")}</p>
             </div>
           ) : filteredPlayers.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <IconUser className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="font-medium">No players found</p>
-              <p className="text-sm">Try adjusting your filters</p>
+              <p className="font-medium">{t("playersTab.noneFound")}</p>
+              <p className="text-sm">{t("common.adjustFilters")}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -1892,7 +1928,7 @@ function PlayerMarketPage() {
                           <PlayerLink name={player.player} />
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          Expires {formatDate(player.expiry)}
+                          {t("common.expires", { date: formatDate(player.expiry) })}
                         </p>
                       </div>
                     </div>
@@ -1963,7 +1999,7 @@ function PlayerMarketPage() {
                       {player.video_url && (
                         <span className="flex items-center gap-1 text-primary">
                           <IconVideo className="h-3 w-3" />
-                          Video
+                          {t("common.video")}
                         </span>
                       )}
                     </div>
@@ -1974,7 +2010,7 @@ function PlayerMarketPage() {
                         "Open To Play For" block on the standalone [id]/page.tsx. */}
                     {player.countries && player.countries.length > 0 && (
                       <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-1">
-                        <span className="font-medium">Open to play for:</span>
+                        <span className="font-medium">{t("playersTab.openToPlay")}</span>
                         {player.countries.map((c) => c.name).join(", ")}
                       </p>
                     )}
@@ -1986,7 +2022,7 @@ function PlayerMarketPage() {
                       <div className="flex items-center gap-1">
                         <ShareButton
                           url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/player-${player.id}`}
-                          text={`${player.player} is open to joining a team on AFC Player Market!`}
+                          text={t("playersTab.shareText", { player: player.player })}
                         />
                         {player.is_owner ? (
                           /* Owner controls (owner 2026-06-30): Edit/Delete YOUR OWN availability post
@@ -2001,7 +2037,7 @@ function PlayerMarketPage() {
                               onClick={() => openEditPost(player.id, "player")}
                             >
                               <IconPencil className="h-3.5 w-3.5 mr-1" />
-                              {isLoadingEditPost ? "Loading..." : "Edit"}
+                              {isLoadingEditPost ? t("common.loading") : t("common.edit")}
                             </Button>
                             <Button
                               variant="ghost"
@@ -2011,7 +2047,7 @@ function PlayerMarketPage() {
                               onClick={() => handleDeletePost(player.id)}
                             >
                               <IconTrash className="h-3.5 w-3.5 mr-1" />
-                              {isDeletingPost === player.id ? "Deleting..." : "Delete"}
+                              {isDeletingPost === player.id ? t("common.deleting") : t("common.delete")}
                             </Button>
                           </>
                         ) : (
@@ -2029,7 +2065,7 @@ function PlayerMarketPage() {
                             }
                           >
                             <IconFlag className="h-3.5 w-3.5 mr-1" />
-                            Report
+                            {t("common.report")}
                           </Button>
                         )}
                       </div>
@@ -2039,7 +2075,7 @@ function PlayerMarketPage() {
                         className="text-xs"
                         onClick={() => setViewPlayer(player)}
                       >
-                        View Details
+                        {t("common.viewDetails")}
                         <IconChevronRight className="h-3.5 w-3.5 ml-0.5" />
                       </Button>
                     </div>
@@ -2060,20 +2096,20 @@ function PlayerMarketPage() {
             <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-2.5 text-xs text-muted-foreground">
               <IconInfoCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               <span className="flex items-center gap-1">
-                You can be in at most 2 active tryouts at a time.
+                {t("invitesTab.maxTryouts")}
                 <InfoTip id="player_market.tryout_limit" />
               </span>
             </div>
             {loadingInvites ? (
               <div className="text-center py-12 text-sm text-muted-foreground">
-                Loading...
+                {t("common.loading")}
               </div>
             ) : myTrialInvites.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-14 text-muted-foreground">
                 <IconCalendar className="h-12 w-12 opacity-40" />
-                <p className="font-medium">No trial invites</p>
+                <p className="font-medium">{t("invitesTab.none")}</p>
                 <p className="text-sm">
-                  Teams that invite you to trial will appear here
+                  {t("invitesTab.emptyHint")}
                 </p>
               </div>
             ) : (
@@ -2102,7 +2138,7 @@ function PlayerMarketPage() {
                         <div>
                           <h3 className="font-semibold">{invite.team}</h3>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            Sent {formatDate(invite.created_at)}
+                            {t("invitesTab.sent", { date: formatDate(invite.created_at) })}
                           </p>
                         </div>
                         <Badge
@@ -2127,8 +2163,10 @@ function PlayerMarketPage() {
                           <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <IconClock className="h-3 w-3" />
                             {isExpired
-                              ? "Expired"
-                              : `Expires ${formatDate(invite.expires_at)}`}
+                              ? t("invitesTab.expired")
+                              : t("common.expires", {
+                                  date: formatDate(invite.expires_at),
+                                })}
                           </p>
                         )}
                         {isPending && !isExpired && (
@@ -2147,7 +2185,7 @@ function PlayerMarketPage() {
                                 )
                               }
                             >
-                              Decline
+                              {t("invitesTab.decline")}
                             </Button>
                             <Button
                               size="sm"
@@ -2163,7 +2201,7 @@ function PlayerMarketPage() {
                             >
                               {isRespondingToInvite === invite.invite_id
                                 ? "..."
-                                : "Accept"}
+                                : t("invitesTab.accept")}
                             </Button>
                           </div>
                         )}
@@ -2186,20 +2224,20 @@ function PlayerMarketPage() {
                   <TeamLink name={currentTeam?.team_name} />
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Players who applied via your recruitment post
+                  {t("teamAppsTab.subtitle")}
                 </p>
               </div>
             </div>
             {loadingTeamApps ? (
               <div className="text-center py-12 text-sm text-muted-foreground">
-                Loading...
+                {t("common.loading")}
               </div>
             ) : teamApplications.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-14 text-muted-foreground">
                 <IconUsers className="h-12 w-12 opacity-40" />
-                <p className="font-medium">No applications yet</p>
+                <p className="font-medium">{t("teamAppsTab.none")}</p>
                 <p className="text-sm">
-                  Applications from your recruitment post will appear here
+                  {t("teamAppsTab.emptyHint")}
                 </p>
               </div>
             ) : (
@@ -2226,7 +2264,7 @@ function PlayerMarketPage() {
                             <PlayerLink name={app.player} />
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            Applied {formatDate(app.applied_at)}
+                            {t("common.applied", { date: formatDate(app.applied_at) })}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -2241,7 +2279,7 @@ function PlayerMarketPage() {
                               variant="outline"
                               className="text-xs text-green-400 border-green-800"
                             >
-                              Contact Unlocked
+                              {t("common.contactUnlocked")}
                             </Badge>
                           )}
                           <Button
@@ -2249,14 +2287,14 @@ function PlayerMarketPage() {
                             variant="outline"
                             onClick={() => setReviewApp(app)}
                           >
-                            Review
+                            {t("teamAppsTab.review")}
                           </Button>
                           <Button size="sm" variant="outline" asChild>
                             <Link
                               href={`/player-markets/applications/${app.id}`}
                             >
                               <IconChevronRight className="h-3.5 w-3.5 mr-1" />
-                              View
+                              {t("common.view")}
                             </Link>
                           </Button>
                         </div>
@@ -2265,15 +2303,17 @@ function PlayerMarketPage() {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <IconTrophy className="h-3.5 w-3.5 text-yellow-400" />
-                          {app.tournament_wins} wins
+                          {t("common.wins", { count: app.tournament_wins })}
                         </span>
                         <span className="flex items-center gap-1.5">
                           <IconCrosshair className="h-3.5 w-3.5 text-red-400" />
-                          {app.total_tournament_kills} kills
+                          {t("common.kills", { count: app.total_tournament_kills })}
                         </span>
                         <span className="flex items-center gap-1.5">
                           <IconAward className="h-3.5 w-3.5 text-blue-400" />
-                          {app.tournament_finals_appearances} finals
+                          {t("common.finals", {
+                            count: app.tournament_finals_appearances,
+                          })}
                         </span>
                       </div>
                     </CardContent>
@@ -2289,14 +2329,14 @@ function PlayerMarketPage() {
           <TabsContent value="my-applications" className="mt-4 space-y-3">
             {loadingMyApps ? (
               <div className="text-center py-12 text-sm text-muted-foreground">
-                Loading...
+                {t("common.loading")}
               </div>
             ) : myApplications.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-14 text-muted-foreground">
                 <IconClipboardList className="h-12 w-12 opacity-40" />
-                <p className="font-medium">No applications yet</p>
+                <p className="font-medium">{t("myAppsTab.none")}</p>
                 <p className="text-sm">
-                  Browse teams recruiting and apply to join
+                  {t("myAppsTab.emptyHint")}
                 </p>
               </div>
             ) : (
@@ -2320,7 +2360,7 @@ function PlayerMarketPage() {
                         <div>
                           <h3 className="font-semibold">{app.team}</h3>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            Applied {formatDate(app.applied_at)}
+                            {t("common.applied", { date: formatDate(app.applied_at) })}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -2335,7 +2375,7 @@ function PlayerMarketPage() {
                               variant="outline"
                               className="text-xs text-green-400 border-green-800"
                             >
-                              Contact Unlocked
+                              {t("common.contactUnlocked")}
                             </Badge>
                           )}
                         </div>
@@ -2347,16 +2387,18 @@ function PlayerMarketPage() {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                           <IconTrophy className="h-3.5 w-3.5 text-yellow-400" />
-                          <span>{app.tournament_wins} wins</span>
+                          <span>{t("common.wins", { count: app.tournament_wins })}</span>
                         </span>
                         <span className="flex items-center gap-1.5">
                           <IconCrosshair className="h-3.5 w-3.5 text-red-400" />
-                          <span>{app.total_tournament_kills} kills</span>
+                          <span>{t("common.kills", { count: app.total_tournament_kills })}</span>
                         </span>
                         <span className="flex items-center gap-1.5">
                           <IconAward className="h-3.5 w-3.5 text-blue-400" />
                           <span>
-                            {app.tournament_finals_appearances} finals
+                            {t("common.finals", {
+                              count: app.tournament_finals_appearances,
+                            })}
                           </span>
                         </span>
                       </div>
@@ -2364,7 +2406,9 @@ function PlayerMarketPage() {
                       {app.invite_expires_at && (
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <IconCalendar className="h-3 w-3" />
-                          Invite expires {formatDate(app.invite_expires_at)}
+                          {t("myAppsTab.inviteExpires", {
+                            date: formatDate(app.invite_expires_at),
+                          })}
                         </p>
                       )}
 
@@ -2372,7 +2416,7 @@ function PlayerMarketPage() {
                         <Button size="sm" variant="outline" asChild>
                           <Link href={`/player-markets/applications/${app.id}`}>
                             <IconChevronRight className="h-3.5 w-3.5 mr-1" />
-                            View
+                            {t("common.view")}
                           </Link>
                         </Button>
                       </div>
@@ -2412,14 +2456,14 @@ function PlayerMarketPage() {
                         variant="outline"
                         className={`text-xs shrink-0 ${getTierColor(`TIER_${currentTeam.team_tier}`)}`}
                       >
-                        Tier {currentTeam.team_tier}
+                        {t("myTeamTab.tier", { tier: currentTeam.team_tier })}
                       </Badge>
                       {currentTeam.is_banned && (
                         <Badge
                           variant="destructive"
                           className="text-xs shrink-0"
                         >
-                          Banned
+                          {t("myTeamTab.banned")}
                         </Badge>
                       )}
                     </div>
@@ -2432,12 +2476,15 @@ function PlayerMarketPage() {
                       )}
                       <span className="flex items-center gap-1">
                         <IconUsers className="h-3 w-3" />
-                        {currentTeam.member_count} member
-                        {currentTeam.member_count !== 1 ? "s" : ""}
+                        {t("myTeamTab.members", {
+                          count: currentTeam.member_count,
+                        })}
                       </span>
                       <span className="flex items-center gap-1">
                         <IconCalendar className="h-3 w-3" />
-                        Founded {formatDate(currentTeam.creation_date)}
+                        {t("myTeamTab.founded", {
+                          date: formatDate(currentTeam.creation_date),
+                        })}
                       </span>
                     </div>
                   </div>
@@ -2456,16 +2503,16 @@ function PlayerMarketPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div className="rounded-lg border bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      Your Role
+                      {t("myTeamTab.yourRole")}
                     </p>
                     <p className="text-sm font-medium mt-0.5 capitalize">
                       {currentTeam.user_role_in_team?.replace(/_/g, " ") ??
-                        "Member"}
+                        t("myTeamTab.member")}
                     </p>
                   </div>
                   <div className="rounded-lg border bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      Owner
+                      {t("myTeamTab.owner")}
                     </p>
                     <p className="text-sm font-medium mt-0.5 truncate">
                       {/* Owner IGN links to the owner's public player profile. */}
@@ -2474,7 +2521,7 @@ function PlayerMarketPage() {
                   </div>
                   <div className="rounded-lg border bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      Joined
+                      {t("myTeamTab.joined")}
                     </p>
                     <p className="text-sm font-medium mt-0.5">
                       {formatDate(currentTeam.join_date)}
@@ -2483,7 +2530,7 @@ function PlayerMarketPage() {
                   {currentTeam.in_game_role && (
                     <div className="rounded-lg border bg-muted/30 p-3">
                       <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                        In-Game Role
+                        {t("myTeamTab.inGameRole")}
                       </p>
                       <p className="text-sm font-medium mt-0.5">
                         {labelFor(ROLES, currentTeam.in_game_role)}
@@ -2492,7 +2539,7 @@ function PlayerMarketPage() {
                   )}
                   <div className="rounded-lg border bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      Joining
+                      {t("myTeamTab.joining")}
                     </p>
                     <p className="text-sm font-medium mt-0.5 capitalize">
                       {currentTeam.join_settings?.replace(/_/g, " ") ?? "-"}
@@ -2507,7 +2554,7 @@ function PlayerMarketPage() {
                       /team/<team_id> href 404'd (no singular /team route, and it used id not name). */}
                   <Link href={`/teams/${currentTeam.team_name}`}>
                     <Button size="sm">
-                      View Full Team
+                      {t("myTeamTab.viewFullTeam")}
                       <IconChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </Link>
@@ -2527,9 +2574,9 @@ function PlayerMarketPage() {
             {myTeamPosts.length === 0 && myPlayerPosts.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <IconClipboardList className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="font-medium">No posts yet</p>
+                <p className="font-medium">{t("myPostsTab.none")}</p>
                 <p className="text-sm">
-                  Create a team recruitment post or an availability post to get started
+                  {t("myPostsTab.emptyHint")}
                 </p>
               </div>
             ) : (
@@ -2538,10 +2585,10 @@ function PlayerMarketPage() {
                   <>
                     <div>
                       <p className="text-base font-semibold">
-                        My Recruitment Posts
+                        {t("myPostsTab.recruitmentHeading")}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Team recruitment posts you&apos;ve created
+                        {t("myPostsTab.recruitmentSub")}
                       </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -2560,10 +2607,10 @@ function PlayerMarketPage() {
                             </Avatar>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold truncate">
-                                {post.team ?? "Unknown Team"}
+                                {post.team ?? t("common.unknownTeam")}
                               </h3>
                               <p className="text-xs text-muted-foreground">
-                                Expires {formatDate(post.expiry)}
+                                {t("common.expires", { date: formatDate(post.expiry) })}
                               </p>
                             </div>
                           </div>
@@ -2619,8 +2666,8 @@ function PlayerMarketPage() {
                               >
                                 <IconTrash className="h-3.5 w-3.5 mr-1" />
                                 {isDeletingPost === post.id
-                                  ? "Deleting..."
-                                  : "Delete"}
+                                  ? t("common.deleting")
+                                  : t("common.delete")}
                               </Button>
                               <Button
                                 variant="ghost"
@@ -2630,7 +2677,7 @@ function PlayerMarketPage() {
                                 onClick={() => openEditPost(post.id, "team")}
                               >
                                 <IconPencil className="h-3.5 w-3.5 mr-1" />
-                                {isLoadingEditPost ? "Loading..." : "Edit"}
+                                {isLoadingEditPost ? t("common.loading") : t("common.edit")}
                               </Button>
                             </div>
                             <Button
@@ -2639,7 +2686,7 @@ function PlayerMarketPage() {
                               className="text-xs"
                               onClick={() => setViewTeam(post)}
                             >
-                              View Details
+                              {t("common.viewDetails")}
                               <IconChevronRight className="h-3.5 w-3.5 ml-0.5" />
                             </Button>
                           </div>
@@ -2653,10 +2700,10 @@ function PlayerMarketPage() {
                   <>
                     <div>
                       <p className="text-base font-semibold">
-                        My Availability Posts
+                        {t("myPostsTab.availabilityHeading")}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Posts you&apos;ve created to find a team
+                        {t("myPostsTab.availabilitySub")}
                       </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -2679,7 +2726,7 @@ function PlayerMarketPage() {
                                 <PlayerLink name={post.player} />
                               </h3>
                               <p className="text-xs text-muted-foreground">
-                                Expires {formatDate(post.expiry)}
+                                {t("common.expires", { date: formatDate(post.expiry) })}
                               </p>
                             </div>
                           </div>
@@ -2708,7 +2755,7 @@ function PlayerMarketPage() {
                             {post.video_url && (
                               <Badge variant="outline" className="text-xs border-primary text-primary">
                                 <IconVideo className="h-3 w-3 mr-1" />
-                                Video
+                                {t("common.video")}
                               </Badge>
                             )}
                           </div>
@@ -2732,8 +2779,8 @@ function PlayerMarketPage() {
                               >
                                 <IconTrash className="h-3.5 w-3.5 mr-1" />
                                 {isDeletingPost === post.id
-                                  ? "Deleting..."
-                                  : "Delete"}
+                                  ? t("common.deleting")
+                                  : t("common.delete")}
                               </Button>
                               <Button
                                 variant="ghost"
@@ -2743,7 +2790,7 @@ function PlayerMarketPage() {
                                 onClick={() => openEditPost(post.id, "player")}
                               >
                                 <IconPencil className="h-3.5 w-3.5 mr-1" />
-                                {isLoadingEditPost ? "Loading..." : "Edit"}
+                                {isLoadingEditPost ? t("common.loading") : t("common.edit")}
                               </Button>
                             </div>
                             <Button
@@ -2752,7 +2799,7 @@ function PlayerMarketPage() {
                               className="text-xs"
                               onClick={() => setViewPlayer(post)}
                             >
-                              View Details
+                              {t("common.viewDetails")}
                               <IconChevronRight className="h-3.5 w-3.5 ml-0.5" />
                             </Button>
                           </div>
@@ -2780,19 +2827,19 @@ function PlayerMarketPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-1.5">
               {!createPostType
-                ? "Create a Post"
+                ? t("createDialog.title")
                 : createPostType === "team"
-                  ? "Team Recruitment Post"
-                  : "Player Available Post"}
+                  ? t("createDialog.teamTitle")
+                  : t("createDialog.playerTitle")}
               {/* J1: one-active-post rule, surfaced right on the Create Post title. */}
               <InfoTip id="player_market.one_active_post" />
             </DialogTitle>
             <DialogDescription>
               {!createPostType
-                ? "Choose the type of post you want to create."
+                ? t("createDialog.chooseType")
                 : createPostType === "team"
-                  ? "Fill in the details to recruit players for your team."
-                  : "Let teams know you're available to join."}
+                  ? t("createDialog.teamDesc")
+                  : t("createDialog.playerDesc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -2803,11 +2850,7 @@ function PlayerMarketPage() {
                   they understand why a create might be blocked (server enforces it). */}
               <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs text-muted-foreground">
                 <IconInfoCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                <p>
-                  You can have only one active post at a time (team or player).
-                  Close your current post, or wait for it to expire, before
-                  creating a new one.
-                </p>
+                <p>{t("createDialog.oneActiveNotice")}</p>
               </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
               <button
@@ -2815,9 +2858,9 @@ function PlayerMarketPage() {
                 className="flex flex-col items-center gap-2 p-6 rounded-lg border-2 border-muted hover:border-primary/50 transition-all text-center"
               >
                 <IconUsers className="h-8 w-8 text-primary" />
-                <span className="font-semibold">Team Recruiting</span>
+                <span className="font-semibold">{t("createDialog.teamRecruiting")}</span>
                 <span className="text-xs text-muted-foreground">
-                  Find players for your team
+                  {t("createDialog.teamRecruitingSub")}
                 </span>
               </button>
               <button
@@ -2825,9 +2868,9 @@ function PlayerMarketPage() {
                 className="flex flex-col items-center gap-2 p-6 rounded-lg border-2 border-muted hover:border-primary/50 transition-all text-center"
               >
                 <IconUser className="h-8 w-8 text-primary" />
-                <span className="font-semibold">Player Available</span>
+                <span className="font-semibold">{t("createDialog.playerAvailable")}</span>
                 <span className="text-xs text-muted-foreground">
-                  Advertise your availability
+                  {t("createDialog.playerAvailableSub")}
                 </span>
               </button>
             </div>
@@ -2838,7 +2881,7 @@ function PlayerMarketPage() {
           {createPostType === "team" && (
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <Label>Roles Needed *</Label>
+                <Label>{t("createDialog.rolesNeeded")} *</Label>
                 <ToggleGroup
                   type="multiple"
                   variant="outline"
@@ -2860,13 +2903,13 @@ function PlayerMarketPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Minimum Tier *</Label>
+                  <Label>{t("createDialog.minTier")} *</Label>
                   <Select
                     value={newTeamMinTier}
                     onValueChange={setNewTeamMinTier}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select tier" />
+                      <SelectValue placeholder={t("createDialog.selectTier")} />
                     </SelectTrigger>
                     <SelectContent>
                       {TIERS.map((t, index) => (
@@ -2878,13 +2921,13 @@ function PlayerMarketPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Commitment Level *</Label>
+                  <Label>{t("createDialog.commitment")} *</Label>
                   <Select
                     value={newTeamCommitment}
                     onValueChange={setNewTeamCommitment}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select level" />
+                      <SelectValue placeholder={t("createDialog.selectLevel")} />
                     </SelectTrigger>
                     <SelectContent>
                       {COMMITMENTS.map((c, index) => (
@@ -2899,21 +2942,20 @@ function PlayerMarketPage() {
 
               <div className="space-y-2">
                 <Label>
-                  Countries *
+                  {t("createDialog.countries")} *
                   <span className="ml-1 text-xs text-muted-foreground font-normal">
-                    (select countries you want applicants from)
+                    {t("createDialog.countriesTeamHint")}
                   </span>
                 </Label>
                 <CountryMultiSelect
                   value={newTeamCountries}
                   onChange={setNewTeamCountries}
-                  placeholder="Select countries..."
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>
-                  Expiry Date *
+                  {t("createDialog.expiry")} *
                   {/* J1: expiry drives "active" - an expired post frees you to repost. */}
                   <InfoTip id="player_market.post_expiry" className="ml-1" />
                 </Label>
@@ -2927,17 +2969,17 @@ function PlayerMarketPage() {
                 {/* One-month cap (feature "L-market-expiry-cap"): the input min/max bound
                     the picker; the backend enforces the same window on submit. */}
                 <p className="text-xs text-muted-foreground">
-                  Posts last up to 1 month, then close automatically.
+                  {t("createDialog.expiryNote")}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <Label>
-                  Recruitment Criteria
+                  {t("createDialog.criteria")}
                   <InfoTip id="player_market.recruitment_criteria" className="ml-1" />
                 </Label>
                 <Textarea
-                  placeholder="Describe what you're looking for in a teammate..."
+                  placeholder={t("createDialog.criteriaPlaceholder")}
                   rows={4}
                   value={newTeamCriteria}
                   onChange={(e) => setNewTeamCriteria(e.target.value)}
@@ -2949,10 +2991,10 @@ function PlayerMarketPage() {
                   variant="outline"
                   onClick={() => setCreatePostType(null)}
                 >
-                  Back
+                  {t("common.back")}
                 </Button>
                 <Button onClick={handleCreateTeamPost} disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create Post"}
+                  {isSubmitting ? t("createDialog.creating") : t("common.createPost")}
                 </Button>
               </DialogFooter>
             </div>
@@ -2963,13 +3005,13 @@ function PlayerMarketPage() {
             <div className="space-y-4 py-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Primary Role *</Label>
+                  <Label>{t("createDialog.primaryRole")} *</Label>
                   <Select
                     value={newPlayerPrimary}
                     onValueChange={setNewPlayerPrimary}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue placeholder={t("createDialog.selectRole")} />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLES.map((r, index) => (
@@ -2981,13 +3023,13 @@ function PlayerMarketPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Secondary Role</Label>
+                  <Label>{t("createDialog.secondaryRole")}</Label>
                   <Select
                     value={newPlayerSecondary}
                     onValueChange={setNewPlayerSecondary}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue placeholder={t("createDialog.selectRole")} />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLES.map((r, index) => (
@@ -3001,13 +3043,13 @@ function PlayerMarketPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Availability *</Label>
+                <Label>{t("createDialog.availability")} *</Label>
                 <Select
                   value={newPlayerAvailability}
                   onValueChange={setNewPlayerAvailability}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select availability" />
+                    <SelectValue placeholder={t("createDialog.selectAvailability")} />
                   </SelectTrigger>
                   <SelectContent>
                     {AVAILABILITIES.map((a, index) => (
@@ -3021,21 +3063,20 @@ function PlayerMarketPage() {
 
               <div className="space-y-2">
                 <Label>
-                  Countries *
+                  {t("createDialog.countries")} *
                   <span className="ml-1 text-xs text-muted-foreground font-normal">
-                    (select countries you're open to join from)
+                    {t("createDialog.countriesPlayerHint")}
                   </span>
                 </Label>
                 <CountryMultiSelect
                   value={newPlayerCountries}
                   onChange={setNewPlayerCountries}
-                  placeholder="Select countries..."
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>
-                  Expiry Date *
+                  {t("createDialog.expiry")} *
                   {/* J1: expiry drives "active" - an expired post frees you to repost. */}
                   <InfoTip id="player_market.post_expiry" className="ml-1" />
                 </Label>
@@ -3049,7 +3090,7 @@ function PlayerMarketPage() {
                 {/* One-month cap (feature "L-market-expiry-cap"): the input min/max bound
                     the picker; the backend enforces the same window on submit. */}
                 <p className="text-xs text-muted-foreground">
-                  Posts last up to 1 month, then close automatically.
+                  {t("createDialog.expiryNote")}
                 </p>
               </div>
 
@@ -3128,23 +3169,22 @@ function PlayerMarketPage() {
                   lib/videoEmbed.ts; the backend allowlists the host. The helper text NAMES the
                   accepted platforms (owner: "tell them the platform links we are accepting"). */}
               <div className="space-y-2">
-                <Label>Gameplay Video Link</Label>
+                <Label>{t("createDialog.videoLabel")}</Label>
                 <Input
-                  placeholder="Link to your gameplay clip"
+                  placeholder={t("createDialog.videoPlaceholder")}
                   maxLength={300}
                   value={newPlayerVideo}
                   onChange={(e) => setNewPlayerVideo(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Optional, but posts with gameplay get noticed: teams can watch you play right
-                  on your post. One video per post. Accepted platforms: {VIDEO_PLATFORMS_LABEL}.
+                  {t("createDialog.videoHint", { platforms: VIDEO_PLATFORMS_LABEL })}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label>Additional Info</Label>
+                <Label>{t("createDialog.additionalInfo")}</Label>
                 <Textarea
-                  placeholder="Tell teams about yourself, your experience, and what you're looking for..."
+                  placeholder={t("createDialog.additionalPlaceholder")}
                   rows={4}
                   value={newPlayerInfo}
                   onChange={(e) => setNewPlayerInfo(e.target.value)}
@@ -3156,13 +3196,13 @@ function PlayerMarketPage() {
                   variant="outline"
                   onClick={() => setCreatePostType(null)}
                 >
-                  Back
+                  {t("common.back")}
                 </Button>
                 <Button
                   onClick={handleCreatePlayerPost}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Creating..." : "Create Post"}
+                  {isSubmitting ? t("createDialog.creating") : t("common.createPost")}
                 </Button>
               </DialogFooter>
             </div>
@@ -3182,13 +3222,13 @@ function PlayerMarketPage() {
           <DialogHeader>
             <DialogTitle>
               {editingPost?.type === "team"
-                ? "Edit Team Recruitment Post"
-                : "Edit Player Availability Post"}
+                ? t("editDialog.teamTitle")
+                : t("editDialog.playerTitle")}
             </DialogTitle>
             <DialogDescription>
               {editingPost?.type === "team"
-                ? "Update the details for your team recruitment post."
-                : "Update your availability post."}
+                ? t("editDialog.teamDesc")
+                : t("editDialog.playerDesc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -3196,7 +3236,7 @@ function PlayerMarketPage() {
           {editingPost?.type === "team" && (
             <div className="space-y-4 py-2">
               <div className="space-y-2">
-                <Label>Roles Needed *</Label>
+                <Label>{t("createDialog.rolesNeeded")} *</Label>
                 <ToggleGroup
                   type="multiple"
                   variant="outline"
@@ -3218,13 +3258,13 @@ function PlayerMarketPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Minimum Tier *</Label>
+                  <Label>{t("createDialog.minTier")} *</Label>
                   <Select
                     value={editTeamMinTier}
                     onValueChange={setEditTeamMinTier}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select tier" />
+                      <SelectValue placeholder={t("createDialog.selectTier")} />
                     </SelectTrigger>
                     <SelectContent>
                       {TIERS.map((t) => (
@@ -3236,13 +3276,13 @@ function PlayerMarketPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Commitment Level *</Label>
+                  <Label>{t("createDialog.commitment")} *</Label>
                   <Select
                     value={editTeamCommitment}
                     onValueChange={setEditTeamCommitment}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select level" />
+                      <SelectValue placeholder={t("createDialog.selectLevel")} />
                     </SelectTrigger>
                     <SelectContent>
                       {COMMITMENTS.map((c) => (
@@ -3257,20 +3297,19 @@ function PlayerMarketPage() {
 
               <div className="space-y-2">
                 <Label>
-                  Countries *
+                  {t("createDialog.countries")} *
                   <span className="ml-1 text-xs text-muted-foreground font-normal">
-                    (select countries you want applicants from)
+                    {t("createDialog.countriesTeamHint")}
                   </span>
                 </Label>
                 <CountryMultiSelect
                   value={editTeamCountries}
                   onChange={setEditTeamCountries}
-                  placeholder="Select countries..."
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Expiry Date *</Label>
+                <Label>{t("createDialog.expiry")} *</Label>
                 <Input
                   type="date"
                   value={editTeamExpiry}
@@ -3279,9 +3318,9 @@ function PlayerMarketPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Recruitment Criteria</Label>
+                <Label>{t("createDialog.criteria")}</Label>
                 <Textarea
-                  placeholder="Describe what you're looking for in a teammate..."
+                  placeholder={t("createDialog.criteriaPlaceholder")}
                   rows={4}
                   value={editTeamCriteria}
                   onChange={(e) => setEditTeamCriteria(e.target.value)}
@@ -3293,13 +3332,13 @@ function PlayerMarketPage() {
                   variant="outline"
                   onClick={() => setEditPostOpen(false)}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button
                   onClick={handleEditTeamPost}
                   disabled={isEditSubmitting}
                 >
-                  {isEditSubmitting ? "Saving..." : "Save Changes"}
+                  {isEditSubmitting ? t("editDialog.saving") : t("editDialog.saveChanges")}
                 </Button>
               </DialogFooter>
             </div>
@@ -3310,13 +3349,13 @@ function PlayerMarketPage() {
             <div className="space-y-4 py-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Primary Role *</Label>
+                  <Label>{t("createDialog.primaryRole")} *</Label>
                   <Select
                     value={editPlayerPrimary}
                     onValueChange={setEditPlayerPrimary}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue placeholder={t("createDialog.selectRole")} />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLES.map((r) => (
@@ -3328,13 +3367,13 @@ function PlayerMarketPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Secondary Role</Label>
+                  <Label>{t("createDialog.secondaryRole")}</Label>
                   <Select
                     value={editPlayerSecondary}
                     onValueChange={setEditPlayerSecondary}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
+                      <SelectValue placeholder={t("createDialog.selectRole")} />
                     </SelectTrigger>
                     <SelectContent>
                       {ROLES.map((r) => (
@@ -3348,13 +3387,13 @@ function PlayerMarketPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Availability *</Label>
+                <Label>{t("createDialog.availability")} *</Label>
                 <Select
                   value={editPlayerAvailability}
                   onValueChange={setEditPlayerAvailability}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select availability" />
+                    <SelectValue placeholder={t("createDialog.selectAvailability")} />
                   </SelectTrigger>
                   <SelectContent>
                     {AVAILABILITIES.map((a) => (
@@ -3368,20 +3407,19 @@ function PlayerMarketPage() {
 
               <div className="space-y-2">
                 <Label>
-                  Countries *
+                  {t("createDialog.countries")} *
                   <span className="ml-1 text-xs text-muted-foreground font-normal">
-                    (select countries you're open to join from)
+                    {t("createDialog.countriesPlayerHint")}
                   </span>
                 </Label>
                 <CountryMultiSelect
                   value={editPlayerCountries}
                   onChange={setEditPlayerCountries}
-                  placeholder="Select countries..."
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Expiry Date *</Label>
+                <Label>{t("createDialog.expiry")} *</Label>
                 <Input
                   type="date"
                   value={editPlayerExpiry}
@@ -3390,9 +3428,9 @@ function PlayerMarketPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Additional Info</Label>
+                <Label>{t("createDialog.additionalInfo")}</Label>
                 <Textarea
-                  placeholder="Tell teams about yourself, your experience, and what you're looking for..."
+                  placeholder={t("createDialog.additionalPlaceholder")}
                   rows={4}
                   value={editPlayerInfo}
                   onChange={(e) => setEditPlayerInfo(e.target.value)}
@@ -3467,7 +3505,7 @@ function PlayerMarketPage() {
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={img.url}
-                              alt="Screenshot"
+                              alt={t("screenshots.alt")}
                               className={`h-full w-full object-cover ${marked ? "opacity-30" : ""}`}
                             />
                             {marked ? (
@@ -3532,16 +3570,15 @@ function PlayerMarketPage() {
 
               {/* Optional gameplay video link: editable, clear the field to remove it. */}
               <div className="space-y-2">
-                <Label>Gameplay Video Link</Label>
+                <Label>{t("createDialog.videoLabel")}</Label>
                 <Input
-                  placeholder="Link to your gameplay clip"
+                  placeholder={t("createDialog.videoPlaceholder")}
                   maxLength={300}
                   value={editPlayerVideo}
                   onChange={(e) => setEditPlayerVideo(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  One video per post. Accepted platforms: {VIDEO_PLATFORMS_LABEL}. Entering a new
-                  link replaces the current video; clear the field to remove it.
+                  {t("editDialog.videoHint", { platforms: VIDEO_PLATFORMS_LABEL })}
                 </p>
               </div>
 
@@ -3550,13 +3587,13 @@ function PlayerMarketPage() {
                   variant="outline"
                   onClick={() => setEditPostOpen(false)}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Button>
                 <Button
                   onClick={handleEditPlayerPost}
                   disabled={isEditSubmitting}
                 >
-                  {isEditSubmitting ? "Saving..." : "Save Changes"}
+                  {isEditSubmitting ? t("editDialog.saving") : t("editDialog.saveChanges")}
                 </Button>
               </DialogFooter>
             </div>
@@ -3578,7 +3615,7 @@ function PlayerMarketPage() {
                 <Avatar className="h-14 w-14">
                   <AvatarImage
                     src={DEFAULT_PROFILE_PICTURE}
-                    alt={viewTeam.team ?? "Team"}
+                    alt={viewTeam.team ?? t("common.team")}
                   />
                   <AvatarFallback>
                     {(viewTeam.team ?? "T").charAt(0)}
@@ -3586,10 +3623,12 @@ function PlayerMarketPage() {
                 </Avatar>
                 <div>
                   <DialogTitle className="text-xl">
-                    {viewTeam.team ?? "Unknown Team"}
+                    {viewTeam.team ?? t("common.unknownTeam")}
                   </DialogTitle>
                   <p className="text-sm text-muted-foreground">
-                    Expires {new Date(viewTeam.expiry).toLocaleDateString()}
+                    {t("common.expires", {
+                      date: new Date(viewTeam.expiry).toLocaleDateString(),
+                    })}
                   </p>
                 </div>
               </div>
@@ -3601,7 +3640,7 @@ function PlayerMarketPage() {
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-muted-foreground mb-1.5">
-                      Roles Needed
+                      {t("createDialog.rolesNeeded")}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {viewTeam.roles_needed.map((role) => (
@@ -3616,7 +3655,7 @@ function PlayerMarketPage() {
                     {viewTeam.minimum_tier_required && (
                       <div>
                         <p className="text-xs text-muted-foreground">
-                          Min Tier
+                          {t("teamsTab.minTier")}
                         </p>
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border mt-1 ${getTierColor(viewTeam.minimum_tier_required)}`}
@@ -3629,7 +3668,7 @@ function PlayerMarketPage() {
                     {viewTeam.commitment_type && (
                       <div>
                         <p className="text-xs text-muted-foreground">
-                          Commitment
+                          {t("teamsTab.commitment")}
                         </p>
                         <p className="text-sm font-medium mt-1">
                           {labelFor(COMMITMENTS, viewTeam.commitment_type)}
@@ -3644,7 +3683,7 @@ function PlayerMarketPage() {
 
               {/* Eligibility */}
               <div>
-                <h4 className="text-sm font-semibold mb-2">Details</h4>
+                <h4 className="text-sm font-semibold mb-2">{t("common.details")}</h4>
                 <div className="flex flex-wrap gap-2">
                   {viewTeam.country && (
                     <Badge variant="outline" className="text-xs">
@@ -3654,7 +3693,9 @@ function PlayerMarketPage() {
                   )}
                   <Badge variant="outline" className="text-xs">
                     <IconCalendar className="h-3 w-3 mr-1" />
-                    Expires {new Date(viewTeam.expiry).toLocaleDateString()}
+                    {t("common.expires", {
+                      date: new Date(viewTeam.expiry).toLocaleDateString(),
+                    })}
                   </Badge>
                 </div>
               </div>
@@ -3667,7 +3708,7 @@ function PlayerMarketPage() {
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
                     <IconMapPin className="h-3 w-3" />
-                    Open to
+                    {t("viewTeam.openTo")}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {viewTeam.countries.map((c) => (
@@ -3683,11 +3724,13 @@ function PlayerMarketPage() {
             <DialogFooter className="gap-2">
               <ShareButton
                 url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/team-${viewTeam.id}`}
-                text={`${viewTeam.team ?? "A team"} is recruiting on AFC Player Market!`}
+                text={t("teamsTab.shareText", {
+                  team: viewTeam.team ?? t("teamsTab.aTeam"),
+                })}
               />
               <DialogClose asChild>
                 <Button size={"sm"} variant="outline">
-                  Close
+                  {t("common.close")}
                 </Button>
               </DialogClose>
               {!isTeamLeader && (
@@ -3696,7 +3739,7 @@ function PlayerMarketPage() {
                     onClick={() => handleApplyToTeam(viewTeam.id, viewTeam.team)}
                     disabled={isApplying}
                   >
-                    {isApplying ? "Applying..." : "Apply to Join"}
+                    {isApplying ? t("viewTeam.applying") : t("viewTeam.applyToJoin")}
                   </Button>
                   <InfoTip id="player_market.apply" />
                 </span>
@@ -3752,7 +3795,7 @@ function PlayerMarketPage() {
               {/* About */}
               {viewPlayer.additional_info && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-1.5">About</h4>
+                  <h4 className="text-sm font-semibold mb-1.5">{t("viewPlayer.about")}</h4>
                   <p className="text-sm text-muted-foreground">
                     {viewPlayer.additional_info}
                   </p>
@@ -3790,7 +3833,7 @@ function PlayerMarketPage() {
                   (e.g. a vm.tiktok.com short link) renders as an outbound link instead. */}
               {viewPlayer.video_url && (
                 <div>
-                  <h4 className="text-sm font-semibold mb-1.5">Gameplay</h4>
+                  <h4 className="text-sm font-semibold mb-1.5">{t("viewPlayer.gameplay")}</h4>
                   {(() => {
                     const embed = parseVideoEmbed(viewPlayer.video_url);
                     if (!embed) {
@@ -3802,22 +3845,26 @@ function PlayerMarketPage() {
                           className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
                         >
                           <IconVideo className="h-4 w-4" />
-                          Watch the gameplay video
+                          {t("viewPlayer.watchVideo")}
                         </a>
                       );
                     }
+                    // Frame shape per platform: YouTube + Facebook video are 16:9 landscape;
+                    // X/Twitter is a tweet card (fixed-height, capped width); TikTok + Instagram
+                    // are portrait phone clips. Keeps each embed from being letter-boxed or clipped.
+                    const frameClass =
+                      embed.provider === "youtube" || embed.provider === "facebook"
+                        ? "aspect-video w-full rounded-md border"
+                        : embed.provider === "twitter"
+                          ? "h-[600px] w-full max-w-[550px] rounded-md border"
+                          : "h-[480px] w-full max-w-[325px] rounded-md border";
                     return (
                       <iframe
                         src={embed.embedUrl}
-                        title="Gameplay video"
+                        title={t("viewPlayer.videoTitle")}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
-                        className={
-                          // TikTok + Instagram players are portrait; YouTube is 16:9.
-                          embed.provider === "youtube"
-                            ? "aspect-video w-full rounded-md border"
-                            : "h-[480px] w-full max-w-[325px] rounded-md border"
-                        }
+                        className={frameClass}
                       />
                     );
                   })()}
@@ -3828,7 +3875,7 @@ function PlayerMarketPage() {
 
               {/* Details */}
               <div>
-                <h4 className="text-sm font-semibold mb-2">Details</h4>
+                <h4 className="text-sm font-semibold mb-2">{t("common.details")}</h4>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline" className="text-xs">
                     <IconClock className="h-3 w-3 mr-1" />
@@ -3849,7 +3896,9 @@ function PlayerMarketPage() {
                   )}
                   <Badge variant="outline" className="text-xs">
                     <IconCalendar className="h-3 w-3 mr-1" />
-                    Expires {new Date(viewPlayer.expiry).toLocaleDateString()}
+                    {t("common.expires", {
+                      date: new Date(viewPlayer.expiry).toLocaleDateString(),
+                    })}
                   </Badge>
                   {/* The phone the player currently plays on (compulsory on new posts). */}
                   {viewPlayer.mobile_device && (
@@ -3885,7 +3934,7 @@ function PlayerMarketPage() {
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
                     <IconMapPin className="h-3 w-3" />
-                    Open to play for
+                    {t("viewPlayer.openToPlay")}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {viewPlayer.countries.map((c) => (
@@ -3903,11 +3952,11 @@ function PlayerMarketPage() {
                   <Separator />
                   <div className="space-y-2">
                     <Label>
-                      Message to Player
+                      {t("viewPlayer.messageLabel")}
                       <InfoTip id="player_market.invite_message" className="ml-1" />
                     </Label>
                     <Textarea
-                      placeholder="Introduce your team and why you'd like them to trial..."
+                      placeholder={t("viewPlayer.messagePlaceholder")}
                       rows={3}
                       value={inviteMessage}
                       onChange={(e) => setInviteMessage(e.target.value)}
@@ -3920,17 +3969,17 @@ function PlayerMarketPage() {
             <DialogFooter className="gap-2">
               <ShareButton
                 url={`${typeof window !== "undefined" ? window.location.origin : ""}/player-markets/player-${viewPlayer.id}`}
-                text={`${viewPlayer.player} is open to joining a team on AFC Player Market!`}
+                text={t("playersTab.shareText", { player: viewPlayer.player })}
               />
               <DialogClose asChild>
                 <Button size={"sm"} variant="outline">
-                  Close
+                  {t("common.close")}
                 </Button>
               </DialogClose>
               {isTeamLeader && (
                 <span className="inline-flex items-center gap-1.5">
                   <Button onClick={handleInvitePlayer} disabled={isInviting}>
-                    {isInviting ? "Sending..." : "Invite to Trial"}
+                    {isInviting ? t("viewPlayer.sending") : t("viewPlayer.inviteToTrial")}
                   </Button>
                   {/* J2: a player can be in at most 2 active tryouts; inviting one who is
                       already in 2 is rejected server-side. */}

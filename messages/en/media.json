@@ -1,0 +1,32 @@
+{
+  "download": {
+    "esportSizeLabel": "Esport image size",
+    "esportNamingLabel": "Esport file name",
+    "logoSizeLabel": "Team logo size",
+    "originalSize": "Original size",
+    "esportSizeRole": "Role picture (108 x 130)",
+    "namingIgn": "In-game name",
+    "namingUid": "Free Fire UID",
+    "namingBoth": "Both (name + UID)",
+    "logoSizeGloo": "Gloo wallpaper (1000 x 1000)",
+    "logoSizeHead": "Head pic (108 x 130)",
+    "logosNamedNote": "Team logos are always named after the team.",
+    "eventButton": "Download media",
+    "eventTitle": "Download event media",
+    "eventDescription": "Every registered team logo + rostered player esport image for this event, in one ZIP. Choose the size and file naming.",
+    "setTitle": "Download esport media",
+    "setDescription": "Pick any teams and players. You get one ZIP with the team logos and player esport images, plus a manifest naming anyone who has not uploaded theirs yet.",
+    "teamsLabel": "Teams (logos)",
+    "teamsPlaceholder": "Search and add a team...",
+    "playersLabel": "Players (esport images)",
+    "playersPlaceholder": "Search and add a player...",
+    "removeTeam": "Remove {name}",
+    "removePlayer": "Remove {name}",
+    "cancel": "Cancel",
+    "preparing": "Preparing...",
+    "downloadZip": "Download ZIP",
+    "downloaded": "Media ZIP downloaded. Check manifest.txt for anything missing.",
+    "downloadFailed": "Failed to download the media ZIP.",
+    "pickAtLeastOne": "Pick at least one team or player."
+  }
+}

@@ -171,7 +171,15 @@ export default function ShopClient() {
         const liveTabs: CategoryTab[] =
           liveCats.length > 0
             ? liveCats
-            : [{ value: "diamonds", label: "Diamonds", is_physical: false }];
+            : // i18n: localized fallback category label (shop -> list.diamondsCategory);
+              // the tab `value` stays the "diamonds" slug, only the visible label localizes.
+              [
+                {
+                  value: "diamonds",
+                  label: t("list.diamondsCategory"),
+                  is_physical: false,
+                },
+              ];
 
         // Prepend the "All" tab so it is always the first option (and the default).
         const tabs: CategoryTab[] = [ALL_TAB, ...liveTabs];
@@ -309,9 +317,11 @@ export default function ShopClient() {
     <div>
       {/* <ComingSoon /> */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-2 gap-4">
-        <PageHeader title={t("list.pageTitle")} back />
-        {/* header actions: Saved Items (the wishlist /shop/saved page) sits next to Cart */}
-        <div className="flex items-center gap-2">
+        <PageHeader title={t("list.pageTitle")} back dataTour="shop-header" />
+        {/* header actions: Saved Items (the wishlist /shop/saved page) sits next to Cart.
+            data-tour anchor (shop-cart): guided-tour "Shop" stop points at Cart/Wishlist so a
+            player learns where saved items + checkout live. */}
+        <div className="flex items-center gap-2" data-tour="shop-cart">
           <Button asChild variant="outline">
             <Link href="/shop/saved">
               <Heart className="mr-2 h-4 w-4" />

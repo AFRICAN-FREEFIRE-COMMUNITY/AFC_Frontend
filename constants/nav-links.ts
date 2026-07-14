@@ -21,17 +21,24 @@ import {
 } from "@tabler/icons-react";
 import { Award } from "lucide-react";
 
+// `label` is the English fallback; `navKey` points at the shared i18n key under
+// common.json -> "nav.<navKey>", which Header/MobileNavbar resolve at render time via
+// useTranslations("common"). This keeps the labels translatable (fr/pt) without moving
+// the icon/slug/badge metadata out of this constant. Add the matching key to
+// messages/{en,fr,pt}/common.json "nav" whenever a new nav entry is added here.
 export const homeNavLinks = [
-  { slug: "/home", label: "Home", icon: IconHome },
-  { slug: "/teams", label: "Teams", icon: IconUsers },
-  { slug: "/news", label: "News", icon: IconArticle },
-  { slug: "/glossary", label: "Glossary", icon: IconVocabulary },
-  { slug: "/awards", label: "Awards", icon: Award },
+  { slug: "/home", label: "Home", navKey: "home", icon: IconHome },
+  { slug: "/teams", label: "Teams", navKey: "teams", icon: IconUsers },
+  { slug: "/news", label: "News", navKey: "news", icon: IconArticle },
+  { slug: "/glossary", label: "Glossary", navKey: "glossary", icon: IconVocabulary },
+  { slug: "/awards", label: "Awards", navKey: "awards", icon: Award },
 ];
 
 interface NavLinks {
   slug: string;
   label: string;
+  // Shared i18n key under common.json "nav.<navKey>" (see homeNavLinks note above).
+  navKey?: string;
   icon: any;
   onlyMobile?: boolean;
   comingSoon?: boolean;
@@ -42,6 +49,8 @@ interface NavLinks {
   items?: {
     title: string;
     label?: string;
+    // Same shared "nav.<navKey>" lookup for submenu rows (e.g. Shop / My Orders).
+    navKey?: string;
     slug: string;
     icon: any;
     // Optional like on the top-level links: the Shop submenu items carry
@@ -54,16 +63,18 @@ interface NavLinks {
 }
 
 export const homeNavLinksMobile: NavLinks[] = [
-  { slug: "/home", label: "Home", icon: IconHome, onlyMobile: false },
-  { slug: "/teams", label: "Teams", icon: IconUsers },
+  { slug: "/home", label: "Home", navKey: "home", icon: IconHome, onlyMobile: false },
+  { slug: "/teams", label: "Teams", navKey: "teams", icon: IconUsers },
   {
     slug: "/tournaments",
     label: "Tournaments & Scrims",
+    navKey: "tournamentsScrims",
     icon: IconCalendar,
   },
   {
     slug: "/rankings",
     label: "Rankings & Tiers",
+    navKey: "rankingsTiers",
     icon: IconChartBarPopular,
     // Just unlocked (was "coming soon"): flag NEW for 7 days from this date, then the
     // badge auto-clears (see isNewLink). Update addedAt if the unlock date changes.
@@ -73,18 +84,21 @@ export const homeNavLinksMobile: NavLinks[] = [
   {
     slug: "/player-markets",
     label: "Player Markets",
+    navKey: "playerMarkets",
     icon: IconUsers,
   },
-  { slug: "/news", label: "News & Updates", icon: IconArticle },
+  { slug: "/news", label: "News & Updates", navKey: "newsUpdates", icon: IconArticle },
   {
     slug: "/rules",
     label: "Rules",
+    navKey: "rules",
     icon: IconArticle,
     newLink: true,
     addedAt: "2026-03-16",
   },
   {
     label: "Shop",
+    navKey: "shop",
     slug: "/shop",
     icon: IconShoppingCart,
     submenu: true,
@@ -94,6 +108,7 @@ export const homeNavLinksMobile: NavLinks[] = [
     items: [
       {
         title: "Shop",
+        navKey: "shop",
         slug: "/shop",
         icon: IconShoppingCart,
         newLink: true,
@@ -101,6 +116,7 @@ export const homeNavLinksMobile: NavLinks[] = [
       },
       {
         title: "My Orders",
+        navKey: "myOrders",
         slug: "/orders",
         icon: IconFolder,
         newLink: true,
@@ -111,18 +127,24 @@ export const homeNavLinksMobile: NavLinks[] = [
   {
     slug: "/awards",
     label: "Awards",
+    navKey: "awards",
     icon: Award,
     newLink: true,
     addedAt: "2026-01-10",
   },
-  { slug: "/about", label: "About Us", icon: IconInfoCircle },
-  { slug: "/contact", label: "Contact", icon: IconMessage },
+  { slug: "/about", label: "About Us", navKey: "about", icon: IconInfoCircle },
+  { slug: "/contact", label: "Contact", navKey: "contact", icon: IconMessage },
   // Glossary sits under Contact in the hamburger menu (owner request 2026-06-10).
-  { slug: "/glossary", label: "Glossary", icon: IconVocabulary },
+  { slug: "/glossary", label: "Glossary", navKey: "glossary", icon: IconVocabulary },
 ];
 // Define the shape of our admin links for type safety
 interface AdminNavLink {
   label: string;
+  // i18n key under adminNav.json, resolved at render by components/nav-main.tsx via
+  // useTranslations("adminNav") -> t(navKey). `label` stays as the English fallback for
+  // any item that ever lacks a navKey. Add the matching key to messages/{en,fr,pt}/adminNav.json
+  // whenever a new admin nav entry is added here.
+  navKey?: string;
   slug: string;
   icon: any;
   comingSoon?: boolean;
@@ -132,6 +154,7 @@ interface AdminNavLink {
 export const adminNavLinks: AdminNavLink[] = [
   {
     label: "Admin Dashboard",
+    navKey: "dashboard",
     slug: "/a/dashboard",
     icon: IconHome,
     allowedRoles: ["head_admin"],
@@ -146,6 +169,7 @@ export const adminNavLinks: AdminNavLink[] = [
   // gating in app/(a)/a/teams/page.tsx).
   {
     label: "Teams & Players",
+    navKey: "teamsPlayers",
     slug: "/a/teams",
     icon: IconUsersGroup,
     allowedRoles: ["head_admin", "teams_admin", "event_admin", "organizer_admin"],
@@ -153,6 +177,7 @@ export const adminNavLinks: AdminNavLink[] = [
   {
     slug: "/a/player-markets",
     label: "Player Markets",
+    navKey: "playerMarkets",
     allowedRoles: ["head_admin"],
     icon: IconUsers,
   },
@@ -169,12 +194,14 @@ export const adminNavLinks: AdminNavLink[] = [
     // lives inside the Events tab, reached via the "Event Payments" header button. Route
     // unchanged: /a/events/payments.
     label: "Events & Leaderboards",
+    navKey: "eventsLeaderboards",
     slug: "/a/events",
     icon: IconCalendar,
     allowedRoles: ["head_admin", "event_admin"],
   },
   {
     label: "Sponsors",
+    navKey: "sponsors",
     slug: "/a/sponsors",
     icon: IconStar,
     allowedRoles: ["head_admin", "event_admin"],
@@ -185,6 +212,7 @@ export const adminNavLinks: AdminNavLink[] = [
     // stays lean. Route unchanged: /a/organizations/reports. (The "Design Requests" tab was
     // removed 2026-06-13 with the request-a-design feature.)
     label: "Organizations",
+    navKey: "organizations",
     slug: "/a/organizations",
     icon: IconUsersGroup,
     allowedRoles: ["head_admin", "organizer_admin"],
@@ -203,6 +231,7 @@ export const adminNavLinks: AdminNavLink[] = [
     // Sidebar label is "API Keys" (owner request 2026-06-09); the route stays /a/partners
     // (the afc_partner_api admin surface for issuing/managing partner API keys).
     label: "API Keys",
+    navKey: "apiKeys",
     slug: "/a/partners",
     icon: IconPlugConnected,
     allowedRoles: ["head_admin", "partner_admin"],
@@ -215,6 +244,7 @@ export const adminNavLinks: AdminNavLink[] = [
     // organizer_admin / metrics_admin; head_admin always passes in canAccess), so the sidebar entry
     // matches who the endpoint actually lets in. IconMessage reads as the messaging/broadcast surface.
     label: "Broadcasts",
+    navKey: "broadcasts",
     slug: "/a/broadcasts",
     icon: IconMessage,
     allowedRoles: ["head_admin", "event_admin", "organizer_admin", "metrics_admin"],
@@ -225,12 +255,14 @@ export const adminNavLinks: AdminNavLink[] = [
     // CopyOverlayLinkDialog) + a jump to its leaderboard (results + BroadcastControl). Gated to the
     // event/leaderboard admins (same set that manages leaderboards).
     label: "Live Overlays",
+    navKey: "liveOverlays",
     slug: "/a/overlays",
     icon: IconBroadcast,
     allowedRoles: ["head_admin", "event_admin"],
   },
   {
     label: "Admin News",
+    navKey: "news",
     slug: "/a/news",
     icon: IconNews,
     allowedRoles: ["head_admin", "news_admin"],
@@ -240,6 +272,7 @@ export const adminNavLinks: AdminNavLink[] = [
   // user sees this link but is not treated as admin elsewhere.
   {
     label: "Admin Rankings",
+    navKey: "rankings",
     slug: "/a/rankings",
     icon: IconArticle,
     allowedRoles: ["head_admin", "metrics_admin"],
@@ -251,6 +284,7 @@ export const adminNavLinks: AdminNavLink[] = [
   // "read a screenshot" OCR action.
   {
     label: "OCR Model",
+    navKey: "ocrModel",
     slug: "/a/ocr-model",
     icon: IconScan,
     allowedRoles: ["head_admin"],
@@ -262,30 +296,35 @@ export const adminNavLinks: AdminNavLink[] = [
   // under the shop page"). Route unchanged: /a/shop/payouts.
   {
     label: "Admin Shop",
+    navKey: "shop",
     slug: "/a/shop",
     icon: IconShoppingCart,
     allowedRoles: ["head_admin", "shop_admin"],
   },
   {
     label: "Votes",
+    navKey: "votes",
     slug: "/a/votes",
     icon: Award,
     allowedRoles: ["head_admin"],
   },
   {
     label: "Drafts",
+    navKey: "drafts",
     slug: "/a/drafts",
     icon: IconFolder,
     allowedRoles: ["head_admin"],
   },
   {
     label: "Settings",
+    navKey: "settings",
     slug: "/a/settings",
     icon: IconSettings,
     allowedRoles: ["head_admin"],
   },
   {
     label: "Admin Partner Verification",
+    navKey: "partnerVerification",
     slug: "/a/partner/roster-verification",
     icon: IconShield,
     comingSoon: true,
@@ -293,6 +332,7 @@ export const adminNavLinks: AdminNavLink[] = [
   },
   {
     label: "Sponsor Dashboard",
+    navKey: "sponsorDashboard",
     slug: "/a/sponsor-dashboard",
     icon: IconStar,
     allowedRoles: ["sponsor_admin"],
@@ -303,12 +343,14 @@ export const adminNavLinks: AdminNavLink[] = [
   // directly; this entry surfaces it for admin-and-organizer users in the sidebar.
   {
     label: "Organizer Dashboard",
+    navKey: "organizerDashboard",
     slug: "/organizer/overview",
     icon: IconBuilding,
     allowedRoles: ["organizer"],
   },
   {
     label: "Back to user dashboard",
+    navKey: "backToUserDashboard",
     slug: "/home",
     icon: IconHome,
     allowedRoles: [

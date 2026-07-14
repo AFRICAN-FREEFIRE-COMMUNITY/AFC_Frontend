@@ -2,6 +2,9 @@
 
 import React from "react";
 import { useFormContext } from "react-hook-form";
+// i18n: this Basic Info tab is shared by the admin + organizer event-edit wizards. All copy is
+// internationalized via the "evEditTabs" namespace (messages/{en,fr,pt}/evEditTabs.json).
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,33 +54,35 @@ import type { EventFormType, EventDetails } from "../types";
 import { REGISTRATION_FEE_CURRENCIES } from "@/app/(a)/a/events/create/_components/types";
 import CountryPaymentRulesEditor from "@/components/CountryPaymentRulesEditor";
 // Shared per-event Discord registration gate (guild id + invite + verify + require +
-// invite link) — same control the create wizard's Step1EventDetails uses.
+// invite link) - same control the create wizard's Step1EventDetails uses.
 import { DiscordRegistrationGate } from "@/app/(a)/a/events/create/_components/DiscordRegistrationGate";
 
 // The four registration-requirement toggles (owner correction 2026-06-22: these belong on
 // Basic Info, not the Waitlist tab). Each blocks registration until satisfied; the register
 // flow points players at exactly what they're missing. The keys match the backend's
 // require_* fields and the waitlistForm state the edit page persists via saveWaitlistSettings.
-const REQUIREMENT_TOGGLES: { key: string; label: string; help: string }[] = [
+// i18n: labelKey/helpKey resolve into the "evEditTabs" namespace at render (fully enumerated,
+// so every one of these four keys exists in messages/{en,fr,pt}/evEditTabs.json).
+const REQUIREMENT_TOGGLES: { key: string; labelKey: string; helpKey: string }[] = [
   {
     key: "require_team_logo",
-    label: "Require team logo",
-    help: "Teams cannot register until their team logo is uploaded.",
+    labelKey: "basicInfo.requireTeamLogoLabel",
+    helpKey: "basicInfo.requireTeamLogoHelp",
   },
   {
     key: "require_esport_images",
-    label: "Require player esport images",
-    help: "Every registering player must have their esport image uploaded on their profile.",
+    labelKey: "basicInfo.requireEsportImagesLabel",
+    helpKey: "basicInfo.requireEsportImagesHelp",
   },
   {
     key: "require_player_profile_image",
-    label: "Require player profile image",
-    help: "Every registering player must have a profile image uploaded.",
+    labelKey: "basicInfo.requireProfileImageLabel",
+    helpKey: "basicInfo.requireProfileImageHelp",
   },
   {
     key: "require_player_uid",
-    label: "Require player Free Fire UID",
-    help: "Every registering player must have their Free Fire UID set on their profile.",
+    labelKey: "basicInfo.requireUidLabel",
+    helpKey: "basicInfo.requireUidHelp",
   },
 ];
 
@@ -85,7 +90,7 @@ interface BasicInfoTabProps {
   eventDetails: EventDetails;
   // Registration-requirement toggles state (owner correction 2026-06-22). These MOVED from
   // the Waitlist tab to Basic Info, but they are still backed by the edit page's waitlistForm
-  // state + saved by saveWaitlistSettings — the edit page passes that exact state/setter here
+  // state + saved by saveWaitlistSettings - the edit page passes that exact state/setter here
   // (typed loosely) so the field bindings + save are unchanged. Only the rendering location moved.
   requirementsForm: Record<string, any>;
   setRequirementsForm: React.Dispatch<React.SetStateAction<any>>;
@@ -138,6 +143,11 @@ export default function BasicInfoTab({
   hideRegistrationLink = false,
 }: BasicInfoTabProps) {
   const form = useFormContext<EventFormType>();
+  const t = useTranslations("evEditTabs");
+  // Guarded translate: used for the few keys built from a variable (requirement-toggle keys and the
+  // registration-restriction type). Falls back to the English key stem if a key is ever missing, so a
+  // dynamic lookup can never throw a MISSING_MESSAGE at render.
+  const tg = (key: string, fallback: string) => (t.has(key) ? t(key) : fallback);
 
   const selectedCountries = form.watch("selected_locations") || [];
   const restrictionMode = form.watch("restriction_mode");
@@ -183,7 +193,7 @@ export default function BasicInfoTab({
   return (
     <Card className="">
       <CardHeader>
-        <CardTitle>Event Details</CardTitle>
+        <CardTitle>{t("basicInfo.cardTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <FormField
@@ -191,7 +201,7 @@ export default function BasicInfoTab({
           name="event_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Event Name</FormLabel>
+              <FormLabel>{t("basicInfo.eventName")}</FormLabel>
               <Input {...field} />
               <FormMessage />
             </FormItem>
@@ -204,7 +214,7 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Max Teams/Players
+                  {t("basicInfo.maxTeamsPlayers")}
                   {/* Reuse the create-wizard copy - identical field. */}
                   <InfoTip
                     id="events.create.max_teams_or_players"
@@ -225,7 +235,7 @@ export default function BasicInfoTab({
                       const val = e.target.value;
                       field.onChange(val);
                     }}
-                    placeholder="e.g., 128"
+                    placeholder={t("basicInfo.maxPlaceholder")}
                   />
                 </FormControl>
                 <FormMessage />
@@ -239,7 +249,7 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Competition Type
+                  {t("basicInfo.competitionType")}
                   <InfoTip
                     id="events.create.competition_type"
                     className="ml-1"
@@ -252,12 +262,12 @@ export default function BasicInfoTab({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder={t("basicInfo.selectType")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="tournament">Tournament</SelectItem>
-                    <SelectItem value="scrims">Scrims</SelectItem>
+                    <SelectItem value="tournament">{t("basicInfo.compTournament")}</SelectItem>
+                    <SelectItem value="scrims">{t("basicInfo.compScrims")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -270,7 +280,7 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Participant Type
+                  {t("basicInfo.participantType")}
                   <InfoTip
                     id="events.create.participant_type"
                     className="ml-1"
@@ -293,13 +303,13 @@ export default function BasicInfoTab({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder={t("basicInfo.selectType")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="solo">Solo</SelectItem>
-                    <SelectItem value="duo">Duo</SelectItem>
-                    <SelectItem value="squad">Squad</SelectItem>
+                    <SelectItem value="solo">{t("basicInfo.participantSolo")}</SelectItem>
+                    <SelectItem value="duo">{t("basicInfo.participantDuo")}</SelectItem>
+                    <SelectItem value="squad">{t("basicInfo.participantSquad")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -312,7 +322,7 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Event Mode
+                  {t("basicInfo.eventMode")}
                   <InfoTip id="events.create.event_mode" className="ml-1" />
                 </FormLabel>
                 <Select
@@ -322,13 +332,13 @@ export default function BasicInfoTab({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select mode" />
+                      <SelectValue placeholder={t("basicInfo.selectMode")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="virtual">Virtual</SelectItem>
-                    <SelectItem value="physical">Physical (LAN)</SelectItem>
-                    <SelectItem value="hybrid">Hybrid</SelectItem>
+                    <SelectItem value="virtual">{t("basicInfo.modeVirtual")}</SelectItem>
+                    <SelectItem value="physical">{t("basicInfo.modePhysical")}</SelectItem>
+                    <SelectItem value="hybrid">{t("basicInfo.modeHybrid")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -344,7 +354,7 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Event Type
+                  {t("basicInfo.eventType")}
                   <InfoTip id="events.create.event_type" className="ml-1" />
                 </FormLabel>
                 <Select
@@ -354,12 +364,12 @@ export default function BasicInfoTab({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder={t("basicInfo.selectType")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="internal">Internal event</SelectItem>
-                    <SelectItem value="external">External event</SelectItem>
+                    <SelectItem value="internal">{t("basicInfo.etypeInternal")}</SelectItem>
+                    <SelectItem value="external">{t("basicInfo.etypeExternal")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -373,7 +383,7 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Event Privacy
+                  {t("basicInfo.eventPrivacy")}
                   <InfoTip id="events.create.is_public" className="ml-1" />
                 </FormLabel>
                 <Select
@@ -382,12 +392,12 @@ export default function BasicInfoTab({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder={t("basicInfo.selectType")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="True">Public</SelectItem>
-                    <SelectItem value="False">Private</SelectItem>
+                    <SelectItem value="True">{t("basicInfo.privacyPublic")}</SelectItem>
+                    <SelectItem value="False">{t("basicInfo.privacyPrivate")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -405,10 +415,9 @@ export default function BasicInfoTab({
             fifth registration requirement and sits with them. */}
         <div className="space-y-3 rounded-lg border p-4">
           <div>
-            <Label>Registration requirements</Label>
+            <Label>{t("basicInfo.requirementsTitle")}</Label>
             <p className="text-xs text-muted-foreground">
-              Block registration until competitors have provided what you need. The
-              register flow points each player at exactly what they are missing.
+              {t("basicInfo.requirementsHelp")}
             </p>
           </div>
           {REQUIREMENT_TOGGLES.map((req) => (
@@ -417,8 +426,10 @@ export default function BasicInfoTab({
               className="flex items-center justify-between"
             >
               <div className="space-y-0.5">
-                <Label htmlFor={`req-${req.key}`}>{req.label}</Label>
-                <p className="text-xs text-muted-foreground">{req.help}</p>
+                {/* labelKey/helpKey are fully enumerated in evEditTabs; tg guards anyway so a missing
+                    key can never throw at render. */}
+                <Label htmlFor={`req-${req.key}`}>{tg(req.labelKey, req.labelKey)}</Label>
+                <p className="text-xs text-muted-foreground">{tg(req.helpKey, req.helpKey)}</p>
               </div>
               <Switch
                 id={`req-${req.key}`}
@@ -443,15 +454,14 @@ export default function BasicInfoTab({
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="req-min-letter-avatars">
-                    Require letter avatars
+                    {t("basicInfo.requireLettersLabel")}
                     <InfoTip
-                      text="Teams or players must have at least this many Free Fire letter avatars (A-Z) available before they can register. A team's available letters are the combined letters its members own plus any manual extras added on the team editor."
+                      text={t("basicInfo.requireLettersInfoTip")}
                       className="ml-1"
                     />
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    Set the minimum number of letter avatars (1 to 26) competitors must have available
-                    to register.
+                    {t("basicInfo.requireLettersHelp")}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -509,7 +519,7 @@ export default function BasicInfoTab({
           initiallyVerified={Boolean(eventDetails.discord_invite_link)}
         />
 
-        {/* Registration Link — AFC-only; organizer edit hides it (hideRegistrationLink).
+        {/* Registration Link - AFC-only; organizer edit hides it (hideRegistrationLink).
             The value persists in form state and is re-sent on save. */}
         {eventType && !hideRegistrationLink && (
           <FormField
@@ -518,11 +528,11 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Registration Link (Required for External)
+                  {t("basicInfo.registrationLink")}
                 </FormLabel>
                 <Input
                   {...field}
-                  placeholder="https://registration.example.com"
+                  placeholder={t("basicInfo.registrationLinkPlaceholder")}
                 />
                 <FormMessage />
               </FormItem>
@@ -531,7 +541,7 @@ export default function BasicInfoTab({
         )}
 
         <div className="space-y-2">
-          <FormLabel>Streaming Channel Links</FormLabel>
+          <FormLabel>{t("basicInfo.streamingLinks")}</FormLabel>
           {streamFields.map((field, index) => (
             <div key={field.id} className="flex gap-2 items-center">
               <FormField
@@ -541,7 +551,7 @@ export default function BasicInfoTab({
                   <Input
                     {...field}
                     className="flex-1"
-                    placeholder="https://..."
+                    placeholder={t("basicInfo.streamPlaceholder")}
                   />
                 )}
               />
@@ -553,7 +563,7 @@ export default function BasicInfoTab({
                 onClick={() => removeStreamChannel(index)}
               >
                 <IconTrash />
-                <span className="hidden md:inline-block">Remove</span>
+                <span className="hidden md:inline-block">{t("basicInfo.remove")}</span>
               </Button>
             </div>
           ))}
@@ -563,7 +573,7 @@ export default function BasicInfoTab({
             size="sm"
             onClick={addStreamChannel}
           >
-            + Add Streaming Link
+            {t("basicInfo.addStreamingLink")}
           </Button>
         </div>
 
@@ -572,7 +582,7 @@ export default function BasicInfoTab({
           name="banner"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tournament Banner</FormLabel>
+              <FormLabel>{t("basicInfo.banner")}</FormLabel>
               <FormControl>
                 <div className="space-y-4">
                   {!previewUrl ? (
@@ -598,9 +608,7 @@ export default function BasicInfoTab({
                               "image/webp",
                             ].includes(file.type)
                           ) {
-                            toast.error(
-                              "Only PNG, JPG, JPEG, or WEBP files are supported.",
-                            );
+                            toast.error(t("basicInfo.toastImageType"));
                             return;
                           }
                           setSelectedFile(file);
@@ -622,13 +630,13 @@ export default function BasicInfoTab({
                           />
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Drop your image here, or{" "}
+                          {t("basicInfo.dropImage")}{" "}
                           <span className="text-primary font-medium hover:underline">
-                            browse
+                            {t("basicInfo.browse")}
                           </span>
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Supports: PNG, JPG, JPEG, WEBP
+                          {t("basicInfo.supportsImages")}
                         </p>
                       </div>
                     </div>
@@ -639,7 +647,7 @@ export default function BasicInfoTab({
                           width={1000}
                           height={1000}
                           src={previewUrl}
-                          alt="Featured image"
+                          alt={t("basicInfo.imageAlt")}
                           className="aspect-video size-full object-cover"
                         />
                       </div>
@@ -659,7 +667,7 @@ export default function BasicInfoTab({
                           }}
                         >
                           <IconX size={16} className="mr-2" />
-                          Remove
+                          {t("basicInfo.remove")}
                         </Button>
 
                         <Button
@@ -669,7 +677,7 @@ export default function BasicInfoTab({
                           onClick={() => fileInputRef.current?.click()}
                         >
                           <IconUpload size={16} className="mr-2" />
-                          Replace
+                          {t("basicInfo.replace")}
                         </Button>
                       </div>
                     </div>
@@ -692,9 +700,7 @@ export default function BasicInfoTab({
                           "image/webp",
                         ].includes(file.type)
                       ) {
-                        toast.error(
-                          "Only PNG, JPG, JPEG, or WEBP files are supported.",
-                        );
+                        toast.error(t("basicInfo.toastImageType"));
                         return;
                       }
 
@@ -717,7 +723,7 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Registration Opens
+                  {t("basicInfo.registrationOpens")}
                   <InfoTip
                     id="events.create.registration_open"
                     className="ml-1"
@@ -735,7 +741,7 @@ export default function BasicInfoTab({
             name="registration_end_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Closes</FormLabel>
+                <FormLabel>{t("basicInfo.registrationCloses")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -748,7 +754,7 @@ export default function BasicInfoTab({
             name="registration_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration Start Time</FormLabel>
+                <FormLabel>{t("basicInfo.registrationStartTime")}</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -761,7 +767,7 @@ export default function BasicInfoTab({
             name="registration_end_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Registration End Time</FormLabel>
+                <FormLabel>{t("basicInfo.registrationEndTime")}</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -784,11 +790,11 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Registration
+                  {t("basicInfo.registration")}
                   {/* Inline copy (no centralized HelpId): explains paid + escrow /
                       post-event payout. No em/en dashes. */}
                   <InfoTip
-                    text="Choose whether players pay to register. Paid entry fees are held in escrow by the payment processor and released to the organizer after the event runs."
+                    text={t("basicInfo.registrationInfoTip")}
                     className="ml-1"
                   />
                 </FormLabel>
@@ -803,14 +809,14 @@ export default function BasicInfoTab({
                         value="free"
                         id="edit_registration_type_free"
                       />
-                      <Label htmlFor="edit_registration_type_free">Free</Label>
+                      <Label htmlFor="edit_registration_type_free">{t("basicInfo.free")}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem
                         value="paid"
                         id="edit_registration_type_paid"
                       />
-                      <Label htmlFor="edit_registration_type_paid">Paid</Label>
+                      <Label htmlFor="edit_registration_type_paid">{t("basicInfo.paid")}</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -827,13 +833,13 @@ export default function BasicInfoTab({
                 name="registration_fee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Entry Fee</FormLabel>
+                    <FormLabel>{t("basicInfo.entryFee")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
                         min="0"
                         step="0.01"
-                        placeholder="e.g., 5"
+                        placeholder={t("basicInfo.entryFeePlaceholder")}
                         value={
                           field.value === undefined || field.value === null
                             ? ""
@@ -857,14 +863,14 @@ export default function BasicInfoTab({
                 name="registration_fee_currency"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Currency</FormLabel>
+                    <FormLabel>{t("basicInfo.currency")}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value ?? "USD"}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select currency" />
+                          <SelectValue placeholder={t("basicInfo.selectCurrency")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -907,7 +913,7 @@ export default function BasicInfoTab({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Event Start Date
+                  {t("basicInfo.eventStartDate")}
                   <InfoTip id="events.create.event_dates" className="ml-1" />
                 </FormLabel>
                 <FormControl>
@@ -922,7 +928,7 @@ export default function BasicInfoTab({
             name="end_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event End Date</FormLabel>
+                <FormLabel>{t("basicInfo.eventEndDate")}</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
@@ -935,7 +941,7 @@ export default function BasicInfoTab({
             name="event_start_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event Start Time</FormLabel>
+                <FormLabel>{t("basicInfo.eventStartTime")}</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -948,7 +954,7 @@ export default function BasicInfoTab({
             name="event_end_time"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Event End Time</FormLabel>
+                <FormLabel>{t("basicInfo.eventEndTime")}</FormLabel>
                 <FormControl>
                   <Input type="time" {...field} />
                 </FormControl>
@@ -965,9 +971,9 @@ export default function BasicInfoTab({
           name="registration_restriction"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Registration Restrictions</FormLabel>
+              <FormLabel>{t("basicInfo.registrationRestrictions")}</FormLabel>
               <FormDescription>
-                Control who can register for this event based on their location
+                {t("basicInfo.restrictionsDesc")}
               </FormDescription>
               <FormControl>
                 <div className="space-y-6">
@@ -980,14 +986,22 @@ export default function BasicInfoTab({
                       }
                       className="flex gap-4"
                     >
-                      {["none", "by_region", "by_country"].map((type) => (
+                      {/* Restriction types are a fixed enum; the i18n key for each is enumerated in
+                          evEditTabs. tg guards the variable-built key so a lookup can never throw. */}
+                      {(
+                        [
+                          ["none", "basicInfo.restrictionNone"],
+                          ["by_region", "basicInfo.restrictionByRegion"],
+                          ["by_country", "basicInfo.restrictionByCountry"],
+                        ] as const
+                      ).map(([type, labelKey]) => (
                         <div
                           key={type}
                           className="flex items-center space-x-2"
                         >
                           <RadioGroupItem value={type} id={type} />
                           <Label htmlFor={type} className="capitalize">
-                            {type.replace("_", " ")}
+                            {tg(labelKey, type.replace("_", " "))}
                           </Label>
                         </div>
                       ))}
@@ -997,7 +1011,7 @@ export default function BasicInfoTab({
                   {registrationRestriction !== "none" && (
                     <div className="p-4 border rounded-lg bg-card space-y-4">
                       <Label className="text-destructive">
-                        Restriction Mode
+                        {t("basicInfo.restrictionMode")}
                       </Label>
                       <RadioGroup
                         value={restrictionMode || "allow_only"}
@@ -1012,7 +1026,7 @@ export default function BasicInfoTab({
                             htmlFor="allow_only"
                             className="text-green-500"
                           >
-                            Allow Only Selected
+                            {t("basicInfo.allowOnlySelected")}
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -1024,7 +1038,7 @@ export default function BasicInfoTab({
                             htmlFor="block_selected"
                             className="text-red-500"
                           >
-                            Block Selected
+                            {t("basicInfo.blockSelected")}
                           </Label>
                         </div>
                       </RadioGroup>
@@ -1047,8 +1061,10 @@ export default function BasicInfoTab({
                                       onClick={(e) => e.stopPropagation()}
                                     />
                                     <span>
-                                      {region} ({regionCountries.length}{" "}
-                                      countries)
+                                      {t("basicInfo.regionCountries", {
+                                        region,
+                                        count: regionCountries.length,
+                                      })}
                                     </span>
                                   </div>
                                 </AccordionTrigger>
@@ -1103,7 +1119,7 @@ export default function BasicInfoTab({
                 selectedCountries.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2.5">
                     <span className="text-muted-foreground text-sm">
-                      Selected locations:
+                      {t("basicInfo.selectedLocations")}
                     </span>
                     {selectedCountries.map((country) => (
                       <Badge key={country} variant="secondary">
@@ -1119,7 +1135,7 @@ export default function BasicInfoTab({
         <Separator />
 
         <div className="space-y-3">
-          <FormLabel>Publish Options</FormLabel>
+          <FormLabel>{t("basicInfo.publishOptions")}</FormLabel>
           <FormField
             control={form.control}
             name="publish_to_tournaments"
@@ -1133,7 +1149,7 @@ export default function BasicInfoTab({
                   />
                 </FormControl>
                 <FormLabel className="!mt-0 cursor-pointer">
-                  Publish to Tournaments
+                  {t("basicInfo.publishToTournaments")}
                   <InfoTip
                     id="events.create.publish_to_tournaments"
                     className="ml-1"
@@ -1156,7 +1172,7 @@ export default function BasicInfoTab({
                   />
                 </FormControl>
                 <FormLabel className="!mt-0 cursor-pointer">
-                  Save as Draft
+                  {t("basicInfo.saveAsDraft")}
                   <InfoTip id="events.create.save_to_drafts" className="ml-1" />
                 </FormLabel>
               </FormItem>
@@ -1170,9 +1186,9 @@ export default function BasicInfoTab({
           disabled={loadingEvent || pendingSubmit}
         >
           {loadingEvent || pendingSubmit ? (
-            <Loader text="Saving..." />
+            <Loader text={t("basicInfo.saving")} />
           ) : (
-            "Save Changes"
+            t("basicInfo.saveChanges")
           )}
         </Button>
       </CardContent>

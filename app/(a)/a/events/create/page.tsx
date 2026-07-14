@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/PageHeader";
@@ -68,6 +69,11 @@ const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
 };
 
 export default function CreateEventPage() {
+  // i18n (evCreatePage ns): mirrors the organizer create twin's wiring. Covers this page's own
+  // chrome (header, duplicate hint, draft-resume dialog, nav buttons) and every step-validation /
+  // submit toast authored here. The reused wizard step components own their own strings via their
+  // own namespaces; this translator only covers strings authored in THIS file.
+  const t = useTranslations("evCreatePage");
   const router = useRouter();
   const searchParams = useSearchParams();
   const duplicateSlug = searchParams.get("duplicate");
@@ -202,7 +208,7 @@ export default function CreateEventPage() {
     setCurrentStep(eventDraft.currentStep || 1);
     setRulesInputMethod(eventDraft.rulesInputMethod === "upload" ? "upload" : "type");
     markEventDraftResumed();
-    toast.info("Draft restored. If you had a banner or rules file, re-attach it.");
+    toast.info(t("toast.draftRestored"));
   };
 
   // ── Invalid-submit surfacing (owner 2026-07-01) ─────────────────────────────────
@@ -219,7 +225,7 @@ export default function CreateEventPage() {
   };
   const onInvalidSubmit = (errors: Record<string, unknown>) => {
     // Walk the RHF error tree down to leaf messages. Fields nest (stages[i].groups[j].<field>), so a
-    // top-level "stages" error is useless — this pinpoints the EXACT stage/group/field + its message.
+    // top-level "stages" error is useless - this pinpoints the EXACT stage/group/field + its message.
     const leaves: { path: string; message: string }[] = [];
     const walk = (node: any, path: string) => {
       if (!node || typeof node !== "object") return;
@@ -236,7 +242,7 @@ export default function CreateEventPage() {
     const topField = (leaves[0]?.path || Object.keys(errors || {})[0] || "").split(".")[0];
     if (topField) setCurrentStep(FIELD_STEP[topField] ?? 1);
     if (!leaves.length) {
-      toast.error("Some required fields are missing. Please review each step.");
+      toast.error(t("toast.someFieldsMissing"));
       return;
     }
     // "stages.2.groups.1.match_maps" -> "Stage 3 > Group 2 > Match Maps".
@@ -252,10 +258,14 @@ export default function CreateEventPage() {
       return parts.join(" › ");
     };
     // Replace Zod's raw "Invalid input: expected string, received undefined" with a plain "required".
+    // NOTE: humanizePath() derives the field label from the schema field path (e.g. "Match Maps")
+    // and stays English - those are structural field identifiers, not authored copy (see report).
     const clean = (m: string) =>
-      /invalid input|expected .* received (undefined|nan|null)|^required$/i.test(m) ? "required" : m;
+      /invalid input|expected .* received (undefined|nan|null)|^required$/i.test(m)
+        ? t("toast.fieldRequired")
+        : m;
     const lines = leaves.slice(0, 4).map((l) => `${humanizePath(l.path)}: ${clean(l.message)}`);
-    toast.error(`Please fix: ${lines.join("   •   ")}`, { duration: 9000 });
+    toast.error(t("toast.pleaseFix", { details: lines.join("   •   ") }), { duration: 9000 });
   };
 
   // ── Round-robin schedule backfill (owner 2026-07-01) ────────────────────────────
@@ -275,7 +285,9 @@ export default function CreateEventPage() {
         (_pv.prize_currency as string) || "USD",
       );
       if (_pe) {
-        toast.error(_pe, { duration: 9000 });
+        // validatePrizeDistribution returns a {code, values} descriptor now (i18n); localize it here
+        // with this page's evCreatePage translator. Key: prizeValidate.required|over|under.
+        toast.error(t(_pe.code, _pe.values), { duration: 9000 });
         setCurrentStep(5);
         return;
       }
@@ -315,12 +327,10 @@ export default function CreateEventPage() {
     if (isDraft && isPublish) {
       form.setValue("publish_to_tournaments", false);
       form.setValue("publish_to_news", false);
-      toast.info(
-        "Draft mode selected. Publishing options automatically unchecked.",
-      );
+      toast.info(t("toast.draftModeSelected"));
     } else if (isPublish && isDraft) {
       form.setValue("save_to_drafts", false);
-      toast.info("Publishing selected. Draft mode automatically unchecked.");
+      toast.info(t("toast.publishingSelected"));
     }
   }, [saveToDraftsWatch, publishToTournamentsWatch, publishToNewsWatch]);
 
@@ -489,9 +499,9 @@ export default function CreateEventPage() {
           setPreviewRuleUrl(d.uploaded_rules_url);
         }
 
-        toast.success(`Duplicating "${d.event_name}" - edit the details then create.`);
+        toast.success(t("toast.duplicating", { name: d.event_name }));
       } catch {
-        toast.error("Failed to load event for duplication.");
+        toast.error(t("toast.duplicateLoadFailed"));
       }
     };
 
@@ -637,7 +647,7 @@ export default function CreateEventPage() {
       !stageModalData.end_date ||
       stageModalData.teams_qualifying_from_stage === undefined
     ) {
-      toast.error("Please fill all required stage fields");
+      toast.error(t("toast.fillRequiredStageFields"));
       return;
     }
 
@@ -645,23 +655,29 @@ export default function CreateEventPage() {
     // config (which the backend ignores for this format, and which the modal no longer
     // shows). A round-robin needs at least two base groups to form a pairing.
     const isRoundRobinStage = stageModalData.stage_format === "br - round robin";
+    // Clash Squad (cs - *) runs as a head-to-head BRACKET seeded from the registered teams on
+    // the event page - it has no groups/maps to validate and sends groups: [] (P1#2, owner
+    // 2026-07-13). Without this it fell into the BR `else` and the default tempGroups failed.
+    const isClashSquadStage = (stageModalData.stage_format || "").startsWith("cs - ");
     if (isRoundRobinStage) {
       const baseGroups = stageModalData.round_robin?.round_robin_groups ?? [];
       if (baseGroups.length < 2) {
-        toast.error("A round-robin stage needs at least two base groups.");
+        toast.error(t("toast.roundRobinTwoGroups"));
         return;
       }
       if (baseGroups.some((g) => !g.label.trim())) {
-        toast.error("Every base group needs a label.");
+        toast.error(t("toast.baseGroupLabel"));
         return;
       }
       if (
         stageModalData.round_robin.generate_schedule &&
         stageModalData.round_robin.games_per_day < 1
       ) {
-        toast.error("Games per day must be at least 1.");
+        toast.error(t("toast.gamesPerDayMin"));
         return;
       }
+    } else if (isClashSquadStage) {
+      // Nothing to validate: a bracket has no groups/maps. Falls through to send groups: [].
     } else {
       const invalidGroup = tempGroups.find(
         (g) =>
@@ -674,14 +690,12 @@ export default function CreateEventPage() {
           g.match_maps.length === 0,
       );
       if (invalidGroup) {
-        toast.error(
-          "Please complete all group details correctly, including selecting at least one map per group",
-        );
+        toast.error(t("toast.completeGroupDetails"));
         return;
       }
 
       if (stageModalData.number_of_groups < 1) {
-        toast.error("A stage must have at least one group.");
+        toast.error(t("toast.stageAtLeastOneGroup"));
         return;
       }
     }
@@ -699,7 +713,7 @@ export default function CreateEventPage() {
       // the backend's normal group loop (afc_tournament_and_scrims.views.create_event) create a
       // STRAY extra group alongside the round-robin lobbies. Bug fix 2026-06-29: send [] for
       // round-robin so only the base groups + game-day lobbies are created.
-      groups: isRoundRobinStage ? [] : tempGroups,
+      groups: isRoundRobinStage || isClashSquadStage ? [] : tempGroups,
       teams_qualifying_from_stage: stageModalData.teams_qualifying_from_stage,
       prizepool: stageModalData.prizepool,
       prizepool_cash_value: stageModalData.prizepool_cash_value,
@@ -731,7 +745,7 @@ export default function CreateEventPage() {
       setStageNames(updatedNames);
     }
 
-    toast.success("Stage saved successfully");
+    toast.success(t("toast.stageSaved"));
     setIsStageModalOpen(false);
     setStageModalStep(1);
   };
@@ -752,7 +766,17 @@ export default function CreateEventPage() {
         currentNames[index],
       ];
       setStageNames(currentNames);
-      toast.success(`Moved stage ${stageNames[index] || "Stage"} ${direction}`);
+      // direction is strictly "up" | "down"; guard the dynamic key defensively so a missing
+      // translation can never throw MISSING_MESSAGE at render (mirrors the organizer twin).
+      const directionLabel = t.has(`toast.direction.${direction}`)
+        ? t(`toast.direction.${direction}`)
+        : direction;
+      toast.success(
+        t("toast.stageMoved", {
+          name: stageNames[index] || t("misc.stageFallback"),
+          direction: directionLabel,
+        }),
+      );
     }
   };
 
@@ -766,9 +790,9 @@ export default function CreateEventPage() {
       currentNames.splice(index, 1);
       setStageNames(currentNames);
       form.setValue("number_of_stages", currentNames.length);
-      toast.success("Stage deleted successfully");
+      toast.success(t("toast.stageDeleted"));
     } else {
-      toast.error("An event must have at least one stage.");
+      toast.error(t("toast.eventAtLeastOneStage"));
     }
   };
 
@@ -805,7 +829,7 @@ export default function CreateEventPage() {
           shouldFocus: true,
         });
         if (isValid && form.getValues("number_of_stages") < 1) {
-          toast.error("Number of stages must be at least 1.");
+          toast.error(t("toast.numStagesMin"));
           isValid = false;
         }
         break;
@@ -815,7 +839,10 @@ export default function CreateEventPage() {
         const configuredStages = form.getValues("stages").length;
         if (configuredStages < numStages) {
           toast.error(
-            `Please configure all ${numStages} stages before proceeding. Only ${configuredStages} configured.`,
+            t("toast.configureAllStages", {
+              total: numStages,
+              configured: configuredStages,
+            }),
           );
           return;
         }
@@ -823,9 +850,7 @@ export default function CreateEventPage() {
           .getValues("stages")
           .every((s) => s.groups && s.groups.length > 0);
         if (!allValid) {
-          toast.error(
-            "One or more stages have not been fully configured with groups.",
-          );
+          toast.error(t("toast.stagesNotConfigured"));
           return;
         }
         isValid = true;
@@ -839,13 +864,13 @@ export default function CreateEventPage() {
       case 6:
         if (rulesInputMethod === "type") {
           if (!form.getValues("event_rules")?.trim()) {
-            toast.error("Please enter the event rules.");
+            toast.error(t("toast.enterEventRules"));
             return;
           }
           form.setValue("rules_document", "");
         } else {
           if (!form.getValues("rules_document")) {
-            toast.error("Please upload the rules document.");
+            toast.error(t("toast.uploadRulesDocument"));
             return;
           }
           form.setValue("event_rules", "");
@@ -861,8 +886,13 @@ export default function CreateEventPage() {
           (form.getValues("sponsorships") as SponsorshipDraft[] | undefined) ?? [],
         );
         if (issues.length > 0) {
+          // issues[0] text comes from the shared sponsorshipIssues() helper (own ns/source);
+          // only the "+N more" counter suffix is authored + translated here.
           toast.error(
-            issues[0] + (issues.length > 1 ? ` (+${issues.length - 1} more)` : ""),
+            issues[0] +
+              (issues.length > 1
+                ? " " + t("toast.moreIssues", { count: issues.length - 1 })
+                : ""),
           );
           return;
         }
@@ -896,10 +926,22 @@ export default function CreateEventPage() {
         if (sum !== cash) {
           const diff = Math.abs(cash - sum);
           const ccy = (data.prize_currency || "USD").toString();
+          // Values passed as strings so the ICU placeholders render the raw amounts verbatim
+          // (no locale number-reformatting), matching the previous hardcoded template output.
           toast.error(
             sum > cash
-              ? `Your prize distribution adds up to ${sum} ${ccy}, which is ${diff} ${ccy} MORE than the prize pool cash value (${cash} ${ccy}). Adjust the amounts so they match exactly.`
-              : `Your prize distribution adds up to ${sum} ${ccy}, which is ${diff} ${ccy} LESS than the prize pool cash value (${cash} ${ccy}). Adjust the amounts so they match exactly.`,
+              ? t("toast.prizeDistributionOver", {
+                  sum: String(sum),
+                  diff: String(diff),
+                  cash: String(cash),
+                  currency: ccy,
+                })
+              : t("toast.prizeDistributionUnder", {
+                  sum: String(sum),
+                  diff: String(diff),
+                  cash: String(cash),
+                  currency: ccy,
+                }),
           );
           return;
         }
@@ -908,7 +950,7 @@ export default function CreateEventPage() {
 
     // Mirror the backend 400: require_discord=true demands a non-empty invite link.
     if (data.require_discord && !data.discord_invite_link?.trim()) {
-      toast.error("Add a Discord invite link to require Discord for registration.");
+      toast.error(t("toast.discordInviteRequired"));
       setCurrentStep(1);
       return;
     }
@@ -1122,7 +1164,7 @@ export default function CreateEventPage() {
 
         const contentType = response.headers.get("content-type");
         if (!contentType?.includes("application/json")) {
-          toast.error("Server error: Received unexpected response format.");
+          toast.error(t("toast.serverError"));
           return;
         }
 
@@ -1154,22 +1196,22 @@ export default function CreateEventPage() {
             }
             if (failedSponsors.length > 0) {
               toast.error(
-                `Event created, but attaching failed for: ${failedSponsors.join(", ")}. Re-add them from the event's Sponsor tab.`,
+                t("toast.sponsorAttachFailed", {
+                  names: failedSponsors.join(", "),
+                }),
               );
             }
           }
-          toast.success(res.message || "Event created successfully!");
+          toast.success(res.message || t("toast.eventCreated"));
           clearEventDraft(); // wizard submitted -> drop the saved localStorage draft
           router.push("/a/events");
         } else {
           toast.error(
-            res.message ||
-              res.detail ||
-              "Failed to create event. Please check your inputs.",
+            res.message || res.detail || t("toast.createFailed"),
           );
         }
       } catch {
-        toast.error("An unexpected error occurred during submission.");
+        toast.error(t("toast.unexpectedError"));
       }
     });
   };
@@ -1182,10 +1224,10 @@ export default function CreateEventPage() {
       <EventDraftResumeDialog
         open={!!eventDraft}
         savedAt={eventDraft?.savedAt}
-        title="Resume your unsaved event?"
-        description="You started creating an event and didn't finish. Resume where you left off, or start fresh. Re-attach any banner or rules file after resuming."
-        resumeLabel="Resume"
-        discardLabel="Start fresh"
+        title={t("resume.title")}
+        description={t("resume.description")}
+        resumeLabel={t("resume.resume")}
+        discardLabel={t("resume.startFresh")}
         onResume={resumeEventDraft}
         onDiscard={discardEventDraft}
       />
@@ -1194,7 +1236,7 @@ export default function CreateEventPage() {
         // data-tour anchor: admin tour "Create new event" step (events-lb area, create sub-page).
         title={
           <span data-tour="event-create-title" className="inline-flex items-center">
-            {duplicateSlug ? "Duplicate Event" : "Create New Event"}
+            {duplicateSlug ? t("header.titleDuplicate") : t("header.title")}
             <InfoTip id="events.create._page" className="ml-1.5" />
           </span>
         }
@@ -1202,7 +1244,7 @@ export default function CreateEventPage() {
       />
       {duplicateSlug && (
         <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          You&apos;re duplicating an existing event. All details have been pre-filled - update what you need, then create.
+          {t("header.duplicateHint")}
         </div>
       )}
 
@@ -1268,7 +1310,7 @@ export default function CreateEventPage() {
                 onClick={() => setCurrentStep((s) => s - 1)}
                 disabled={isPending}
               >
-                Previous
+                {t("nav.previous")}
               </Button>
             )}
 
@@ -1283,7 +1325,7 @@ export default function CreateEventPage() {
                   onClick={handleNextStep}
                   disabled={isPending}
                 >
-                  {currentStep === 6 ? "Review & Finalize" : "Next"}
+                  {currentStep === 6 ? t("nav.reviewFinalize") : t("nav.next")}
                 </Button>
               ) : (
                 <Button
@@ -1294,7 +1336,7 @@ export default function CreateEventPage() {
                   onClick={handleFinalSubmit}
                   disabled={currentStep !== 9 || isPending || !hasFinalAction}
                 >
-                  {isPending ? "Creating..." : "Create Event"}
+                  {isPending ? t("nav.creating") : t("nav.createEvent")}
                 </Button>
               )}
             </div>

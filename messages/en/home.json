@@ -310,6 +310,77 @@
           }
         }
       },
+      "home": {
+        "title": "Your home base",
+        "body": "This is your dashboard. Your key stats, the latest news, and a shop teaser all live here so you can see what is new at a glance.",
+        "launchLabel": "Show me home",
+        "steps": {
+          "header": {
+            "title": "The home dashboard",
+            "description": "Everything starts here. From the top menu you can reach every part of AFC at any time."
+          },
+          "boxes": {
+            "title": "Your quick stats",
+            "description": "These boxes give you an at a glance view of your activity. They update as you play and take part."
+          }
+        }
+      },
+      "leaderboards": {
+        "title": "Event leaderboards",
+        "body": "Leaderboards show the live standings for each event: who is winning, kills, and points. Pick an event to see its results.",
+        "launchLabel": "Show me leaderboards",
+        "steps": {
+          "header": {
+            "title": "Live standings",
+            "description": "This page shows the results of every event, updated as matches are played."
+          },
+          "filter": {
+            "title": "Pick an event",
+            "description": "Choose an event here to load its leaderboard. Each event has its own standings."
+          }
+        }
+      },
+      "rankings": {
+        "title": "Rankings and tiers",
+        "body": "Rankings are the AFC ladder: teams and players earn points across events to climb it. Tiers group everyone by skill level.",
+        "launchLabel": "Show me rankings",
+        "steps": {
+          "header": {
+            "title": "The AFC ladder",
+            "description": "Your results across events add up to a ranking here. The better you do, the higher you climb."
+          },
+          "tabs": {
+            "title": "Rankings and Tiers",
+            "description": "Switch between the points ranking and the tier groups with these tabs."
+          }
+        }
+      },
+      "awards": {
+        "title": "Community awards",
+        "body": "The awards celebrate the best players and creators in the community. When voting is open, you can pick your favourites here.",
+        "launchLabel": "Show me the awards",
+        "steps": {
+          "header": {
+            "title": "Awards and voting",
+            "description": "This is where the community awards live. When a voting round is open, cast your votes right here."
+          }
+        }
+      },
+      "shop": {
+        "title": "The shop",
+        "body": "The shop is where you buy diamonds and merch. Add items to your cart or save them to your wishlist for later.",
+        "launchLabel": "Show me the shop",
+        "steps": {
+          "header": {
+            "title": "Browse the store",
+            "description": "Everything for sale lives here, including Free Fire diamonds. Open an item to see the details."
+          },
+          "cart": {
+            "title": "Cart and wishlist",
+            "description": "Save items to your wishlist or add them to your cart, then check out when you are ready."
+          }
+        }
+      },
       "done": {
         "title": "You are all set!",
         "body": "New to the lingo? The Glossary explains every esports term in plain words, anytime you need it. Now go have fun and good luck out there.",

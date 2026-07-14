@@ -9,6 +9,11 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { IconPhone } from "@tabler/icons-react";
+// i18n: the country picker's aria-label + empty option are localized via the shared
+// common namespace (messages/{en,fr,pt}/common.json -> "phoneInput.*"). Client component
+// (already "use client"), so it reads next-intl's useTranslations. Rendered wherever a
+// phone-number field appears (e.g. profile edit, shop checkout).
+import { useTranslations } from "next-intl";
 
 export const PhoneInput = ({
   className,
@@ -41,6 +46,7 @@ export const CountrySelect = ({
   onChange,
   options,
 }: CountrySelectProps) => {
+  const t = useTranslations("common");
   const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     onChange(event.target.value as RPNInput.Country);
   };
@@ -58,10 +64,10 @@ export const CountrySelect = ({
         value={value}
         onChange={handleSelect}
         className="absolute inset-0 text-sm opacity-0 bg-background"
-        aria-label="Select country"
+        aria-label={t("phoneInput.selectCountry")}
       >
         <option key="default" value="">
-          Select a country
+          {t("phoneInput.selectCountryPlaceholder")}
         </option>
         {options
           .filter((x) => x.value)

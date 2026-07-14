@@ -115,7 +115,7 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
       )}
 
       {/* Readiness table. */}
-      <div className="mb-3 max-h-56 overflow-y-auto rounded-md border">
+      <div className="mb-3 max-h-56 overflow-x-auto overflow-y-auto rounded-md border">
         <table className="w-full text-left text-xs">
           <thead className="bg-muted/40 text-muted-foreground">
             <tr>
@@ -163,7 +163,7 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
       </div>
 
       {/* Optional caster + broadcast art. */}
-      <div className="mb-3 grid grid-cols-2 gap-2">
+      <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="space-y-1">
           <Label className="text-[0.65rem]">{t("broadcastKit.casterName")}</Label>
           <Input value={casterName} onChange={(e) => setCasterName(e.target.value)} className="h-7 text-xs" />

@@ -1,0 +1,374 @@
+<!doctype html>
+<!--
+  AFC HOME PAGE additions - APPROVAL PREVIEW (mock data, in-context, clickable).
+
+  REVISION (condensed): the previous version showed up to 6 large cards per section and
+  scrolled far too long. This version is COMPACT:
+    - Each new section shows only 4 latest items in a single tight row (4-up desktop).
+    - Tournament cards lose the big 16/9 banner: a slim colour strip + a compact body.
+    - Player-market cards drop the divider + share footer: one meta line, inline "View".
+    - Each section header carries a clear "View all" link to the full page so the long
+      lists live on /tournaments and /player-markets, not on home.
+
+  WHAT THIS IS
+  ------------
+  The real /home page (app/(user)/home/page.tsx) WITH two new compact sections dropped in,
+  shown inside the real home chrome so the user can judge it in context:
+    PageHeader "Welcome to AFC"  ->  HomeBoxes (4 gold stat cards)  ->
+    [NEW] Latest Tournaments & Scrims (4 max + View all)  ->
+    [NEW] From the Player Market (4 max + View all)  ->
+    2-col (Latest News + Featured Shop)  ->  Rankings & Tiers.
+
+  CONVENTIONS BORROWED FROM THE REAL CODE (so the dev can wire it 1:1)
+  -------------------------------------------------------------------
+  - Tournament fields: event_name, event_date, event_status (upcoming/ongoing/completed),
+    competition_type (tournament/scrims), prizepool, organization_name, slug.
+  - Status colours match the real EventCard map: upcoming=blue, ongoing=green, completed=muted.
+  - Player Market label maps mirror ROLES / TIERS / COMMITMENTS / AVAILABILITIES.
+  - Tier chip colours mirror getTierColor(): Tier 1=yellow, Tier 2=cyan, Tier 3=purple.
+  - "Card" idiom = bg-card rounded-md border (rounded-md, NOT rounded-lg).
+  - Pill segment tabs = bg-muted track, active tab gets bg-background fill (NOT underline).
+
+  HARD RULE: no em dashes or en dashes anywhere. Commas / periods / colons / parentheses /
+  spaced hyphen only.
+-->
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AFC Home - New Sections Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  /* ── AFC design tokens (oklch, lifted straight from globals.css / the approved mockups) ── */
+  :root{
+    --background: oklch(0.141 0.005 285.823); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.21 0.006 285.885); --primary: oklch(0.624 0.170 149.09);
+    --gold: oklch(0.79 0.17 83.63); --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067); --border: oklch(1 0 0 / 10%);
+    --radius: 0.65rem; --red: oklch(0.62 0.20 25);
+    --blue: oklch(0.62 0.19 250); --cyan: oklch(0.7 0.13 200); --purple: oklch(0.62 0.2 300);
+    --yellow: oklch(0.8 0.15 90);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--background);color:var(--foreground);min-height:100vh;position:relative;line-height:1.5;}
+  /* fixed gradient overlay: from-primary/20 via-transparent to-gold/20 */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,color-mix(in oklch,var(--primary) 18%,transparent),transparent 55%,color-mix(in oklch,var(--gold) 18%,transparent));}
+  /* container: 92% desktop, centered (matches @utility container) */
+  .container{position:relative;z-index:1;width:92%;max-width:1180px;margin:0 auto;padding:30px 0 90px;}
+
+  /* ── PageHeader (real component idiom: green title, muted description) ── */
+  .pagehead{margin-bottom:18px;}
+  h1{font-size:clamp(1.875rem,3vw,2.25rem);font-weight:700;color:var(--primary);letter-spacing:-0.01em;}
+  .pagehead p{margin-top:8px;font-size:.95rem;color:var(--muted-foreground);}
+
+  /* ── HomeBoxes (4 stat cards, gold numbers, primary border) ── */
+  .homeboxes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:26px;}
+  .hbox{background:var(--card);border:1px solid color-mix(in oklch,var(--primary) 60%,transparent);border-radius:var(--radius);padding:18px 20px;}
+  .hbox .ico{color:var(--gold);height:30px;}
+  .hbox .ico svg{width:30px;height:30px;}
+  .hbox .lbl{font-size:.95rem;font-weight:600;margin-top:6px;}
+  .hbox .num{font-size:2.1rem;font-weight:700;color:var(--gold);margin-top:6px;line-height:1;}
+
+  /* ── section heading row (eyebrow style title + "view all" link) ── */
+  .sechead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+  .sechead h2{font-size:1.2rem;font-weight:700;}
+  .sechead .sub{font-size:.82rem;color:var(--muted-foreground);margin-top:2px;font-weight:400;}
+  /* "View all" pill link (outline, matches AFC outline-badge / ghost-button idiom) */
+  .viewall{font-size:.78rem;font-weight:600;color:var(--primary);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;border:1px solid color-mix(in oklch,var(--primary) 35%,transparent);border-radius:999px;padding:5px 12px;transition:background .15s,border-color .15s;}
+  .viewall:hover{background:color-mix(in oklch,var(--primary) 12%,transparent);border-color:color-mix(in oklch,var(--primary) 55%,transparent);}
+
+  /* ── pill segment tabs (shadcn idiom: bg-muted track, active = bg-background fill) ── */
+  .seg{display:inline-flex;gap:3px;background:var(--muted);border-radius:var(--radius);padding:3px;margin-bottom:12px;}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--muted-foreground);font-family:inherit;font-size:.76rem;font-weight:600;padding:5px 13px;border-radius:calc(var(--radius) - 4px);cursor:pointer;white-space:nowrap;}
+  .seg button.on{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+  .seg button .cnt{opacity:.6;margin-left:4px;font-weight:500;}
+
+  /* ── compact card row (4 across desktop, single tight row) ── */
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .section{margin-bottom:26px;}
+
+  /* ── COMPACT tournament card (slim colour strip + tight body, no big banner) ── */
+  .ecard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s,transform .15s;cursor:pointer;}
+  .ecard:hover{border-color:color-mix(in oklch,var(--primary) 50%,transparent);transform:translateY(-2px);}
+  /* slim accent strip replaces the 16/9 banner: keeps the per-event tint, kills the height */
+  .estrip{height:5px;width:100%;}
+  .ebody{padding:11px 13px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .erow1{display:flex;align-items:center;gap:6px;}
+  .etype{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-radius:999px;padding:2px 7px;border:1px solid var(--border);flex-shrink:0;}
+  .etype.tournament{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 45%,transparent);}
+  .etype.scrims{color:var(--cyan);border-color:color-mix(in oklch,var(--cyan) 45%,transparent);}
+  .estatus{font-size:.68rem;font-weight:600;margin-left:auto;}
+  .estatus.upcoming{color:var(--blue);} .estatus.ongoing{color:var(--primary);} .estatus.completed{color:var(--muted-foreground);}
+  .ename{font-size:.92rem;font-weight:600;line-height:1.2;}
+  .ecard:hover .ename{color:var(--primary);}
+  .edate{font-size:.74rem;color:var(--muted-foreground);}
+  /* one compact meta line: prize + org, no extra rows */
+  .emeta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:.72rem;color:var(--muted-foreground);margin-top:1px;}
+  .eprize{color:var(--gold);font-weight:700;}
+  .obadge{display:inline-block;font-size:.64rem;font-weight:600;border:1px solid var(--border);border-radius:999px;padding:1px 7px;color:var(--muted-foreground);}
+
+  /* ── COMPACT player-market card (one meta line, inline view, no footer divider) ── */
+  .pcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 13px;display:flex;flex-direction:column;gap:9px;transition:border-color .15s,transform .15s;cursor:pointer;}
+  .pcard:hover{border-color:color-mix(in oklch,var(--primary) 50%,transparent);transform:translateY(-2px);}
+  .phead{display:flex;align-items:center;gap:9px;}
+  .av{width:36px;height:36px;border-radius:999px;flex-shrink:0;display:grid;place-items:center;font-weight:700;font-size:.92rem;}
+  .av.team{background:color-mix(in oklch,var(--primary) 22%,var(--card));color:var(--primary);}
+  .av.player{background:color-mix(in oklch,var(--gold) 22%,var(--card));color:var(--gold);}
+  .phead .nm{font-size:.9rem;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .pcard:hover .phead .nm{color:var(--primary);}
+  .kind{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;border-radius:999px;padding:2px 7px;border:1px solid var(--border);margin-left:auto;flex-shrink:0;}
+  .kind.recruiting{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 45%,transparent);}
+  .kind.available{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 50%,transparent);}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;}
+  /* secondary-style role chip (matches Badge variant=secondary) */
+  .chip{font-size:.66rem;font-weight:600;border-radius:999px;padding:2px 8px;background:var(--muted);color:var(--foreground);}
+  .chip.primary{background:color-mix(in oklch,var(--primary) 20%,transparent);color:var(--primary);}
+  /* tier chip colours mirror getTierColor() */
+  .tchip{display:inline-flex;align-items:center;gap:3px;font-size:.66rem;font-weight:600;border-radius:999px;padding:2px 8px;border:1px solid;}
+  .tchip.t1{color:var(--yellow);border-color:color-mix(in oklch,var(--yellow) 50%,transparent);background:color-mix(in oklch,var(--yellow) 10%,transparent);}
+  .tchip.t2{color:var(--cyan);border-color:color-mix(in oklch,var(--cyan) 50%,transparent);background:color-mix(in oklch,var(--cyan) 10%,transparent);}
+  .tchip.t3{color:var(--purple);border-color:color-mix(in oklch,var(--purple) 50%,transparent);background:color-mix(in oklch,var(--purple) 10%,transparent);}
+  /* one compact meta line: tier/availability + country + inline view affordance */
+  .pmeta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:.7rem;color:var(--muted-foreground);}
+  .pmeta .it{display:inline-flex;align-items:center;gap:3px;}
+  .tchip svg,.pmeta .it svg{width:12px;height:12px;}
+  .pmeta .detlink{margin-left:auto;font-weight:600;color:var(--primary);display:inline-flex;align-items:center;gap:2px;}
+
+  /* ── existing-context note strip (greyed, so the user sees what stays below) ── */
+  .existing{margin-top:6px;border:1px dashed color-mix(in oklch,var(--border) 90%,transparent);border-radius:var(--radius);padding:14px 16px;color:var(--muted-foreground);font-size:.84rem;background:color-mix(in oklch,var(--card) 40%,transparent);}
+  .existing b{color:var(--foreground);font-weight:600;}
+  .existing .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:9px;}
+  @media(max-width:760px){.existing .row2{grid-template-columns:1fr;}}
+
+  /* ── toast (sonner stand-in for the clickable share action) ── */
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:11px 16px;font-size:.84rem;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;display:flex;align-items:center;gap:8px;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #toast .dot{color:var(--primary);}
+
+  /* responsive: 4-up -> 2-up -> 1-up, keeps each section a tight row */
+  @media(max-width:920px){.homeboxes{grid-template-columns:repeat(2,1fr);}.grid4{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:540px){.grid4{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ════════ EXISTING CHROME (real /home, unchanged) ════════ -->
+  <div class="pagehead">
+    <h1>Welcome to AFC</h1>
+    <p>Your hub for African Freefire community stats and events</p>
+  </div>
+
+  <!-- HomeBoxes: existing 4 stat cards -->
+  <div class="homeboxes">
+    <!-- icons mirror the real HomeBoxes exactly: tabler IconTrophy / IconUsers / IconCalendar / IconMoneybag, gold -->
+    <div class="hbox"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21l8 0"/><path d="M12 17l0 4"/><path d="M7 4l10 0"/><path d="M17 4v8a5 5 0 0 1 -10 0v-8"/></svg></div><div class="lbl">Total Kills</div><div class="num">184,920</div></div>
+    <div class="hbox"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/></svg></div><div class="lbl">Active Players</div><div class="num">3,412</div></div>
+    <div class="hbox"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg></div><div class="lbl">Hosted Tournaments</div><div class="num">86</div></div>
+    <div class="hbox"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"/><path d="M4 17v-1a8 8 0 1 1 16 0v1a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"/></svg></div><div class="lbl">Total Prize Pool</div><div class="num">$5,750</div></div>
+  </div>
+
+  <!-- ════════ [NEW] SECTION 1: Latest Tournaments & Scrims (compact, 4 max + View all) ════════ -->
+  <div class="section">
+    <div class="sechead">
+      <div>
+        <h2>Latest Tournaments &amp; Scrims</h2>
+        <span class="sub">A quick look at the 4 newest events. The full list lives on the events page.</span>
+      </div>
+      <a class="viewall" onclick="go('/tournaments')">View all events &#8594;</a>
+    </div>
+
+    <!-- filter: All / Tournaments / Scrims (mirrors the real Tabs on /tournaments) -->
+    <div class="seg" id="evSeg">
+      <button class="on" onclick="setEv('all',this)">All<span class="cnt" id="cAll"></span></button>
+      <button onclick="setEv('tournament',this)">Tournaments<span class="cnt" id="cTour"></span></button>
+      <button onclick="setEv('scrims',this)">Scrims<span class="cnt" id="cScr"></span></button>
+    </div>
+
+    <div class="grid4" id="eventGrid"></div>
+  </div>
+
+  <!-- ════════ [NEW] SECTION 2: From the Player Market (compact, 4 max + View all) ════════ -->
+  <div class="section">
+    <div class="sechead">
+      <div>
+        <h2>From the Player Market</h2>
+        <span class="sub">The 4 latest posts. Open the Player Market for everyone recruiting or available.</span>
+      </div>
+      <a class="viewall" onclick="go('/player-markets')">Open Player Market &#8594;</a>
+    </div>
+
+    <!-- filter: All / Teams recruiting / Players open -->
+    <div class="seg" id="pmSeg">
+      <button class="on" onclick="setPm('all',this)">All<span class="cnt" id="pAll"></span></button>
+      <button onclick="setPm('team',this)">Teams recruiting<span class="cnt" id="pTeam"></span></button>
+      <button onclick="setPm('player',this)">Players open<span class="cnt" id="pPlayer"></span></button>
+    </div>
+
+    <div class="grid4" id="pmGrid"></div>
+  </div>
+
+  <!-- ════════ EXISTING CHROME BELOW (real /home, unchanged) ════════ -->
+  <div class="existing">
+    The rest of the home page stays exactly as it is, directly below the two new sections.
+    <div class="row2">
+      <div><b>Latest News &amp; Updates</b> card (links to /news)</div>
+      <div><b>Featured Shop Items</b> card (links to /shop)</div>
+    </div>
+    <div style="margin-top:12px"><b>Rankings and Tiers</b> card with the Current Rankings / Quarterly Tiers tabs.</div>
+  </div>
+
+</div>
+
+<!-- sonner-style toast stand-in -->
+<div id="toast"><span class="dot">&#9679;</span><span id="toastMsg"></span></div>
+
+<script>
+  /* ───────────────────────────────────────────────────────────────────────────
+     MOCK DATA
+     Field names match the real APIs so the dev can swap mock arrays for fetches:
+       events  -> /events/get-all-events/   (EventCard shape)
+       teamPosts / playerPosts -> /player-market/view-team-recruitment-posts/ etc.
+     Each section only ever shows the first 4 (newest) after the active filter.
+     ─────────────────────────────────────────────────────────────────────────── */
+
+  // Tournament + scrim events (newest first). competition_type drives the filter;
+  // event_status drives the colour, exactly like the real EventCard statusColors map.
+  const EVENTS = [
+    {slug:'detty-december-solos', name:'Detty December Solos', date:'Dec 22, 2025', status:'ongoing',   type:'tournament', prize:'$2,500', org:null,            tint:'149'},
+    {slug:'rivals-showdown-s3',   name:'Rivals Showdown S3',   date:'Dec 14, 2025', status:'upcoming',  type:'tournament', prize:'$1,800', org:'Apex League',   tint:'250'},
+    {slug:'tuesday-night-scrims', name:'Tuesday Night Scrims', date:'Dec 10, 2025', status:'ongoing',   type:'scrims',     prize:'Practice', org:null,           tint:'200'},
+    {slug:'dynasty-cup-nigeria',  name:'Dynasty Cup Nigeria',  date:'Nov 30, 2025', status:'completed', type:'tournament', prize:'$1,200', org:'Dynasty Esports',tint:'300'},
+    {slug:'afc-pro-league-s2',    name:'AFC Pro League S2',    date:'Nov 24, 2025', status:'completed', type:'tournament', prize:'$3,000', org:null,            tint:'90'},
+    {slug:'weekend-warmup-scrims',name:'Weekend Warmup Scrims',date:'Nov 22, 2025', status:'completed', type:'scrims',     prize:'Practice', org:null,           tint:'200'},
+  ];
+
+  // Player-market posts. kind:'team' = TeamRecruitmentPost, kind:'player' = PlayerAvailablePost.
+  // tier values map to t1/t2/t3 chip colours from getTierColor().
+  const POSTS = [
+    {kind:'team',   id:204, name:'V-ENT ESPORTS', country:'Nigeria', expiry:'Dec 28, 2025', roles:['IGL','Sniper'], tier:'TIER_1', commitment:'Full Time'},
+    {kind:'player', id:512, name:'VT KingHydra',  country:'Nigeria', expiry:'Dec 30, 2025', primary:'Rusher', secondary:'Sniper', availability:'Permanent'},
+    {kind:'team',   id:198, name:'Apex Rising',   country:'Ghana',   expiry:'Dec 26, 2025', roles:['Support','Grenade'], tier:'TIER_2', commitment:'Part Time'},
+    {kind:'player', id:507, name:'GH Spectre',    country:'Ghana',   expiry:'Dec 29, 2025', primary:'Support', secondary:'', availability:'Trial'},
+    {kind:'team',   id:191, name:'Sahara Wolves', country:'Kenya',   expiry:'Jan 02, 2026', roles:['Rusher'], tier:'TIER_3', commitment:'Full Time'},
+    {kind:'player', id:501, name:'KE Mirage',     country:'Kenya',   expiry:'Dec 27, 2025', primary:'Sniper', secondary:'IGL', availability:'Scrims Only'},
+  ];
+
+  // tier value -> {chip class, label} (mirrors TIERS label map + getTierColor)
+  const TIER = {TIER_1:{c:'t1',l:'Tier 1'}, TIER_2:{c:'t2',l:'Tier 2'}, TIER_3:{c:'t3',l:'Tier 3'}};
+
+  // how many cards each compact section shows on home (the rest live on the full page)
+  const MAX = 4;
+
+  /* ─── navigation stub: in the real app these are <Link> hrefs ─────────────── */
+  function go(href){ toast('Navigates to ' + href); }
+
+  /* ─── SECTION 1 render (compact, max 4) ──────────────────────────────────── */
+  let evFilter = 'all';
+  function renderEvents(){
+    // keep counts in the segment in sync with the data
+    document.getElementById('cAll').textContent  = '(' + EVENTS.length + ')';
+    document.getElementById('cTour').textContent = '(' + EVENTS.filter(e=>e.type==='tournament').length + ')';
+    document.getElementById('cScr').textContent  = '(' + EVENTS.filter(e=>e.type==='scrims').length + ')';
+
+    const list = EVENTS.filter(e => evFilter==='all' || e.type===evFilter).slice(0, MAX);
+    document.getElementById('eventGrid').innerHTML = list.map(e => `
+      <div class="ecard" onclick="go('/tournaments/${e.slug}')">
+        <div class="estrip" style="background:linear-gradient(90deg,oklch(0.55 0.16 ${e.tint}),oklch(0.40 0.10 ${e.tint}));"></div>
+        <div class="ebody">
+          <div class="erow1">
+            <span class="etype ${e.type}">${e.type==='scrims'?'Scrim':'Tournament'}</span>
+            <span class="estatus ${e.status}">${cap(e.status)}</span>
+          </div>
+          <div class="ename">${e.name}</div>
+          <div class="edate">${e.date}</div>
+          <div class="emeta">
+            <span class="eprize">${e.prize==='Practice'?'No prize':e.prize}</span>
+            ${e.org?`<span class="obadge">${e.org}</span>`:`<span class="obadge">AFC official</span>`}
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  function setEv(f, el){
+    evFilter = f;
+    [...document.querySelectorAll('#evSeg button')].forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    renderEvents();
+  }
+
+  /* ─── SECTION 2 render (compact, max 4) ──────────────────────────────────── */
+  let pmFilter = 'all';
+  function renderPosts(){
+    document.getElementById('pAll').textContent    = '(' + POSTS.length + ')';
+    document.getElementById('pTeam').textContent   = '(' + POSTS.filter(p=>p.kind==='team').length + ')';
+    document.getElementById('pPlayer').textContent = '(' + POSTS.filter(p=>p.kind==='player').length + ')';
+
+    const list = POSTS.filter(p => pmFilter==='all' || p.kind===pmFilter).slice(0, MAX);
+    document.getElementById('pmGrid').innerHTML = list.map(p => p.kind==='team'
+      ? teamCard(p) : playerCard(p)).join('');
+  }
+  // TeamRecruitmentPost card -> /player-markets/team-<id> (compact)
+  function teamCard(p){
+    const t = TIER[p.tier];
+    return `
+      <div class="pcard" onclick="go('/player-markets/team-${p.id}')">
+        <div class="phead">
+          <div class="av team">${p.name.charAt(0)}</div>
+          <div class="nm" style="min-width:0">${p.name}</div>
+          <span class="kind recruiting">Recruiting</span>
+        </div>
+        <div class="chips">
+          ${p.roles.map(r=>`<span class="chip">${r}</span>`).join('')}
+          <span class="tchip ${t.c}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"/></svg> ${t.l}+</span>
+        </div>
+        <div class="pmeta">
+          <span class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg> ${p.country}</span>
+          <span class="detlink">View &#8250;</span>
+        </div>
+      </div>`;
+  }
+  // PlayerAvailablePost card -> /player-markets/player-<id> (compact)
+  function playerCard(p){
+    return `
+      <div class="pcard" onclick="go('/player-markets/player-${p.id}')">
+        <div class="phead">
+          <div class="av player">${p.name.charAt(0)}</div>
+          <div class="nm" style="min-width:0">${p.name}</div>
+          <span class="kind available">Open to join</span>
+        </div>
+        <div class="chips">
+          <span class="chip primary">${p.primary}</span>
+          ${p.secondary?`<span class="chip">${p.secondary}</span>`:''}
+        </div>
+        <div class="pmeta">
+          <span class="it">&#9201; ${p.availability}</span>
+          <span class="it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg> ${p.country}</span>
+          <span class="detlink">View &#8250;</span>
+        </div>
+      </div>`;
+  }
+  function setPm(f, el){
+    pmFilter = f;
+    [...document.querySelectorAll('#pmSeg button')].forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    renderPosts();
+  }
+
+  /* ─── helpers ────────────────────────────────────────────────────────────── */
+  function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+  let toastTimer;
+  function toast(msg){
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+  }
+
+  renderEvents();
+  renderPosts();
+</script>
+</body>
+</html>

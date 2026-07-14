@@ -310,6 +310,77 @@
           }
         }
       },
+      "home": {
+        "title": "A tua base",
+        "body": "Este é o teu painel de controlo. Aqui encontras as tuas estatísticas principais, as últimas notícias e um antevisão da loja, para que possas ver as novidades num piscar de olhos.",
+        "launchLabel": "Mostra-me o caminho para casa",
+        "steps": {
+          "header": {
+            "title": "O painel de controlo inicial",
+            "description": "Tudo começa aqui. A partir do menu superior, pode aceder a todas as secções do AFC a qualquer momento."
+          },
+          "boxes": {
+            "title": "As tuas estatísticas rápidas",
+            "description": "Estas caixas permitem-te ter uma visão geral da tua atividade. São atualizadas à medida que jogas e participas."
+          }
+        }
+      },
+      "leaderboards": {
+        "title": "Tabelas de classificação dos eventos",
+        "body": "As tabelas de classificação mostram a classificação em tempo real de cada evento: quem está a ganhar, o número de abates e os pontos. Escolha um evento para ver os seus resultados.",
+        "launchLabel": "Mostrar-me as tabelas de classificação",
+        "steps": {
+          "header": {
+            "title": "Classificação em tempo real",
+            "description": "Esta página apresenta os resultados de todos os eventos, atualizados à medida que os jogos vão decorrendo."
+          },
+          "filter": {
+            "title": "Escolha um evento",
+            "description": "Escolha aqui uma prova para carregar a respetiva tabela de classificação. Cada prova tem a sua própria tabela de classificação."
+          }
+        }
+      },
+      "rankings": {
+        "title": "Classificações e níveis",
+        "body": "As classificações correspondem à tabela da AFC: as equipas e os jogadores ganham pontos ao longo das provas para subirem na tabela. Os níveis agrupam todos os participantes de acordo com o seu nível de habilidade.",
+        "launchLabel": "Mostrar-me as classificações",
+        "steps": {
+          "header": {
+            "title": "A tabela da AFC",
+            "description": "Os teus resultados em todas as provas contribuem para a classificação apresentada aqui. Quanto melhor for o teu desempenho, mais alto subirás na classificação."
+          },
+          "tabs": {
+            "title": "Classificações e níveis",
+            "description": "Utilize estes separadores para alternar entre a classificação por pontos e os grupos de nível."
+          }
+        }
+      },
+      "awards": {
+        "title": "Prémios comunitários",
+        "body": "Os prémios distinguem os melhores jogadores e criadores da comunidade. Quando a votação estiver aberta, poderá escolher os seus favoritos aqui.",
+        "launchLabel": "Mostra-me os prémios",
+        "steps": {
+          "header": {
+            "title": "Prémios e votação",
+            "description": "É aqui que se encontram os prémios da comunidade. Quando uma ronda de votação estiver aberta, votem aqui mesmo."
+          }
+        }
+      },
+      "shop": {
+        "title": "A loja",
+        "body": "A loja é onde podes comprar diamantes e produtos promocionais. Adiciona artigos ao teu carrinho ou guarda-os na tua lista de desejos para mais tarde.",
+        "launchLabel": "Mostra-me a loja",
+        "steps": {
+          "header": {
+            "title": "Explorar a loja",
+            "description": "Tudo o que está à venda encontra-se aqui, incluindo diamantes do Free Fire. Abre um artigo para veres os detalhes."
+          },
+          "cart": {
+            "title": "Cesto de compras e lista de desejos",
+            "description": "Guarde os artigos na sua lista de desejos ou adicione-os ao seu carrinho e, quando estiver pronto, finalize a compra."
+          }
+        }
+      },
       "done": {
         "title": "Tudo pronto!",
         "body": "Novo(a) na gíria? O Glossário explica cada termo de esports em palavras simples, sempre que precisar. Agora vá se divertir e boa sorte.",

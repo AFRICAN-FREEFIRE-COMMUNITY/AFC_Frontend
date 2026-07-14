@@ -173,12 +173,17 @@ export function MobileNavbar() {
                 slug,
                 label,
                 title,
+                navKey,
                 comingSoon,
                 addedAt,
                 submenu,
                 items,
               } = link;
-              const displayLabel: any = label || title;
+              // Translate via the shared common.nav.* key; fall back to the English
+              // label/title if an entry has no navKey yet.
+              const displayLabel: any = navKey
+                ? t(`nav.${navKey}`)
+                : label || title;
               const isExpanded = expandedMenus[displayLabel];
               const showNewBadge = isNewLink(addedAt);
 
@@ -242,7 +247,9 @@ export function MobileNavbar() {
                               {subItem.comingSoon ? (
                                 <div className="flex items-center opacity-60">
                                   <Icon size={18} className="mr-2" />
-                                  {subItem.title || subItem.label}
+                                  {subItem.navKey
+                                    ? t(`nav.${subItem.navKey}`)
+                                    : subItem.title || subItem.label}
                                   <Badge
                                     variant="secondary"
                                     className="ml-auto text-[10px]"
@@ -253,7 +260,9 @@ export function MobileNavbar() {
                               ) : (
                                 <Link href={subItem.slug}>
                                   <Icon size={18} className="mr-2" />
-                                  {subItem.title || subItem.label}
+                                  {subItem.navKey
+                                    ? t(`nav.${subItem.navKey}`)
+                                    : subItem.title || subItem.label}
                                   {subShowNew && (
                                     <Badge
                                       variant="default"

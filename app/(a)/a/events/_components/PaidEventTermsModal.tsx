@@ -34,6 +34,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/Loader";
 import { IconShieldCheck } from "@tabler/icons-react";
+// i18n: user-facing copy is served from the shared "evSteps" namespace
+// (messages/{en,fr,pt}/evSteps.json, "paidTerms" group). The organizer create
+// flow that renders this modal already uses this namespace, so the strings live
+// alongside the other create-step copy.
+import { useTranslations } from "next-intl";
 
 interface PaidEventTermsModalProps {
   // The page controls visibility (opened on paid-org submit OR on a 400
@@ -57,6 +62,8 @@ export function PaidEventTermsModal({
   onCancel,
   pending = false,
 }: PaidEventTermsModalProps) {
+  // Translations for the paid-event terms gate (see import note above).
+  const t = useTranslations("evSteps");
   return (
     <Dialog
       open={open}
@@ -71,12 +78,8 @@ export function PaidEventTermsModal({
           <div className="flex size-12 items-center justify-center rounded-md bg-primary/10 text-primary">
             <IconShieldCheck className="size-6" />
           </div>
-          <DialogTitle className="text-xl">Paid event terms</DialogTitle>
-          <DialogDescription>
-            Before you collect entry fees, please review and accept how paid
-            tournaments work on AFC. You only need to accept this once per
-            organization.
-          </DialogDescription>
+          <DialogTitle className="text-xl">{t("paidTerms.title")}</DialogTitle>
+          <DialogDescription>{t("paidTerms.description")}</DialogDescription>
         </DialogHeader>
 
         {/* Terms clauses. Kept as a plain list so the copy is easy to read and
@@ -84,29 +87,27 @@ export function PaidEventTermsModal({
         <ul className="space-y-3 text-sm text-muted-foreground">
           <li>
             <span className="font-medium text-foreground">
-              Funds are held in escrow.
+              {t("paidTerms.escrowLead")}
             </span>{" "}
-            Entry fees are held in escrow by the payment processor, not by you.
-            AFC releases the payout to your organization only after the event
-            runs.
+            {t("paidTerms.escrowBody")}
           </li>
           <li>
             <span className="font-medium text-foreground">
-              Fee on paid tournaments.
+              {t("paidTerms.feeLead")}
             </span>{" "}
-            The first 10 paid tournaments per organization have a 0 percent AFC
-            fee. After that, AFC takes 2 percent of entry fees collected.
-          </li>
-          <li>
-            <span className="font-medium text-foreground">Refunds.</span> If an
-            event is cancelled, AFC can refund registrants their entry fees.
+            {t("paidTerms.feeBody")}
           </li>
           <li>
             <span className="font-medium text-foreground">
-              You must run the event.
+              {t("paidTerms.refundsLead")}
             </span>{" "}
-            You are required to run the event you collected entry fees for.
-            Failing to do so can lead to refunds and removal from the platform.
+            {t("paidTerms.refundsBody")}
+          </li>
+          <li>
+            <span className="font-medium text-foreground">
+              {t("paidTerms.runLead")}
+            </span>{" "}
+            {t("paidTerms.runBody")}
           </li>
         </ul>
 
@@ -117,10 +118,14 @@ export function PaidEventTermsModal({
             onClick={onCancel}
             disabled={pending}
           >
-            Cancel
+            {t("paidTerms.cancel")}
           </Button>
           <Button type="button" onClick={onAccept} disabled={pending}>
-            {pending ? <Loader text="Submitting..." /> : "I accept"}
+            {pending ? (
+              <Loader text={t("paidTerms.submitting")} />
+            ) : (
+              t("paidTerms.accept")
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

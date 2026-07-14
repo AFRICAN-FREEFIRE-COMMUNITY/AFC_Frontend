@@ -34,5 +34,18 @@
   "unmatchedDontCount": "Don't count",
   "missingWinnerTitle": "Map winner not recorded",
   "missingWinnerUnmatched": "The 1st-place team ({team}) was not matched to a registered team, so this map counts 0 booyahs. Attribute the team in the \"Flagged player kills\" panel on the leaderboard to restore the booyah.",
-  "missingWinnerNoFirst": "The uploaded file had no 1st-place team, so this map counts 0 booyahs."
+  "missingWinnerNoFirst": "The uploaded file had no 1st-place team, so this map counts 0 booyahs.",
+  "combine": "Combine",
+  "combineHint": "Pick the stages and groups whose flagged players you want to see together.",
+  "followCurrent": "Follow current view",
+  "scopeGroup": "Showing: {group}",
+  "scopeStage": "Showing: {stage} (all groups)",
+  "scopeEvent": "Showing: whole event",
+  "scopeCustom": "Showing: {count} selected",
+  "noStages": "This event has no stages yet.",
+  "bulkLabel": "Bulk actions:",
+  "bulkAcceptAll": "Accept all",
+  "bulkRejectAll": "Reject all",
+  "bulkFollowAll": "Follow event setting",
+  "bulkTeamsReject": "Reject all"
 }

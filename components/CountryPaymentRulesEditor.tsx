@@ -23,11 +23,13 @@
  *
  * CONSUMED BY: the four event create/edit forms above. The resolved fee a registrant actually pays is
  * computed server-side by resolve_registration_fee() at register/payment time; this is only the
- * authoring surface. Operator-facing copy is English to match the adjacent Entry Fee / Currency
- * fields (event-config forms are not part of the user-facing i18n surface).
+ * authoring surface. i18n: because this editor also renders on the organizer create/edit pages (the
+ * organizer portal is NOT i18n-exempt), its operator-facing copy is translated via the "events" ns
+ * (messages/en/events.json -> paymentRules.*).
  */
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
 
 import { Label } from "@/components/ui/label";
@@ -87,6 +89,9 @@ export default function CountryPaymentRulesEditor({
   baseCurrency = "USD",
   baseFee,
 }: Props) {
+  // i18n: "events" ns (paymentRules.*). Rendered on both the admin (exempt) and organizer
+  // (non-exempt) event forms, so all operator-facing copy here is translated.
+  const t = useTranslations("events");
   const rules = normalize(value);
   const rows = Object.entries(rules.countries);
 
@@ -134,34 +139,34 @@ export default function CountryPaymentRulesEditor({
     <div className="space-y-4 rounded-md border bg-muted/30 p-4">
       <div>
         <Label className="text-sm font-medium">
-          Per-country payment
+          {t("paymentRules.label")}
           <InfoTip
-            text="Optional. Set, per country, whether teams or players from that country pay the entry fee or join for free, and optionally charge a different amount. A squad uses its team country; a solo player uses their own country. This does not change the private-event invite link, which is still required regardless of country."
+            text={t("paymentRules.infoTip")}
             className="ml-1"
           />
         </Label>
         <p className="mt-1 text-xs text-muted-foreground">
-          Leave empty to charge every country the base entry fee.
+          {t("paymentRules.helpText")}
         </p>
       </div>
 
       {/* Default rule for any country not listed below. */}
       <div className="flex items-center justify-between gap-3 rounded-md border bg-background p-3">
         <div className="text-sm">
-          <p className="font-medium">Countries not listed below</p>
+          <p className="font-medium">{t("paymentRules.unlistedTitle")}</p>
           <p className="text-xs text-muted-foreground">
             {rules.default_pays
-              ? "Pay the base entry fee."
-              : "Join for free (no entry fee)."}
+              ? t("paymentRules.unlistedPay")
+              : t("paymentRules.unlistedFree")}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Free</span>
+          <span className="text-xs text-muted-foreground">{t("paymentRules.free")}</span>
           <Switch
             checked={rules.default_pays}
             onCheckedChange={(checked) => setDefaultPays(checked)}
           />
-          <span className="text-xs text-muted-foreground">Pay</span>
+          <span className="text-xs text-muted-foreground">{t("paymentRules.pay")}</span>
         </div>
       </div>
 
@@ -179,14 +184,14 @@ export default function CountryPaymentRulesEditor({
 
               {/* Free vs Pay for this country. */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Free</span>
+                <span className="text-xs text-muted-foreground">{t("paymentRules.free")}</span>
                 <Switch
                   checked={rule.pays}
                   onCheckedChange={(checked) =>
                     updateRow(name, { pays: checked })
                   }
                 />
-                <span className="text-xs text-muted-foreground">Pay</span>
+                <span className="text-xs text-muted-foreground">{t("paymentRules.pay")}</span>
               </div>
 
               {/* Optional amount + currency override, only when this country pays. */}
@@ -199,8 +204,8 @@ export default function CountryPaymentRulesEditor({
                     className="w-28"
                     placeholder={
                       baseFee !== undefined && baseFee !== null && baseFee !== ""
-                        ? `Base ${baseFee}`
-                        : "Base fee"
+                        ? t("paymentRules.baseWithFee", { fee: baseFee })
+                        : t("paymentRules.baseFee")
                     }
                     value={rule.amount ?? ""}
                     onChange={(e) =>
@@ -231,7 +236,7 @@ export default function CountryPaymentRulesEditor({
                 size="icon"
                 className="text-muted-foreground hover:text-destructive"
                 onClick={() => removeCountry(name)}
-                aria-label={`Remove ${name}`}
+                aria-label={t("paymentRules.remove", { name })}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -244,7 +249,7 @@ export default function CountryPaymentRulesEditor({
       <div className="flex items-center gap-2">
         <Select value="" onValueChange={(val) => addCountry(val)}>
           <SelectTrigger className="w-full md:w-64">
-            <SelectValue placeholder="Add a country..." />
+            <SelectValue placeholder={t("paymentRules.addCountry")} />
           </SelectTrigger>
           <SelectContent>
             {available.map((c) => (

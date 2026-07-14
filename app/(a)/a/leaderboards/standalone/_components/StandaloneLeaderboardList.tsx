@@ -128,7 +128,7 @@ export function StandaloneLeaderboardList({
 
   return (
     <Card className="rounded-md">
-      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+      <CardHeader className="flex flex-col items-start gap-2 space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="flex items-center text-base">
           <IconTrophy className="mr-1.5 size-4" />
           Standalone leaderboards

@@ -9,6 +9,10 @@ interface PageHeaderProps {
   description?: string | any;
   action?: ReactNode;
   back?: boolean;
+  // Optional guided-tour anchor (owner 2026-07-13): when set, stamps data-tour on the header
+  // root so the comprehensive welcome tour (guided-tour-stops.ts + PageGuide.tsx) can spotlight
+  // "you are on the <page> page" as its first step on each route. Attribute-only, no layout change.
+  dataTour?: string;
 }
 
 export function PageHeader({
@@ -16,11 +20,12 @@ export function PageHeader({
   description,
   action,
   back,
+  dataTour,
 }: PageHeaderProps) {
   const router = useRouter();
 
   return (
-    <div className="mb-4">
+    <div className="mb-4" data-tour={dataTour}>
       <div className="flex items-start justify-start gap-2">
         {back && (
           <Button

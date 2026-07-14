@@ -1,5 +1,9 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+// i18n: Server Component -> copy is read via getTranslations (async server-side
+// counterpart of useTranslations) from the `pmPost` namespace. The client child
+// ApplyButton shares the same namespace via useTranslations.
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import Image from "next/image";
 import { generateDynamicMetadata, siteConfig } from "@/lib/seo";
@@ -50,30 +54,39 @@ type PostDetails = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const ROLE_LABELS: Record<string, string> = {
-  IGL: "In-Game Leader",
-  RUSHER: "Rusher",
-  SUPPORT: "Support",
-  SNIPER: "Sniper",
-  GRENADE: "Grenade",
-};
+// i18n: the backend sends role/tier/commitment/availability as stable enum codes
+// (e.g. "IGL", "TIER_1"). We turn each code into a localized human label by looking
+// it up in the `pmPost` namespace through next-intl, so the label renders in the
+// viewer's language (en/fr/pt). buildLabelMaps is called from BOTH generateMetadata
+// and PlayerMarketPostPage below, each of which owns its own async `t` from
+// getTranslations("pmPost"). Keeping the maps as Record<string,string> preserves the
+// existing `map[value] ?? value` lookup + graceful fallback used across the page.
+type PmPostT = Awaited<ReturnType<typeof getTranslations>>;
 
-const TIER_LABELS: Record<string, string> = {
-  TIER_1: "Tier 1",
-  TIER_2: "Tier 2",
-  TIER_3: "Tier 3",
-};
-
-const COMMITMENT_LABELS: Record<string, string> = {
-  FULL_TIME: "Full Time",
-  PART_TIME: "Part Time",
-};
-
-const AVAILABILITY_LABELS: Record<string, string> = {
-  TRIAL: "Trial",
-  PERMANENT: "Permanent",
-  SCRIMS_ONLY: "Scrims Only",
-};
+function buildLabelMaps(t: PmPostT) {
+  const ROLE_LABELS: Record<string, string> = {
+    IGL: t("roles.IGL"),
+    RUSHER: t("roles.RUSHER"),
+    SUPPORT: t("roles.SUPPORT"),
+    SNIPER: t("roles.SNIPER"),
+    GRENADE: t("roles.GRENADE"),
+  };
+  const TIER_LABELS: Record<string, string> = {
+    TIER_1: t("tiers.TIER_1"),
+    TIER_2: t("tiers.TIER_2"),
+    TIER_3: t("tiers.TIER_3"),
+  };
+  const COMMITMENT_LABELS: Record<string, string> = {
+    FULL_TIME: t("commitment.FULL_TIME"),
+    PART_TIME: t("commitment.PART_TIME"),
+  };
+  const AVAILABILITY_LABELS: Record<string, string> = {
+    TRIAL: t("availability.TRIAL"),
+    PERMANENT: t("availability.PERMANENT"),
+    SCRIMS_ONLY: t("availability.SCRIMS_ONLY"),
+  };
+  return { ROLE_LABELS, TIER_LABELS, COMMITMENT_LABELS, AVAILABILITY_LABELS };
+}
 
 function label(map: Record<string, string>, value: string | null | undefined) {
   if (!value) return null;
@@ -130,12 +143,19 @@ export async function generateMetadata({
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
+  // Localized SEO title/description for this public, shareable post. Uses the
+  // async server translator so the browser-tab title and social preview render in
+  // the viewer's language; the label maps below are built from the same `t`.
+  const t = await getTranslations("pmPost");
   const { id } = await params;
   const parsed = parseId(id);
-  if (!parsed) return { title: "Post Not Found | AFC Player Market" };
+  if (!parsed) return { title: t("meta.notFound") };
 
   const post = await getPostDetails(parsed.postId);
-  if (!post) return { title: "Post Not Found | AFC Player Market" };
+  if (!post) return { title: t("meta.notFound") };
+
+  const { ROLE_LABELS, TIER_LABELS, COMMITMENT_LABELS, AVAILABILITY_LABELS } =
+    buildLabelMaps(t);
 
   let title: string;
   let description: string;
@@ -144,15 +164,38 @@ export async function generateMetadata({
   if (parsed.type === "team") {
     const roles =
       post.roles_needed?.map((r) => ROLE_LABELS[r] ?? r).join(", ") ||
-      "players";
-    title = `${post.team ?? "A team"} is Recruiting`;
-    description = `${post.team} is looking for ${roles}${post.country ? ` from ${post.country}` : ""}. ${label(COMMITMENT_LABELS, post.commitment_type) ?? ""} commitment${post.minimum_tier_required ? `, minimum ${label(TIER_LABELS, post.minimum_tier_required)}` : ""}. Apply on AFC Player Market.`;
+      t("meta.rolesFallback");
+    const teamName = post.team ?? t("meta.teamFallback");
+    title = t("meta.teamTitle", { team: teamName });
+    // Built from ICU fragments so each conditional clause (country, minimum tier)
+    // stays translatable while matching the original sentence shape.
+    description =
+      t("meta.teamLooking", { team: teamName, roles }) +
+      (post.country ? t("meta.fromCountry", { country: post.country }) : "") +
+      ". " +
+      t("meta.commitmentPart", {
+        commitment: label(COMMITMENT_LABELS, post.commitment_type) ?? "",
+      }) +
+      (post.minimum_tier_required
+        ? t("meta.minimumTier", {
+            tier: label(TIER_LABELS, post.minimum_tier_required) ?? "",
+          })
+        : "") +
+      ". " +
+      t("meta.applyLine");
     image = toAbsoluteUrl(post.team_logo);
   } else {
     const role = label(ROLE_LABELS, post.primary_role);
     const avail = label(AVAILABILITY_LABELS, post.availability_type);
-    title = `${post.player ?? "A player"} is Looking for a Team`;
-    description = `${post.player}${role ? ` (${role})` : ""} is available${post.country ? ` from ${post.country}` : ""}${avail ? ` - ${avail} basis` : ""}. Connect on AFC Player Market.`;
+    const playerName = post.player ?? t("meta.playerFallback");
+    const rolePart = role ? t("meta.playerRoleParen", { role }) : "";
+    title = t("meta.playerTitle", { player: playerName });
+    description =
+      t("meta.playerAvailable", { player: playerName, role: rolePart }) +
+      (post.country ? t("meta.fromCountry", { country: post.country }) : "") +
+      (avail ? t("meta.availBasis", { avail }) : "") +
+      ". " +
+      t("meta.connectLine");
     image = toAbsoluteUrl(post.player_avatar);
   }
 
@@ -179,6 +222,11 @@ export default async function PlayerMarketPostPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  // Async server translator for the `pmPost` namespace (shared with ApplyButton).
+  const t = await getTranslations("pmPost");
+  const { ROLE_LABELS, TIER_LABELS, COMMITMENT_LABELS, AVAILABILITY_LABELS } =
+    buildLabelMaps(t);
+
   const { id } = await params;
   const parsed = parseId(id);
   if (!parsed) notFound();
@@ -202,7 +250,7 @@ export default async function PlayerMarketPostPage({
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <IconArrowLeft size={16} />
-        Back to Player Market
+        {t("back")}
       </Link>
 
       {/* Header card */}
@@ -212,7 +260,7 @@ export default async function PlayerMarketPostPage({
             <div className="relative shrink-0">
               <Image
                 src={avatarSrc}
-                alt={displayName ?? "Post"}
+                alt={displayName ?? t("altPost")}
                 width={80}
                 height={80}
                 className="rounded-full object-cover border size-20"
@@ -232,24 +280,24 @@ export default async function PlayerMarketPostPage({
                       <PlayerLink name={displayName} />
                     )
                   ) : (
-                    "Unknown"
+                    t("unknown")
                   )}
                 </h1>
                 <Badge variant={isTeam ? "default" : "secondary"}>
                   {isTeam ? (
                     <>
                       <IconUsers size={12} className="mr-1" />
-                      Recruiting
+                      {t("recruiting")}
                     </>
                   ) : (
                     <>
                       <IconUser size={12} className="mr-1" />
-                      Available
+                      {t("available")}
                     </>
                   )}
                 </Badge>
                 {!post.is_active && (
-                  <Badge variant="destructive">Expired</Badge>
+                  <Badge variant="destructive">{t("expired")}</Badge>
                 )}
               </div>
 
@@ -263,7 +311,7 @@ export default async function PlayerMarketPostPage({
               <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                 <IconCalendar size={12} />
                 {/* Poster IGN links to their public player profile. */}
-                Posted by <PlayerLink name={post.created_by} />
+                {t("postedBy")} <PlayerLink name={post.created_by} />
               </p>
             </div>
           </div>
@@ -280,7 +328,7 @@ export default async function PlayerMarketPostPage({
                 <div className="space-y-1.5">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                     <IconTarget size={13} />
-                    Roles Needed
+                    {t("rolesNeeded")}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {post.roles_needed.map((r) => (
@@ -298,7 +346,7 @@ export default async function PlayerMarketPostPage({
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                       <IconShield size={13} />
-                      Min. Tier
+                      {t("minTier")}
                     </p>
                     <Badge
                       variant="outline"
@@ -314,7 +362,7 @@ export default async function PlayerMarketPostPage({
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                       <IconClock size={13} />
-                      Commitment
+                      {t("commitmentLabel")}
                     </p>
                     <Badge variant="outline">
                       {COMMITMENT_LABELS[post.commitment_type] ??
@@ -329,7 +377,7 @@ export default async function PlayerMarketPostPage({
                 <div className="space-y-1.5">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                     <IconMapPin size={13} />
-                    Open To
+                    {t("openTo")}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {post.countries.map((c) => (
@@ -350,7 +398,7 @@ export default async function PlayerMarketPostPage({
                 <div className="space-y-1.5">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                     <IconInfoCircle size={13} />
-                    Recruitment Criteria
+                    {t("recruitmentCriteria")}
                   </p>
                   <p className="text-sm leading-relaxed">
                     {post.recruitment_criteria}
@@ -366,7 +414,7 @@ export default async function PlayerMarketPostPage({
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                       <IconTarget size={13} />
-                      Primary Role
+                      {t("primaryRole")}
                     </p>
                     <Badge variant="outline">
                       {ROLE_LABELS[post.primary_role] ?? post.primary_role}
@@ -378,7 +426,7 @@ export default async function PlayerMarketPostPage({
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                       <IconTarget size={13} />
-                      Secondary Role
+                      {t("secondaryRole")}
                     </p>
                     <Badge variant="outline">
                       {ROLE_LABELS[post.secondary_role] ?? post.secondary_role}
@@ -392,7 +440,7 @@ export default async function PlayerMarketPostPage({
                 <div className="space-y-1.5">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                     <IconClock size={13} />
-                    Availability
+                    {t("availabilityLabel")}
                   </p>
                   <Badge variant="outline">
                     {AVAILABILITY_LABELS[post.availability_type] ??
@@ -406,7 +454,7 @@ export default async function PlayerMarketPostPage({
                 <div className="space-y-1.5">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                     <IconMapPin size={13} />
-                    Open To Play For
+                    {t("openToPlayFor")}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {post.countries.map((c) => (
@@ -427,7 +475,7 @@ export default async function PlayerMarketPostPage({
                 <div className="space-y-1.5">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                     <IconInfoCircle size={13} />
-                    About
+                    {t("about")}
                   </p>
                   <p className="text-sm leading-relaxed">
                     {post.additional_info}
@@ -441,7 +489,7 @@ export default async function PlayerMarketPostPage({
           {post.post_expiry_date && (
             <p className="text-xs text-muted-foreground border-t pt-4 flex items-center gap-1.5">
               <IconCalendar size={13} />
-              Post expires:{" "}
+              {t("postExpires")}{" "}
               {new Date(post.post_expiry_date).toLocaleDateString("en-GB", {
                 day: "numeric",
                 month: "long",
@@ -459,7 +507,7 @@ export default async function PlayerMarketPostPage({
             <ApplyButton postId={post.id} teamName={post.team} />
           ) : (
             <Button asChild className="flex-1" variant="outline">
-              <Link href="/player-markets">View on Player Market</Link>
+              <Link href="/player-markets">{t("viewOnMarket")}</Link>
             </Button>
           )}
         </div>

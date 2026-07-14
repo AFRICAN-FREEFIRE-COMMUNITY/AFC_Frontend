@@ -227,14 +227,19 @@ export default function OrganizerCapturePage() {
               <label className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
                 {t("key.keyLabel")}
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <Input
                   readOnly
                   value={captureKey}
                   className="font-mono text-xs"
                   onFocus={(ev) => ev.currentTarget.select()}
                 />
-                <Button type="button" variant="secondary" onClick={copyKey}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={copyKey}
+                  className="w-full sm:w-auto"
+                >
                   <IconCopy className="size-4" />
                   {t("key.copy")}
                 </Button>
@@ -243,6 +248,7 @@ export default function OrganizerCapturePage() {
                   variant="outline"
                   onClick={() => generate(true)}
                   disabled={busy}
+                  className="w-full sm:w-auto"
                 >
                   <IconRefresh className="size-4" />
                   {t("key.regenerate")}

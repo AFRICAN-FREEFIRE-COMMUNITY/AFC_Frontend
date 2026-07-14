@@ -1,6 +1,7 @@
 "use client";
 
 import { UseFormReturn } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -33,6 +34,7 @@ interface StepWaitlistProps {
 }
 
 export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
+  const t = useTranslations("evSteps");
   // @ts-ignore
   const waitlistEnabled = form.watch("is_waitlist_enabled");
 
@@ -40,11 +42,11 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          Step 8: Waitlist
+          {t("waitlist.title")}
           <InfoTip id="events.create.waitlist._section" className="ml-1.5" />
         </CardTitle>
         <CardDescription>
-          Allow players to join a waitlist if the event reaches max capacity.
+          {t("waitlist.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -52,12 +54,11 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
         <div className="flex items-center justify-between rounded-lg border p-4">
           <div className="space-y-0.5">
             <Label htmlFor="waitlist-toggle">
-              Enable Waitlist
+              {t("waitlist.enable")}
               <InfoTip id="events.create.is_waitlist_enabled" className="ml-1" />
             </Label>
             <p className="text-xs text-muted-foreground">
-              When the event is full, players can join a waitlist and be
-              admitted if spots open up.
+              {t("waitlist.enableHelp")}
             </p>
           </div>
           <FormField
@@ -83,13 +84,15 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
             {/* Slot-assignment MODE (owner 2026-06-17): how a no-show's slot is filled. Shown to
                 players on the event page so they know the rule. */}
             <div className="space-y-2">
-              <Label>How open slots are filled</Label>
+              <Label>{t("waitlist.howFilled")}</Label>
               <div className="grid gap-2 sm:grid-cols-3">
                 {(
+                  // opt.value drives the translated waitlist.modeLabel.* / modeDesc.* keys;
+                  // opt.label stays as the English fallback for the t.has guard below.
                   [
-                    { value: "first_registered", label: "Earliest registered", help: "The team/player who joined the waitlist first gets the open slot." },
-                    { value: "fcfs_room", label: "First to join room", help: "All waitlist teams get the room ID + password; first to join the room claims the slot." },
-                    { value: "manual_admin", label: "You pick", help: "You manually choose which waitlist team/player takes each open slot." },
+                    { value: "first_registered", label: "Earliest registered" },
+                    { value: "fcfs_room", label: "First to join room" },
+                    { value: "manual_admin", label: "You pick" },
                   ] as const
                 ).map((opt) => {
                   // @ts-ignore - optional field, mirrors the toggle idiom
@@ -105,14 +108,26 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
                         (selected ? "border-primary bg-primary/10 text-primary" : "hover:bg-muted")
                       }
                     >
-                      <span className="block font-medium">{opt.label}</span>
+                      {/* opt.value ∈ {first_registered, fcfs_room, manual_admin} (hardcoded), so all
+                          three waitlist.modeLabel.* keys exist; t.has guards with the English label. */}
+                      <span className="block font-medium">
+                        {t.has(`waitlist.modeLabel.${opt.value}`)
+                          ? t(`waitlist.modeLabel.${opt.value}`)
+                          : opt.label}
+                      </span>
                     </button>
                   );
                 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                {/* @ts-ignore */}
-                {{ first_registered: "The team/player who joined the waitlist first gets the open slot.", fcfs_room: "All waitlist teams get the room ID + password; first to join the room claims the slot. You confirm who got in.", manual_admin: "You manually choose which waitlist team/player takes each open slot." }[(form.watch("waitlist_mode") as string) || "first_registered"]}
+                {/* Selected-mode description. Key built from waitlist_mode; guarded so an
+                    unknown mode renders nothing (matches the previous undefined behaviour). */}
+                {(() => {
+                  const mode = (form.watch("waitlist_mode") as string) || "first_registered";
+                  return t.has(`waitlist.modeDesc.${mode}`)
+                    ? t(`waitlist.modeDesc.${mode}`)
+                    : "";
+                })()}
               </p>
             </div>
 
@@ -123,19 +138,19 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Waitlist Capacity
+                    {t("waitlist.capacity")}
                     <InfoTip id="events.create.waitlist_capacity" className="ml-1" />
                   </FormLabel>
                   <FormControl>
                     <Input
                       type="number"
                       min={1}
-                      placeholder="e.g. 20"
+                      placeholder={t("waitlist.capacityPlaceholder")}
                       {...field}
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    Maximum number of players allowed on the waitlist.
+                    {t("waitlist.capacityHelp")}
                   </p>
                   <FormMessage />
                 </FormItem>
@@ -151,12 +166,12 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
                 name="waitlist_discord_role_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Waitlist Discord Role ID <span className="text-muted-foreground font-normal">(optional)</span></FormLabel>
+                    <FormLabel>{t("waitlist.discordRoleId")} <span className="text-muted-foreground font-normal">{t("waitlist.optional")}</span></FormLabel>
                     <FormControl>
                       <Input placeholder="e.g. 123456789012345678" {...field} />
                     </FormControl>
                     <p className="text-xs text-muted-foreground">
-                      Discord role assigned to players on the waitlist.
+                      {t("waitlist.discordRoleHelp")}
                     </p>
                     <FormMessage />
                   </FormItem>

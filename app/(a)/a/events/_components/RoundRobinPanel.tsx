@@ -24,6 +24,7 @@
 // on CREATE the admin sets up labels + schedule and assigns teams later via edit.
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -108,6 +109,10 @@ export function RoundRobinPanel({
   onChange,
   availableTeams,
 }: RoundRobinPanelProps) {
+  // i18n: all labels/placeholders/helper text/buttons in this panel resolve from the
+  // "evRoundRobin" namespace (messages/{en,fr,pt}/evRoundRobin.json). This component is
+  // shared by the admin AND organizer event create/edit flows, so it is translated.
+  const t = useTranslations("evRoundRobin");
   const groups = config.round_robin_groups;
 
   // ── Base-group helpers ───────────────────────────────────────────────────────
@@ -121,7 +126,7 @@ export function RoundRobinPanel({
     // In MANUAL mode, also append the new group's fixtures (new group vs every existing group) as
     // fresh meetings, so adding a base group actually PRODUCES its match days. Owner 2026-06-17:
     // a manually-added group used to persist server-side but had no lobby, so it looked like it
-    // "didn't save". Auto mode needs nothing here — the backend regenerates every C(n,2) pairing
+    // "didn't save". Auto mode needs nothing here - the backend regenerates every C(n,2) pairing
     // on save. Existing customised meetings are left untouched (we only append).
     let nextGameDays = config.game_days;
     if (!config.generate_schedule) {
@@ -314,7 +319,7 @@ export function RoundRobinPanel({
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
       <p className="text-sm font-semibold text-primary">
-        Round-Robin Setup
+        {t("title")}
         <InfoTip id="events.create.rr_base_groups" className="ml-1" />
       </p>
 
@@ -322,9 +327,9 @@ export function RoundRobinPanel({
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-2 flex-wrap">
           <div>
-            <Label className="block text-xs text-muted-foreground">Base Groups</Label>
+            <Label className="block text-xs text-muted-foreground">{t("baseGroups")}</Label>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Teams are split across these groups. Each pair of groups meets once.
+              {t("baseGroupsDesc")}
             </p>
           </div>
           {/* Auto-distribute + clear: only on edit, where registered teams exist. */}
@@ -337,8 +342,7 @@ export function RoundRobinPanel({
                 onClick={distributeTeamsEvenly}
                 className="h-7 text-xs"
               >
-                Auto-distribute {availableTeams.length} team
-                {availableTeams.length === 1 ? "" : "s"} evenly
+                {t("autoDistribute", { count: availableTeams.length })}
               </Button>
               <Button
                 type="button"
@@ -347,7 +351,7 @@ export function RoundRobinPanel({
                 onClick={clearAllTeams}
                 className="h-7 text-xs text-muted-foreground hover:text-destructive"
               >
-                Clear
+                {t("clear")}
               </Button>
             </div>
           )}
@@ -356,7 +360,7 @@ export function RoundRobinPanel({
           <div key={index} className="space-y-2 rounded-md border p-3">
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground w-12 shrink-0">
-                Group
+                {t("group")}
               </span>
               <Input
                 value={group.label}
@@ -367,8 +371,7 @@ export function RoundRobinPanel({
               {/* Live team count per group so the split (e.g. 6/6/6) is visible. */}
               {availableTeams && availableTeams.length > 0 && (
                 <span className="text-[11px] text-muted-foreground shrink-0 whitespace-nowrap">
-                  {group.team_ids.length} team
-                  {group.team_ids.length === 1 ? "" : "s"}
+                  {t("teamCount", { count: group.team_ids.length })}
                 </span>
               )}
               <Button
@@ -387,7 +390,7 @@ export function RoundRobinPanel({
             {availableTeams && availableTeams.length > 0 ? (
               <div className="space-y-1.5">
                 <Label className="block text-[11px] text-muted-foreground">
-                  Teams in this group
+                  {t("teamsInGroup")}
                   <InfoTip id="events.create.rr_group_teams" className="ml-1" />
                 </Label>
                 <div className="flex flex-wrap gap-x-4 gap-y-1.5">
@@ -409,8 +412,7 @@ export function RoundRobinPanel({
               </div>
             ) : (
               <p className="text-[11px] text-muted-foreground italic">
-                Assign teams to this group from the edit screen once the event has
-                registrations.
+                {t("assignLater")}
               </p>
             )}
           </div>
@@ -422,7 +424,7 @@ export function RoundRobinPanel({
           onClick={addGroup}
           className="w-full"
         >
-          <Plus className="w-3.5 h-3.5 mr-1" /> Add Base Group
+          <Plus className="w-3.5 h-3.5 mr-1" /> {t("addBaseGroup")}
         </Button>
       </div>
 
@@ -433,15 +435,14 @@ export function RoundRobinPanel({
         <div className="flex items-center justify-between gap-4">
           <div>
             <Label>
-              Auto-generate round-robin schedule
+              {t("autoGenSchedule")}
               <InfoTip
                 id="events.create.rr_generate_schedule"
                 className="ml-1"
               />
             </Label>
             <p className="text-xs text-muted-foreground mt-1">
-              Every pair of base groups meets once (3 groups: A vs B, A vs C, B vs C).
-              Each meeting is one game-day lobby.
+              {t("autoGenScheduleDesc")}
             </p>
           </div>
           <Switch
@@ -456,13 +457,11 @@ export function RoundRobinPanel({
           // ── Auto path: just a games-per-day applied to every generated lobby. ──
           <div>
             <Label className="mb-1 block text-xs text-muted-foreground">
-              Matches per meeting
+              {t("matchesPerMeeting")}
               <InfoTip id="events.create.rr_games_per_day" className="ml-1" />
             </Label>
             <p className="text-[11px] text-muted-foreground mb-2">
-              How many matches (maps) the two groups play each time they meet. This is
-              NOT how many times the round-robin repeats: each pair still meets once.
-              E.g. 5 means A vs B is a single meeting of 5 matches.
+              {t("matchesPerMeetingDesc")}
             </p>
             <Input
               type="number"
@@ -475,11 +474,10 @@ export function RoundRobinPanel({
                     e.target.value === "" ? 0 : Number(e.target.value),
                 })
               }
-              placeholder="e.g. 5"
+              placeholder={t("phGamesPerDay")}
             />
             <p className="text-[11px] text-muted-foreground mt-2">
-              Auto uses the stage start date and the same maps for every meeting. To set the
-              date, time and maps PER meeting, turn this off and use the meeting list below.
+              {t("autoNote")}
             </p>
           </div>
         ) : (
@@ -487,7 +485,7 @@ export function RoundRobinPanel({
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <Label className="block text-xs text-muted-foreground">
-                Meetings (game days)
+                {t("meetings")}
                 <InfoTip id="events.create.rr_game_days" className="ml-1" />
               </Label>
               {/* One-click: fill the list with every group pairing, then edit each. */}
@@ -499,26 +497,26 @@ export function RoundRobinPanel({
                   onClick={generateMeetings}
                   className="h-7 text-xs"
                 >
-                  Generate a meeting per pairing
+                  {t("generateMeetings")}
                 </Button>
               )}
             </div>
             {config.game_days.length === 0 && (
               <p className="text-xs text-muted-foreground italic">
-                No game days yet. Click below to add a lobby.
+                {t("noGameDays")}
               </p>
             )}
             {config.game_days.map((gd, gdIndex) => (
               <div key={gdIndex} className="space-y-2 rounded-md border p-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold">
-                    Match Day {gd.game_day}
+                    {t("matchDay", { n: gd.game_day })}
                     {/* Show the pairing (e.g. "A vs B") so the admin sees who plays each day. */}
                     {gd.source_group_indices.length > 0 && (
                       <span className="ml-1.5 text-primary">
                         {gd.source_group_indices
                           .map((gi) => groups[gi]?.label || `G${gi + 1}`)
-                          .join(" vs ")}
+                          .join(` ${t("vs")} `)}
                       </span>
                     )}
                   </span>
@@ -536,7 +534,7 @@ export function RoundRobinPanel({
                 {/* Which base groups merge into this lobby. */}
                 <div className="space-y-1.5">
                   <Label className="block text-[11px] text-muted-foreground">
-                    Merge groups
+                    {t("mergeGroups")}
                   </Label>
                   <div className="flex flex-wrap gap-x-4 gap-y-1.5">
                     {groups.map((g, gi) => (
@@ -548,7 +546,7 @@ export function RoundRobinPanel({
                           checked={gd.source_group_indices.includes(gi)}
                           onCheckedChange={() => toggleSourceGroup(gdIndex, gi)}
                         />
-                        <span>{g.label || `Group ${gi + 1}`}</span>
+                        <span>{g.label || t("groupN", { n: gi + 1 })}</span>
                       </label>
                     ))}
                   </div>
@@ -558,7 +556,7 @@ export function RoundRobinPanel({
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label className="mb-1.5 block text-[11px] text-muted-foreground">
-                      Date
+                      {t("date")}
                     </Label>
                     <Input
                       type="date"
@@ -570,7 +568,7 @@ export function RoundRobinPanel({
                   </div>
                   <div>
                     <Label className="mb-1.5 block text-[11px] text-muted-foreground">
-                      Time
+                      {t("time")}
                     </Label>
                     <Input
                       type="time"
@@ -585,23 +583,22 @@ export function RoundRobinPanel({
                 {/* Match count is DERIVED from the maps selected below: one match per map. */}
                 <div>
                   <Label className="mb-1.5 block text-[11px] text-muted-foreground">
-                    Matches in this meeting
+                    {t("matchesInMeeting")}
                   </Label>
                   <p className="text-[11px] text-muted-foreground rounded-md border border-dashed p-2">
-                    {gd.match_maps.length} match
-                    {gd.match_maps.length === 1 ? "" : "es"} (one per map selected below).
+                    {t("matchCountDerived", { count: gd.match_maps.length })}
                   </p>
                 </div>
 
                 {/* Maps for this lobby (same +/- stepper as the group editor). */}
                 <div>
                   <Label className="mb-1.5 block text-[11px] text-muted-foreground">
-                    Maps
+                    {t("maps")}
                   </Label>
                   <div className="flex flex-wrap gap-2">
                     {AVAILABLE_MAPS.map((map) => {
                       // Count case-insensitively so legacy/auto lowercase maps ("bermuda") show
-                      // under their capitalized stepper label ("Bermuda") — owner 2026-06-17.
+                      // under their capitalized stepper label ("Bermuda") - owner 2026-06-17.
                       const count = gd.match_maps.filter(
                         (m) => m.toLowerCase() === map.toLowerCase(),
                       ).length;
@@ -618,7 +615,7 @@ export function RoundRobinPanel({
                             type="button"
                             onClick={() => removeMapFromGameDay(gdIndex, map)}
                             disabled={count === 0}
-                            className="disabled:opacity-30 hover:opacity-70"
+                            className="flex size-7 items-center justify-center rounded disabled:opacity-30 hover:opacity-70"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
@@ -628,7 +625,7 @@ export function RoundRobinPanel({
                           <button
                             type="button"
                             onClick={() => addMapToGameDay(gdIndex, map)}
-                            className="hover:opacity-70"
+                            className="flex size-7 items-center justify-center rounded hover:opacity-70"
                           >
                             <Plus className="w-3 h-3" />
                           </button>
@@ -647,7 +644,7 @@ export function RoundRobinPanel({
               onClick={addGameDay}
               className="w-full"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" /> Add Game Day
+              <Plus className="w-3.5 h-3.5 mr-1" /> {t("addGameDay")}
             </Button>
           </div>
         )}

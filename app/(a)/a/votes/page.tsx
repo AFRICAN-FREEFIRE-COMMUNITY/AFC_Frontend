@@ -58,7 +58,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader, Loader } from "@/components/Loader";
 import { CreateCategoryModal } from "./_components/CreateCategoryModal";
@@ -1002,29 +1002,26 @@ export default function Page() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <ScrollArea>
-          <TabsList className="w-full" data-tour="settings-misc-votes-tabs">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="sections" data-tour="settings-misc-votes-sections">
-              Sections
-            </TabsTrigger>
-            <TabsTrigger
-              value="categories"
-              data-tour="settings-misc-votes-categories"
-            >
-              Categories
-            </TabsTrigger>
-            <TabsTrigger value="nominees">Nominees</TabsTrigger>
-            <TabsTrigger value="winners" data-tour="settings-misc-votes-winners">
-              Winners
-            </TabsTrigger>
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="top-performers">Top Performers</TabsTrigger>
-            {/* <TabsTrigger value="activities">Activities</TabsTrigger> */}
-            <TabsTrigger value="management">Management</TabsTrigger>
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        <ScrollableTabsList className="w-full" data-tour="settings-misc-votes-tabs">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="sections" data-tour="settings-misc-votes-sections">
+            Sections
+          </TabsTrigger>
+          <TabsTrigger
+            value="categories"
+            data-tour="settings-misc-votes-categories"
+          >
+            Categories
+          </TabsTrigger>
+          <TabsTrigger value="nominees">Nominees</TabsTrigger>
+          <TabsTrigger value="winners" data-tour="settings-misc-votes-winners">
+            Winners
+          </TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="top-performers">Top Performers</TabsTrigger>
+          {/* <TabsTrigger value="activities">Activities</TabsTrigger> */}
+          <TabsTrigger value="management">Management</TabsTrigger>
+        </ScrollableTabsList>
         <TabsContent value="overview" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             <Card>

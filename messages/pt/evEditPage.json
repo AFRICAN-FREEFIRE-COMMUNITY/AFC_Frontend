@@ -1,0 +1,91 @@
+{
+  "pageTitle": "Editar evento",
+  "loadingTitle": "A carregar evento...",
+  "editEventTitle": "Editar evento: {name}",
+  "backToEvents": "Voltar aos eventos",
+  "gate": {
+    "noPermission": "Não tem permissão para editar eventos."
+  },
+  "notMine": {
+    "body": "Não conseguimos encontrar esse evento em <strong>{org}</strong>. Pode pertencer a uma organização diferente ou ter sido removido."
+  },
+  "tabs": {
+    "basicInfo": "Informações básicas",
+    "registeredTeams": "Equipas inscritas",
+    "stagesGroups": "Etapas e Grupos",
+    "prizeRules": "Prémio e Regulamento",
+    "linkedEvents": "Eventos relacionados",
+    "actions": "Ações do evento",
+    "sponsor": "Patrocinador",
+    "waitlist": "Lista de espera"
+  },
+  "participant": {
+    "teams": "equipas",
+    "players": "jogadores"
+  },
+  "status": {
+    "draft": "Rascunho",
+    "published": "Publicado"
+  },
+  "validationErrorTitle": "Erro de validação",
+  "toast": {
+    "leaderboardUpdated": "Classificação atualizada",
+    "leaderboardFailed": "Não foi possível carregar a tabela de classificação",
+    "seedingSuccess": "A sementeira foi bem-sucedida",
+    "genericError": "Ups! Ocorreu um erro.",
+    "stageFieldsRequired": "Preencha todos os campos obrigatórios desta etapa (Passo 1)",
+    "rrNeedsTwoGroups": "Uma fase de rodízio requer, pelo menos, dois grupos de base.",
+    "rrGroupNeedsLabel": "Cada grupo de bases precisa de uma designação.",
+    "gamesPerDayMin": "O número de jogos por dia deve ser, pelo menos, 1.",
+    "groupDetailsIncomplete": "Por favor, preencha corretamente todos os dados do grupo, incluindo a seleção de, pelo menos, um mapa por grupo (Passo 2)",
+    "stageNeedsGroup": "Um palco deve ter, pelo menos, um grupo.",
+    "stageConfigUpdated": "A configuração do palco foi atualizada. Clique em «Guardar alterações» para concluir.",
+    "eventNeedsStage": "Um evento deve ter, pelo menos, um palco.",
+    "deleteStageFailed": "Não foi possível eliminar a fase do servidor",
+    "stageRemoved": "A etapa «{name}» foi removida com sucesso",
+    "fetchDetailsFailed": "Não foi possível obter os detalhes do evento.",
+    "sponsorSaved": "As definições do patrocinador foram guardadas!",
+    "sponsorSaveFailed": "Não foi possível guardar as definições do patrocinador",
+    "waitlistSaved": "As definições da lista de espera foram guardadas!",
+    "waitlistSaveFailed": "Não foi possível guardar as definições da lista de espera",
+    "eventIdMissing": "Falta o ID do evento",
+    "startAfterEnd": "A data de início do evento não pode ser posterior à data de fim do evento",
+    "regOpenAfterClose": "A data de início das inscrições não pode ser posterior à data de encerramento das inscrições",
+    "regCloseBeforeStart": "As inscrições têm de terminar antes do início do evento",
+    "discordLinkRequired": "Adicione um link de convite do Discord para tornar o Discord obrigatório para o registo.",
+    "prizeMismatchMore": "A distribuição dos seus prémios totaliza {sum} {ccy}, o que é {diff} {ccy} MAIS do que o valor em dinheiro do prémio total ({cash} {ccy}). Ajuste os montantes para que correspondam exatamente.",
+    "prizeMismatchLess": "A distribuição dos prémios totaliza {sum} {ccy}, o que é {diff} {ccy} MENOS do que o valor em dinheiro do prémio total ({cash} {ccy}). Ajuste os montantes para que correspondam exatamente.",
+    "savedSuccess": "O evento «{name}» foi guardado com sucesso como «{status}»!",
+    "unexpectedFormat": "Erro do servidor: Formato de resposta inesperado.",
+    "sessionExpired": "A sua sessão expirou. Por favor, inicie sessão novamente.",
+    "noEditPermission": "Não tem permissão para editar este evento.",
+    "eventNotFound": "Evento não encontrado. Pode ter sido eliminado.",
+    "serverError": "Ocorreu um erro no servidor. Por favor, tente novamente mais tarde.",
+    "updateFailed": "Não foi possível atualizar o evento.",
+    "networkError": "Erro de rede: Por favor, verifique a sua ligação à Internet.",
+    "unexpectedError": "Ocorreu um erro inesperado. Por favor, tente novamente."
+  },
+  "changes": {
+    "eventName": "Nome do evento",
+    "competitionType": "Tipo de competição",
+    "participantType": "Tipo de participante",
+    "eventType": "Tipo de evento",
+    "eventPrivacy": "Privacidade do evento",
+    "public": "Público",
+    "private": "Privado",
+    "maxParticipants": "Número máximo de participantes",
+    "eventMode": "Modo Evento",
+    "startDate": "Data de início",
+    "endDate": "Data de término",
+    "registrationOpen": "Inscrições abertas",
+    "registrationClose": "Fim das inscrições",
+    "registrationLink": "Link para inscrição",
+    "prizePool": "Prémio Total",
+    "eventStatus": "Estado do evento",
+    "eventBanner": "Banner do evento",
+    "previousBanner": "Banner anterior",
+    "newFile": "Novo ficheiro: {name}",
+    "rulesDocument": "Documento de Regras",
+    "previousDocument": "Documento anterior"
+  }
+}

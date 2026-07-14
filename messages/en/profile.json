@@ -305,6 +305,7 @@
     "whatsapp": {
       "numberLabel": "WhatsApp number",
       "numberDescription": "Add your WhatsApp number (with country code) to get tournament room details sent straight to your WhatsApp.",
+      "numberPlaceholder": "+234 801 234 5678",
       "optInLabel": "Send me room IDs and passwords on WhatsApp"
     },
     "changeEmail": {

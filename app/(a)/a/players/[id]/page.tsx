@@ -22,7 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -45,7 +45,7 @@ import { formatMoneyInput } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { SendMessageModal } from "../../_components/SendMessageModal";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 
 interface PlayerDetails {
   player_id: number;
@@ -391,29 +391,26 @@ const Page = ({ params }: Props) => {
 
         {/* Tabs */}
         <Tabs defaultValue="overview">
-          <ScrollArea>
-            <TabsList className="w-full mb-4">
-              {[
-                "overview",
-                "statistics",
-                "recent-matches",
-                "events-played",
-                "team-history",
-                "performance-history",
-                "profile-changes",
-                "login-history",
-              ].map((tab) => (
-                <TabsTrigger
-                  key={tab}
-                  value={tab}
-                  className="capitalize text-xs"
-                >
-                  {tab.replace(/-/g, " ")}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          <ScrollableTabsList className="w-full mb-4">
+            {[
+              "overview",
+              "statistics",
+              "recent-matches",
+              "events-played",
+              "team-history",
+              "performance-history",
+              "profile-changes",
+              "login-history",
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="capitalize text-xs"
+              >
+                {tab.replace(/-/g, " ")}
+              </TabsTrigger>
+            ))}
+          </ScrollableTabsList>
 
           {/* Overview */}
           <TabsContent value="overview">

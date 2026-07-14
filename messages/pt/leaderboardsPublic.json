@@ -1,0 +1,19 @@
+{
+  "title": "Tabelas de classificação",
+  "description": "Selecione um evento para ver as classificações",
+  "filterByEvent": "Filtrar por evento",
+  "selectEventPlaceholder": "Selecione um evento",
+  "noLeaderboardConfig": "Ainda não existe nenhuma configuração da tabela de classificação para este evento.",
+  "group": "Grupo",
+  "viewFilter": "Ver filtro",
+  "overallLeaderboard": "Classificação Geral",
+  "matchOption": "Jogo{number} - {map}",
+  "overallRankings": "Classificações gerais",
+  "matchStandings": "Classificação do torneio",
+  "rank": "Classificação",
+  "competitor": "Concorrente",
+  "kills": "Abates",
+  "points": "Pontos",
+  "playerFallback": "Jogador{id}",
+  "noData": "Não existem dados registados para esta seleção."
+}

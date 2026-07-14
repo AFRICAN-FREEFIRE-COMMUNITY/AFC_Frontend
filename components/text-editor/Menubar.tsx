@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { type Editor } from "@tiptap/react";
 import {
   Tooltip,
@@ -122,6 +123,9 @@ function ToolbarButton({
 }
 
 export const Menubar = ({ editor }: iAppProps) => {
+  // i18n: "editor" ns (messages/en/editor.json). This rich-text toolbar renders inside the news
+  // editor and other RichTextEditor consumers, some on the non-exempt organizer surface.
+  const t = useTranslations("editor");
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [imageOpen, setImageOpen] = useState(false);
@@ -190,7 +194,7 @@ export const Menubar = ({ editor }: iAppProps) => {
             }}
           >
             <SelectTrigger className="h-7 w-[130px] text-xs border-input focus:ring-0 focus:ring-offset-0">
-              <SelectValue placeholder="Font" />
+              <SelectValue placeholder={t("fontPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {FONT_FAMILIES.map((f) => (
@@ -218,11 +222,11 @@ export const Menubar = ({ editor }: iAppProps) => {
             }}
           >
             <SelectTrigger className="h-7 w-[95px] text-xs border-input focus:ring-0 focus:ring-offset-0">
-              <SelectValue placeholder="Size" />
+              <SelectValue placeholder={t("sizePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="default" className="text-xs text-muted-foreground">
-                Default
+                {t("sizeDefault")}
               </SelectItem>
               {FONT_SIZES.map((s) => (
                 <SelectItem key={s.value} value={s.value} className="text-xs">
@@ -242,28 +246,28 @@ export const Menubar = ({ editor }: iAppProps) => {
             <ToolbarToggle
               isActive={editor.isActive("bold")}
               onToggle={() => editor.chain().focus().toggleBold().run()}
-              tooltip="Bold (Ctrl+B)"
+              tooltip={t("bold")}
             >
               <Bold size={14} />
             </ToolbarToggle>
             <ToolbarToggle
               isActive={editor.isActive("italic")}
               onToggle={() => editor.chain().focus().toggleItalic().run()}
-              tooltip="Italic (Ctrl+I)"
+              tooltip={t("italic")}
             >
               <Italic size={14} />
             </ToolbarToggle>
             <ToolbarToggle
               isActive={editor.isActive("underline")}
               onToggle={() => editor.chain().focus().toggleUnderline().run()}
-              tooltip="Underline (Ctrl+U)"
+              tooltip={t("underline")}
             >
               <Underline size={14} />
             </ToolbarToggle>
             <ToolbarToggle
               isActive={editor.isActive("strike")}
               onToggle={() => editor.chain().focus().toggleStrike().run()}
-              tooltip="Strikethrough"
+              tooltip={t("strikethrough")}
             >
               <Strikethrough size={14} />
             </ToolbarToggle>
@@ -278,7 +282,7 @@ export const Menubar = ({ editor }: iAppProps) => {
               onToggle={() =>
                 editor.chain().focus().toggleHeading({ level: 1 }).run()
               }
-              tooltip="Heading 1"
+              tooltip={t("heading1")}
             >
               <Heading1Icon size={14} />
             </ToolbarToggle>
@@ -287,7 +291,7 @@ export const Menubar = ({ editor }: iAppProps) => {
               onToggle={() =>
                 editor.chain().focus().toggleHeading({ level: 2 }).run()
               }
-              tooltip="Heading 2"
+              tooltip={t("heading2")}
             >
               <Heading2Icon size={14} />
             </ToolbarToggle>
@@ -296,7 +300,7 @@ export const Menubar = ({ editor }: iAppProps) => {
               onToggle={() =>
                 editor.chain().focus().toggleHeading({ level: 3 }).run()
               }
-              tooltip="Heading 3"
+              tooltip={t("heading3")}
             >
               <Heading3Icon size={14} />
             </ToolbarToggle>
@@ -309,14 +313,14 @@ export const Menubar = ({ editor }: iAppProps) => {
             <ToolbarToggle
               isActive={editor.isActive("bulletList")}
               onToggle={() => editor.chain().focus().toggleBulletList().run()}
-              tooltip="Bullet list"
+              tooltip={t("bulletList")}
             >
               <ListIcon size={14} />
             </ToolbarToggle>
             <ToolbarToggle
               isActive={editor.isActive("orderedList")}
               onToggle={() => editor.chain().focus().toggleOrderedList().run()}
-              tooltip="Numbered list"
+              tooltip={t("numberedList")}
             >
               <ListOrdered size={14} />
             </ToolbarToggle>
@@ -331,7 +335,7 @@ export const Menubar = ({ editor }: iAppProps) => {
               onToggle={() =>
                 editor.chain().focus().setTextAlign("left").run()
               }
-              tooltip="Align left"
+              tooltip={t("alignLeft")}
             >
               <AlignLeft size={14} />
             </ToolbarToggle>
@@ -340,7 +344,7 @@ export const Menubar = ({ editor }: iAppProps) => {
               onToggle={() =>
                 editor.chain().focus().setTextAlign("center").run()
               }
-              tooltip="Align center"
+              tooltip={t("alignCenter")}
             >
               <AlignCenter size={14} />
             </ToolbarToggle>
@@ -349,7 +353,7 @@ export const Menubar = ({ editor }: iAppProps) => {
               onToggle={() =>
                 editor.chain().focus().setTextAlign("right").run()
               }
-              tooltip="Align right"
+              tooltip={t("alignRight")}
             >
               <AlignRight size={14} />
             </ToolbarToggle>
@@ -379,13 +383,13 @@ export const Menubar = ({ editor }: iAppProps) => {
                   </PopoverTrigger>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">
-                  {editor.isActive("link") ? "Edit link" : "Insert link"}
+                  {editor.isActive("link") ? t("editLink") : t("insertLink")}
                 </TooltipContent>
               </Tooltip>
               <PopoverContent className="w-72 p-3" side="bottom" align="start">
                 <div className="flex flex-col gap-2">
                   <p className="text-xs font-medium text-muted-foreground">
-                    {editor.isActive("link") ? "Edit link" : "Insert link"}
+                    {editor.isActive("link") ? t("editLink") : t("insertLink")}
                   </p>
                   <div className="flex gap-2">
                     <Input
@@ -407,7 +411,7 @@ export const Menubar = ({ editor }: iAppProps) => {
                       className="h-8 shrink-0 text-xs px-3"
                       onClick={applyLink}
                     >
-                      {editor.isActive("link") ? "Update" : "Add"}
+                      {editor.isActive("link") ? t("linkUpdate") : t("linkAdd")}
                     </Button>
                   </div>
                   {editor.isActive("link") && (
@@ -419,7 +423,7 @@ export const Menubar = ({ editor }: iAppProps) => {
                       onClick={removeLink}
                     >
                       <Link2Off size={12} className="mr-1.5" />
-                      Remove link
+                      {t("removeLink")}
                     </Button>
                   )}
                 </div>
@@ -444,13 +448,13 @@ export const Menubar = ({ editor }: iAppProps) => {
                   </PopoverTrigger>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">
-                  Insert image
+                  {t("insertImage")}
                 </TooltipContent>
               </Tooltip>
               <PopoverContent className="w-80 p-3" side="bottom" align="start">
                 <div className="flex flex-col gap-2">
                   <p className="text-xs font-medium text-muted-foreground">
-                    Insert image by URL
+                    {t("insertImageByUrl")}
                   </p>
                   <div className="flex gap-2">
                     <Input
@@ -473,7 +477,7 @@ export const Menubar = ({ editor }: iAppProps) => {
                       onClick={insertImage}
                       disabled={!imageUrl.trim()}
                     >
-                      Insert
+                      {t("imageInsert")}
                     </Button>
                   </div>
                 </div>
@@ -488,13 +492,13 @@ export const Menubar = ({ editor }: iAppProps) => {
             <ToolbarToggle
               isActive={editor.isActive("blockquote")}
               onToggle={() => editor.chain().focus().toggleBlockquote().run()}
-              tooltip="Blockquote"
+              tooltip={t("blockquote")}
             >
               <Quote size={14} />
             </ToolbarToggle>
             <ToolbarButton
               onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              tooltip="Horizontal rule"
+              tooltip={t("horizontalRule")}
             >
               <Minus size={14} />
             </ToolbarButton>
@@ -507,14 +511,14 @@ export const Menubar = ({ editor }: iAppProps) => {
             <ToolbarButton
               onClick={() => editor.chain().focus().undo().run()}
               disabled={!editor.can().undo()}
-              tooltip="Undo (Ctrl+Z)"
+              tooltip={t("undo")}
             >
               <Undo size={14} />
             </ToolbarButton>
             <ToolbarButton
               onClick={() => editor.chain().focus().redo().run()}
               disabled={!editor.can().redo()}
-              tooltip="Redo (Ctrl+Y)"
+              tooltip={t("redo")}
             >
               <Redo size={14} />
             </ToolbarButton>

@@ -10,13 +10,14 @@ import {
 import { useState, useTransition } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/Loader";
 import { ArrowRight } from "lucide-react";
 
-// AdvanceToNextStageModal — the discoverable, stage-header action that advances a ROUND-ROBIN stage's
+// AdvanceToNextStageModal - the discoverable, stage-header action that advances a ROUND-ROBIN stage's
 // teams into the NEXT stage by that stage's COMBINED (all-groups) standings, snake-distributed across
 // the next stage's groups.
 //
@@ -27,13 +28,13 @@ import { ArrowRight } from "lucide-react";
 // the Round-Robin stage header (next to the RR Standings button in StagesGroupsTab), on BOTH the admin
 // and organizer event-edit pages (organizer imports the same StagesGroupsTab). When it cannot run yet
 // (stage unsaved / no next stage) the button is shown DISABLED with the reason, so the requirement is
-// visible instead of the action silently vanishing — that vanishing was the whole bug.
+// visible instead of the action silently vanishing - that vanishing was the whole bug.
 //
 // HOW IT CONNECTS:
 //   • Calls POST /events/seeding/seed-next-stage-by-standings/
 //     (afc_tournament_and_scrims.seeding_management.seed_next_stage_by_standings).
-//   • That endpoint orders the next stage's teams by round_robin.cumulative_standings(THIS stage) — the
-//     same authoritative table the RR Standings modal, advancement, and the public leaderboard read —
+//   • That endpoint orders the next stage's teams by round_robin.cumulative_standings(THIS stage) - the
+//     same authoritative table the RR Standings modal, advancement, and the public leaderboard read -
 //     then snakes them across the next stage's groups. It AUTO-ADVANCES the RR top-N first when the next
 //     stage is still empty (N = teams_qualifying_from_stage), so no separate advance step is needed.
 //   • The backend still owns the remaining guards: "round-robin not played yet" (no results), "next
@@ -43,9 +44,10 @@ import { ArrowRight } from "lucide-react";
 //   • Rendered by StagesGroupsTab only for `br - round robin` team stages; onSuccess refetches the event
 //     so the newly seeded next-stage groups render in place (no manual reload).
 //
-// English-only on purpose: this file lives under app/(a)/ (admin, i18n-exempt) and mirrors its sibling
-// SeedToGroupModal, which is also English even on the organizer edit page. Keeping parity avoids
-// introducing a lone i18n pattern into this event-edit surface.
+// i18n: this modal is reachable inside the translated organizer edit flow (rendered by StagesGroupsTab
+// on the Round-Robin stage header, on both the admin and organizer event-edit pages), and admin is now
+// in i18n scope. All user-facing strings come from the evEditStages namespace ("advanceStage" group),
+// mirroring its sibling SeedToGroupModal ("seedToGroup" group).
 export const AdvanceToNextStageModal = ({
   stageId,
   nextStageName,
@@ -62,13 +64,15 @@ export const AdvanceToNextStageModal = ({
   // Set when the next stage already has entered results and the backend asks to confirm the overwrite.
   const [forceNeeded, setForceNeeded] = useState(false);
   const { token } = useAuth();
+  // i18n: evEditStages namespace, "advanceStage" group (see header comment).
+  const t = useTranslations("evEditStages");
 
   // The action can only run once THIS stage is saved (needs its id) AND a next stage exists to fill.
   // Surfaced as a disabled button + tooltip so the prerequisite is visible, not hidden.
   const disabledReason = !stageId
-    ? "Save this stage first, then you can advance its teams."
+    ? t("advanceStage.disabledSaveStage")
     : !nextStageName
-      ? "Create the next stage first, then advance teams into it."
+      ? t("advanceStage.disabledNoNextStage")
       : null;
   const canRun = !disabledReason;
 
@@ -81,7 +85,7 @@ export const AdvanceToNextStageModal = ({
           { stage_id: stageId, force },
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        toast.success(res.data.message || "Teams advanced to the next stage.");
+        toast.success(res.data.message || t("advanceStage.toastSuccess"));
         setOpen(false);
         setForceNeeded(false);
         onSuccess?.();
@@ -92,7 +96,7 @@ export const AdvanceToNextStageModal = ({
           toast.warning(e.response.data.message);
         } else {
           toast.error(
-            e.response?.data?.message || "Failed to advance to the next stage.",
+            e.response?.data?.message || t("advanceStage.toastError"),
           );
         }
       }
@@ -110,7 +114,7 @@ export const AdvanceToNextStageModal = ({
         title={disabledReason ?? undefined}
       >
         <ArrowRight />
-        Advance to next stage
+        {t("advanceStage.advanceGeneric")}
       </Button>
     );
   }
@@ -127,7 +131,7 @@ export const AdvanceToNextStageModal = ({
         {/* Names the destination stage so it can't be confused with the per-group "Seed to Next Stage". */}
         <Button variant="outline" size="md">
           <ArrowRight />
-          Advance to {nextStageName}
+          {t("advanceStage.advanceToName", { name: nextStageName ?? "" })}
         </Button>
       </DialogTrigger>
 
@@ -138,22 +142,22 @@ export const AdvanceToNextStageModal = ({
           </div>
 
           <DialogTitle className="text-xl">
-            Advance to {nextStageName}?
+            {t("advanceStage.advanceToNameTitle", { name: nextStageName ?? "" })}
           </DialogTitle>
           <DialogDescription className="mt-2 text-base">
-            Rank every team by this stage&apos;s combined results across all its
-            groups, then place the qualifiers into{" "}
-            <strong>{nextStageName}</strong>&apos;s groups, balanced so each
-            group gets a fair mix.
+            {t.rich("advanceStage.description", {
+              name: nextStageName ?? "",
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </DialogDescription>
 
           {/* Overwrite confirmation when the next stage already has entered results. */}
           {forceNeeded && (
             <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/40 text-left">
               <p className="text-xs text-amber-700 dark:text-amber-400">
-                {nextStageName} already has entered results. Advancing
-                re-distributes its teams and those results become unreachable.
-                Press Advance anyway to confirm.
+                {t("advanceStage.overwriteWarning", {
+                  name: nextStageName ?? "",
+                })}
               </p>
             </div>
           )}
@@ -165,7 +169,7 @@ export const AdvanceToNextStageModal = ({
               disabled={pending}
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("advanceStage.cancel")}
             </Button>
             <Button
               className="flex-1"
@@ -173,10 +177,13 @@ export const AdvanceToNextStageModal = ({
               disabled={pending}
             >
               {pending ? (
-                <Loader text="Advancing..." />
+                <Loader text={t("advanceStage.advancing")} />
               ) : (
                 <>
-                  <ArrowRight /> {forceNeeded ? "Advance anyway" : "Advance"}
+                  <ArrowRight />{" "}
+                  {forceNeeded
+                    ? t("advanceStage.advanceAnyway")
+                    : t("advanceStage.advance")}
                 </>
               )}
             </Button>

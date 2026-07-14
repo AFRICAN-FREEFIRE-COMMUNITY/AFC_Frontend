@@ -22,7 +22,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { env } from "@/lib/env";
-import { overlayConfigApi, type OverlayConfigFeed } from "@/lib/overlay";
+import {
+  overlayConfigApi,
+  type OverlayConfigFeed,
+  type H2HBracketData,
+  type H2HBracketMatch,
+} from "@/lib/overlay";
 
 // 1s poll (owner 2026-07-02: "when you trigger or load new options it should update in OBS as
 // fast as possible") - the config feed is a light single-row read, so studio changes (trigger,
@@ -231,9 +236,216 @@ const H2H_STAT_LABELS: Record<string, string> = {
   points: "POINTS", booyahs: "BOOYAHS",
 };
 
+// ── Clash Squad bracket overlay (P1#6, owner 2026-07-13) ─────────────────────
+// A pure CS event has no BR stats to compare, so its h2h overlay renders the STAGE BRACKET the
+// backend resolved (H2HBracketData, same shape the public bracket GET returns). Read-only, drawn
+// over the picked design's look (bg + accent). Winners rounds render as left-to-right columns; a
+// double-elim losers bracket renders as a second labelled row; a league/round-robin format shows a
+// standings table (it has no tree). Matches the AFC house look of the other scene renderers.
+function H2HBracketOverlay({
+  bracket,
+  design,
+}: {
+  bracket: H2HBracketData;
+  design: NonNullable<OverlayConfigFeed["h2h"]>["design"];
+}) {
+  const text = design?.text_color || "#ffffff";
+  const accent = design?.accent_color || "#34d27b";
+  const isLeague = (bracket.rounds.league?.length ?? 0) > 0;
+
+  // One match card: two team rows with scores; the winner's row is accent-highlighted. Byes render
+  // the single present team as auto-advanced.
+  const MatchCard = ({ m }: { m: H2HBracketMatch }) => {
+    const row = (slot: "a" | "b") => {
+      const team = slot === "a" ? m.team_a : m.team_b;
+      const score = slot === "a" ? m.score_a : m.score_b;
+      const isWinner =
+        m.winner_id != null && team != null && team.tournament_team_id === m.winner_id;
+      return (
+        <div
+          className="flex items-center justify-between gap-2 px-2 py-1"
+          style={{
+            background: isWinner ? `${accent}22` : "transparent",
+            borderLeft: `3px solid ${isWinner ? accent : "transparent"}`,
+          }}
+        >
+          <span
+            className="truncate text-sm font-semibold"
+            style={{ color: text, opacity: team ? 1 : 0.4 }}
+          >
+            {team ? team.team_name : m.is_bye ? "Bye" : "TBD"}
+          </span>
+          <span
+            className="text-sm font-bold tabular-nums"
+            style={{ color: isWinner ? accent : text }}
+          >
+            {score ?? "-"}
+          </span>
+        </div>
+      );
+    };
+    return (
+      <div
+        className="w-52 overflow-hidden rounded-lg border bg-black/75"
+        style={{ borderColor: `${accent}55` }}
+      >
+        {row("a")}
+        <div className="h-px" style={{ background: `${accent}33` }} />
+        {row("b")}
+      </div>
+    );
+  };
+
+  // A labelled vertical column of the match cards for one round.
+  const RoundColumn = ({
+    label,
+    matches,
+  }: {
+    label: string;
+    matches: H2HBracketMatch[];
+  }) => (
+    <div className="flex flex-col justify-center gap-4">
+      <p
+        className="text-center text-xs font-bold uppercase tracking-widest"
+        style={{ color: accent }}
+      >
+        {label}
+      </p>
+      <div className="flex flex-col justify-around gap-4" style={{ flex: 1 }}>
+        {matches.map((m) => (
+          <MatchCard key={m.h2h_match_id} m={m} />
+        ))}
+      </div>
+    </div>
+  );
+
+  // Round label: the last winners round is the Final, the one before it the Semifinal.
+  const roundLabel = (side: "winners" | "losers", idx: number, total: number) => {
+    if (side === "losers") return `Lower R${idx + 1}`;
+    const fromEnd = total - 1 - idx;
+    if (fromEnd === 0) return "Final";
+    if (fromEnd === 1) return "Semifinal";
+    if (fromEnd === 2) return "Quarterfinal";
+    return `Round ${idx + 1}`;
+  };
+
+  return (
+    <div className="relative flex h-screen w-screen items-center justify-center overflow-hidden">
+      {design?.background && !design.transparent ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={design.background}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : null}
+
+      <div
+        className="relative flex flex-col items-center gap-6 rounded-2xl border bg-black/60 px-10 py-8"
+        style={{
+          borderColor: `${accent}66`,
+          animation: "afc-h2h-in 700ms cubic-bezier(0.16,1,0.3,1) both",
+        }}
+      >
+        <p
+          className="text-2xl font-black uppercase tracking-wide"
+          style={{ color: text, textShadow: "0 3px 14px rgba(0,0,0,0.9)" }}
+        >
+          {bracket.stage_name}
+        </p>
+
+        {isLeague ? (
+          // League / round-robin: a standings table (no tree).
+          <table className="border-separate" style={{ borderSpacing: "0 4px" }}>
+            <thead>
+              <tr style={{ color: accent }}>
+                <th className="px-3 text-left text-xs uppercase tracking-wider">#</th>
+                <th className="px-3 text-left text-xs uppercase tracking-wider">Team</th>
+                <th className="px-3 text-right text-xs uppercase tracking-wider">W</th>
+                <th className="px-3 text-right text-xs uppercase tracking-wider">L</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bracket.standings.map((s, i) => (
+                <tr key={s.tournament_team_id} className="bg-black/70">
+                  <td className="px-3 py-1 text-sm font-bold" style={{ color: accent }}>
+                    {s.placement ?? i + 1}
+                  </td>
+                  <td className="px-3 py-1 text-sm font-semibold" style={{ color: text }}>
+                    {s.team_name}
+                  </td>
+                  <td className="px-3 py-1 text-right text-sm tabular-nums" style={{ color: text }}>
+                    {s.wins}
+                  </td>
+                  <td className="px-3 py-1 text-right text-sm tabular-nums" style={{ color: text }}>
+                    {s.losses}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="flex flex-col gap-6">
+            {/* Winners bracket: columns left-to-right, one per round, ending in the Final. */}
+            <div className="flex items-stretch gap-8">
+              {bracket.rounds.winners.map((r, idx) => (
+                <RoundColumn
+                  key={`w-${r.round}`}
+                  label={roundLabel("winners", idx, bracket.rounds.winners.length)}
+                  matches={r.matches}
+                />
+              ))}
+            </div>
+
+            {/* Lower bracket (double elimination only). */}
+            {bracket.rounds.losers.length > 0 ? (
+              <div className="border-t pt-4" style={{ borderColor: `${accent}33` }}>
+                <p
+                  className="mb-3 text-center text-xs font-bold uppercase tracking-widest"
+                  style={{ color: text, opacity: 0.8 }}
+                >
+                  Lower Bracket
+                </p>
+                <div className="flex items-stretch gap-8">
+                  {bracket.rounds.losers.map((r, idx) => (
+                    <RoundColumn
+                      key={`l-${r.round}`}
+                      label={roundLabel("losers", idx, bracket.rounds.losers.length)}
+                      matches={r.matches}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+
+      <style jsx global>{`
+        @keyframes afc-h2h-in {
+          from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.94);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function H2HView({ feed }: { feed: OverlayConfigFeed }) {
   const h2h = feed.h2h;
-  if (!feed.active || !h2h || h2h.competitors.length < 2) return null;
+  if (!feed.active || !h2h) return null;
+  // Clash Squad bracket mode (P1#6): render the stage bracket instead of the versus cards.
+  if (h2h.mode === "bracket") {
+    if (!h2h.bracket || !h2h.bracket.generated) return null;
+    return <H2HBracketOverlay bracket={h2h.bracket} design={h2h.design} />;
+  }
+  if (h2h.competitors.length < 2) return null;
   const design = h2h.design;
   const text = design?.text_color || "#ffffff";
   const accent = design?.accent_color || "#34d27b";

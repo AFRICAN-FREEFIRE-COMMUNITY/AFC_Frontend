@@ -1,4 +1,10 @@
 {
+  "ordinal": {
+    "st": "st",
+    "nd": "nd",
+    "rd": "rd",
+    "th": "e"
+  },
   "common": {
     "cancel": "Annuler",
     "back": "Retour",
@@ -14,8 +20,8 @@
   "sentiment": {
     "fan": "Je suis fan",
     "hater": "Je suis un détracteur",
-    "fans": "{nombre, pluriel, l'un {# fan} l'autre {# fans}}",
-    "haters": "{nombre, pluriel, l'un {# hater} l'autre {# haters}}",
+    "fans": "{count, plural,  one { # fan }  other { # fans } }",
+    "haters": "{count, plural,  one { # détracteur }  other { # détracteurs } }",
     "loginRequired": "Veuillez vous connecter pour pouvoir réagir.",
     "failed": "Impossible d'enregistrer votre réaction. Veuillez réessayer."
   },
@@ -49,7 +55,7 @@
     "showing": "Affichage de {start}-{end} sur {total}",
     "loadError": "Oups ! Échec du chargement des équipes",
     "tierLabel": "Niveau {tier}",
-    "memberCount": "{count, plural, one {# membre} other {# membres}}",
+    "memberCount": "{count, plural,  one { # membre }  other { # membres } }",
     "founded": "Fondée le <date></date>",
     "yourRole": "Votre rôle",
     "owner": "Propriétaire",
@@ -398,7 +404,7 @@
     "totalWithAmount": "Total",
     "earningsBreakdownSoon": "Une répartition des prix par événement apparaîtra ici une fois que les paiements des événements seront enregistrés.",
     "allTournamentsPlayed": "Tous les tournois joués (appuyez sur une ligne pour les détails)",
-    "eventCount": "{count, plural, one {# événement} other {# événements}}",
+    "eventCount": "{count, plural,  one { # événement }  other { # événements } }",
     "noTournamentsPlayed": "Aucun tournoi joué pour l'instant.",
     "event": "Événement",
     "date": "Date",
@@ -476,7 +482,7 @@
     "tiersComingSoon": "Paliers à venir, les classements des équipes pour",
     "tiersComingSoonNotPublished": "n'ont pas encore été publiés.",
     "loadingTiers": "Chargement des paliers",
-    "teamCount": "{count, plural, one {# équipe} other {# équipes}}",
+    "teamCount": "{count, plural,  one { # équipe }  other { # équipes } }",
     "minPts": "{min}+ pts",
     "noEliteYet": "Aucune équipe n'a encore atteint le niveau 1 cette saison.",
     "tournamentsPlayed": "{count}/2 tournois",
@@ -578,7 +584,7 @@
     "scrimsLabel": "Scrims",
     "tournamentsLabel": "Tournois",
     "booyahs": "Booyahs",
-    "eventsCount": "{count, plural, one {# événement} other {# événements}} (appuyez sur une ligne pour les statistiques par match)",
+    "eventsCount": "{count, plural,  one { # événement }  other { # événements } } (appuyez sur une ligne pour consulter les statistiques par match)",
     "noEventsPlayed": "Aucun événement joué pour l'instant.",
     "registeredEventsTitle": "Événements enregistrés",
     "noRegisteredEvents": "Aucun événement enregistré à venir.",

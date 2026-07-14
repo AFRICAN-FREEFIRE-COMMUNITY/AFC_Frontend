@@ -24,7 +24,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { ITEMS_PER_PAGE } from "@/constants";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -88,7 +88,7 @@ import {
 } from "@/components/ui/form";
 import { formatWord } from "@/lib/utils";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { Separator } from "@/components/ui/separator";
 import {
   IconAlertTriangle,
@@ -735,8 +735,7 @@ const Page = ({ params }: { params: Params }) => {
             )}
 
             <Tabs defaultValue="overview">
-              <ScrollArea>
-                <TabsList className="w-full">
+              <ScrollableTabsList className="w-full">
                   <TabsTrigger value="overview">{t("teamDetail.tabOverview")}</TabsTrigger>
                   <TabsTrigger value="members">{t("teamDetail.tabMembers")}</TabsTrigger>
                   {/* Statistics tab is hidden entirely from outsiders: it only renders
@@ -751,9 +750,7 @@ const Page = ({ params }: { params: Params }) => {
                   {hasFullAccess && (
                     <TabsTrigger value="requests">{t("teamDetail.tabRequests")}</TabsTrigger>
                   )}
-                </TabsList>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
+              </ScrollableTabsList>
 
               <TabsContent value="overview">
                 <Card>

@@ -1,0 +1,166 @@
+{
+  "step2": {
+    "title": "Step 2: Event Mode",
+    "selectMode": "Select Event Mode",
+    "modes": {
+      "virtual": "Virtual",
+      "physical": "Physical (LAN)",
+      "hybrid": "Hybrid"
+    }
+  },
+  "step3": {
+    "title": "Step 3: Select Number of Stages",
+    "howMany": "How many stages?",
+    "stageNames": "Stage Names",
+    "stagePlaceholder": "Stage {n}"
+  },
+  "step4": {
+    "title": "Step 4: Stage Details & Ordering",
+    "stageOrder": "Stage Order",
+    "notConfigured": "Not Configured",
+    "groupsFormat": "{count} Groups • {format}",
+    "edit": "Edit",
+    "add": "Add"
+  },
+  "step5": {
+    "title": "Step 5: Prize Pool & Distribution",
+    "totalPrizePool": "Total Prize Pool",
+    "totalPrizePoolPlaceholder": "e.g., 5000 USD",
+    "cashValue": "Prize Pool Cash Value",
+    "cashValuePlaceholder": "e.g., 5000",
+    "cashValueHelp": "Required. Your prize distribution below must add up to this amount.",
+    "prizeCurrency": "Prize Currency",
+    "selectCurrency": "Select currency",
+    "currencyHelp": "The amounts above are treated as this currency for conversion + display.",
+    "prizeDistribution": "Prize Distribution",
+    "amountPlaceholder": "e.g., 2000",
+    "addPosition": "+ Add Prize Position",
+    "currencyNames": {
+      "USD": "US Dollar",
+      "NGN": "Nigerian Naira",
+      "GHS": "Ghanaian Cedi",
+      "KES": "Kenyan Shilling",
+      "ZAR": "South African Rand",
+      "EGP": "Egyptian Pound",
+      "MAD": "Moroccan Dirham",
+      "XOF": "West African CFA Franc",
+      "XAF": "Central African CFA Franc",
+      "TZS": "Tanzanian Shilling",
+      "UGX": "Ugandan Shilling",
+      "RWF": "Rwandan Franc",
+      "ETB": "Ethiopian Birr",
+      "DZD": "Algerian Dinar",
+      "AOA": "Angolan Kwanza",
+      "MZN": "Mozambican Metical",
+      "ZMW": "Zambian Kwacha",
+      "EUR": "Euro",
+      "GBP": "British Pound",
+      "INR": "Indian Rupee"
+    }
+  },
+  "step6": {
+    "title": "Step 6: Event Rules",
+    "unsupportedFile": "Only PDF, DOC, or DOCX files are supported.",
+    "inputMethod": "Rules Input Method",
+    "typeRules": "Type Rules",
+    "uploadDocument": "Upload Document",
+    "eventRules": "Event Rules",
+    "rulesPlaceholder": "Enter event rules...",
+    "uploadRulesDoc": "Upload Rules Document",
+    "dropDoc": "Drop your document here, or",
+    "browse": "browse",
+    "supports": "Supports: PDF, DOC, DOCX",
+    "docUploaded": "Rules Document Uploaded",
+    "fileSize": "File Size: {size} MB",
+    "remove": "Remove",
+    "replace": "Replace"
+  },
+  "step7": {
+    "title": "Step 7: Publish & Save",
+    "whereToPublish": "Where would you like to publish this event?",
+    "publishToTournaments": "Publish to Tournaments",
+    "saveAsDraft": "Save as Draft"
+  },
+  "sponsor": {
+    "title": "Step 7: Sponsors",
+    "description": "Attach sponsors and build the engagements participants must complete during registration.",
+    "legacyFields": "Legacy fields",
+    "inUse": "in use",
+    "legacyIntro": "The old single-sponsor flow (free-text name + one UUID field). Kept for continuity; new events should use the builder above instead.",
+    "enableRequirement": "Enable Sponsor Requirement",
+    "enableRequirementHelp": "Require players to complete a sponsor task and submit a UUID before registering.",
+    "companyName": "Sponsor / Company Name",
+    "companyNamePlaceholder": "e.g. Acme Corp",
+    "sponsorAccounts": "Sponsor Accounts",
+    "sponsorAccountsHelp": "Select one or more sponsor accounts to associate with this event.",
+    "loadingSponsors": "Loading sponsors...",
+    "noSponsors": "No sponsors available.",
+    "selectedCount": "{count, plural, one {# sponsor selected} other {# sponsors selected}}",
+    "requirementDescription": "Requirement Description",
+    "requirementDescriptionPlaceholder": "e.g. Download our app on the App Store, create an account, and enter your Player UUID below.",
+    "uuidFieldLabel": "UUID Field Label",
+    "uuidFieldLabelPlaceholder": "e.g. Player UUID",
+    "uuidFieldLabelHelp": "This is the label shown next to the input field during registration."
+  },
+  "waitlist": {
+    "title": "Step 8: Waitlist",
+    "description": "Allow players to join a waitlist if the event reaches max capacity.",
+    "enable": "Enable Waitlist",
+    "enableHelp": "When the event is full, players can join a waitlist and be admitted if spots open up.",
+    "howFilled": "How open slots are filled",
+    "modeLabel": {
+      "first_registered": "Earliest registered",
+      "fcfs_room": "First to join room",
+      "manual_admin": "You pick"
+    },
+    "modeDesc": {
+      "first_registered": "The team/player who joined the waitlist first gets the open slot.",
+      "fcfs_room": "All waitlist teams get the room ID + password; first to join the room claims the slot. You confirm who got in.",
+      "manual_admin": "You manually choose which waitlist team/player takes each open slot."
+    },
+    "capacity": "Waitlist Capacity",
+    "capacityPlaceholder": "e.g. 20",
+    "capacityHelp": "Maximum number of players allowed on the waitlist.",
+    "discordRoleId": "Waitlist Discord Role ID",
+    "optional": "(optional)",
+    "discordRoleHelp": "Discord role assigned to players on the waitlist."
+  },
+  "discord": {
+    "toastNoInviteLink": "Could not get the bot invite link. Try again.",
+    "toastInviteFailed": "Failed to get the bot invite link.",
+    "toastVerifyFailed": "Failed to verify the bot in the server.",
+    "guildId": "Discord server ID (Guild ID)",
+    "guildIdHelp": "Leave blank to use the main AFC server (our bot is already there, no invite or verification needed). For your own server, paste its Guild ID, then invite the AFC bot and verify it below.",
+    "inviteBot": "Invite AFC bot to your server",
+    "verifyBot": "Verify bot is in server",
+    "botFound": "Bot is in your server",
+    "botNotFound": "Bot not found - invite it first",
+    "requireDiscord": "Require Discord to register",
+    "requireDiscordHelp": "Players must be connected to Discord and a member of this server.",
+    "toggleDisabledHelp": "Invite the AFC bot to your server and verify it before you can require Discord. Or leave the Guild ID blank to use the main AFC server.",
+    "inviteLink": "Discord invite link (required)",
+    "inviteLinkHelp": "Players will use this link to join the event's Discord. It is shown on the public event page."
+  },
+  "prizeSummary": {
+    "setCashValue": "Set the prize pool cash value above so the distribution can be checked against it.",
+    "distributed": "Distributed <b>{total} {ccy}</b> of <b>{cash} {ccy}</b>",
+    "matches": "Matches the cash value",
+    "over": "Over by {diff} {ccy}",
+    "under": "Under by {diff} {ccy}"
+  },
+  "paidTerms": {
+    "title": "Paid event terms",
+    "description": "Before you collect entry fees, please review and accept how paid tournaments work on AFC. You only need to accept this once per organization.",
+    "escrowLead": "Funds are held in escrow.",
+    "escrowBody": "Entry fees are held in escrow by the payment processor, not by you. AFC releases the payout to your organization only after the event runs.",
+    "feeLead": "Fee on paid tournaments.",
+    "feeBody": "The first 10 paid tournaments per organization have a 0 percent AFC fee. After that, AFC takes 2 percent of entry fees collected.",
+    "refundsLead": "Refunds.",
+    "refundsBody": "If an event is cancelled, AFC can refund registrants their entry fees.",
+    "runLead": "You must run the event.",
+    "runBody": "You are required to run the event you collected entry fees for. Failing to do so can lead to refunds and removal from the platform.",
+    "cancel": "Cancel",
+    "submitting": "Submitting...",
+    "accept": "I accept"
+  }
+}

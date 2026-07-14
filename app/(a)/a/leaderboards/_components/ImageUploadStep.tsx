@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardContent,
@@ -9,6 +10,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   IconUpload,
   IconPhoto,
@@ -27,6 +38,9 @@ import { cn } from "@/lib/utils";
 // to OCRReviewTable for in-place edit + commit (replacing the old read-only preview dialog).
 import { ocrApi, type DraftRow } from "@/lib/api/ocr";
 import { OCRReviewTable } from "./OCRReviewTable";
+// Shared client image gate (png/jpeg/webp, <=10 MB) matching the backend contract in
+// afc_ocr/services/image_validate.py, so an HEIC iPhone screenshot is rejected at drop time (B8).
+import { filterOcrImages, OCR_ACCEPT } from "@/lib/ocrImages";
 
 interface MatchImage {
   image_id: number;
@@ -55,6 +69,8 @@ interface Props {
 }
 
 export function ImageUploadStep({ match, onNext, onBack }: Props) {
+  const t = useTranslations("ocr");
+  const tc = useTranslations("common");
   const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -64,6 +80,9 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
   const [loadingImages, setLoadingImages] = useState(true);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [extractingId, setExtractingId] = useState<number | null>(null);
+  // The stored image the admin asked to permanently delete (B4#4). While non-null the AlertDialog
+  // confirm is open; the actual server DELETE only fires once they confirm.
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   // The session under review (null = still on the upload list). When set, the inline
   // OCRReviewTable takes over so the admin can edit + commit without leaving this step.
   const [reviewSession, setReviewSession] = useState<ReviewSession | null>(null);
@@ -98,29 +117,35 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
       if (res.ok) {
         setExistingImages(data.images ?? []);
       } else {
-        toast.error(data.message || "Failed to load images");
+        toast.error(data.message || t("uploadSteps.imageStep.loadFailed"));
       }
     } catch {
-      toast.error("Failed to load images");
+      toast.error(t("uploadSteps.imageStep.loadFailed"));
     } finally {
       setLoadingImages(false);
     }
-  }, [matchId, token]);
+  }, [matchId, token, t]);
 
   useEffect(() => {
     fetchImages();
   }, [fetchImages]);
 
+  // Gate new files through the shared OCR image validator (png/jpeg/webp, <=10 MB). The first
+  // rejected file toasts the reason (wrong type / too big); the rest are dropped silently (B8).
   const addFiles = (files: FileList | null) => {
-    if (!files) return;
-    const newFiles = Array.from(files)
-      .filter((f) => f.type.startsWith("image/"))
-      .map((f) => ({ file: f, preview: URL.createObjectURL(f) }));
-    if (newFiles.length === 0) {
-      toast.error("Only image files are allowed");
-      return;
-    }
-    setPendingFiles((prev) => [...prev, ...newFiles]);
+    const images = filterOcrImages(files, {
+      onReject: (reason) =>
+        toast.error(
+          reason === "size"
+            ? t("uploadSteps.rejectSize")
+            : t("uploadSteps.rejectType"),
+        ),
+    });
+    if (images.length === 0) return;
+    setPendingFiles((prev) => [
+      ...prev,
+      ...images.map((f) => ({ file: f, preview: URL.createObjectURL(f) })),
+    ]);
   };
 
   const removePending = (idx: number) => {
@@ -154,20 +179,22 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
         );
         const data = await res.json();
         if (res.ok) {
-          toast.success("Images uploaded successfully");
+          toast.success(t("uploadSteps.imageStep.uploadSuccess"));
           pendingFiles.forEach(({ preview }) => URL.revokeObjectURL(preview));
           setPendingFiles([]);
           if (fileInputRef.current) fileInputRef.current.value = "";
           fetchImages();
         } else {
-          toast.error(data.message || "Upload failed");
+          toast.error(data.message || t("uploadSteps.imageStep.uploadFailed"));
         }
       } catch {
-        toast.error("An unexpected error occurred");
+        toast.error(t("uploadSteps.imageStep.unexpectedError"));
       }
     });
   };
 
+  // Permanent server delete of a stored screenshot. Gated behind the AlertDialog confirm below
+  // (B4#4) since it cannot be undone; only fires after the admin confirms.
   const handleDelete = async (imageId: number) => {
     setDeletingId(imageId);
     try {
@@ -184,15 +211,15 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
       );
       const data = await res.json();
       if (res.ok) {
-        toast.success("Image deleted");
+        toast.success(t("uploadSteps.imageStep.imageDeleted"));
         setExistingImages((prev) =>
           prev.filter((img) => img.image_id !== imageId),
         );
       } else {
-        toast.error(data.message || "Failed to delete image");
+        toast.error(data.message || t("uploadSteps.imageStep.deleteFailed"));
       }
     } catch {
-      toast.error("Failed to delete image");
+      toast.error(t("uploadSteps.imageStep.deleteFailed"));
     } finally {
       setDeletingId(null);
     }
@@ -201,6 +228,11 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
   // Re-run OCR on an already-uploaded image. Goes through the centralized OCR client
   // (ocrApi.ocrFromStoredImage -> POST /events/ocr-from-image/) and hands the resulting session to
   // the inline OCRReviewTable for edit + commit, instead of the old read-only preview dialog.
+  // B9 caveat: mapIndex here is the image's POSITION in existingImages, not a stable per-image map
+  // id. The get-match-result-images response carries no stable map_index/order field, so position
+  // is the only signal available on this surface; if the backend later adds a stable per-image map
+  // number, thread it here instead of idx + 1. (The primary screenshot -> review path is the
+  // stable-bound MapSelectionStep flow; this re-extract path is the secondary one.)
   const handleExtract = async (img: MatchImage, mapIndex: number) => {
     if (!matchId) return;
     setExtractingId(img.image_id);
@@ -211,9 +243,9 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
         map_index: mapIndex,
       });
       toast.success(
-        `Read ${session.draft_rows?.length ?? 0} row${
-          (session.draft_rows?.length ?? 0) !== 1 ? "s" : ""
-        } from the image`,
+        t("uploadSteps.imageStep.extractSuccess", {
+          count: session.draft_rows?.length ?? 0,
+        }),
       );
       setReviewSession({
         sessionId: session.session_id,
@@ -221,7 +253,9 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
         engine: session.engine ?? session.teacher_model ?? null,
       });
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Extraction failed");
+      toast.error(
+        err?.response?.data?.message || t("uploadSteps.imageStep.extractFailed"),
+      );
     } finally {
       setExtractingId(null);
     }
@@ -249,9 +283,13 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
     <>
       <Card className="gap-0">
         <CardHeader>
-          <CardTitle>{match?.match_name ?? "Match"}: Image Upload</CardTitle>
+          <CardTitle>
+            {t("uploadSteps.imageStep.title", {
+              match: match?.match_name ?? t("uploadSteps.imageStep.matchFallback"),
+            })}
+          </CardTitle>
           <CardDescription>
-            Upload screenshots of match results, then click Extract to run OCR.
+            {t("uploadSteps.imageStep.description")}
           </CardDescription>
         </CardHeader>
 
@@ -260,7 +298,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium">
-                Uploaded Images
+                {t("uploadSteps.imageStep.uploadedImages")}
                 {existingImages.length > 0 && (
                   <span className="ml-2 text-muted-foreground">
                     ({existingImages.length})
@@ -272,6 +310,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                 size="sm"
                 onClick={fetchImages}
                 disabled={loadingImages}
+                aria-label={tc("refresh")}
               >
                 <IconRefresh
                   size={14}
@@ -283,12 +322,14 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
             {loadingImages ? (
               <div className="flex items-center justify-center py-8 gap-2 text-muted-foreground">
                 <IconLoader2 size={18} className="animate-spin" />
-                <span className="text-sm">Loading images…</span>
+                <span className="text-sm">
+                  {t("uploadSteps.imageStep.loadingImages")}
+                </span>
               </div>
             ) : existingImages.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 rounded-lg border border-dashed text-muted-foreground gap-2">
                 <IconPhoto size={28} className="opacity-40" />
-                <p className="text-sm">No images uploaded yet</p>
+                <p className="text-sm">{t("uploadSteps.imageStep.noImages")}</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -299,13 +340,13 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                   >
                     <img
                       src={img.image_url}
-                      alt={`Match result ${idx + 1}`}
+                      alt={t("uploadSteps.imageStep.imageAlt", { n: idx + 1 })}
                       className="w-full h-full object-cover"
                     />
 
-                    {/* Map index label */}
+                    {/* Map index label (positional, see B9 caveat on handleExtract) */}
                     <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/60 text-white">
-                      Map {idx + 1}
+                      {t("uploadSteps.imageStep.mapLabel", { n: idx + 1 })}
                     </div>
 
                     {/* Extracting overlay */}
@@ -316,7 +357,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                           className="animate-spin text-white"
                         />
                         <span className="text-xs text-white font-medium">
-                          Extracting…
+                          {t("uploadSteps.imageStep.extracting")}
                         </span>
                       </div>
                     )}
@@ -327,18 +368,18 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                         {/* Extract button */}
                         <button
                           onClick={() => handleExtract(img, idx + 1)}
-                          title="Extract with OCR"
+                          title={t("uploadSteps.imageStep.extractTitle")}
                           className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/90 text-primary-foreground text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary"
                         >
                           <IconScan size={11} />
-                          Extract
+                          {t("uploadSteps.imageStep.extract")}
                         </button>
 
-                        {/* Delete button */}
+                        {/* Delete button (opens the confirm dialog, does not delete directly) */}
                         <button
-                          onClick={() => handleDelete(img.image_id)}
+                          onClick={() => setConfirmDeleteId(img.image_id)}
                           disabled={deletingId === img.image_id}
-                          title="Delete image"
+                          title={t("uploadSteps.imageStep.deleteTitle")}
                           className="absolute top-1.5 right-1.5 size-6 rounded-full bg-destructive/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
                         >
                           {deletingId === img.image_id ? (
@@ -360,7 +401,9 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
 
           {/* ── Drop zone ── */}
           <div className="space-y-3">
-            <h3 className="text-sm font-medium">Add New Images</h3>
+            <h3 className="text-sm font-medium">
+              {t("uploadSteps.imageStep.addNewImages")}
+            </h3>
 
             <div
               onDragOver={(e) => {
@@ -379,11 +422,13 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
             >
               <IconUpload size={28} className="text-muted-foreground" />
               <p className="text-sm text-center text-muted-foreground">
-                Drag & drop images here, or{" "}
-                <span className="text-primary font-medium">click to browse</span>
+                {t("uploadSteps.imageStep.dropzoneTitle")}{" "}
+                <span className="text-primary font-medium">
+                  {t("uploadSteps.imageStep.dropzoneBrowse")}
+                </span>
               </p>
               <p className="text-xs text-muted-foreground">
-                PNG, JPG, WEBP supported
+                {t("uploadSteps.imageStep.dropzoneHint")}
               </p>
             </div>
 
@@ -391,7 +436,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
               ref={fileInputRef}
               type="file"
               multiple
-              accept="image/*"
+              accept={OCR_ACCEPT}
               className="hidden"
               onChange={(e) => addFiles(e.target.files)}
             />
@@ -418,6 +463,9 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                           e.stopPropagation();
                           removePending(idx);
                         }}
+                        aria-label={t("uploadSteps.imageStep.removePending", {
+                          name: file.name,
+                        })}
                         className="absolute top-1.5 right-1.5 size-6 rounded-full bg-destructive/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
                       >
                         <IconX size={12} className="text-white" />
@@ -434,13 +482,14 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                   {uploading ? (
                     <span className="flex items-center gap-2">
                       <IconLoader2 size={14} className="animate-spin" />
-                      Uploading…
+                      {t("uploadSteps.imageStep.uploading")}
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
                       <IconUpload size={14} />
-                      Upload {pendingFiles.length} Image
-                      {pendingFiles.length !== 1 ? "s" : ""}
+                      {t("uploadSteps.imageStep.uploadCount", {
+                        count: pendingFiles.length,
+                      })}
                     </span>
                   )}
                 </Button>
@@ -451,17 +500,50 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
           {/* ── Actions ── */}
           <div className="flex justify-between pt-2">
             <Button variant="outline" onClick={onBack}>
-              Back
+              {tc("back")}
             </Button>
             <Button
               onClick={onNext}
               disabled={existingImages.length === 0 && pendingFiles.length === 0}
             >
-              Done
+              {tc("done")}
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* ── Delete-screenshot confirm (B4#4) ──────────────────────────────────────
+          The stored-image delete is a permanent server DELETE, so it is gated here. Local pending
+          removals (removePending) revoke an object URL only and need no confirm. */}
+      <AlertDialog
+        open={confirmDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDeleteId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("uploadSteps.imageStep.deleteConfirmTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("uploadSteps.imageStep.deleteConfirmDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tc("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-white hover:bg-destructive/90"
+              onClick={() => {
+                if (confirmDeleteId !== null) handleDelete(confirmDeleteId);
+                setConfirmDeleteId(null);
+              }}
+            >
+              {tc("delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

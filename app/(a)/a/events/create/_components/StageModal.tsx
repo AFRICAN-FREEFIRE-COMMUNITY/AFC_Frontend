@@ -376,6 +376,10 @@
 
 import React from "react";
 import { toast } from "sonner";
+// next-intl client hook. Strings live in messages/{en,fr,pt}/evStageModal.json;
+// stage-format labels reuse the shared messages/{...}/eventFormats.json namespace
+// (t.has()-guarded below since the key is built from a backend format code).
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -410,6 +414,8 @@ import {
   RoundRobinPanel,
   type RoundRobinConfig,
 } from "../../_components/RoundRobinPanel";
+// Shared Clash Squad (bracket) explainer (CS sub-project) - same panel used by the edit flow.
+import { ClashSquadPanel } from "../../_components/ClashSquadPanel";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -489,8 +495,11 @@ function PrizePoolSection({
   onPrizepoolChange,
   onPrizepoolCashChange,
   onDistributionChange,
-  label = "Prize Pool",
+  label,
 }: PrizePoolSectionProps) {
+  const t = useTranslations("evStageModal");
+  // Callers pass a translated label; fall back to the generic "Prize Pool" string.
+  const resolvedLabel = label ?? t("prizePool");
   const addPosition = () => {
     const nextPos = Object.keys(prizeDistribution).length + 1;
     const suffix =
@@ -511,39 +520,40 @@ function PrizePoolSection({
 
   return (
     <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
-      <p className="text-sm font-semibold text-primary">{label}</p>
+      <p className="text-sm font-semibold text-primary">{resolvedLabel}</p>
 
       <div className="grid gap-3">
         <div>
           <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
-            Prize Pool Label{" "}
-            <span className="text-zinc-400">(e.g. "5000 Diamonds")</span>
+            {t("prizePoolLabel")}{" "}
+            <span className="text-zinc-400">{t("prizePoolLabelHint")}</span>
           </label>
           <Input
             value={prizepool}
             onChange={(e) => onPrizepoolChange(e.target.value)}
-            placeholder="e.g. 5000 Diamonds, Gift Cards"
+            placeholder={t("prizePoolLabelPlaceholder")}
           />
         </div>
         <div>
           <label className="text-xs font-medium mb-1.5 block text-muted-foreground">
-            Cash Value <span className="text-zinc-400">(e.g. "$500")</span>
+            {t("cashValue")}{" "}
+            <span className="text-zinc-400">{t("cashValueHint")}</span>
           </label>
           <Input
             value={prizepoolCashValue}
             onChange={(e) => onPrizepoolCashChange(e.target.value)}
-            placeholder="e.g. $500"
+            placeholder={t("cashValuePlaceholder")}
           />
         </div>
       </div>
 
       <div className="space-y-2">
         <label className="text-xs font-medium block text-muted-foreground">
-          Prize Distribution
+          {t("prizeDistribution")}
         </label>
         {Object.keys(prizeDistribution).length === 0 && (
           <p className="text-xs text-muted-foreground italic">
-            No positions added yet. Click below to add one.
+            {t("noPositions")}
           </p>
         )}
         {Object.entries(prizeDistribution).map(([key, value]) => (
@@ -552,7 +562,7 @@ function PrizePoolSection({
             <Input
               value={value}
               onChange={(e) => updatePosition(key, e.target.value)}
-              placeholder="e.g. $200 or 1000 Diamonds"
+              placeholder={t("prizeValuePlaceholder")}
               className="flex-1"
             />
             <Button
@@ -574,7 +584,7 @@ function PrizePoolSection({
           onClick={addPosition}
           className="w-full mt-1"
         >
-          <Plus className="w-3.5 h-3.5 mr-1" /> Add Prize Position
+          <Plus className="w-3.5 h-3.5 mr-1" /> {t("addPrizePosition")}
         </Button>
       </div>
     </div>
@@ -606,6 +616,7 @@ function AdvancementRoutingSection({
   editingStageIndex,
   groupOptions,
 }: AdvancementRoutingSectionProps) {
+  const t = useTranslations("evStageModal");
   const list = rules ?? [];
   const branchingOn = list.length > 0;
 
@@ -642,12 +653,11 @@ function AdvancementRoutingSection({
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-primary">
-            Advancement Routing (optional)
+            {t("advancementRouting")}
             <InfoTip id="events.create.advancement_routing" className="ml-1" />
           </p>
           <p className="text-xs text-muted-foreground">
-            Split this stage's finishers into different later stages (e.g. top 1 to 8 to
-            the Finals, 9 to 16 to the Play-In). Off uses the single qualifier above.
+            {t("advancementRoutingDesc")}
           </p>
         </div>
         <Switch
@@ -667,7 +677,7 @@ function AdvancementRoutingSection({
         <div className="space-y-3">
           {laterStages.length === 0 && (
             <p className="text-xs text-muted-foreground italic">
-              Add a later stage to route finishers into.
+              {t("addLaterStageRoute")}
             </p>
           )}
           {list.map((rule, i) => (
@@ -679,7 +689,7 @@ function AdvancementRoutingSection({
                 {/* From # */}
                 <div className="w-20">
                   <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
-                    From #
+                    {t("fromNumber")}
                   </label>
                   <Input
                     type="number"
@@ -696,7 +706,7 @@ function AdvancementRoutingSection({
                 {/* To # */}
                 <div className="w-20">
                   <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
-                    To #
+                    {t("toNumber")}
                   </label>
                   <Input
                     type="number"
@@ -713,7 +723,7 @@ function AdvancementRoutingSection({
                 {/* Source scope: All groups (stage-wide) or one group */}
                 <div className="flex-1 min-w-[140px]">
                   <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
-                    From
+                    {t("from")}
                   </label>
                   <Select
                     value={
@@ -733,7 +743,7 @@ function AdvancementRoutingSection({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="stage">All groups (whole stage)</SelectItem>
+                      <SelectItem value="stage">{t("allGroups")}</SelectItem>
                       {groupOptions.map((g) => (
                         <SelectItem key={g.index} value={String(g.index)}>
                           {g.label}
@@ -747,7 +757,7 @@ function AdvancementRoutingSection({
                 {/* Target later stage (same options as the Point-Rush target) */}
                 <div className="flex-1">
                   <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
-                    Advance to
+                    {t("advanceTo")}
                   </label>
                   <Select
                     value={
@@ -760,12 +770,12 @@ function AdvancementRoutingSection({
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a later stage" />
+                      <SelectValue placeholder={t("selectLaterStage")} />
                     </SelectTrigger>
                     <SelectContent>
                       {laterStages.map(({ name, idx }) => (
                         <SelectItem key={idx} value={String(idx)}>
-                          {name || `Stage ${idx + 1}`}
+                          {name || t("stageFallback", { n: idx + 1 })}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -791,7 +801,7 @@ function AdvancementRoutingSection({
               onClick={addRow}
               className="w-full"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" /> Add Routing Rule
+              <Plus className="w-3.5 h-3.5 mr-1" /> {t("addRoutingRule")}
             </Button>
           )}
         </div>
@@ -819,6 +829,14 @@ export function StageModal({
   onSaveStage,
   hideDiscord = false,
 }: StageModalProps) {
+  const t = useTranslations("evStageModal");
+  // Stage-format labels: reuse the shared eventFormats namespace. The lookup key is a
+  // backend format code, so it is t.has()-guarded (fall back to the shared FORMATTED_WORD
+  // constant when a code has no message) to avoid a MISSING_MESSAGE throw at render.
+  const tf = useTranslations("eventFormats");
+  const formatLabel = (code: string) =>
+    tf.has(code) ? tf(code) : FORMATTED_WORD[code] ?? code;
+
   // Round-robin stages are defined ENTIRELY by the base groups + schedule in the
   // Round-Robin panel (Step 1): the classic "Number of Groups" field and the Step-2
   // per-group config (match count / maps) are IGNORED by the backend for this format,
@@ -826,6 +844,10 @@ export function StageModal({
   // we hide those pieces and skip Step 2 entirely - "games per day" in the panel is the
   // single source for match count.
   const isRoundRobin = stageModalData.stage_format === "br - round robin";
+  // Clash Squad (cs - *) runs as a head-to-head bracket, not BR lobbies: like round-robin
+  // it has no classic groups and no Step-2 per-group config, so it saves straight from
+  // Step 1 (the bracket is generated later from the event page). See ClashSquadPanel.
+  const isClashSquad = (stageModalData.stage_format || "").startsWith("cs - ");
 
   const handleNextStep = () => {
     if (
@@ -835,16 +857,16 @@ export function StageModal({
       !stageModalData.end_date ||
       stageModalData.teams_qualifying_from_stage === undefined
     ) {
-      toast.error("Please fill all required stage fields (Step 1)");
+      toast.error(t("toastFillRequired"));
       return;
     }
-    // Round-robin: no classic groups, no Step 2 - save straight from Step 1.
-    if (isRoundRobin) {
+    // Round-robin AND Clash Squad: no classic groups, no Step 2 - save straight from Step 1.
+    if (isRoundRobin || isClashSquad) {
       onSaveStage();
       return;
     }
     if (stageModalData.number_of_groups < 1) {
-      toast.error("Number of groups must be at least 1.");
+      toast.error(t("toastGroupsMin"));
       return;
     }
     setModalStep(2);
@@ -857,12 +879,16 @@ export function StageModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">
-            {modalStep === 1 ? "Stage Details" : "Configure Groups"}
+            {modalStep === 1
+              ? t("titleStageDetails")
+              : t("titleConfigureGroups")}
           </DialogTitle>
-          <p className="text-sm text-zinc-400">Step {modalStep} of 2</p>
+          <p className="text-sm text-zinc-400">
+            {t("stepOf", { step: modalStep })}
+          </p>
         </DialogHeader>
 
         {/* ── STEP 1: Stage Info + Stage Prize Pool ──────────────────── */}
@@ -870,7 +896,7 @@ export function StageModal({
           <div className="space-y-4 py-4">
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Stage Name
+                {t("stageName")}
               </label>
               <Input
                 value={stageModalData.stage_name}
@@ -880,14 +906,14 @@ export function StageModal({
                     stage_name: e.target.value,
                   })
                 }
-                placeholder="e.g., Group Stage, Finals"
+                placeholder={t("stageNamePlaceholder")}
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Start Date
+                  {t("startDate")}
                 </label>
                 <Input
                   type="date"
@@ -902,7 +928,7 @@ export function StageModal({
               </div>
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  End Date
+                  {t("endDate")}
                 </label>
                 <Input
                   type="date"
@@ -919,7 +945,7 @@ export function StageModal({
 
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Stage Format
+                {t("stageFormat")}
                 <InfoTip id="events.create.stage_format" className="ml-1" />
               </label>
               <Select
@@ -929,12 +955,12 @@ export function StageModal({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select format" />
+                  <SelectValue placeholder={t("selectFormat")} />
                 </SelectTrigger>
                 <SelectContent>
                   {STAGE_FORMATS.map((format) => (
                     <SelectItem key={format} value={format}>
-                      {FORMATTED_WORD[format]}
+                      {formatLabel(format)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -954,13 +980,20 @@ export function StageModal({
               />
             )}
 
+            {/* ── Clash Squad (bracket) explainer (CS sub-project): shown for any "cs - *"
+                format INSTEAD of the BR group/map wizard. It has no inputs - the bracket is
+                generated from the event page - so the modal saves straight from Step 1. */}
+            {isClashSquad && (
+              <ClashSquadPanel stageFormat={stageModalData.stage_format} />
+            )}
+
             {/* ── Scoring modes (sub-project A): Champion-Point + Point-Rush ──────────
                 Both are independent per-stage toggles. Champion-Point is a match-point
                 win rule; Point-Rush banks this stage's placement bonus into a later
                 stage. They can be on together. */}
             <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
               <p className="text-sm font-semibold text-primary">
-                Scoring Modes (optional)
+                {t("scoringModes")}
               </p>
 
               {/* Champion-Point toggle + threshold */}
@@ -968,12 +1001,11 @@ export function StageModal({
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <label className="text-sm font-medium block">
-                      Champion-Point
+                      {t("championPoint")}
                       <InfoTip id="events.create.champion_point" className="ml-1" />
                     </label>
                     <p className="text-xs text-muted-foreground">
-                      First team to Booyah while already at/above the threshold
-                      wins the stage.
+                      {t("championPointDesc")}
                     </p>
                   </div>
                   <Switch
@@ -989,7 +1021,7 @@ export function StageModal({
                 {stageModalData.champion_point_enabled && (
                   <div>
                     <label className="text-sm font-medium mb-2 block">
-                      Champion Point Threshold
+                      {t("championPointThreshold")}
                       <InfoTip id="events.create.champion_point_threshold" className="ml-1" />
                     </label>
                     <Input
@@ -1005,7 +1037,7 @@ export function StageModal({
                               : Number(e.target.value),
                         })
                       }
-                      placeholder="e.g. 80"
+                      placeholder={t("championPointThresholdPlaceholder")}
                     />
                   </div>
                 )}
@@ -1018,12 +1050,11 @@ export function StageModal({
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <label className="text-sm font-medium block">
-                      Point-Rush
+                      {t("pointRush")}
                       <InfoTip id="events.create.point_rush" className="ml-1" />
                     </label>
                     <p className="text-xs text-muted-foreground">
-                      Award per-lobby placement bonuses here and bank them into a
-                      later stage.
+                      {t("pointRushDesc")}
                     </p>
                   </div>
                   <Switch
@@ -1042,13 +1073,13 @@ export function StageModal({
                     {/* Reward table: rows of placement → bonus points (add/remove). */}
                     <div className="space-y-2">
                       <label className="text-xs font-medium block text-muted-foreground">
-                        Placement Rewards
+                        {t("placementRewards")}
                         <InfoTip id="events.create.point_rush_reward" className="ml-1" />
                       </label>
                       {Object.keys(stageModalData.point_rush_reward).length ===
                         0 && (
                         <p className="text-xs text-muted-foreground italic">
-                          No rewards added yet. Click below to add a placement.
+                          {t("noRewards")}
                         </p>
                       )}
                       {Object.entries(stageModalData.point_rush_reward).map(
@@ -1058,7 +1089,7 @@ export function StageModal({
                             className="flex items-center gap-2"
                           >
                             <span className="text-xs text-muted-foreground w-16 shrink-0">
-                              Place {placement}
+                              {t("place", { placement })}
                             </span>
                             <Input
                               type="number"
@@ -1076,7 +1107,7 @@ export function StageModal({
                                   },
                                 })
                               }
-                              placeholder="bonus points"
+                              placeholder={t("bonusPointsPlaceholder")}
                               className="flex-1"
                             />
                             <Button
@@ -1120,14 +1151,14 @@ export function StageModal({
                         }}
                         className="w-full mt-1"
                       >
-                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Placement Reward
+                        <Plus className="w-3.5 h-3.5 mr-1" /> {t("addPlacementReward")}
                       </Button>
                     </div>
 
                     {/* Target stage: only stages AFTER the one being edited. */}
                     <div>
                       <label className="text-sm font-medium mb-2 block">
-                        Carry-Over Target Stage
+                        {t("carryOverTargetStage")}
                         <InfoTip id="events.create.point_rush_target" className="ml-1" />
                       </label>
                       <Select
@@ -1144,7 +1175,7 @@ export function StageModal({
                         }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a later stage" />
+                          <SelectValue placeholder={t("selectLaterStage")} />
                         </SelectTrigger>
                         <SelectContent>
                           {stageNames
@@ -1157,7 +1188,7 @@ export function StageModal({
                             )
                             .map(({ name, idx }) => (
                               <SelectItem key={idx} value={String(idx)}>
-                                {name || `Stage ${idx + 1}`}
+                                {name || t("stageFallback", { n: idx + 1 })}
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -1168,7 +1199,7 @@ export function StageModal({
                           idx > editingStageIndex,
                       ).length === 0 && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          Add a later stage to use as the carry-over target.
+                          {t("addLaterStageCarryOver")}
                         </p>
                       )}
                     </div>
@@ -1179,7 +1210,7 @@ export function StageModal({
 
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Teams Qualifying from this Stage
+                {t("teamsQualifyingStage")}
               </label>
               <Input
                 type="number"
@@ -1211,29 +1242,29 @@ export function StageModal({
               stageNames={stageNames}
               editingStageIndex={editingStageIndex}
               groupOptions={
-                isRoundRobin
+                // No classic groups for round-robin OR Clash Squad -> stage-wide routing only.
+                isRoundRobin || isClashSquad
                   ? []
                   : tempGroups
                       .slice(0, stageModalData.number_of_groups)
                       .map((g, idx) => ({
                         index: idx,
-                        label: g.group_name || `Group ${idx + 1}`,
+                        label: g.group_name || t("groupFallback", { n: idx + 1 }),
                       }))
               }
             />
 
             {/* Classic "Number of Groups" - NOT used for round-robin (its base groups
-                above define the structure), so it is hidden for that format with a note. */}
+                above define the structure) or Clash Squad (a bracket has no groups), so it
+                is hidden for those formats. RR shows a note; CS is covered by ClashSquadPanel. */}
             {isRoundRobin ? (
               <p className="text-xs text-muted-foreground rounded-md border border-dashed p-3">
-                This is a round-robin stage. Its lobbies come from the base groups and
-                schedule above, so there is no separate "number of groups" or per-group
-                map setup. "Games per day" above sets how many matches each lobby runs.
+                {t("roundRobinNote")}
               </p>
-            ) : (
+            ) : isClashSquad ? null : (
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Number of Groups
+                  {t("numberOfGroups")}
                   <InfoTip id="events.create.number_of_groups" className="ml-1" />
                 </label>
                 <Input
@@ -1257,7 +1288,7 @@ export function StageModal({
             {!hideDiscord && (
               <div>
                 <label className="text-sm font-medium mb-2 block">
-                  Stage Discord Role ID
+                  {t("stageDiscordRoleId")}
                 </label>
                 <Input
                   value={stageModalData.stage_discord_role_id}
@@ -1267,7 +1298,7 @@ export function StageModal({
                       stage_discord_role_id: e.target.value,
                     })
                   }
-                  placeholder="e.g: 1234567890"
+                  placeholder={t("discordRoleIdPlaceholder")}
                 />
               </div>
             )}
@@ -1275,7 +1306,7 @@ export function StageModal({
             <Separator />
 
             <PrizePoolSection
-              label="Stage Prize Pool (optional)"
+              label={t("stagePrizePool")}
               prizepool={stageModalData.prizepool}
               prizepoolCashValue={stageModalData.prizepool_cash_value}
               prizeDistribution={stageModalData.prize_distribution}
@@ -1296,12 +1327,13 @@ export function StageModal({
               }
             />
 
-            {/* Group preview only for classic formats - round-robin has no Step 2. */}
-            {!isRoundRobin && (
+            {/* Group preview only for classic formats - round-robin and Clash Squad have no Step 2. */}
+            {!isRoundRobin && !isClashSquad && (
               <div className="pt-2 border-t">
                 <p className="text-xs text-muted-foreground mb-2">
-                  You will configure {stageModalData.number_of_groups} group(s) in
-                  the next step
+                  {t("configureGroupsNext", {
+                    count: stageModalData.number_of_groups,
+                  })}
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {tempGroups
@@ -1325,17 +1357,19 @@ export function StageModal({
           <div className="space-y-3">
             <div className="bg-primary/10 border rounded-md p-4">
               <p className="text-sm">
-                <span className="font-semibold">Stage:</span>{" "}
+                <span className="font-semibold">{t("stageLabel")}</span>{" "}
                 {stageModalData.stage_name}
               </p>
               <p className="text-sm text-zinc-400">
-                {formatDate(stageModalData.start_date)} to{" "}
-                {formatDate(stageModalData.end_date)} |{" "}
-                {FORMATTED_WORD[stageModalData.stage_format]}
+                {t("dateFormatLine", {
+                  start: formatDate(stageModalData.start_date),
+                  end: formatDate(stageModalData.end_date),
+                  format: formatLabel(stageModalData.stage_format),
+                })}
               </p>
               {stageModalData.prizepool && (
                 <p className="text-xs text-primary mt-1">
-                  Stage Prize: {stageModalData.prizepool}
+                  {t("stagePrize", { prize: stageModalData.prizepool })}
                   {stageModalData.prizepool_cash_value
                     ? ` (${stageModalData.prizepool_cash_value})`
                     : ""}
@@ -1346,7 +1380,9 @@ export function StageModal({
             {tempGroups.map((group, index) => (
               <div key={index} className="border rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold">Group {index + 1}</h4>
+                  <h4 className="font-semibold">
+                    {t("groupHeading", { n: index + 1 })}
+                  </h4>
                   <span className="text-xs text-zinc-500">
                     {group.group_name}
                   </span>
@@ -1354,21 +1390,21 @@ export function StageModal({
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Group Name
+                    {t("groupName")}
                   </label>
                   <Input
                     value={group.group_name}
                     onChange={(e) =>
                       onUpdateGroupDetail(index, "group_name", e.target.value)
                     }
-                    placeholder={`Group ${index + 1}`}
+                    placeholder={t("groupFallback", { n: index + 1 })}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">
-                      Playing Date
+                      {t("playingDate")}
                     </label>
                     <Input
                       type="date"
@@ -1384,7 +1420,7 @@ export function StageModal({
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">
-                      Playing Time
+                      {t("playingTime")}
                     </label>
                     <Input
                       type="time"
@@ -1402,7 +1438,7 @@ export function StageModal({
 
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Teams Qualifying from this Group
+                    {t("teamsQualifyingGroup")}
                     <InfoTip id="events.create.teams_qualifying" className="ml-1" />
                   </label>
                   <Input
@@ -1425,13 +1461,13 @@ export function StageModal({
                     one match per map, so there is no separate count to type. */}
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Match Count
+                    {t("matchCount")}
                     <InfoTip id="events.create.match_count" className="ml-1" />
                   </label>
                   <p className="text-sm text-muted-foreground rounded-md border border-dashed p-3">
-                    {(group.match_maps?.length || 0)} match
-                    {(group.match_maps?.length || 0) === 1 ? "" : "es"} (one per map
-                    selected below). Add or remove maps to change this.
+                    {t("matchCountDerived", {
+                      count: group.match_maps?.length || 0,
+                    })}
                   </p>
                 </div>
 
@@ -1439,7 +1475,7 @@ export function StageModal({
                 {!hideDiscord && (
                   <div>
                     <label className="text-sm font-medium mb-2 block">
-                      Discord Role ID
+                      {t("discordRoleId")}
                     </label>
                     <Input
                       value={group.group_discord_role_id}
@@ -1450,7 +1486,7 @@ export function StageModal({
                           e.target.value,
                         )
                       }
-                      placeholder="e.g: 1234567890"
+                      placeholder={t("discordRoleIdPlaceholder")}
                     />
                   </div>
                 )}
@@ -1458,7 +1494,7 @@ export function StageModal({
                 {/* Map Selection */}
                 <div>
                   <label className="text-sm font-medium mb-2 block">
-                    Maps to be Played <span className="text-red-500">*</span>
+                    {t("mapsToBePlayed")} <span className="text-red-500">*</span>
                     <InfoTip id="events.create.match_maps" className="ml-1" />
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -1479,7 +1515,7 @@ export function StageModal({
                             type="button"
                             onClick={() => onRemoveMap(index, map)}
                             disabled={count === 0}
-                            className="disabled:opacity-30 hover:opacity-70"
+                            className="flex size-7 items-center justify-center rounded disabled:opacity-30 hover:opacity-70"
                           >
                             <Minus className="w-3 h-3" />
                           </button>
@@ -1489,7 +1525,7 @@ export function StageModal({
                           <button
                             type="button"
                             onClick={() => onAddMap(index, map)}
-                            className="hover:opacity-70"
+                            className="flex size-7 items-center justify-center rounded hover:opacity-70"
                           >
                             <Plus className="w-3 h-3" />
                           </button>
@@ -1500,12 +1536,12 @@ export function StageModal({
                   </div>
                   {(!group.match_maps || group.match_maps.length === 0) && (
                     <p className="text-xs text-red-500 mt-1">
-                      Please select at least one map
+                      {t("selectAtLeastOneMap")}
                     </p>
                   )}
                   {group.match_maps && group.match_maps.length > 0 && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Selected: {group.match_maps.join(", ")}
+                      {t("selectedMaps", { maps: group.match_maps.join(", ") })}
                     </p>
                   )}
                 </div>
@@ -1514,7 +1550,7 @@ export function StageModal({
 
                 {/* Group Prize Pool */}
                 <PrizePoolSection
-                  label="Group Prize Pool (optional)"
+                  label={t("groupPrizePool")}
                   prizepool={group.prizepool ?? ""}
                   prizepoolCashValue={group.prizepool_cash_value ?? ""}
                   prizeDistribution={group.prize_distribution ?? {}}
@@ -1541,21 +1577,23 @@ export function StageModal({
                 variant="outline"
                 onClick={() => setModalStep(1)}
               >
-                Back
+                {t("back")}
               </Button>
             )}
           </div>
           <div className="flex items-center gap-2">
             <Button type="button" variant="ghost" onClick={handleClose}>
-              Cancel
+              {t("cancel")}
             </Button>
             {modalStep === 1 ? (
               <Button type="button" onClick={handleNextStep}>
-                {isRoundRobin ? "Save Stage" : "Next: Configure Groups"}
+                {isRoundRobin || isClashSquad
+                  ? t("saveStage")
+                  : t("nextConfigureGroups")}
               </Button>
             ) : (
               <Button type="button" onClick={onSaveStage}>
-                Save Stage
+                {t("saveStage")}
               </Button>
             )}
           </div>

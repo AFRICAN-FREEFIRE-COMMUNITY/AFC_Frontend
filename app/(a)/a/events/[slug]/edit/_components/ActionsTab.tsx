@@ -102,7 +102,7 @@ interface ActionsTabProps {
     participant_type: string;
     is_public: boolean;
     stages: Stage[];
-    // Event end date (YYYY-MM-DD) — caps the roster-edit window picker. From get-event-details.
+    // Event end date (YYYY-MM-DD) - caps the roster-edit window picker. From get-event-details.
     end_date?: string;
     // Roster-edit window (owner 2026-06-15): current state for the Roster Editing card.
     roster_edit_until?: string | null;
@@ -132,6 +132,9 @@ export default function ActionsTab({
   // Rate-limit copy lives in the `broadcast` i18n namespace (this Actions tab is reused by organizers).
   // Named bcT (not t) so it doesn't shadow the existing `(t) => ...` closures elsewhere in this file.
   const bcT = useTranslations("broadcast");
+  // All of this Actions tab's own copy (buttons, card titles, toasts, confirm dialogs) is in the
+  // "evEditTabs" namespace. Named etT (not t) for the same shadow-avoidance reason as bcT above.
+  const etT = useTranslations("evEditTabs");
   const API = env.NEXT_PUBLIC_BACKEND_API_URL;
   const status = eventDetails.event_status;
   const isTeam = eventDetails.participant_type !== "solo";
@@ -163,7 +166,7 @@ export default function ActionsTab({
   // roster_edit_until). The eventDetails.roster_edit_open we received is only a SNAPSHOT from the
   // last fetch, so a panel left open past the deadline kept showing "Open until ..." (owner
   // 2026-06-23). Derive the live open/closed state from roster_edit_until vs the wall clock, and
-  // tick every 30s so an idle panel flips to "Closed" the moment the deadline passes — no refetch
+  // tick every 30s so an idle panel flips to "Closed" the moment the deadline passes - no refetch
   // needed. The backend stays the enforcement authority (edit_roster recomputes on every call).
   const [, setRosterNowTick] = useState(0);
   const rosterUntilMs = (eventDetails as any).roster_edit_until
@@ -270,7 +273,7 @@ export default function ActionsTab({
       setCancelOpen(false);
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Failed to cancel event");
+      toast.error(e.response?.data?.message || etT("actions.toastCancelFailed"));
     } finally {
       setLoadingCancel(false);
     }
@@ -286,7 +289,7 @@ export default function ActionsTab({
       const body: Record<string, any> = { event_id: eventDetails.event_id };
       if (open) {
         if (!rosterUntilInput) {
-          toast.error("Pick the date & time the roster-edit window should close.");
+          toast.error(etT("actions.toastPickRosterClose"));
           setLoadingRosterWindow(false);
           return;
         }
@@ -299,13 +302,13 @@ export default function ActionsTab({
       });
       toast.success(
         open
-          ? "Roster editing is now open for teams."
-          : "Roster editing closed for teams.",
+          ? etT("actions.toastRosterOpened")
+          : etT("actions.toastRosterClosed"),
       );
       onRefresh?.();
     } catch (e: any) {
       toast.error(
-        e.response?.data?.message || "Failed to update the roster-edit window",
+        e.response?.data?.message || etT("actions.toastRosterWindowFailed"),
       );
     } finally {
       setLoadingRosterWindow(false);
@@ -324,7 +327,7 @@ export default function ActionsTab({
       setCompleteOpen(false);
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Failed to complete event");
+      toast.error(e.response?.data?.message || etT("actions.toastCompleteFailed"));
     } finally {
       setLoadingComplete(false);
     }
@@ -345,14 +348,14 @@ export default function ActionsTab({
       setReopenOpen(false);
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Failed to reopen event");
+      toast.error(e.response?.data?.message || etT("actions.toastReopenFailed"));
     } finally {
       setLoadingReopen(false);
     }
   }
 
   async function handleSeedToGroups() {
-    if (!seedStageId) return toast.error("Select a stage first");
+    if (!seedStageId) return toast.error(etT("actions.toastSelectStage"));
     setLoadingSeed(true);
     try {
       const endpoint = isTeam
@@ -368,14 +371,14 @@ export default function ActionsTab({
       // in place (no manual reload). onRefresh = the edit page's fetchEventDetails.
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Seeding failed");
+      toast.error(e.response?.data?.message || etT("actions.toastSeedFailed"));
     } finally {
       setLoadingSeed(false);
     }
   }
 
   async function handleAdvanceStage() {
-    if (!advanceGroupId) return toast.error("Select a stage and group first");
+    if (!advanceGroupId) return toast.error(etT("actions.toastSelectStageGroup"));
     setLoadingAdvance(true);
     try {
       const res = await axios.post(
@@ -383,12 +386,12 @@ export default function ActionsTab({
         { event_id: eventDetails.event_id, group_id: advanceGroupId },
         { headers: authHeader },
       );
-      toast.success(res.data.message || "Stage advanced successfully");
+      toast.success(res.data.message || etT("actions.toastAdvanced"));
       // Advancing moves competitors into the next stage; refetch so the updated stage
       // composition shows in place (no manual reload). onRefresh = fetchEventDetails.
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Advance failed");
+      toast.error(e.response?.data?.message || etT("actions.toastAdvanceFailed"));
     } finally {
       setLoadingAdvance(false);
     }
@@ -398,7 +401,7 @@ export default function ActionsTab({
   // POST /events/advance-stage-by-rules/ (advancement_routing.advance_stage_by_rules). Preview
   // returns the routed blocks WITHOUT writing; Advance seeds the finishers into their target stages.
   async function handleBranchPreview() {
-    if (!branchStageId) return toast.error("Select a stage first");
+    if (!branchStageId) return toast.error(etT("actions.toastSelectStage"));
     setLoadingBranchPreview(true);
     setBranchPreview(null);
     try {
@@ -413,14 +416,14 @@ export default function ActionsTab({
       );
       setBranchPreview(res.data);
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Preview failed");
+      toast.error(e.response?.data?.message || etT("actions.toastPreviewFailed"));
     } finally {
       setLoadingBranchPreview(false);
     }
   }
 
   async function handleBranchAdvance() {
-    if (!branchStageId) return toast.error("Select a stage first");
+    if (!branchStageId) return toast.error(etT("actions.toastSelectStage"));
     setLoadingBranchAdvance(true);
     try {
       const res = await axios.post(
@@ -428,12 +431,12 @@ export default function ActionsTab({
         { event_id: eventDetails.event_id, stage_id: branchStageId },
         { headers: authHeader },
       );
-      toast.success(res.data.message || "Branching advancement complete");
+      toast.success(res.data.message || etT("actions.toastBranchingDone"));
       setBranchPreview(null);
       // Routing seeds finishers into later stages; refetch so the updated stages show in place.
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Advance failed");
+      toast.error(e.response?.data?.message || etT("actions.toastAdvanceFailed"));
     } finally {
       setLoadingBranchAdvance(false);
     }
@@ -450,7 +453,7 @@ export default function ActionsTab({
     opts.setLoading(true);
     try {
       const res = await axios.post(opts.url, opts.body, { headers: authHeader });
-      toast.success(res.data.message || "Done");
+      toast.success(res.data.message || etT("actions.toastDone"));
       onRefresh?.();
     } catch (e: any) {
       const data = e.response?.data;
@@ -464,7 +467,7 @@ export default function ActionsTab({
           },
         });
       } else {
-        toast.error(data?.message || "Action failed");
+        toast.error(data?.message || etT("actions.toastActionFailed"));
       }
     } finally {
       opts.setLoading(false);
@@ -472,7 +475,7 @@ export default function ActionsTab({
   }
 
   function handleUndoSeeding() {
-    if (!mgmtStageId) return toast.error("Select a stage first");
+    if (!mgmtStageId) return toast.error(etT("actions.toastSelectStage"));
     runSeedingAction({
       url: `${API}/events/seeding/undo/`,
       body: { stage_id: mgmtStageId },
@@ -481,7 +484,7 @@ export default function ActionsTab({
   }
 
   function handleReseed() {
-    if (!mgmtStageId) return toast.error("Select a stage first");
+    if (!mgmtStageId) return toast.error(etT("actions.toastSelectStage"));
     runSeedingAction({
       url: `${API}/events/seeding/reseed/`,
       body: { stage_id: mgmtStageId, shuffle: reseedShuffle, clear_existing: true },
@@ -490,7 +493,7 @@ export default function ActionsTab({
   }
 
   function handleDeleteGroup() {
-    if (!delGroupId) return toast.error("Select a group first");
+    if (!delGroupId) return toast.error(etT("actions.toastSelectGroup"));
     setDelGroupOpen(false);
     runSeedingAction({
       url: `${API}/events/seeding/delete-group/`,
@@ -500,9 +503,9 @@ export default function ActionsTab({
   }
 
   function handleDeleteStage() {
-    if (!delStageId) return toast.error("Select a stage first");
+    if (!delStageId) return toast.error(etT("actions.toastSelectStage"));
     if (delStageMode !== "delete_all" && !delStageTargetId)
-      return toast.error("Select a target stage to move competitors into");
+      return toast.error(etT("actions.toastSelectTargetStage"));
     setDelStageOpen(false);
     runSeedingAction({
       url: `${API}/events/seeding/delete-stage/`,
@@ -516,7 +519,7 @@ export default function ActionsTab({
   }
 
   async function handleSyncDiscord() {
-    if (!syncGroupId) return toast.error("Select a group first");
+    if (!syncGroupId) return toast.error(etT("actions.toastSelectGroup"));
     setLoadingSync(true);
     try {
       const res = await axios.post(
@@ -524,9 +527,9 @@ export default function ActionsTab({
         { group_id: syncGroupId },
         { headers: authHeader },
       );
-      toast.success(res.data.message || "Discord roles synced");
+      toast.success(res.data.message || etT("actions.toastDiscordSynced"));
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Sync failed");
+      toast.error(e.response?.data?.message || etT("actions.toastSyncFailed"));
     } finally {
       setLoadingSync(false);
     }
@@ -550,7 +553,7 @@ export default function ActionsTab({
       // in place (no manual page reload). onRefresh = the edit page's fetchEventDetails.
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Could not update the stage.");
+      toast.error(e.response?.data?.message || etT("actions.toastStageUpdateFailed"));
     } finally {
       setLoadingStageStatus(false);
     }
@@ -558,11 +561,11 @@ export default function ActionsTab({
 
   async function handleBroadcast() {
     if (!annTitle.trim() || !annMessage.trim())
-      return toast.error("Title and message are required");
+      return toast.error(etT("actions.toastTitleMessageRequired"));
     if (annScope === "stage" && !annStageId)
-      return toast.error("Pick a stage to broadcast to");
+      return toast.error(etT("actions.toastPickStageBroadcast"));
     if (annScope === "group" && !annGroupId)
-      return toast.error("Pick a group to broadcast to");
+      return toast.error(etT("actions.toastPickGroupBroadcast"));
     setLoadingAnnouncement(true);
     try {
       // Build the deep-link target(s): for the "event" link type the admin may have selected
@@ -624,7 +627,7 @@ export default function ActionsTab({
           }`,
         );
       } else {
-        toast.error(e.response?.data?.message || "Broadcast failed");
+        toast.error(e.response?.data?.message || etT("actions.toastBroadcastFailed"));
       }
     } finally {
       setLoadingAnnouncement(false);
@@ -640,11 +643,13 @@ export default function ActionsTab({
         { headers: authHeader },
       );
       toast.success(
-        `Event is now ${!eventDetails.is_public ? "public" : "private"}`,
+        !eventDetails.is_public
+          ? etT("actions.toastNowPublic")
+          : etT("actions.toastNowPrivate"),
       );
       onRefresh?.();
     } catch (e: any) {
-      toast.error(e.response?.data?.message || "Failed to update visibility");
+      toast.error(e.response?.data?.message || etT("actions.toastVisibilityFailed"));
     } finally {
       setLoadingVisibility(false);
     }
@@ -671,7 +676,7 @@ export default function ActionsTab({
       onRefresh?.();
     } catch (e: any) {
       toast.error(
-        e.response?.data?.message || "Failed to update results visibility",
+        e.response?.data?.message || etT("actions.toastResultsVisFailed"),
       );
     } finally {
       setLoadingResultsVis(false);
@@ -697,9 +702,9 @@ export default function ActionsTab({
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("Export downloaded");
+      toast.success(etT("actions.toastExportDownloaded"));
     } catch {
-      toast.error("Export failed");
+      toast.error(etT("actions.toastExportFailed"));
     } finally {
       setLoadingExport(null);
     }
@@ -712,24 +717,24 @@ export default function ActionsTab({
       {/* 1 ── Event Lifecycle ─────────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle>Event Lifecycle</CardTitle>
+          <CardTitle>{etT("actions.lifecycleTitle")}</CardTitle>
           <CardDescription>
-            Control the current state of this tournament.
+            {etT("actions.lifecycleDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium inline-flex items-center">
-                Start Tournament
+                {etT("actions.startTournament")}
                 <InfoTip id="events.edit.start_tournament" className="ml-1" />
               </p>
               <p className="text-xs text-muted-foreground">
                 {eventDetails.stages[0]?.stage_status === "paused"
-                  ? "Stage 1 is paused. Resume when you are ready to continue."
+                  ? etT("actions.stagePausedDesc")
                   : eventDetails.stages[0]?.stage_status === "ongoing"
-                    ? "Stage 1 is running. You can pause it anytime."
-                    : "Seed registered players into Stage 1."}
+                    ? etT("actions.stageOngoingDesc")
+                    : etT("actions.stageSeedDesc")}
               </p>
             </div>
             {/* Before start: the Start button. After start (ongoing/paused): a "Started"
@@ -737,7 +742,7 @@ export default function ActionsTab({
             {eventDetails.stages[0]?.stage_status === "ongoing" ? (
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
-                  <CheckCircle2 className="h-4 w-4" /> Started
+                  <CheckCircle2 className="h-4 w-4" /> {etT("actions.started")}
                 </span>
                 <Button
                   size="sm"
@@ -745,20 +750,20 @@ export default function ActionsTab({
                   disabled={loadingStageStatus}
                   onClick={() => handleSetStageStatus("paused")}
                 >
-                  <Pause className="h-4 w-4 mr-1" /> Pause
+                  <Pause className="h-4 w-4 mr-1" /> {etT("actions.pause")}
                 </Button>
               </div>
             ) : eventDetails.stages[0]?.stage_status === "paused" ? (
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-orange-500">
-                  <Pause className="h-4 w-4" /> Paused
+                  <Pause className="h-4 w-4" /> {etT("actions.paused")}
                 </span>
                 <Button
                   size="sm"
                   disabled={loadingStageStatus}
                   onClick={() => handleSetStageStatus("ongoing")}
                 >
-                  <Play className="h-4 w-4 mr-1" /> Resume
+                  <Play className="h-4 w-4 mr-1" /> {etT("actions.resume")}
                 </Button>
               </div>
             ) : (
@@ -773,11 +778,11 @@ export default function ActionsTab({
                   onClick={onStartTournament}
                   disabled={status === "completed" || status === "cancelled"}
                 >
-                  <Play className="h-4 w-4 mr-1" /> Start
+                  <Play className="h-4 w-4 mr-1" /> {etT("actions.start")}
                 </Button>
                 {(status === "completed" || status === "cancelled") && (
                   <p className="text-muted-foreground text-[0.7rem]">
-                    This event is {status}. Reopen it before starting.
+                    {etT("actions.reopenBeforeStart", { status })}
                   </p>
                 )}
               </div>
@@ -789,11 +794,11 @@ export default function ActionsTab({
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium inline-flex items-center">
-                Cancel Event
+                {etT("actions.cancelEvent")}
                 <InfoTip id="events.edit.cancel_event" className="ml-1" />
               </p>
               <p className="text-xs text-muted-foreground">
-                Mark as cancelled and notify all registered players.
+                {etT("actions.cancelEventDesc")}
               </p>
             </div>
             <Button
@@ -802,7 +807,7 @@ export default function ActionsTab({
               onClick={() => setCancelOpen(true)}
               disabled={status === "cancelled" || status === "completed"}
             >
-              <XCircle className="h-4 w-4 mr-1" /> Cancel
+              <XCircle className="h-4 w-4 mr-1" /> {etT("actions.cancel")}
             </Button>
           </div>
 
@@ -811,11 +816,11 @@ export default function ActionsTab({
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium inline-flex items-center">
-                Mark as Complete
+                {etT("actions.markComplete")}
                 <InfoTip id="events.edit.complete_event" className="ml-1" />
               </p>
               <p className="text-xs text-muted-foreground">
-                Finalise the event and lock all results.
+                {etT("actions.markCompleteDesc")}
               </p>
             </div>
             <Button
@@ -824,7 +829,7 @@ export default function ActionsTab({
               onClick={() => setCompleteOpen(true)}
               disabled={status === "completed" || status === "cancelled"}
             >
-              <CheckCircle2 className="h-4 w-4 mr-1" /> Complete
+              <CheckCircle2 className="h-4 w-4 mr-1" /> {etT("actions.complete")}
             </Button>
           </div>
 
@@ -836,12 +841,11 @@ export default function ActionsTab({
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium inline-flex items-center">
-                    Reopen Event
+                    {etT("actions.reopenEvent")}
                     <InfoTip id="events.edit.reopen_event" className="ml-1" />
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Set this completed event back to active so you can fix or add
-                    results.
+                    {etT("actions.reopenEventDesc")}
                   </p>
                 </div>
                 <Button
@@ -849,11 +853,11 @@ export default function ActionsTab({
                   variant="outline"
                   onClick={() => setReopenOpen(true)}
                 >
-                  <Undo2 className="h-4 w-4 mr-1" /> Reopen
+                  <Undo2 className="h-4 w-4 mr-1" /> {etT("actions.reopen")}
                 </Button>
               </div>
               <p className="text-xs text-center text-muted-foreground italic">
-                This tournament has ended. Results are now locked.
+                {etT("actions.endedLocked")}
               </p>
             </>
           )}
@@ -863,24 +867,24 @@ export default function ActionsTab({
       {/* 2 ── Seeding & Progression ───────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle>Seeding & Progression</CardTitle>
+          <CardTitle>{etT("actions.seedingTitle")}</CardTitle>
           <CardDescription>
-            Distribute competitors into groups and advance stages.
+            {etT("actions.seedingDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <p className="text-sm font-medium inline-flex items-center">
-              Seed Competitors to Groups
+              {etT("actions.seedToGroups")}
               <InfoTip id="events.edit.seed_to_groups" className="ml-1" />
             </p>
             <p className="text-xs text-muted-foreground">
-              Randomly distribute stage competitors into groups.
+              {etT("actions.seedToGroupsDesc")}
             </p>
             <div className="flex gap-2">
               <Select value={seedStageId} onValueChange={setSeedStageId}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select stage" />
+                  <SelectValue placeholder={etT("actions.selectStage")} />
                 </SelectTrigger>
                 <SelectContent>
                   {eventDetails.stages.map((s) => (
@@ -896,10 +900,10 @@ export default function ActionsTab({
                 disabled={loadingSeed || !seedStageId}
               >
                 {loadingSeed ? (
-                  <Loader text="Seeding..." />
+                  <Loader text={etT("actions.seeding")} />
                 ) : (
                   <>
-                    <Users className="h-4 w-4 mr-1" /> Seed
+                    <Users className="h-4 w-4 mr-1" /> {etT("actions.seed")}
                   </>
                 )}
               </Button>
@@ -910,11 +914,11 @@ export default function ActionsTab({
 
           <div className="space-y-2">
             <p className="text-sm font-medium inline-flex items-center">
-              Advance to Next Stage
+              {etT("actions.advanceToNext")}
               <InfoTip id="events.edit.advance_stage" className="ml-1" />
             </p>
             <p className="text-xs text-muted-foreground">
-              Push top competitors from a group into the next stage.
+              {etT("actions.advanceToNextDesc")}
             </p>
             <div className="flex gap-2">
               <Select
@@ -925,7 +929,7 @@ export default function ActionsTab({
                 }}
               >
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Stage" />
+                  <SelectValue placeholder={etT("actions.stagePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {eventDetails.stages.map((s) => (
@@ -941,7 +945,7 @@ export default function ActionsTab({
                 disabled={!advanceStageId}
               >
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Group" />
+                  <SelectValue placeholder={etT("actions.groupPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {advanceStage?.groups.map((g) => (
@@ -960,7 +964,7 @@ export default function ActionsTab({
                   <Loader text="..." />
                 ) : (
                   <>
-                    <ChevronRight className="h-4 w-4 mr-1" /> Advance
+                    <ChevronRight className="h-4 w-4 mr-1" /> {etT("actions.advance")}
                   </>
                 )}
               </Button>
@@ -977,12 +981,11 @@ export default function ActionsTab({
               <Separator />
               <div className="space-y-2">
                 <p className="text-sm font-medium inline-flex items-center">
-                  Branching Advancement
+                  {etT("actions.branchingTitle")}
                   <InfoTip id="events.edit.branching_advance" className="ml-1" />
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Split a stage's finishers into different later stages using its routing
-                  rules. Preview first to see exactly who advances where.
+                  {etT("actions.branchingDesc")}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Select
@@ -993,7 +996,7 @@ export default function ActionsTab({
                     }}
                   >
                     <SelectTrigger className="flex-1 min-w-[160px]">
-                      <SelectValue placeholder="Stage with routing rules" />
+                      <SelectValue placeholder={etT("actions.stageWithRules")} />
                     </SelectTrigger>
                     <SelectContent>
                       {branchingStages.map((s) => (
@@ -1009,7 +1012,7 @@ export default function ActionsTab({
                     onClick={handleBranchPreview}
                     disabled={loadingBranchPreview || !branchStageId}
                   >
-                    {loadingBranchPreview ? <Loader text="..." /> : "Preview"}
+                    {loadingBranchPreview ? <Loader text="..." /> : etT("actions.preview")}
                   </Button>
                   <Button
                     size="sm"
@@ -1020,7 +1023,7 @@ export default function ActionsTab({
                       <Loader text="..." />
                     ) : (
                       <>
-                        <ChevronRight className="h-4 w-4 mr-1" /> Advance
+                        <ChevronRight className="h-4 w-4 mr-1" /> {etT("actions.advance")}
                       </>
                     )}
                   </Button>
@@ -1031,8 +1034,7 @@ export default function ActionsTab({
                   <div className="mt-2 space-y-2 rounded-md border bg-muted/30 p-3">
                     {branchPreview.routed.length === 0 && (
                       <p className="text-xs text-muted-foreground">
-                        No competitors to route yet (no results entered, or no one in
-                        range).
+                        {etT("actions.noRouteYet")}
                       </p>
                     )}
                     {branchPreview.routed.map((blk: any, bi: number) => (
@@ -1041,13 +1043,13 @@ export default function ActionsTab({
                           {blk.scope === "group" && blk.source_group_name
                             ? `${blk.source_group_name} `
                             : ""}
-                          #{blk.from} to #{blk.to}
+                          #{blk.from}{etT("actions.rangeConnector")}#{blk.to}
                           {"  ->  "}
                           {blk.target_stage_name}
                         </p>
                         <p className="text-muted-foreground">
                           {blk.competitors.length === 0
-                            ? "Nobody in range yet."
+                            ? etT("actions.nobodyInRange")
                             : blk.competitors
                                 .map(
                                   (c: any) => `#${c.placement} ${c.name}`,
@@ -1069,25 +1071,22 @@ export default function ActionsTab({
           choice. Backend: events/seeding/* (seeding_management.py). */}
       <Card>
         <CardHeader>
-          <CardTitle>Seeding Management</CardTitle>
+          <CardTitle>{etT("actions.seedingMgmtTitle")}</CardTitle>
           <CardDescription>
-            Undo a seed and reseed, or delete a group or stage and reseed the
-            remaining ones.
+            {etT("actions.seedingMgmtDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Undo + Reseed a stage's group distribution */}
           <div className="space-y-2">
-            <p className="text-sm font-medium">Undo or reseed group seeding</p>
+            <p className="text-sm font-medium">{etT("actions.undoReseedTitle")}</p>
             <p className="text-xs text-muted-foreground">
-              Undo clears a stage's group assignments (competitors stay
-              registered). Reseed redistributes them, optionally with a fresh
-              shuffle.
+              {etT("actions.undoReseedDesc")}
             </p>
             <div className="flex flex-wrap gap-2">
               <Select value={mgmtStageId} onValueChange={setMgmtStageId}>
                 <SelectTrigger className="flex-1 min-w-[140px]">
-                  <SelectValue placeholder="Select stage" />
+                  <SelectValue placeholder={etT("actions.selectStage")} />
                 </SelectTrigger>
                 <SelectContent>
                   {eventDetails.stages.map((s) => (
@@ -1106,7 +1105,7 @@ export default function ActionsTab({
                 className={cn(reseedShuffle && "border-primary text-primary")}
               >
                 <Shuffle className="h-4 w-4 mr-1" />
-                Shuffle: {reseedShuffle ? "On" : "Off"}
+{reseedShuffle ? etT("actions.shuffleOn") : etT("actions.shuffleOff")}
               </Button>
               <Button
                 size="sm"
@@ -1115,10 +1114,10 @@ export default function ActionsTab({
                 disabled={loadingUndo || !mgmtStageId}
               >
                 {loadingUndo ? (
-                  <Loader text="Undoing..." />
+                  <Loader text={etT("actions.undoing")} />
                 ) : (
                   <>
-                    <Undo2 className="h-4 w-4 mr-1" /> Undo
+                    <Undo2 className="h-4 w-4 mr-1" /> {etT("actions.undo")}
                   </>
                 )}
               </Button>
@@ -1128,10 +1127,10 @@ export default function ActionsTab({
                 disabled={loadingReseed || !mgmtStageId}
               >
                 {loadingReseed ? (
-                  <Loader text="Reseeding..." />
+                  <Loader text={etT("actions.reseeding")} />
                 ) : (
                   <>
-                    <RefreshCw className="h-4 w-4 mr-1" /> Reseed
+                    <RefreshCw className="h-4 w-4 mr-1" /> {etT("actions.reseed")}
                   </>
                 )}
               </Button>
@@ -1142,14 +1141,14 @@ export default function ActionsTab({
 
           {/* Delete a group (with disposition for its competitors) */}
           <div className="space-y-2">
-            <p className="text-sm font-medium">Delete a group</p>
+            <p className="text-sm font-medium">{etT("actions.deleteGroupTitle")}</p>
             <p className="text-xs text-muted-foreground">
-              Remove a group and choose what happens to its competitors.
+              {etT("actions.deleteGroupDesc")}
             </p>
             <div className="flex gap-2">
               <Select value={delGroupId} onValueChange={setDelGroupId}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select group" />
+                  <SelectValue placeholder={etT("actions.selectGroup")} />
                 </SelectTrigger>
                 <SelectContent>
                   {eventDetails.stages.flatMap((s) =>
@@ -1165,13 +1164,13 @@ export default function ActionsTab({
                 size="sm"
                 variant="destructive"
                 onClick={() => {
-                  if (!delGroupId) return toast.error("Select a group first");
+                  if (!delGroupId) return toast.error(etT("actions.toastSelectGroup"));
                   setDelGroupMode("auto");
                   setDelGroupOpen(true);
                 }}
                 disabled={loadingDelGroup || !delGroupId}
               >
-                <Trash2 className="h-4 w-4 mr-1" /> Delete...
+                <Trash2 className="h-4 w-4 mr-1" /> {etT("actions.deleteEllipsis")}
               </Button>
             </div>
           </div>
@@ -1180,14 +1179,14 @@ export default function ActionsTab({
 
           {/* Delete a stage (with disposition for its competitors) */}
           <div className="space-y-2">
-            <p className="text-sm font-medium">Delete a stage</p>
+            <p className="text-sm font-medium">{etT("actions.deleteStageTitle")}</p>
             <p className="text-xs text-muted-foreground">
-              Remove a stage and choose what happens to its competitors.
+              {etT("actions.deleteStageDesc")}
             </p>
             <div className="flex gap-2">
               <Select value={delStageId} onValueChange={setDelStageId}>
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select stage" />
+                  <SelectValue placeholder={etT("actions.selectStage")} />
                 </SelectTrigger>
                 <SelectContent>
                   {eventDetails.stages.map((s) => (
@@ -1201,14 +1200,14 @@ export default function ActionsTab({
                 size="sm"
                 variant="destructive"
                 onClick={() => {
-                  if (!delStageId) return toast.error("Select a stage first");
+                  if (!delStageId) return toast.error(etT("actions.toastSelectStage"));
                   setDelStageMode("auto");
                   setDelStageTargetId("");
                   setDelStageOpen(true);
                 }}
                 disabled={loadingDelStage || !delStageId}
               >
-                <Trash2 className="h-4 w-4 mr-1" /> Delete...
+                <Trash2 className="h-4 w-4 mr-1" /> {etT("actions.deleteEllipsis")}
               </Button>
             </div>
           </div>
@@ -1218,17 +1217,17 @@ export default function ActionsTab({
       {/* 3 ── Communication ───────────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle>Communication</CardTitle>
+          <CardTitle>{etT("actions.communicationTitle")}</CardTitle>
           <CardDescription>
-            Send notifications and sync roles for registered players.
+            {etT("actions.communicationDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium">Broadcast Announcement</p>
+              <p className="text-sm font-medium">{etT("actions.broadcastAnnouncement")}</p>
               <p className="text-xs text-muted-foreground">
-                Send an in-app notification to all registered players.
+                {etT("actions.broadcastAnnouncementDesc")}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -1237,19 +1236,19 @@ export default function ActionsTab({
                 variant="ghost"
                 onClick={() => setHistoryOpen(true)}
               >
-                History
+                {etT("actions.history")}
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => setAnnouncementOpen(true)}
               >
-                <Megaphone className="h-4 w-4 mr-1" /> Broadcast
+                <Megaphone className="h-4 w-4 mr-1" /> {etT("actions.broadcast")}
               </Button>
             </div>
           </div>
 
-          {/* Sync Discord Roles — hidden in the organizer flow (hideDiscord), since
+          {/* Sync Discord Roles - hidden in the organizer flow (hideDiscord), since
               organizers don't manage AFC's Discord automation. The leading Separator
               is hidden with it so the card doesn't end on a dangling divider. */}
           {!hideDiscord && (
@@ -1258,16 +1257,16 @@ export default function ActionsTab({
 
               <div className="space-y-2">
                 <p className="text-sm font-medium inline-flex items-center">
-                  Sync Discord Roles
+                  {etT("actions.syncDiscord")}
                   <InfoTip id="events.edit.sync_discord" className="ml-1" />
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Re-assign missing Discord group roles for a specific group.
+                  {etT("actions.syncDiscordDesc")}
                 </p>
                 <div className="flex gap-2">
                   <Select value={syncGroupId} onValueChange={setSyncGroupId}>
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select group" />
+                      <SelectValue placeholder={etT("actions.selectGroup")} />
                     </SelectTrigger>
                     <SelectContent>
                       {eventDetails.stages.flatMap((s) =>
@@ -1289,10 +1288,10 @@ export default function ActionsTab({
                     disabled={loadingSync || !syncGroupId}
                   >
                     {loadingSync ? (
-                      <Loader text="Syncing..." />
+                      <Loader text={etT("actions.syncing")} />
                     ) : (
                       <>
-                        <RefreshCw className="h-4 w-4 mr-1" /> Sync
+                        <RefreshCw className="h-4 w-4 mr-1" /> {etT("actions.sync")}
                       </>
                     )}
                   </Button>
@@ -1309,21 +1308,19 @@ export default function ActionsTab({
           (set_roster_edit_window + edit_roster) is the real authority. */}
       <Card>
         <CardHeader>
-          <CardTitle>Roster Editing</CardTitle>
+          <CardTitle>{etT("actions.rosterEditingTitle")}</CardTitle>
           <CardDescription>
-            Open team roster editing for a set period. It closes automatically and can&apos;t run past
-            the event end date. While open, team captains can edit their roster even after registration
-            has closed.
+            {etT("actions.rosterEditingDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <p className="text-sm font-medium">Status</p>
+              <p className="text-sm font-medium">{etT("actions.status")}</p>
               <p className="text-xs text-muted-foreground">
                 {rosterEditOpen ? (
                   <>
-                    Open until{" "}
+                    {etT("actions.openUntil")}{" "}
                     <span className="font-semibold text-foreground">
                       {(eventDetails as any).roster_edit_until
                         ? new Date(
@@ -1333,7 +1330,7 @@ export default function ActionsTab({
                     </span>
                   </>
                 ) : (
-                  <span className="font-semibold">Closed</span>
+                  <span className="font-semibold">{etT("actions.closed")}</span>
                 )}
               </p>
             </div>
@@ -1344,7 +1341,7 @@ export default function ActionsTab({
                 onClick={() => handleSetRosterWindow(false)}
                 disabled={loadingRosterWindow}
               >
-                {loadingRosterWindow ? <Loader text="Saving..." /> : "Close now"}
+                {loadingRosterWindow ? <Loader text={etT("actions.saving")} /> : etT("actions.closeNow")}
               </Button>
             )}
           </div>
@@ -1352,7 +1349,7 @@ export default function ActionsTab({
           <Separator />
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Open until</p>
+            <p className="text-sm font-medium">{etT("actions.openUntil")}</p>
             <div className="flex flex-wrap items-center gap-2">
               <input
                 type="datetime-local"
@@ -1371,20 +1368,20 @@ export default function ActionsTab({
                 disabled={loadingRosterWindow}
               >
                 {loadingRosterWindow ? (
-                  <Loader text="Saving..." />
+                  <Loader text={etT("actions.saving")} />
                 ) : rosterEditOpen ? (
-                  "Update window"
+                  etT("actions.updateWindow")
                 ) : (
-                  "Open window"
+                  etT("actions.openWindow")
                 )}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Cannot be later than the event end date
-              {eventDetails.end_date
-                ? ` (${String(eventDetails.end_date).slice(0, 10)})`
-                : ""}
-              .
+              {etT("actions.notLaterThanEnd", {
+                date: eventDetails.end_date
+                  ? ` (${String(eventDetails.end_date).slice(0, 10)})`
+                  : "",
+              })}
             </p>
           </div>
         </CardContent>
@@ -1393,19 +1390,19 @@ export default function ActionsTab({
       {/* 4 ── Visibility & Export ─────────────────────────────────────── */}
       <Card>
         <CardHeader>
-          <CardTitle>Visibility & Data</CardTitle>
+          <CardTitle>{etT("actions.visibilityTitle")}</CardTitle>
           <CardDescription>
-            Control event visibility and export participant data.
+            {etT("actions.visibilityDesc")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium">Event Visibility</p>
+              <p className="text-sm font-medium">{etT("actions.eventVisibility")}</p>
               <p className="text-xs text-muted-foreground">
-                Currently:{" "}
+                {etT("actions.currently")}{" "}
                 <span className="font-semibold">
-                  {eventDetails.is_public ? "Public" : "Private"}
+                  {eventDetails.is_public ? etT("actions.public") : etT("actions.private")}
                 </span>
               </p>
             </div>
@@ -1416,14 +1413,14 @@ export default function ActionsTab({
               disabled={loadingVisibility}
             >
               {loadingVisibility ? (
-                <Loader text="Saving..." />
+                <Loader text={etT("actions.saving")} />
               ) : eventDetails.is_public ? (
                 <>
-                  <EyeOff className="h-4 w-4 mr-1" /> Make Private
+                  <EyeOff className="h-4 w-4 mr-1" /> {etT("actions.makePrivate")}
                 </>
               ) : (
                 <>
-                  <Eye className="h-4 w-4 mr-1" /> Make Public
+                  <Eye className="h-4 w-4 mr-1" /> {etT("actions.makePublic")}
                 </>
               )}
             </Button>
@@ -1437,15 +1434,15 @@ export default function ActionsTab({
               enter/manage results. Confirm-gated since hiding mid-event removes players' standings. */}
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium">Results Visibility</p>
+              <p className="text-sm font-medium">{etT("actions.resultsVisibility")}</p>
               <p className="text-xs text-muted-foreground">
-                Currently:{" "}
+                {etT("actions.currently")}{" "}
                 <span className="font-semibold">
-                  {resultsPublished ? "Published" : "Hidden"}
+                  {resultsPublished ? etT("actions.published") : etT("actions.hidden")}
                 </span>
                 {resultsPublished
-                  ? ". Players can see the leaderboard."
-                  : ". The leaderboard is hidden from players."}
+                  ? etT("actions.resultsPublishedNote")
+                  : etT("actions.resultsHiddenNote")}
               </p>
             </div>
             <Button
@@ -1455,14 +1452,14 @@ export default function ActionsTab({
               disabled={loadingResultsVis}
             >
               {loadingResultsVis ? (
-                <Loader text="Saving..." />
+                <Loader text={etT("actions.saving")} />
               ) : resultsPublished ? (
                 <>
-                  <EyeOff className="h-4 w-4 mr-1" /> Hide Results
+                  <EyeOff className="h-4 w-4 mr-1" /> {etT("actions.hideResults")}
                 </>
               ) : (
                 <>
-                  <Eye className="h-4 w-4 mr-1" /> Publish Results
+                  <Eye className="h-4 w-4 mr-1" /> {etT("actions.publishResults")}
                 </>
               )}
             </Button>
@@ -1472,11 +1469,11 @@ export default function ActionsTab({
 
           <div>
             <p className="text-sm font-medium mb-1 inline-flex items-center">
-              Export Participants
+              {etT("actions.exportParticipants")}
               <InfoTip id="events.edit.export_participants" className="ml-1" />
             </p>
             <p className="text-xs text-muted-foreground mb-3">
-              Download a list of all registered players/teams.
+              {etT("actions.exportParticipantsDesc")}
             </p>
             <div className="flex gap-2">
               <Button
@@ -1487,10 +1484,10 @@ export default function ActionsTab({
                 disabled={loadingExport !== null}
               >
                 {loadingExport === "csv" ? (
-                  <Loader text="Exporting..." />
+                  <Loader text={etT("actions.exporting")} />
                 ) : (
                   <>
-                    <Download className="h-4 w-4 mr-1" /> CSV
+                    <Download className="h-4 w-4 mr-1" /> {etT("actions.csv")}
                   </>
                 )}
               </Button>
@@ -1502,10 +1499,10 @@ export default function ActionsTab({
                 disabled={loadingExport !== null}
               >
                 {loadingExport === "xlsx" ? (
-                  <Loader text="Exporting..." />
+                  <Loader text={etT("actions.exporting")} />
                 ) : (
                   <>
-                    <Download className="h-4 w-4 mr-1" /> Excel
+                    <Download className="h-4 w-4 mr-1" /> {etT("actions.excel")}
                   </>
                 )}
               </Button>
@@ -1521,11 +1518,10 @@ export default function ActionsTab({
             <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
               <XCircle className="h-7 w-7 text-red-600" />
             </div>
-            <DialogTitle className="text-xl">Cancel this event?</DialogTitle>
+            <DialogTitle className="text-xl">{etT("actions.confirmCancelTitle")}</DialogTitle>
             <DialogDescription className="mt-2">
-              <b>"{eventDetails.event_name}"</b> will be marked as cancelled.
-              Registrations will be frozen and all registered players will be
-              notified.
+              <b>&quot;{eventDetails.event_name}&quot;</b>{" "}
+              {etT("actions.confirmCancelDesc")}
             </DialogDescription>
             <div className="flex gap-3 mt-6">
               <Button
@@ -1534,7 +1530,7 @@ export default function ActionsTab({
                 disabled={loadingCancel}
                 onClick={() => setCancelOpen(false)}
               >
-                Back
+                {etT("actions.back")}
               </Button>
               <Button
                 variant="destructive"
@@ -1543,9 +1539,9 @@ export default function ActionsTab({
                 disabled={loadingCancel}
               >
                 {loadingCancel ? (
-                  <Loader text="Cancelling..." />
+                  <Loader text={etT("actions.cancelling")} />
                 ) : (
-                  "Yes, Cancel Event"
+                  etT("actions.yesCancelEvent")
                 )}
               </Button>
             </div>
@@ -1560,10 +1556,10 @@ export default function ActionsTab({
             <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
               <CheckCircle2 className="h-7 w-7 text-green-600" />
             </div>
-            <DialogTitle className="text-xl">Mark as complete?</DialogTitle>
+            <DialogTitle className="text-xl">{etT("actions.confirmCompleteTitle")}</DialogTitle>
             <DialogDescription className="mt-2">
-              <b>"{eventDetails.event_name}"</b> will be finalised. Results will
-              be locked and all registered players will be notified.
+              <b>&quot;{eventDetails.event_name}&quot;</b>{" "}
+              {etT("actions.confirmCompleteDesc")}
             </DialogDescription>
             <div className="flex gap-3 mt-6">
               <Button
@@ -1572,7 +1568,7 @@ export default function ActionsTab({
                 disabled={loadingComplete}
                 onClick={() => setCompleteOpen(false)}
               >
-                Back
+                {etT("actions.back")}
               </Button>
               <Button
                 className="flex-1"
@@ -1580,9 +1576,9 @@ export default function ActionsTab({
                 disabled={loadingComplete}
               >
                 {loadingComplete ? (
-                  <Loader text="Completing..." />
+                  <Loader text={etT("actions.completing")} />
                 ) : (
-                  "Yes, Mark Complete"
+                  etT("actions.yesMarkComplete")
                 )}
               </Button>
             </div>
@@ -1597,10 +1593,10 @@ export default function ActionsTab({
             <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
               <Undo2 className="h-7 w-7 text-blue-600" />
             </div>
-            <DialogTitle className="text-xl">Reopen this event?</DialogTitle>
+            <DialogTitle className="text-xl">{etT("actions.confirmReopenTitle")}</DialogTitle>
             <DialogDescription className="mt-2">
-              <b>"{eventDetails.event_name}"</b> will be set back to active so you
-              can fix or add results. You can mark it complete again afterwards.
+              <b>&quot;{eventDetails.event_name}&quot;</b>{" "}
+              {etT("actions.confirmReopenDesc")}
             </DialogDescription>
             <div className="flex gap-3 mt-6">
               <Button
@@ -1609,14 +1605,14 @@ export default function ActionsTab({
                 disabled={loadingReopen}
                 onClick={() => setReopenOpen(false)}
               >
-                Back
+                {etT("actions.back")}
               </Button>
               <Button
                 className="flex-1"
                 onClick={handleReopen}
                 disabled={loadingReopen}
               >
-                {loadingReopen ? <Loader text="Reopening..." /> : "Yes, Reopen Event"}
+                {loadingReopen ? <Loader text={etT("actions.reopening")} /> : etT("actions.yesReopenEvent")}
               </Button>
             </div>
           </div>
@@ -1635,21 +1631,19 @@ export default function ActionsTab({
               )}
             </div>
             <DialogTitle className="text-xl">
-              {resultsPublished ? "Hide results?" : "Publish results?"}
+              {resultsPublished
+                ? etT("actions.confirmHideResultsTitle")
+                : etT("actions.confirmPublishResultsTitle")}
             </DialogTitle>
             <DialogDescription className="mt-2">
-              {resultsPublished ? (
-                <>
-                  The leaderboard for <b>"{eventDetails.event_name}"</b> will be
-                  hidden from players until you publish it again. You can still
-                  enter and review results while they are hidden.
-                </>
-              ) : (
-                <>
-                  The leaderboard for <b>"{eventDetails.event_name}"</b> will be
-                  visible to everyone on the tournament page.
-                </>
-              )}
+              {/* etT.rich embeds the bold event name inline so each sentence stays one unit. */}
+              {resultsPublished
+                ? etT.rich("actions.confirmHideResultsDesc", {
+                    name: () => <b>&quot;{eventDetails.event_name}&quot;</b>,
+                  })
+                : etT.rich("actions.confirmPublishResultsDesc", {
+                    name: () => <b>&quot;{eventDetails.event_name}&quot;</b>,
+                  })}
             </DialogDescription>
             <div className="flex gap-3 mt-6">
               <Button
@@ -1658,7 +1652,7 @@ export default function ActionsTab({
                 disabled={loadingResultsVis}
                 onClick={() => setResultsVisOpen(false)}
               >
-                Back
+                {etT("actions.back")}
               </Button>
               <Button
                 className="flex-1"
@@ -1666,11 +1660,11 @@ export default function ActionsTab({
                 disabled={loadingResultsVis}
               >
                 {loadingResultsVis ? (
-                  <Loader text="Saving..." />
+                  <Loader text={etT("actions.saving")} />
                 ) : resultsPublished ? (
-                  "Yes, Hide Results"
+                  etT("actions.yesHideResults")
                 ) : (
-                  "Yes, Publish Results"
+                  etT("actions.yesPublishResults")
                 )}
               </Button>
             </div>
@@ -1680,11 +1674,13 @@ export default function ActionsTab({
 
       {/* ── Broadcast Announcement ────────────────────────────────────── */}
       <Dialog open={announcementOpen} onOpenChange={setAnnouncementOpen}>
-        <DialogContent className="sm:max-w-[460px]">
-          <DialogTitle>Broadcast Announcement</DialogTitle>
+        <DialogContent className="sm:max-w-[460px] max-h-[85vh] overflow-y-auto">
+          <DialogTitle>{etT("actions.broadcastAnnouncement")}</DialogTitle>
           <DialogDescription>
-            Send an in-app notification to all registered players in{" "}
-            <b>{eventDetails.event_name}</b>.
+            {/* etT.rich embeds the bold event name inline. */}
+            {etT.rich("actions.broadcastDialogDesc", {
+              name: () => <b>{eventDetails.event_name}</b>,
+            })}
           </DialogDescription>
           <div className="space-y-4 mt-2">
             {/* Organizer rate-limit budget ("N of 5 left this hour" + cooldown countdown). Hidden for
@@ -1693,13 +1689,13 @@ export default function ActionsTab({
 
             {/* Scope (owner 2026-06-17): whole event, a stage, or a single group. */}
             <div className="space-y-2">
-              <Label>Send to</Label>
+              <Label>{etT("actions.sendTo")}</Label>
               <div className="grid grid-cols-3 gap-2">
                 {(
                   [
-                    { value: "event", label: "Whole event" },
-                    { value: "stage", label: "A stage" },
-                    { value: "group", label: "A group" },
+                    { value: "event", label: etT("actions.scopeEvent") },
+                    { value: "stage", label: etT("actions.scopeStage") },
+                    { value: "group", label: etT("actions.scopeGroup") },
                   ] as const
                 ).map((opt) => (
                   <button
@@ -1724,7 +1720,7 @@ export default function ActionsTab({
               {annScope === "stage" && (
                 <Select value={annStageId} onValueChange={setAnnStageId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose a stage" />
+                    <SelectValue placeholder={etT("actions.chooseStage")} />
                   </SelectTrigger>
                   <SelectContent>
                     {eventDetails.stages.map((s: any) => (
@@ -1738,7 +1734,7 @@ export default function ActionsTab({
               {annScope === "group" && (
                 <Select value={annGroupId} onValueChange={setAnnGroupId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose a group" />
+                    <SelectValue placeholder={etT("actions.chooseGroup")} />
                   </SelectTrigger>
                   <SelectContent>
                     {eventDetails.stages.flatMap((s: any) =>
@@ -1756,19 +1752,19 @@ export default function ActionsTab({
               )}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="ann-title">Title</Label>
+              <Label htmlFor="ann-title">{etT("actions.title_")}</Label>
               <Input
                 id="ann-title"
-                placeholder="e.g. Room details for tonight"
+                placeholder={etT("actions.titlePlaceholder")}
                 value={annTitle}
                 onChange={(e) => setAnnTitle(e.target.value)}
               />
             </div>
             <div className="space-y-1">
-              <Label htmlFor="ann-message">Message</Label>
+              <Label htmlFor="ann-message">{etT("actions.message")}</Label>
               <Textarea
                 id="ann-message"
-                placeholder="Your message..."
+                placeholder={etT("actions.messagePlaceholder")}
                 rows={4}
                 value={annMessage}
                 onChange={(e) => setAnnMessage(e.target.value)}
@@ -1776,13 +1772,13 @@ export default function ActionsTab({
             </div>
             {/* Delivery channel: app push / email (branded) / both. */}
             <div className="space-y-2">
-              <Label>Send to</Label>
+              <Label>{etT("actions.sendTo")}</Label>
               <div className="grid grid-cols-3 gap-2">
                 {(
                   [
-                    { value: "both", label: "App + Email" },
-                    { value: "push", label: "App only" },
-                    { value: "email", label: "Email only" },
+                    { value: "both", label: etT("actions.deliveryBoth") },
+                    { value: "push", label: etT("actions.deliveryPush") },
+                    { value: "email", label: etT("actions.deliveryEmail") },
                   ] as const
                 ).map((opt) => (
                   <button
@@ -1801,7 +1797,7 @@ export default function ActionsTab({
                 ))}
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Emails are sent in the standard AFC branded design.
+                {etT("actions.emailBrandedNote")}
               </p>
             </div>
             {/* Optional deep link: adds a "Take me there" button on the
@@ -1824,7 +1820,7 @@ export default function ActionsTab({
                 disabled={loadingAnnouncement}
                 onClick={() => setAnnouncementOpen(false)}
               >
-                Cancel
+                {etT("actions.cancel")}
               </Button>
               <Button
                 className="flex-1"
@@ -1832,10 +1828,10 @@ export default function ActionsTab({
                 disabled={loadingAnnouncement}
               >
                 {loadingAnnouncement ? (
-                  <Loader text="Sending..." />
+                  <Loader text={etT("actions.sending")} />
                 ) : (
                   <>
-                    <Radio className="h-4 w-4 mr-1" /> Send
+                    <Radio className="h-4 w-4 mr-1" /> {etT("actions.send")}
                   </>
                 )}
               </Button>
@@ -1847,10 +1843,12 @@ export default function ActionsTab({
       {/* ── Broadcast history (event-scoped) ──────────────────────────── */}
       <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
         <DialogContent className="sm:max-w-[520px]">
-          <DialogTitle>Broadcast history</DialogTitle>
+          <DialogTitle>{etT("actions.broadcastHistoryTitle")}</DialogTitle>
           <DialogDescription>
-            Every announcement, stage/group message and room-details push sent for{" "}
-            <b>{eventDetails.event_name}</b>.
+            {/* etT.rich embeds the bold event name inline. */}
+            {etT.rich("actions.broadcastHistoryDesc", {
+              name: () => <b>{eventDetails.event_name}</b>,
+            })}
           </DialogDescription>
           <div className="mt-2 max-h-[60vh] overflow-auto pr-1">
             {historyOpen && (
@@ -1863,27 +1861,27 @@ export default function ActionsTab({
       {/* ── Delete group: disposition choice ──────────────────────────── */}
       <Dialog open={delGroupOpen} onOpenChange={setDelGroupOpen}>
         <DialogContent className="sm:max-w-[460px]">
-          <DialogTitle>Delete this group?</DialogTitle>
+          <DialogTitle>{etT("actions.deleteGroupDialogTitle")}</DialogTitle>
           <DialogDescription>
-            Choose what happens to the competitors in this group.
+            {etT("actions.deleteGroupDialogDesc")}
           </DialogDescription>
           <div className="space-y-3 mt-2">
             {(
               [
                 {
                   value: "auto",
-                  label: "Auto reseed",
-                  desc: "Move its competitors into the stage's remaining groups.",
+                  label: etT("actions.dispAutoLabel"),
+                  desc: etT("actions.dispGroupAutoDesc"),
                 },
                 {
                   value: "manual",
-                  label: "Manual",
-                  desc: "Keep them registered but unassigned. You place them yourself.",
+                  label: etT("actions.dispManualLabel"),
+                  desc: etT("actions.dispGroupManualDesc"),
                 },
                 {
                   value: "delete_all",
-                  label: "Delete all",
-                  desc: "Remove the group and its competitors from the stage.",
+                  label: etT("actions.dispDeleteAllLabel"),
+                  desc: etT("actions.dispGroupDeleteAllDesc"),
                 },
               ] as const
             ).map((opt) => (
@@ -1908,7 +1906,7 @@ export default function ActionsTab({
                 className="flex-1"
                 onClick={() => setDelGroupOpen(false)}
               >
-                Cancel
+                {etT("actions.cancel")}
               </Button>
               <Button
                 variant="destructive"
@@ -1916,7 +1914,11 @@ export default function ActionsTab({
                 onClick={handleDeleteGroup}
                 disabled={loadingDelGroup}
               >
-                {loadingDelGroup ? <Loader text="Deleting..." /> : "Delete group"}
+                {loadingDelGroup ? (
+                  <Loader text={etT("actions.deleting")} />
+                ) : (
+                  etT("actions.deleteGroupBtn")
+                )}
               </Button>
             </div>
           </div>
@@ -1926,27 +1928,27 @@ export default function ActionsTab({
       {/* ── Delete stage: disposition choice (+ target for move) ───────── */}
       <Dialog open={delStageOpen} onOpenChange={setDelStageOpen}>
         <DialogContent className="sm:max-w-[460px]">
-          <DialogTitle>Delete this stage?</DialogTitle>
+          <DialogTitle>{etT("actions.deleteStageDialogTitle")}</DialogTitle>
           <DialogDescription>
-            Choose what happens to the competitors in this stage.
+            {etT("actions.deleteStageDialogDesc")}
           </DialogDescription>
           <div className="space-y-3 mt-2">
             {(
               [
                 {
                   value: "auto",
-                  label: "Auto reseed",
-                  desc: "Move competitors to another stage and distribute into its groups.",
+                  label: etT("actions.dispAutoLabel"),
+                  desc: etT("actions.dispStageAutoDesc"),
                 },
                 {
                   value: "manual",
-                  label: "Manual",
-                  desc: "Move competitors to another stage; you place them later.",
+                  label: etT("actions.dispManualLabel"),
+                  desc: etT("actions.dispStageManualDesc"),
                 },
                 {
                   value: "delete_all",
-                  label: "Delete all",
-                  desc: "Remove the stage and everything in it.",
+                  label: etT("actions.dispDeleteAllLabel"),
+                  desc: etT("actions.dispStageDeleteAllDesc"),
                 },
               ] as const
             ).map((opt) => (
@@ -1968,13 +1970,13 @@ export default function ActionsTab({
             {/* Target stage is required only when MOVING competitors (auto / manual). */}
             {delStageMode !== "delete_all" && (
               <div className="space-y-1">
-                <Label>Move competitors to</Label>
+                <Label>{etT("actions.moveCompetitorsTo")}</Label>
                 <Select
                   value={delStageTargetId}
                   onValueChange={setDelStageTargetId}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select target stage" />
+                    <SelectValue placeholder={etT("actions.selectTargetStage")} />
                   </SelectTrigger>
                   <SelectContent>
                     {eventDetails.stages
@@ -1994,7 +1996,7 @@ export default function ActionsTab({
                 className="flex-1"
                 onClick={() => setDelStageOpen(false)}
               >
-                Cancel
+                {etT("actions.cancel")}
               </Button>
               <Button
                 variant="destructive"
@@ -2002,7 +2004,11 @@ export default function ActionsTab({
                 onClick={handleDeleteStage}
                 disabled={loadingDelStage}
               >
-                {loadingDelStage ? <Loader text="Deleting..." /> : "Delete stage"}
+                {loadingDelStage ? (
+                  <Loader text={etT("actions.deleting")} />
+                ) : (
+                  etT("actions.deleteStageBtn")
+                )}
               </Button>
             </div>
           </div>
@@ -2019,7 +2025,7 @@ export default function ActionsTab({
             <div className="h-14 w-14 mx-auto mb-4 rounded-full bg-orange-100 flex items-center justify-center">
               <AlertTriangle className="h-7 w-7 text-orange-600" />
             </div>
-            <DialogTitle className="text-xl">Entered results affected</DialogTitle>
+            <DialogTitle className="text-xl">{etT("actions.forceTitle")}</DialogTitle>
             <DialogDescription className="mt-2">
               {forceConfirm.message}
             </DialogDescription>
@@ -2029,14 +2035,14 @@ export default function ActionsTab({
                 className="flex-1"
                 onClick={() => setForceConfirm((s) => ({ ...s, open: false }))}
               >
-                Back
+                {etT("actions.back")}
               </Button>
               <Button
                 variant="destructive"
                 className="flex-1"
                 onClick={forceConfirm.onConfirm}
               >
-                Proceed anyway
+                {etT("actions.proceedAnyway")}
               </Button>
             </div>
           </div>

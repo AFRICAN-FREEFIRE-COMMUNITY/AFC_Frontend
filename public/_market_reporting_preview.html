@@ -1,0 +1,824 @@
+<!doctype html>
+<!--
+  AFC Player Market - REPORTING + BANS approval preview (mock data, in-context, clickable).
+  ───────────────────────────────────────────────────────────────────────────────────────
+  This mockup is the REAL /player-markets page WITH a new moderation feature bolted on,
+  not a standalone redesign. It reuses the real chrome read from
+  frontend/app/(user)/player-markets/page.tsx: PageHeader (green title + description),
+  the two info banners, and the shadcn pill TabsList. Three surfaces are shown in one file:
+
+    (1) USER side   - a "Report" red-flag button on every market post card, opening a reason
+                      form (negative tryout experience, scam, abusive conduct, fake post, ...).
+                      Mirrors afc_organizers OrganizationReport: a category + free-text details
+                      + optional evidence, created with status "open".
+    (2) ADMIN queue - a new "Reports" tab (visible to market moderators) listing submitted
+                      reports in a dense table with status badges + expandable rows, plus a
+                      "Ban" action. Mirrors afc_organizers views_reports.admin_list_reports
+                      (status filter: open / reviewing / resolved / dismissed, newest first).
+    (3) BAN dialog  - ban a TEAM or a PLAYER from posting on the market for a duration
+                      (presets 3d / 7d / 14d / 30d / 90d / permanent + custom days) with a
+                      reason. Mirrors afc_auth TeamBan / BannedPlayer (ban_duration in days,
+                      ban_end_date, reason, banned_by, is_active).
+
+  Backend pattern this slots onto (for the dev who implements it):
+    - report model  -> MarketPostReport(post, reporter, category, details, evidence,
+                        status[open|reviewing|resolved|dismissed], reviewed_by, resolution_notes)
+                        copied verbatim in spirit from OrganizationReport.
+    - ban model     -> MarketBan(subject_type[team|player], team|player, ban_start_date,
+                        ban_duration_days(null=permanent), ban_end_date, reason, banned_by,
+                        is_active) copied from TeamBan / BannedPlayer.
+    - endpoints     -> POST /player-market/report-post/, GET /player-market/reports/ (admin),
+                        PATCH /player-market/reports/<id>/ (admin triage), POST
+                        /player-market/ban/ (admin). axios + Bearer token + sonner toasts,
+                        same as the rest of page.tsx.
+
+  HARD RULE honoured: NO em dashes or en dashes anywhere in copy (commas / periods /
+  colons / parentheses / spaced hyphen only). Comment generously for handoff.
+-->
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Player Market - Reporting and Bans Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+  /* ── AFC design tokens (oklch, copied from globals.css + the two approved mockups) ── */
+  :root{
+    --background: oklch(0.141 0.005 285.823); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.21 0.006 285.885); --primary: oklch(0.624 0.170 149.09);
+    --gold: oklch(0.79 0.17 83.63); --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067); --border: oklch(1 0 0 / 10%);
+    --radius: 0.65rem; --red: oklch(0.62 0.20 25);
+    --secondary: oklch(0.274 0.006 286.033);
+    /* status accent hues used by report-status + tier badges */
+    --yellow: oklch(0.82 0.16 86); --cyan: oklch(0.72 0.13 215);
+    --blue: oklch(0.66 0.16 256); --purple: oklch(0.66 0.17 304);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--background);color:var(--foreground);min-height:100vh;position:relative;line-height:1.5;}
+  /* fixed gradient overlay (from-primary/20 via-transparent to-gold/20) */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,color-mix(in oklch,var(--primary) 18%,transparent),transparent 55%,color-mix(in oklch,var(--gold) 18%,transparent));}
+  /* container: 92% desktop, centered, matches @utility container */
+  .container{position:relative;z-index:1;width:92%;max-width:1180px;margin:0 auto;padding:30px 0 90px;}
+
+  /* ── PageHeader idiom (back chip + green title + description) ── */
+  .pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+  .pagehead .lhs{display:flex;align-items:center;gap:14px;}
+  .back{width:40px;height:40px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);display:grid;place-items:center;font-size:18px;cursor:pointer;flex-shrink:0;}
+  h1{font-size:clamp(1.875rem,3vw,2.25rem);font-weight:700;color:var(--primary);letter-spacing:-0.01em;line-height:1.1;}
+  .pagehead .desc{color:var(--muted-foreground);font-size:.9rem;margin-top:2px;}
+  .hbtns{display:flex;gap:8px;}
+  .btn{appearance:none;font-family:inherit;font-weight:600;font-size:.82rem;border-radius:calc(var(--radius) - 2px);padding:9px 15px;cursor:pointer;border:1px solid var(--border);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+  .btn.primary{background:var(--primary);color:#06281a;border-color:transparent;}
+  .btn.outline{background:transparent;color:var(--foreground);}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--muted-foreground);padding:7px 10px;}
+  .btn.ghost:hover{color:var(--foreground);}
+  .btn.danger{background:transparent;border-color:color-mix(in oklch,var(--red) 55%,transparent);color:var(--red);}
+  .btn.danger:hover{background:color-mix(in oklch,var(--red) 12%,transparent);}
+  .btn.dangerfill{background:var(--red);color:#fff;border-color:transparent;}
+  .btn.sm{font-size:.74rem;padding:6px 11px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* ── info banners (the real page's primary/5 and yellow/5 notice cards) ── */
+  .notice{display:flex;align-items:flex-start;gap:12px;border-radius:var(--radius);padding:14px 16px;font-size:.85rem;color:var(--muted-foreground);margin-bottom:12px;}
+  .notice.primary{background:color-mix(in oklch,var(--primary) 6%,transparent);border:1px solid color-mix(in oklch,var(--primary) 22%,transparent);}
+  .notice.warn{background:color-mix(in oklch,var(--yellow) 6%,transparent);border:1px solid color-mix(in oklch,var(--yellow) 28%,transparent);}
+  .notice .ic{flex-shrink:0;margin-top:1px;}
+  .notice.primary .ic{color:var(--primary);} .notice.warn .ic{color:var(--yellow);}
+  .notice b{color:var(--yellow);font-weight:600;}
+
+  /* ── shadcn pill TabsList (bg-muted, h-9, active = bg-background fill) ── */
+  .tabs{display:flex;gap:4px;background:var(--muted);border-radius:var(--radius);padding:4px;margin:18px 0 18px;overflow-x:auto;}
+  .tab{flex:1;min-width:128px;text-align:center;font-size:.8rem;font-weight:600;padding:8px 12px;border-radius:calc(var(--radius) - 3px);color:var(--muted-foreground);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+  .tab.active{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+  .tab .count{display:inline-flex;align-items:center;justify-content:center;height:16px;min-width:16px;padding:0 4px;border-radius:999px;background:var(--primary);color:#06281a;font-size:.62rem;font-weight:700;}
+  .tab .count.red{background:var(--red);color:#fff;}
+
+  /* ── card grid (the post cards on Teams / Players tabs) ── */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:0.5rem;padding:16px;display:flex;flex-direction:column;gap:12px;transition:border-color .15s;}
+  .card:hover{border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .chead{display:flex;align-items:center;gap:12px;}
+  .av{width:46px;height:46px;border-radius:999px;background:color-mix(in oklch,var(--primary) 22%,var(--card));display:grid;place-items:center;font-weight:700;font-size:1.05rem;flex-shrink:0;}
+  .chead .nm{font-weight:600;font-size:.95rem;}
+  .chead .exp{color:var(--muted-foreground);font-size:.74rem;}
+  .badges{display:flex;flex-wrap:wrap;gap:6px;}
+  .badge{font-size:.7rem;font-weight:600;border-radius:999px;padding:2px 9px;border:1px solid var(--border);color:var(--muted-foreground);display:inline-flex;align-items:center;gap:4px;}
+  .badge.solid{background:var(--secondary);color:var(--foreground);border-color:transparent;}
+  .badge.green{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);}
+  .badge.tier1{color:var(--gold);border-color:color-mix(in oklch,var(--gold) 50%,transparent);}
+  .badge.tier2{color:var(--cyan);border-color:color-mix(in oklch,var(--cyan) 50%,transparent);}
+  .badge.tier3{color:var(--purple);border-color:color-mix(in oklch,var(--purple) 50%,transparent);}
+  .meta{display:flex;flex-wrap:wrap;gap:12px;font-size:.76rem;color:var(--muted-foreground);}
+  .meta span{display:inline-flex;align-items:center;gap:4px;}
+  .sep{height:1px;background:var(--border);margin:2px 0;}
+  .cfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+
+  /* filters row */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .field{background:var(--background);border:1px solid var(--border);border-radius:calc(var(--radius) - 2px);color:var(--foreground);font-family:inherit;font-size:.82rem;padding:8px 11px;color-scheme:dark;}
+  .field.grow{flex:1;min-width:180px;}
+  select.field{cursor:pointer;}
+
+  /* ── ADMIN reports table (text-xs, p-2 cells, h-10 headers, headers white) ── */
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:.78rem;}
+  thead tr{height:40px;}
+  th{text-align:left;color:var(--foreground);font-weight:600;font-size:.72rem;padding:8px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  th.c,td.c{text-align:center;} th.r,td.r{text-align:right;}
+  td{padding:8px;border-top:1px solid color-mix(in oklch,var(--border) 55%,transparent);vertical-align:middle;}
+  tbody tr.rrow{cursor:pointer;}
+  tbody tr.rrow:hover td{background:color-mix(in oklch,var(--primary) 5%,transparent);}
+  .caret{display:inline-block;width:12px;color:var(--muted-foreground);transition:transform .15s;}
+  tr.open .caret{transform:rotate(90deg);color:var(--primary);}
+  .subj{font-weight:600;}
+  .subj .sub2{color:var(--muted-foreground);font-weight:400;font-size:.72rem;}
+  /* report status badges (open=yellow, reviewing=cyan, resolved=green, dismissed=muted) */
+  .st{font-size:.68rem;font-weight:600;border-radius:999px;padding:2px 9px;border:1px solid var(--border);text-transform:capitalize;}
+  .st.open{color:var(--yellow);border-color:color-mix(in oklch,var(--yellow) 50%,transparent);background:color-mix(in oklch,var(--yellow) 10%,transparent);}
+  .st.reviewing{color:var(--cyan);border-color:color-mix(in oklch,var(--cyan) 50%,transparent);background:color-mix(in oklch,var(--cyan) 10%,transparent);}
+  .st.resolved{color:var(--primary);border-color:color-mix(in oklch,var(--primary) 50%,transparent);background:color-mix(in oklch,var(--primary) 10%,transparent);}
+  .st.dismissed{color:var(--muted-foreground);}
+  .st.banned{color:var(--red);border-color:color-mix(in oklch,var(--red) 50%,transparent);background:color-mix(in oklch,var(--red) 10%,transparent);}
+  /* category chip */
+  .cat{font-size:.68rem;font-weight:600;border-radius:999px;padding:2px 9px;border:1px solid var(--border);color:var(--muted-foreground);}
+  .cat.scam,.cat.abusive{color:var(--red);border-color:color-mix(in oklch,var(--red) 45%,transparent);}
+
+  /* expandable report detail row */
+  .detail td{background:var(--background);padding:0;}
+  .detail .inner{padding:14px 16px 16px 34px;display:grid;gap:14px;}
+  .detail h4{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-foreground);margin-bottom:6px;}
+  .detail .quote{font-size:.85rem;color:var(--foreground);background:var(--card);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:6px;padding:11px 13px;}
+  .dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .dbox{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+  .dbox .l{font-size:.66rem;color:var(--muted-foreground);} .dbox .v{font-weight:600;font-size:.86rem;margin-top:2px;}
+  .evidence{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--primary);text-decoration:none;}
+  .actrow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .actrow .grow{flex:1;}
+
+  /* ── modal (shadcn Dialog idiom: centered card, max-w, overlay) ── */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(2px);z-index:50;display:none;align-items:flex-start;justify-content:center;padding:48px 16px;overflow-y:auto;}
+  .overlay.show{display:flex;}
+  .modal{width:100%;max-width:520px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.55);}
+  .modal.ban{border-color:color-mix(in oklch,var(--red) 35%,transparent);}
+  .mhead{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px;}
+  .mhead .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex-shrink:0;font-size:18px;}
+  .mhead .ic.flag{background:color-mix(in oklch,var(--red) 14%,transparent);color:var(--red);}
+  .mhead .ic.ban{background:color-mix(in oklch,var(--red) 14%,transparent);color:var(--red);}
+  .mtitle{font-size:1.1rem;font-weight:700;}
+  .mdesc{font-size:.82rem;color:var(--muted-foreground);margin-top:2px;}
+  .mbody{display:flex;flex-direction:column;gap:15px;margin:16px 0 18px;}
+  .lbl{font-size:.8rem;font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:5px;}
+  .lbl .req{color:var(--red);}
+  .hint{font-size:.72rem;color:var(--muted-foreground);font-weight:400;}
+  textarea.field,input.field{width:100%;}
+  textarea.field{resize:vertical;min-height:82px;font-family:inherit;}
+
+  /* reason option pills (radio-style choices) */
+  .reasons{display:flex;flex-direction:column;gap:8px;}
+  .reason{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:.12s;}
+  .reason:hover{border-color:color-mix(in oklch,var(--primary) 40%,transparent);}
+  .reason.on{border-color:var(--primary);background:color-mix(in oklch,var(--primary) 8%,transparent);}
+  .reason .dot{width:16px;height:16px;border-radius:999px;border:2px solid var(--muted-foreground);flex-shrink:0;margin-top:2px;display:grid;place-items:center;}
+  .reason.on .dot{border-color:var(--primary);}
+  .reason.on .dot::after{content:"";width:7px;height:7px;border-radius:999px;background:var(--primary);}
+  .reason .t{font-weight:600;font-size:.85rem;} .reason .d{font-size:.74rem;color:var(--muted-foreground);}
+
+  /* subject (team vs player) segmented toggle for the ban dialog */
+  .seg{display:inline-flex;gap:3px;background:var(--muted);border-radius:var(--radius);padding:3px;width:100%;}
+  .seg button{flex:1;appearance:none;border:0;background:transparent;color:var(--muted-foreground);font-family:inherit;font-size:.8rem;font-weight:600;padding:8px 12px;border-radius:calc(var(--radius) - 4px);cursor:pointer;}
+  .seg button.on{background:var(--background);color:var(--foreground);box-shadow:0 1px 2px rgba(0,0,0,.35);}
+
+  /* duration preset chips */
+  .durs{display:flex;flex-wrap:wrap;gap:7px;}
+  .dur{appearance:none;border:1px solid var(--border);background:transparent;color:var(--muted-foreground);font-family:inherit;font-size:.78rem;font-weight:600;padding:7px 13px;border-radius:999px;cursor:pointer;}
+  .dur:hover{border-color:color-mix(in oklch,var(--red) 45%,transparent);color:var(--foreground);}
+  .dur.on{background:color-mix(in oklch,var(--red) 14%,transparent);border-color:var(--red);color:var(--red);}
+  .dur.perm.on{background:color-mix(in oklch,var(--red) 20%,transparent);}
+  .custombox{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:.8rem;color:var(--muted-foreground);}
+  .custombox input{width:80px;}
+
+  /* live "ban summary" line so the admin sees exactly what will happen */
+  .summary{font-size:.8rem;color:var(--foreground);background:color-mix(in oklch,var(--red) 8%,transparent);border:1px solid color-mix(in oklch,var(--red) 30%,transparent);border-radius:8px;padding:11px 13px;}
+  .summary b{color:var(--red);}
+
+  .mfoot{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;}
+
+  .empty{text-align:center;padding:46px 0;color:var(--muted-foreground);}
+  .empty .big{font-size:2rem;opacity:.5;} .empty .t{font-weight:600;margin-top:8px;} .empty .s{font-size:.85rem;margin-top:2px;}
+  .hide{display:none;}
+
+  /* toast (sonner-style) */
+  #toasts{position:fixed;right:16px;bottom:16px;z-index:80;display:flex;flex-direction:column;gap:8px;}
+  .toast{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:8px;padding:11px 14px;font-size:.83rem;min-width:240px;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:slideIn .2s ease;}
+  .toast.err{border-left-color:var(--red);}
+  @keyframes slideIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  /* "you are viewing as" role switcher (mockup-only convenience, not part of real UI) */
+  .roleswitch{position:fixed;left:16px;bottom:16px;z-index:80;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:.74rem;color:var(--muted-foreground);display:flex;align-items:center;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+  .roleswitch b{color:var(--foreground);}
+  .roleswitch button{appearance:none;border:1px solid var(--border);background:transparent;color:var(--muted-foreground);font-family:inherit;font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:6px;cursor:pointer;}
+  .roleswitch button.on{background:var(--primary);color:#06281a;border-color:transparent;}
+
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}.dgrid{grid-template-columns:1fr;}.roleswitch{display:none;}}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── PageHeader (matches the real page: back chip + green title + description + actions) ── -->
+  <div class="pagehead">
+    <div class="lhs">
+      <div class="back">&larr;</div>
+      <div>
+        <h1>Player Market</h1>
+        <div class="desc">Find teammates or advertise your availability</div>
+      </div>
+    </div>
+    <div class="hbtns">
+      <button class="btn outline">&#128172; Chats</button>
+      <button class="btn primary">+ Create Post</button>
+    </div>
+  </div>
+
+  <!-- ── existing info banners (verbatim tone from the real page) ── -->
+  <div class="notice primary">
+    <span class="ic">&#9432;</span>
+    <span>All recruitment and trials are governed by AFC rules. Communication unlocks after trial invitation. Teams and players should screen record and screenshot any incidents during a trial that they might want to report.</span>
+  </div>
+  <!-- NEW banner: tells users the report tool exists. Mirrors the yellow notice card style. -->
+  <div class="notice warn">
+    <span class="ic">&#9888;</span>
+    <span><b>Spot something wrong?</b> Use the Report button on any post to flag a scam, a bad tryout experience, or abusive conduct. AFC moderators review every report and can ban a team or player from posting.</span>
+  </div>
+
+  <!-- ── pill tabs. "Reports" is the NEW admin-only tab (shown via the role switcher). ── -->
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="teams" onclick="showTab('teams')">&#128101; Teams Recruiting</div>
+    <div class="tab" data-tab="players" onclick="showTab('players')">&#128100; Players Open to Join</div>
+    <div class="tab admin-only hide" data-tab="reports" onclick="showTab('reports')">&#128681; Reports <span class="count red" id="reportTabCount">3</span></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════════
+       SURFACE 1 - USER SIDE: market post cards each gain a "Report" red-flag button
+       ════════════════════════════════════════════════════════════════════════════ -->
+
+  <!-- Teams Recruiting tab -->
+  <section id="tab-teams">
+    <div class="filters">
+      <input class="field grow" placeholder="Search teams..." />
+      <select class="field"><option>All Levels</option><option>Full Time</option><option>Part Time</option></select>
+      <select class="field"><option>All Tiers</option><option>Tier 1</option><option>Tier 2</option><option>Tier 3</option></select>
+    </div>
+    <div class="grid" id="teamGrid"></div>
+  </section>
+
+  <!-- Players Open to Join tab -->
+  <section id="tab-players" class="hide">
+    <div class="filters">
+      <input class="field grow" placeholder="Search players..." />
+      <select class="field"><option>All</option><option>Trial</option><option>Permanent</option><option>Scrims Only</option></select>
+      <select class="field"><option>All Roles</option><option>IGL</option><option>Rusher</option><option>Support</option><option>Sniper</option></select>
+    </div>
+    <div class="grid" id="playerGrid"></div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════════
+       SURFACE 2 - ADMIN REVIEW QUEUE: dense table of submitted reports + Ban action
+       Mirrors afc_organizers/views_reports.admin_list_reports (status filter, newest
+       first, paginated). Only market moderators see this tab.
+       ════════════════════════════════════════════════════════════════════════════ -->
+  <section id="tab-reports" class="hide">
+    <div class="filters">
+      <input class="field grow" placeholder="Search reports by team or player..." oninput="renderReports(this.value)" id="reportSearch" />
+      <select class="field" id="reportStatusFilter" onchange="renderReports()">
+        <option value="all">All statuses</option>
+        <option value="open">Open</option>
+        <option value="reviewing">Reviewing</option>
+        <option value="resolved">Resolved</option>
+        <option value="dismissed">Dismissed</option>
+      </select>
+      <select class="field" id="reportCatFilter" onchange="renderReports()">
+        <option value="all">All reasons</option>
+        <option value="bad_tryout">Negative tryout experience</option>
+        <option value="scam">Scam / fraud</option>
+        <option value="abusive">Abusive conduct</option>
+        <option value="fake_post">Fake / misleading post</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:22px"></th>
+            <th>Reported subject</th>
+            <th>Reason</th>
+            <th>Post</th>
+            <th>Reporter</th>
+            <th>Submitted</th>
+            <th class="c">Status</th>
+            <th class="r">Action</th>
+          </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+    </div>
+    <p style="font-size:.74rem;color:var(--muted-foreground);margin-top:10px" id="reportMeta"></p>
+  </section>
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════════
+     SURFACE 1 (dialog) - REPORT dialog. Opened from a post card's Report button.
+     Category + free-text details + optional evidence, mirrors OrganizationReport.
+     ════════════════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="reportOverlay">
+  <div class="modal">
+    <div class="mhead">
+      <div class="ic flag">&#128681;</div>
+      <div>
+        <div class="mtitle">Report this post</div>
+        <div class="mdesc">Flagging <b id="reportSubjectName">a post</b>. Your report is private and goes to AFC moderators only.</div>
+      </div>
+    </div>
+
+    <div class="mbody">
+      <!-- reason category (radio-style cards) -->
+      <div>
+        <div class="lbl">Reason <span class="req">*</span></div>
+        <div class="reasons" id="reportReasons">
+          <label class="reason on" data-val="bad_tryout"><span class="dot"></span><span><span class="t">Negative tryout experience</span><span class="d"> They behaved badly during a trial (no-show, toxic, unfair).</span></span></label>
+          <label class="reason" data-val="scam"><span class="dot"></span><span><span class="t">Scam or fraud</span><span class="d"> Asked for money, account details, or tried to deceive me.</span></span></label>
+          <label class="reason" data-val="abusive"><span class="dot"></span><span><span class="t">Abusive conduct</span><span class="d"> Harassment, threats, or hate speech in chat.</span></span></label>
+          <label class="reason" data-val="fake_post"><span class="dot"></span><span><span class="t">Fake or misleading post</span><span class="d"> Impersonation, fake roster, or false claims.</span></span></label>
+          <label class="reason" data-val="other"><span class="dot"></span><span><span class="t">Other</span><span class="d"> Something else worth flagging to moderators.</span></span></label>
+        </div>
+      </div>
+
+      <!-- free-text details (required, mirrors OrganizationReport.details) -->
+      <div>
+        <div class="lbl">What happened <span class="req">*</span></div>
+        <textarea class="field" id="reportDetails" placeholder="Describe what happened. Include dates, in-game names, and anything a moderator needs to understand the situation."></textarea>
+      </div>
+
+      <!-- optional evidence (mirrors OrganizationReport.evidence ImageField) -->
+      <div>
+        <div class="lbl">Evidence <span class="hint">(optional, screenshot or screen recording)</span></div>
+        <input type="file" class="field" id="reportEvidence" accept="image/*" />
+      </div>
+    </div>
+
+    <div class="mfoot">
+      <button class="btn outline" onclick="closeReport()">Cancel</button>
+      <button class="btn dangerfill" id="reportSubmitBtn" onclick="submitReport()">&#128681; Submit report</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════════
+     SURFACE 3 (dialog) - BAN dialog. Opened from the admin queue's "Ban" action.
+     Ban a TEAM or a PLAYER for a duration (presets + custom days) with a reason.
+     Mirrors afc_auth TeamBan / BannedPlayer (ban_duration days, ban_end_date, reason).
+     ════════════════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="banOverlay">
+  <div class="modal ban">
+    <div class="mhead">
+      <div class="ic ban">&#128683;</div>
+      <div>
+        <div class="mtitle">Ban from the market</div>
+        <div class="mdesc">Blocks <b id="banSubjectName">the subject</b> from creating posts, applying, or inviting on the Player Market.</div>
+      </div>
+    </div>
+
+    <div class="mbody">
+      <!-- subject type: TEAM or PLAYER (segmented toggle) -->
+      <div>
+        <div class="lbl">Ban scope <span class="req">*</span></div>
+        <div class="seg" id="banScope">
+          <button class="on" data-scope="player" onclick="setScope('player',this)">This player</button>
+          <button data-scope="team" onclick="setScope('team',this)">Their whole team</button>
+        </div>
+        <div class="hint" style="margin-top:7px" id="banScopeHint">Only this player is blocked. Teammates are unaffected.</div>
+      </div>
+
+      <!-- duration presets + custom (mirrors ban_duration in days; permanent = null) -->
+      <div>
+        <div class="lbl">Duration <span class="req">*</span></div>
+        <div class="durs" id="banDurs">
+          <button class="dur" data-days="3" onclick="setDur(3,this)">3 days</button>
+          <button class="dur on" data-days="7" onclick="setDur(7,this)">7 days</button>
+          <button class="dur" data-days="14" onclick="setDur(14,this)">14 days</button>
+          <button class="dur" data-days="30" onclick="setDur(30,this)">30 days</button>
+          <button class="dur" data-days="90" onclick="setDur(90,this)">90 days</button>
+          <button class="dur perm" data-days="0" onclick="setDur(0,this)">Permanent</button>
+        </div>
+        <div class="custombox">
+          <span>Custom:</span>
+          <input type="number" min="1" class="field" id="banCustom" placeholder="days" oninput="setCustomDur(this.value)" />
+          <span>days</span>
+        </div>
+      </div>
+
+      <!-- reason (mirrors TeamBan.reason / BannedPlayer.reason, max 255) -->
+      <div>
+        <div class="lbl">Reason <span class="req">*</span> <span class="hint">(shown to the banned user)</span></div>
+        <textarea class="field" id="banReason" placeholder="State why this ban is being applied. Reference the report and the rule that was broken."></textarea>
+      </div>
+
+      <!-- live summary so the admin confirms exactly what happens -->
+      <div class="summary" id="banSummary"></div>
+    </div>
+
+    <div class="mfoot">
+      <button class="btn outline" onclick="closeBan()">Cancel</button>
+      <button class="btn dangerfill" onclick="confirmBan()">&#128683; Apply ban</button>
+    </div>
+  </div>
+</div>
+
+<!-- toasts + mockup-only role switcher -->
+<div id="toasts"></div>
+<div class="roleswitch">
+  <span>Viewing as</span>
+  <button class="on" id="roleUser" onclick="setRole('user')">User</button>
+  <button id="roleAdmin" onclick="setRole('admin')">Moderator</button>
+</div>
+
+<script>
+  // ══════════════════════════════════════════════════════════════════════════════
+  //  MOCK DATA
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  // Market posts (subset of the real Teams + Players cards). subjectType drives the
+  // ban scope default in the report -> ban flow.
+  const TEAMS = [
+    {id:'team-12', name:'V-ENT ESPORTS',  exp:'Dec 28, 2025', roles:['Rusher','Sniper'], tier:1, commit:'Full Time', country:'Nigeria'},
+    {id:'team-19', name:'Apex Rising',     exp:'Jan 04, 2026', roles:['IGL','Support'],   tier:2, commit:'Part Time', country:'Ghana'},
+    {id:'team-23', name:'Shadow Syndicate',exp:'Jan 11, 2026', roles:['Grenade'],         tier:3, commit:'Full Time', country:'Kenya'},
+  ];
+  const PLAYERS = [
+    {id:'player-71', name:'VT KingHydra', exp:'Dec 30, 2025', primary:'Rusher',  secondary:'Sniper', avail:'Trial',       country:'Nigeria', team:'V-ENT ESPORTS'},
+    {id:'player-88', name:'Frostbyte',    exp:'Jan 02, 2026', primary:'IGL',     secondary:'',       avail:'Permanent',   country:'South Africa', team:'Apex Rising'},
+    {id:'player-94', name:'GhostRecon',   exp:'Jan 09, 2026', primary:'Support', secondary:'Grenade',avail:'Scrims Only', country:'Egypt', team:''},
+  ];
+
+  // Submitted reports for the admin queue. Mirrors the OrganizationReport shape:
+  // category + details + evidence + status(open/reviewing/resolved/dismissed) + reporter.
+  const CATS = {
+    bad_tryout:{label:'Negative tryout', cls:''},
+    scam:      {label:'Scam / fraud',    cls:'scam'},
+    abusive:   {label:'Abusive conduct', cls:'abusive'},
+    fake_post: {label:'Fake post',       cls:''},
+    other:     {label:'Other',           cls:''},
+  };
+  let REPORTS = [
+    {id:101, subjectType:'player', subject:'GhostRecon', subjectMeta:'@ghostrecon . no team', postId:'player-94', postKind:'Player availability post',
+     cat:'scam', status:'open', reporter:'BlazeUp', when:'2 hours ago',
+     details:'Accepted my trial invite then asked me to send 500 diamonds up front to "secure my slot" before the scrim. Refused and they kept messaging. Classic scam.',
+     evidence:true},
+    {id:102, subjectType:'player', subject:'Frostbyte', subjectMeta:'@frostbyte . Apex Rising', postId:'player-88', postKind:'Player availability post',
+     cat:'bad_tryout', status:'open', reporter:'CoachTunde', when:'5 hours ago',
+     details:'Was a no-show for two scheduled trial scrims without any message. Wasted a full evening of our roster waiting in the lobby.',
+     evidence:false},
+    {id:103, subjectType:'team', subject:'Shadow Syndicate', subjectMeta:'recruitment post . Kenya', postId:'team-23', postKind:'Team recruitment post',
+     cat:'abusive', status:'reviewing', reporter:'NovaQueen', when:'Yesterday',
+     details:'Their captain sent hostile and threatening DMs after I declined the trial. Have screenshots of the messages attached.',
+     evidence:true},
+    {id:104, subjectType:'team', subject:'Red Mamba GG', subjectMeta:'recruitment post . Nigeria', postId:'team-31', postKind:'Team recruitment post',
+     cat:'fake_post', status:'resolved', reporter:'admin note', when:'3 days ago',
+     details:'Post claimed a Tier 1 roster and AFC partnership that does not exist. Verified false against our records.',
+     evidence:false, resolution:'Post removed and team warned. No repeat offenses on record.'},
+    {id:105, subjectType:'player', subject:'xQuickScope', subjectMeta:'@xquickscope . free agent', postId:'player-60', postKind:'Player availability post',
+     cat:'other', status:'dismissed', reporter:'TeamZenith', when:'4 days ago',
+     details:'Reported for "ghosting" but the player had a documented family emergency and notified us late. Not a market violation.',
+     evidence:false, resolution:'Dismissed. No rule broken, communication was just delayed.'},
+  ];
+
+  // ── mockup view state ──
+  let role = 'user';          // 'user' | 'admin'
+  let reportTarget = null;    // post being reported
+  let reportReason = 'bad_tryout';
+  let banTarget = null;       // {subjectType, name, team} being banned
+  let banScope = 'player';
+  let banDays = 7;            // 0 = permanent
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  //  RENDER - market post cards (USER surface). Each card carries a Report button.
+  // ══════════════════════════════════════════════════════════════════════════════
+  function tierClass(t){ return t===1?'tier1':t===2?'tier2':'tier3'; }
+
+  function renderTeams(){
+    document.getElementById('teamGrid').innerHTML = TEAMS.map(t=>`
+      <div class="card">
+        <div class="chead">
+          <div class="av">${t.name.charAt(0)}</div>
+          <div><div class="nm">${t.name}</div><div class="exp">Expires ${t.exp}</div></div>
+        </div>
+        <div class="badges">${t.roles.map(r=>`<span class="badge solid">${r}</span>`).join('')}</div>
+        <div class="meta">
+          <span class="badge ${tierClass(t.tier)}">&#128737; Tier ${t.tier}+</span>
+          <span>&#127919; ${t.commit}</span>
+          <span>&#128205; ${t.country}</span>
+        </div>
+        <div class="sep"></div>
+        <div class="cfoot">
+          <!-- NEW: the Report red-flag button. subjectType=team so a ban defaults to whole-team scope. -->
+          <button class="btn ghost sm" style="color:var(--red)" onclick="openReport('team','${t.name}','${t.id}','Team recruitment post','')">&#128681; Report</button>
+          <button class="btn ghost sm">View Details &#8250;</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderPlayers(){
+    document.getElementById('playerGrid').innerHTML = PLAYERS.map(p=>`
+      <div class="card">
+        <div class="chead">
+          <div class="av">${p.name.charAt(0)}</div>
+          <div><div class="nm">${p.name}</div><div class="exp">Expires ${p.exp}</div></div>
+        </div>
+        <div class="badges">
+          <span class="badge green">${p.primary}</span>
+          ${p.secondary?`<span class="badge solid">${p.secondary}</span>`:''}
+          <span class="badge">${p.avail}</span>
+        </div>
+        <div class="meta">
+          ${p.country?`<span>&#128205; ${p.country}</span>`:''}
+          ${p.team?`<span>&#128737; ${p.team}</span>`:`<span>Free agent</span>`}
+        </div>
+        <div class="sep"></div>
+        <div class="cfoot">
+          <button class="btn ghost sm" style="color:var(--red)" onclick="openReport('player','${p.name}','${p.id}','Player availability post','${p.team}')">&#128681; Report</button>
+          <button class="btn ghost sm">View Details &#8250;</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  //  SURFACE 1 - REPORT dialog
+  // ══════════════════════════════════════════════════════════════════════════════
+  function openReport(subjectType, name, postId, postKind, team){
+    reportTarget = {subjectType, name, postId, postKind, team};
+    reportReason = 'bad_tryout';
+    document.getElementById('reportSubjectName').textContent = name;
+    document.getElementById('reportDetails').value = '';
+    document.getElementById('reportEvidence').value = '';
+    // reset reason selection to the first option
+    document.querySelectorAll('#reportReasons .reason').forEach((el,i)=>el.classList.toggle('on', i===0));
+    document.getElementById('reportOverlay').classList.add('show');
+  }
+  function closeReport(){ document.getElementById('reportOverlay').classList.remove('show'); }
+
+  // reason radio behaviour
+  document.querySelectorAll('#reportReasons .reason').forEach(el=>{
+    el.addEventListener('click',()=>{
+      document.querySelectorAll('#reportReasons .reason').forEach(r=>r.classList.remove('on'));
+      el.classList.add('on');
+      reportReason = el.dataset.val;
+    });
+  });
+
+  function submitReport(){
+    const details = document.getElementById('reportDetails').value.trim();
+    // details are required (mirrors the backend 400 when details are empty)
+    if(!details){ toast('Please describe what happened.', true); return; }
+    // optimistic insert into the admin queue so the moderator view reflects it live
+    const newId = Math.max(...REPORTS.map(r=>r.id)) + 1;
+    REPORTS.unshift({
+      id:newId, subjectType:reportTarget.subjectType, subject:reportTarget.name,
+      subjectMeta:reportTarget.postKind.toLowerCase(), postId:reportTarget.postId, postKind:reportTarget.postKind,
+      cat:reportReason, status:'open', reporter:'You', when:'just now',
+      details, evidence:!!document.getElementById('reportEvidence').value,
+    });
+    closeReport();
+    toast('Report submitted. Thank you, AFC moderators will review it.');
+    updateReportBadge();
+    if(role==='admin') renderReports();
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  //  SURFACE 2 - ADMIN review queue
+  // ══════════════════════════════════════════════════════════════════════════════
+  function renderReports(searchOverride){
+    const search = (typeof searchOverride==='string' ? searchOverride : document.getElementById('reportSearch').value || '').toLowerCase();
+    const sFilter = document.getElementById('reportStatusFilter').value;
+    const cFilter = document.getElementById('reportCatFilter').value;
+
+    const rows = REPORTS.filter(r=>{
+      const matchSearch = r.subject.toLowerCase().includes(search) || (r.reporter||'').toLowerCase().includes(search);
+      const matchStatus = sFilter==='all' || r.status===sFilter;
+      const matchCat = cFilter==='all' || r.cat===cFilter;
+      return matchSearch && matchStatus && matchCat;
+    });
+
+    const body = document.getElementById('reportBody');
+    if(rows.length===0){
+      body.innerHTML = `<tr><td colspan="8"><div class="empty"><div class="big">&#128269;</div><div class="t">No reports match</div><div class="s">Try clearing the filters above.</div></div></td></tr>`;
+    } else {
+      body.innerHTML = rows.map(r=>{
+        const c = CATS[r.cat];
+        const banned = r.status==='banned';
+        return `
+        <tr class="rrow" onclick="toggleReport(${r.id})">
+          <td><span class="caret" id="cr${r.id}">&#9656;</span></td>
+          <td><div class="subj">${r.subject}<div class="sub2">${r.subjectType==='team'?'Team':'Player'} . ${r.subjectMeta}</div></div></td>
+          <td><span class="cat ${c.cls}">${c.label}</span></td>
+          <td style="color:var(--muted-foreground)">${r.postKind}</td>
+          <td>${r.reporter}</td>
+          <td style="color:var(--muted-foreground)">${r.when}</td>
+          <td class="c"><span class="st ${r.status}">${r.status}</span></td>
+          <td class="r" onclick="event.stopPropagation()">
+            ${banned
+              ? `<span class="st banned">Banned</span>`
+              : `<button class="btn danger sm" onclick="openBanFromReport(${r.id})">&#128683; Ban</button>`}
+          </td>
+        </tr>
+        <tr class="detail hide" id="dr${r.id}">
+          <td colspan="8"><div class="inner">
+            <div>
+              <h4>What the reporter said</h4>
+              <div class="quote">${r.details}</div>
+            </div>
+            <div class="dgrid">
+              <div class="dbox"><div class="l">Reported subject</div><div class="v">${r.subject} (${r.subjectType})</div></div>
+              <div class="dbox"><div class="l">Reporter</div><div class="v">${r.reporter}</div></div>
+              <div class="dbox"><div class="l">Evidence</div><div class="v">${r.evidence?'&#128206; Attached':'None'}</div></div>
+            </div>
+            ${r.resolution?`<div><h4>Resolution note</h4><div class="quote" style="border-left-color:var(--muted-foreground)">${r.resolution}</div></div>`:''}
+            <div class="actrow">
+              ${r.evidence?`<a class="evidence" href="#" onclick="event.preventDefault();toast('Evidence preview is mocked for this demo.')">&#128206; View evidence</a>`:''}
+              <span class="grow"></span>
+              ${r.status==='open'?`<button class="btn outline sm" onclick="setReportStatus(${r.id},'reviewing')">Mark reviewing</button>`:''}
+              ${(r.status==='open'||r.status==='reviewing')?`<button class="btn ghost sm" onclick="setReportStatus(${r.id},'dismissed')">Dismiss</button>`:''}
+              ${(r.status==='open'||r.status==='reviewing')?`<button class="btn outline sm" onclick="setReportStatus(${r.id},'resolved')">Resolve</button>`:''}
+              ${r.status!=='banned'?`<button class="btn dangerfill sm" onclick="openBanFromReport(${r.id})">&#128683; Ban subject</button>`:''}
+            </div>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }
+
+    const open = REPORTS.filter(r=>r.status==='open').length;
+    document.getElementById('reportMeta').textContent =
+      `Showing ${rows.length} of ${REPORTS.length} reports. ${open} open and awaiting review. Newest first.`;
+  }
+
+  function toggleReport(id){
+    document.getElementById('dr'+id).classList.toggle('hide');
+    document.getElementById('cr'+id).parentElement.parentElement.classList.toggle('open');
+  }
+
+  // triage: change a report's status (mirrors PATCH /reports/<id> status update)
+  function setReportStatus(id, status){
+    const r = REPORTS.find(x=>x.id===id); if(!r) return;
+    r.status = status;
+    const labels = {reviewing:'marked as reviewing', dismissed:'dismissed', resolved:'resolved'};
+    toast('Report '+labels[status]+'.');
+    updateReportBadge();
+    renderReports();
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  //  SURFACE 3 - BAN dialog (opened from the queue; pre-fills from the report)
+  // ══════════════════════════════════════════════════════════════════════════════
+  function openBanFromReport(reportId){
+    const r = REPORTS.find(x=>x.id===reportId); if(!r) return;
+    banTarget = {reportId, subjectType:r.subjectType, name:r.subject, team:(r.subjectType==='team'?r.subject:r.subjectMeta)};
+    // default scope follows the reported subject (a team report bans the team, a player report bans the player)
+    banScope = r.subjectType;
+    banDays = 7;
+    document.getElementById('banSubjectName').textContent = r.subject;
+    // reset scope toggle
+    document.querySelectorAll('#banScope button').forEach(b=>b.classList.toggle('on', b.dataset.scope===banScope));
+    updateScopeHint();
+    // reset duration to 7d preset
+    document.querySelectorAll('#banDurs .dur').forEach(b=>b.classList.toggle('on', b.dataset.days==='7'));
+    document.getElementById('banCustom').value = '';
+    document.getElementById('banReason').value = prefilledReason(r);
+    updateBanSummary();
+    document.getElementById('banOverlay').classList.add('show');
+  }
+  function closeBan(){ document.getElementById('banOverlay').classList.remove('show'); }
+
+  // a sensible reason draft seeded from the report, so the admin edits rather than types from scratch
+  function prefilledReason(r){
+    const m = {
+      scam:'Soliciting payment / scam attempt during a market trial.',
+      bad_tryout:'Repeated trial no-shows / unprofessional conduct reported on the market.',
+      abusive:'Abusive and threatening conduct toward another member.',
+      fake_post:'Posting false or misleading recruitment information.',
+      other:'Violation of AFC Player Market conduct rules.',
+    };
+    return m[r.cat] || '';
+  }
+
+  function setScope(scope, el){
+    banScope = scope;
+    document.querySelectorAll('#banScope button').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    updateScopeHint();
+    updateBanSummary();
+  }
+  function updateScopeHint(){
+    document.getElementById('banScopeHint').textContent = banScope==='team'
+      ? 'The whole team is blocked from posting, applying, and inviting. Every member is affected.'
+      : 'Only this player is blocked. Teammates are unaffected.';
+  }
+
+  // duration presets (days; 0 = permanent), mirrors ban_duration on the model
+  function setDur(days, el){
+    banDays = days;
+    document.querySelectorAll('#banDurs .dur').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    document.getElementById('banCustom').value = '';
+    updateBanSummary();
+  }
+  function setCustomDur(val){
+    const n = parseInt(val,10);
+    document.querySelectorAll('#banDurs .dur').forEach(b=>b.classList.remove('on'));
+    banDays = (!isNaN(n) && n>0) ? n : null;
+    updateBanSummary();
+  }
+
+  // live summary: subject + scope + duration + computed end date (mirrors ban_end_date)
+  function updateBanSummary(){
+    if(!banTarget) return;
+    const who = banScope==='team' ? `team <b>${banTarget.name}</b>` : `player <b>${banTarget.name}</b>`;
+    let dur, until;
+    if(banDays===0){ dur='<b>permanently</b>'; until='No end date. Lifted only by a moderator.'; }
+    else if(banDays===null){ dur='for a <b>custom</b> period'; until='Enter a valid number of days.'; }
+    else {
+      dur = `for <b>${banDays} day${banDays===1?'':'s'}</b>`;
+      const end = new Date(); end.setDate(end.getDate()+banDays);
+      until = 'Ends ' + end.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + '.';
+    }
+    document.getElementById('banSummary').innerHTML = `This will block the ${who} from the market ${dur}. ${until}`;
+  }
+
+  function confirmBan(){
+    const reason = document.getElementById('banReason').value.trim();
+    if(banDays===null){ toast('Enter a valid custom duration in days.', true); return; }
+    if(!reason){ toast('A ban reason is required.', true); return; }
+    // mark the originating report as actioned so the queue reflects the ban
+    if(banTarget && banTarget.reportId){
+      const r = REPORTS.find(x=>x.id===banTarget.reportId);
+      if(r){ r.status='banned'; r.resolution = `${banScope==='team'?'Team':'Player'} banned ${banDays===0?'permanently':'for '+banDays+' days'}. Reason: ${reason}`; }
+    }
+    const durTxt = banDays===0 ? 'permanently' : `for ${banDays} days`;
+    closeBan();
+    toast(`${banTarget.name} banned from the market ${durTxt}.`);
+    updateReportBadge();
+    renderReports();
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  //  Tabs, role switch, toasts
+  // ══════════════════════════════════════════════════════════════════════════════
+  function showTab(tab){
+    document.querySelectorAll('.tabs .tab').forEach(el=>el.classList.toggle('active', el.dataset.tab===tab));
+    document.getElementById('tab-teams').classList.toggle('hide', tab!=='teams');
+    document.getElementById('tab-players').classList.toggle('hide', tab!=='players');
+    document.getElementById('tab-reports').classList.toggle('hide', tab!=='reports');
+    if(tab==='reports') renderReports();
+  }
+
+  // role switcher (mockup-only): toggles the admin-only Reports tab on/off
+  function setRole(r){
+    role = r;
+    document.getElementById('roleUser').classList.toggle('on', r==='user');
+    document.getElementById('roleAdmin').classList.toggle('on', r==='admin');
+    document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hide', r!=='admin'));
+    if(r==='admin'){ showTab('reports'); }
+    else { showTab('teams'); }
+    toast(r==='admin' ? 'Now viewing as a market moderator. The Reports queue is visible.' : 'Now viewing as a regular user.');
+  }
+
+  function updateReportBadge(){
+    const open = REPORTS.filter(r=>r.status==='open').length;
+    const badge = document.getElementById('reportTabCount');
+    badge.textContent = open;
+    badge.style.display = open>0 ? '' : 'none';
+  }
+
+  function toast(msg, isErr){
+    const el = document.createElement('div');
+    el.className = 'toast' + (isErr?' err':'');
+    el.textContent = msg;
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 3200);
+  }
+
+  // close modals on overlay backdrop click
+  document.getElementById('reportOverlay').addEventListener('click', e=>{ if(e.target.id==='reportOverlay') closeReport(); });
+  document.getElementById('banOverlay').addEventListener('click', e=>{ if(e.target.id==='banOverlay') closeBan(); });
+
+  // ── boot ──
+  renderTeams();
+  renderPlayers();
+  updateReportBadge();
+</script>
+</body>
+</html>

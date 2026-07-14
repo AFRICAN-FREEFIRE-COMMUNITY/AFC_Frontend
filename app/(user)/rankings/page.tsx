@@ -738,12 +738,15 @@ export default function RankingsPage() {
         title={t("rankings.pageTitle")}
         description={t("rankings.pageDescription")}
         action={<HowItWorks />}
+        dataTour="rankings-header"
       />
 
       <TransferWindowBanner className="mb-5" />
 
       <Tabs defaultValue="rankings">
-        <TabsList className="mb-5 h-10">
+        {/* data-tour anchor (rankings-tabs): guided-tour "Rankings" stop explains the Rankings vs
+            Tiers tabs so a player knows where the AFC ladder + tier system live. */}
+        <TabsList className="mb-5 h-10" data-tour="rankings-tabs">
           <TabsTrigger value="rankings" className="text-sm">
             <IconChartBar className="mr-1.5 size-4" /> {t("rankings.rankingsTabLabel")}
           </TabsTrigger>

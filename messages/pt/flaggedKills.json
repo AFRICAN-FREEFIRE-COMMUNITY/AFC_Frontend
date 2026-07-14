@@ -34,5 +34,18 @@
   "unmatchedDontCount": "Não contes",
   "missingWinnerTitle": "O vencedor do mapa não foi registado",
   "missingWinnerUnmatched": "A equipa que ficou em 1.º lugar ({team}) não foi emparelhada com nenhuma equipa registada, pelo que este mapa conta com 0 booyahs. Atribui a equipa no painel «Mortes de jogadores marcados» na tabela de classificação para restaurar o booyah.",
-  "missingWinnerNoFirst": "O ficheiro carregado não incluía nenhuma equipa em primeiro lugar, pelo que este mapa conta com 0 «booyahs»."
+  "missingWinnerNoFirst": "O ficheiro carregado não incluía nenhuma equipa em primeiro lugar, pelo que este mapa conta com 0 «booyahs».",
+  "combine": "Combinar",
+  "combineHint": "Escolha as fases e os grupos cujos jogadores assinalados pretenda ver juntos.",
+  "followCurrent": "Seguir a visualização atual",
+  "scopeGroup": "A exibir: {group}",
+  "scopeStage": "A exibir: {stage} (todos os grupos)",
+  "scopeEvent": "A exibir: evento completo",
+  "scopeCustom": "A exibir: {count} selecionado",
+  "noStages": "Este evento ainda não tem etapas.",
+  "bulkLabel": "Ações em massa:",
+  "bulkAcceptAll": "Aceitar tudo",
+  "bulkRejectAll": "Rejeitar tudo",
+  "bulkFollowAll": "Seguir as definições do evento",
+  "bulkTeamsReject": "Rejeitar tudo"
 }

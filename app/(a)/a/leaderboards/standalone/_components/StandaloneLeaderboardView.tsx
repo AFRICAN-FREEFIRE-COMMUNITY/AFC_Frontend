@@ -124,7 +124,7 @@ export function StandaloneLeaderboardView({
             // Managers get two actions: Export graphic (download branded standings PNG) and
             // Edit (reuses the create wizard keyed off this leaderboard's id - Phase 1).
             // basePath keeps the Edit link surface-correct (admin vs organizer portal).
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <ExportGraphicButton
                 lbId={leaderboard.id}
                 organizationId={leaderboard.organization_id}

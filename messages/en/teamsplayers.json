@@ -1,4 +1,10 @@
 {
+  "ordinal": {
+    "st": "st",
+    "nd": "nd",
+    "rd": "rd",
+    "th": "th"
+  },
   "common": {
     "cancel": "Cancel",
     "back": "Back",

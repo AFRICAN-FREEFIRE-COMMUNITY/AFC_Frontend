@@ -1,0 +1,19 @@
+{
+  "title": "Leaderboards",
+  "description": "Select an event to view rankings",
+  "filterByEvent": "Filter by Event",
+  "selectEventPlaceholder": "Select an event",
+  "noLeaderboardConfig": "No leaderboard configuration exists for this event yet.",
+  "group": "Group",
+  "viewFilter": "View Filter",
+  "overallLeaderboard": "Overall Leaderboard",
+  "matchOption": "Match {number} - {map}",
+  "overallRankings": "Overall Rankings",
+  "matchStandings": "Match Standings",
+  "rank": "Rank",
+  "competitor": "Competitor",
+  "kills": "Kills",
+  "points": "Points",
+  "playerFallback": "Player {id}",
+  "noData": "No data recorded for this selection."
+}

@@ -310,6 +310,77 @@
           }
         }
       },
+      "home": {
+        "title": "Votre port d'attache",
+        "body": "Voici votre tableau de bord. Vous y trouverez vos statistiques clés, les dernières actualités et un aperçu de la boutique, ce qui vous permet de découvrir les nouveautés en un clin d'œil.",
+        "launchLabel": "Montre-moi la page d'accueil",
+        "steps": {
+          "header": {
+            "title": "Le tableau de bord d'accueil",
+            "description": "Tout commence ici. Depuis le menu du haut, vous pouvez accéder à toutes les rubriques d'AFC à tout moment."
+          },
+          "boxes": {
+            "title": "Vos statistiques en bref",
+            "description": "Ces encadrés vous permettent de visualiser d'un seul coup d'œil votre activité. Ils se mettent à jour au fur et à mesure que vous jouez et participez."
+          }
+        }
+      },
+      "leaderboards": {
+        "title": "Classements des événements",
+        "body": "Les classements affichent les résultats en temps réel de chaque épreuve : qui est en tête, le nombre de victimes et les points. Choisissez une épreuve pour consulter ses résultats.",
+        "launchLabel": "Afficher les classements",
+        "steps": {
+          "header": {
+            "title": "Classement en direct",
+            "description": "Cette page présente les résultats de chaque compétition, mis à jour au fur et à mesure que les matchs se déroulent."
+          },
+          "filter": {
+            "title": "Choisissez un événement",
+            "description": "Sélectionnez ici une épreuve pour afficher son classement. Chaque épreuve dispose de son propre classement."
+          }
+        }
+      },
+      "rankings": {
+        "title": "Classements et niveaux",
+        "body": "Les classements correspondent au classement de l'AFC : les équipes et les joueurs gagnent des points au fil des épreuves pour y progresser. Les niveaux regroupent les participants en fonction de leur niveau de compétence.",
+        "launchLabel": "Afficher les classements",
+        "steps": {
+          "header": {
+            "title": "Le classement de l'AFC",
+            "description": "Vos résultats à l'ensemble des épreuves déterminent votre classement ici. Plus vous obtenez de bons résultats, plus vous grimpez dans le classement."
+          },
+          "tabs": {
+            "title": "Classements et niveaux",
+            "description": "Ces onglets vous permettent de basculer entre le classement par points et les groupes de niveau."
+          }
+        }
+      },
+      "awards": {
+        "title": "Prix communautaires",
+        "body": "Ces prix récompensent les meilleurs joueurs et créateurs de la communauté. Lorsque le vote sera ouvert, vous pourrez élire vos favoris ici.",
+        "launchLabel": "Montre-moi les récompenses",
+        "steps": {
+          "header": {
+            "title": "Récompenses et vote",
+            "description": "C'est ici que se trouvent les prix décernés par la communauté. Lorsqu'un tour de vote est ouvert, vous pouvez voter ici même."
+          }
+        }
+      },
+      "shop": {
+        "title": "La boutique",
+        "body": "La boutique est l'endroit où vous pouvez acheter des diamants et des produits dérivés. Ajoutez des articles à votre panier ou enregistrez-les dans votre liste de souhaits pour plus tard.",
+        "launchLabel": "Montre-moi la boutique",
+        "steps": {
+          "header": {
+            "title": "Parcourir la boutique",
+            "description": "Tout ce qui est à vendre se trouve ici, y compris les diamants Free Fire. Cliquez sur un article pour en voir les détails."
+          },
+          "cart": {
+            "title": "Panier et liste de souhaits",
+            "description": "Ajoutez les articles à votre liste d'envies ou à votre panier, puis passez à la caisse lorsque vous êtes prêt."
+          }
+        }
+      },
       "done": {
         "title": "Vous êtes prêt !",
         "body": "Nouveau dans le jargon ? Le Glossaire explique chaque terme esport en mots simples, à tout moment. Maintenant, amusez-vous et bonne chance !",

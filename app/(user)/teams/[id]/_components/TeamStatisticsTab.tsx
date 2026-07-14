@@ -207,17 +207,24 @@ const shortDate = (iso: string | null): string => {
 };
 
 // Placement display: "1st", "2nd", "3rd", "4th"... null -> "-".
-const ordinalPlacement = (p: number | null): string => {
+// i18n: the ordinal suffix is localized via the teamsplayers namespace ("ordinal.*"),
+// so it reads naturally per language (en 1st/2nd/3rd, fr 1er/2e/3e, pt 1º/2º/3º). The
+// English mod-10/mod-100 rule still selects WHICH suffix key to use; the translator `t`
+// (useTranslations("teamsplayers")) is passed in because this is a module-scope helper.
+const ordinalPlacement = (
+  p: number | null,
+  t: (key: string) => string,
+): string => {
   if (p == null) return "-";
   const mod100 = p % 100;
   const mod10 = p % 10;
-  let suffix = "th";
+  let suffixKey = "th";
   if (mod100 < 11 || mod100 > 13) {
-    if (mod10 === 1) suffix = "st";
-    else if (mod10 === 2) suffix = "nd";
-    else if (mod10 === 3) suffix = "rd";
+    if (mod10 === 1) suffixKey = "st";
+    else if (mod10 === 2) suffixKey = "nd";
+    else if (mod10 === 3) suffixKey = "rd";
   }
-  return `${p}${suffix}`;
+  return `${p}${t(`ordinal.${suffixKey}`)}`;
 };
 
 // Range presets understood by the time-range filter.
@@ -1083,7 +1090,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                           {isWin && (
                             <IconTrophy className="mr-1 inline size-3.5" />
                           )}
-                          {ordinalPlacement(perf.best_placement)}
+                          {ordinalPlacement(perf.best_placement, t)}
                         </TableCell>
                         <TableCell className="p-2 text-center">
                           {perf.total_kills}
@@ -1105,7 +1112,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                               <div className="mb-2 grid grid-cols-2 gap-2.5 md:grid-cols-4">
                                 <SummaryBox
                                   label={t("teamStats.finalPlacement")}
-                                  value={ordinalPlacement(perf.best_placement)}
+                                  value={ordinalPlacement(perf.best_placement, t)}
                                 />
                                 <SummaryBox
                                   label={t("teamStats.totalKills")}

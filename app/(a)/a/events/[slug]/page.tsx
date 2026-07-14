@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
+import { Tabs, TabsTrigger } from "@/components/ui/tabs";
 import { DEFAULT_IMAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
@@ -824,6 +824,17 @@ const Page = ({ params }: { params: Promise<Params> }) => {
     is_public,
   } = eventDetails;
 
+  // ── Pure-CS event guard (P1#3, owner 2026-07-13) ────────────────────────────
+  // The OCR + Leaderboard header buttons lead to the Battle Royale results editors,
+  // which do not apply to a Clash Squad bracket (CS results are entered on the
+  // H2HBracketCard rendered per stage below). Hide those two buttons ONLY when EVERY
+  // stage is CS, so a mixed BR+CS event keeps them for its BR stages. (The leaderboard
+  // editor itself is per-stage CS-guarded too, so mixed events stay safe there.)
+  const allStagesCs =
+    Array.isArray(stages) &&
+    stages.length > 0 &&
+    stages.every((s: any) => String(s.stage_format || "").startsWith("cs -"));
+
   const {
     totalRegistered,
     maxCapacity,
@@ -920,19 +931,25 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               Duplicate
             </Link>
           </Button>
-          <Button className="flex-1 lg:flex-none" asChild variant="outline">
-            <Link href={`/a/events/${slug}/ocr`}>
-              OCR Results
-            </Link>
-          </Button>
+          {/* OCR + Leaderboard buttons hidden for a pure-CS event (P1#3): both open BR editors
+              that do not apply to a bracket. Kept for BR / mixed events. */}
+          {!allStagesCs && (
+            <Button className="flex-1 lg:flex-none" asChild variant="outline">
+              <Link href={`/a/events/${slug}/ocr`}>
+                OCR Results
+              </Link>
+            </Button>
+          )}
           {/* Jump to THIS event's leaderboard (results, standings, OBS overlay link, broadcast control).
               The leaderboard edit route is keyed by the numeric event id (owner 2026-07-01). */}
-          <Button className="flex-1 lg:flex-none" asChild variant="outline">
-            <Link href={`/a/leaderboards/${eventDetails.event_id}/edit`}>
-              <IconChartBar />
-              Leaderboard
-            </Link>
-          </Button>
+          {!allStagesCs && (
+            <Button className="flex-1 lg:flex-none" asChild variant="outline">
+              <Link href={`/a/leaderboards/${eventDetails.event_id}/edit`}>
+                <IconChartBar />
+                Leaderboard
+              </Link>
+            </Button>
+          )}
           <Button className="flex-1 lg:flex-none" asChild>
             <Link href={`/a/events/${slug}/edit`}>
               <IconPencil />
@@ -947,21 +964,28 @@ const Page = ({ params }: { params: Promise<Params> }) => {
           />
         </div>
       </div>
-      <div className="mt-4 overflow-hidden rounded-md">
+      {/* bg-muted keeps this box OPAQUE so a broken banner URL can never let the fixed
+          site-wide PageGradient feTurbulence dither show through as colored static (the
+          "hash thing", owner 2026-07-14). onError swaps in DEFAULT_IMAGE because the
+          `|| DEFAULT_IMAGE` guard only catches an EMPTY url, not a non-empty-but-unloadable
+          one (expired/hotlink-blocked/404/wrong content-type). */}
+      <div className="mt-4 overflow-hidden rounded-md bg-muted">
         <Image
           src={event_banner_url || DEFAULT_IMAGE}
           alt={`${event_name}'s image`}
           width={1000}
           height={1000}
           className="w-full h-50 aspect-video object-cover"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src = DEFAULT_IMAGE;
+          }}
         />
       </div>
 
       <Tabs defaultValue="overview" className="mt-4">
-        <ScrollArea>
-          <TabsList className="w-full">
-            {/* data-tour anchors below map each detail tab to its admin-tour step
-                (events-lb area, event-detail sub-page). */}
+        <ScrollableTabsList className="w-full">
+          {/* data-tour anchors below map each detail tab to its admin-tour step
+              (events-lb area, event-detail sub-page). */}
             <TabsTrigger value="overview" data-tour="event-detail-overview">
               Overview
             </TabsTrigger>
@@ -988,9 +1012,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             <TabsTrigger value="prizes">Prizes</TabsTrigger>
             <TabsTrigger value="engagement">Engagement</TabsTrigger>
             <TabsTrigger value="discord-tools">Discord Tools</TabsTrigger>
-          </TabsList>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        </ScrollableTabsList>
 
         {/* --- Overview Tab --- */}
         <TabsContent value="overview" className="mt-2 space-y-4">

@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -25,14 +25,18 @@ import { Label } from "@/components/ui/label";
 import { env } from "@/lib/env";
 import { FullLoader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 // Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the selected
 // event's standings so the leaderboard updates while a tournament is running.
 import { useLiveTick } from "@/hooks/useLiveTick";
+// i18n: user-facing copy for this public leaderboards page lives in the
+// "leaderboardsPublic" namespace (messages/en|fr|pt/leaderboardsPublic.json).
+import { useTranslations } from "next-intl";
 
 const LeaderboardPage = () => {
   const { token } = useAuth();
+  const t = useTranslations("leaderboardsPublic");
 
   // States
   const [eventsList, setEventsList] = useState<any[]>([]); // List from /get-all-events/
@@ -194,16 +198,19 @@ const LeaderboardPage = () => {
   return (
     <div className="min-h-screen space-y-8 pb-10">
       <PageHeader
-        title={<>Leaderboards <InfoTip id="leaderboards.public._page" /></>}
-        description="Select an event to view rankings"
+        title={<>{t("title")} <InfoTip id="leaderboards.public._page" /></>}
+        description={t("description")}
+        dataTour="lb-header"
       />
 
       {/* Select Field: List of Events */}
-      <div className="space-y-2">
-        <Label>Filter by Event</Label>
+      {/* data-tour anchor (lb-filter): guided-tour "Leaderboards" stop spotlights the event
+          picker so a player learns they choose an event to see its standings. */}
+      <div className="space-y-2" data-tour="lb-filter">
+        <Label>{t("filterByEvent")}</Label>
         <Select value={selectedEventId} onValueChange={handleEventSelect}>
           <SelectTrigger>
-            <SelectValue placeholder="Select an event" />
+            <SelectValue placeholder={t("selectEventPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
             {eventsList.map((evt) => (
@@ -221,7 +228,7 @@ const LeaderboardPage = () => {
         </div>
       ) : eventDetails === "not_found" ? (
         <Card className="bg-zinc-900 border-zinc-800 p-20 text-center text-zinc-500">
-          No leaderboard configuration exists for this event yet.
+          {t("noLeaderboardConfig")}
         </Card>
       ) : eventDetails ? (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -241,19 +248,16 @@ const LeaderboardPage = () => {
               onValueChange={handleStageChange}
               className="w-full md:w-auto"
             >
-              <ScrollArea>
-                <TabsList>
-                  {eventDetails.stages.map((stage: any) => (
-                    <TabsTrigger
-                      key={stage.stage_id}
-                      value={stage.stage_id.toString()}
-                    >
-                      {stage.stage_name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
+              <ScrollableTabsList>
+                {eventDetails.stages.map((stage: any) => (
+                  <TabsTrigger
+                    key={stage.stage_id}
+                    value={stage.stage_id.toString()}
+                  >
+                    {stage.stage_name}
+                  </TabsTrigger>
+                ))}
+              </ScrollableTabsList>
             </Tabs>
           </div>
 
@@ -261,7 +265,7 @@ const LeaderboardPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-2">
             <div className="space-y-2">
               <Label>
-                <IconUsers size={16} /> Group
+                <IconUsers size={16} /> {t("group")}
               </Label>
               <Select
                 value={activeGroupId}
@@ -288,7 +292,7 @@ const LeaderboardPage = () => {
 
             <div className="space-y-2">
               <Label>
-                <IconMap size={16} /> View Filter <InfoTip id="leaderboards.public.view_filter" />
+                <IconMap size={16} /> {t("viewFilter")} <InfoTip id="leaderboards.public.view_filter" />
               </Label>
               <Select
                 value={selectedMatchId}
@@ -298,13 +302,16 @@ const LeaderboardPage = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="overall">Overall Leaderboard</SelectItem>
+                  <SelectItem value="overall">{t("overallLeaderboard")}</SelectItem>
                   {currentGroup?.matches?.map((match: any) => (
                     <SelectItem
                       key={match.match_id}
                       value={match.match_id.toString()}
                     >
-                      Match {match.match_number} - {match.match_map}
+                      {t("matchOption", {
+                        number: match.match_number,
+                        map: match.match_map,
+                      })}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -317,17 +324,17 @@ const LeaderboardPage = () => {
             <h3 className="text-base font-semibold flex items-center gap-2">
               <IconTrophy size={18} className="text-yellow-500" />
               {selectedMatchId === "overall"
-                ? "Overall Rankings"
-                : "Match Standings"}
+                ? t("overallRankings")
+                : t("matchStandings")}
             </h3>
             <Card className="overflow-hidden max-h-96 p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-20">Rank</TableHead>
-                    <TableHead>Competitor</TableHead>
-                    <TableHead>Kills</TableHead>
-                    <TableHead className="text-right">Points <InfoTip id="leaderboards.public.points_column" /></TableHead>
+                    <TableHead className="w-20">{t("rank")}</TableHead>
+                    <TableHead>{t("competitor")}</TableHead>
+                    <TableHead>{t("kills")}</TableHead>
+                    <TableHead className="text-right">{t("points")} <InfoTip id="leaderboards.public.points_column" /></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -340,7 +347,7 @@ const LeaderboardPage = () => {
                           row.competitor_name ||
                           row.competitor__user__username ||
                           row.username ||
-                          `Player ${row.competitor_id}`
+                          t("playerFallback", { id: row.competitor_id })
                         }
                         // squad events list teams, solo events list players, so
                         // link the competitor name to the matching public profile.
@@ -355,7 +362,7 @@ const LeaderboardPage = () => {
                         colSpan={4}
                         className="text-center py-10 text-muted-foreground italic"
                       >
-                        No data recorded for this selection.
+                        {t("noData")}
                       </TableCell>
                     </TableRow>
                   )}

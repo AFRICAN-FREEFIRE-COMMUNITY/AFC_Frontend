@@ -5,6 +5,12 @@ import { IconArrowsExchange, IconLock } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { rankingsApi, Season } from "@/lib/rankings";
+import { useTranslations } from "next-intl";
+// i18n date: render the transfer-window close date in the VIEWER's timezone + language
+// (so months localize to fr/pt) via the shared string helper, instead of a hardcoded
+// en-US toLocaleDateString. String form (not <LocalTime/>) because it is interpolated
+// into the banner copy via t("openBodyWithDate", { date }).
+import { formatLocalTime } from "@/lib/i18n/time";
 
 /**
  * Prominent, self-contained OPEN / CLOSED transfer-window banner.
@@ -25,14 +31,19 @@ type SeasonFlags = Season & {
 
 function fmtDate(iso?: string) {
   if (!iso) return "";
-  const d = new Date(iso);
-  return isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  // formatLocalTime renders in the browser's own timezone + active locale; falls back
+  // to the raw ISO on the server / when unparseable (the banner only shows client-side
+  // after the season loads, so the localized value is what users actually see).
+  return formatLocalTime(iso, "date") || iso;
 }
 
 // Rendered on /teams, /player-markets and /rankings; self-fetches rankingsApi.currentSeason();
 // OPEN/CLOSED mirrors the backend roster lock (when CLOSED, afc_team exit_team/kick_team_member/
 // disband_team are frozen server-side); single banner used app-wide.
 export function TransferWindowBanner({ className }: { className?: string }) {
+  // i18n namespace: "transferWindow" (messages/en|fr|pt/transferWindow.json).
+  // Client component, so strings come from next-intl's useTranslations.
+  const t = useTranslations("transferWindow");
   const [season, setSeason] = useState<SeasonFlags | null>(null);
 
   useEffect(() => {
@@ -55,12 +66,14 @@ export function TransferWindowBanner({ className }: { className?: string }) {
       {open ? <IconArrowsExchange className="size-6 shrink-0" /> : <IconLock className="size-6 shrink-0" />}
       <div className="flex-1">
         <p className="text-base font-bold">
-          {open ? "🟢 Transfer window is OPEN" : "🔴 Transfer window is CLOSED"}
+          {open ? t("openTitle") : t("closedTitle")}
         </p>
         <p className="text-sm text-muted-foreground">
           {open
-            ? `Roster moves are allowed${season.transfer_window_close ? ` - closes ${fmtDate(season.transfer_window_close)}` : ""}.`
-            : "Roster moves are locked - players cannot leave, be removed from, or disband teams until the window reopens."}
+            ? season.transfer_window_close
+              ? t("openBodyWithDate", { date: fmtDate(season.transfer_window_close) })
+              : t("openBody")
+            : t("closedBody")}
         </p>
       </div>
       <Badge
@@ -70,7 +83,7 @@ export function TransferWindowBanner({ className }: { className?: string }) {
           open ? "border-primary/60 text-primary" : "border-destructive/60 text-destructive",
         )}
       >
-        {open ? "OPEN" : "CLOSED"}
+        {open ? t("openBadge") : t("closedBadge")}
       </Badge>
     </div>
   );

@@ -1,0 +1,109 @@
+{
+  "teams": {
+    "roster": {
+      "_page": "Gestione o plantel da sua equipa: defina a função de cada membro no jogo e na gestão, ou elimine-os. Apenas o proprietário da equipa e os treinadores podem gerir o plantel — os capitães não têm essa possibilidade.",
+      "in_game_role": "A posição competitiva que um jogador ocupa (Rusher, Sniper, Support, Grenader). Apenas os JOGADORES — Capitão, Vice-capitão ou Membro — podem ter uma função no jogo, e uma equipa pode alinhar, no máximo, 6.",
+      "management_role": "A função de um membro na equipa. Os JOGADORES (Capitão, Vice-capitão, Membro) competem e podem desempenhar uma função no jogo. O PESSOAL TÉCNICO (Treinador, Diretor desportivo, Analista) tem apenas funções de apoio, nunca entra em campo como jogador e uma equipa pode ter, no máximo, um de cada. A transferência de um membro da categoria de jogador para a de pessoal técnico só é permitida enquanto a janela de transferências estiver aberta."
+    },
+    "create": {
+      "team_tag": "Um prefixo curto ou uma abreviatura para a sua equipa (por exemplo, «AFC»), apresentado ao lado do nome completo. Opcional; deixe em branco se não quiser indicar nada.",
+      "join_settings": "A opção «Aberto» permite que qualquer jogador se junte à tua equipa instantaneamente. A opção «Por pedido» significa que os jogadores pedem para se juntarem e tu aprovas ou recusas cada um deles.",
+      "invite_members": "Convide jogadores agora através do seu e-mail da AFC ou nome de utilizador. Cada pessoa recebe um convite que tem de aceitar antes de ser adicionada à equipa."
+    }
+  },
+  "tournaments": {
+    "register": {
+      "type": {
+        "_section": "Escolha como vai participar: individualmente, como jogador a título individual, ou em equipa, para registar o seu plantel. A opção que não for permitida neste evento aparecerá a cinzento."
+      },
+      "afc_uid": "O teu UID da AFC é o ID do jogo associado ao teu perfil. É necessário para competires e fica guardado no teu perfil, pelo que só precisas de o introduzir uma vez.",
+      "select_members": {
+        "_section": "Escolha quais os jogadores da sua equipa que irão competir nesta prova. Deve selecionar um número de jogadores que se situe entre o mínimo e o máximo permitidos para a equipa nesta prova."
+      },
+      "rules": {
+        "_section": "Leia as regras do torneio e quaisquer políticas relativas à conduta ou aos dispositivos. Se estiver anexado um documento com o regulamento completo, faça o download e analise-o antes de continuar."
+      },
+      "rules_accept": "Tem de assinalar esta opção para confirmar que leu e concorda com as regras. O registo não pode prosseguir enquanto esta opção não estiver assinalada.",
+      "sponsor": {
+        "_section": "O patrocinador deste evento exige uma tarefa (por exemplo, instalar uma aplicação) e um ID por jogador. Cada ID deve ser único. É verificado em relação a todos os já registados, pelo que um valor já utilizado por outra pessoa é rejeitado."
+      },
+      "discord_link": {
+        "_section": "Associe a tua conta do Discord ao AFC. Isto serve apenas para associar a conta. Entrarás no servidor do AFC no próximo passo. Os detalhes dos jogos são partilhados no Discord."
+      },
+      "discord_join": {
+        "_section": "Junte-se ao servidor Discord da AFC e, em seguida, confirme. Este passo é distinto da vinculação da sua conta. Ambos são necessários para concluir o registo."
+      },
+      "discord_status": {
+        "_section": "Para o registo da equipa, cada membro selecionado deve associar individualmente a sua conta do Discord e aderir ao servidor da AFC. Partilha o link do servidor com quem ainda estiver a aparecer a vermelho e, em seguida, atualiza a página."
+      }
+    }
+  },
+  "shop": {
+    "checkout": {
+      "coupon": "Introduza um código promocional e toque em «Aplicar» para aplicar o desconto a este artigo. Os códigos percentuais aplicam um desconto percentual; os códigos fixos aplicam um valor fixo. Cada código aplica-se apenas ao artigo ao qual foi adicionado.",
+      "tax": "É adicionado um imposto de 7,5 % ao seu subtotal (após qualquer desconto de cupão).",
+      "total": "O que irá pagar: o subtotal com desconto mais 7,5% de imposto. Cobrado em naira (₦).",
+      "pay_now": "Efetue a sua encomenda e abra o Paystack numa nova aba para efetuar o pagamento de forma segura. O seu código de resgate será enviado por e-mail assim que o pagamento for confirmado."
+    },
+    "diamonds": {
+      "customer_details": {
+        "_section": "Utilizamos estes dados de contacto, sobretudo o teu e-mail, para te enviar o teu código de resgate de diamantes. Os diamantes do Free Fire são enviados por e-mail, pelo que não precisas de introduzir aqui um ID do jogo nem um ID de jogador no jogo."
+      },
+      "claim": {
+        "_section": "Após o pagamento, ser-lhe-á enviado por e-mail um código de resgate (normalmente no prazo de 5 a 10 minutos). Resgate-o no site oficial do Free Fire para adicionar os diamantes à sua conta. O código não é aplicado automaticamente ao seu ID de jogo."
+      },
+      "order_status": "Depois de efetuar o pagamento no Paystack, confirmamos o pagamento automaticamente e verificamos novamente a cada 30 segundos. A mensagem «A aguardar verificação» significa apenas que ainda não recebemos a confirmação. Se o valor já tiver sido debitado, pode clicar em «Tentar novamente» ou contactar o apoio ao cliente.",
+      "order_detail_status": "«Pendente» significa que ainda estamos à espera da confirmação do pagamento. «Pago» significa que o pagamento foi processado e que o seu código de resgate de diamantes foi enviado para o seu endereço de e-mail registado."
+    }
+  },
+  "player_market": {
+    "create_post": "Cria um dos dois tipos de publicação: uma publicação de recrutamento de equipa (se fores uma equipa à procura de jogadores) ou uma publicação de jogador disponível (se fores um jogador à procura de uma equipa).",
+    "one_active_post": "Só podes ter um anúncio ativo de cada vez, incluindo tanto os anúncios de recrutamento de equipas como os de jogadores disponíveis. Encerra o teu anúncio atual, ou deixa-o chegar ao fim do prazo de validade, antes de criares um novo. Um anúncio expirado já não conta.",
+    "post_expiry": "A data em que o seu anúncio deixa de aparecer no mercado. Após essa data, o anúncio deixa de estar ativo e pode criar um novo.",
+    "tryout_limit": "Podes participar, no máximo, em 2 testes de seleção ativos ao mesmo tempo. Enquanto estiveres a participar em 2 testes de seleção em curso, não podes aceitar um novo convite para um teste de seleção (e as equipas não te podem convidar para nenhum) até que um deles esteja concluído.",
+    "rules_summary": "Regras do Mercado de Jogadores: (1) apenas uma publicação ativa de cada vez. (2) Podes participar, no máximo, em duas provas de seleção ativas ao mesmo tempo. (3) Informa com honestidade. Apresentar uma informação falsa, uma brincadeira ou uma informação incorreta pode resultar no teu banimento do mercado. (4) Um banimento do mercado impede-te de criar publicações, candidatar-te e convidar outras pessoas.",
+    "report_rules": "As denúncias são enviadas em privado aos moderadores da AFC. É necessário apresentar provas (uma captura de ecrã), pelo que deve anexar a prova antes de enviar a denúncia. Faça a denúncia com honestidade: apresentar uma denúncia falsa, em tom de brincadeira ou sem fundamento pode resultar no banimento de si, o autor da denúncia, do mercado.",
+    "recruitment_criteria": "Notas de texto livre que descrevem o que procuras num colega de equipa (experiência, estilo de jogo, disponibilidade). Os candidatos têm acesso a estas notas antes de se candidatarem. Isto não exclui automaticamente ninguém.",
+    "apply": "Envia a tua candidatura a esta equipa. O teu Discord e o teu UID permanecem ocultos. Só serão revelados à equipa se esta te convidar para um período de experiência.",
+    "invite_message": "Convide este jogador diretamente para um período de teste, sem passar pela fase de candidatura. A sua mensagem apresenta a sua equipa; assim que ele aceitar, será aberto um chat privado entre vocês para o período de teste.",
+    "trial_invites": "Equipas que te convidaram diretamente para um período de teste. Aceita para iniciar o período de teste e abrir uma conversa privada com a equipa, ou recusa para rejeitar o convite.",
+    "unlock_contact": "Revela o Discord e o UID deste jogador para que possas contactá-lo fora da plataforma. Esta opção só está disponível depois de a candidatura ter passado da fase de convite, não enquanto ainda estiver pendente.",
+    "accept_player": "Conclua o período de teste e recrute este jogador para a sua equipa. Isto finaliza o processo de candidatura: o chat encerra e não é possível realizar mais nenhuma ação.",
+    "extend_trial": "Dá mais tempo ao período de teste em vez de decidires agora; isto é útil quando precisas de mais alguns dias antes de aceitares ou rejeitares o jogador.",
+    "trial_chat": "Uma conversa privada entre a equipa e o jogador durante o período de experiência. Só fica disponível assim que o período de experiência tiver começado e encerra quando a candidatura for resolvida."
+  },
+  "profile": {
+    "edit": {
+      "uid": "O teu UID de jogador do Free Fire, ou seja, o ID numérico do jogo que se encontra no teu perfil do Free Fire, e não o teu nome de utilizador do AFC. É utilizado para te identificar em torneios e nos resultados das partidas.",
+      "in_game_name": "O teu nome de utilizador público no Free Fire, apresentado na AFC como @tonome. Digita-o exatamente como aparece no jogo; a função de colar está bloqueada para impedir a utilização de caracteres Unicode especiais que prejudicam a correspondência."
+    },
+    "discord_connect": "Associe a sua conta do Discord para que o bot da AFC lhe possa atribuir as funções adequadas no servidor e no evento, e desbloquear funcionalidades exclusivas do Discord. É apresentada uma janela pop-up para autorizar a ligação no Discord; assim que a ligação estiver estabelecida, este botão passa a indicar «Desligar»."
+  },
+  "leaderboards": {
+    "public": {
+      "_page": "Classificação por evento. Escolha um evento, depois uma fase, um grupo e um jogo para ver a classificação das equipas ou dos jogadores. Os pontos resultam do sistema de pontuação definido pelo organizador para esse evento.",
+      "view_filter": "A «Tabela Geral» agrupa todos os jogos deste grupo numa única tabela cumulativa. Escolha um único jogo para ver apenas a classificação desse jogo.",
+      "points_column": "Pontuação total = pontos de classificação correspondentes à posição em que terminaste, mais os pontos por abate, de acordo com o sistema de pontuação definido pelo organizador para este evento."
+    }
+  },
+  "rankings": {
+    "public": {
+      "monthly_standings": "Uma tabela de classificação em tempo real de todos os eventos, ordenada pela pontuação total. É atualizada à medida que os resultados vão sendo divulgados e é reiniciada no dia 1 de cada mês, independentemente dos níveis sazonais.",
+      "score_column": "Uma pontuação combinada dos resultados dos torneios e dos jogos de treino: abates e classificações (comprimidos para que não fiquem muito dispersos), sendo que os torneios maiores valem mais pontos, além de bónus por vitórias e por chegar à final. Toca numa linha para veres o detalhe.",
+      "tiers_intro": "A classificação de uma equipa para toda a época, reavaliada a cada trimestre; apenas as equipas são classificadas por níveis. O emblema «X/2 torneios» significa que uma equipa tem de participar em, pelo menos, 2 torneios nesse trimestre para ficar classificada acima do nível «Entry»."
+    }
+  },
+  "media": {
+    "download": {
+      "esportSize": "A opção «Original» mantém a resolução total da imagem carregada. A opção «Imagem de personagem» redimensiona cada imagem de desporto eletrónico para 108 x 130, o tamanho da ranhura do jogador utilizado nos gráficos.",
+      "esportNaming": "Como cada ficheiro de imagem de e-sport é nomeado: o nome do jogador no jogo, o seu UID do Free Fire ou ambos combinados (primeiro o nome e depois o UID).",
+      "logoSize": "O original mantém a resolução total. O fundo de ecrã Gloo tem 1000 x 1000 (ecrã/redes sociais); a foto de perfil tem 108 x 130. Os ficheiros com os logótipos das equipas têm sempre o nome da equipa."
+    }
+  },
+  "ocr": {
+    "confidence": "O grau de certeza do leitor de que este nome no ecrã corresponde ao jogador apresentado. O verde indica uma correspondência forte, o âmbar indica incerteza e o vermelho indica uma suposição fraca. Verifique sempre os valores mais baixos.",
+    "team_mismatch": "Este jogador foi adicionado a uma equipa diferente daquela em que se registou, normalmente um substituto. Clique em «Confirmar» para confirmar a substituição antes de a efetuar, ou selecione o jogador correto.",
+    "corrected_text": "O texto exato tal como aparece na captura de ecrã, mesmo que esteja mal escrito no jogo. Isto serve apenas para treinar o leitor; não altera a identidade da equipa nem o resultado.",
+    "engine": "Qual leitor produziu este resultado (o modelo interno ou o externo)? Apenas é apresentado quando disponível, para que possa ver qual foi o leitor que leu a captura de ecrã."
+  }
+}

@@ -18,10 +18,25 @@
 //
 // HOW IT CONNECTS: ParticipantsStep renders this behind "Upload screenshots" and passes leaderboardId +
 // format. Each apply calls onApplied(result); the wizard (create/page.tsx) merges the returned
-// participants + match into its state. DESIGN: AFC constants - rounded-md cards, text-xs, outline
-// rounded-full badges, dropzone idiom from MapSelectionStep. No em/en dashes anywhere.
+// participants + match into its state.
+//
+// i18n (B3): all user-facing copy lives under the `ocr` namespace, group `stdBatch` (author English
+// only; `pnpm i18n:translate` fills fr/pt). Generic verbs (Done / Cancel / Remove / Retry) come from the
+// shared `ocr.common.*` group. Reference via `t = useTranslations("ocr")` -> `t("stdBatch.*")`.
+//
+// SAFETY (B4 #5): removing a map can delete a SERVER OCR job (ocrJobDelete) and lose read/applied
+// results, so the trash button stages a pending target and an AlertDialog confirm gates the delete. The
+// per-screenshot removeFile (local URL.revokeObjectURL only) needs no confirm.
+//
+// VALIDATION (B8): image uploads are filtered by the shared `filterOcrImages` helper (lib/ocrImages),
+// which rejects non-PNG/JPG/WEBP and files over 10 MB (toasting the first offending reason). The file
+// input's accept attribute is aligned to the same `OCR_ACCEPT` contract.
+//
+// DESIGN: AFC constants - rounded-md cards, text-xs, outline rounded-full badges, dropzone idiom from
+// MapSelectionStep. No em/en dashes anywhere.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import {
@@ -32,6 +47,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+// AlertDialog gates the destructive server DELETE (B4 #5): removing a map hits ocrJobDelete and loses any
+// results already read for it, so the trash button only stages `confirmRemoveId` and the actual removal
+// runs solely from AlertDialogAction.
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -55,6 +83,10 @@ import {
   IconReload,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+// Shared client image contract (B8): OCR_ACCEPT is the input accept string; filterOcrImages keeps only
+// allowed mimes (PNG/JPG/WEBP) that are <= 10 MB and toasts the first rejected reason. Owned by the
+// FE-uploadsteps agent (lib/ocrImages.ts) and shared with MapSelectionStep / ImageUploadStep.
+import { filterOcrImages, OCR_ACCEPT } from "@/lib/ocrImages";
 import {
   standaloneLeaderboardsApi,
   type LeaderboardFormat,
@@ -106,21 +138,23 @@ const newMap = (): MapEntry => ({
   applied: false,
 });
 
-// Status chip per map (mirrors the AFC outline-badge idiom).
+// Status chip per map (mirrors the AFC outline-badge idiom). Labels come from the `ocr` namespace
+// (`stdBatch.status.*`); this is its own component so it can call the translations hook cleanly.
 function StatusChip({ status }: { status: MapStatus }) {
-  const map: Record<MapStatus, { label: string; cls: string; spin?: boolean }> = {
-    draft: { label: "Not read", cls: "border-muted-foreground text-muted-foreground" },
-    pending: { label: "Queued", cls: "border-blue-500 text-blue-600", spin: true },
-    processing: { label: "Reading", cls: "border-blue-500 text-blue-600", spin: true },
-    done: { label: "Read", cls: "border-green-500 text-green-600" },
-    failed: { label: "Failed", cls: "border-destructive text-destructive" },
-    applied: { label: "Applied", cls: "border-green-500 text-green-600" },
+  const t = useTranslations("ocr");
+  const meta: Record<MapStatus, { key: string; cls: string; spin?: boolean }> = {
+    draft: { key: "status.notRead", cls: "border-muted-foreground text-muted-foreground" },
+    pending: { key: "status.queued", cls: "border-blue-500 text-blue-600", spin: true },
+    processing: { key: "status.reading", cls: "border-blue-500 text-blue-600", spin: true },
+    done: { key: "status.read", cls: "border-green-500 text-green-600" },
+    failed: { key: "status.failed", cls: "border-destructive text-destructive" },
+    applied: { key: "status.applied", cls: "border-green-500 text-green-600" },
   };
-  const s = map[status];
+  const s = meta[status];
   return (
     <Badge variant="outline" className={cn("rounded-full px-2 py-0.5 text-xs", s.cls)}>
       {s.spin && <IconLoader2 size={11} className="mr-1 animate-spin" />}
-      {s.label}
+      {t(`stdBatch.${s.key}`)}
     </Badge>
   );
 }
@@ -144,9 +178,14 @@ export function OcrBatchDialog({
   // ParticipantsStep / create/page.tsx). The dialog stays open so the admin can apply more maps.
   onApplied: (result: OcrApplyResponse) => void;
 }) {
+  // `ocr` namespace, group `stdBatch`; `t("common.*")` reaches the shared generic verbs.
+  const t = useTranslations("ocr");
   const [maps, setMaps] = useState<MapEntry[]>([newMap()]);
   const [polling, setPolling] = useState(false);
   const [busyAll, setBusyAll] = useState(false); // "Read all" in-flight (creating jobs)
+  // Pending remove-map target: non-null opens the confirm dialog; only AlertDialogAction runs the actual
+  // removal (which may delete the server OCR job). B4 #5.
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
 
   // Ref mirror so the poll loop reads current jobIds without re-subscribing each render.
   const mapsRef = useRef(maps);
@@ -165,6 +204,7 @@ export function OcrBatchDialog({
       setMaps([newMap()]);
       setPolling(false);
       setBusyAll(false);
+      setConfirmRemoveId(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -208,11 +248,14 @@ export function OcrBatchDialog({
   // ── File handling per map ───────────────────────────────────────────────────
   const addFiles = (localId: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const imgs = Array.from(files).filter((f) => f.type.startsWith("image/"));
-    if (imgs.length === 0) {
-      toast.error("Only image files are allowed (PNG, JPG, WEBP).");
-      return;
-    }
+    // B8: validate types + size against the shared OCR contract. The helper toasts the first rejected
+    // reason (via our stdBatch keys) and returns only the accepted files; an empty result means every
+    // file was rejected and the reason was already surfaced.
+    const imgs = filterOcrImages(files, {
+      onReject: (reason) =>
+        toast.error(reason === "type" ? t("stdBatch.rejectType") : t("stdBatch.rejectSize")),
+    });
+    if (imgs.length === 0) return;
     setMaps((prev) =>
       prev.map((m) =>
         m.localId === localId
@@ -226,6 +269,8 @@ export function OcrBatchDialog({
     );
   };
 
+  // Local-only removal of a single staged screenshot (revoke its object URL). No server call, so no
+  // confirm is needed (B4 #5 excludes this).
   const removeFile = (localId: string, idx: number) => {
     setMaps((prev) =>
       prev.map((m) => {
@@ -242,7 +287,10 @@ export function OcrBatchDialog({
 
   const addMap = () => setMaps((prev) => [...prev, newMap()]);
 
-  const removeMap = async (localId: string) => {
+  // Actual map removal: best-effort server cleanup (ocrJobDelete) + local teardown (revoke URLs, drop the
+  // card). Called only after the AlertDialog confirm resolves, or directly for an empty draft card that
+  // has nothing to lose.
+  const performRemoveMap = (localId: string) => {
     const m = mapsRef.current.find((x) => x.localId === localId);
     if (m?.jobId) {
       // Best-effort server cleanup; ignore failure (the row is leaving the UI either way).
@@ -253,6 +301,18 @@ export function OcrBatchDialog({
       const next = prev.filter((x) => x.localId !== localId);
       return next.length ? next : [newMap()]; // always keep at least one card
     });
+  };
+
+  // Trash-button handler (B4 #5). A card with a server job OR staged screenshots has something to lose, so
+  // route it through the confirm dialog. A truly empty draft card removes immediately.
+  const requestRemoveMap = (localId: string) => {
+    const m = mapsRef.current.find((x) => x.localId === localId);
+    const hasSomethingToLose = Boolean(m?.jobId) || (m?.previews.length ?? 0) > 0;
+    if (hasSomethingToLose) {
+      setConfirmRemoveId(localId);
+    } else {
+      performRemoveMap(localId);
+    }
   };
 
   // Create the server job for a map if it does not have one yet. Returns the jobId (or null on failure).
@@ -279,7 +339,7 @@ export function OcrBatchDialog({
     if (!m) return;
     if (m.status === "pending" || m.status === "processing") return;
     if (!m.jobId && m.files.length === 0) {
-      toast.error("Add at least one screenshot to this map first.");
+      toast.error(t("stdBatch.addOneShotFirst"));
       return;
     }
     try {
@@ -289,7 +349,7 @@ export function OcrBatchDialog({
       update(localId, { status: "processing", error: "" });
       setPolling(true);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Could not start reading that map.");
+      toast.error(err?.response?.data?.message || t("stdBatch.couldNotStartMap"));
     }
   };
 
@@ -299,7 +359,7 @@ export function OcrBatchDialog({
       (m) => (m.jobId && (m.status === "failed" || m.status === "pending")) || m.files.length > 0,
     );
     if (candidates.length === 0) {
-      toast.error("Add screenshots to at least one map first.");
+      toast.error(t("stdBatch.addShotsToOneMap"));
       return;
     }
     setBusyAll(true);
@@ -312,7 +372,7 @@ export function OcrBatchDialog({
         }
       }
       const { queued } = await standaloneLeaderboardsApi.ocrRunAll(leaderboardId);
-      toast.success(`Reading ${queued} map${queued !== 1 ? "s" : ""} in the background.`);
+      toast.success(t("stdBatch.readingInBackground", { count: queued }));
       setPolling(true);
       // Reflect the enqueue immediately, then let polling take over.
       setMaps((prev) =>
@@ -324,7 +384,7 @@ export function OcrBatchDialog({
       );
       refreshJobs();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Could not start reading the maps.");
+      toast.error(err?.response?.data?.message || t("stdBatch.couldNotStartMaps"));
     } finally {
       setBusyAll(false);
     }
@@ -340,11 +400,12 @@ export function OcrBatchDialog({
         rows: applyRows,
         match_map: m.label.trim() || undefined,
       });
-      toast.success(`Applied ${m.label.trim() || "map"} (${applyRows.length} rows).`);
+      const label = m.label.trim() || t("stdBatch.mapFallback");
+      toast.success(t("stdBatch.appliedMap", { label, count: applyRows.length }));
       onApplied(result);
       update(localId, { applying: false, applied: true, status: "applied" });
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to apply this map.");
+      toast.error(err?.response?.data?.message || t("stdBatch.failedApply"));
       update(localId, { applying: false });
     }
   };
@@ -361,12 +422,9 @@ export function OcrBatchDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconScan size={18} className="text-muted-foreground" />
-            Read results from screenshots
+            {t("stdBatch.title")}
           </DialogTitle>
-          <DialogDescription>
-            Add a map for each match, drop one or more result screenshots on it, then read them. Reading
-            runs in the background, so you can read every map at once and come back when they are done.
-          </DialogDescription>
+          <DialogDescription>{t("stdBatch.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -375,7 +433,7 @@ export function OcrBatchDialog({
               {/* Card header: label + status + remove */}
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <Label className="sr-only">Map</Label>
+                  <Label className="sr-only">{t("stdBatch.mapSrLabel")}</Label>
                   {/* Pick one of the six FF maps (no typing). The same map may be chosen on multiple
                       cards (two matches on Bermuda is fine). Optional: an unset map just leaves the
                       created match unnamed. */}
@@ -385,7 +443,7 @@ export function OcrBatchDialog({
                     disabled={m.applied}
                   >
                     <SelectTrigger className="h-8 text-sm">
-                      <SelectValue placeholder={`Select map for match ${i + 1} (optional)`} />
+                      <SelectValue placeholder={t("stdBatch.selectMapPlaceholder", { num: i + 1 })} />
                     </SelectTrigger>
                     <SelectContent>
                       {FF_MAPS.map((mp) => (
@@ -402,8 +460,8 @@ export function OcrBatchDialog({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={() => removeMap(m.localId)}
-                  aria-label="Remove map"
+                  onClick={() => requestRemoveMap(m.localId)}
+                  aria-label={t("stdBatch.removeMapAria")}
                 >
                   <IconTrash size={15} />
                 </Button>
@@ -418,13 +476,17 @@ export function OcrBatchDialog({
                       className="relative h-16 w-24 overflow-hidden rounded-md border bg-muted/20"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src} alt={`map ${i + 1} shot ${idx + 1}`} className="h-full w-full object-cover" />
+                      <img
+                        src={src}
+                        alt={t("stdBatch.shotAlt", { mapNum: i + 1, shotNum: idx + 1 })}
+                        className="h-full w-full object-cover"
+                      />
                       {m.status === "draft" && (
                         <button
                           type="button"
                           onClick={() => removeFile(m.localId, idx)}
                           className="absolute right-0.5 top-0.5 flex size-5 items-center justify-center rounded-full bg-destructive/90 opacity-90 hover:bg-destructive"
-                          aria-label="Remove screenshot"
+                          aria-label={t("stdBatch.removeShotAria")}
                         >
                           <IconX size={11} className="text-white" />
                         </button>
@@ -445,13 +507,11 @@ export function OcrBatchDialog({
                   >
                     <IconPhoto size={22} className="text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">
-                      {m.previews.length > 0
-                        ? "Add more screenshots for this map"
-                        : "Click to add one or more screenshots for this map"}
+                      {m.previews.length > 0 ? t("stdBatch.dropAddMore") : t("stdBatch.dropFirst")}
                     </span>
                     <input
                       type="file"
-                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      accept={OCR_ACCEPT}
                       multiple
                       className="hidden"
                       onChange={(e) => {
@@ -469,7 +529,7 @@ export function OcrBatchDialog({
                       disabled={m.files.length === 0}
                     >
                       <IconPlayerPlay size={14} className="mr-1" />
-                      Read this map
+                      {t("stdBatch.readThisMap")}
                     </Button>
                   </div>
                 </div>
@@ -478,8 +538,7 @@ export function OcrBatchDialog({
               {(m.status === "pending" || m.status === "processing") && (
                 <div className="flex items-center gap-2 rounded-md border border-blue-500/30 bg-blue-500/5 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
                   <IconLoader2 size={14} className="animate-spin" />
-                  Reading {m.imageCount} screenshot{m.imageCount !== 1 ? "s" : ""} in the background. You
-                  can read other maps while this runs.
+                  {t("stdBatch.readingStatus", { count: m.imageCount })}
                 </div>
               )}
 
@@ -487,12 +546,12 @@ export function OcrBatchDialog({
                 <div className="space-y-2">
                   <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
                     <IconAlertTriangle className="size-4 shrink-0" />
-                    <span>{m.error || "Could not read this map."}</span>
+                    <span>{m.error || t("stdBatch.couldNotReadMap")}</span>
                   </div>
                   <div className="flex justify-end">
                     <Button type="button" size="sm" variant="outline" onClick={() => readMap(m.localId)}>
                       <IconReload size={14} className="mr-1" />
-                      Try again
+                      {t("common.retry")}
                     </Button>
                   </div>
                 </div>
@@ -515,34 +574,65 @@ export function OcrBatchDialog({
           {/* Add another map */}
           <Button type="button" variant="outline" size="sm" onClick={addMap}>
             <IconPlus size={14} className="mr-1" />
-            Add another map
+            {t("stdBatch.addAnotherMap")}
           </Button>
         </div>
 
         <DialogFooter className="gap-2 sm:justify-between">
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-            Done
+            {t("common.done")}
           </Button>
           <Button type="button" onClick={readAll} disabled={anyBusy || readableCount === 0}>
             {busyAll ? (
               <span className="flex items-center gap-2">
                 <IconLoader2 size={14} className="animate-spin" />
-                Starting...
+                {t("stdBatch.starting")}
               </span>
             ) : polling ? (
               <span className="flex items-center gap-2">
                 <IconLoader2 size={14} className="animate-spin" />
-                Reading maps...
+                {t("stdBatch.readingMaps")}
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <IconUpload size={14} />
-                Read all maps
+                {t("stdBatch.readAllMaps")}
               </span>
             )}
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* ── Confirm before removing a map (B4 #5) ── the trash button only stages `confirmRemoveId`; the
+          removal (which may delete the server OCR job via ocrJobDelete) runs solely from
+          AlertDialogAction. onOpenChange clears the target on dismiss. */}
+      <AlertDialog
+        open={confirmRemoveId !== null}
+        onOpenChange={(o) => {
+          if (!o) setConfirmRemoveId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("stdBatch.removeMapConfirm.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("stdBatch.removeMapConfirm.description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-white hover:bg-destructive/90"
+              onClick={() => {
+                if (confirmRemoveId) performRemoveMap(confirmRemoveId);
+                setConfirmRemoveId(null);
+              }}
+            >
+              {t("common.remove")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
