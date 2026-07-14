@@ -784,12 +784,13 @@ const Page = ({ params }: { params: Params }) => {
                         <p className="text-sm text-muted-foreground">
                           {t("teamDetail.totalWins")}
                         </p>
+                        {/* Total Wins = tournament wins + scrim wins. Previously used `&&` which
+                            rendered 0 unless BOTH were non-zero (a team with only tournament wins showed
+                            0). Sum with `|| 0` so each side contributes independently (owner 2026-07-14
+                            fix, alongside the backend now returning the `stats` object at all). */}
                         <p className="text-lg md:text-xl font-semibold">
-                          {teamDetails?.stats?.scrim_wins &&
-                          teamDetails?.stats?.tournament_wins
-                            ? teamDetails?.stats?.scrim_wins +
-                              teamDetails?.stats?.tournament_wins
-                            : 0}
+                          {(teamDetails?.stats?.tournament_wins || 0) +
+                            (teamDetails?.stats?.scrim_wins || 0)}
                         </p>
                       </div>
                       <div>
@@ -1209,49 +1210,78 @@ const Page = ({ params }: { params: Params }) => {
                     <CardTitle>{t("teamDetail.socialMedia")}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      {teamDetails?.social_media_links.length === 0 && (
-                        <div className="text-center py-14 text-sm text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
-                          {t("teamDetail.noLinkFound")}
-                        </div>
-                      )}
-                      {teamDetails?.social_media_links?.map(
-                        (link: any, index: any) => (
-                          <Link
-                            key={index}
-                            href={link.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center space-x-2 text-muted-foreground hover:text-primary"
-                          >
-                            {link.platform === "facebook" && (
-                              <Facebook className="h-5 w-5" />
-                            )}
-                            {link.platform === "twitter" && (
-                              <Twitter className="h-5 w-5" />
-                            )}
-                            {link.platform === "instagram" && (
-                              <Instagram className="h-5 w-5" />
-                            )}
-                            {link.platform === "youtube" && (
-                              <Youtube className="h-5 w-5" />
-                            )}
-                            {link.platform === "twitch" && (
-                              <Twitch className="h-5 w-5" />
-                            )}
-                            <span>
-                              {link.platform.charAt(0).toUpperCase() +
-                                link.platform.slice(1)}
-                            </span>
-                          </Link>
-                        ),
-                      )}
-                      {teamDetails?.social_media_links === undefined && (
-                        <p className="text-sm text-center italic">
-                          {t("teamDetail.noSocialLinks")}
-                        </p>
-                      )}
-                    </div>
+                    {/* Social links as a responsive card grid (owner 2026-07-14 UI pass): each link is
+                        a bordered card with the platform's icon in a colored chip, its name, and the
+                        handle/URL, opening in a new tab. Replaces the old bare text row. Falls back to
+                        a friendly empty state when the team has no links. */}
+                    {!teamDetails?.social_media_links ||
+                    teamDetails.social_media_links.length === 0 ? (
+                      <div className="rounded-md border-2 border-dashed border-border py-14 text-center text-sm italic text-muted-foreground">
+                        {t("teamDetail.noLinkFound")}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {teamDetails.social_media_links.map(
+                          (link: any, index: number) => {
+                            const p = String(link.platform || "").toLowerCase();
+                            // Icon per platform; LinkIcon is the fallback for any other platform.
+                            const Icon =
+                              p === "facebook"
+                                ? Facebook
+                                : p === "twitter" || p === "x"
+                                  ? Twitter
+                                  : p === "instagram"
+                                    ? Instagram
+                                    : p === "youtube"
+                                      ? Youtube
+                                      : p === "twitch"
+                                        ? Twitch
+                                        : LinkIcon;
+                            // Brand-tinted chip; generic primary tint for unknown platforms.
+                            const accent =
+                              p === "facebook"
+                                ? "bg-[#1877F2]/15 text-[#1877F2]"
+                                : p === "twitter" || p === "x"
+                                  ? "bg-sky-500/15 text-sky-400"
+                                  : p === "instagram"
+                                    ? "bg-pink-500/15 text-pink-400"
+                                    : p === "youtube"
+                                      ? "bg-red-500/15 text-red-400"
+                                      : p === "twitch"
+                                        ? "bg-purple-500/15 text-purple-400"
+                                        : "bg-primary/15 text-primary";
+                            // Show a clean handle: strip scheme + trailing slash from the URL.
+                            const handle = String(link.link || "")
+                              .replace(/^https?:\/\/(www\.)?/i, "")
+                              .replace(/\/+$/, "");
+                            return (
+                              <Link
+                                key={index}
+                                href={link.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group flex items-center gap-3 rounded-md border bg-card p-3 shadow-sm transition-colors hover:border-primary/50 hover:bg-muted/40"
+                              >
+                                <span
+                                  className={`flex size-10 shrink-0 items-center justify-center rounded-full ${accent}`}
+                                >
+                                  <Icon className="size-5" />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="block text-sm font-semibold capitalize">
+                                    {p === "x" ? "X" : link.platform}
+                                  </span>
+                                  <span className="block truncate text-xs text-muted-foreground">
+                                    {handle}
+                                  </span>
+                                </span>
+                                <IconExternalLink className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                              </Link>
+                            );
+                          },
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>

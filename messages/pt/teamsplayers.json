@@ -411,6 +411,7 @@
     "type": "Tipo",
     "prize": "Prêmio",
     "finalPlacement": "Classificação final",
+    "finalist": "Finalista",
     "totalPoints": "Pontos totais",
     "prizeWon": "Prêmio ganho",
     "perMatchBreakdown": "Detalhes por partida",

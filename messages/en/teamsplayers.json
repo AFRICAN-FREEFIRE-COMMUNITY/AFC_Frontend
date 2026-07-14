@@ -411,6 +411,7 @@
     "type": "Type",
     "prize": "Prize",
     "finalPlacement": "Final placement",
+    "finalist": "Finalist",
     "totalPoints": "Total points",
     "prizeWon": "Prize won",
     "perMatchBreakdown": "Per-match breakdown",

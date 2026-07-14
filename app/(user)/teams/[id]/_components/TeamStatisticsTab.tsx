@@ -106,6 +106,9 @@ type TournamentPerformance = {
   // fall back to best_placement. This is what "Final placement" + the Placement column must show -
   // best_placement is only the team's best SINGLE map (a team can win one map but finish 6th overall).
   final_placement?: number | null;
+  // Team reached the deciding (last) stage of a multi-stage event (owner 2026-07-14: "if the team got
+  // to the last stage it should show differently"). Drives the "Finalist" badge on the event row.
+  reached_final_stage?: boolean;
   total_points: number;
   total_kills: number;
   matches_played: number;
@@ -120,6 +123,11 @@ type RecentMatch = {
   // for a legacy match with no group.
   stage_name?: string | null;
   group_name?: string | null;
+  // Stage window + group (lobby) play date (owner 2026-07-14: "stages and groups ... should have their
+  // dates showing"). ISO strings or null; rendered in the viewer's tz/locale via <LocalTime>.
+  stage_start_date?: string | null;
+  stage_end_date?: string | null;
+  group_date?: string | null;
   match_number: number;
   match_map: string;
   placement: number;
@@ -134,7 +142,16 @@ function groupMatchesByStageGroup(matches: RecentMatch[]) {
   const order: string[] = [];
   const byKey = new Map<
     string,
-    { stage: string | null; group: string | null; rows: RecentMatch[] }
+    {
+      stage: string | null;
+      group: string | null;
+      // Stage window + group play date carried from the first match of the section (owner 2026-07-14),
+      // so each stage/group header can show WHEN it was played.
+      stageStart: string | null;
+      stageEnd: string | null;
+      groupDate: string | null;
+      rows: RecentMatch[];
+    }
   >();
   for (const m of matches) {
     const key = `${m.stage_name ?? ""}||${m.group_name ?? ""}`;
@@ -142,6 +159,9 @@ function groupMatchesByStageGroup(matches: RecentMatch[]) {
       byKey.set(key, {
         stage: m.stage_name ?? null,
         group: m.group_name ?? null,
+        stageStart: m.stage_start_date ?? null,
+        stageEnd: m.stage_end_date ?? null,
+        groupDate: m.group_date ?? null,
         rows: [],
       });
       order.push(key);
@@ -1087,7 +1107,20 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                           />
                         </TableCell>
                         <TableCell className="p-2 font-semibold">
-                          {perf.name}
+                          <span className="inline-flex flex-wrap items-center gap-1.5">
+                            {perf.name}
+                            {/* Finalist marker (owner 2026-07-14): the team reached the deciding stage
+                                of a multi-stage event, so it "shows differently" from teams knocked out
+                                earlier. Gold outline to echo the trophy/win accent. */}
+                            {perf.reached_final_stage && (
+                              <Badge
+                                variant="outline"
+                                className="rounded-full border-gold/60 px-2 py-0.5 text-[0.62rem] font-medium text-gold"
+                              >
+                                {t("teamStats.finalist")}
+                              </Badge>
+                            )}
+                          </span>
                         </TableCell>
                         <TableCell className="p-2 text-muted-foreground">
                           {/* Event date in the viewer's timezone + language, or "-". */}
@@ -1170,11 +1203,24 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                                     return (
                                       <div key={`${label}-${gi}`}>
                                         {label ? (
-                                          <div className="mb-1 flex items-center justify-between gap-2">
-                                            <span className="text-[0.68rem] font-semibold uppercase tracking-wide text-primary">
-                                              {label}
-                                            </span>
-                                            <span className="text-[0.68rem] text-muted-foreground">
+                                          <div className="mb-1 flex items-start justify-between gap-2">
+                                            <div className="flex flex-col">
+                                              <span className="text-[0.68rem] font-semibold uppercase tracking-wide text-primary">
+                                                {label}
+                                              </span>
+                                              {/* Stage/group DATE (owner 2026-07-14): the lobby's own
+                                                  play date when set, else the stage's start date. In the
+                                                  viewer's tz/locale. Nothing shown when neither exists. */}
+                                              {(grp.groupDate || grp.stageStart) && (
+                                                <span className="text-[0.62rem] text-muted-foreground">
+                                                  <LocalTime
+                                                    value={grp.groupDate || grp.stageStart}
+                                                    mode="date"
+                                                  />
+                                                </span>
+                                              )}
+                                            </div>
+                                            <span className="whitespace-nowrap text-[0.68rem] text-muted-foreground">
                                               {t("teamStats.kills")}: {gKills} · {t("teamStats.points")}: {gPoints}
                                             </span>
                                           </div>

@@ -411,6 +411,7 @@
     "type": "Type",
     "prize": "Prix",
     "finalPlacement": "Classement final",
+    "finalist": "Finaliste",
     "totalPoints": "Points totaux",
     "prizeWon": "Prix remporté",
     "perMatchBreakdown": "Détail par match",
