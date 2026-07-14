@@ -102,6 +102,10 @@ type TournamentPerformance = {
   event_status: string;
   team_status: string;
   best_placement: number | null;
+  // Team's FINAL overall standing in the event (owner 2026-07-14). Null until the event ends, so we
+  // fall back to best_placement. This is what "Final placement" + the Placement column must show -
+  // best_placement is only the team's best SINGLE map (a team can win one map but finish 6th overall).
+  final_placement?: number | null;
   total_points: number;
   total_kills: number;
   matches_played: number;
@@ -188,6 +192,12 @@ const toMoney = (v: string | null | undefined): number => {
   const n = parseFloat(v ?? "0");
   return Number.isFinite(n) ? n : 0;
 };
+
+// The placement to SHOW for an event: the team's FINAL overall standing when the backend knows it
+// (owner 2026-07-14), falling back to their best single-map placement for events that haven't ended.
+// Used for the Placement column, the "Final placement" box, the win/trophy marker, and the curve.
+const eventPlacement = (p: TournamentPerformance): number | null =>
+  p.final_placement ?? p.best_placement;
 
 // Money formatting (fmtMoney) is defined INSIDE the component below so it can read the viewer's
 // display currency from CurrencyContext. Stored amounts are NGN (the rankings + prizepool base
@@ -406,7 +416,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
     const tournaments = perfInRange.length;
     const totalKills = perfInRange.reduce((s, p) => s + (p.total_kills || 0), 0);
     const placements = perfInRange
-      .map((p) => p.best_placement)
+      .map((p) => eventPlacement(p))
       .filter((p): p is number => p != null);
     const wins = placements.filter((p) => p === 1).length;
     const avgPlacement =
@@ -448,7 +458,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
       .map((p) => ({
         label: shortDate(p.event_date),
         name: p.name,
-        placement: p.best_placement, // may be null -> recharts skips the point
+        placement: eventPlacement(p), // final standing when known; may be null -> recharts skips it
         kills: p.total_kills,
         points: p.total_points,
         earnings: toMoney(p.prize_earned),
@@ -1060,7 +1070,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
               <TableBody>
                 {allPerf.map((perf) => {
                   const isOpen = openRow === perf.event_id;
-                  const isWin = perf.best_placement === 1;
+                  const isWin = eventPlacement(perf) === 1;
                   const prize = toMoney(perf.prize_earned);
                   const matches = matchesByEvent.get(perf.name) ?? [];
                   return (
@@ -1103,7 +1113,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                           {isWin && (
                             <IconTrophy className="mr-1 inline size-3.5" />
                           )}
-                          {ordinalPlacement(perf.best_placement, t)}
+                          {ordinalPlacement(eventPlacement(perf), t)}
                         </TableCell>
                         <TableCell className="p-2 text-center">
                           {perf.total_kills}
@@ -1125,7 +1135,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                               <div className="mb-2 grid grid-cols-2 gap-2.5 md:grid-cols-4">
                                 <SummaryBox
                                   label={t("teamStats.finalPlacement")}
-                                  value={ordinalPlacement(perf.best_placement, t)}
+                                  value={ordinalPlacement(eventPlacement(perf), t)}
                                 />
                                 <SummaryBox
                                   label={t("teamStats.totalKills")}
