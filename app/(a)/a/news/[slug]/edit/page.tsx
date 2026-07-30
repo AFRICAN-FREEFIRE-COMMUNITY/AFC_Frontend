@@ -25,7 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { newsCategories, relatedEvents } from "@/constants";
+import { newsCategories } from "@/constants";
+import { EventMultiSelect } from "@/components/news/EventMultiSelect";
 import { use, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import axios from "axios";
@@ -89,7 +90,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
       title: "",
       content: "",
       category: "",
-      event: "",
+      events: [],
       author: user?.full_name || "",
       images: "",
     },
@@ -132,7 +133,13 @@ export default function EditNewsForm({ params }: { params: Params }) {
         title: newsDetails.news_title || "",
         content: newsDetails.content || "",
         category: newsDetails.category || "",
-        event: newsDetails.related_events || "",
+        // Prefill the multi-select from get-news-detail's related_events list
+        // (_serialize_related_news_events -> [{event_id, event_name, slug, tournament_tier, end_date}]);
+        // the picker only needs {event_id, event_name}.
+        events: (newsDetails.related_events || []).map((e: any) => ({
+          event_id: e.event_id,
+          event_name: e.event_name,
+        })),
         images: newsDetails.images_url || "",
         author: newsDetails?.author || "",
       });
@@ -158,11 +165,19 @@ export default function EditNewsForm({ params }: { params: Params }) {
           from: newsDetails.category || "-",
           to: data.category,
         });
-      if (data.event !== (newsDetails.related_events || ""))
+      // Related events changed? Compare the selected event names against the article's current set
+      // (both flattened to a comma-joined string) so the confirm modal shows a readable before/after.
+      const origEvents = (newsDetails.related_events || [])
+        .map((e: any) => e.event_name)
+        .join(", ");
+      const nextEvents = (data.events || [])
+        .map((e) => e.event_name)
+        .join(", ");
+      if (nextEvents !== origEvents)
         changes.push({
-          label: "Related Event",
-          from: newsDetails.related_events || "-",
-          to: data.event || "-",
+          label: "Related Events",
+          from: origEvents || "-",
+          to: nextEvents || "-",
         });
       if (data.author !== (newsDetails.author || ""))
         changes.push({
@@ -210,8 +225,20 @@ export default function EditNewsForm({ params }: { params: Params }) {
         formData.append("news_title", data.title);
         formData.append("content", data.content);
         formData.append("category", data.category);
-        formData.append("related_event", data.event!);
         formData.append("author", data.author);
+
+        // Related events (News overhaul): ALWAYS send the field on edit so the backend acts on it -
+        // each selected event id as a repeated `related_events` field, or a single empty value when
+        // the selection was fully cleared. edit_news (afc_auth/views.py) reads
+        // request.data.getlist("related_events"), REPLACES the News.related_events M2M, and treats a
+        // present-but-empty field as "clear all" (a truly absent field would instead be left untouched).
+        if (data.events && data.events.length > 0) {
+          data.events.forEach((ev) => {
+            formData.append("related_events", String(ev.event_id));
+          });
+        } else {
+          formData.append("related_events", "");
+        }
 
         // Always send the schedule field so the backend acts on it: a future datetime re-schedules
         // (hidden until then), a blank value publishes now and clears any pending schedule.
@@ -330,32 +357,25 @@ export default function EditNewsForm({ params }: { params: Params }) {
                   </FormItem>
                 )}
               />
+              {/* Related events (News overhaul): searchable multi-select of REAL events (was a
+                  hardcoded single Select bound to the fake `relatedEvents` constant). Prefilled from
+                  the fetched news.related_events; submitted as repeated `related_events` ids. */}
               <FormField
                 control={form.control}
-                name="event"
+                name="events"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Related Event (Optional)
+                      Related Events (Optional)
                       <InfoTip id="news.related_event" className="ml-1" />
                     </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select event" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {relatedEvents.map((event, index) => (
-                          <SelectItem key={index} value={event.value}>
-                            {event.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <EventMultiSelect
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        token={token}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -29,6 +29,10 @@
     "registerForTournament": "Registrar para o Torneio",
     "wasThisHelpful": "Isso foi útil?"
   },
+  "relatedEvents": {
+    "heading": "Eventos relacionados",
+    "viewEvent": "Ver {name}"
+  },
   "toast": {
     "loadFailed": "Falha ao carregar notícias",
     "syncFailed": "Falha ao sincronizar dados de notícias",

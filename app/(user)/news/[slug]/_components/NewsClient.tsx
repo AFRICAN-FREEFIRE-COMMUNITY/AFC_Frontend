@@ -12,9 +12,13 @@ import { cn } from "@/lib/utils";
 import { LocalTime } from "@/components/LocalTime";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import Link from "next/link";
 import { RenderDescription } from "@/components/text-editor/RenderDescription";
-import { ExternalLink } from "lucide-react";
+import { ChevronRight, ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+// TournamentTierBadge: shared gold/green/blue tier badge (components/TournamentTierBadge.tsx),
+// the same one tournaments/page.tsx uses, so the tier accent here matches the rest of the site.
+import { TournamentTierBadge } from "@/components/TournamentTierBadge";
 import { notFound } from "next/navigation";
 import { DEFAULT_IMAGE } from "@/constants";
 import { Separator } from "@/components/ui/separator";
@@ -178,6 +182,49 @@ export function NewsClient({
           height={400}
           className="aspect-video w-full object-cover rounded-md"
         />
+
+        {/* ── Related events (owner 2026-07-15: "on the user facing end they should be able to
+            see related events") ──────────────────────────────────────────────────────────────
+            Reads newsDetails.related_events, the M2M list get-news-detail now returns
+            (afc_auth/views.py get_news_detail -> [{event_id, event_name, slug, tournament_tier,
+            end_date}]). Each card deep-links to the public event page at /tournaments/<slug>
+            (the same route tournaments/[slug] uses). TournamentTierBadge + LocalTime are the
+            shared components the rest of the site uses, so the tier accent + date format match.
+            Rendered only when the article actually has related events; nothing else on this page
+            changes. */}
+        {Array.isArray(newsDetails.related_events) &&
+          newsDetails.related_events.length > 0 && (
+            <section className="bg-card rounded-md border p-4 sm:p-5">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                {t("relatedEvents.heading")}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {newsDetails.related_events.map((ev: any) => (
+                  <Link
+                    key={ev.event_id}
+                    href={`/tournaments/${ev.slug}`}
+                    aria-label={t("relatedEvents.viewEvent", {
+                      name: ev.event_name,
+                    })}
+                    className="group flex items-center justify-between gap-3 rounded-md border bg-background p-3 transition-colors hover:border-primary"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">
+                        {ev.event_name}
+                      </p>
+                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                        <TournamentTierBadge tier={ev.tournament_tier} />
+                        {ev.end_date && (
+                          <LocalTime value={ev.end_date} mode="date" />
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
 
         <RenderDescription json={newsDetails?.content} />
 

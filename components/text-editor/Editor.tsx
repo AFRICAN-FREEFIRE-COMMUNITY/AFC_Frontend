@@ -6,9 +6,16 @@ import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
 import { Menubar } from "./Menubar";
-import { CustomTextStyle } from "./extensions";
+// AlignedImage/GalleryNode/NewsVideoNode are our custom media nodes. They MUST be registered with
+// the SAME list in RenderDescription.tsx (the reader) or articles render blank for readers. See the
+// header comment in extensions.ts.
+import {
+  CustomTextStyle,
+  AlignedImage,
+  GalleryNode,
+  NewsVideoNode,
+} from "./extensions";
 
 export function RichTextEditor({ field }: { field: any }) {
   // i18n: "editor" ns (editor.wordCount ICU plural). Shared rich-text editor used by news and
@@ -30,11 +37,13 @@ export function RichTextEditor({ field }: { field: any }) {
         },
       }),
       CustomTextStyle,
-      Image.configure({
+      AlignedImage.configure({
         HTMLAttributes: {
           class: "max-w-full rounded-md my-4",
         },
       }),
+      GalleryNode,
+      NewsVideoNode,
     ],
 
     editorProps: {

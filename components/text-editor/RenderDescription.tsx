@@ -8,8 +8,15 @@ import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
-import { CustomTextStyle } from "./extensions";
+// AlignedImage/GalleryNode/NewsVideoNode: the reader side of the news media nodes. This list MUST
+// stay identical to Editor.tsx's useEditor extensions, otherwise generateHTML emits blank markup for
+// any node it does not know about (the news-media wiring gotcha, see extensions.ts header).
+import {
+  CustomTextStyle,
+  AlignedImage,
+  GalleryNode,
+  NewsVideoNode,
+} from "./extensions";
 import parse from "html-react-parser";
 
 export const RenderDescription = ({
@@ -42,14 +49,33 @@ export const RenderDescription = ({
         return "<p></p>";
       }
 
-      return generateHTML(parsedJson, [
+      const html = generateHTML(parsedJson, [
         StarterKit,
         TextAlign.configure({ types: ["heading", "paragraph"] }),
         Underline,
         Link.configure({ openOnClick: false }),
         CustomTextStyle,
-        Image,
+        // Same config object as Editor.tsx so image classes match between author + reader.
+        AlignedImage.configure({
+          HTMLAttributes: {
+            class: "max-w-full rounded-md my-4",
+          },
+        }),
+        GalleryNode,
+        NewsVideoNode,
       ]);
+
+      // generateHTML() uses ProseMirror's DOMSerializer, which stamps
+      // xmlns="http://www.w3.org/1999/xhtml" onto every serialized block element. React reads that
+      // attribute as a namespace switch and hydrates the subtree in XML/foreign mode; hydrating an
+      // interactive HTML element inside it (specifically the NewsVideoNode <iframe>) then mismatches
+      // the server markup, so React regenerates the tree and the video iframe is DROPPED on the
+      // client - intermittently, since it is a hydration race (the <img> in AlignedImage/GalleryNode
+      // survives because a void element has no such mode conflict). Stripping the redundant xhtml
+      // namespace decl makes the markup plain HTML that hydrates identically on server + client, so
+      // the news article video renders reliably. See app/(user)/news/[slug] (NewsClient) which is the
+      // SSR-then-hydrate consumer that exposed this; the admin editor never SSRs so it was unaffected.
+      return html.replace(/ xmlns="http:\/\/www\.w3\.org\/1999\/xhtml"/g, "");
     } catch (error) {
       return `<p>${t("contentError")}</p>`;
     }

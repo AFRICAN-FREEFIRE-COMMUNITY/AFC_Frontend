@@ -28,7 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { newsCategories, relatedEvents } from "@/constants";
+import { newsCategories } from "@/constants";
+import { EventMultiSelect } from "@/components/news/EventMultiSelect";
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import axios from "axios";
@@ -68,7 +69,7 @@ function page() {
       title: "",
       content: "",
       category: "",
-      event: "",
+      events: [],
       author: user?.full_name || "",
       images: "",
     },
@@ -87,6 +88,14 @@ function page() {
         formData.append("content", data.content);
         formData.append("category", data.category);
         formData.append("author", data.author);
+
+        // Related events (News overhaul): submit each selected event id as a repeated
+        // `related_events` form field. create_news (afc_auth/views.py) reads them with
+        // request.data.getlist("related_events") and sets the News.related_events M2M. An empty
+        // selection sends no field, which the backend treats as "no related events" on create.
+        (data.events || []).forEach((ev) => {
+          formData.append("related_events", String(ev.event_id));
+        });
 
         // Append profile picture file if selected
         if (selectedFile) {
@@ -203,32 +212,25 @@ function page() {
                   </FormItem>
                 )}
               />
+              {/* Related events (News overhaul): searchable multi-select of REAL events (was a
+                  hardcoded single Select bound to the fake `relatedEvents` constant that the create
+                  form never submitted). Selection is submitted as repeated `related_events` ids. */}
               <FormField
                 control={form.control}
-                name="event"
+                name="events"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Related Event (Optional)
+                      Related Events (Optional)
                       <InfoTip id="news.related_event" className="ml-1" />
                     </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select event" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {relatedEvents.map((event, index) => (
-                          <SelectItem key={index} value={event.value}>
-                            {event.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <EventMultiSelect
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        token={token}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

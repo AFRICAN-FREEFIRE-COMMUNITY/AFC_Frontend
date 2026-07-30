@@ -29,6 +29,10 @@
     "registerForTournament": "Register for Tournament",
     "wasThisHelpful": "Was this helpful?"
   },
+  "relatedEvents": {
+    "heading": "Related events",
+    "viewEvent": "View {name}"
+  },
   "toast": {
     "loadFailed": "Failed to load news",
     "syncFailed": "Failed to sync news data",

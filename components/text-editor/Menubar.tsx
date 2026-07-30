@@ -19,17 +19,21 @@ import {
   Heading2Icon,
   Heading3Icon,
   ImageIcon,
+  Images,
   Italic,
   Link,
   Link2Off,
   ListIcon,
   ListOrdered,
+  Loader2,
   Minus,
   Quote,
   Redo,
+  StretchHorizontal,
   Strikethrough,
   Underline,
   Undo,
+  Video,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -43,6 +47,18 @@ import {
   SelectValue,
 } from "../ui/select";
 import { FONT_FAMILIES, FONT_SIZES } from "./extensions";
+// News media uploads: images/galleries POST to /auth/upload-news-image/ and videos to
+// /auth/upload-news-video/ (both return { status:"ok", url }); the returned url is embedded in the
+// AlignedImage / gallery / newsVideo node (see extensions.ts). We reuse the SAME axios + Bearer
+// token + client-side compress pattern the profile-edit esport-image picker uses.
+import axios from "axios";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { env } from "@/lib/env";
+import { compressImageForUpload } from "@/lib/imageCompress";
+// parseVideoEmbed turns a pasted YouTube/TikTok/X/Facebook/Instagram/Drive link into a safe embed
+// url (null if unsupported); the same helper the player-market video embed uses.
+import { parseVideoEmbed } from "@/lib/videoEmbed";
 
 interface iAppProps {
   editor: Editor | null;
@@ -126,10 +142,24 @@ export const Menubar = ({ editor }: iAppProps) => {
   // i18n: "editor" ns (messages/en/editor.json). This rich-text toolbar renders inside the news
   // editor and other RichTextEditor consumers, some on the non-exempt organizer surface.
   const t = useTranslations("editor");
+  // Bearer token for the news media upload endpoints (same source as every other authed FE call).
+  const { token } = useAuth();
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [imageOpen, setImageOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  // Image popover has two tabs: file upload vs. paste-a-URL (default to Upload).
+  const [imageTab, setImageTab] = useState<"upload" | "url">("upload");
+  const [imageUploading, setImageUploading] = useState(false);
+  // Gallery popover: multi-file upload + a 2/3 column choice, inserted as ONE gallery node.
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryColumns, setGalleryColumns] = useState(3);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  // Video popover: two tabs, paste an embed link vs. upload a file.
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [videoTab, setVideoTab] = useState<"link" | "upload">("link");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoUploading, setVideoUploading] = useState(false);
 
   if (!editor) return null;
 
@@ -173,6 +203,131 @@ export const Menubar = ({ editor }: iAppProps) => {
     }
     setImageOpen(false);
     setImageUrl("");
+  };
+
+  // ── News media uploads ───────────────────────────────────────────────────
+  // NOTE ON COPY: the toolbar labels/toasts added below for the new upload controls are inline
+  // English on purpose. This editor's primary consumer is the (English-operated) admin news form,
+  // and this slice is scoped to the four text-editor files only (the shared editor i18n messages
+  // file is out of scope here). All pre-existing controls keep using t() as before.
+
+  // POST a single image to /auth/upload-news-image/ (multipart field "image"). Returns the stored
+  // absolute url the AlignedImage/gallery node embeds. Client-compresses first (phone photos),
+  // exactly like the profile-edit esport-image picker.
+  const uploadNewsImage = async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append("image", await compressImageForUpload(file));
+    const res = await axios.post(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/upload-news-image/`,
+      fd,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return res.data?.url as string;
+  };
+
+  // 413 = body outgrew the server limit (nginx answers before Django, so there is no JSON message);
+  // name the size problem instead of a generic failure, same handling as the esport upload.
+  const uploadErrorMessage = (error: any): string =>
+    error?.response?.status === 413
+      ? "File is too large to upload."
+      : error?.response?.data?.message || "Upload failed. Please try again.";
+
+  // Image tab -> Upload: send the picked file, embed the returned url as an image node.
+  const handleImageFilePick = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset so picking the same file again still fires onChange
+    if (!file) return;
+    setImageUploading(true);
+    try {
+      const url = await uploadNewsImage(file);
+      if (url) editor.chain().focus().setImage({ src: url }).run();
+      setImageOpen(false);
+    } catch (error: any) {
+      toast.error(uploadErrorMessage(error));
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  // Gallery button -> upload every picked image, then insert ONE gallery node with all the urls.
+  const handleGalleryFilesPick = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (files.length === 0) return;
+    setGalleryUploading(true);
+    try {
+      const urls = (await Promise.all(files.map((f) => uploadNewsImage(f)))).filter(
+        Boolean,
+      );
+      if (urls.length > 0) {
+        editor
+          .chain()
+          .focus()
+          .setGallery({ images: urls, columns: galleryColumns })
+          .run();
+      }
+      setGalleryOpen(false);
+    } catch (error: any) {
+      toast.error(uploadErrorMessage(error));
+    } finally {
+      setGalleryUploading(false);
+    }
+  };
+
+  // Video tab -> Paste link: parse into a safe embed; unsupported links get a toast, not a node.
+  const applyVideoLink = () => {
+    const embed = parseVideoEmbed(videoUrl);
+    if (!embed) {
+      toast.error(
+        "That video link is not supported. Use YouTube, TikTok, Instagram, X, Facebook or Google Drive.",
+      );
+      return;
+    }
+    editor
+      .chain()
+      .focus()
+      .setNewsVideo({ src: embed.embedUrl, provider: embed.provider })
+      .run();
+    setVideoOpen(false);
+    setVideoUrl("");
+  };
+
+  // Video tab -> Upload: POST the file to /auth/upload-news-video/ (field "video"); provider "file"
+  // makes the node render a native <video>. No client compression for video.
+  const handleVideoFilePick = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setVideoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("video", file);
+      const res = await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/upload-news-video/`,
+        fd,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const url = res.data?.url as string;
+      if (url)
+        editor.chain().focus().setNewsVideo({ src: url, provider: "file" }).run();
+      setVideoOpen(false);
+    } catch (error: any) {
+      toast.error(uploadErrorMessage(error));
+    } finally {
+      setVideoUploading(false);
+    }
+  };
+
+  // Align the currently-selected image (AlignedImage `align` attr). The align control group only
+  // renders when an image node is selected (see toolbar below).
+  const setImageAlign = (align: "left" | "center" | "right" | "full") => {
+    editor.chain().focus().updateAttributes("image", { align }).run();
   };
 
   return (
@@ -431,7 +586,8 @@ export const Menubar = ({ editor }: iAppProps) => {
             </Popover>
           </div>
 
-          {/* Image */}
+          {/* Image (Upload | By URL). Upload posts to /auth/upload-news-image/ and embeds the
+              returned url; the URL tab keeps the original paste-a-link behaviour. */}
           <div className="flex items-center gap-0.5">
             <Popover open={imageOpen} onOpenChange={setImageOpen}>
               <Tooltip>
@@ -452,34 +608,289 @@ export const Menubar = ({ editor }: iAppProps) => {
                 </TooltipContent>
               </Tooltip>
               <PopoverContent className="w-80 p-3" side="bottom" align="start">
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {t("insertImageByUrl")}
-                  </p>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="https://example.com/image.png"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          insertImage();
-                        }
-                      }}
-                      className="h-8 text-xs"
-                      autoFocus
-                    />
+                <div className="flex flex-col gap-3">
+                  {/* Segmented tabs (shadcn pill style: active tab gets bg-background) */}
+                  <div className="flex items-center gap-1 rounded-md bg-muted p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setImageTab("upload")}
+                      className={cn(
+                        "flex-1 h-7 rounded text-xs font-medium transition-colors",
+                        imageTab === "upload"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      Upload
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageTab("url")}
+                      className={cn(
+                        "flex-1 h-7 rounded text-xs font-medium transition-colors",
+                        imageTab === "url"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      By URL
+                    </button>
+                  </div>
+
+                  {imageTab === "upload" ? (
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        disabled={imageUploading}
+                        onChange={handleImageFilePick}
+                        className="h-8 text-xs"
+                      />
+                      {imageUploading && (
+                        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Loader2 size={12} className="animate-spin" />
+                          Uploading...
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="https://example.com/image.png"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            insertImage();
+                          }
+                        }}
+                        className="h-8 text-xs"
+                        autoFocus
+                      />
+                      <Button
+                        size="sm"
+                        type="button"
+                        className="h-8 shrink-0 text-xs px-3"
+                        onClick={insertImage}
+                        disabled={!imageUrl.trim()}
+                      >
+                        {t("imageInsert")}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Image alignment: only shown while an image node is selected. Sets the AlignedImage
+              `align` attr (left|center|right|full), which round-trips to the reader. */}
+          {editor.isActive("image") && (
+            <>
+              <ToolbarDivider />
+              <div className="flex items-center gap-0.5">
+                <ToolbarToggle
+                  isActive={editor.isActive("image", { align: "left" })}
+                  onToggle={() => setImageAlign("left")}
+                  tooltip="Align image left"
+                >
+                  <AlignLeft size={14} />
+                </ToolbarToggle>
+                <ToolbarToggle
+                  isActive={editor.isActive("image", { align: "center" })}
+                  onToggle={() => setImageAlign("center")}
+                  tooltip="Align image center"
+                >
+                  <AlignCenter size={14} />
+                </ToolbarToggle>
+                <ToolbarToggle
+                  isActive={editor.isActive("image", { align: "right" })}
+                  onToggle={() => setImageAlign("right")}
+                  tooltip="Align image right"
+                >
+                  <AlignRight size={14} />
+                </ToolbarToggle>
+                <ToolbarToggle
+                  isActive={editor.isActive("image", { align: "full" })}
+                  onToggle={() => setImageAlign("full")}
+                  tooltip="Full width"
+                >
+                  <StretchHorizontal size={14} />
+                </ToolbarToggle>
+              </div>
+            </>
+          )}
+
+          <ToolbarDivider />
+
+          {/* Gallery: pick several images at once; each uploads to /auth/upload-news-image/ then
+              one gallery node is inserted with all the returned urls + the chosen column count. */}
+          <div className="flex items-center gap-0.5">
+            <Popover open={galleryOpen} onOpenChange={setGalleryOpen}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
                     <Button
                       size="sm"
+                      variant="ghost"
                       type="button"
-                      className="h-8 shrink-0 text-xs px-3"
-                      onClick={insertImage}
-                      disabled={!imageUrl.trim()}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                     >
-                      {t("imageInsert")}
+                      <Images size={14} />
                     </Button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Insert gallery
+                </TooltipContent>
+              </Tooltip>
+              <PopoverContent className="w-80 p-3" side="bottom" align="start">
+                <div className="flex flex-col gap-3">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Image gallery
+                  </p>
+                  {/* Column count (2 or 3) baked into the gallery node attrs. */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Columns</span>
+                    <div className="flex items-center gap-1 rounded-md bg-muted p-0.5">
+                      {[2, 3].map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setGalleryColumns(c)}
+                          className={cn(
+                            "h-6 w-7 rounded text-xs font-medium transition-colors",
+                            galleryColumns === c
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    disabled={galleryUploading}
+                    onChange={handleGalleryFilesPick}
+                    className="h-8 text-xs"
+                  />
+                  {galleryUploading ? (
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Loader2 size={12} className="animate-spin" />
+                      Uploading...
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      Pick several images at once.
+                    </span>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Video (Paste link | Upload). Link -> parseVideoEmbed -> embed iframe node; Upload ->
+              /auth/upload-news-video/ -> native <video> node (provider "file"). */}
+          <div className="flex items-center gap-0.5">
+            <Popover open={videoOpen} onOpenChange={setVideoOpen}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      type="button"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                    >
+                      <Video size={14} />
+                    </Button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Insert video
+                </TooltipContent>
+              </Tooltip>
+              <PopoverContent className="w-80 p-3" side="bottom" align="start">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-1 rounded-md bg-muted p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setVideoTab("link")}
+                      className={cn(
+                        "flex-1 h-7 rounded text-xs font-medium transition-colors",
+                        videoTab === "link"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      Paste link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVideoTab("upload")}
+                      className={cn(
+                        "flex-1 h-7 rounded text-xs font-medium transition-colors",
+                        videoTab === "upload"
+                          ? "bg-background text-foreground shadow-sm"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      Upload
+                    </button>
+                  </div>
+
+                  {videoTab === "link" ? (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="https://youtube.com/watch?v=..."
+                          value={videoUrl}
+                          onChange={(e) => setVideoUrl(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              applyVideoLink();
+                            }
+                          }}
+                          className="h-8 text-xs"
+                          autoFocus
+                        />
+                        <Button
+                          size="sm"
+                          type="button"
+                          className="h-8 shrink-0 text-xs px-3"
+                          onClick={applyVideoLink}
+                          disabled={!videoUrl.trim()}
+                        >
+                          Add
+                        </Button>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        YouTube, TikTok, Instagram, X, Facebook or Google Drive.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        type="file"
+                        accept="video/*"
+                        disabled={videoUploading}
+                        onChange={handleVideoFilePick}
+                        className="h-8 text-xs"
+                      />
+                      {videoUploading && (
+                        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Loader2 size={12} className="animate-spin" />
+                          Uploading...
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </PopoverContent>
             </Popover>

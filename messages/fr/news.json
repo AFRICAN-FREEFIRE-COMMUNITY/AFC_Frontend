@@ -29,6 +29,10 @@
     "registerForTournament": "S'inscrire au tournoi",
     "wasThisHelpful": "Cela vous a-t-il été utile ?"
   },
+  "relatedEvents": {
+    "heading": "Événements associés",
+    "viewEvent": "Voir {name}"
+  },
   "toast": {
     "loadFailed": "Échec du chargement des actualités",
     "syncFailed": "Échec de la synchronisation des données d'actualités",

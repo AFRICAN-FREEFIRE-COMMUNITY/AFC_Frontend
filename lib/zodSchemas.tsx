@@ -284,7 +284,12 @@ export const CreateNewsFormSchema = z.object({
     .max(200, "Title must be less than 200 characters"),
   content: z.string().min(1, "Content is required"),
   category: z.string().min(1, "Category is required"),
-  event: z.string().optional(),
+  // News overhaul: the single fake `event` string was replaced by a multi-select of real events.
+  // Each element is {event_id, event_name} produced by components/news/EventMultiSelect; the create
+  // form submits each id as a repeated `related_events` form field to create_news (afc_auth/views.py).
+  events: z
+    .array(z.object({ event_id: z.number(), event_name: z.string() }))
+    .optional(),
   author: z.string().min(1, "Author is required"),
   images: z.string().optional(),
 });
@@ -457,7 +462,12 @@ export const EditNewsFormSchema = z.object({
   content: z.string().min(1, "Content is required"),
   id: z.number().min(1, "ID is required"),
   category: z.string().min(1, "Category is required"),
-  event: z.string().optional(),
+  // News overhaul: multi-select of real events (was the single fake `event` string). Prefilled on
+  // edit from get-news-detail's related_events list; each id is submitted as a repeated
+  // `related_events` form field to edit_news (afc_auth/views.py) which REPLACES the M2M.
+  events: z
+    .array(z.object({ event_id: z.number(), event_name: z.string() }))
+    .optional(),
   author: z.string().min(1, "Author is required"),
   images: z.string().optional(),
 });
