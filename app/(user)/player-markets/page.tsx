@@ -960,6 +960,20 @@ function PlayerMarketPage() {
     null,
   );
 
+  // Screenshot lightbox (owner 2026-07-15): clicking a profile screenshot used to open the raw image
+  // in a NEW TAB (jarring, leaves the page). Instead we open it full-size in an in-page overlay. Null =
+  // closed; set to the clicked image URL. Rendered as a fixed overlay at the end of the View dialog.
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  // Close the lightbox on Escape (backdrop + X button close it too).
+  useEffect(() => {
+    if (!lightboxUrl) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxUrl(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxUrl]);
+
   // Report dialog target (feature "J-market-reporting"). Null = closed. Set by the
   // red-flag Report button on a team/player card; always available regardless of the
   // transfer-season window (reporting is never gated).
@@ -3802,19 +3816,19 @@ function PlayerMarketPage() {
                 </div>
               )}
 
-              {/* In-game profile screenshots (feature 2): prominent gallery. Each opens full size
-                  in a new tab. Hidden when the player attached none. */}
+              {/* In-game profile screenshots (feature 2): prominent gallery. Each opens full size in
+                  an IN-PAGE lightbox overlay (owner 2026-07-15: was a new-tab link, which is poor UI).
+                  Hidden when the player attached none. */}
               {viewPlayer.images && viewPlayer.images.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold mb-1.5">{t("screenshots.heading")}</h4>
                   <div className="flex flex-wrap gap-2">
                     {viewPlayer.images.map((img) => (
-                      <a
+                      <button
                         key={img.id}
-                        href={img.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block"
+                        type="button"
+                        onClick={() => setLightboxUrl(img.url)}
+                        className="block cursor-zoom-in rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -3822,7 +3836,7 @@ function PlayerMarketPage() {
                           alt={t("screenshots.heading")}
                           className="h-28 w-28 rounded-md border object-cover transition-opacity hover:opacity-90"
                         />
-                      </a>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -3849,11 +3863,14 @@ function PlayerMarketPage() {
                         </a>
                       );
                     }
-                    // Frame shape per platform: YouTube + Facebook video are 16:9 landscape;
-                    // X/Twitter is a tweet card (fixed-height, capped width); TikTok + Instagram
-                    // are portrait phone clips. Keeps each embed from being letter-boxed or clipped.
+                    // Frame shape per platform: YouTube, Facebook + Google Drive video are 16:9
+                    // landscape; X/Twitter is a tweet card (fixed-height, capped width); TikTok +
+                    // Instagram are portrait phone clips. Keeps each embed from being letter-boxed
+                    // or clipped.
                     const frameClass =
-                      embed.provider === "youtube" || embed.provider === "facebook"
+                      embed.provider === "youtube" ||
+                      embed.provider === "facebook" ||
+                      embed.provider === "drive"
                         ? "aspect-video w-full rounded-md border"
                         : embed.provider === "twitter"
                           ? "h-[600px] w-full max-w-[550px] rounded-md border"
@@ -3990,6 +4007,36 @@ function PlayerMarketPage() {
           </DialogContent>
         )}
       </Dialog>
+
+      {/* Screenshot lightbox (owner 2026-07-15): shows the clicked profile screenshot full-size in an
+          IN-PAGE overlay instead of opening a new tab. Click the backdrop or the X (or press Escape) to
+          close. z-[100] keeps it above the View Player dialog it opens from. */}
+      {lightboxUrl && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setLightboxUrl(null)}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxUrl(null)}
+            aria-label={t("common.close")}
+            className="absolute right-4 top-4 rounded-full bg-black/60 p-2 text-white transition-colors hover:bg-black/80"
+          >
+            <IconX className="h-5 w-5" />
+          </button>
+          {/* Stop propagation so clicking the image itself does not close the overlay. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightboxUrl}
+            alt={t("screenshots.heading")}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] max-w-[90vw] rounded-md object-contain shadow-2xl"
+          />
+        </div>
+      )}
+
       <ReviewApplicationDialog
         app={reviewApp}
         token={token}

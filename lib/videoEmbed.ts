@@ -20,7 +20,7 @@
 // create/edit forms use isAllowedVideoUrl for client-side validation before submit).
 
 export interface VideoEmbed {
-  provider: "youtube" | "tiktok" | "instagram" | "twitter" | "facebook";
+  provider: "youtube" | "tiktok" | "instagram" | "twitter" | "facebook" | "drive";
   /** Safe iframe src derived from the parsed link - never the raw user URL verbatim. */
   embedUrl: string;
 }
@@ -30,7 +30,8 @@ export interface VideoEmbed {
 // list in its 400 message (_VIDEO_PLATFORMS_LABEL in afc_player_market/views.py). Brand names,
 // so it is passed as the {platforms} param into the already-translated i18n strings rather than
 // being a translatable string itself.
-export const VIDEO_PLATFORMS_LABEL = "YouTube, TikTok, Instagram, X (Twitter) or Facebook";
+export const VIDEO_PLATFORMS_LABEL =
+  "YouTube, TikTok, Instagram, X (Twitter), Facebook or Google Drive";
 
 // Hosts the backend accepts; mirror of _VIDEO_HOSTS in afc_player_market/views.py.
 const ALLOWED_HOSTS = new Set([
@@ -42,6 +43,9 @@ const ALLOWED_HOSTS = new Set([
   "twitter.com", "www.twitter.com", "mobile.twitter.com", "x.com", "www.x.com", "mobile.x.com",
   // Facebook: watch/video/reel links + the fb.watch share short link (resolved server-side).
   "facebook.com", "www.facebook.com", "m.facebook.com", "web.facebook.com", "fb.watch",
+  // Google Drive: a shared video file plays inline via /preview (owner 2026-07-15: gameplay clips are
+  // commonly uploaded to Drive). The file must be shared "anyone with the link".
+  "drive.google.com", "docs.google.com",
 ]);
 
 function parseUrl(raw: string | null | undefined): URL | null {
@@ -149,5 +153,21 @@ export function parseVideoEmbed(raw: string | null | undefined): VideoEmbed | nu
       embedUrl: `https://www.instagram.com/${kind}/${ig[2]}/embed`,
     };
   }
+
+  // ── Google Drive ── a shared video file: /file/d/<id>/view (also /d/<id>) or ?id=<id> -> the
+  // /preview iframe, which streams the video inline. The link must be shared "anyone with the link"
+  // for the preview to play for a viewer; a private file renders Google's "no access" page (the same
+  // login-wall caveat as a private Facebook video). File ids are url-safe, 10+ chars.
+  if (host === "drive.google.com" || host === "docs.google.com") {
+    let id = "";
+    const m = url.pathname.match(/\/(?:file\/)?d\/([\w-]+)/);
+    if (m) id = m[1];
+    else if (url.searchParams.get("id")) id = url.searchParams.get("id") ?? "";
+    if (/^[\w-]{10,}$/.test(id)) {
+      return { provider: "drive", embedUrl: `https://drive.google.com/file/d/${id}/preview` };
+    }
+    return null;
+  }
+
   return null;
 }
