@@ -523,7 +523,7 @@ function memberMissingRequirements(
   const missing: RequirementKey[] = [];
   if (event?.require_player_uid && !member.uid?.trim()) missing.push("uid");
   // Discord here = NOT CONNECTED (no discord_id). The backend also requires actual guild membership
-  // (check_discord_membership_in_guild), which the FE can't see from get-team-details — so a member
+  // (check_discord_membership_in_guild), which the FE can't see from get-team-details - so a member
   // who IS connected is handled separately as an "advisory" (see MemberRequirementBadges) rather
   // than being claimed fully ready. A connected member is therefore NOT a hard "missing" here.
   if (event?.require_discord && !member.discord_id) missing.push("discord");
@@ -537,12 +537,12 @@ function memberMissingRequirements(
 // ── Inline per-member requirement badges (owner 2026-06-22) ───────────────────────────────────
 // Shared by BOTH roster pickers (registration SELECT_MEMBERS + EditRosterModal) so the badge logic
 // lives in one place. Three honest states:
-//   • red ✗  — a requirement the FE can definitively see is unmet (no UID / no image / Discord NOT
+//   • red ✗  - a requirement the FE can definitively see is unmet (no UID / no image / Discord NOT
 //              connected). These are the hard misses from memberMissingRequirements().
-//   • amber  — require_discord is on and the member IS connected, but the FE cannot verify they are
+//   • amber  - require_discord is on and the member IS connected, but the FE cannot verify they are
 //              in the event's Discord SERVER (only the backend's check_discord_membership_in_guild
 //              can, at submit). We must NOT show green here, or the badge would over-promise.
-//   • green "Ready" — only when there is nothing unmet AND nothing unverifiable (no amber).
+//   • green "Ready" - only when there is nothing unmet AND nothing unverifiable (no amber).
 // Renders nothing when the event has no per-player requirements (keeps the picker clean).
 function MemberRequirementBadges({
   member,
@@ -5144,7 +5144,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   // Live roster-edit-window state (owner 2026-06-23): derive open/closed from roster_edit_until vs
   // the wall clock instead of the server's roster_edit_open SNAPSHOT, so the Edit Roster button and
-  // "Edit my details" self-edit hide the moment the window passes — even on a page left open (the
+  // "Edit my details" self-edit hide the moment the window passes - even on a page left open (the
   // 30s tick above re-renders to make it flip live). Backend stays the enforcement authority.
   // Open when the EVENT-wide window OR the viewer's own team's per-team window is live (owner 2026-06-24).
   const rosterWindowOpenLive =
@@ -5775,14 +5775,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   />
                 )}
 
-              {/* EDIT MY DETAILS (owner 2026-06-22): every registered player — NOT just the team
-                  manager — can fix their OWN profile details (IGN / UID / required images) while
+              {/* EDIT MY DETAILS (owner 2026-06-22): every registered player - NOT just the team
+                  manager - can fix their OWN profile details (IGN / UID / required images) while
                   roster editing is allowed. We gate on !user.identity_locked, which the backend now
                   sets true ONLY while the roster is frozen (registration closed + no window, or a
                   match already has results); so the trigger appears exactly when the edit will be
                   accepted, and never lets a player touch teammates or the roster composition.
                   onSuccess refreshes BOTH the event AND the user's team, because the per-member
-                  requirement badges (MemberRequirementBadges) read from userTeam.members — so the
+                  requirement badges (MemberRequirementBadges) read from userTeam.members - so the
                   player's own badge flips to green right after they fix it. Also gated on the LIVE
                   roster-edit allowance (owner 2026-06-23): once the window passes on a started event,
                   the self-edit hides without a refetch (mirrors the Edit Roster button + the backend
