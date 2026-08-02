@@ -311,14 +311,31 @@
     "rosterRequirements": {
       "title": "Alguns membros do plantel ainda não estão prontos",
       "description": "Estes jogadores têm de cumprir os requisitos do evento antes de se poderem inscrever. Para cada jogador, é indicado exatamente o que ainda falta fazer.",
-      "close": "Fechar",
+      "soloTitle": "Ainda não está pronto",
+      "soloDescription": "Tem de cumprir os requisitos do evento antes de se poder inscrever. Em baixo está exatamente o que ainda falta adicionar.",
+      "soloNote": "Adicione o que lhe falta no <editProfileLink>seu perfil</editProfileLink> e depois prima Verificar novamente e continuar.",
+      "clearTitle": "Está tudo completo",
+      "nothingPending": "Já não falta nada. Prima Continuar para prosseguir com a sua inscrição.",
       "ready": "Pronto",
       "discordPending": "Discord (entrar no servidor)",
+      "you": "Você",
+      "youSuffix": "(você)",
+      "teamRow": "A sua equipa",
+      "selfNote": "Está nesta lista. Adicione o que lhe falta no <editProfileLink>seu perfil</editProfileLink> e depois prima Verificar novamente e continuar.",
+      "othersNote": "Peça a estes jogadores para adicionarem o que lhes falta no perfil deles e depois prima Verificar novamente e continuar.",
+      "back": "Voltar",
+      "recheck": "Verificar novamente e continuar",
+      "rechecking": "A verificar...",
+      "continue": "Continuar",
+      "stillMissing": "Ainda está incompleto. A lista mostra agora o que falta neste momento.",
+      "allClear": "Está toda a gente pronta. A continuar a sua inscrição.",
+      "allClearSolo": "Está pronto. A continuar a sua inscrição.",
       "req": {
         "uid": "UID do Free Fire",
         "discord": "Discord (entrar no servidor)",
         "esportsImage": "Imagem de desporto eletrónico",
-        "profileImage": "Imagem de perfil"
+        "profileImage": "Imagem de perfil",
+        "teamLogo": "Logótipo da equipa"
       }
     },
     "selfEdit": {

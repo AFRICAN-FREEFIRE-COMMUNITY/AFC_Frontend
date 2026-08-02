@@ -311,14 +311,31 @@
     "rosterRequirements": {
       "title": "Some roster members aren't ready",
       "description": "These players must complete the event requirements before you can register. Each player is shown with exactly what they still need to add.",
-      "close": "Close",
+      "soloTitle": "You aren't ready yet",
+      "soloDescription": "You must complete the event requirements before you can register. Below is exactly what you still need to add.",
+      "soloNote": "Add what you are missing on <editProfileLink>your profile</editProfileLink>, then press Re-check and continue.",
+      "clearTitle": "Everything is complete",
+      "nothingPending": "Nothing is missing anymore. Press Continue to carry on with your registration.",
       "ready": "Ready",
       "discordPending": "Discord (join server)",
+      "you": "You",
+      "youSuffix": "(you)",
+      "teamRow": "Your team",
+      "selfNote": "You are on this list. Add what you are missing on <editProfileLink>your profile</editProfileLink>, then press Re-check and continue.",
+      "othersNote": "Ask these players to add what they are missing on their profile, then press Re-check and continue.",
+      "back": "Back",
+      "recheck": "Re-check and continue",
+      "rechecking": "Checking...",
+      "continue": "Continue",
+      "stillMissing": "Still not complete. The list now shows what is missing right now.",
+      "allClear": "Everyone is ready. Continuing your registration.",
+      "allClearSolo": "You are ready. Continuing your registration.",
       "req": {
         "uid": "Free Fire UID",
         "discord": "Discord (join server)",
         "esportsImage": "Esport image",
-        "profileImage": "Profile image"
+        "profileImage": "Profile image",
+        "teamLogo": "Team logo"
       }
     },
     "selfEdit": {

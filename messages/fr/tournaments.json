@@ -311,14 +311,31 @@
     "rosterRequirements": {
       "title": "Certains membres de l'équipe ne sont pas prêts",
       "description": "Ces joueurs doivent remplir les conditions requises pour l'événement avant que vous puissiez vous inscrire. Pour chaque joueur, le système indique précisément ce qu'il lui reste à faire.",
-      "close": "Fermer",
+      "soloTitle": "Vous n'êtes pas encore prêt",
+      "soloDescription": "Vous devez remplir les conditions requises pour l'événement avant de pouvoir vous inscrire. Voici précisément ce qu'il vous reste à ajouter.",
+      "soloNote": "Ajoutez ce qui vous manque sur <editProfileLink>votre profil</editProfileLink>, puis appuyez sur Revérifier et continuer.",
+      "clearTitle": "Tout est complet",
+      "nothingPending": "Il ne manque plus rien. Appuyez sur Continuer pour poursuivre votre inscription.",
       "ready": "Prêt",
       "discordPending": "Discord (rejoindre le serveur)",
+      "you": "Vous",
+      "youSuffix": "(vous)",
+      "teamRow": "Votre équipe",
+      "selfNote": "Vous figurez sur cette liste. Ajoutez ce qui vous manque sur <editProfileLink>votre profil</editProfileLink>, puis appuyez sur Revérifier et continuer.",
+      "othersNote": "Demandez à ces joueurs d'ajouter ce qui leur manque sur leur profil, puis appuyez sur Revérifier et continuer.",
+      "back": "Retour",
+      "recheck": "Revérifier et continuer",
+      "rechecking": "Vérification...",
+      "continue": "Continuer",
+      "stillMissing": "Toujours incomplet. La liste affiche maintenant ce qui manque à cet instant.",
+      "allClear": "Tout le monde est prêt. Poursuite de votre inscription.",
+      "allClearSolo": "Vous êtes prêt. Poursuite de votre inscription.",
       "req": {
         "uid": "UID Free Fire",
         "discord": "Discord (rejoindre le serveur)",
         "esportsImage": "Image liée à l'e-sport",
-        "profileImage": "Photo de profil"
+        "profileImage": "Photo de profil",
+        "teamLogo": "Logo de l'équipe"
       }
     },
     "selfEdit": {

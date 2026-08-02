@@ -267,6 +267,41 @@ type ModalStep =
 type RegistrationType = "solo" | "team";
 type TeamModalStep = "CLOSED" | "SELECT_MEMBERS" | "TEAM_INFO";
 
+// ── Non-resumable steps (bug fix, owner 2026-08-02) ───────────────────────────────────────────
+// A registration draft (localStorage, see the persist/restore effects) remembers WHICH step the
+// user stopped on so pressing Register drops them back there. That is only correct for steps whose
+// content is either persisted or re-derived on render. ROSTER_REQUIREMENTS is NOT one of them: it
+// is a transient BLOCKER view whose content (rosterReqIssues) is computed at click time and never
+// saved. Saving it as the resume point produced the reported bug: after the modal appeared once,
+// every later Register press jumped straight back into it with an EMPTY list and only a Close
+// button, so the captain could never re-enter the flow even after the players fixed their
+// profiles. SUCCESS is likewise terminal (the draft is deleted there anyway).
+// Used by: the persist effect (never write these), sanitizeResumePoint (heal drafts already
+// carrying one from before this fix), and handleRegisterClick (last-line guard).
+const NON_RESUMABLE_MAIN_STEPS: ModalStep[] = ["ROSTER_REQUIREMENTS", "SUCCESS"];
+
+// Heal a resume point that points at a non-resumable step. Drafts saved BEFORE the fix above are
+// already sitting in real users' localStorage carrying step:"ROSTER_REQUIREMENTS", so simply not
+// writing it any more would leave those users stuck forever. Degrade such a draft to the nearest
+// real data step instead: a TEAM registration reopens the member picker (where the per-member
+// readiness badges live, so they can see + fix what is missing and press Continue), a SOLO one
+// reopens the INFO step. Called from the draft restore effect and again in handleRegisterClick.
+function sanitizeResumePoint(
+  resume: RegistrationDraftResumePoint | null | undefined,
+  regType: RegistrationType | null | undefined,
+): RegistrationDraftResumePoint | null {
+  if (!resume) return null;
+  if (
+    resume.kind === "main" &&
+    NON_RESUMABLE_MAIN_STEPS.includes(resume.step as ModalStep)
+  ) {
+    return regType === "team"
+      ? { kind: "team", step: "SELECT_MEMBERS" }
+      : { kind: "main", step: "INFO" };
+  }
+  return resume;
+}
+
 interface StageGroup {
   group_id: number;
   group_name: string;
@@ -1780,7 +1815,15 @@ interface ModalProps {
   savingUid: boolean;
   handleSaveUid: () => void;
   // Per-member requirement marker (owner 2026-06-22) rendered by the ROSTER_REQUIREMENTS step.
-  rosterReqIssues: { username: string; missing: string[] }[];
+  // isSelf flags the registrant's own row so the step can link them to /profile/edit.
+  rosterReqIssues: { username: string; missing: string[]; isSelf?: boolean }[];
+  // Team-level miss reported by the backend 403 (team_logo_missing) - shown as its own row.
+  rosterReqTeamLogo: boolean;
+  // ROSTER_REQUIREMENTS actions (owner 2026-08-02): Back to the step they came from, and
+  // "Re-check and continue" which re-reads the roster/profile and moves on when all clear.
+  onRosterRequirementsBack: () => void;
+  onRosterRequirementsRecheck: () => void;
+  rosterReqRechecking: boolean;
   pendingJoined: boolean;
   // M: drives the success-step copy (waitlist vs confirmed registration).
   wasWaitlisted?: boolean;
@@ -1853,6 +1896,10 @@ const RegistrationModals: React.FC<ModalProps> = ({
   savingUid,
   handleSaveUid,
   rosterReqIssues,
+  rosterReqTeamLogo,
+  onRosterRequirementsBack,
+  onRosterRequirementsRecheck,
+  rosterReqRechecking,
   pendingJoined,
   wasWaitlisted = false,
   isDiscordConnected,
@@ -2169,32 +2216,138 @@ const RegistrationModals: React.FC<ModalProps> = ({
             esports_image: t("register.rosterRequirements.req.esportsImage"),
             profile_image: t("register.rosterRequirements.req.profileImage"),
           })[f] ?? f;
+        // Nothing left to show (everything was fixed, or a stale draft reopened this step): say so
+        // plainly and offer the way forward instead of an empty box with a Close button - the exact
+        // dead end the owner reported on 2026-08-02.
+        const nothingPending =
+          rosterReqIssues.length === 0 && !rosterReqTeamLogo;
+        const blockedSelf = rosterReqIssues.some((it) => it.isSelf);
+        // SOLO copy (owner 2026-08-02): a solo registrant is the only person in this panel, so the
+        // team wording ("Some roster members aren't ready" / "These players") reads wrong. Address
+        // them directly instead. The rows, badges, Back and Re-check are identical either way; only
+        // the title, the description and the note below the list change.
+        const isSolo = regType === "solo";
         return (
           <>
             <DialogHeader>
               <DialogTitle className="text-xl">
-                {t("register.rosterRequirements.title")}
+                {nothingPending
+                  ? t("register.rosterRequirements.clearTitle")
+                  : isSolo
+                    ? t("register.rosterRequirements.soloTitle")
+                    : t("register.rosterRequirements.title")}
               </DialogTitle>
               <DialogDescription>
-                {t("register.rosterRequirements.description")}
+                {nothingPending
+                  ? t("register.rosterRequirements.nothingPending")
+                  : isSolo
+                    ? t("register.rosterRequirements.soloDescription")
+                    : t("register.rosterRequirements.description")}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-2 text-sm max-h-72 overflow-y-auto">
-              {rosterReqIssues.map((it) => (
-                <div
-                  key={it.username}
-                  className="flex items-start justify-between gap-3 rounded-md border p-2"
-                >
-                  <span className="font-medium">{it.username}</span>
-                  <span className="text-right text-muted-foreground">
-                    {it.missing.map(reqLabel).join(", ")}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <DialogFooter>
-              <Button onClick={() => setModalStep("CLOSED")}>
-                {t("register.rosterRequirements.close")}
+            {!nothingPending && (
+              <div className="space-y-2 text-sm max-h-72 overflow-y-auto">
+                {rosterReqIssues.map((it) => (
+                  <div
+                    key={it.username}
+                    className="flex flex-col gap-1 rounded-md border p-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
+                  >
+                    <span className="font-medium">
+                      {it.username}
+                      {/* "(you)" only earns its place when there are OTHER people in the list. */}
+                      {it.isSelf && !isSolo && (
+                        <span className="ml-1 text-muted-foreground">
+                          {t("register.rosterRequirements.youSuffix")}
+                        </span>
+                      )}
+                    </span>
+                    {/* Each unmet requirement as its own badge: on a phone a comma-joined string
+                        wrapped into an unreadable blob, and the owner asked for "exactly what is
+                        missing" per player. */}
+                    <span className="flex flex-wrap gap-1 sm:justify-end">
+                      {it.missing.map((k) => (
+                        <Badge
+                          key={k}
+                          variant="outline"
+                          className="border-destructive text-destructive"
+                        >
+                          {reqLabel(k)}
+                        </Badge>
+                      ))}
+                    </span>
+                  </div>
+                ))}
+                {/* Team logo is a TEAM asset, not a player one (backend team_logo_missing). */}
+                {rosterReqTeamLogo && (
+                  <div className="flex flex-col gap-1 rounded-md border p-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                    <span className="font-medium">
+                      {t("register.rosterRequirements.teamRow")}
+                    </span>
+                    <span className="flex flex-wrap gap-1 sm:justify-end">
+                      <Badge
+                        variant="outline"
+                        className="border-destructive text-destructive"
+                      >
+                        {t("register.rosterRequirements.req.teamLogo")}
+                      </Badge>
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Where to go and fix it. The registrant can fix their OWN row right now, so link them
+                straight to /profile/edit; teammates have to be chased, so say that instead. A solo
+                registrant never has teammates in the list, so they get the shorter direct wording
+                without the "you are on this list" preamble. */}
+            {!nothingPending && (
+              <p className="text-xs text-muted-foreground">
+                {isSolo || blockedSelf ? (
+                  t.rich(
+                    isSolo
+                      ? "register.rosterRequirements.soloNote"
+                      : "register.rosterRequirements.selfNote",
+                    {
+                      editProfileLink: (chunks) => (
+                        <Link
+                          href="/profile/edit"
+                          className="text-primary underline underline-offset-2"
+                        >
+                          {chunks}
+                        </Link>
+                      ),
+                    },
+                  )
+                ) : (
+                  <>{t("register.rosterRequirements.othersNote")}</>
+                )}
+              </p>
+            )}
+            {/* Footer (owner 2026-08-02): Back returns to the step they came from and Re-check
+                re-reads the roster/profile from the API and CONTINUES the registration when
+                everyone passes. Previously this modal only had Close, so a captain who fixed the
+                problem had no route back into the flow. */}
+            <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
+              <Button
+                variant="secondary"
+                onClick={onRosterRequirementsBack}
+                disabled={rosterReqRechecking}
+                className="w-full sm:w-auto"
+              >
+                {t("common.back")}
+              </Button>
+              <Button
+                onClick={onRosterRequirementsRecheck}
+                disabled={rosterReqRechecking}
+                className="w-full sm:w-auto"
+              >
+                {rosterReqRechecking && (
+                  <IconLoader2 className="size-4 animate-spin mr-2" />
+                )}
+                {rosterReqRechecking
+                  ? t("register.rosterRequirements.rechecking")
+                  : nothingPending
+                    ? t("register.rosterRequirements.continue")
+                    : t("register.rosterRequirements.recheck")}
               </Button>
             </DialogFooter>
           </>
@@ -3233,7 +3386,10 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const t = useTranslations("tournaments");
-  const { token, user, login, loading: authLoading } = useAuth();
+  // refreshUser (owner 2026-08-02): re-pulls get-user-profile and RETURNS the fresh user, which the
+  // ROSTER_REQUIREMENTS "Re-check and continue" needs - reading the `user` from this render would
+  // still be the stale pre-fix profile and would wrongly keep a solo registrant blocked.
+  const { token, user, login, refreshUser, loading: authLoading } = useAuth();
   const { openAuthModal } = useAuthModal();
   const router = useRouter();
 
@@ -3375,9 +3531,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // Per-member requirement marker state (owner 2026-06-22): each selected roster member that
   // fails one or more active event requirements, with the exact list of unmet requirement keys
   // (uid / discord / esports_image / profile_image). Drives the ROSTER_REQUIREMENTS modal.
+  // `isSelf` (owner 2026-08-02) marks the row belonging to the person doing the registering, so
+  // the modal can offer them a direct "Update my profile" link instead of only naming them.
+  // Filled from BOTH sources: the client-side pre-check (handleGoToRules) and the backend's
+  // structured 403 (handleRegistrationGateError, code registration_requirements_unmet).
   const [rosterReqIssues, setRosterReqIssues] = useState<
-    { username: string; missing: string[] }[]
+    { username: string; missing: string[]; isSelf?: boolean }[]
   >([]);
+  // Team-level asset the backend 403 can also report (team_logo_missing). Shown as its own row in
+  // the modal because it is NOT per-player: only the captain can fix it, on the team edit page.
+  const [rosterReqTeamLogo, setRosterReqTeamLogo] = useState(false);
+  // "Re-check and continue" in-flight flag (owner 2026-08-02). The modal used to be a dead end
+  // with a single Close button; it now re-pulls the roster/profile from the API and, if everyone
+  // passes, walks the user straight on to the next step of the registration they had started.
+  const [rosterReqRechecking, setRosterReqRechecking] = useState(false);
 
   // Ref to allow handleRulesContinue to call handleJoinedServer without circular deps
   const handleJoinedServerRef = useRef<() => void>(() => {});
@@ -3974,6 +4141,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       if (raw) {
         const draft = JSON.parse(raw) as RegistrationDraft;
         if (draft && draft.v === 1) {
+          // Heal drafts written BEFORE the non-resumable-step fix (owner 2026-08-02): one that
+          // still points at ROSTER_REQUIREMENTS would reopen an empty, un-exitable blocker.
+          draft.resume = sanitizeResumePoint(draft.resume, draft.regType);
           // Restore every collected field silently. Each setter mirrors one
           // RegistrationDraft field (see the persist effect for the save side).
           if (draft.regType) setRegType(draft.regType);
@@ -4021,10 +4191,17 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     // user dismissed mid-flow) keep the LAST open step from the previous save so
     // Register still drops them back where they stopped. TYPE is excluded - it's
     // the natural entry step, resuming "at TYPE" is just a normal start.
+    // NON_RESUMABLE_MAIN_STEPS (ROSTER_REQUIREMENTS / SUCCESS) are excluded too: they are
+    // blocker/terminal views with no persisted content, and saving them stranded the user in an
+    // empty "Some roster members aren't ready" dialog on every later Register press (owner
+    // 2026-08-02). Skipping them keeps the PREVIOUS resume point (the member picker / INFO),
+    // which is exactly where the user should land to fix things and carry on.
     const resume: RegistrationDraftResumePoint | null =
       teamModalStep !== "CLOSED"
         ? { kind: "team", step: teamModalStep }
-        : modalStep !== "CLOSED" && modalStep !== "TYPE"
+        : modalStep !== "CLOSED" &&
+            modalStep !== "TYPE" &&
+            !NON_RESUMABLE_MAIN_STEPS.includes(modalStep)
           ? { kind: "main", step: modalStep }
           : (draftRef.current?.resume ?? null);
 
@@ -4205,15 +4382,18 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     // behind that step (regType / roster / answers / rules) was already restored
     // silently on page load, so the step renders exactly as they left it.
     const draft = draftRef.current;
-    if (draft?.resume) {
+    // Last-line guard (owner 2026-08-02): never re-enter a blocker/terminal step from a draft,
+    // whatever wrote it. sanitizeResumePoint rewrites it to the member picker / INFO instead.
+    const resume = sanitizeResumePoint(draft?.resume, draft?.regType);
+    if (resume) {
       toast.info(t("register.toast.resuming"));
-      if (draft.resume.kind === "team") {
+      if (resume.kind === "team") {
         // Mid member-selection: reopen the team dialog. userTeam is normally
         // fetched on mount; fetch here only if it never arrived.
         if (!userTeam) await fetchUserTeam();
-        setTeamModalStep(draft.resume.step as TeamModalStep);
+        setTeamModalStep(resume.step as TeamModalStep);
       } else {
-        setModalStep(draft.resume.step as ModalStep);
+        setModalStep(resume.step as ModalStep);
       }
       return;
     }
@@ -4248,27 +4428,79 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     [fetchUserTeam],
   );
 
+  // ── Registration readiness snapshot (owner 2026-08-02, extracted from handleGoToRules) ────────
+  // Answers "who among the people about to be registered still fails one of this event's active
+  // per-player requirements, and exactly which ones?".
+  // It takes the roster/profile snapshot to evaluate as ARGUMENTS rather than reading the current
+  // render's state, because the ROSTER_REQUIREMENTS "Re-check and continue" button must judge
+  // FRESHLY fetched data (get-team-details / get-user-profile): reading `userTeam`/`user` from the
+  // closure would evaluate the same stale profile that failed a moment ago and keep the user
+  // blocked after they had genuinely fixed it.
+  // Callers: handleGoToRules (normal Continue press) and handleRosterRequirementsRecheck.
+  // Requirement evaluation itself stays in the shared memberMissingRequirements() so the picker
+  // badges, this gate, and the backend all agree field-for-field.
+  const evaluateRegistrationReadiness = useCallback(
+    (
+      team: UserTeam | null,
+      me: {
+        user_id?: number | string;
+        uid?: string | null;
+        in_game_name?: string | null;
+        profile_pic?: string | null;
+        esport_image_url?: string | null;
+        discord_username?: string | null;
+      } | null,
+    ): { id: string; username: string; missing: string[]; isSelf: boolean }[] => {
+      if (regType === "team") {
+        // TEAM: every SELECTED roster member is judged with the per-member flags
+        // team/get-team-details echoes (uid, discord_id, has_esports_image, has_profile_image).
+        // Discord here means "connected"; the backend stays the authority on actual guild
+        // membership at submit (register_for_event's require_discord gate).
+        return (team?.members ?? [])
+          .filter((m) => selectedMembers.includes(m.id))
+          .map((m) => ({
+            id: m.id,
+            username: m.username,
+            missing: memberMissingRequirements(m, eventDetails) as string[],
+            isSelf: String(m.id) === String(me?.user_id ?? ""),
+          }))
+          .filter((x) => x.missing.length > 0);
+      }
+      // ── SOLO PARITY (owner 2026-06-22) ───────────────────────────────────────────────
+      // The backend solo gate enforces the SAME requirement set as teams
+      // (_missing_registration_assets: UID / esport image / profile image, + the require_discord
+      // gate). The AuthContext user carries image URLs (not the has_* booleans get-team-details
+      // adds for team members), so adapt to the evaluator's shape; discord uses discord_username
+      // as a "connected" proxy, with the backend authoritative on guild membership at submit.
+      const soloMissing = memberMissingRequirements(
+        {
+          uid: me?.uid,
+          discord_id: me?.discord_username ? "connected" : null,
+          has_esports_image: !!me?.esport_image_url,
+          has_profile_image: !!me?.profile_pic,
+        },
+        eventDetails,
+      ) as string[];
+      if (soloMissing.length === 0) return [];
+      return [
+        {
+          id: String(me?.user_id ?? ""),
+          username: me?.in_game_name || t("register.rosterRequirements.you"),
+          missing: soloMissing,
+          isSelf: true,
+        },
+      ];
+    },
+    [regType, selectedMembers, eventDetails, t],
+  );
+
   const handleGoToRules = useCallback(() => {
     if (regType === "team") {
-      const selectedMembersData =
-        userTeam?.members.filter((m) => selectedMembers.includes(m.id)) ?? [];
-
       // ── PER-MEMBER REGISTRATION-REQUIREMENT MARKER (owner 2026-06-22) ──────────────────
       // Evaluate EVERY active event requirement against each selected roster member, so the
       // captain sees EXACTLY who is missing what BEFORE submitting (previously only UID was
-      // checked, and only via a name list with no breakdown). This mirrors the backend gate
-      // (afc_tournament_and_scrims._missing_registration_assets + the require_discord gate in
-      // register_for_event) field-for-field, using the per-member flags get-team-details echoes
-      // (uid, discord_id, has_esports_image, has_profile_image). Discord here means "connected"
-      // (discord_id present); the backend stays the authority on actual guild membership at submit.
-      const reqIssues = selectedMembersData
-        .map((m) => ({
-          id: m.id,
-          username: m.username,
-          // Shared evaluator (memberMissingRequirements) so the picker badges + this gate agree.
-          missing: memberMissingRequirements(m, eventDetails),
-        }))
-        .filter((x) => x.missing.length > 0);
+      // checked, and only via a name list with no breakdown).
+      const reqIssues = evaluateRegistrationReadiness(userTeam, user);
 
       if (reqIssues.length > 0) {
         // Keep the friendly inline fix when the ONLY problem is the current user's OWN missing
@@ -4286,31 +4518,21 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         }
 
         // Otherwise show the full per-member breakdown so the captain knows who to chase.
+        setRosterReqTeamLogo(false);
         setRosterReqIssues(
-          reqIssues.map((x) => ({ username: x.username, missing: x.missing })),
+          reqIssues.map((x) => ({
+            username: x.username,
+            missing: x.missing,
+            isSelf: x.isSelf,
+          })),
         );
         setModalStep("ROSTER_REQUIREMENTS");
         return;
       }
     } else {
-      // ── SOLO PARITY (owner 2026-06-22) ───────────────────────────────────────────────
-      // The backend solo gate enforces the SAME requirement set as teams
-      // (_missing_registration_assets: UID / esport image / profile image, + the require_discord
-      // gate). Previously the FE only pre-checked UID for solo, so a solo player missing an image
-      // walked the whole flow then hit a submit 403. Mirror the team logic for the single
-      // registrant via the shared evaluator. The AuthContext `user` carries the image URLs (not the
-      // has_* booleans get-team-details adds for team members), so adapt to the evaluator's shape;
-      // discord uses discord_username as a "connected" proxy, with the backend authoritative on
-      // actual guild membership at submit (identical caveat to the team path).
-      const soloMissing = memberMissingRequirements(
-        {
-          uid: user?.uid,
-          discord_id: user?.discord_username ? "connected" : null,
-          has_esports_image: !!user?.esport_image_url,
-          has_profile_image: !!user?.profile_pic,
-        },
-        eventDetails,
-      );
+      // SOLO: same evaluator, single registrant (see evaluateRegistrationReadiness).
+      const soloIssues = evaluateRegistrationReadiness(userTeam, user);
+      const soloMissing = soloIssues[0]?.missing ?? [];
       // UID is fixable inline (the user is the registrant), so keep the friendly prompt for that.
       if (soloMissing.length === 1 && soloMissing[0] === "uid") {
         setUidInput("");
@@ -4318,18 +4540,85 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         return;
       }
       if (soloMissing.length > 0) {
-        setRosterReqIssues([
-          {
-            username: user?.in_game_name || "You",
-            missing: soloMissing,
-          },
-        ]);
+        setRosterReqTeamLogo(false);
+        setRosterReqIssues(
+          soloIssues.map((x) => ({
+            username: x.username,
+            missing: x.missing,
+            isSelf: x.isSelf,
+          })),
+        );
         setModalStep("ROSTER_REQUIREMENTS");
         return;
       }
     }
     setModalStep("RULES");
-  }, [user, regType, selectedMembers, userTeam, eventDetails]);
+  }, [user, regType, userTeam, evaluateRegistrationReadiness]);
+
+  // ── ROSTER_REQUIREMENTS: "Back" and "Re-check and continue" (owner 2026-08-02) ────────────────
+  // The blocker modal used to offer ONLY a Close button, so a captain who fixed the problem had no
+  // way back into the flow from it (and, with the resume bug above, no way back in at all). These
+  // two handlers make it a working checkpoint instead of a dead end:
+  //   • Back      -> reopen the step they came from: the member picker for a team registration
+  //                  (where the per-member ready/missing badges live), INFO for a solo one.
+  //   • Re-check  -> re-pull the authoritative data (team/get-team-details via fetchUserTeam for a
+  //                  team, auth/get-user-profile via refreshUser for a solo registrant), evaluate
+  //                  it again and, when everyone now passes, continue to the next step (RULES).
+  //                  Still blocked -> refresh the list in place so the copy names what is STILL
+  //                  missing, per player.
+  const handleRosterRequirementsBack = useCallback(() => {
+    if (regType === "team") {
+      // Hand control back to TeamRegistrationModals (a separate Dialog), so close this one.
+      setModalStep("CLOSED");
+      setTeamModalStep("SELECT_MEMBERS");
+      return;
+    }
+    setModalStep("INFO");
+  }, [regType]);
+
+  const handleRosterRequirementsRecheck = useCallback(async () => {
+    setRosterReqRechecking(true);
+    try {
+      // Fresh snapshot from the API - never the possibly-stale render state (see the evaluator).
+      const freshTeam = regType === "team" ? await fetchUserTeam() : userTeam;
+      const freshUser = regType === "team" ? user : ((await refreshUser()) ?? user);
+      const issues = evaluateRegistrationReadiness(freshTeam, freshUser);
+      if (issues.length > 0) {
+        setRosterReqIssues(
+          issues.map((x) => ({
+            username: x.username,
+            missing: x.missing,
+            isSelf: x.isSelf,
+          })),
+        );
+        // A team-logo miss can only be reported by the backend gate at submit, so a client-side
+        // re-check cannot clear or confirm it; leave whatever the 403 told us standing.
+        toast.error(t("register.rosterRequirements.stillMissing"));
+        return;
+      }
+      // Everyone passes now: carry the registration on exactly where it stopped.
+      setRosterReqIssues([]);
+      setRosterReqTeamLogo(false);
+      toast.success(
+        t(
+          regType === "solo"
+            ? "register.rosterRequirements.allClearSolo"
+            : "register.rosterRequirements.allClear",
+        ),
+      );
+      setModalStep("RULES");
+    } finally {
+      setRosterReqRechecking(false);
+    }
+  }, [
+    regType,
+    userTeam,
+    user,
+    fetchUserTeam,
+    refreshUser,
+    evaluateRegistrationReadiness,
+    t,
+  ]);
 
   const handleSaveUid = useCallback(async () => {
     if (!uidInput.trim()) return;
@@ -4513,28 +4802,27 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       }
       // F3 (owner 2026-06-19): the per-player registration gates (esports image / profile image /
       // Free Fire UID, + team logo) reject with this structured code, listing EXACTLY which player
-      // is missing which field. We surface a toast that NAMES each offending player + what they
-      // must add, with a jump to /profile/edit. fields are stable keys mapped to localized labels.
+      // is missing which field (backend _registration_requirements_response).
+      // owner 2026-08-02: this used to be a transient toast, which on a phone is easy to miss and
+      // impossible to re-read. Route it into the SAME ROSTER_REQUIREMENTS panel the client-side
+      // pre-check uses, so "who is missing what" is always shown in one persistent, actionable
+      // place - with Back, a "Re-check and continue", and a profile link for the registrant's own
+      // row. The server's field keys (uid / esports_image / profile_image) are the same tokens the
+      // panel already labels, so they map straight across.
       if (data?.code === "registration_requirements_unmet") {
-        const fieldLabel = (f: string) =>
-          ({
-            uid: t("register.toast.req.uid"),
-            esports_image: t("register.toast.req.esportsImage"),
-            profile_image: t("register.toast.req.profileImage"),
-          })[f] ?? f;
-        const lines: string[] = (data.missing ?? []).map(
-          (m: { username: string; fields: string[] }) =>
-            `${m.username}: ${(m.fields ?? []).map(fieldLabel).join(", ")}`,
+        const rows = (data.missing ?? []).map(
+          (m: { user_id?: number | string; username: string; fields: string[] }) => ({
+            username: m.username,
+            missing: m.fields ?? [],
+            isSelf:
+              m.user_id != null &&
+              user?.user_id != null &&
+              String(m.user_id) === String(user.user_id),
+          }),
         );
-        if (data.team_logo_missing) lines.unshift(t("register.toast.req.teamLogo"));
-        toast.error(t("register.toast.requirementsTitle"), {
-          description: lines.join("  •  ") || message,
-          action: {
-            label: t("register.toast.esportImageAction"),
-            onClick: () => router.push("/profile/edit"),
-          },
-          duration: 15000,
-        });
+        setRosterReqTeamLogo(!!data.team_logo_missing);
+        setRosterReqIssues(rows);
+        setModalStep("ROSTER_REQUIREMENTS");
         return;
       }
       // Sponsor redesign P3: the server re-validates every engagement answer for
@@ -4610,7 +4898,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       }
       toast.error(message);
     },
-    [router, userTeam, t, handleDiscordConnect, eventDetails?.participant_type],
+    [
+      router,
+      userTeam,
+      t,
+      handleDiscordConnect,
+      eventDetails?.participant_type,
+      // user: needed to mark the registrant's OWN row in the requirements panel (isSelf).
+      user,
+    ],
   );
 
   // ── PAID PATH ──────────────────────────────────────────────────────────────
@@ -5943,6 +6239,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         savingUid={savingUid}
         handleSaveUid={handleSaveUid}
         rosterReqIssues={rosterReqIssues}
+        rosterReqTeamLogo={rosterReqTeamLogo}
+        onRosterRequirementsBack={handleRosterRequirementsBack}
+        onRosterRequirementsRecheck={handleRosterRequirementsRecheck}
+        rosterReqRechecking={rosterReqRechecking}
         handleJoinedServer={handleJoinedServer}
         startPaidRegistration={startPaidRegistration}
         pendingJoined={pendingJoined}
