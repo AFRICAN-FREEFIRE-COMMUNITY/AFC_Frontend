@@ -155,5 +155,28 @@
     "advance": "Avance",
     "toastSuccess": "Les équipes se sont qualifiées pour la phase suivante.",
     "toastError": "Il n'a pas réussi à se qualifier pour la phase suivante."
+  },
+  "waDelivery": {
+    "open": "Vérifier la livraison WhatsApp",
+    "title": "Livraison WhatsApp",
+    "refresh": "Actualiser",
+    "resend": "Renvoyer à {count} échec",
+    "resendPlural": "Renvoyer aux {count} échecs",
+    "summary": "{delivered} sur {total} livrés",
+    "summaryFailed": ", {count} en échec",
+    "summaryNoNumber": ", {count} sans numéro WhatsApp",
+    "readNote": "Livré est le signal fiable. Lu ne s'affiche que pour les joueurs qui ont activé les accusés de lecture dans WhatsApp.",
+    "nothingSent": "Rien n'a encore été envoyé pour cette carte.",
+    "loading": "Chargement...",
+    "loadFailed": "Impossible de charger l'état de livraison",
+    "resendFailed": "Impossible de renvoyer",
+    "status": {
+      "failed": "Échec",
+      "no_number": "Aucun numéro",
+      "queued": "En file",
+      "sent": "Envoyé",
+      "delivered": "Livré",
+      "read": "Lu"
+    }
   }
 }

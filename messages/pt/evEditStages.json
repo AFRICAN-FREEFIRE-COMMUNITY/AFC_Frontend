@@ -155,5 +155,28 @@
     "advance": "Avançar",
     "toastSuccess": "As equipas passaram à fase seguinte.",
     "toastError": "Não conseguiu passar à fase seguinte."
+  },
+  "waDelivery": {
+    "open": "Ver entrega no WhatsApp",
+    "title": "Entrega no WhatsApp",
+    "refresh": "Atualizar",
+    "resend": "Reenviar a {count} falha",
+    "resendPlural": "Reenviar às {count} falhas",
+    "summary": "{delivered} de {total} entregues",
+    "summaryFailed": ", {count} falharam",
+    "summaryNoNumber": ", {count} sem número de WhatsApp",
+    "readNote": "Entregue é o sinal fiável. Lido só aparece para jogadores com confirmação de leitura ativada no WhatsApp.",
+    "nothingSent": "Ainda não foi enviado nada para este mapa.",
+    "loading": "A carregar...",
+    "loadFailed": "Não foi possível carregar o estado de entrega",
+    "resendFailed": "Não foi possível reenviar",
+    "status": {
+      "failed": "Falhou",
+      "no_number": "Sem número",
+      "queued": "Em fila",
+      "sent": "Enviado",
+      "delivered": "Entregue",
+      "read": "Lido"
+    }
   }
 }

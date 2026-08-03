@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { EyeOffIcon, EyeIcon, Check, Loader2, Send } from "lucide-react";
 import { IconPencil } from "@tabler/icons-react";
+import { RoomDeliveryPanel } from "./RoomDeliveryPanel";
 
 export const EditMatchModal = ({
   matchId,
@@ -129,7 +130,22 @@ export const EditMatchModal = ({
         { match_id: matchId },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      toast.success(res.data?.message || "Room details sent to players.");
+      // Report what actually went out per channel. The backend used to return a WhatsApp
+      // count that nobody surfaced, so an organizer could not tell whether the players who
+      // rely on WhatsApp got anything. `whatsapp_skipped` counts players with no number on
+      // file or who opted out, which is a profile problem, not a delivery failure.
+      const d = res.data || {};
+      const parts = [
+        `${d.pushed ?? 0} in-app`,
+        `${d.emailed ?? 0} email`,
+        `${d.whatsapped ?? 0} WhatsApp`,
+      ];
+      toast.success(
+        `${d.message || "Room details sent to players."} (${parts.join(", ")}` +
+          (d.whatsapp_skipped ? `, ${d.whatsapp_skipped} without a WhatsApp number` : "") +
+          ")",
+      );
+      setDeliveryKey((k) => k + 1); // make the delivery panel re-read after a send
       // No refetch here either (keeps the modal open after sending); parent syncs on close.
     } catch (e: any) {
       toast.error(e.response?.data?.message || "Failed to send room details");
@@ -137,6 +153,9 @@ export const EditMatchModal = ({
       setBroadcasting(false);
     }
   };
+
+  // Bumped after a send so RoomDeliveryPanel re-reads instead of showing pre-send state.
+  const [deliveryKey, setDeliveryKey] = useState(0);
 
   // Release the room ID+PASS to the WAITLIST (owner 2026-07-04): when a registered team no-shows,
   // send this map's room to the waitlist per the event's waitlist mode (or the manual-pick prompt).
@@ -300,6 +319,13 @@ export const EditMatchModal = ({
               )}
               Send to waitlist
             </Button>
+          </div>
+
+          {/* Who actually received the room ID. "Send to players" goes out over in-app, email AND
+              WhatsApp, but only WhatsApp reports back per person, so this is the one channel that
+              can answer "did player X get it". Keyed on deliveryKey so a send refreshes it. */}
+          <div className="pt-2">
+            <RoomDeliveryPanel key={deliveryKey} matchId={matchId} />
           </div>
         </form>
       </DialogContent>

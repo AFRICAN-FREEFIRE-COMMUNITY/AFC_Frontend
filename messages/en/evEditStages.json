@@ -155,5 +155,28 @@
     "advance": "Advance",
     "toastSuccess": "Teams advanced to the next stage.",
     "toastError": "Failed to advance to the next stage."
+  },
+  "waDelivery": {
+    "open": "Check WhatsApp delivery",
+    "title": "WhatsApp delivery",
+    "refresh": "Refresh",
+    "resend": "Resend to {count} failure",
+    "resendPlural": "Resend to {count} failures",
+    "summary": "{delivered} of {total} delivered",
+    "summaryFailed": ", {count} failed",
+    "summaryNoNumber": ", {count} with no WhatsApp number",
+    "readNote": "Delivered is the reliable signal. Read only shows for players who have read receipts switched on in WhatsApp.",
+    "nothingSent": "Nothing sent for this map yet.",
+    "loading": "Loading...",
+    "loadFailed": "Could not load delivery status",
+    "resendFailed": "Could not resend",
+    "status": {
+      "failed": "Failed",
+      "no_number": "No number",
+      "queued": "Queued",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "read": "Read"
+    }
   }
 }
