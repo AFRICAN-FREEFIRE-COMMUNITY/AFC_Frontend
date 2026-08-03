@@ -69,8 +69,15 @@
       "rankings": "Current Rankings",
       "tiers": "Quarterly Tiers"
     },
+    "loading": "Loading standings",
+    "empty": "No teams ranked yet, check back once results are in.",
+    "notPublished": "Rankings for {season} haven't been published yet, check back soon.",
+    "tiersComingSoon": "Tiers coming soon, team grades for {season} haven't been published yet.",
+    "thisSeason": "this season",
+    "viewAll": "View full rankings",
     "rankings": {
       "subtitle": "Team rankings based on overall performance metrics",
+      "subtitleMonth": "Team standings for {month}, based on overall performance",
       "rank": "Rank",
       "team": "Team",
       "points": "Points",
@@ -78,13 +85,14 @@
       "kills": "Kills"
     },
     "tiers": {
-      "subtitle": "Third quarter tier standings (July - September)",
+      "subtitle": "Quarterly tier standings",
+      "subtitleSeason": "Tier standings for {season}",
       "tier": "Tier",
       "team": "Team",
       "points": "Points",
-      "apr": "Apr",
-      "may": "May",
-      "jun": "Jun"
+      "wins": "Wins",
+      "kills": "Kills",
+      "events": "Events"
     }
   },
   "latestNews": {

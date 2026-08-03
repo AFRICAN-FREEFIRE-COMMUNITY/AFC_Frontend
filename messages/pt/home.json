@@ -69,8 +69,15 @@
       "rankings": "Rankings Atuais",
       "tiers": "Níveis Trimestrais"
     },
+    "loading": "Carregando classificações",
+    "empty": "Nenhuma equipe classificada ainda, volte quando os resultados sairem.",
+    "notPublished": "As classificações para {season} ainda não foram publicadas, volte em breve.",
+    "tiersComingSoon": "Níveis em breve, as classificações das equipes para {season} ainda não foram publicadas.",
+    "thisSeason": "esta temporada",
+    "viewAll": "Ver todos os rankings",
     "rankings": {
       "subtitle": "Rankings de equipes baseados em métricas de desempenho geral",
+      "subtitleMonth": "Classificação das equipes de {month}, baseada no desempenho geral",
       "rank": "Classificação",
       "team": "Equipe",
       "points": "Pontos",
@@ -78,13 +85,14 @@
       "kills": "Abates"
     },
     "tiers": {
-      "subtitle": "Classificação dos níveis do terceiro trimestre (Julho - Setembro)",
+      "subtitle": "Classificação dos níveis trimestrais",
+      "subtitleSeason": "Classificação dos níveis de {season}",
       "tier": "Nível",
       "team": "Equipe",
       "points": "Pontos",
-      "apr": "Abr",
-      "may": "Mai",
-      "jun": "Jun"
+      "wins": "Vitórias",
+      "kills": "Abates",
+      "events": "Torneios"
     }
   },
   "latestNews": {

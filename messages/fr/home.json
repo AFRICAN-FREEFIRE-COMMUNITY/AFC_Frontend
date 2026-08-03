@@ -69,8 +69,15 @@
       "rankings": "Classements actuels",
       "tiers": "Paliers trimestriels"
     },
+    "loading": "Chargement des classements",
+    "empty": "Aucune équipe classée pour le moment, revenez une fois les résultats disponibles.",
+    "notPublished": "Les classements pour {season} n'ont pas encore été publiés, revenez bientôt.",
+    "tiersComingSoon": "Paliers à venir, les classements des équipes pour {season} n'ont pas encore été publiés.",
+    "thisSeason": "cette saison",
+    "viewAll": "Voir tous les classements",
     "rankings": {
       "subtitle": "Classements des équipes basés sur les métriques de performance globales",
+      "subtitleMonth": "Classement des équipes pour {month}, basé sur la performance globale",
       "rank": "Rang",
       "team": "Équipe",
       "points": "Points",
@@ -78,13 +85,14 @@
       "kills": "Éliminations"
     },
     "tiers": {
-      "subtitle": "Classements des paliers du troisième trimestre (juillet - septembre)",
+      "subtitle": "Classements des paliers trimestriels",
+      "subtitleSeason": "Classement des paliers pour {season}",
       "tier": "Palier",
       "team": "Équipe",
       "points": "Points",
-      "apr": "Avr",
-      "may": "Mai",
-      "jun": "Juin"
+      "wins": "Victoires",
+      "kills": "Éliminations",
+      "events": "Tournois"
     }
   },
   "latestNews": {
