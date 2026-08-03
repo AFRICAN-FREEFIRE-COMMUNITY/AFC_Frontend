@@ -350,6 +350,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     require_esport_images: false,
     require_player_uid: false,
     require_player_profile_image: false,
+    // WhatsApp number gate (owner 2026-08-03): same shape as the four above.
+    require_whatsapp: false,
     // Letter-avatars gate (feature #7, owner 2026-06-29): a NUMBER (0 = off, 1-26 = required min),
     // not a bool. Edited on Basic Info (BasicInfoTab) alongside the require_* toggles, prefilled from
     // ed.min_letter_avatars below and persisted by saveWaitlistSettings -> edit_event.
@@ -723,6 +725,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           require_esport_images: ed.require_esport_images ?? false,
           require_player_uid: ed.require_player_uid ?? false,
           require_player_profile_image: ed.require_player_profile_image ?? false,
+          require_whatsapp: ed.require_whatsapp ?? false,
           // Letter-avatars gate (feature #7): rehydrate the count from the event (0 = off). Coerced
           // to a clean 0-or-positive number so the BasicInfoTab control reads a real value.
           min_letter_avatars: Number(ed.min_letter_avatars ?? 0) || 0,
@@ -1488,6 +1491,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         "require_player_profile_image",
         waitlistForm.require_player_profile_image ? "True" : "False",
       );
+      // WhatsApp number gate (owner 2026-08-03), saved with the requirements above.
+      formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
       // Letter-avatars gate (feature #7): a NUMBER (0-26), not a bool. edit_event re-parses + clamps
       // it (_parse_min_letter_avatars). Without this append, editing the count never reached the API.
       formData.append(
@@ -1524,6 +1529,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               require_esport_images: waitlistForm.require_esport_images,
               require_player_uid: waitlistForm.require_player_uid,
               require_player_profile_image: waitlistForm.require_player_profile_image,
+              require_whatsapp: waitlistForm.require_whatsapp,
               // Letter-avatars gate (feature #7): mirror the saved count into the cached event so the
               // RegisteredTeamsTab letter UI + a reopened Basic Info reflect it without a refetch.
               min_letter_avatars: waitlistForm.min_letter_avatars,
@@ -1814,6 +1820,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("require_esport_images", waitlistForm.require_esport_images ? "True" : "False");
         formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
         formData.append("require_player_profile_image", waitlistForm.require_player_profile_image ? "True" : "False");
+        formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
         formData.append("min_letter_avatars", String(Number(waitlistForm.min_letter_avatars ?? 0) || 0));
         // Paid-vs-free registration (re-sent on save so the values persist).
         appendRegistrationFeeFields(formData, data);

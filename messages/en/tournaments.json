@@ -335,6 +335,7 @@
         "discord": "Discord (join server)",
         "esportsImage": "Esport image",
         "profileImage": "Profile image",
+        "whatsapp": "WhatsApp number",
         "teamLogo": "Team logo"
       }
     },
@@ -609,6 +610,7 @@
     "esportImage": "An esports image on each player's profile",
     "uid": "Each player's Free Fire UID set",
     "profileImage": "A profile picture on each player's profile",
+    "whatsapp": "A WhatsApp number on each player's profile, so room details can reach them",
     "sponsorTitle": "Sponsor requirement",
     "sponsorTitleNamed": "Sponsor requirement ({sponsor})",
     "sponsorField": "You will be asked to provide: {field}"

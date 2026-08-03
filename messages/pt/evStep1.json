@@ -75,6 +75,8 @@
   "requireProfileImageDesc": "Todos os jogadores que se registarem têm de ter uma imagem de perfil carregada.",
   "requireUid": "É necessário o UID do jogador do Free Fire",
   "requireUidDesc": "Todos os jogadores que se registarem devem ter o seu UID do Free Fire definido no seu perfil.",
+  "requireWhatsapp": "Exigir o número de WhatsApp do jogador",
+  "requireWhatsappDesc": "Todos os jogadores que se registarem devem ter um número de WhatsApp guardado no seu perfil. Ative esta opção se pretende enviar os detalhes da sala por WhatsApp.",
   "requireLetterAvatars": "Exigir avatares com letras",
   "requireLetterAvatarsTip": "As equipas ou os jogadores têm de ter, pelo menos, este número de avatares com letras do Free Fire (A-Z) disponíveis para se poderem inscrever. As letras disponíveis de uma equipa correspondem à soma das letras que os seus membros possuem, mais quaisquer letras adicionais introduzidas manualmente no editor da equipa.",
   "requireLetterAvatarsDesc": "Defina o número mínimo de avatares de letras (1 a 26) que os concorrentes devem ter disponíveis para se inscreverem."

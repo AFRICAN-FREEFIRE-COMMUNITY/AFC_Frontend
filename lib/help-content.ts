@@ -55,6 +55,10 @@ export const HELP = {
     "Every registering player must have a profile image uploaded.",
   "events.create.require_player_uid":
     "Every registering player must have their Free Fire UID set on their profile.",
+  // owner 2026-08-03: only a tiny fraction of players have a WhatsApp number on file, so room-details
+  // messages reach almost nobody. Events that rely on them can demand a number at registration.
+  "events.create.require_whatsapp":
+    "Every registering player must have a WhatsApp number saved on their profile. Turn this on when you plan to send room details over WhatsApp.",
 
   // ── Step 2: Event mode ─────────────────────────────────────────────────────
   "events.create.event_mode":

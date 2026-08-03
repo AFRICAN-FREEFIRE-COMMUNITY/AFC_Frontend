@@ -557,5 +557,7 @@
   "waitlist.mode_first_registered": "If a team does not show up, the earliest-registered team on the waitlist takes the open slot.",
   "waitlist.mode_fcfs_room": "If a team does not show up, all waitlist teams get the room ID and password. The first to join the room takes the open slot.",
   "waitlist.mode_manual_admin": "If a team does not show up, the organizer chooses which waitlist team takes the open slot.",
-  "waitlist.position": "#{n}"
+  "waitlist.position": "#{n}",
+  "requirements.whatsapp": "A WhatsApp number on each player's profile, so room details can reach them",
+  "register.rosterRequirements.req.whatsapp": "WhatsApp number"
 }

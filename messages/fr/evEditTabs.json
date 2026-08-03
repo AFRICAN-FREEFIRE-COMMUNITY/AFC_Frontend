@@ -33,6 +33,8 @@
     "requireProfileImageHelp": "Chaque joueur qui s'inscrit doit avoir téléchargé une photo de profil.",
     "requireUidLabel": "L'UID du joueur Free Fire est obligatoire",
     "requireUidHelp": "Chaque joueur qui s'inscrit doit avoir renseigné son identifiant UID Free Fire dans son profil.",
+    "requireWhatsappLabel": "Exiger le numéro WhatsApp du joueur",
+    "requireWhatsappHelp": "Chaque joueur qui s'inscrit doit avoir un numéro WhatsApp enregistré dans son profil. Activez cette option si vous comptez envoyer les détails de la salle par WhatsApp.",
     "requireLettersLabel": "Exiger des avatars sous forme de lettres",
     "requireLettersInfoTip": "Les équipes ou les joueurs doivent disposer d'au moins ce nombre d'avatars « lettres » Free Fire (A-Z) avant de pouvoir s'inscrire. Les lettres disponibles d'une équipe correspondent à la somme des lettres que possèdent ses membres, auxquelles s'ajoutent les lettres supplémentaires ajoutées manuellement dans l'éditeur d'équipe.",
     "requireLettersHelp": "Définissez le nombre minimum d'avatars sous forme de lettres (de 1 à 26) dont les participants doivent disposer pour pouvoir s'inscrire.",

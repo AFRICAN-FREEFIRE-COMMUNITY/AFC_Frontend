@@ -426,6 +426,12 @@ interface EventDetails {
   // has a profile image. Shown in the INFO-step requirements callout + enforced server-side.
   require_player_uid?: boolean;
   require_player_profile_image?: boolean;
+  // Event.require_whatsapp (owner 2026-08-03): a third per-player gate. Blocks registration until
+  // every registering player has a WhatsApp number on their profile (UserProfile.whatsapp_number),
+  // because this event sends room ID / password over WhatsApp and an empty number reaches nobody.
+  // Enforced server-side by the same _missing_registration_assets helper as the flags above; shown
+  // in the INFO-step requirements callout and as a per-player badge in the roster panel.
+  require_whatsapp?: boolean;
   // ── Discord registration gate (per-event) ── echoed by get-event-details/. When
   // require_discord is true, the event shows a "Discord required" badge in the header
   // and register-for-event/ rejects participants who aren't Discord-connected + in the
@@ -496,21 +502,36 @@ interface TeamMember {
   // require_player_profile_image). See evaluateRosterRequirements + the ROSTER_REQUIREMENTS modal.
   has_esports_image?: boolean;
   has_profile_image?: boolean;
+  // Does this member have a WhatsApp number on file (owner 2026-08-03)? Boolean only - the number
+  // itself is never sent to teammates. Echoed by team/get-team-details/ alongside the two image
+  // flags, and consumed by the require_whatsapp badge in memberMissingRequirements below.
+  has_whatsapp?: boolean;
 }
 
 // ── Per-member registration-requirement evaluation (owner 2026-06-22) ─────────────────────────
 // SINGLE SOURCE OF TRUTH for "which of this event's active requirements does this roster member
 // still fail?". Used by BOTH the member picker (inline ✓/✗ badges in TeamRegistrationModals'
 // SELECT_MEMBERS step) and the pre-submit ROSTER_REQUIREMENTS marker (handleGoToRules), so the two
-// can never drift. Mirrors the backend gate field-for-field: UID + the two images come from
-// afc_tournament_and_scrims._missing_registration_assets; discord = "connected" (discord_id present)
-// while the backend stays authority on actual guild membership at submit (register_for_event's
-// require_discord gate). Returns the unmet requirement keys; an empty array means the member is ready.
-type RequirementKey = "uid" | "discord" | "esports_image" | "profile_image";
+// can never drift. Mirrors the backend gate field-for-field: UID, the two images and the WhatsApp
+// number all come from afc_tournament_and_scrims._missing_registration_assets; discord = "connected"
+// (discord_id present) while the backend stays authority on actual guild membership at submit
+// (register_for_event's require_discord gate). Returns the unmet requirement keys; an empty array
+// means the member is ready. Key strings match the backend's field tokens one-for-one, so a 403's
+// `missing[].fields` and this client-side preview render the same labels.
+type RequirementKey =
+  | "uid"
+  | "discord"
+  | "esports_image"
+  | "profile_image"
+  | "whatsapp";
 function memberMissingRequirements(
   member: Pick<
     TeamMember,
-    "uid" | "discord_id" | "has_esports_image" | "has_profile_image"
+    | "uid"
+    | "discord_id"
+    | "has_esports_image"
+    | "has_profile_image"
+    | "has_whatsapp"
   >,
   event: Pick<
     EventDetails,
@@ -518,6 +539,7 @@ function memberMissingRequirements(
     | "require_discord"
     | "require_esport_images"
     | "require_player_profile_image"
+    | "require_whatsapp"
   > | null,
 ): RequirementKey[] {
   const missing: RequirementKey[] = [];
@@ -531,6 +553,10 @@ function memberMissingRequirements(
     missing.push("esports_image");
   if (event?.require_player_profile_image && !member.has_profile_image)
     missing.push("profile_image");
+  // WhatsApp number (owner 2026-08-03): unlike Discord this IS fully verifiable client-side, because
+  // get-team-details echoes a has_whatsapp boolean straight off UserProfile.whatsapp_number - so a
+  // miss here is a hard red badge, never an advisory.
+  if (event?.require_whatsapp && !member.has_whatsapp) missing.push("whatsapp");
   return missing;
 }
 
@@ -550,7 +576,11 @@ function MemberRequirementBadges({
 }: {
   member: Pick<
     TeamMember,
-    "uid" | "discord_id" | "has_esports_image" | "has_profile_image"
+    | "uid"
+    | "discord_id"
+    | "has_esports_image"
+    | "has_profile_image"
+    | "has_whatsapp"
   >;
   event: EventDetails | null;
 }) {
@@ -559,7 +589,8 @@ function MemberRequirementBadges({
     event?.require_player_uid ||
     event?.require_discord ||
     event?.require_esport_images ||
-    event?.require_player_profile_image;
+    event?.require_player_profile_image ||
+    event?.require_whatsapp;
   if (!anyReq) return null;
 
   const hardMissing = memberMissingRequirements(member, event);
@@ -572,6 +603,7 @@ function MemberRequirementBadges({
       discord: t("register.rosterRequirements.req.discord"),
       esports_image: t("register.rosterRequirements.req.esportsImage"),
       profile_image: t("register.rosterRequirements.req.profileImage"),
+      whatsapp: t("register.rosterRequirements.req.whatsapp"),
     })[k] ?? k;
 
   if (hardMissing.length === 0 && !discordUnverified) {
@@ -4449,6 +4481,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         profile_pic?: string | null;
         esport_image_url?: string | null;
         discord_username?: string | null;
+        // The AuthContext user carries the raw number (auth/get-user-profile echoes
+        // UserProfile.whatsapp_number); the evaluator only needs "is it filled in".
+        whatsapp_number?: string | null;
       } | null,
     ): { id: string; username: string; missing: string[]; isSelf: boolean }[] => {
       if (regType === "team") {
@@ -4468,16 +4503,19 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       }
       // ── SOLO PARITY (owner 2026-06-22) ───────────────────────────────────────────────
       // The backend solo gate enforces the SAME requirement set as teams
-      // (_missing_registration_assets: UID / esport image / profile image, + the require_discord
-      // gate). The AuthContext user carries image URLs (not the has_* booleans get-team-details
-      // adds for team members), so adapt to the evaluator's shape; discord uses discord_username
-      // as a "connected" proxy, with the backend authoritative on guild membership at submit.
+      // (_missing_registration_assets: UID / esport image / profile image / WhatsApp number, + the
+      // require_discord gate). The AuthContext user carries image URLs and the raw WhatsApp number
+      // (not the has_* booleans get-team-details adds for team members), so adapt to the evaluator's
+      // shape; discord uses discord_username as a "connected" proxy, with the backend authoritative
+      // on guild membership at submit.
       const soloMissing = memberMissingRequirements(
         {
           uid: me?.uid,
           discord_id: me?.discord_username ? "connected" : null,
           has_esports_image: !!me?.esport_image_url,
           has_profile_image: !!me?.profile_pic,
+          // Trim before judging, exactly like the backend gate: a number of only spaces is no number.
+          has_whatsapp: !!me?.whatsapp_number?.trim(),
         },
         eventDetails,
       ) as string[];
@@ -5577,6 +5615,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 requireEsportImages={eventDetails.require_esport_images}
                 requirePlayerUid={eventDetails.require_player_uid}
                 requirePlayerProfileImage={eventDetails.require_player_profile_image}
+                requireWhatsapp={eventDetails.require_whatsapp}
                 isSponsored={eventDetails.is_sponsored}
                 sponsorName={eventDetails.sponsor_name}
                 sponsorRequirementDescription={eventDetails.sponsor_requirement_description}

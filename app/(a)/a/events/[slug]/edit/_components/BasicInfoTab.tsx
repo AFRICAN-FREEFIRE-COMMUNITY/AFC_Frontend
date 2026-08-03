@@ -57,12 +57,13 @@ import CountryPaymentRulesEditor from "@/components/CountryPaymentRulesEditor";
 // invite link) - same control the create wizard's Step1EventDetails uses.
 import { DiscordRegistrationGate } from "@/app/(a)/a/events/create/_components/DiscordRegistrationGate";
 
-// The four registration-requirement toggles (owner correction 2026-06-22: these belong on
-// Basic Info, not the Waitlist tab). Each blocks registration until satisfied; the register
-// flow points players at exactly what they're missing. The keys match the backend's
-// require_* fields and the waitlistForm state the edit page persists via saveWaitlistSettings.
+// The registration-requirement toggles (owner correction 2026-06-22: these belong on Basic Info,
+// not the Waitlist tab). Each blocks registration until satisfied; the register flow points players
+// at exactly what they're missing. The keys match the backend's require_* fields and the
+// waitlistForm state the edit page persists via saveWaitlistSettings. Adding a row here is all a new
+// per-player requirement needs on this tab (require_whatsapp, owner 2026-08-03, was added that way).
 // i18n: labelKey/helpKey resolve into the "evEditTabs" namespace at render (fully enumerated,
-// so every one of these four keys exists in messages/{en,fr,pt}/evEditTabs.json).
+// so every one of these keys exists in messages/{en,fr,pt}/evEditTabs.json).
 const REQUIREMENT_TOGGLES: { key: string; labelKey: string; helpKey: string }[] = [
   {
     key: "require_team_logo",
@@ -83,6 +84,11 @@ const REQUIREMENT_TOGGLES: { key: string; labelKey: string; helpKey: string }[] 
     key: "require_player_uid",
     labelKey: "basicInfo.requireUidLabel",
     helpKey: "basicInfo.requireUidHelp",
+  },
+  {
+    key: "require_whatsapp",
+    labelKey: "basicInfo.requireWhatsappLabel",
+    helpKey: "basicInfo.requireWhatsappHelp",
   },
 ];
 

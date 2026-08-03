@@ -67,5 +67,7 @@
   "requireUidDesc": "Every registering player must have their Free Fire UID set on their profile.",
   "requireLetterAvatars": "Require letter avatars",
   "requireLetterAvatarsTip": "Teams or players must have at least this many Free Fire letter avatars (A-Z) available before they can register. A team's available letters are the combined letters its members own plus any manual extras added on the team editor.",
-  "requireLetterAvatarsDesc": "Set the minimum number of letter avatars (1 to 26) competitors must have available to register."
+  "requireLetterAvatarsDesc": "Set the minimum number of letter avatars (1 to 26) competitors must have available to register.",
+  "requireWhatsapp": "Require player WhatsApp number",
+  "requireWhatsappDesc": "Every registering player must have a WhatsApp number saved on their profile. Turn this on when you plan to send room details over WhatsApp."
 }

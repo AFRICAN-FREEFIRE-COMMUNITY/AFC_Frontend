@@ -939,6 +939,12 @@ export default function OrganizerCreateEventPage() {
           "require_player_uid",
           String((form.getValues("require_player_uid" as never) as unknown as boolean) ?? false),
         );
+        // WhatsApp number gate (owner 2026-08-03), same hand-append pattern: create_event reads it
+        // into Event.require_whatsapp, register_for_event then blocks any player with no number.
+        formData.append(
+          "require_whatsapp",
+          String((form.getValues("require_whatsapp" as never) as unknown as boolean) ?? false),
+        );
         // Letter-avatars registration gate (feature #7, owner 2026-06-29). UNLIKE the require_*
         // toggles above this is a NUMBER (0-26, 0 = off), written into RHF by Step1EventDetails'
         // "Require letter avatars" Switch + count input. create_event re-parses + clamps it

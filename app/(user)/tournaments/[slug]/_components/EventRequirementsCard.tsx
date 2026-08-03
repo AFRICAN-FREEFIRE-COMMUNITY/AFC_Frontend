@@ -5,9 +5,9 @@
 //
 // Shows, on the PUBLIC event page and BEFORE the user tries to register, exactly what this event
 // requires of registrants: the per-player / per-team registration ASSETS the organizer toggled on
-// (team logo, esports image, Free Fire UID, profile image) AND, for a sponsored event, what the
-// sponsor asks each registrant to submit. Purely informational + read-only so a user knows the bar
-// up front instead of discovering it only when registration blocks them.
+// (team logo, esports image, Free Fire UID, profile image, WhatsApp number) AND, for a sponsored
+// event, what the sponsor asks each registrant to submit. Purely informational + read-only so a user
+// knows the bar up front instead of discovering it only when registration blocks them.
 //
 // Distinct from SponsorRequirementsCard (which is the registered user's post-registration submission
 // status + rejection loop). This card renders for EVERYONE viewing the event, registered or not, and
@@ -26,6 +26,9 @@ interface EventRequirementsCardProps {
   requireEsportImages?: boolean;
   requirePlayerUid?: boolean;
   requirePlayerProfileImage?: boolean;
+  // Event.require_whatsapp (owner 2026-08-03): every registering player needs a WhatsApp number on
+  // their profile, because this event sends room details there. Same shape as the flags above.
+  requireWhatsapp?: boolean;
   isSponsored?: boolean;
   sponsorName?: string | null;
   sponsorRequirementDescription?: string | null;
@@ -37,6 +40,7 @@ export function EventRequirementsCard({
   requireEsportImages,
   requirePlayerUid,
   requirePlayerProfileImage,
+  requireWhatsapp,
   isSponsored,
   sponsorName,
   sponsorRequirementDescription,
@@ -50,6 +54,7 @@ export function EventRequirementsCard({
   if (requireEsportImages) assetItems.push(t("requirements.esportImage"));
   if (requirePlayerUid) assetItems.push(t("requirements.uid"));
   if (requirePlayerProfileImage) assetItems.push(t("requirements.profileImage"));
+  if (requireWhatsapp) assetItems.push(t("requirements.whatsapp"));
 
   const hasSponsorReq =
     !!isSponsored && !!(sponsorRequirementDescription || sponsorFieldLabel);

@@ -510,5 +510,7 @@
   "groupMover.removeFromStage": "Remove from stage",
   "groupMover.moveTitle": "Move {name}",
   "groupMover.moveChooseGroup": "Choose the group to move this team into.",
-  "groupMover.cancel": "Cancel"
+  "groupMover.cancel": "Cancel",
+  "basicInfo.requireWhatsappLabel": "Require player WhatsApp number",
+  "basicInfo.requireWhatsappHelp": "Every registering player must have a WhatsApp number saved on their profile. Turn this on when you plan to send room details over WhatsApp."
 }

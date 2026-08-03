@@ -866,6 +866,39 @@ export function Step1EventDetails({
               )}
             />
           </div>
+          {/* ── Require WhatsApp number (owner 2026-08-03) ────────────────────────────────────
+              Blocks registration until every registering player has a WhatsApp number on their
+              profile (afc_auth.UserProfile.whatsapp_number). Exists because AFC sends room ID /
+              password over WhatsApp and almost no player has a number on file, so an event that
+              relies on those messages can demand one instead of the site nagging everybody.
+              Written into RHF as require_whatsapp, hand-appended to the create payload by BOTH
+              create pages (admin + organizer), stored on Event.require_whatsapp, enforced in
+              register_for_event via _missing_registration_assets, and shown to players by
+              EventRequirementsCard + the roster-requirements panel. Mirrors the toggles above. */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="require-whatsapp">{t("requireWhatsapp")}<InfoTip id="events.create.require_whatsapp" className="ml-1" /></Label>
+              <p className="text-xs text-muted-foreground">
+                {t("requireWhatsappDesc")}
+              </p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field
+              control={form.control}
+              name={"require_whatsapp" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="require-whatsapp"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
           {/* ── Require letter avatars (feature #7, owner 2026-06-29) ──────────────────────────
               Block registration until a team/player has at least N Free Fire letter avatars (A-Z)
               AVAILABLE. A team's available letters are the live union of its members' owned letters

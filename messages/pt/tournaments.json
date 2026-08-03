@@ -335,6 +335,7 @@
         "discord": "Discord (entrar no servidor)",
         "esportsImage": "Imagem de desporto eletrónico",
         "profileImage": "Imagem de perfil",
+        "whatsapp": "Número de WhatsApp",
         "teamLogo": "Logótipo da equipa"
       }
     },
@@ -609,6 +610,7 @@
     "esportImage": "Uma imagem relacionada com os eSports no perfil de cada jogador",
     "uid": "Conjunto de UIDs do Free Fire de cada jogador",
     "profileImage": "Uma foto de perfil no perfil de cada jogador",
+    "whatsapp": "Um número de WhatsApp no perfil de cada jogador, para que os detalhes da sala os possam alcançar",
     "sponsorTitle": "Requisitos para os patrocinadores",
     "sponsorTitleNamed": "Requisitos para patrocinadores ({sponsor})",
     "sponsorField": "Ser-lhe-á pedido que forneça: {field}"
