@@ -136,7 +136,7 @@ const COOKIE_OPTIONS = {
   // was caused by the 3h cookie only sliding on AXIOS calls, so fetch-heavy pages (e.g. the
   // leaderboard) let it lapse while the backend token was still alive. Sliding on raw fetch too keeps
   // it alive there. Once idle past 3h BOTH the cookie and the backend token expire together, so the
-  // user is cleanly logged out — never the "still logged in but every action 401s" state.
+  // user is cleanly logged out - never the "still logged in but every action 401s" state.
   expires: 3 / 24, // 3 hours (matches the backend SessionToken idle window)
   secure: process.env.NODE_ENV === "production", // HTTPS only in production
   sameSite: "strict" as const,
@@ -152,7 +152,7 @@ const COOKIE_OPTIONS = {
 // Top-level route-group prefixes a stale legacy auth_token cookie could have been written at
 // (older code that set the cookie without an explicit path stored it at the current page path).
 // We can't enumerate cookie paths from JS, so we sweep these known app prefixes too, not just
-// the current URL — otherwise logging in from /login would leave a dupe parked at e.g. /a, which
+// the current URL - otherwise logging in from /login would leave a dupe parked at e.g. /a, which
 // re-shadows the canonical cookie the moment you enter the admin area.
 const _AUTH_COOKIE_PATHS = [
   "/a", "/organizer", "/vendor", "/sponsor", "/shop", "/home",
@@ -180,13 +180,13 @@ function clearAuthCookieEverywhere() {
 
 // Activity slide: on activity we re-write the auth_token cookie so its 7d storage window keeps
 // refreshing for as long as the user keeps using the app (the actual session timeout is the
-// backend's sliding 3h-idle window — see COOKIE_OPTIONS). Throttled to once per 5 min so we are
+// backend's sliding 3h-idle window - see COOKIE_OPTIONS). Throttled to once per 5 min so we are
 // not re-writing the cookie on every single request.
 let lastCookieBumpAt = 0;
 const COOKIE_BUMP_THROTTLE_MS = 5 * 60 * 1000;
 
 // Return-to-page after a session-timeout re-login (owner 2026-06-15). When the session is lost we
-// stash the page the user was on so the login flow can send them right back — covering surfaces that
+// stash the page the user was on so the login flow can send them right back - covering surfaces that
 // navigate to /login (admin/organizer guards, bare pushes) as well as the in-place AuthModal. The
 // /login page (LoginForm) reads + clears it; the AuthModal clears it on a successful in-place login
 // (no navigation needed there). Skipped for auth pages so we never bounce back to /login itself.
@@ -235,7 +235,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           // Slide the cookie's 7d storage window on activity. Write the AUTHORITATIVE in-scope
           // `token` (the validated session token) at the canonical path, NOT a re-read of the
-          // cookie — re-reading could pick up a stale duplicate and re-persist the wrong token.
+          // cookie - re-reading could pick up a stale duplicate and re-persist the wrong token.
           // Only slide on an AUTHENTICATED response (owner 2026-07-04 random-logout fix): the backend
           // only touches/slides the SessionToken on requests that carry the Bearer token, so sliding
           // the FE cookie on PUBLIC responses too kept the cookie alive while the backend token idled

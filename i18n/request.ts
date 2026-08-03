@@ -1,5 +1,5 @@
 /**
- * i18n/request.ts — next-intl per-request configuration.
+ * i18n/request.ts - next-intl per-request configuration.
  *
  * Purpose: on every server request, work out which locale to render and hand
  * next-intl the merged message catalog for that locale. Wired into Next.js by
@@ -31,7 +31,7 @@ const LOCALE_COOKIE = "NEXT_LOCALE";
 // Best-match a browser Accept-Language header to one of our supported locales (en/fr/pt).
 // WHY (owner 2026-07-02): an ANONYMOUS visitor has no NEXT_LOCALE cookie yet (the cookie is written
 // on login from their country, or by the in-app language switcher). Without this, every logged-out
-// visitor got English — e.g. a Cabo Verde user opening a public team link from Instagram saw the whole
+// visitor got English - e.g. a Cabo Verde user opening a public team link from Instagram saw the whole
 // team page in English. We now honour the browser's own language for them. A logged-in user (who has
 // the cookie) is unaffected; the cookie always wins. Parses "pt-BR,pt;q=0.9,en;q=0.8" -> "pt".
 function localeFromAcceptLanguage(header: string | null): Locale | null {
@@ -96,7 +96,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * dynamic-import context that matches zero files breaks the build. fs.readFile
  * just returns "missing" cleanly, so partial translations degrade gracefully.
  *
- * Result shape: { <namespace>: { ...keys }, ... } — each top-level key is a
+ * Result shape: { <namespace>: { ...keys }, ... } - each top-level key is a
  * namespace (the file name without .json), which is what useTranslations('<ns>')
  * selects on the client.
  */
@@ -127,7 +127,7 @@ async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
   let merged: Record<string, unknown> = {};
 
   for (const ns of namespaces) {
-    // English base for this namespace (always present — it is the source).
+    // English base for this namespace (always present - it is the source).
     const enJson = await readNs(DEFAULT_LOCALE, ns);
 
     if (locale === DEFAULT_LOCALE) {
@@ -146,7 +146,7 @@ async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
 }
 
 // Cached namespace list. Computed once per server process by reading the
-// English messages directory so we never hardcode the namespace names — adding
+// English messages directory so we never hardcode the namespace names - adding
 // messages/en/<new>.json is picked up automatically on the next cold start.
 let cachedNamespaces: string[] | null = null;
 

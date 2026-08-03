@@ -1,5 +1,5 @@
 /**
- * i18n/config.ts — shared locale constants for the AFC app.
+ * i18n/config.ts - shared locale constants for the AFC app.
  *
  * Purpose: single source of truth for which languages the site supports and
  * which one is the fallback. Everything else in the i18n stack imports from

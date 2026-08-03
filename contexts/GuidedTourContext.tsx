@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GuidedTourContext.tsx  —  the cross-page orchestrator for the INTERACTIVE
+// GuidedTourContext.tsx  -  the cross-page orchestrator for the INTERACTIVE
 //                           guided welcome tour
 // ----------------------------------------------------------------------------
 // PURPOSE
@@ -15,11 +15,11 @@
 //   not lose the place.
 //
 // THE THREE PIECES (this is piece 1 of 3)
-//   1. GuidedTourContext (THIS FILE)            — orchestrator state + API.
-//   2. WelcomeTour.tsx (the hub modal)          — reads this context; renders the
+//   1. GuidedTourContext (THIS FILE)            - orchestrator state + API.
+//   2. WelcomeTour.tsx (the hub modal)          - reads this context; renders the
 //        animated intro, the per-stop "Show me" launchers, the "Continue?" return
 //        prompt, and the celebratory outro.
-//   3. PageGuide.tsx (the on-page driver)       — reads this context; on every route
+//   3. PageGuide.tsx (the on-page driver)       - reads this context; on every route
 //        change, if phase==="onpage" and the path matches the current stop, runs a
 //        driver.js spotlight over that stop's [data-tour] anchors, then calls
 //        finishPageGuide() so the hub returns.

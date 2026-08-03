@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// useEventCreateDraft — auto-save the multi-step event CREATE wizard to localStorage
+// useEventCreateDraft - auto-save the multi-step event CREATE wizard to localStorage
 // so an organizer/admin who navigates Back (or refreshes / crashes) does NOT lose
 // their in-progress work (owner 2026-07-01: "was in step 5, pressed back, all my
 // work disappeared").
@@ -11,7 +11,7 @@
 // WHAT IT PERSISTS: the whole React-Hook-Form value tree (form.getValues(), including
 // the stages[]/groups[] array) + the wizard's extra useState (currentStep, stageNames,
 // rulesInputMethod). NON-serializable File states (banner / rules document + their
-// object-URL previews) are NOT saved — the resume dialog tells the user to re-attach
+// object-URL previews) are NOT saved - the resume dialog tells the user to re-attach
 // those. Everything else round-trips as JSON.
 //
 // HOW IT CONNECTS: consumed by both event CREATE pages

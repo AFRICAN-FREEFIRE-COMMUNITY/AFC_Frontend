@@ -8,11 +8,11 @@
  * currency from the backend (GET /auth/fx-rates/), caches them, and lets the user pick a currency.
  *
  * Exposes: { rates, currency, setCurrency, ready, chargeMarkup }.
- *   - rates: Record<code, number> (units per 1 USD; USD === 1) — consumed by lib/money.ts.
+ *   - rates: Record<code, number> (units per 1 USD; USD === 1) - consumed by lib/money.ts.
  *   - currency: the user's active DISPLAY currency (their pick -> country-derived -> USD).
  *   - setCurrency(code): switch the display currency; persists to localStorage AND, if signed in,
  *     to the user's profile (edit-profile preferred_currency) so it follows them across devices.
- *   - chargeMarkup: the FX buffer applied to CHARGES (display uses the raw rate) — informational.
+ *   - chargeMarkup: the FX buffer applied to CHARGES (display uses the raw rate) - informational.
  *
  * Used by: components/Money.tsx (<Money/>) + the profile currency picker. Mounted in app/layout.tsx
  * inside AuthProvider. Talks to backend afc_auth.views.fx_rates + edit_profile.
@@ -126,7 +126,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     // Persist to the profile so it follows the user across devices (best-effort; ignore if signed
-    // out). Dedicated endpoint — NOT edit-profile, which would wipe other profile fields on a
+    // out). Dedicated endpoint - NOT edit-profile, which would wipe other profile fields on a
     // partial save (the UID-wipe lesson).
     const token = Cookies.get("auth_token");
     if (token) {
