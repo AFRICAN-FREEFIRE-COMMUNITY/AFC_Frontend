@@ -70,17 +70,21 @@ import SsoAppsPanel from "./_components/SsoAppsPanel";
 // Shared status pill - outline badge whose border/text colour tracks the partner
 // status (active = green, suspended = orange, anything else = neutral). Same idiom
 // as the Organizations list's StatusBadge so the two admin surfaces read identically.
+// Its own translator (partners.status.*) so callers do not have to thread one in.
+// An unrecognised status falls back to the raw value: there is nothing to translate
+// for a state the UI does not know about, and printing it is more useful than blank.
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("partners");
   if (status === "active")
     return (
       <Badge variant="outline" className="border-green-600/60 text-green-400">
-        Active
+        {t("status.active")}
       </Badge>
     );
   if (status === "suspended")
     return (
       <Badge variant="outline" className="border-orange-500/40 text-orange-400">
-        Suspended
+        {t("status.suspended")}
       </Badge>
     );
   return (
@@ -96,9 +100,18 @@ export default function PartnersAdminPage() {
   // Toggles controls live). See handleCreate below.
   const router = useRouter();
 
-  // Tab labels live in the `ssoAdmin` namespace because that is the namespace the
-  // second tab's whole surface uses; the Data API tab's own copy is unchanged here.
+  // TWO translators on purpose:
+  //   t  - the `ssoAdmin` namespace, which owns the two TAB labels. They were authored
+  //        there with the Sign-in-with-AFC panel and are left where they are so the
+  //        SsoAppsPanel keys stay in one place.
+  //   tp - the `partners` namespace (messages/{en,fr,pt}/partners.json), which owns every
+  //        string on THIS page plus the whole partner detail page. Admin is in scope for
+  //        i18n (owner override 2026-07-13), and this surface had none at all.
+  //   tc - the shared `common` namespace, for generic verbs like Cancel that every admin
+  //        surface already reuses (no point authoring a partners-only "Cancel").
   const t = useTranslations("ssoAdmin");
+  const tp = useTranslations("partners");
+  const tc = useTranslations("common");
 
   // Which partner program is on screen. Controlled state (not defaultValue) so the
   // header description can follow the active tab. "data" first: it is the older,
@@ -136,7 +149,7 @@ export default function PartnersAdminPage() {
       setPartners(res?.results ?? []);
       setTotalCount(res?.total_count ?? 0);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load API keys.");
+      toast.error(err?.response?.data?.message || tp("list.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -162,7 +175,7 @@ export default function PartnersAdminPage() {
         name: createName.trim(),
         contact_email: createEmail.trim() || undefined,
       });
-      toast.success("API key created.");
+      toast.success(tp("list.created"));
       // reset the form + close the dialog
       setCreateName("");
       setCreateEmail("");
@@ -183,7 +196,7 @@ export default function PartnersAdminPage() {
         fetchPartners();
       }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to create API key.");
+      toast.error(err?.response?.data?.message || tp("list.createFailed"));
     } finally {
       setCreating(false);
     }
@@ -214,13 +227,13 @@ export default function PartnersAdminPage() {
         // description follows the active tab rather than always counting data-API keys.
         title={
           <span className="inline-flex items-center">
-            API Keys
+            {tp("list.title")}
             <InfoTip id="partners._page" className="ml-1.5" />
           </span>
         }
         description={
           tab === "data"
-            ? `${totalCount} API key${totalCount !== 1 ? "s" : ""}`
+            ? tp("list.count", { count: totalCount })
             : undefined
         }
       />
@@ -250,7 +263,7 @@ export default function PartnersAdminPage() {
               onClick={() => setCreateOpen(true)}
             >
               <IconPlus />
-              Create API key
+              {tp("list.create")}
             </Button>
             <InfoTip id="partners.create" />
           </div>
@@ -262,7 +275,7 @@ export default function PartnersAdminPage() {
             {/* data-tour="orgs-misc-partners-search": admin-tour anchor (orgs-misc area). */}
             <Input
               data-tour="orgs-misc-partners-search"
-              placeholder="Search by name or slug..."
+              placeholder={tp("list.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -280,9 +293,7 @@ export default function PartnersAdminPage() {
           {partners.length === 0 ? (
             <Card>
               <CardContent className="py-16 text-center text-muted-foreground">
-                {search
-                  ? "No API keys match your search."
-                  : "No API keys yet. Create one to get started."}
+                {search ? tp("list.emptySearch") : tp("list.empty")}
               </CardContent>
             </Card>
           ) : (
@@ -293,17 +304,17 @@ export default function PartnersAdminPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Slug</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>{tp("list.colName")}</TableHead>
+                        <TableHead>{tp("list.colSlug")}</TableHead>
+                        <TableHead>{tp("list.colStatus")}</TableHead>
                         {/* data-tour="orgs-misc-partners-active-keys": admin-tour anchor (orgs-misc area). */}
                         <TableHead data-tour="orgs-misc-partners-active-keys">
                           <span className="inline-flex items-center">
-                            Active keys
+                            {tp("list.colActiveKeys")}
                             <InfoTip id="partners.active_keys" className="ml-1" />
                           </span>
                         </TableHead>
-                        <TableHead>Created</TableHead>
+                        <TableHead>{tp("list.colCreated")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -336,8 +347,11 @@ export default function PartnersAdminPage() {
                 {totalPages > 1 && (
                   <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
                     <p className="text-xs text-muted-foreground">
-                      Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
-                      {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
+                      {tp("list.showing", {
+                        from: (page - 1) * ITEMS_PER_PAGE + 1,
+                        to: Math.min(page * ITEMS_PER_PAGE, totalCount),
+                        total: totalCount,
+                      })}
                     </p>
                     {/* data-tour="orgs-misc-partners-pagination": admin-tour anchor (orgs-misc area). */}
                     <Pagination data-tour="orgs-misc-partners-pagination">
@@ -403,28 +417,24 @@ export default function PartnersAdminPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create API key</DialogTitle>
-            <DialogDescription>
-              Provision a new API key (a data-API partner). It starts with every
-              toggle off and no scope, grant access from its detail page after
-              creating it.
-            </DialogDescription>
+            <DialogTitle>{tp("list.createTitle")}</DialogTitle>
+            <DialogDescription>{tp("list.createDescription")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="partner-name">Name</Label>
+              <Label htmlFor="partner-name">{tp("list.nameLabel")}</Label>
               <Input
                 id="partner-name"
                 value={createName}
                 onChange={(e) => setCreateName(e.target.value)}
-                placeholder="e.g. ESL"
+                placeholder={tp("list.namePlaceholder")}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="partner-email">
-                Contact email{" "}
-                <span className="text-muted-foreground">(optional)</span>
+                {tp("list.emailLabel")}{" "}
+                <span className="text-muted-foreground">{tp("optional")}</span>
                 <InfoTip id="partners.contact_email" className="ml-1" />
               </Label>
               <Input
@@ -432,17 +442,17 @@ export default function PartnersAdminPage() {
                 type="email"
                 value={createEmail}
                 onChange={(e) => setCreateEmail(e.target.value)}
-                placeholder="contact@partner.com"
+                placeholder={tp("list.emailPlaceholder")}
               />
             </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button disabled={!createReady || creating} onClick={handleCreate}>
-              {creating ? "Creating..." : "Create API key"}
+              {creating ? tp("list.creating") : tp("list.create")}
             </Button>
           </DialogFooter>
         </DialogContent>

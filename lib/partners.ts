@@ -48,7 +48,7 @@ async function aDelete<T = any>(path: string): Promise<T> {
 // backend documents ("a new toggle must be added to PARTNER_TOGGLE_FIELDS AND the FE
 // switches").
 //
-// 6 RESOURCE toggles - which endpoints (resources) respond at all.
+// 7 RESOURCE toggles - which endpoints (resources) respond at all.
 export const RESOURCE_TOGGLES = [
   "can_read_events",
   "can_read_stages",
@@ -56,9 +56,13 @@ export const RESOURCE_TOGGLES = [
   "can_read_standings",
   "can_read_teams",
   "can_read_players",
+  // Branded leaderboard design templates for the event owner (owner 2026-08-03):
+  // GET /api/v1/partner/events/<slug>/designs/. Its own resource toggle because it is a
+  // whole extra endpoint AND because design art is licensed brand material.
+  "can_read_designs",
 ] as const;
 
-// 8 FIELD toggles - which fields appear inside a resource the partner can already read.
+// 10 FIELD toggles - which fields appear inside a resource the partner can already read.
 export const FIELD_TOGGLES = [
   "include_placements",
   "include_kills",
@@ -68,6 +72,13 @@ export const FIELD_TOGGLES = [
   "include_maps",
   "include_prize",
   "include_mvp",
+  // Media + text (owner 2026-08-03, backlog item 8). include_media gates every image/file
+  // url the read API emits (event banners + rules files, team logos, player esport images,
+  // design art) - always ABSOLUTE urls. include_text gates human-readable prose (the event
+  // rules blurb, a team description). Separate so an admin can hand over copy without
+  // handing over brand art, and the reverse.
+  "include_media",
+  "include_text",
 ] as const;
 
 export const PARTNER_TOGGLE_FIELDS = [
@@ -140,6 +151,7 @@ export interface EditPartnerBody {
   can_read_standings?: boolean;
   can_read_teams?: boolean;
   can_read_players?: boolean;
+  can_read_designs?: boolean;
   include_placements?: boolean;
   include_kills?: boolean;
   include_damage?: boolean;
@@ -148,6 +160,8 @@ export interface EditPartnerBody {
   include_maps?: boolean;
   include_prize?: boolean;
   include_mvp?: boolean;
+  include_media?: boolean;
+  include_text?: boolean;
   // scope
   allow_all_native_afc?: boolean;
   allowed_events?: number[];

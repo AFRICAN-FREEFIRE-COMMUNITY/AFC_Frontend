@@ -26,6 +26,11 @@
 // matching the Organizations / Events detail pages.
 
 import { use, useCallback, useEffect, useMemo, useState } from "react";
+// i18n: every user-facing string on this page comes from the `partners` namespace
+// (messages/{en,fr,pt}/partners.json) under the "detail" group, plus a few generic verbs
+// from the shared "common" group. Admin is in scope for i18n (owner override 2026-07-13);
+// this page previously had no translations at all.
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -94,40 +99,21 @@ import {
   type EditPartnerBody,
 } from "@/lib/partners";
 
-// ── Human-readable labels for every toggle (the Switch grid binds these) ──────
-// Keyed by the SAME ids as the backend PARTNER_TOGGLE_FIELDS so there is exactly one
-// source of truth: add a toggle to lib/partners.ts and give it a label here.
-const TOGGLE_LABELS: Record<PartnerToggle, string> = {
-  // resource toggles - which endpoints respond
-  can_read_events: "Events",
-  can_read_stages: "Stages & groups",
-  can_read_matches: "Matches",
-  can_read_standings: "Standings",
-  can_read_teams: "Teams & rosters",
-  can_read_players: "Players",
-  can_read_designs: "Leaderboard designs",
-  // field toggles - which fields appear
-  include_placements: "Placements",
-  include_kills: "Kills",
-  include_damage: "Damage",
-  include_assists: "Assists",
-  include_rosters: "Rosters",
-  include_maps: "Maps played",
-  include_prize: "Prize pool",
-  include_mvp: "MVP",
-  include_media: "Images & files",
-  include_text: "Descriptions & rules text",
-};
-
-// ── What each toggle actually hands the partner (the helper line under each Switch) ──
+// ── Toggle copy lives in the i18n catalogue, keyed by toggle id ──────────────
+// Every toggle label is `partners.detail.toggles.<id>` and the few that need a helper
+// line are `partners.detail.toggleHints.<id>`, using the SAME ids as the backend
+// PARTNER_TOGGLE_FIELDS. So there is still exactly one source of truth: add a toggle to
+// lib/partners.ts, then add its label under that key in messages/{en,fr,pt}/partners.json.
+//
 // Only the toggles whose effect is not obvious from the label carry a hint; the stat
 // toggles (kills, damage, ...) are self-explanatory and are deliberately left out so the
-// grid stays scannable.
-const TOGGLE_HINTS: Partial<Record<PartnerToggle, string>> = {
-  can_read_designs: "Background art, placed logos and brand colours for this event.",
-  include_media: "Event banners, team logos and player esport images, as full URLs.",
-  include_text: "Event rules text and team descriptions.",
-};
+// grid stays scannable. TOGGLE_HINT_IDS is the list that HAS one, so the render can ask
+// for a hint without next-intl throwing MISSING_MESSAGE for the ones that do not.
+const TOGGLE_HINT_IDS: PartnerToggle[] = [
+  "can_read_designs",
+  "include_media",
+  "include_text",
+];
 
 // ── Partner read-API connection facts (the "Connection details" card on the Keys tab) ──
 // What an AFC admin hands a partner so the partner can call the public read API. The
@@ -144,18 +130,26 @@ const PARTNER_API_BASE = `${env.NEXT_PUBLIC_BACKEND_API_URL}/api/v1/partner/`;
 // <slug> = an event's slug (returned by events/). Each is additionally gated by this
 // partner's resource toggles (Scope & Toggles tab), so a path 200s only if the matching
 // can_read_* switch is on AND the event is published.
-const PARTNER_ENDPOINTS: { path: string; desc: string }[] = [
-  { path: "events/", desc: "List published events in scope" },
-  { path: "events/<slug>/", desc: "One event's details" },
-  { path: "events/<slug>/stages/", desc: "Stages & groups" },
-  { path: "events/<slug>/matches/", desc: "Matches" },
-  { path: "events/<slug>/standings/", desc: "Standings" },
-  { path: "events/<slug>/teams/", desc: "Teams & rosters" },
-  { path: "events/<slug>/players/", desc: "Players" },
+// `descKey` resolves under partners.detail.connection.endpoints.* - the PATH itself is a
+// literal URL and is never translated.
+const PARTNER_ENDPOINTS: { path: string; descKey: string }[] = [
+  { path: "events/", descKey: "events" },
+  { path: "events/<slug>/", descKey: "event" },
+  { path: "events/<slug>/stages/", descKey: "stages" },
+  { path: "events/<slug>/matches/", descKey: "matches" },
+  { path: "events/<slug>/standings/", descKey: "standings" },
+  { path: "events/<slug>/teams/", descKey: "teams" },
+  { path: "events/<slug>/players/", descKey: "players" },
 ];
 
+// The literal stand-in for the issued key, shown inside the auth-header field. It is
+// passed INTO the "replace this" note as an ICU argument rather than being written into
+// each locale's string: "<api key>" reads as a tag to the ICU parser, which made the
+// message fail to compile in all three locales.
+const API_KEY_PLACEHOLDER = "<api key>";
+
 // The auth header every partner request must carry (placeholder for the issued key).
-const PARTNER_AUTH_HEADER = "X-API-Key: <api key>";
+const PARTNER_AUTH_HEADER = `X-API-Key: ${API_KEY_PLACEHOLDER}`;
 
 // A copy-paste sample request, so the admin can hand the partner a working example.
 const SAMPLE_CURL = `curl -H "${PARTNER_AUTH_HEADER}" \\\n  ${PARTNER_API_BASE}events/`;
@@ -204,6 +198,9 @@ function StatusBadge({ status }: { status: string }) {
 // holds its OWN copied state, so the several copy buttons on the page (base URL, auth
 // header, sample curl) never share one flag. Used only by the Connection details card.
 function CopyButton({ value, className }: { value: string; className?: string }) {
+  // Its own translator (partners.detail.*), so the several copy buttons on the page do
+  // not each need one threaded in from the parent.
+  const t = useTranslations("partners");
   const [done, setDone] = useState(false);
   const copy = async () => {
     try {
@@ -211,7 +208,7 @@ function CopyButton({ value, className }: { value: string; className?: string })
       setDone(true);
       setTimeout(() => setDone(false), 2000);
     } catch {
-      toast.error("Couldn't copy. Select and copy the text manually.");
+      toast.error(t("detail.copyFailed"));
     }
   };
   return (
@@ -221,7 +218,7 @@ function CopyButton({ value, className }: { value: string; className?: string })
       size="icon"
       onClick={copy}
       className={className}
-      aria-label="Copy to clipboard"
+      aria-label={t("detail.copyAria")}
     >
       {done ? (
         <IconCheck className="size-4 text-green-500" />
@@ -239,6 +236,11 @@ export default function PartnerDetailPage({
 }) {
   const { slug: rawSlug } = use(params);
   const slug = decodeURIComponent(rawSlug);
+
+  // t  = this page's own copy (partners.detail.* plus the shared partners.status.*).
+  // tc = shared generic verbs (common.cancel / common.delete / common.done).
+  const t = useTranslations("partners");
+  const tc = useTranslations("common");
 
   const [detail, setDetail] = useState<PartnerDetail | null>(null);
   const [keys, setKeys] = useState<PartnerKey[]>([]);
@@ -324,7 +326,7 @@ export default function PartnerDetailPage({
       setAllowedEventIds(p.allowed_events ?? []);
       setAllowedOrgIds(p.allowed_organizations ?? []);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load partner.");
+      toast.error(err?.response?.data?.message || t("detail.loadFailed"));
     } finally {
       if (!silent) setLoading(false);
     }
@@ -346,12 +348,12 @@ export default function PartnerDetailPage({
         headers: { Authorization: `Bearer ${token ?? ""}` },
       })
       .then((res) => setEventOptions(res.data?.events ?? []))
-      .catch(() => toast.error("Failed to load events for scope picker."));
+      .catch(() => toast.error(t("detail.eventsLoadFailed")));
     // organizations - pull a large first page; the picker is searchable client-side.
     organizersApi
       .adminListOrganizations({ limit: 100, offset: 0 })
       .then((res: any) => setOrgOptions(res?.results ?? []))
-      .catch(() => toast.error("Failed to load organizations for scope picker."));
+      .catch(() => toast.error(t("detail.orgsLoadFailed")));
   }, []);
 
   // matchesSearch (the shared lib/search helper) so this picker matches the same
@@ -394,10 +396,10 @@ export default function PartnerDetailPage({
         allowed_organizations: allowedOrgIds,
       };
       await partnersApi.editPartner(slug, body);
-      toast.success("Scope & toggles saved.");
+      toast.success(t("detail.scope.saved"));
       fetchDetail(true);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to save scope & toggles.");
+      toast.error(err?.response?.data?.message || t("detail.scope.saveFailed"));
     } finally {
       setSavingScope(false);
     }
@@ -416,12 +418,12 @@ export default function PartnerDetailPage({
       setPublishState((prev) => ({ ...prev, [ev.event_id]: published }));
       toast.success(
         published
-          ? `"${ev.event_name}" is now readable through the partner API.`
-          : `"${ev.event_name}" was withdrawn from the partner API.`,
+          ? t("detail.publish.published", { name: ev.event_name })
+          : t("detail.publish.withdrawn", { name: ev.event_name }),
       );
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to update publish state.",
+        err?.response?.data?.message || t("detail.publish.failed"),
       );
     } finally {
       setPublishingId(null);
@@ -436,11 +438,11 @@ export default function PartnerDetailPage({
     setSuspending(true);
     try {
       await partnersApi.suspendPartner(slug, { suspend: !isSuspended });
-      toast.success(isSuspended ? "Partner unsuspended." : "Partner suspended.");
+      toast.success(isSuspended ? t("detail.profile.unsuspended") : t("detail.profile.suspended"));
       fetchDetail(true);
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to update suspension state.",
+        err?.response?.data?.message || t("detail.profile.suspendFailed"),
       );
     } finally {
       setSuspending(false);
@@ -460,10 +462,10 @@ export default function PartnerDetailPage({
       // swap the form for the show-once plaintext panel (same dialog stays open)
       setIssuedKey(res.api_key);
       setCopied(false);
-      toast.success("API key issued. Copy it now - it won't be shown again.");
+      toast.success(t("detail.issue.issuedToast"));
       fetchDetail(true);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to issue key.");
+      toast.error(err?.response?.data?.message || t("detail.issue.failed"));
     } finally {
       setIssuing(false);
     }
@@ -477,7 +479,7 @@ export default function PartnerDetailPage({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Couldn't copy - select and copy the key manually.");
+      toast.error(t("detail.issue.copyFailed"));
     }
   };
 
@@ -495,11 +497,11 @@ export default function PartnerDetailPage({
     setRevoking(true);
     try {
       await partnersApi.revokeKey(key.key_id);
-      toast.success("API key revoked.");
+      toast.success(t("detail.revoke.done"));
       setRevokeTarget(null);
       fetchDetail(true);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to revoke key.");
+      toast.error(err?.response?.data?.message || t("detail.revoke.failed"));
     } finally {
       setRevoking(false);
     }
@@ -512,11 +514,11 @@ export default function PartnerDetailPage({
     setDeletingKey(true);
     try {
       await partnersApi.deleteKey(key.key_id);
-      toast.success("API key deleted.");
+      toast.success(t("detail.delete.done"));
       setDeleteTarget(null);
       fetchDetail(true);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to delete key.");
+      toast.error(err?.response?.data?.message || t("detail.delete.failed"));
     } finally {
       setDeletingKey(false);
     }
