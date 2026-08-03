@@ -84,6 +84,8 @@ import { ITEMS_PER_PAGE } from "@/constants";
 import {
   IconCheck,
   IconCopy,
+  IconDownload,
+  IconFileTypePdf,
   IconPhoto,
   IconPlus,
   IconRefresh,
@@ -230,6 +232,12 @@ export default function SsoAppsPanel() {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [logoBusy, setLogoBusy] = useState(false);
 
+  // ── Partner integration guide download ───────────────────────────────────
+  // The PDF an admin sends a partner once AFC approves them. Fetched as a blob rather
+  // than linked, because GET /sso/admin/integration-guide/ wants the same Bearer header
+  // as the rest of this surface and a browser navigation cannot carry one.
+  const [guideBusy, setGuideBusy] = useState(false);
+
   // ── Suspend / rotate confirms ────────────────────────────────────────────
   const [suspendTarget, setSuspendTarget] = useState<SsoApplicationDetail | null>(null);
   const [suspending, setSuspending] = useState(false);
@@ -268,6 +276,30 @@ export default function SsoAppsPanel() {
     () => Array.from({ length: totalPages }, (_, i) => i + 1),
     [totalPages],
   );
+
+  // ── Download the partner integration guide ───────────────────────────────
+  // Saves the blob through a transient <a download>, the same way the leaderboard
+  // graphic export does, since the blob fetch cannot see the server's
+  // Content-Disposition filename. The name here is what the partner receives.
+  const handleDownloadGuide = async () => {
+    if (guideBusy) return;
+    setGuideBusy(true);
+    try {
+      const blob = await ssoApi.integrationGuide();
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = "AFC-Sign-in-with-AFC-Integration-Guide.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(href);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("guide.failed"));
+    } finally {
+      setGuideBusy(false);
+    }
+  };
 
   // ── Create ────────────────────────────────────────────────────────────────
   // On success the create dialog closes and the show-once secret panel opens in its
@@ -458,6 +490,31 @@ export default function SsoAppsPanel() {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* The thing you send a partner. First on the page because handing over this PDF is
+          the step that follows approving an organisation, and it is the same document for
+          every partner: the endpoints, the scope catalogue and a full worked integration.
+          Rebuilt from docs/afc-sso-integration-guide.md by docs/build-sso-guide-pdf.mjs. */}
+      <Card className="py-4">
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <IconFileTypePdf className="mt-0.5 size-5 shrink-0 text-primary" />
+            <div>
+              <p className="text-sm font-medium">{t("guide.title")}</p>
+              <p className="text-sm text-muted-foreground">{t("guide.description")}</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={handleDownloadGuide}
+            disabled={guideBusy}
+          >
+            <IconDownload />
+            {guideBusy ? t("guide.working") : t("guide.download")}
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Orientation line + the create action. The line states the default-off rule up
           front, because that is the fact an admin most needs to hold in mind here. */}
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">

@@ -4,6 +4,13 @@
     "sso": "Se connecter avec AFC"
   },
   "intro": "Les sites partenaires qui permettent aux joueurs de se connecter avec leur compte AFC. Chaque interrupteur ci-dessous décide du maximum qu'un partenaire peut apprendre sur un joueur, et ils sont tous désactivés au départ.",
+  "guide": {
+    "title": "Le guide d'intégration pour les partenaires",
+    "description": "Le PDF à envoyer à un partenaire une fois qu'AFC l'a approuvé. Il couvre les points de terminaison, les portées, ce que chacune communique et un exemple d'intégration complet.",
+    "download": "Télécharger le PDF",
+    "working": "Préparation...",
+    "failed": "Impossible de télécharger le guide d'intégration. Veuillez réessayer."
+  },
   "search": "Rechercher par nom ou identifiant client...",
   "clearSearch": "Effacer la recherche",
   "add": "Ajouter un partenaire",

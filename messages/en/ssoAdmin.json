@@ -4,6 +4,13 @@
     "sso": "Sign in with AFC"
   },
   "intro": "Partner sites that let players sign in with their AFC account. Each toggle below decides the most a partner can ever learn about a player, and every one starts off.",
+  "guide": {
+    "title": "The partner integration guide",
+    "description": "The PDF to send a partner once AFC approves them. It covers the endpoints, the scopes, what each one releases and a full worked integration.",
+    "download": "Download the PDF",
+    "working": "Preparing...",
+    "failed": "We could not download the integration guide. Please try again."
+  },
   "search": "Search by name or client ID...",
   "clearSearch": "Clear search",
   "add": "Add partner",

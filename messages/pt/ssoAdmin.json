@@ -4,6 +4,13 @@
     "sso": "Iniciar sessão com a AFC"
   },
   "intro": "Os sites parceiros que permitem aos jogadores iniciar sessão com a sua conta AFC. Cada interruptor abaixo decide o máximo que um parceiro pode saber sobre um jogador, e todos começam desligados.",
+  "guide": {
+    "title": "O guia de integração para parceiros",
+    "description": "O PDF a enviar a um parceiro depois de a AFC o aprovar. Abrange os pontos finais, os âmbitos, o que cada um divulga e um exemplo de integração completo.",
+    "download": "Transferir o PDF",
+    "working": "A preparar...",
+    "failed": "Não foi possível transferir o guia de integração. Tente novamente."
+  },
   "search": "Procurar por nome ou ID de cliente...",
   "clearSearch": "Limpar pesquisa",
   "add": "Adicionar parceiro",

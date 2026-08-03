@@ -211,6 +211,24 @@ export const ssoApi = {
   rotateSecret: (applicationId: number) =>
     aPost<SsoSecretResponse>(`apps/${applicationId}/rotate-secret/`),
 
+  // ── The document AFC sends a partner ─────────────────────────────────────
+  // integrationGuide - the partner integration guide PDF, streamed by
+  // backend/afc_sso/admin_api.py sso_integration_guide (GET /sso/admin/integration-guide/)
+  // from a copy of docs/afc-sso-integration-guide.pdf shipped inside the app.
+  //
+  // Returns a Blob rather than JSON, so it is the one call here that does not go through
+  // aGet. A plain <a href> download is not an option: the route needs the Bearer header
+  // like every other /sso/admin/ route, and a browser navigation cannot send one. The
+  // caller saves the blob through a transient anchor, the same idiom as the leaderboard
+  // graphic export in app/(a)/a/leaderboards/standalone/_components/ExportGraphicDialog.tsx.
+  integrationGuide: async (): Promise<Blob> =>
+    (
+      await axios.get(url("integration-guide/"), {
+        headers: authHeaders(),
+        responseType: "blob",
+      })
+    ).data,
+
   // ── Reference ────────────────────────────────────────────────────────────
   // scopeCatalogue - the eight toggles with the consent-screen sentence for each. The UI
   // renders its own translated copy of those sentences (messages/*/ssoAdmin.json); this
