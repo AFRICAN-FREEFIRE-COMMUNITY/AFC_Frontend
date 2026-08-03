@@ -5,6 +5,9 @@ import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+// Horizontally scrolling tab strip with fade hints, used for the in-game role tabs: there are
+// five of them plus the counts, which does not fit on a phone (see the component header).
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -20,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { FullLoader } from "@/components/Loader";
 import { TierBadge, tierMeta } from "@/components/rankings/TierBadge";
-import { rankingsApi, TeamRow, PlayerRow, Season } from "@/lib/rankings";
+import { rankingsApi, TeamRow, PlayerRow, PlayerRoleOption, Season } from "@/lib/rankings";
 import {
   IconHash, IconUsers, IconTrophy, IconChevronDown, IconChevronRight, IconMoodEmpty,
   IconInfoCircle, IconCrown, IconChartBar, IconStairsUp, IconSearch,
@@ -46,6 +49,10 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 import { ClaimGhostDialog, ClaimGhostTarget } from "./_components/ClaimGhostDialog";
 
 type Subject = "teams" | "players";
+
+// The sentinel the role tab strip uses for "everybody". Radix Tabs cannot hold an empty value,
+// and the backend accepts "all" for the same reason (afc_rankings/player_roles.py ROLE_ALL).
+const ROLE_ALL = "all";
 
 /**
  * Phase-2c runtime fields the backend now puts on the season object (on the rankings
@@ -161,6 +168,19 @@ function StatTile({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+// Empty state for a role table on a period that IS published: the role simply has nobody on the
+// ladder yet. Kept separate from <Empty/> and <NotPublished/> so the reason is never guessed at.
+function RoleEmpty({ role }: { role: string }) {
+  const t = useTranslations("teamsplayers");
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+      <IconMoodEmpty className="size-10 text-muted-foreground" />
+      <p className="font-semibold">{t("rankings.roleEmptyTitle", { role })}</p>
+      <p className="max-w-sm text-sm text-muted-foreground">{t("rankings.roleEmptyBody")}</p>
+    </div>
+  );
+}
+
 function NoMatch({ q }: { q: string }) {
   const t = useTranslations("teamsplayers");
   return (
@@ -201,6 +221,13 @@ function RankingsView() {
   // The ghost the user is requesting to claim (null = dialog closed). Set by the per-row "Claim"
   // button; consumed by <ClaimGhostDialog/> at the bottom of this view.
   const [claimTarget, setClaimTarget] = useState<ClaimGhostTarget | null>(null);
+  // ── per-role player ladders (owner: "sniper rankings, rusher rankings, etc") ──
+  // A role table is a FILTER over the player ladder, not a second scoring system: same scores,
+  // the subset of players who play that role, ranks renumbered WITHIN the role by the backend
+  // (afc_rankings/player_roles.py). ROLE_ALL = the unfiltered ladder. `roleOptions` is the tab
+  // bar itself, served on the same response so the counts can never disagree with the rows.
+  const [roleFilter, setRoleFilter] = useState<string>(ROLE_ALL);
+  const [roleOptions, setRoleOptions] = useState<PlayerRoleOption[]>([]);
   // Live refresh (owner 2026-07-02): shared tick re-runs the standings fetch below.
   const tick = useLiveTick();
 
@@ -217,13 +244,20 @@ function RankingsView() {
           const r = await rankingsApi.teamsMonthly(monthSel); if (!active) return;
           setTeams(r.results); setMonth(r.month ?? ""); setSeason((r.season as SeasonFlags) ?? null);
         } else {
-          const r = await rankingsApi.playersMonthly(monthSel); if (!active) return;
+          // The by-role endpoint serves the ladder AND the role tab bar in one call, and with
+          // role=all it returns exactly what players/monthly/ returns, so this replaces the old
+          // call rather than sitting beside it.
+          const r = await rankingsApi.playersByRole({
+            role: roleFilter, period: "monthly", month: monthSel,
+          });
+          if (!active) return;
           setPlayers(r.results); setMonth(r.month ?? ""); setSeason((r.season as SeasonFlags) ?? null);
+          setRoleOptions(r.roles ?? []);
         }
       } finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
-  }, [subject, tick, monthSel]);
+  }, [subject, tick, monthSel, roleFilter]);
 
   // Load the season list once (owner 2026-07-04 season picker), auto-selecting the active season.
   useEffect(() => {
@@ -341,7 +375,9 @@ function RankingsView() {
               </SelectContent>
             </Select>
           )}
-          <Tabs value={subject} onValueChange={(v) => { setSubject(v as Subject); setQ(""); setCountryFilter(""); }}>
+          <Tabs value={subject} onValueChange={(v) => {
+            setSubject(v as Subject); setQ(""); setCountryFilter(""); setRoleFilter(ROLE_ALL);
+          }}>
             <TabsList>
               <TabsTrigger value="teams"><IconUsers className="mr-1 size-3.5" /> {t("rankings.teams")}</TabsTrigger>
               <TabsTrigger value="players"><IconTrophy className="mr-1 size-3.5" /> {t("rankings.players")}</TabsTrigger>
@@ -350,10 +386,55 @@ function RankingsView() {
         </div>
       </div>
 
+      {/* ── in-game role tabs, players only ──
+          The ladder is the same ladder; picking a role narrows it to the players who play that
+          role and renumbers them 1..N within it, which is why the caption below spells out what
+          the numbers mean. The strip scrolls sideways inside itself on a phone (fade hints from
+          ScrollableTabsList) rather than pushing the page. */}
+      {subject === "players" && roleOptions.length > 0 && (
+        <div className="mb-4 space-y-1.5">
+          <Tabs value={roleFilter} onValueChange={setRoleFilter}>
+            <ScrollableTabsList aria-label={t("rankings.roleTabsLabel")}>
+              <TabsTrigger value={ROLE_ALL} className="text-xs">
+                {t("rankings.roleAll")}
+              </TabsTrigger>
+              {roleOptions.map((option) => (
+                <TabsTrigger key={option.role} value={option.role} className="text-xs">
+                  {/* Known roles are translated; anything new falls back to the label the
+                      backend sends, so a role added to the model is still readable. */}
+                  {t.has(`rankings.roles.${option.role}`)
+                    ? t(`rankings.roles.${option.role}`)
+                    : option.label}
+                  <Badge variant="outline"
+                    className="ml-1.5 rounded-full px-1.5 py-0 text-[10px] tabular-nums text-muted-foreground">
+                    {option.player_count}
+                  </Badge>
+                </TabsTrigger>
+              ))}
+            </ScrollableTabsList>
+          </Tabs>
+          <p className="text-xs text-muted-foreground">
+            {roleFilter === ROLE_ALL
+              ? t("rankings.roleAllCaption")
+              : t("rankings.roleCaption", {
+                  role: t.has(`rankings.roles.${roleFilter}`)
+                    ? t(`rankings.roles.${roleFilter}`)
+                    : roleFilter,
+                })}
+          </p>
+        </div>
+      )}
+
       <Card>
         <CardContent>
           {loading ? (
             <div className="py-16"><FullLoader text={t("rankings.loadingStandings")} /></div>
+          ) : all.length === 0 && subject === "players" && roleFilter !== ROLE_ALL
+              && season?.rankings_published !== false ? (
+            // A published period where this ROLE simply has nobody yet. Distinct from the
+            // "nothing published" and "no data at all" states, both handled below.
+            <RoleEmpty role={t.has(`rankings.roles.${roleFilter}`)
+              ? t(`rankings.roles.${roleFilter}`) : roleFilter} />
           ) : all.length === 0 && season && season.rankings_published === false ? (
             <NotPublished seasonName={season.name} what={t("rankings.rankingsLabel")} />
           ) : all.length === 0 ? (
@@ -477,6 +558,12 @@ function RankingsView() {
                                 </>
                               ) : (
                                 <>
+                                  {/* Inside a role table the rank column counts within the role,
+                                      so the position on the full ladder is shown here instead of
+                                      being lost. */}
+                                  {roleFilter !== ROLE_ALL && r.overall_rank != null && (
+                                    <StatTile label={t("rankings.overallRank")} value={`#${r.overall_rank}`} />
+                                  )}
                                   <StatTile label={t("rankings.kills")} value={(r.kill_pts ?? 0).toFixed(1)} />
                                   <StatTile label={t("rankings.mvp")} value={(r.mvp_pts ?? 0).toFixed(1)} />
                                   <StatTile label={t("rankings.finals")} value={(r.finals_pts ?? 0).toFixed(1)} />

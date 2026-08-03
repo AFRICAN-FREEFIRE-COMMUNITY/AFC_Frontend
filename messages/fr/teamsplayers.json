@@ -499,7 +499,20 @@
     "periodQuarterly": "trimestriels",
     "rankingsLabel": "Classements",
     "loadFailed": "Échec du chargement des classements",
-    "month": "Mois"
+    "month": "Mois",
+    "roleTabsLabel": "Filtrer le classement des joueurs par rôle en jeu",
+    "roleAll": "Tous les rôles",
+    "roleAllCaption": "Tous les joueurs du classement, classés au général.",
+    "roleCaption": "Uniquement les joueurs qui jouent {role}, classés 1er, 2e, 3e entre eux. Ouvrez une ligne pour voir la place du joueur au classement général.",
+    "overallRank": "Rang général",
+    "roleEmptyTitle": "Aucun joueur {role} pour le moment",
+    "roleEmptyBody": "Personne avec ce rôle n'a marqué de points sur cette période. Les rôles viennent de l'effectif d'une équipe : les joueurs sans équipe et les joueurs fantômes non réclamés ne sont pas comptés.",
+    "roles": {
+      "rusher": "Rusher",
+      "support": "Support",
+      "grenader": "Grenadier",
+      "sniper": "Sniper"
+    }
   },
   "claimGhost": {
     "claimTeamTitle": "Revendiquer cette équipe fantôme",

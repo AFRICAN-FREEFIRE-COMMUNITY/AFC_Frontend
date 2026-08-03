@@ -62,6 +62,209 @@
       "noMatch": "Aucun résultat pour « {q} ».",
       "noSeasons": "Aucune saison n'a encore été créée, il n'y a donc rien à classer. Créez-en une sur la page Saisons.",
       "loadFailed": "Échec du chargement du classement"
+    },
+    "scoringConfig": {
+      "title": "Configuration des points",
+      "description": "Tous les chiffres utilisés par le système de classement. Vous pouvez en ajouter, les renommer, les réordonner ou les supprimer. Enregistrer crée une nouvelle version et recalcule les saisons que vous choisissez.",
+      "loading": "Chargement de la configuration des points",
+      "loadFailed": "Échec du chargement de la configuration des points",
+      "resetDefaults": "Rétablir les valeurs par défaut",
+      "saveChanges": "Enregistrer les modifications",
+      "discard": "Annuler les modifications",
+      "defaultsLabel": "valeurs par défaut",
+      "shippedDefaults": "valeurs par défaut",
+      "defaultsStaged": "Valeurs par défaut chargées dans l'éditeur. Enregistrez pour en faire les règles actives.",
+      "defaultsFailed": "Échec du chargement des valeurs par défaut",
+      "versionStaged": "Version {version} chargée dans l'éditeur. Enregistrez pour en faire les règles actives.",
+      "versionFailed": "Échec du chargement de cette version",
+      "statVersion": "Version active",
+      "statVersionSub": "En vigueur pour la saison en cours",
+      "statLastEdited": "Dernière modification",
+      "statLastEditedBy": "par {user}",
+      "statUnsaved": "Modifications non enregistrées",
+      "statUnsavedSub": "valeurs différentes de la version enregistrée",
+      "statInSync": "identique à la version enregistrée",
+      "statProblems": "Problèmes détectés",
+      "statProblemsSub": "{errors} bloqueraient un enregistrement, {warnings} à vérifier",
+      "explainer": "Les modifications restent dans votre navigateur. Enregistrer crée une nouvelle version, fixe chaque autre saison sur les règles avec lesquelles elle a déjà été calculée, et recalcule les saisons que vous sélectionnez. Rien ne change pour personne tant que vous n'enregistrez pas.",
+      "errorCount": "{count, plural, one {# erreur} other {# erreurs}}",
+      "warningCount": "{count, plural, one {# avertissement} other {# avertissements}}",
+      "measuredIn": "Mesuré en : {unit}",
+      "changedDot": "modifié",
+      "rowUp": "Monter",
+      "rowDown": "Descendre",
+      "rowRemove": "Supprimer",
+      "colActions": "Actions",
+      "colPoints": "Points",
+      "colUpTo": "Jusqu'à",
+      "colPosition": "Position finale",
+      "colTierName": "Nom",
+      "colTierKey": "Clé",
+      "colMultiplier": "Multiplicateur",
+      "colWinBonus": "Bonus de victoire",
+      "colActive": "Statut",
+      "colTierNumber": "Numéro de niveau",
+      "colMinScore": "Score minimum",
+      "colTopN": "N meilleures équipes",
+      "colVersion": "Version",
+      "colReason": "Motif",
+      "colSavedBy": "Enregistré par",
+      "colSeasonsBound": "Saisons",
+      "addBand": "Ajouter une tranche",
+      "addPosition": "Ajouter une position",
+      "addTournamentTier": "Ajouter un niveau de tournoi",
+      "addRankingTier": "Ajouter un niveau de classement",
+      "noUpperLimit": "Aucune limite supérieure",
+      "makeOpenEnded": "Retirer la limite supérieure de cette tranche",
+      "setUpperLimit": "Donner une limite supérieure à cette tranche",
+      "cannotRemoveLastBand": "Une échelle doit comporter au moins une tranche.",
+      "cannotRemoveLastPosition": "Les points de placement doivent comporter au moins une position.",
+      "cannotRemoveLastTier": "Au moins un niveau de classement est requis.",
+      "tierActive": "Actif",
+      "tierRetired": "Retiré",
+      "tierRetireNotDelete": "Des événements sont déjà enregistrés sur ce niveau, il ne peut donc pas être supprimé. Passez-le en Retiré à la place : les événements passés continuent d'être calculés et le niveau n'est plus proposé pour les nouveaux.",
+      "tiersFootnote": "La clé est ce que chaque événement enregistre, elle est donc figée une fois sauvegardée. Le nom est libre et peut être changé à tout moment.",
+      "newTierName": "Niveau {tier}",
+      "unnamedTier": "Niveau {tier}",
+      "tierModeLabel": "Comment les niveaux sont décidés",
+      "modes": {
+        "threshold": {
+          "label": "Par score",
+          "help": "Une équipe atteint un niveau en dépassant son score minimum. La taille des niveaux varie selon le déroulement de la saison, et personne n'est obligé d'atteindre le niveau le plus haut."
+        },
+        "top_n": {
+          "label": "N meilleures du classement",
+          "help": "Chaque niveau contient un nombre fixe d'équipes : les N meilleures du classement final forment le niveau le plus haut, les M suivantes le niveau en dessous, et ainsi de suite. Les scores ne décident que de l'ordre."
+        }
+      },
+      "dormant": "non utilisé",
+      "notSet": "non défini",
+      "defaultTierHelp": "Toutes les équipes sous chaque seuil arrivent ici. Ce niveau existe toujours, il n'a donc pas de seuil propre.",
+      "placementFootnote": "Toute position non listée rapporte 0.",
+      "finalsExample": "{multiplier}x en {tier} donne {points} points par participation à une finale",
+      "positionTaken": "La position {position} figure déjà dans le tableau.",
+      "historyTitle": "Historique des versions",
+      "historyHelp": "Chaque version enregistrée est conservée. En charger une place ses chiffres dans l'éditeur ; rien ne change tant que vous n'enregistrez pas.",
+      "historyEmpty": "Rien n'a encore été enregistré, les valeurs par défaut sont donc en vigueur.",
+      "badgeActive": "active",
+      "seasonsBound": "{count, plural, =0 {aucune} one {# saison} other {# saisons}}",
+      "loadVersion": "Charger",
+      "dirtyFooter": "{count, plural, one {# valeur modifiée} other {# valeurs modifiées}} par rapport aux règles enregistrées {version}.",
+      "meta": {
+        "tiers": {
+          "label": "Niveaux de tournoi",
+          "help": "Le multiplicateur de points et le bonus de victoire fixe de chaque niveau. Le multiplicateur s'applique aux points de placement, aux points de kills et au bonus de finale ; le bonus de victoire est fixe. Retirer un niveau le masque des nouvelles règles tout en gardant les événements passés lisibles.",
+          "unit": ""
+        },
+        "placement_points": {
+          "label": "Points de placement par manche",
+          "help": "Points bruts pour une seule fin de manche. Toute position non listée rapporte 0.",
+          "unit": "position finale"
+        },
+        "kill_compression": {
+          "label": "Tranches de compression des kills",
+          "help": "La tranche dans laquelle tombe le total de kills décide des points, ce n'est pas cumulatif. La dernière tranche doit rester ouverte, sans limite supérieure.",
+          "unit": "kills cumulés sur un tournoi"
+        },
+        "placement_compression": {
+          "label": "Tranches de compression du placement",
+          "help": "La tranche dans laquelle tombe le total de placement brut décide des points. La dernière tranche doit rester ouverte, sans limite supérieure.",
+          "unit": "points de placement bruts cumulés sur un tournoi"
+        },
+        "finals_base": {
+          "label": "Base de participation en finale",
+          "help": "Multipliée par le multiplicateur du niveau pour chaque participation en finale.",
+          "unit": ""
+        },
+        "prize_money_points": {
+          "label": "Tranches de gains",
+          "help": "Les seuils sont en nairas nigérians. Une dotation enregistrée dans une autre devise est convertie en nairas avant d'être comparée ici.",
+          "unit": "gains totaux du trimestre"
+        },
+        "social_media_points": {
+          "label": "Tranches de réseaux sociaux",
+          "help": "Trimestriel uniquement, et seulement pour un relevé d'abonnés vérifié par un administrateur.",
+          "unit": "abonnés Instagram et TikTok cumulés"
+        },
+        "tier_thresholds": {
+          "label": "Niveaux de classement",
+          "help": "Comment le niveau de classement d'une équipe est décidé. Par score, une équipe atteint un niveau en dépassant son score trimestriel minimum, un niveau peut donc contenir un nombre quelconque d'équipes. Par N meilleures, la taille des niveaux est fixe : les N meilleures équipes du classement de la saison prennent le niveau le plus haut, les M suivantes celui en dessous. Dans les deux cas, une équipe sous le seuil de participation reçoit le niveau par défaut et ne prend aucune place.",
+          "unit": "score trimestriel"
+        },
+        "scrim": {
+          "label": "Règles des scrims",
+          "help": "Le placement et les kills en scrim valent le poids des scrims multiplié par leur valeur en tournoi. La contribution est plafonnée au plus élevé entre le forfait fixe et la part des points de tournoi de l'équipe, de sorte que jouer plus de tournois ne coûte jamais de points de scrim.",
+          "unit": ""
+        },
+        "player_weights": {
+          "label": "Poids des points joueur",
+          "help": "Points fixes gagnés par un joueur pour chaque MVP, participation en finale, victoire d'équipe, et ainsi de suite.",
+          "unit": ""
+        },
+        "participation_floors": {
+          "label": "Seuils de participation",
+          "help": "Le nombre minimum de tournois requis pour apparaître dans un classement mensuel, ou pour être classé au score plutôt que renvoyé au niveau par défaut chaque trimestre.",
+          "unit": "tournois sur la période"
+        }
+      },
+      "fields": {
+        "scrim": {
+          "weight": "Poids des scrims",
+          "win_flat": "Points par victoire en scrim",
+          "cap_ratio": "Plafond en part des points de tournoi",
+          "flat_cap": "Forfait fixe de scrims",
+          "daily_cap": "Scrims comptés par jour",
+          "monthly_cap": "Scrims comptés par mois"
+        },
+        "player_weights": {
+          "mvp_pts": "Titre de MVP",
+          "finals_pts": "Participation en finale",
+          "team_win_pts": "Victoire de l'équipe",
+          "participation_pts": "Participation",
+          "scrim_win_pts": "Victoire en scrim",
+          "scrim_kill_weight": "Poids des kills en scrim"
+        },
+        "participation_floors": {
+          "team_monthly": "Équipe, classement mensuel",
+          "team_quarterly": "Équipe, niveau trimestriel",
+          "player_monthly": "Joueur, classement mensuel",
+          "player_quarterly": "Joueur, niveau trimestriel"
+        }
+      },
+      "save": {
+        "title": "Enregistrer la configuration des points",
+        "description": "Cela crée une nouvelle version à partir de {version}, garde chaque autre saison sur les règles avec lesquelles elle a déjà été calculée, et recalcule les saisons que vous choisissez. Un motif est requis pour le journal d'audit.",
+        "fieldsChanged": "Valeurs modifiées",
+        "currentVersion": "Version actuelle",
+        "newVersion": "Nouvelle version",
+        "newVersionValue": "brouillon",
+        "checking": "Vérification de ces réglages",
+        "checkFailed": "Impossible de vérifier ces réglages",
+        "blockedTitle": "Ces réglages casseraient le calcul des points, ils ne peuvent pas encore être enregistrés.",
+        "warningsTitle": "Ces réglages peuvent être enregistrés, mais ils ne feront peut-être pas ce que vous attendez.",
+        "scopeTitle": "Saisons concernées",
+        "scopeHelp": "La saison en cours est toujours recalculée, elle n'est donc jamais à moitié sur les anciennes règles. Cochez toute autre saison que vous voulez également recalculer.",
+        "currentAlwaysIncluded": "Toujours incluse et recalculée.",
+        "badgeCurrent": "en cours",
+        "noOtherSeasons": "Il n'y a pas encore d'autre saison.",
+        "flagRankingsPublished": "classements publiés",
+        "flagTiersPublished": "niveaux publiés",
+        "flagClosed": "terminée",
+        "flagFrozen": "scores figés",
+        "flagNotPublished": "non publiée",
+        "onVersion": "sur v{version}",
+        "acknowledge": "Je comprends que {seasons} sera recalculée et que des classements déjà vus par le public vont changer.",
+        "recalculateHelp": "Recalculer immédiatement les saisons concernées. Laissez cette option activée, sauf si vous enregistrez plusieurs changements à la suite et recalculerez à la fin.",
+        "reasonLabel": "Motif",
+        "reasonPlaceholder": "ex. Bonus de victoire du Niveau 1 abaissé de 30 à 25 pour resserrer l'écart entre les niveaux du haut (vote du conseil 2026-05).",
+        "reasonCount": "{count}/{min} caractères minimum.",
+        "reasonLogged": "Consigné dans le journal d'audit des classements.",
+        "cancel": "Annuler",
+        "confirm": "Enregistrer et créer la version",
+        "savingBusy": "Enregistrement",
+        "saved": "Enregistré en v{version}. {seasons, plural, =0 {Aucune saison recalculée} one {# saison recalculée} other {# saisons recalculées}}.",
+        "failed": "Échec de l'enregistrement de la configuration des points"
+      }
     }
   }
 }

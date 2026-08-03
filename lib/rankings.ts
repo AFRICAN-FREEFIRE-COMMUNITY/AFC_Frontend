@@ -51,10 +51,30 @@ export interface TeamRow {
   tier_label?: string | null;
 }
 
+/**
+ * One in-game role on the public role tab bar.
+ *
+ * Served by GET /rankings/players/by-role/ (backend afc_rankings/player_roles.py) and sourced
+ * from afc_team.TeamMembers.IN_GAME_ROLE_CHOICES, so a role added to the model appears here
+ * without a frontend change. `label` is the model's English name and is only a fallback: the
+ * UI translates the known roles and falls back to this for anything new.
+ */
+export interface PlayerRoleOption {
+  role: string;
+  label: string;
+  player_count: number;
+}
+
 export interface PlayerRow {
   rank: number | null;
   player_id: number;
   username: string;
+  /**
+   * Present on the by-role ladder only. When a role is selected, `rank` is the rank WITHIN
+   * that role (1, 2, 3...) and this carries the position on the full ladder, so a row can say
+   * "1st sniper, 24th overall". With no role selected the two are equal.
+   */
+  overall_rank?: number | null;
   // True when this row is a ghost player interleaved into the ladder by score.
   // The username already carries the "[Ghost] <ign>" prefix from the backend; a
   // ghost has no public profile, so the UI renders it as plain text + a Ghost
@@ -121,6 +141,23 @@ export const rankingsApi = {
   teamsQuarterly: (seasonId?: number) => get<TeamRow>("teams/quarterly/", seasonId ? { season_id: seasonId } : undefined),
   playersMonthly: (month?: string) => get<PlayerRow>("players/monthly/", month ? { month } : undefined),
   playersQuarterly: (seasonId?: number) => get<PlayerRow>("players/quarterly/", seasonId ? { season_id: seasonId } : undefined),
+  /**
+   * The player ladder for ONE in-game role, plus the role tab bar, in a single call.
+   *
+   * Backend: afc_rankings/player_roles.py (GET /rankings/players/by-role/). A role table is a
+   * FILTER over the ladder above, not a second scoring system: the scores are identical, only
+   * the population differs, and the ranks are renumbered within the role. Pass no `role` (or
+   * "all") for the unfiltered ladder. Publish gating is the same as the plain ladders.
+   *
+   * Consumed by app/(user)/rankings/page.tsx (the player role tabs).
+   */
+  playersByRole: (params?: { role?: string; period?: "monthly" | "quarterly"; month?: string; seasonId?: number }) =>
+    get<PlayerRow>("players/by-role/", {
+      ...(params?.role ? { role: params.role } : {}),
+      ...(params?.period ? { period: params.period } : {}),
+      ...(params?.month ? { month: params.month } : {}),
+      ...(params?.seasonId ? { season_id: params.seasonId } : {}),
+    }) as Promise<Envelope<PlayerRow> & { role: string | null; roles: PlayerRoleOption[]; published?: boolean }>,
   // Feeds the transfer-window banner on /rankings, /teams and /player-markets; response
   // carries Phase-2c flags (transfer_window_is_open, transfer_window_close,
   // rankings_published, tiers_published).

@@ -499,7 +499,20 @@
     "periodQuarterly": "quarterly",
     "rankingsLabel": "Rankings",
     "loadFailed": "Failed to load rankings",
-    "month": "Month"
+    "month": "Month",
+    "roleTabsLabel": "Filter the player ladder by in-game role",
+    "roleAll": "All roles",
+    "roleAllCaption": "Every player on the ladder, ranked overall.",
+    "roleCaption": "Only players who play {role}, ranked 1st, 2nd, 3rd among themselves. Open a row to see where a player sits on the overall ladder.",
+    "overallRank": "Overall rank",
+    "roleEmptyTitle": "No {role} players yet",
+    "roleEmptyBody": "Nobody with this role has scored for this period. Roles come from a team roster, so players with no team and unclaimed ghost players are not counted.",
+    "roles": {
+      "rusher": "Rusher",
+      "support": "Support",
+      "grenader": "Grenadier",
+      "sniper": "Sniper"
+    }
   },
   "claimGhost": {
     "claimTeamTitle": "Claim this ghost team",

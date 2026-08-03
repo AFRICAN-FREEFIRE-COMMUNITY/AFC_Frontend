@@ -62,6 +62,209 @@
       "noMatch": "Nada corresponde a “{q}”.",
       "noSeasons": "Ainda não foi criada nenhuma temporada, por isso não há nada para classificar. Crie uma na página Temporadas.",
       "loadFailed": "Falha ao carregar a classificação"
+    },
+    "scoringConfig": {
+      "title": "Configuração de pontuação",
+      "description": "Todos os números que o sistema de classificação usa. Pode adicionar, renomear, reordenar ou remover qualquer um deles. Guardar cria uma nova versão e recalcula as épocas que escolher.",
+      "loading": "A carregar a configuração de pontuação",
+      "loadFailed": "Falha ao carregar a configuração de pontuação",
+      "resetDefaults": "Repor os valores predefinidos",
+      "saveChanges": "Guardar alterações",
+      "discard": "Descartar alterações",
+      "defaultsLabel": "predefinições",
+      "shippedDefaults": "predefinições",
+      "defaultsStaged": "Predefinições carregadas no editor. Guarde para as tornar as regras ativas.",
+      "defaultsFailed": "Falha ao carregar as predefinições",
+      "versionStaged": "Versão {version} carregada no editor. Guarde para a tornar as regras ativas.",
+      "versionFailed": "Falha ao carregar essa versão",
+      "statVersion": "Versão ativa",
+      "statVersionSub": "Em vigor para a época atual",
+      "statLastEdited": "Última edição",
+      "statLastEditedBy": "por {user}",
+      "statUnsaved": "Alterações por guardar",
+      "statUnsavedSub": "valores diferentes da versão guardada",
+      "statInSync": "igual à versão guardada",
+      "statProblems": "Problemas encontrados",
+      "statProblemsSub": "{errors} impediriam a gravação, {warnings} a rever",
+      "explainer": "As edições ficam apenas no seu navegador. Guardar cria uma nova versão, fixa cada uma das outras épocas nas regras com que já foi calculada, e recalcula as épocas que selecionar. Nada muda para ninguém enquanto não guardar.",
+      "errorCount": "{count, plural, one {# erro} other {# erros}}",
+      "warningCount": "{count, plural, one {# aviso} other {# avisos}}",
+      "measuredIn": "Medido em: {unit}",
+      "changedDot": "alterado",
+      "rowUp": "Subir",
+      "rowDown": "Descer",
+      "rowRemove": "Remover",
+      "colActions": "Ações",
+      "colPoints": "Pontos",
+      "colUpTo": "Até",
+      "colPosition": "Posição final",
+      "colTierName": "Nome",
+      "colTierKey": "Chave",
+      "colMultiplier": "Multiplicador",
+      "colWinBonus": "Bónus de vitória",
+      "colActive": "Estado",
+      "colTierNumber": "Número do nível",
+      "colMinScore": "Pontuação mínima",
+      "colTopN": "N melhores equipas",
+      "colVersion": "Versão",
+      "colReason": "Motivo",
+      "colSavedBy": "Guardado por",
+      "colSeasonsBound": "Épocas",
+      "addBand": "Adicionar escalão",
+      "addPosition": "Adicionar posição",
+      "addTournamentTier": "Adicionar nível de torneio",
+      "addRankingTier": "Adicionar nível de classificação",
+      "noUpperLimit": "Sem limite superior",
+      "makeOpenEnded": "Retirar o limite superior deste escalão",
+      "setUpperLimit": "Definir um limite superior para este escalão",
+      "cannotRemoveLastBand": "Uma escala precisa de pelo menos um escalão.",
+      "cannotRemoveLastPosition": "Os pontos de posição precisam de pelo menos uma posição.",
+      "cannotRemoveLastTier": "É necessário pelo menos um nível de classificação.",
+      "tierActive": "Ativo",
+      "tierRetired": "Retirado",
+      "tierRetireNotDelete": "Já existem eventos guardados neste nível, por isso não pode ser eliminado. Mude-o para Retirado: os eventos passados continuam a ser calculados e o nível deixa de ser oferecido para novos.",
+      "tiersFootnote": "A chave é o que cada evento guarda, por isso fica fixa depois de gravada. O nome é livre e pode ser alterado a qualquer momento.",
+      "newTierName": "Nível {tier}",
+      "unnamedTier": "Nível {tier}",
+      "tierModeLabel": "Como os níveis são decididos",
+      "modes": {
+        "threshold": {
+          "label": "Por pontuação",
+          "help": "Uma equipa atinge um nível ao ultrapassar a sua pontuação mínima. A dimensão dos níveis varia com o decorrer da época, e ninguém é obrigado a atingir o nível mais alto."
+        },
+        "top_n": {
+          "label": "N melhores da classificação",
+          "help": "Cada nível tem um número fixo de equipas: as N melhores da classificação final formam o nível mais alto, as M seguintes o nível abaixo, e assim por diante. As pontuações apenas decidem a ordem."
+        }
+      },
+      "dormant": "não utilizado",
+      "notSet": "por definir",
+      "defaultTierHelp": "Todas as equipas abaixo de todos os limiares ficam aqui. Este nível existe sempre, por isso não tem limiar próprio.",
+      "placementFootnote": "Qualquer posição não listada vale 0.",
+      "finalsExample": "{multiplier}x em {tier} dá {points} pontos por presença numa final",
+      "positionTaken": "A posição {position} já consta da tabela.",
+      "historyTitle": "Histórico de versões",
+      "historyHelp": "Todas as versões guardadas são mantidas. Carregar uma coloca os seus números no editor; nada muda enquanto não guardar.",
+      "historyEmpty": "Ainda nada foi guardado, por isso estão em vigor as predefinições.",
+      "badgeActive": "ativa",
+      "seasonsBound": "{count, plural, =0 {nenhuma} one {# época} other {# épocas}}",
+      "loadVersion": "Carregar",
+      "dirtyFooter": "{count, plural, one {# valor alterado} other {# valores alterados}} face às regras guardadas {version}.",
+      "meta": {
+        "tiers": {
+          "label": "Níveis de torneio",
+          "help": "O multiplicador de pontos e o bónus fixo de vitória de cada nível. O multiplicador aplica-se aos pontos de posição, aos pontos de abates e ao bónus de final; o bónus de vitória é fixo. Retirar um nível esconde-o das novas regras mas mantém os eventos passados legíveis.",
+          "unit": ""
+        },
+        "placement_points": {
+          "label": "Pontos de posição por partida",
+          "help": "Pontos brutos por uma única classificação de partida. Qualquer posição não listada vale 0.",
+          "unit": "posição final"
+        },
+        "kill_compression": {
+          "label": "Escalões de compressão de abates",
+          "help": "O escalão em que cai o total de abates decide os pontos, não é cumulativo. O último escalão tem de ficar aberto, sem limite superior.",
+          "unit": "abates acumulados num torneio"
+        },
+        "placement_compression": {
+          "label": "Escalões de compressão de posição",
+          "help": "O escalão em que cai o total bruto de posição decide os pontos. O último escalão tem de ficar aberto, sem limite superior.",
+          "unit": "pontos brutos de posição acumulados num torneio"
+        },
+        "finals_base": {
+          "label": "Base de presença na final",
+          "help": "Multiplicada pelo multiplicador do nível por cada presença numa final.",
+          "unit": ""
+        },
+        "prize_money_points": {
+          "label": "Escalões de prémios",
+          "help": "Os limiares são em nairas nigerianas. Um prémio registado noutra moeda é convertido para nairas antes de ser comparado aqui.",
+          "unit": "prémios totais ganhos no trimestre"
+        },
+        "social_media_points": {
+          "label": "Escalões de redes sociais",
+          "help": "Apenas trimestral, e só para um registo de seguidores verificado por um administrador.",
+          "unit": "seguidores de Instagram e TikTok somados"
+        },
+        "tier_thresholds": {
+          "label": "Níveis de classificação",
+          "help": "Como o nível de classificação de uma equipa é decidido. Por pontuação, uma equipa atinge um nível ao ultrapassar a sua pontuação trimestral mínima, por isso um nível pode conter qualquer número de equipas. Por N melhores, a dimensão dos níveis é fixa: as N melhores equipas da classificação da época ficam no nível mais alto, as M seguintes no nível abaixo. Em qualquer dos casos, uma equipa abaixo do limiar de participação recebe o nível predefinido e não ocupa lugar.",
+          "unit": "pontuação trimestral"
+        },
+        "scrim": {
+          "label": "Regras de scrims",
+          "help": "A posição e os abates em scrim valem o peso de scrim vezes o seu valor em torneio. A contribuição é limitada ao maior valor entre a dotação fixa e a parte dos pontos de torneio da equipa, para que competir mais nunca custe pontos de scrim a uma equipa.",
+          "unit": ""
+        },
+        "player_weights": {
+          "label": "Pesos de pontos de jogador",
+          "help": "Pontos fixos que um jogador ganha por cada MVP, presença numa final, vitória da equipa, e assim por diante.",
+          "unit": ""
+        },
+        "participation_floors": {
+          "label": "Limiares de participação",
+          "help": "O número mínimo de torneios necessário para aparecer numa classificação mensal, ou para ser nivelado por pontuação em vez de descer ao nível predefinido em cada trimestre.",
+          "unit": "torneios no período"
+        }
+      },
+      "fields": {
+        "scrim": {
+          "weight": "Peso de scrim",
+          "win_flat": "Pontos por vitória em scrim",
+          "cap_ratio": "Limite como parte dos pontos de torneio",
+          "flat_cap": "Dotação fixa de scrims",
+          "daily_cap": "Scrims contados por dia",
+          "monthly_cap": "Scrims contados por mês"
+        },
+        "player_weights": {
+          "mvp_pts": "Prémio de MVP",
+          "finals_pts": "Presença na final",
+          "team_win_pts": "Vitória da equipa",
+          "participation_pts": "Participação",
+          "scrim_win_pts": "Vitória em scrim",
+          "scrim_kill_weight": "Peso dos abates em scrim"
+        },
+        "participation_floors": {
+          "team_monthly": "Equipa, classificação mensal",
+          "team_quarterly": "Equipa, nível trimestral",
+          "player_monthly": "Jogador, classificação mensal",
+          "player_quarterly": "Jogador, nível trimestral"
+        }
+      },
+      "save": {
+        "title": "Guardar a configuração de pontuação",
+        "description": "Isto cria uma nova versão a partir de {version}, mantém cada uma das outras épocas nas regras com que já foi calculada, e recalcula as épocas que escolher. É obrigatório um motivo para o registo de auditoria.",
+        "fieldsChanged": "Valores alterados",
+        "currentVersion": "Versão atual",
+        "newVersion": "Nova versão",
+        "newVersionValue": "rascunho",
+        "checking": "A verificar estas definições",
+        "checkFailed": "Não foi possível verificar estas definições",
+        "blockedTitle": "Estas definições quebrariam o cálculo de pontos, por isso ainda não podem ser guardadas.",
+        "warningsTitle": "Estas definições podem ser guardadas, mas talvez não façam o que espera.",
+        "scopeTitle": "Épocas abrangidas",
+        "scopeHelp": "A época atual é sempre recalculada, para nunca ficar meia nas regras antigas. Marque qualquer outra época que também queira recalcular.",
+        "currentAlwaysIncluded": "Sempre incluída e recalculada.",
+        "badgeCurrent": "atual",
+        "noOtherSeasons": "Ainda não existem outras épocas.",
+        "flagRankingsPublished": "classificações publicadas",
+        "flagTiersPublished": "níveis publicados",
+        "flagClosed": "terminada",
+        "flagFrozen": "pontuações congeladas",
+        "flagNotPublished": "não publicada",
+        "onVersion": "na v{version}",
+        "acknowledge": "Compreendo que {seasons} será recalculada e que classificações que o público já viu vão mudar.",
+        "recalculateHelp": "Recalcular já as épocas abrangidas. Deixe esta opção ligada, a não ser que esteja a guardar várias alterações seguidas e vá recalcular no fim.",
+        "reasonLabel": "Motivo",
+        "reasonPlaceholder": "ex. Bónus de vitória do Nível 1 reduzido de 30 para 25 para fechar a diferença entre os níveis do topo (votação do conselho 2026-05).",
+        "reasonCount": "{count}/{min} caracteres no mínimo.",
+        "reasonLogged": "Registado no histórico de auditoria das classificações.",
+        "cancel": "Cancelar",
+        "confirm": "Guardar e criar versão",
+        "savingBusy": "A guardar",
+        "saved": "Guardado como v{version}. {seasons, plural, =0 {Nenhuma época recalculada} one {# época recalculada} other {# épocas recalculadas}}.",
+        "failed": "Falha ao guardar a configuração de pontuação"
+      }
     }
   }
 }

@@ -62,6 +62,209 @@
       "noMatch": "Nothing matches “{q}”.",
       "noSeasons": "No seasons have been created yet, so there is nothing to rank. Create one on the Seasons page.",
       "loadFailed": "Failed to load the ladder"
+    },
+    "scoringConfig": {
+      "title": "Scoring Configuration",
+      "description": "Every number the ranking system uses. Add, rename, reorder or remove any of them. Saving drafts a new version and recalculates the seasons you choose.",
+      "loading": "Loading scoring configuration",
+      "loadFailed": "Failed to load the scoring configuration",
+      "resetDefaults": "Reset to shipped defaults",
+      "saveChanges": "Save changes",
+      "discard": "Discard changes",
+      "defaultsLabel": "defaults",
+      "shippedDefaults": "shipped defaults",
+      "defaultsStaged": "Shipped defaults loaded into the editor. Save to make them the live rules.",
+      "defaultsFailed": "Failed to load the shipped defaults",
+      "versionStaged": "Version {version} loaded into the editor. Save to make it the live rules.",
+      "versionFailed": "Failed to load that version",
+      "statVersion": "Active version",
+      "statVersionSub": "In force for the current season",
+      "statLastEdited": "Last edited",
+      "statLastEditedBy": "by {user}",
+      "statUnsaved": "Unsaved changes",
+      "statUnsavedSub": "values differ from the saved version",
+      "statInSync": "in sync with the saved version",
+      "statProblems": "Problems found",
+      "statProblemsSub": "{errors} would block a save, {warnings} to review",
+      "explainer": "Edits are staged in your browser. Saving drafts a new version, pins every other season to the rules it was already scored under, and recalculates the seasons you pick. Nothing changes for anyone until you save.",
+      "errorCount": "{count, plural, one {# error} other {# errors}}",
+      "warningCount": "{count, plural, one {# warning} other {# warnings}}",
+      "measuredIn": "Measured in: {unit}",
+      "changedDot": "changed",
+      "rowUp": "Move up",
+      "rowDown": "Move down",
+      "rowRemove": "Remove",
+      "colActions": "Actions",
+      "colPoints": "Points",
+      "colUpTo": "Up to",
+      "colPosition": "Finishing position",
+      "colTierName": "Name",
+      "colTierKey": "Key",
+      "colMultiplier": "Multiplier",
+      "colWinBonus": "Win bonus",
+      "colActive": "Status",
+      "colTierNumber": "Tier number",
+      "colMinScore": "Minimum score",
+      "colTopN": "Top N teams",
+      "colVersion": "Version",
+      "colReason": "Reason",
+      "colSavedBy": "Saved by",
+      "colSeasonsBound": "Seasons",
+      "addBand": "Add band",
+      "addPosition": "Add position",
+      "addTournamentTier": "Add tournament tier",
+      "addRankingTier": "Add ranking tier",
+      "noUpperLimit": "No upper limit",
+      "makeOpenEnded": "Remove the upper limit for this band",
+      "setUpperLimit": "Give this band an upper limit",
+      "cannotRemoveLastBand": "A scale needs at least one band.",
+      "cannotRemoveLastPosition": "Placement points need at least one position.",
+      "cannotRemoveLastTier": "At least one ranking tier is required.",
+      "tierActive": "Active",
+      "tierRetired": "Retired",
+      "tierRetireNotDelete": "Events are already stored against this tier, so it cannot be deleted. Switch it to Retired instead: past events keep scoring and it stops being offered for new work.",
+      "tiersFootnote": "The key is what each event stores, so it is fixed once saved. The name is free text and can be changed at any time.",
+      "newTierName": "Tier {tier}",
+      "unnamedTier": "Tier {tier}",
+      "tierModeLabel": "How tiers are decided",
+      "modes": {
+        "threshold": {
+          "label": "By score",
+          "help": "A team reaches a tier by clearing its minimum score. Tier sizes vary with how the season goes, and nobody has to reach the top tier."
+        },
+        "top_n": {
+          "label": "Top N on the ladder",
+          "help": "Each tier holds a fixed number of teams: the best N on the final ladder are the top tier, the next M the one below, and so on. Scores only decide the order."
+        }
+      },
+      "dormant": "not in use",
+      "notSet": "not set",
+      "defaultTierHelp": "Everyone below every cutoff lands here. It always exists, so it has no cutoff of its own.",
+      "placementFootnote": "Any position that is not listed scores 0.",
+      "finalsExample": "{multiplier}x at {tier} gives {points} points per finals appearance",
+      "positionTaken": "Position {position} is already in the table.",
+      "historyTitle": "Version history",
+      "historyHelp": "Every saved version is kept. Loading one stages its numbers in the editor; nothing changes until you save.",
+      "historyEmpty": "Nothing has been saved yet, so the shipped defaults are in force.",
+      "badgeActive": "active",
+      "seasonsBound": "{count, plural, =0 {none} one {# season} other {# seasons}}",
+      "loadVersion": "Load",
+      "dirtyFooter": "{count, plural, one {# value} other {# values}} changed from the saved {version} rules.",
+      "meta": {
+        "tiers": {
+          "label": "Tournament tiers",
+          "help": "Each tier's scoring multiplier and flat win bonus. The multiplier applies to placement points, kill points and the finals bonus; the win bonus is flat. Retiring a tier hides it from new rules but keeps past events readable.",
+          "unit": ""
+        },
+        "placement_points": {
+          "label": "Placement points per match",
+          "help": "Raw points for a single match finish. Any position not listed scores 0.",
+          "unit": "finishing position"
+        },
+        "kill_compression": {
+          "label": "Kill compression bands",
+          "help": "The band a team's kill total lands in decides the points, it is not additive. The last band must be open ended, with no upper limit.",
+          "unit": "cumulative kills in one tournament"
+        },
+        "placement_compression": {
+          "label": "Placement compression bands",
+          "help": "The band a team's raw placement total lands in decides the points. The last band must be open ended, with no upper limit.",
+          "unit": "cumulative raw placement points in one tournament"
+        },
+        "finals_base": {
+          "label": "Finals appearance base",
+          "help": "Multiplied by the tier multiplier for each finals appearance.",
+          "unit": ""
+        },
+        "prize_money_points": {
+          "label": "Prize money bands",
+          "help": "Thresholds are in Nigerian naira. A prize pool recorded in another currency is converted to naira before it is compared here.",
+          "unit": "total prize money won in the quarter"
+        },
+        "social_media_points": {
+          "label": "Social media bands",
+          "help": "Quarterly only, and only for a follower snapshot an admin has verified.",
+          "unit": "combined Instagram and TikTok followers"
+        },
+        "tier_thresholds": {
+          "label": "Ranking tiers",
+          "help": "How a team's ranking tier is decided. By score, a team reaches a tier by clearing its minimum quarterly score, so a tier can hold any number of teams. By top N, the tiers are fixed sizes: the best N teams on the season ladder take the top tier, the next M the one below. Either way a team below the participation floor gets the default tier and takes up no place.",
+          "unit": "quarterly score"
+        },
+        "scrim": {
+          "label": "Scrim rules",
+          "help": "Scrim placement and kills are worth the scrim weight times their tournament value. The contribution is capped at the higher of the flat allowance and the share of the team's tournament points, so competing more never costs a team scrim points.",
+          "unit": ""
+        },
+        "player_weights": {
+          "label": "Player point weights",
+          "help": "Flat points a player earns per MVP, finals appearance, team win, and so on.",
+          "unit": ""
+        },
+        "participation_floors": {
+          "label": "Participation floors",
+          "help": "The minimum number of tournaments needed to appear on a monthly ladder, or to be tiered on score rather than dropped to the default tier each quarter.",
+          "unit": "tournaments in the period"
+        }
+      },
+      "fields": {
+        "scrim": {
+          "weight": "Scrim weight",
+          "win_flat": "Points per scrim win",
+          "cap_ratio": "Cap as a share of tournament points",
+          "flat_cap": "Flat scrim allowance",
+          "daily_cap": "Scrims counted per day",
+          "monthly_cap": "Scrims counted per month"
+        },
+        "player_weights": {
+          "mvp_pts": "MVP award",
+          "finals_pts": "Finals appearance",
+          "team_win_pts": "Team win",
+          "participation_pts": "Participation",
+          "scrim_win_pts": "Scrim win",
+          "scrim_kill_weight": "Scrim kill weight"
+        },
+        "participation_floors": {
+          "team_monthly": "Team, monthly ladder",
+          "team_quarterly": "Team, quarterly tier",
+          "player_monthly": "Player, monthly ladder",
+          "player_quarterly": "Player, quarterly tier"
+        }
+      },
+      "save": {
+        "title": "Save scoring configuration",
+        "description": "This drafts a new version from {version}, keeps every other season on the rules it was already scored under, and recalculates the seasons you choose. A reason is required for the audit log.",
+        "fieldsChanged": "Values changed",
+        "currentVersion": "Current version",
+        "newVersion": "New version",
+        "newVersionValue": "draft",
+        "checking": "Checking these settings",
+        "checkFailed": "Could not check these settings",
+        "blockedTitle": "These settings would break scoring, so they cannot be saved yet.",
+        "warningsTitle": "These settings will save, but they may not do what you expect.",
+        "scopeTitle": "Which seasons this applies to",
+        "scopeHelp": "The current season always recalculates, so it is never left half on the old rules. Tick any other season you also want rescored.",
+        "currentAlwaysIncluded": "Always included and recalculated.",
+        "badgeCurrent": "current",
+        "noOtherSeasons": "There are no other seasons yet.",
+        "flagRankingsPublished": "rankings published",
+        "flagTiersPublished": "tiers published",
+        "flagClosed": "closed",
+        "flagFrozen": "scores frozen",
+        "flagNotPublished": "not published",
+        "onVersion": "on v{version}",
+        "acknowledge": "I understand that {seasons} will be rescored, and that standings people have already seen will change.",
+        "recalculateHelp": "Recalculate the seasons in scope straight away. Leave this on unless you are saving several changes in a row and will recalculate at the end.",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "e.g. Lowered the Tier 1 win bonus from 30 to 25 to close the gap between the top tiers (council vote 2026-05).",
+        "reasonCount": "{count}/{min} characters minimum.",
+        "reasonLogged": "Recorded in the ranking audit trail.",
+        "cancel": "Cancel",
+        "confirm": "Save and draft version",
+        "savingBusy": "Saving",
+        "saved": "Saved as v{version}. {seasons, plural, =0 {No seasons were recalculated} one {# season recalculated} other {# seasons recalculated}}.",
+        "failed": "Failed to save the scoring configuration"
+      }
     }
   }
 }

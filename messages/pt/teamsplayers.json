@@ -499,7 +499,20 @@
     "periodQuarterly": "trimestrais",
     "rankingsLabel": "Classificações",
     "loadFailed": "Falha ao carregar classificações",
-    "month": "Mês"
+    "month": "Mês",
+    "roleTabsLabel": "Filtrar a classificação de jogadores por função no jogo",
+    "roleAll": "Todas as funções",
+    "roleAllCaption": "Todos os jogadores da classificação, ordenados no geral.",
+    "roleCaption": "Apenas jogadores que jogam {role}, ordenados em 1.º, 2.º, 3.º entre si. Abra uma linha para ver a posição do jogador na classificação geral.",
+    "overallRank": "Posição geral",
+    "roleEmptyTitle": "Ainda não há jogadores {role}",
+    "roleEmptyBody": "Ninguém com esta função pontuou neste período. As funções vêm do plantel de uma equipa, por isso jogadores sem equipa e jogadores fantasma por reclamar não são contados.",
+    "roles": {
+      "rusher": "Rusher",
+      "support": "Suporte",
+      "grenader": "Granadeiro",
+      "sniper": "Sniper"
+    }
   },
   "claimGhost": {
     "claimTeamTitle": "Reivindicar esta equipe fantasma",

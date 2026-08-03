@@ -91,9 +91,24 @@ export const rankingsAdminApi = {
   approveGhostPlayerClaim: (playerId: number, body: any) => aPost(`ghost-players/${playerId}/approve-claim/`, body),
   rejectGhostPlayerClaim: (playerId: number, body: any) => aPost(`ghost-players/${playerId}/reject-claim/`, body),
 
-  // ── Scoring config (versioned) ───────────────────────────────────────────
+  // ── Scoring config (versioned, season-scoped) ────────────────────────────
+  // Backed by afc_rankings/admin_scoring_config.py. The GET returns the active blob PLUS
+  // everything the editor needs to render itself without hardcoding anything: `field_meta`
+  // (what each group of numbers MEANS, including its currency), `versions` (history) and
+  // `seasons` (the save-scope picker). Consumed by app/(a)/a/rankings/scoring-config.
   scoringConfig: () => aGet("scoring-config/"),
   scoringDefaults: () => aGet("scoring-config/defaults/"),
+  // Dry run: {valid, errors, contradictions, impact, unknown_season_ids}. Writes nothing, so
+  // the editor can show problems and the affected-season list BEFORE the admin commits.
+  validateScoringConfig: (body: any) => aPost("scoring-config/validate/", body),
+  // Every season with the rules it is scored under + whether changing it rewrites published
+  // standings. The same rows ride on scoringConfig(), so this is only needed for a refresh.
+  scoringConfigSeasons: () => aGet("scoring-config/seasons/"),
+  // One historical version in full, so the editor can load the rules a past season ran on.
+  scoringConfigVersion: (version: number) => aGet(`scoring-config/versions/${version}/`),
+  // body = { config, reason, apply_to_seasons?, acknowledge_published?, recalculate? }.
+  // 400 = the config would break scoring (body.errors); 409 = a closed/published season was
+  // opted in without acknowledge_published (body.impact names them).
   saveScoringConfig: (body: any) => aPost("scoring-config/", body),
 
   // ── Tournament tier rules + classifier ───────────────────────────────────
