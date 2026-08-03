@@ -94,6 +94,11 @@ export interface DraftRow {
   expected_team_id: number | null;
   team_mismatch: boolean;
   admin_confirmed_sub: boolean;
+  // Why the matcher refused to bind this row, "" when it did bind. One of the REASON_* strings in
+  // afc_ocr/services/matching.py; rendered next to the picker by <UnmatchedReasonNote> so the admin
+  // can tell "nothing resembles this" from "two accounts matched equally". Optional because rows in
+  // a session saved before the backend emitted the field will not carry it.
+  unmatched_reason?: string;
   top_candidates: OcrCandidate[];
   // Frontend-only recognition-truth capture (see note above). Optional; defaults to raw_name.
   corrected_text?: string;

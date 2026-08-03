@@ -388,5 +388,12 @@
       "title": "Supprimer cette carte ?",
       "description": "Cette opération supprime la carte, ainsi que ses captures d'écran et tous les résultats associés. Vous ne pouvez pas annuler cette action."
     }
+  },
+  "whyNot": {
+    "no_candidates": "Rien sur la plateforme ne ressemble à ce nom.",
+    "below_floor": "La correspondance la plus proche n'était pas assez sûre, donc rien n'a été choisi.",
+    "ambiguous": "Deux entrées ou plus correspondent exactement aussi bien l'une que l'autre, donc rien n'a été choisi.",
+    "tag_needs_corroboration": "Seul le tag court de l'équipe correspond. Aucun joueur de cette ligne n'appartient à cette équipe et leurs noms ne portent pas ce tag, il n'a donc pas été appliqué tout seul.",
+    "team_conflict": "Le nom de l'équipe et les joueurs désignent deux équipes différentes."
   }
 }

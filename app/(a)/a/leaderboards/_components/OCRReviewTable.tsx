@@ -122,6 +122,9 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+// The shared "why did this not match?" line, also used by the STANDALONE review table so both flows
+// explain a declined row identically. Reads the row's unmatched_reason (afc_ocr REASON_*).
+import { UnmatchedReasonNote } from "./UnmatchedReasonNote";
 import {
   ocrApi,
   type DraftRow,
@@ -774,9 +777,18 @@ export function OCRReviewTable({
                       {row.placement ?? idx + 1}
                     </TableCell>
 
-                    {/* Raw OCR name (read-only, monospace so glyph errors are obvious) */}
+                    {/* Raw OCR name (read-only, monospace so glyph errors are obvious), plus WHY
+                        the matcher left this row unmatched. The picker beside it never pre-selects
+                        below the backend's assert floor, so without this line a row the matcher
+                        deliberately declined (two roster accounts scored identically, say) looked
+                        the same as a name nothing on the roster resembles. */}
                     <TableCell className="p-2">
-                      <span className="font-mono text-xs">{row.raw_name}</span>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-mono text-xs">{row.raw_name}</span>
+                        {!row.matched_user_id && (
+                          <UnmatchedReasonNote reason={row.unmatched_reason} />
+                        )}
+                      </div>
                     </TableCell>
 
                     {/* Matched player: roster-scoped searchable combobox (registered players only).

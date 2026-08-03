@@ -388,5 +388,12 @@
       "title": "Deseja remover este mapa?",
       "description": "Isto elimina o mapa, juntamente com as suas capturas de ecrã e quaisquer resultados que tenham sido lidos para ele. Não é possível reverter esta ação."
     }
+  },
+  "whyNot": {
+    "no_candidates": "Nada na plataforma se parece com este nome.",
+    "below_floor": "A correspondência mais próxima não era suficientemente segura, por isso não foi escolhido nada.",
+    "ambiguous": "Duas ou mais entradas correspondem exatamente da mesma forma, por isso não foi escolhido nada.",
+    "tag_needs_corroboration": "Só a tag curta da equipa correspondeu. Nenhum jogador desta linha pertence a essa equipa e os nomes deles não têm essa tag, por isso não foi aplicada sozinha.",
+    "team_conflict": "O nome da equipa e os jogadores apontam para duas equipas diferentes."
   }
 }

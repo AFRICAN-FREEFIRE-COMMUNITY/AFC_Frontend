@@ -179,6 +179,10 @@ export interface OcrPlayerDetail {
   matched_team_id?: number | null;
   matched_team_name?: string | null;
   confidence: number;
+  // Why the matcher refused to bind this player, "" when it did bind. One of the REASON_* strings
+  // in afc_ocr/services/matching.py; rendered by <UnmatchedReasonNote>. Optional because rows saved
+  // in an older draft predate the field.
+  unmatched_reason?: string;
   top_candidates: OcrCandidate[]; // user-shaped candidates ({user_id, username, team_name?, confidence})
   is_unmatched: boolean;
 }
@@ -197,6 +201,10 @@ export interface OcrExtractRow {
   matched_user_id?: number | null; // solo format
   matched_name: string | null;
   confidence: number;
+  // Why the matcher refused to bind this row, "" when it did bind. One of the REASON_* strings in
+  // afc_ocr/services/matching.py (plus "team_conflict" from afc_leaderboard/ocr.py); rendered by
+  // <UnmatchedReasonNote>. Optional because rows saved in an older draft predate the field.
+  unmatched_reason?: string;
   top_candidates: OcrCandidate[];
   is_unmatched: boolean;
 }

@@ -69,6 +69,9 @@ import {
   IconChevronRight,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
+// The shared "why did this not match?" line, also used by the EVENT review table so both flows
+// explain a declined row identically. Reads the row's unmatched_reason (afc_ocr REASON_*).
+import { UnmatchedReasonNote } from "@/app/(a)/a/leaderboards/_components/UnmatchedReasonNote";
 import {
   type LeaderboardFormat,
   type OcrExtractRow,
@@ -100,6 +103,9 @@ interface EditablePlayer {
   name: string; // the IGN exactly as the OCR read it (immutable display)
   kills: number;
   confidence: number;
+  // Why the backend declined to bind this player (afc_ocr REASON_*), "" when it did. Rendered as
+  // the note under the player line so "not on platform" is never an unexplained verdict.
+  unmatchedReason: string;
   candidates: OcrPlayerDetail["top_candidates"];
   chosenUserId: number | null;
   chosenUsername: string | null;
@@ -120,6 +126,8 @@ interface ReviewRow {
   placement: number;
   kills: number;
   confidence: number;
+  // Why the backend declined to bind this row (afc_ocr REASON_* / "team_conflict"), "" when it did.
+  unmatchedReason: string;
   matchedId: number | null;
   matchedName: string | null;
   candidates: OcrExtractRow["top_candidates"];
@@ -165,6 +173,7 @@ function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
       matched_username: null,
       matched_team_name: null,
       confidence: 0,
+      unmatched_reason: "",
       top_candidates: [] as OcrPlayerDetail["top_candidates"],
       is_unmatched: true,
     }))
@@ -172,6 +181,7 @@ function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
     name: p.name,
     kills: p.kills,
     confidence: p.confidence,
+    unmatchedReason: p.unmatched_reason ?? "",
     candidates: p.top_candidates ?? [],
     // AUTO-pick only confident matches (>= 75%). Below that the best guess was actively
     // misleading (owner 2026-06-12: "NOXY CVS" auto-showed teammate "PUNKY CVS" at 67%) - the
@@ -192,6 +202,7 @@ function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
     placement: r.placement,
     kills: r.kills,
     confidence: r.confidence,
+    unmatchedReason: r.unmatched_reason ?? "",
     matchedId,
     matchedName: r.matched_name,
     candidates: r.top_candidates ?? [],
@@ -623,6 +634,14 @@ export function OcrReviewTable({
                       </Select>
                     )}
 
+                    {/* WHY the picker is empty. Without this, a row the matcher deliberately
+                        declined (a tie between two teams, or a bare 2-4 character tag it will not
+                        bet a standing on) looked exactly like a row nothing resembled - even though
+                        the right team is often sitting at 100% in the dropdown right above. */}
+                    {!applied && row.resolution == null && (
+                      <UnmatchedReasonNote reason={row.unmatchedReason} />
+                    )}
+
                     {row.showFreeMatch &&
                       (format === "team" ? (
                         <TeamSearchSelect
@@ -712,7 +731,8 @@ export function OcrReviewTable({
                   <TableCell colSpan={scoring ? 6 : 5} className="p-2 pl-6">
                     <div className="flex flex-col gap-1.5">
                       {row.players.map((p, idx) => (
-                        <div key={`${row.row_id}-p${idx}`} className="flex flex-wrap items-center gap-2">
+                        <div key={`${row.row_id}-p${idx}`} className="flex flex-col gap-0.5">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="w-40 truncate font-mono text-xs" title={p.name}>
                             {p.name}
                           </span>
@@ -783,6 +803,12 @@ export function OcrReviewTable({
                               />
                             </div>
                           )}
+                        </div>
+                        {/* Same explanation at player level: "not on platform" can mean two
+                            accounts matched equally well, which is a pick, not a dead end. */}
+                        {!applied && p.chosenUserId == null && (
+                          <UnmatchedReasonNote reason={p.unmatchedReason} className="pl-1" />
+                        )}
                         </div>
                       ))}
                       <p className="text-[10px] text-muted-foreground">

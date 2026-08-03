@@ -388,5 +388,12 @@
       "title": "Remove this map?",
       "description": "This removes the map along with its screenshots and any results read for it. You cannot undo this."
     }
+  },
+  "whyNot": {
+    "no_candidates": "Nothing on the platform looked like this name.",
+    "below_floor": "The closest match was not close enough to be sure, so nothing was picked.",
+    "ambiguous": "Two or more entries matched exactly as well as each other, so nothing was picked.",
+    "tag_needs_corroboration": "Only the short team tag matched. None of this row's players are on that team and their names do not carry the tag, so it was not applied on its own.",
+    "team_conflict": "The team name and the players point at two different teams."
   }
 }
