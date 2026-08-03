@@ -42,6 +42,14 @@ async function aPost<T = any>(path: string, body?: any): Promise<T> {
 async function aPatch<T = any>(path: string, body?: any): Promise<T> {
   return (await axios.patch(url(path), body ?? {}, { headers: authHeaders() })).data;
 }
+async function aDelete<T = any>(path: string): Promise<T> {
+  return (await axios.delete(url(path), { headers: authHeaders() })).data;
+}
+// Multipart POST for the one file upload on this surface. Content-Type is deliberately
+// NOT set: axios has to write it itself so the multipart boundary matches the body.
+async function aUpload<T = any>(path: string, form: FormData): Promise<T> {
+  return (await axios.post(url(path), form, { headers: authHeaders() })).data;
+}
 
 // ── The eight data toggles (must stay in lock-step with the backend SSO_FIELD_TOGGLES) ──
 // Declared in the SAME order as afc_sso/models.py TOGGLE_TO_SCOPE, which is the order the
@@ -80,10 +88,25 @@ export interface SsoApplicationSummary {
 // every toggle as a boolean keyed by its field name. `scopes` is READ-ONLY - it is derived
 // from the toggles server-side (AFCSSOApplication.allowed_scopes()). No client_secret
 // field exists here, by construction.
+//
+// THE THREE LOGO FIELDS, and why the UI needs to tell them apart (owner 2026-08-03, the
+// logo became an upload instead of a URL):
+//   logo_display_url  the ONE resolved value, and the only one to RENDER: the logo a
+//                     player will actually be shown on the consent screen. The uploaded
+//                     file if there is one, the legacy URL otherwise, "" for neither.
+//   logo_image_url    set only when AFC HOSTS the file. Non-empty means there is
+//                     something to replace or remove.
+//   logo_url          the raw legacy third-party URL still stored on older rows. Set
+//                     WITHOUT logo_image_url means this partner's logo still lives on
+//                     their own server, which is what the panel prompts staff to fix.
+// Resolution happens server-side (AFCSSOApplication.resolved_logo_url), so no caller has
+// to reimplement the precedence.
 export type SsoApplicationDetail = SsoApplicationSummary & {
   [key in SsoToggle]: boolean;
 } & {
   logo_url: string;
+  logo_image_url: string;
+  logo_display_url: string;
   homepage_url: string;
   deletion_webhook_url: string;
   redirect_uris: string;
@@ -154,6 +177,34 @@ export const ssoApi = {
   // suspendApplication - reversible freeze; { suspend: true } blocks every new sign-in.
   suspendApplication: (applicationId: number, body: { suspend: boolean }) =>
     aPost<{ message: string; status: string }>(`apps/${applicationId}/suspend/`, body),
+  // ── The partner logo AFC hosts itself ────────────────────────────────────
+  // uploadLogo - multipart POST of one image field, `logo`. Replaces whatever was there.
+  // The server identifies the file by DECODING it (afc_sso/admin_api.py
+  // _clean_logo_upload), so a 400 here means the bytes were not a PNG / JPG / WEBP, were
+  // over 2 MB, or were too many pixels - not that the name looked wrong. Callers should
+  // still run the file through lib/imageCompress.ts first, so a phone-sized image never
+  // reaches the cap.
+  //
+  // WHY AN UPLOAD AND NOT A URL: this logo is rendered on the CONSENT SCREEN, the page a
+  // player reads before trusting a partner with their data. A URL meant the partner could
+  // swap that image at any time and every player load pinged their server. AFC hosting the
+  // file means what staff approved is what players see.
+  uploadLogo: (applicationId: number, file: File) => {
+    const form = new FormData();
+    form.append("logo", file);
+    return aUpload<{ message: string; application: SsoApplicationDetail }>(
+      `apps/${applicationId}/logo/`,
+      form,
+    );
+  },
+  // removeLogo - clears BOTH the uploaded file and any legacy logo_url, because an admin
+  // sees one logo and expects removing it to remove it. It is the only way to say "this
+  // partner has no logo" now that the URL text field is gone.
+  removeLogo: (applicationId: number) =>
+    aDelete<{ message: string; application: SsoApplicationDetail }>(
+      `apps/${applicationId}/logo/`,
+    ),
+
   // rotateSecret - issues a new secret and invalidates the old one immediately. Returns
   // the new plaintext ONCE. The partner's integration breaks until they deploy it, which
   // is why the UI confirms first.

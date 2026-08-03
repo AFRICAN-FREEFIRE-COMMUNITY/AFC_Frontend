@@ -39,7 +39,7 @@
     "redirectUrisPlaceholder": "https://partner.example/auth/afc/callback",
     "redirectUrisHint": "Where AFC sends the player back after they sign in. One per line, https only (http is allowed for localhost during development).",
     "homepage": "Homepage URL",
-    "logo": "Logo URL",
+    "logoHint": "You can upload the partner's logo once it is created, from Manage.",
     "webhook": "Deletion webhook URL",
     "webhookHint": "Where AFC signals that a player has disconnected. Leave empty if the partner has none.",
     "optional": "(optional)",
@@ -73,6 +73,20 @@
     "saved": "Sign-in partner updated.",
     "failed": "We could not save the changes. Please try again.",
     "close": "Close"
+  },
+  "logo": {
+    "label": "Logo",
+    "alt": "Partner logo",
+    "hint": "Shown to players on the sign-in screen. AFC hosts the file, so the partner cannot change it later. PNG, JPG or WEBP, up to 2 MB. Saves as soon as you pick a file.",
+    "upload": "Upload logo",
+    "replace": "Replace logo",
+    "remove": "Remove",
+    "working": "Uploading...",
+    "uploaded": "Logo updated.",
+    "removed": "Logo removed.",
+    "uploadFailed": "We could not upload the logo. Please try again.",
+    "removeFailed": "We could not remove the logo. Please try again.",
+    "legacy": "This logo still lives on the partner's own site, so they can change what players see at any time. Upload a file to replace it."
   },
   "toggles": {
     "share_profile": {

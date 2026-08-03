@@ -39,7 +39,7 @@
     "redirectUrisPlaceholder": "https://partner.example/auth/afc/callback",
     "redirectUrisHint": "Para onde a AFC envia o jogador de volta depois de iniciar sessão. Um por linha, apenas https (http é aceite para localhost durante o desenvolvimento).",
     "homepage": "URL do site",
-    "logo": "URL do logótipo",
+    "logoHint": "Pode carregar o logótipo do parceiro depois de o criar, a partir de Gerir.",
     "webhook": "URL do webhook de eliminação",
     "webhookHint": "Para onde a AFC avisa que um jogador se desligou. Deixe vazio se o parceiro não tiver nenhum.",
     "optional": "(opcional)",
@@ -73,6 +73,20 @@
     "saved": "Parceiro de início de sessão atualizado.",
     "failed": "Não foi possível guardar as alterações. Tente novamente.",
     "close": "Fechar"
+  },
+  "logo": {
+    "label": "Logótipo",
+    "alt": "Logótipo do parceiro",
+    "hint": "Mostrado aos jogadores no ecrã de início de sessão. A AFC aloja o ficheiro, por isso o parceiro não o pode alterar depois. PNG, JPG ou WEBP, até 2 MB. Fica guardado assim que escolher um ficheiro.",
+    "upload": "Carregar logótipo",
+    "replace": "Substituir logótipo",
+    "remove": "Remover",
+    "working": "A carregar...",
+    "uploaded": "Logótipo atualizado.",
+    "removed": "Logótipo removido.",
+    "uploadFailed": "Não foi possível carregar o logótipo. Tente novamente.",
+    "removeFailed": "Não foi possível remover o logótipo. Tente novamente.",
+    "legacy": "Este logótipo continua alojado no site do parceiro, por isso ele pode alterar a qualquer momento aquilo que os jogadores veem. Carregue um ficheiro para o substituir."
   },
   "toggles": {
     "share_profile": {

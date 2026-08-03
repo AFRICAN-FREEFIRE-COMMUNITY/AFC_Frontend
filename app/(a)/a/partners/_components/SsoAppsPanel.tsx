@@ -34,9 +34,11 @@
 // OAUTH2_PROVIDER["SCOPES"]; GET /sso/admin/scopes/ returns the same sentences and is
 // the place to check if the two ever drift.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+
+import { compressImageForUpload } from "@/lib/imageCompress";
 
 import { LocalTime } from "@/components/LocalTime";
 import { Badge } from "@/components/ui/badge";
@@ -82,9 +84,12 @@ import { ITEMS_PER_PAGE } from "@/constants";
 import {
   IconCheck,
   IconCopy,
+  IconPhoto,
   IconPlus,
   IconRefresh,
   IconSearch,
+  IconTrash,
+  IconUpload,
   IconX,
 } from "@tabler/icons-react";
 import {
@@ -167,12 +172,15 @@ function CopyField({
 }
 
 // The create form's fields, kept as one object so resetting is a single assignment.
+// No logo here on purpose (owner 2026-08-03): the logo is a FILE now, and this form posts
+// JSON. It is uploaded from the Manage dialog after the partner exists, which also keeps
+// "created" and "gave it a public face" as two separate, auditable actions - the same
+// split this surface already applies to the data toggles.
 const EMPTY_CREATE_FORM = {
   name: "",
   display_name: "",
   redirect_uris: "",
   homepage_url: "",
-  logo_url: "",
   deletion_webhook_url: "",
 };
 
@@ -214,6 +222,13 @@ export default function SsoAppsPanel() {
       ),
   );
   const [saving, setSaving] = useState(false);
+
+  // ── Logo upload (owner 2026-08-03: replaced the logo URL text field) ──────
+  // The logo saves on its own, the moment a file is picked, rather than waiting for the
+  // Save button: it is a file, not a form value, so there is nothing to hold back. That
+  // is why `detail` is refreshed from each response instead of a `form` field.
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [logoBusy, setLogoBusy] = useState(false);
 
   // ── Suspend / rotate confirms ────────────────────────────────────────────
   const [suspendTarget, setSuspendTarget] = useState<SsoApplicationDetail | null>(null);
@@ -268,7 +283,6 @@ export default function SsoAppsPanel() {
         // space-separated string and normalises to the library's storage format.
         redirect_uris: createForm.redirect_uris.trim(),
         homepage_url: createForm.homepage_url.trim() || undefined,
-        logo_url: createForm.logo_url.trim() || undefined,
         deletion_webhook_url: createForm.deletion_webhook_url.trim() || undefined,
       });
       toast.success(t("create.created"));
@@ -302,7 +316,6 @@ export default function SsoAppsPanel() {
         // Stored space-separated by django-oauth-toolkit; edited one per line here.
         redirect_uris: app.redirect_uris.split(/\s+/).filter(Boolean).join("\n"),
         homepage_url: app.homepage_url,
-        logo_url: app.logo_url,
         deletion_webhook_url: app.deletion_webhook_url,
       });
       setToggles(
@@ -335,7 +348,9 @@ export default function SsoAppsPanel() {
         // Newlines back to the space-separated form the backend validates and stores.
         redirect_uris: form.redirect_uris.split(/\s+/).filter(Boolean).join(" "),
         homepage_url: form.homepage_url.trim(),
-        logo_url: form.logo_url.trim(),
+        // logo_url is deliberately NOT sent. It is a legacy field the logo control owns
+        // now, and this is a true PATCH: leaving the key out means an older partner's
+        // stored URL is preserved untouched instead of being wiped by an unrelated save.
         deletion_webhook_url: form.deletion_webhook_url.trim(),
       };
       const res = await ssoApi.editApplication(detail.application_id, body);
@@ -346,6 +361,51 @@ export default function SsoAppsPanel() {
       toast.error(err?.response?.data?.message || t("edit.failed"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  // ── Logo: upload / replace ───────────────────────────────────────────────
+  // Compressed in the browser first with lib/imageCompress.ts, the same helper the
+  // esport-image and broadcast-media uploads use, so an ordinary phone-sized image never
+  // reaches the server's 2 MB cap. That is a convenience, NOT the check: the server
+  // decodes the bytes itself and refuses anything that is not really a PNG, JPG or WEBP
+  // (backend afc_sso/admin_api.py _clean_logo_upload), because this file is rendered on
+  // the consent screen a player reads before trusting the partner with their data.
+  const handleLogoPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Reset the input immediately, so re-picking the SAME file still fires onChange (and
+    // so a failed upload can be retried with the identical file).
+    e.target.value = "";
+    if (!file || !detail || logoBusy) return;
+    setLogoBusy(true);
+    try {
+      const res = await ssoApi.uploadLogo(
+        detail.application_id,
+        await compressImageForUpload(file),
+      );
+      setDetail(res.application);
+      toast.success(t("logo.uploaded"));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("logo.uploadFailed"));
+    } finally {
+      setLogoBusy(false);
+    }
+  };
+
+  // ── Logo: remove ─────────────────────────────────────────────────────────
+  // Clears the uploaded file AND any legacy logo_url server-side: the admin sees one
+  // logo, so removing it removes it rather than uncovering an older one underneath.
+  const handleLogoRemove = async () => {
+    if (!detail || logoBusy) return;
+    setLogoBusy(true);
+    try {
+      const res = await ssoApi.removeLogo(detail.application_id);
+      setDetail(res.application);
+      toast.success(t("logo.removed"));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("logo.removeFailed"));
+    } finally {
+      setLogoBusy(false);
     }
   };
 
@@ -613,20 +673,11 @@ export default function SsoAppsPanel() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="sso-logo">
-                {t("create.logo")}{" "}
-                <span className="text-muted-foreground">{t("create.optional")}</span>
-              </Label>
-              <Input
-                id="sso-logo"
-                value={createForm.logo_url}
-                onChange={(e) =>
-                  setCreateForm((f) => ({ ...f, logo_url: e.target.value }))
-                }
-                placeholder="https://partner.example/logo.png"
-              />
-            </div>
+            {/* No logo field here: it is a file upload now, and this form posts JSON.
+                The line below points staff at where it lives instead. */}
+            <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+              {t("create.logoHint")}
+            </p>
           </div>
 
           <DialogFooter>
@@ -755,15 +806,78 @@ export default function SsoAppsPanel() {
                     }
                   />
                 </div>
+                {/* ── Logo (owner 2026-08-03: an upload, not a URL) ──
+                    Players see this on the consent screen, the page where they decide
+                    whether to trust the partner with their data, so AFC hosts the file:
+                    a URL let the partner swap the image whenever they liked and pinged
+                    their server on every player load. Saves on pick, not on Save. */}
                 <div className="space-y-2">
-                  <Label htmlFor="sso-edit-logo">{t("create.logo")}</Label>
-                  <Input
-                    id="sso-edit-logo"
-                    value={form.logo_url}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, logo_url: e.target.value }))
-                    }
+                  <Label>{t("logo.label")}</Label>
+                  <div className="flex items-center gap-3">
+                    {/* The preview shows the RESOLVED logo, so it is literally what a
+                        player will be shown - uploaded file, or legacy URL if that is
+                        all this partner has. Plain <img>: the source is a media URL or
+                        an arbitrary partner origin, the same idiom the design manager
+                        uses for its previews. */}
+                    {detail.logo_display_url ? (
+                      <img
+                        src={detail.logo_display_url}
+                        alt={t("logo.alt")}
+                        className="size-12 shrink-0 rounded-md border object-cover"
+                      />
+                    ) : (
+                      <div className="flex size-12 shrink-0 items-center justify-center rounded-md border border-dashed text-muted-foreground">
+                        <IconPhoto className="size-5" />
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={logoBusy}
+                        onClick={() => logoInputRef.current?.click()}
+                      >
+                        <IconUpload className="size-4" />
+                        {logoBusy
+                          ? t("logo.working")
+                          : detail.logo_display_url
+                            ? t("logo.replace")
+                            : t("logo.upload")}
+                      </Button>
+                      {detail.logo_display_url && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={logoBusy}
+                          className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={handleLogoRemove}
+                        >
+                          <IconTrash className="size-4" />
+                          {t("logo.remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {/* The real control. Hidden so the styled Button above drives it; the
+                      accept list mirrors the formats the server will actually decode. */}
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={handleLogoPick}
                   />
+                  <p className="text-xs text-muted-foreground">{t("logo.hint")}</p>
+                  {/* A partner still on a legacy URL: nothing is broken, but the image
+                      lives on THEIR server and they can change it at any time, so say so
+                      until staff upload a file. */}
+                  {!detail.logo_image_url && detail.logo_url && (
+                    <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+                      {t("logo.legacy")}
+                    </p>
+                  )}
                 </div>
               </div>
 

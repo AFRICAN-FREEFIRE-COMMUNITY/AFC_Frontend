@@ -39,7 +39,7 @@
     "redirectUrisPlaceholder": "https://partner.example/auth/afc/callback",
     "redirectUrisHint": "L'adresse à laquelle AFC renvoie le joueur après sa connexion. Une par ligne, en https uniquement (http est accepté pour localhost pendant le développement).",
     "homepage": "URL du site",
-    "logo": "URL du logo",
+    "logoHint": "Vous pourrez importer le logo du partenaire une fois celui-ci créé, depuis Gérer.",
     "webhook": "URL du webhook de suppression",
     "webhookHint": "L'adresse à laquelle AFC signale qu'un joueur s'est déconnecté. Laissez vide si le partenaire n'en a pas.",
     "optional": "(facultatif)",
@@ -73,6 +73,20 @@
     "saved": "Partenaire de connexion mis à jour.",
     "failed": "Impossible d'enregistrer les modifications. Veuillez réessayer.",
     "close": "Fermer"
+  },
+  "logo": {
+    "label": "Logo",
+    "alt": "Logo du partenaire",
+    "hint": "Affiché aux joueurs sur l'écran de connexion. AFC héberge le fichier, le partenaire ne peut donc plus le modifier ensuite. PNG, JPG ou WEBP, jusqu'à 2 Mo. L'enregistrement est immédiat dès que vous choisissez un fichier.",
+    "upload": "Importer un logo",
+    "replace": "Remplacer le logo",
+    "remove": "Supprimer",
+    "working": "Import en cours...",
+    "uploaded": "Logo mis à jour.",
+    "removed": "Logo supprimé.",
+    "uploadFailed": "Impossible d'importer le logo. Veuillez réessayer.",
+    "removeFailed": "Impossible de supprimer le logo. Veuillez réessayer.",
+    "legacy": "Ce logo se trouve encore sur le site du partenaire : il peut donc changer à tout moment ce que les joueurs voient. Importez un fichier pour le remplacer."
   },
   "toggles": {
     "share_profile": {

@@ -105,6 +105,7 @@ const TOGGLE_LABELS: Record<PartnerToggle, string> = {
   can_read_standings: "Standings",
   can_read_teams: "Teams & rosters",
   can_read_players: "Players",
+  can_read_designs: "Leaderboard designs",
   // field toggles - which fields appear
   include_placements: "Placements",
   include_kills: "Kills",
@@ -114,6 +115,18 @@ const TOGGLE_LABELS: Record<PartnerToggle, string> = {
   include_maps: "Maps played",
   include_prize: "Prize pool",
   include_mvp: "MVP",
+  include_media: "Images & files",
+  include_text: "Descriptions & rules text",
+};
+
+// ── What each toggle actually hands the partner (the helper line under each Switch) ──
+// Only the toggles whose effect is not obvious from the label carry a hint; the stat
+// toggles (kills, damage, ...) are self-explanatory and are deliberately left out so the
+// grid stays scannable.
+const TOGGLE_HINTS: Partial<Record<PartnerToggle, string>> = {
+  can_read_designs: "Background art, placed logos and brand colours for this event.",
+  include_media: "Event banners, team logos and player esport images, as full URLs.",
+  include_text: "Event rules text and team descriptions.",
 };
 
 // ── Partner read-API connection facts (the "Connection details" card on the Keys tab) ──
@@ -918,7 +931,14 @@ export default function PartnerDetailPage({
                     key={key}
                     className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
                   >
-                    <span className="text-sm">{TOGGLE_LABELS[key]}</span>
+                    <span className="min-w-0 text-sm">
+                      {TOGGLE_LABELS[key]}
+                      {TOGGLE_HINTS[key] ? (
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          {TOGGLE_HINTS[key]}
+                        </span>
+                      ) : null}
+                    </span>
                     <Switch
                       checked={toggles[key]}
                       onCheckedChange={() => flipToggle(key)}
@@ -944,7 +964,14 @@ export default function PartnerDetailPage({
                     key={key}
                     className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
                   >
-                    <span className="text-sm">{TOGGLE_LABELS[key]}</span>
+                    <span className="min-w-0 text-sm">
+                      {TOGGLE_LABELS[key]}
+                      {TOGGLE_HINTS[key] ? (
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          {TOGGLE_HINTS[key]}
+                        </span>
+                      ) : null}
+                    </span>
                     <Switch
                       checked={toggles[key]}
                       onCheckedChange={() => flipToggle(key)}
