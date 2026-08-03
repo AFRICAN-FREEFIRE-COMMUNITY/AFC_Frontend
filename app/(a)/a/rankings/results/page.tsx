@@ -20,7 +20,13 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { FullLoader } from "@/components/Loader";
-import { TierBadge } from "@/components/rankings/TierBadge";
+// TOURNAMENT tier badge (tier_1/2/3), NOT components/rankings/TierBadge. The rankings TierBadge
+// takes a ZERO-based team-ranking tier index and renders `tier + 1`, so feeding it the tournament
+// tier number printed every event one tier too high and turned tier_3 into the non-existent
+// "Tier 4" (owner 2026-08-03: "Dynasty Cup SSA Grand Finals is being marked tier 4"). This is the
+// same component /tournaments and /tournaments/[slug] use, so the admin badge now matches the
+// public one exactly. Labels come from the `tournaments` namespace (tier.tier_1 ...).
+import { TournamentTierBadge } from "@/components/TournamentTierBadge";
 import { rankingsApi, Season } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import {
@@ -52,14 +58,22 @@ const MIN_REASON = 10;
 // on is non-destructive, so it uses a short canned reason rather than a dialog.
 const ENABLE_REASON = "Re-enabled counting via admin Result Markers.";
 
+// Event.tournament_tier as the backend sends it (serialize_event_markers -> "tier"). Rendered
+// verbatim by <TournamentTierBadge/>; there is deliberately no numeric index in between, because
+// converting to a number is exactly what produced the off-by-one "Tier 4" badge.
 type TierKey = "tier_1" | "tier_2" | "tier_3";
-const TIER_INDEX: Record<TierKey, 1 | 2 | 3> = { tier_1: 1, tier_2: 2, tier_3: 3 };
+// The tier dropdown doubles as the competition-type filter now that scrims are listed.
+type TierFilter = "all" | TierKey | "scrims";
 
 // One tournament row as returned by GET admin/results/markers/ (serialize_event_markers).
 type Tournament = {
   id: number;            // event_id
   name: string;          // event_name
   tier: TierKey;         // tournament_tier
+  // "tournament" | "scrims". Scrims now appear in this list because their placement/kill/win
+  // points feed the rankings too and the admin needs the same off switch for them. Spec §12
+  // gives scrims no tier multiplier, so a scrim row shows a "Scrim" badge, not a tier.
+  isScrim: boolean;      // competition_type === "scrims"
   date: string | null;   // start_date ISO
   teamCount: number;     // team_count
   countWinner: boolean;  // count_winner
@@ -87,6 +101,7 @@ function mapMarker(row: any): Tournament {
     id: row.event_id,
     name: row.event_name,
     tier: (["tier_1", "tier_2", "tier_3"].includes(tier) ? tier : "tier_3") as TierKey,
+    isScrim: row.competition_type === "scrims",
     date: row.date ?? null,
     teamCount: row.team_count ?? 0,
     countWinner: row.count_winner !== false,
@@ -169,7 +184,7 @@ export default function ResultMarkersPage() {
   const [loading, setLoading] = useState(true);
 
   const [q, setQ] = useState("");
-  const [tierFilter, setTierFilter] = useState<"all" | TierKey>("all");
+  const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -331,7 +346,10 @@ export default function ResultMarkersPage() {
       // Text search uses the shared matchesSearch (punctuation / accent / fancy-font
       // insensitive) so a stylized event name still matches a normal-keyboard query.
       if (q && !matchesSearch(t.name, q)) return false;
-      if (tierFilter !== "all" && t.tier !== tierFilter) return false;
+      // "scrims" is a competition-type filter riding on the tier dropdown (a scrim has no tier of
+      // its own, so it is the natural place to isolate them). A tier pick never returns scrims.
+      if (tierFilter === "scrims" && !t.isScrim) return false;
+      if (tierFilter !== "all" && tierFilter !== "scrims" && (t.isScrim || t.tier !== tierFilter)) return false;
       const s = statusOf(t);
       if (statusFilter === "counting" && s !== "counting") return false;
       if (statusFilter === "disabled" && s !== "disabled") return false;
@@ -616,7 +634,7 @@ export default function ResultMarkersPage() {
                 className="h-9 pl-8"
               />
             </div>
-            <Select value={tierFilter} onValueChange={(v) => setTierFilter(v as "all" | TierKey)}>
+            <Select value={tierFilter} onValueChange={(v) => setTierFilter(v as TierFilter)}>
               <SelectTrigger className="h-9 w-full sm:w-[140px] text-xs">
                 <IconFilter className="size-3.5 text-muted-foreground" />
                 <SelectValue placeholder="Tier" />
@@ -626,6 +644,7 @@ export default function ResultMarkersPage() {
                 <SelectItem value="tier_1">Tier 1</SelectItem>
                 <SelectItem value="tier_2">Tier 2</SelectItem>
                 <SelectItem value="tier_3">Tier 3</SelectItem>
+                <SelectItem value="scrims">Scrims only</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
@@ -746,7 +765,15 @@ export default function ResultMarkersPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <TierBadge tier={TIER_INDEX[t.tier]} />
+                      {/* Spec §12: scrims have no tier multiplier, so printing the stored
+                          tournament_tier on a scrim row would claim a weight it never gets. */}
+                      {t.isScrim ? (
+                        <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-muted-foreground">
+                          Scrim
+                        </Badge>
+                      ) : (
+                        <TournamentTierBadge tier={t.tier} />
+                      )}
                     </TableCell>
                     <TableCell className="text-center text-xs tabular-nums">{t.teamCount}</TableCell>
                     <TableCell className="text-center">
