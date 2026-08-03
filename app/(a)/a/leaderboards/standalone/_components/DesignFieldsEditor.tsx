@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DesignFieldsEditor — drag-canvas editor for connected columns, freeform text,
+// DesignFieldsEditor - drag-canvas editor for connected columns, freeform text,
 // column groups, and uploaded fonts on one LeaderboardDesign.
 // ─────────────────────────────────────────────────────────────────────────────
 //
@@ -464,7 +464,7 @@ export function DesignFieldsEditor({
   // only the first time a page is visited). Keyed by currentPageId.
   const liveFieldsByPage = useRef<Map<number | null, FieldDraft[]>>(new Map());
   const liveTextsByPage = useRef<Map<number | null, TextDraft[]>>(new Map());
-  // Column groups are kept per (page, SIZE) — IG and YT have independent row geometry (owner
+  // Column groups are kept per (page, SIZE) - IG and YT have independent row geometry (owner
   // 2026-06-15). Keyed by `${pageId}|${size}`. Fields/texts stay per-page (they carry both sizes
   // in one draft, so the canvas reads the active size; only the column-group arrays are size-split).
   const liveGroupsByPageSize = useRef<Map<string, DesignColumnGroup[]>>(new Map());
@@ -798,9 +798,9 @@ export function DesignFieldsEditor({
       return;
     }
     if (appliedPageRef.current === currentPageId) return;
-    // The page we are navigating AWAY from — flush its live (edits-included) drafts so returning to
+    // The page we are navigating AWAY from - flush its live (edits-included) drafts so returning to
     // it later restores the work instead of the stale `design` prop. (page-switch data-loss fix)
-    // `leaving` is a real page id here (number | null) — the "unset" first-run returned above.
+    // `leaving` is a real page id here (number | null) - the "unset" first-run returned above.
     const leaving = appliedPageRef.current;
     appliedPageRef.current = currentPageId;
     const sz = editSizeRef.current;
@@ -903,7 +903,7 @@ export function DesignFieldsEditor({
   // Uses the FontFace API; each font is loaded once per session. The loaded face powers BOTH the
   // canvas cells/text AND the font-preview in every picker (trigger + options) and the §E library.
   // NOTE the font file lives on the API origin (cross-origin to the FE), so its load goes through
-  // CORS — a failure here means the preview silently falls back to DM Sans, so we surface it.
+  // CORS - a failure here means the preview silently falls back to DM Sans, so we surface it.
   useEffect(() => {
     for (const font of fonts) {
       if (!font.file || loadedFontUrls.current.has(font.id)) continue;
@@ -1045,7 +1045,7 @@ export function DesignFieldsEditor({
       // materialised page 1 and re-homed the design-level (page_id=NULL) fields/texts onto it (see
       // design_pages in views_leaderboard_design.py). The OPEN editor still holds the pre-materialise
       // `design` prop, so once we leave the implicit page its drafts get cached under key `null` while
-      // page 1 now carries a real id — a server-prop filter by that id would miss them and page 1 would
+      // page 1 now carries a real id - a server-prop filter by that id would miss them and page 1 would
       // render EMPTY until a reload. Seed page 1's live cache with the current drafts so switching back
       // to page 1 restores them instantly. (Groups resolve via groupsFromProp from the updated pages,
       // which the backend copied both IG + YT column_groups onto, so only fields/texts need seeding.)
@@ -1186,7 +1186,7 @@ export function DesignFieldsEditor({
   const addField = (fieldType: FieldType, targetGroup = 0) => {
     // Per-size add (owner 2026-07-05, audit complaint A): "add" enables this column for the size being
     // EDITED. If a row of this stat+group already exists but is hidden for the current size (e.g. it
-    // was placed on the OTHER size), just flip its flag on rather than creating a duplicate — so a
+    // was placed on the OTHER size), just flip its flag on rather than creating a duplicate - so a
     // column can be shown on both sizes without two rows. Otherwise create a NEW row shown ONLY on the
     // size being edited (its flag for the other size starts false), so placing it on Instagram does
     // not silently make it appear on YouTube too (the exact gap this feature closes).
@@ -1579,7 +1579,7 @@ export function DesignFieldsEditor({
           <span className="text-[11px] text-muted-foreground">
             {isYT
               ? "YouTube positions are independent of Instagram (unset = falls back to Instagram)."
-              : "The canonical layout — YouTube falls back to this until you give it its own."}
+              : "The canonical layout - YouTube falls back to this until you give it its own."}
           </span>
         </div>
 
@@ -1608,7 +1608,7 @@ export function DesignFieldsEditor({
                   <IconFile className="size-3" />
                   Page {p.page_number}
                 </button>
-                {/* Delete this page — hidden when only 1 page exists (can't delete the last page).
+                {/* Delete this page - hidden when only 1 page exists (can't delete the last page).
                     Disabled while any delete is already in flight. */}
                 {canManage && pages.length > 1 && (
                   <button
@@ -1931,7 +1931,7 @@ export function DesignFieldsEditor({
               <div className="space-y-1">
                 <p className="text-[11px] text-muted-foreground">Apply to all pages</p>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  {/* IG file picker — border turns primary when a file is staged */}
+                  {/* IG file picker - border turns primary when a file is staged */}
                   <Button
                     type="button"
                     size="sm"

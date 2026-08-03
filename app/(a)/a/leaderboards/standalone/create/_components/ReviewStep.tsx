@@ -116,7 +116,7 @@ export function ReviewStep({
               Refresh standings
             </Button>
             {isPublished ? (
-              // Already published (e.g. re-entered the wizard) — go straight to the view.
+              // Already published (e.g. re-entered the wizard) - go straight to the view.
               <Button onClick={onPublished}>View leaderboard</Button>
             ) : (
               <Button onClick={publish} disabled={publishing}>

@@ -4,14 +4,14 @@
 // A self-contained "Standalone leaderboards" section: a Card with a header + "Create standalone"
 // button and a table of the caller's standalone leaderboards. Shared by BOTH list surfaces so the
 // admin and organizer sections look identical:
-//   • app/(a)/a/_components/LeaderboardsAdminContent.tsx  (admin — no org scope, sees all it can manage)
-//   • app/(organizer)/organizer/leaderboards/page.tsx     (organizer — scoped via organizationId prop)
+//   • app/(a)/a/_components/LeaderboardsAdminContent.tsx  (admin - no org scope, sees all it can manage)
+//   • app/(organizer)/organizer/leaderboards/page.tsx     (organizer - scoped via organizationId prop)
 //
-// Data: GET /leaderboards/standalone/ (standaloneLeaderboardsApi.list) — the house pagination envelope
+// Data: GET /leaderboards/standalone/ (standaloneLeaderboardsApi.list) - the house pagination envelope
 // {results, has_more, next_offset, total_count}. The organizer surface passes organizationId so the
 // backend scopes to that org. Rows link to the view page /a/leaderboards/standalone/<id>.
 //
-// Design: AFC table constants — text-xs cells, p-2 padding, h-10 header rows, text-foreground headers,
+// Design: AFC table constants - text-xs cells, p-2 padding, h-10 header rows, text-foreground headers,
 // rounded-md bordered card, outline rounded-full status/format badges. No em/en dashes in copy.
 
 import { useCallback, useEffect, useState } from "react";

@@ -8,14 +8,14 @@
 //
 // Fields:
 //   • name              (required)
-//   • format            team | solo  (radio — locked once created since participants key off it)
+//   • format            team | solo  (radio - locked once created since participants key off it)
 //   • scoring           placement ranks + points-per-kill/assist/damage. This MIRRORS the UI of the
 //                       event-flow ConfigurePointSystem component, but is a SELF-CONTAINED light
 //                       version: ConfigurePointSystem POSTs to the EVENT create endpoint and needs
 //                       event_id/stage_id/group_id, so it can't be reused as-is here. We rebuild just
 //                       the placement-ranks + kill/assist/damage inputs and emit plain values.
 //   • counts_toward_rankings  AFC-admin ONLY (role admin/head_admin/event_admin). Hidden for organizers
-//                       — the backend also forces it false for them (defence in depth).
+//                       - the backend also forces it false for them (defence in depth).
 //
 // CONSUMED BY: ../page.tsx (the wizard). Emits the created leaderboard via onCreated().
 
@@ -352,7 +352,7 @@ export function BasicsStep({
           </div>
         </div>
 
-        {/* counts_toward_rankings — AFC admin surface only (organizer portal never shows it). */}
+        {/* counts_toward_rankings - AFC admin surface only (organizer portal never shows it). */}
         {showRankingFlag && (
           <div className="space-y-4 rounded-md border p-4">
             <div className="flex items-start justify-between gap-3">

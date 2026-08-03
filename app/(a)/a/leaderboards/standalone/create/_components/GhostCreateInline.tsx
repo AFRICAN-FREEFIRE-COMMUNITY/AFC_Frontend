@@ -3,7 +3,7 @@
 // ── GhostCreateInline ─────────────────────────────────────────────────────────
 // The "not found, create as ghost" mini-form shown inside the Participants step. A
 // ghost is a placeholder entity (afc_rankings.GhostTeam / GhostPlayer) for a team or
-// player that is NOT on the platform yet — it can be picked in standings now and
+// player that is NOT on the platform yet - it can be picked in standings now and
 // claimed by the real entity later. This form ONLY collects the fields; it does NOT
 // call the API itself. On submit it hands a ready-to-send `ghost_new` body up to the
 // parent (ParticipantsStep), which calls standaloneLeaderboardsApi.addParticipant.

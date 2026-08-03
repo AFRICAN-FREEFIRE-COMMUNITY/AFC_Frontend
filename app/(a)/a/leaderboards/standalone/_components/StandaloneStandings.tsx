@@ -15,7 +15,7 @@
 //  - app/(a)/a/leaderboards/standalone/[id]/page.tsx            (the public-ish view page)
 //  - app/(a)/a/leaderboards/standalone/create/_components/ReviewStep.tsx (wizard step 4 preview)
 //
-// Design: AFC table constants — text-xs cells, p-2 padding, h-10 header, text-foreground headers,
+// Design: AFC table constants - text-xs cells, p-2 padding, h-10 header, text-foreground headers,
 // rounded-md bordered Card wrapper, outline rounded-full badges.
 
 import { Badge } from "@/components/ui/badge";
@@ -58,7 +58,7 @@ export function StandaloneStandings({
         <TableBody>
           {standings.map((row) => (
             <TableRow key={row.participant.id}>
-              {/* Rank shown as #N (AFC convention — hash, not a medal). */}
+              {/* Rank shown as #N (AFC convention - hash, not a medal). */}
               <TableCell className="p-2 text-xs font-medium">#{row.rank}</TableCell>
               <TableCell className="p-2 text-xs">
                 <div className="flex items-center gap-2">
