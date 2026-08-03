@@ -113,6 +113,9 @@ export const ProfileContent = () => {
   // savedDelivery), reused here for the "Saved addresses" quick-link card that points
   // at /profile/addresses (app/(user)/profile/_components/SavedAddresses.tsx).
   const tShop = useTranslations("shop");
+  // Copy for the "Connected apps" quick link at the bottom of this page. Its own
+  // namespace because the page it points at (ConnectedApps.tsx) owns the rest of it.
+  const tConnected = useTranslations("connectedApps");
   // Active UI locale, passed to formatLocalTime so the "Applied {date}" string
   // localizes month names to the chosen language (and skips the cookie read).
   const locale = useLocale();
@@ -868,6 +871,28 @@ export const ProfileContent = () => {
             <Link href="/profile/addresses">
               {tShop("savedDelivery.manage")}
             </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* ── Connected apps quick link ────────────────────────────────────────────
+          Points to /profile/connected-apps (ConnectedApps.tsx), where the player
+          sees every partner org they signed into with "Sign in with AFC" and can
+          cut one off. The consent screen those orgs show
+          (backend/afc_sso/templates/afc_sso/authorize.html) promises this page by
+          name, so this link is what makes that promise findable. */}
+      <Card className="mt-4">
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-base font-semibold">
+              {tConnected("profileCardTitle")}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {tConnected("profileCardDescription")}
+            </p>
+          </div>
+          <Button variant="outline" className="w-full sm:w-auto" asChild>
+            <Link href="/profile/connected-apps">{tConnected("manage")}</Link>
           </Button>
         </CardContent>
       </Card>

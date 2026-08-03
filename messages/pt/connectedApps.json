@@ -1,0 +1,31 @@
+{
+  "title": "Aplicações ligadas",
+  "subtitle": "Outros sites onde iniciou sessão com a sua conta AFC",
+  "profileCardTitle": "Aplicações ligadas",
+  "profileCardDescription": "Veja que outros sites podem usar a sua conta AFC e retire-lhes o acesso.",
+  "manage": "Gerir",
+  "loadError": "Não foi possível carregar as suas aplicações ligadas. Tente novamente.",
+  "retry": "Tentar novamente",
+  "empty": {
+    "title": "Nenhuma aplicação ligada",
+    "description": "Ainda não usou a sua conta AFC para iniciar sessão noutro sítio. Quando o fizer, o site aparece aqui e pode removê-lo a qualquer momento."
+  },
+  "card": {
+    "canSee": "Esta aplicação pode ver:",
+    "connectedOn": "Ligada a",
+    "lastUsed": "Última utilização a",
+    "neverUsed": "Ainda não utilizada",
+    "visitSite": "Visitar o site",
+    "disconnect": "Desligar"
+  },
+  "confirm": {
+    "title": "Desligar {name}?",
+    "description": "{name} perde imediatamente o acesso às suas informações da AFC. Quem tiver sessão iniciada em {name} com a sua conta AFC será desligado. Pode voltar a ligar a qualquer momento.",
+    "cancel": "Cancelar",
+    "confirm": "Desligar"
+  },
+  "toast": {
+    "revoked": "{name} foi desligada.",
+    "revokeFailed": "Não foi possível desligar {name}. Tente novamente."
+  }
+}

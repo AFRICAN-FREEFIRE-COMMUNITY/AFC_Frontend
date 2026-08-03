@@ -1,0 +1,31 @@
+{
+  "title": "Applications connectées",
+  "subtitle": "Les autres sites auxquels vous vous êtes connecté avec votre compte AFC",
+  "profileCardTitle": "Applications connectées",
+  "profileCardDescription": "Voyez quels autres sites peuvent utiliser votre compte AFC, et coupez-leur l'accès.",
+  "manage": "Gérer",
+  "loadError": "Impossible de charger vos applications connectées. Veuillez réessayer.",
+  "retry": "Réessayer",
+  "empty": {
+    "title": "Aucune application connectée",
+    "description": "Vous n'avez utilisé votre compte AFC pour vous connecter nulle part ailleurs. Dès que ce sera le cas, le site apparaîtra ici et vous pourrez le retirer à tout moment."
+  },
+  "card": {
+    "canSee": "Cette application peut voir :",
+    "connectedOn": "Connectée le",
+    "lastUsed": "Dernière utilisation le",
+    "neverUsed": "Pas encore utilisée",
+    "visitSite": "Visiter le site",
+    "disconnect": "Déconnecter"
+  },
+  "confirm": {
+    "title": "Déconnecter {name} ?",
+    "description": "{name} perdra immédiatement l'accès à vos informations AFC. Toute personne connectée à {name} avec votre compte AFC sera déconnectée. Vous pouvez vous reconnecter à tout moment.",
+    "cancel": "Annuler",
+    "confirm": "Déconnecter"
+  },
+  "toast": {
+    "revoked": "{name} a été déconnectée.",
+    "revokeFailed": "Impossible de déconnecter {name}. Veuillez réessayer."
+  }
+}
