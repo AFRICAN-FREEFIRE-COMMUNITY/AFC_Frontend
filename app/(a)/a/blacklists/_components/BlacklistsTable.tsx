@@ -79,8 +79,13 @@ interface BlacklistRow {
   id: number;
   organization_name: string | null;
   organization_slug: string | null;
+  // What the organizer aimed at (owner backlog item 1, 2026-08-03). "team" rows carry
+  // team_name/team_id; "player" rows carry target_username/target_user_id and have a NULL team.
+  target_type: "team" | "player";
+  target_username: string | null;
+  target_user_id: number | null;
   team_name: string | null;
-  team_id: number;
+  team_id: number | null;
   reason: string;
   status: "active" | "expired" | "lifted" | string;
   start_date: string | null;
@@ -335,7 +340,7 @@ export function BlacklistsTable() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-foreground">Organization</TableHead>
-                    <TableHead className="text-foreground">Team</TableHead>
+                    <TableHead className="text-foreground">Target</TableHead>
                     <TableHead className="text-foreground">Reason</TableHead>
                     <TableHead className="text-foreground">Status</TableHead>
                     <TableHead className="text-foreground">Start</TableHead>
@@ -350,8 +355,23 @@ export function BlacklistsTable() {
                       <TableCell className="text-xs font-medium">
                         {row.organization_name ?? "-"}
                       </TableCell>
+                      {/* Target: the team name for a team blacklist, the username for a player
+                          one. A small "Player" pill distinguishes the two shapes, since a
+                          player-target row has no team to show. */}
                       <TableCell className="text-xs">
-                        {row.team_name ?? `Team #${row.team_id}`}
+                        {row.target_type === "player" ? (
+                          <span className="flex items-center gap-1.5">
+                            {row.target_username ?? `User #${row.target_user_id ?? "?"}`}
+                            <Badge
+                              variant="outline"
+                              className="rounded-full px-2 py-0.5 text-[10px]"
+                            >
+                              Player
+                            </Badge>
+                          </span>
+                        ) : (
+                          (row.team_name ?? `Team #${row.team_id}`)
+                        )}
                       </TableCell>
                       {/* The "why" - admins see it in full (organizers never do). */}
                       <TableCell className="max-w-[18rem] text-xs text-muted-foreground">

@@ -1,11 +1,18 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Organizer › Blacklists.
 //
-// The org's team-blacklist surface. An organizer can blacklist a team for a
-// duration; while it is active the team AND the players who were on it at blacklist
-// time cannot register for THAT organizer's events (the snapshot "follows the
-// player" even after they leave the team). The affected party can ASK for a lift;
-// this page is where the organizer reviews and decides those requests.
+// The org's blacklist surface. An organizer can blacklist a TEAM or a single PLAYER
+// for a duration.
+//   TEAM   - the team AND the players who were on it at blacklist time cannot register
+//            for THAT organizer's events (the snapshot "follows the player" even after
+//            they leave the team).
+//   PLAYER - one person is blocked from that organizer's events, with no team involved
+//            (owner backlog item 1, 2026-08-03). Same model, same reason/date-range/
+//            status/lift-request lifecycle; only the create dialog branches.
+// Enforcement is at registration time on BOTH the team and solo paths, so a blocked
+// player cannot slip in through a solo event either.
+// The affected party can ASK for a lift; this page is where the organizer reviews and
+// decides those requests.
 //
 // FOUR parts on one page:
 //   0. "Lookup" section (BLACKLIST VISIBILITY, owner ask 2026-06-12) - check whether
@@ -14,11 +21,13 @@
 //      privacy rule; the backend strips them for organizers). Team/Player toggle ->
 //      TeamSearchSelect / UserSearchSelect + two optional date inputs
 //      -> GET /organizers/blacklist-lookup/  (organizersApi.lookupBlacklists).
-//   1. "Blacklist a team" dialog - TeamSearchSelect + duration (days) + reason
-//      -> POST /organizers/blacklists/  (organizersApi.createBlacklist).
-//   2. Active/all blacklists table - team, reason, dates, status, an EXPANDABLE
-//      snapshot-roster row (mirrors the admin RegisteredTeamsTab expand pattern),
-//      and a "Lift" confirm -> POST /organizers/blacklists/<id>/lift/
+//   1. "Blacklist" dialog - a Team/Player pill toggle switching TeamSearchSelect for
+//      UserSearchSelect, plus a calendar date range + reason. Sends target_type with
+//      either team_id or user_id -> POST /organizers/blacklists/
+//      (organizersApi.createBlacklist).
+//   2. Active/all blacklists table - target (team name or username), reason, dates,
+//      status, an EXPANDABLE blocked-players row (mirrors the admin RegisteredTeamsTab
+//      expand pattern), and a "Lift" confirm -> POST /organizers/blacklists/<id>/lift/
 //      (organizersApi.liftBlacklist).
 //   3. "Lift requests" section - pending team/player-scope requests with
 //      Approve / Deny (a reason prompt) -> POST
@@ -106,12 +115,19 @@ interface BlacklistPlayer {
   is_active: boolean;
 }
 
-// One OrganizerBlacklist row, with its nested snapshot players.
+// One OrganizerBlacklist row, with its nested player rows.
+// target_type says what the organizer aimed at (owner backlog item 1, 2026-08-03):
+//   "team"   -> team_id/team_name are set and `players` is the snapshotted roster.
+//   "player" -> team_id/team_name are NULL and `players` holds exactly the one named person,
+//               whose username the backend also surfaces as target_username so this table can
+//               render a single "Target" column for both shapes.
 interface Blacklist {
   id: number;
   organization_id: number;
-  team_id: number;
+  target_type: "team" | "player";
+  team_id: number | null;
   team_name: string | null;
+  target_username: string | null;
   reason: string;
   status: "active" | "lifted" | "expired" | string;
   is_currently_active: boolean;
@@ -236,7 +252,15 @@ export default function OrganizerBlacklistsPage() {
   // date inputs (you cannot blacklist starting in the past). Computed once on first render.
   const today = new Date().toISOString().slice(0, 10);
   const [createOpen, setCreateOpen] = useState(false);
+  // WHAT is being blacklisted (owner backlog item 1, 2026-08-03). "team" keeps the original
+  // behaviour; "player" blocks one person with no team involved. The toggle swaps which picker
+  // renders, and handleCreate sends either team_id or user_id accordingly.
+  const [createTarget, setCreateTarget] = useState<"team" | "player">("team");
   const [pickedTeamId, setPickedTeamId] = useState<number | null>(null);
+  // Player mode: UserSearchSelect's value is the USERNAME, but the API keys off the numeric
+  // user_id, so we keep both (same pairing the Lookup section below uses).
+  const [pickedUsername, setPickedUsername] = useState<string | null>(null);
+  const [pickedUserId, setPickedUserId] = useState<number | null>(null);
   // The blacklist window as a calendar range. Start defaults to today; end is left empty until
   // the organizer picks it. Both are ISO "YYYY-MM-DD" strings (what <input type="date"> emits).
   const [startDate, setStartDate] = useState(today);
@@ -285,10 +309,16 @@ export default function OrganizerBlacklistsPage() {
     load();
   }, [load]);
 
-  // ── 1. Create a blacklist. POST /organizers/blacklists/ ──
+  // ── 1. Create a blacklist (TEAM or PLAYER target). POST /organizers/blacklists/ ──
   const handleCreate = async () => {
-    if (!pickedTeamId) {
+    // Whichever target is selected must have something picked. The Submit button already
+    // enforces this, but a stray call must never reach the backend half-formed.
+    if (createTarget === "team" && !pickedTeamId) {
       toast.error(t("blacklists.toast.pickTeam"));
+      return;
+    }
+    if (createTarget === "player" && !pickedUserId) {
+      toast.error(t("blacklists.toast.pickPlayer"));
       return;
     }
     // Guard the date range (the Submit button is already disabled while invalid, but a stray
@@ -299,10 +329,14 @@ export default function OrganizerBlacklistsPage() {
     }
     setCreating(true);
     try {
-      // Send the calendar range as ISO "YYYY-MM-DD" strings (the new backend contract).
+      // Send the calendar range as ISO "YYYY-MM-DD" strings, plus EITHER team_id or user_id
+      // depending on the target (the backend validates the pairing and 400s a mismatch).
       const res = await organizersApi.createBlacklist({
         organization_id: organizationId,
-        team_id: pickedTeamId,
+        target_type: createTarget,
+        ...(createTarget === "team"
+          ? { team_id: pickedTeamId! }
+          : { user_id: pickedUserId! }),
         start_date: startDate,
         end_date: endDate,
         reason: createReason.trim(),
@@ -310,6 +344,8 @@ export default function OrganizerBlacklistsPage() {
       toast.success(res?.message || t("blacklists.toast.created"));
       // Reset the form, close the dialog, and refresh the table.
       setPickedTeamId(null);
+      setPickedUsername(null);
+      setPickedUserId(null);
       setStartDate(today);
       setEndDate("");
       setCreateReason("");
@@ -414,23 +450,64 @@ export default function OrganizerBlacklistsPage() {
           <DialogTrigger asChild>
             <Button data-tour="org-blacklists-add" className="gap-1.5 self-start sm:self-auto">
               <IconBan className="size-4" />
-              {t("blacklists.create.button")}
+              {t("blacklists.create.buttonAny")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t("blacklists.create.title")}</DialogTitle>
+              <DialogTitle>
+                {createTarget === "team"
+                  ? t("blacklists.create.title")
+                  : t("blacklists.create.titlePlayer")}
+              </DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-2">
-              {/* Team picker (search-as-you-type existing teams). Emits the numeric team_id. */}
-              <div className="flex flex-col gap-2">
-                <Label>{t("blacklists.create.teamLabel")}</Label>
-                <TeamSearchSelect
-                  value={pickedTeamId}
-                  onChange={(id) => setPickedTeamId(id)}
-                  placeholder={t("blacklists.create.teamPlaceholder")}
-                />
-              </div>
+              {/* Target toggle: blacklist a TEAM (and its roster) or a single PLAYER.
+                  Pill-segment Tabs per AFC constants, matching the Lookup section's toggle.
+                  Switching clears the other picker so a stale selection can never be sent. */}
+              <Tabs
+                value={createTarget}
+                onValueChange={(v) => {
+                  setCreateTarget(v as "team" | "player");
+                  setPickedTeamId(null);
+                  setPickedUsername(null);
+                  setPickedUserId(null);
+                }}
+              >
+                <TabsList className="w-full">
+                  <TabsTrigger value="team" className="flex-1">
+                    {t("blacklists.create.targetTeam")}
+                  </TabsTrigger>
+                  <TabsTrigger value="player" className="flex-1">
+                    {t("blacklists.create.targetPlayer")}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              {createTarget === "team" ? (
+                /* Team picker (search-as-you-type existing teams). Emits the numeric team_id. */
+                <div className="flex flex-col gap-2">
+                  <Label>{t("blacklists.create.teamLabel")}</Label>
+                  <TeamSearchSelect
+                    value={pickedTeamId}
+                    onChange={(id) => setPickedTeamId(id)}
+                    placeholder={t("blacklists.create.teamPlaceholder")}
+                  />
+                </div>
+              ) : (
+                /* Player picker. UserSearchSelect's value is the username; we keep the numeric
+                   user_id off the PickedUser it hands back, which is what the API needs. */
+                <div className="flex flex-col gap-2">
+                  <Label>{t("blacklists.create.playerLabel")}</Label>
+                  <UserSearchSelect
+                    value={pickedUsername}
+                    onChange={(username: string | null, user?: PickedUser) => {
+                      setPickedUsername(username);
+                      setPickedUserId(user?.user_id ?? null);
+                    }}
+                    placeholder={t("blacklists.create.playerPlaceholder")}
+                  />
+                </div>
+              )}
               {/* Calendar date RANGE (replaces the old duration-in-days input). Two native
                   date pickers; both floored at today (min={today}) so the window cannot start
                   in the past, and the end picker is additionally floored at the chosen start.
@@ -476,8 +553,13 @@ export default function OrganizerBlacklistsPage() {
                   rows={3}
                 />
               </div>
+              {/* The helper explains what the chosen target actually blocks, because the two
+                  are meaningfully different: a team block also catches the roster, a player
+                  block follows one person only. */}
               <p className="text-xs text-muted-foreground">
-                {t("blacklists.create.helper")}
+                {createTarget === "team"
+                  ? t("blacklists.create.helper")
+                  : t("blacklists.create.helperPlayer")}
               </p>
             </div>
             <DialogFooter>
@@ -488,15 +570,25 @@ export default function OrganizerBlacklistsPage() {
               >
                 {t("blacklists.cancel")}
               </Button>
-              {/* Submit is disabled while creating OR the date range is invalid. */}
-              <Button onClick={handleCreate} disabled={creating || !isRangeValid}>
+              {/* Submit is disabled while creating, while the date range is invalid, or until a
+                  target has actually been picked for the selected mode. */}
+              <Button
+                onClick={handleCreate}
+                disabled={
+                  creating ||
+                  !isRangeValid ||
+                  (createTarget === "team" ? !pickedTeamId : !pickedUserId)
+                }
+              >
                 {creating ? (
                   <span className="flex items-center gap-1.5">
                     <IconLoader2 className="size-4 animate-spin" />
                     {t("blacklists.create.submitting")}
                   </span>
-                ) : (
+                ) : createTarget === "team" ? (
                   t("blacklists.create.submit")
+                ) : (
+                  t("blacklists.create.submitPlayer")
                 )}
               </Button>
             </DialogFooter>
@@ -527,7 +619,7 @@ export default function OrganizerBlacklistsPage() {
               <Table data-tour="org-blacklists-table">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-foreground">{t("blacklists.table.team")}</TableHead>
+                    <TableHead className="text-foreground">{t("blacklists.table.target")}</TableHead>
                     <TableHead className="text-foreground">{t("blacklists.table.reason")}</TableHead>
                     <TableHead className="text-foreground">{t("blacklists.table.start")}</TableHead>
                     <TableHead className="text-foreground">{t("blacklists.table.end")}</TableHead>
@@ -542,7 +634,11 @@ export default function OrganizerBlacklistsPage() {
                     return (
                       <Fragment key={bl.id}>
                         <TableRow>
-                          {/* Team name doubles as the expand toggle for the snapshot roster. */}
+                          {/* Target cell: the team name for a team blacklist, the username for a
+                              player one. Doubles as the expand toggle for the blocked players.
+                              A player-target row has team_id=null, so it falls through to the
+                              username; the small icon distinguishes the two shapes at a glance
+                              without needing a separate column. */}
                           <TableCell className="text-xs font-medium">
                             <button
                               type="button"
@@ -557,12 +653,26 @@ export default function OrganizerBlacklistsPage() {
                                   isOpen && "rotate-180",
                                 )}
                               />
-                              <span>{bl.team_name ?? t("blacklists.teamFallback", { id: bl.team_id })}</span>
+                              {bl.target_type === "player" && (
+                                <IconUser size={14} className="shrink-0 text-muted-foreground" />
+                              )}
+                              <span>
+                                {bl.target_type === "player"
+                                  ? (bl.target_username ??
+                                     t("blacklists.userFallback", { id: bl.players[0]?.user_id ?? 0 }))
+                                  : (bl.team_name ??
+                                     t("blacklists.teamFallback", { id: bl.team_id ?? 0 }))}
+                              </span>
+                              {/* The player count is only meaningful for a team blacklist (how
+                                  many people were snapshotted). A player row is always exactly
+                                  one person, so it gets a "Player" label instead of "1 player". */}
                               <Badge
                                 variant="outline"
                                 className="ml-1 rounded-full px-2 py-0.5 text-[10px]"
                               >
-                                {t("blacklists.table.playerCount", { count: bl.players.length })}
+                                {bl.target_type === "player"
+                                  ? t("blacklists.table.playerTag")
+                                  : t("blacklists.table.playerCount", { count: bl.players.length })}
                               </Badge>
                             </button>
                           </TableCell>
@@ -601,12 +711,21 @@ export default function OrganizerBlacklistsPage() {
                                     <AlertDialogTitle>
                                       {t("blacklists.lift.confirmTitle")}
                                     </AlertDialogTitle>
+                                    {/* Two sentences, because the consequence differs: lifting a
+                                        TEAM blacklist frees the team and everyone snapshotted on
+                                        it, while lifting a PLAYER one frees just that person. */}
                                     <AlertDialogDescription>
-                                      {t("blacklists.lift.confirmDescription", {
-                                        team:
-                                          bl.team_name ??
-                                          t("blacklists.lift.thisTeam"),
-                                      })}
+                                      {bl.target_type === "player"
+                                        ? t("blacklists.lift.confirmDescriptionPlayer", {
+                                            player:
+                                              bl.target_username ??
+                                              t("blacklists.lift.thisPlayer"),
+                                          })
+                                        : t("blacklists.lift.confirmDescription", {
+                                            team:
+                                              bl.team_name ??
+                                              t("blacklists.lift.thisTeam"),
+                                          })}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>

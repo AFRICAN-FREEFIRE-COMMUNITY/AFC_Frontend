@@ -39,6 +39,9 @@ import {
 } from "@/app/(a)/a/_components/NotificationTargetSelector";
 // General broadcast history (scope general/direct) shown under the Notifications tab.
 import { BroadcastHistory } from "@/app/(a)/a/_components/BroadcastHistory";
+// Audience builder (owner backlog item 15): the recipient-selection surface that replaced the
+// old pick-them-one-by-one bulk composer. Owns its own count-before-send and email-volume rules.
+import { AudienceBuilder } from "./_components/AudienceBuilder";
 // Parses a stored user_agent into a readable device label for the Login History tab.
 import { parseUserAgent } from "@/lib/user-agent";
 // Shared search matcher: punctuation/space/accent-insensitive and folds stylized "fancy font" unicode,
@@ -675,66 +678,12 @@ const page = () => {
   // which shows ALL admin/staff actions with search + date + pagination. The old
   // get-admin-activities "latest 100" fetch + adminActivities state were removed as dead code.
 
-  // ── Bulk notifications ───────────────────────────────────────────────────
-  const [bulkNotifMessage, setBulkNotifMessage] = useState("");
-  // Recipients are now picked via the <UserSearchSelect/> typeahead (usernames), not typed as a
-  // comma-separated string. We still resolve usernames -> recipient_ids against the loaded user list.
-  const [bulkNotifRecipients, setBulkNotifRecipients] = useState<string[]>([]);
-  const [sendingBulkNotif, setSendingBulkNotif] = useState(false);
-  // Optional deep link so recipients get a "Take me there" button. Default none.
-  const [bulkNotifTarget, setBulkNotifTarget] =
-    useState<NotificationTarget>(EMPTY_TARGET);
-  // Multi-event link selection (owner 2026-06-17): when the link type is "event", search + pick
-  // several events; they become the broadcast `targets` array.
-  const [bulkNotifEvents, setBulkNotifEvents] = useState<EventOption[]>([]);
-
-  const handleSendBulkNotification = async () => {
-    const usernames = bulkNotifRecipients;
-    if (!bulkNotifMessage.trim() || usernames.length === 0) {
-      toast.error("Pick at least one recipient and enter a message.");
-      return;
-    }
-    const recipientIds = adminUsers
-      .filter((u) => usernames.includes(u.username))
-      .map((u) => Number(u.id));
-    if (recipientIds.length === 0) {
-      toast.error("No matching users found for the selected recipients.");
-      return;
-    }
-    setSendingBulkNotif(true);
-    try {
-      // Deep link: for the "event" type the admin may have picked several events (multi) -> send a
-      // `targets` array; otherwise the single target_type/target_id pair. "none" sends nothing.
-      const linkPayload: Record<string, unknown> = {};
-      if (bulkNotifTarget.target_type === "event" && bulkNotifEvents.length > 0) {
-        linkPayload.targets = bulkNotifEvents.map((e) => ({
-          target_type: "event",
-          target_id: e.slug,
-        }));
-      } else if (bulkNotifTarget.target_type !== "none") {
-        linkPayload.target_type = bulkNotifTarget.target_type;
-        linkPayload.target_id = bulkNotifTarget.target_id.trim();
-      }
-      await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/send-notification-to-multiple-users/`,
-        {
-          recipient_ids: recipientIds,
-          message: bulkNotifMessage.trim(),
-          ...linkPayload,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      toast.success(`Notification sent to ${recipientIds.length} user(s).`);
-      setBulkNotifMessage("");
-      setBulkNotifRecipients([]);
-      setBulkNotifTarget(EMPTY_TARGET);
-      setBulkNotifEvents([]);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to send notification.");
-    } finally {
-      setSendingBulkNotif(false);
-    }
-  };
+  // ── Bulk notifications ──────────────────────────────────────────────────
+  // The composer that used to live here (message + recipient state + handleSendBulkNotification
+  // posting to /auth/send-notification-to-multiple-users/) moved into <AudienceBuilder/>, which
+  // owns its own state. It was removed rather than left behind because its recipient picker could
+  // only offer users already loaded into `adminUsers` on this page, which is the limitation the
+  // audience builder exists to fix. See app/(a)/a/settings/_components/AudienceBuilder.tsx.
 
   const exportToExcel = () => {
     try {
@@ -1965,66 +1914,29 @@ const page = () => {
           )}
         </TabsContent>
 
-        {/* ── Bulk Notifications ─────────────────────────────────────────── */}
+        {/* ── Notifications: audience builder + sent history ────────────── */}
+        {/* The old composer here could only reach users the admin picked one by one out of the
+            already-loaded admin list, push-only, with no idea how many people that was.
+            <AudienceBuilder/> replaces it (owner backlog item 15, 2026-08-03): pick teams,
+            players, or a category (tier / country / role / language), or the entire site; SEE THE
+            RECIPIENT COUNT before sending; and send in-app, by email, or both, with the email
+            volume limit surfaced plainly. It posts to /auth/admin/broadcast-audience/send/, which
+            routes through the same deliver_broadcast chokepoint as every other broadcast, so its
+            sends land in the same "Sent broadcasts" history rendered below. */}
         <TabsContent value="notifications" className="space-y-4">
+          <AudienceBuilder />
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                Send Bulk Notification
+                Sent broadcasts
                 <InfoTip id="settings.notifications._section" className="ml-1.5" />
               </CardTitle>
               <CardDescription>
-                Send a notification to multiple users at once. Search and pick recipients by name.
+                Every general and direct broadcast sent from this dashboard.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Recipients</Label>
-                {/* Typeahead picker (search-as-you-type) instead of a comma-separated username box. */}
-                <UserSearchSelect
-                  multiple
-                  value={bulkNotifRecipients}
-                  onChange={(usernames) => setBulkNotifRecipients(usernames)}
-                  placeholder="Search users to notify..."
-                />
-                <p className="text-xs text-muted-foreground">
-                  {bulkNotifRecipients.length} recipient(s) selected
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>Message</Label>
-                <textarea
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[100px] resize-y"
-                  placeholder="Enter notification message..."
-                  value={bulkNotifMessage}
-                  onChange={(e) => setBulkNotifMessage(e.target.value)}
-                />
-              </div>
-              {/* Optional deep link: gives recipients a "Take me there" button. For the "event"
-                  type the admin can search + select multiple events (owner 2026-06-17). */}
-              <NotificationTargetSelector
-                value={bulkNotifTarget}
-                onChange={(t) => {
-                  setBulkNotifTarget(t);
-                  if (t.target_type !== "event") setBulkNotifEvents([]);
-                }}
-                enableEventSearch
-                selectedEvents={bulkNotifEvents}
-                onSelectedEventsChange={setBulkNotifEvents}
-              />
-              <Button
-                onClick={handleSendBulkNotification}
-                disabled={sendingBulkNotif}
-              >
-                {sendingBulkNotif ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {sendingBulkNotif ? "Sending..." : "Send Notification"}
-              </Button>
-
-              {/* Broadcast history: the general + direct sends (owner 2026-06-17). */}
-              <div className="mt-6 border-t pt-4">
-                <p className="mb-3 text-sm font-medium">Sent broadcasts</p>
-                <BroadcastHistory scope="general" />
-              </div>
+            <CardContent>
+              <BroadcastHistory scope="general" />
             </CardContent>
           </Card>
         </TabsContent>

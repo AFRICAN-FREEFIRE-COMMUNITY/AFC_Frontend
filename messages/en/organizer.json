@@ -562,7 +562,15 @@
       "reasonPlaceholder": "Why is this team being blacklisted?",
       "helper": "The team and every player currently on its roster will be blocked from registering for your events for the selected date range. The block follows each player even if they later leave the team.",
       "submitting": "Blacklisting...",
-      "submit": "Blacklist team"
+      "submit": "Blacklist team",
+      "buttonAny": "Add a blacklist",
+      "titlePlayer": "Blacklist a player",
+      "targetTeam": "Team",
+      "targetPlayer": "Player",
+      "playerLabel": "Player",
+      "playerPlaceholder": "Search a player to blacklist...",
+      "helperPlayer": "This player will be blocked from registering for your events for the selected date range, on their own and as part of any team. Their team-mates are not affected.",
+      "submitPlayer": "Blacklist player"
     },
     "table": {
       "title": "Blacklisted teams ({count})",
@@ -572,7 +580,9 @@
       "start": "Start",
       "end": "End",
       "status": "Status",
-      "playerCount": "{count, plural, =1 {# player} other {# players}}"
+      "playerCount": "{count, plural, =1 {# player} other {# players}}",
+      "target": "Target",
+      "playerTag": "Player"
     },
     "teamFallback": "Team #{id}",
     "userFallback": "User #{id}",
@@ -581,7 +591,9 @@
       "confirmTitle": "Lift this blacklist?",
       "confirmDescription": "{team} and everyone on its snapshot will be able to register for your events again immediately. This cannot be undone.",
       "thisTeam": "This team",
-      "confirmAction": "Lift blacklist"
+      "confirmAction": "Lift blacklist",
+      "confirmDescriptionPlayer": "{player} will be able to register for your events again immediately. This cannot be undone.",
+      "thisPlayer": "This player"
     },
     "snapshot": {
       "empty": "No players were snapshotted on this blacklist.",
@@ -637,7 +649,8 @@
       "requestApproved": "Lift request approved.",
       "requestDenied": "Lift request denied.",
       "decideError": "Failed to decide the request.",
-      "lookupError": "Lookup failed."
+      "lookupError": "Lookup failed.",
+      "pickPlayer": "Pick a player to blacklist."
     }
   },
   "profile": {

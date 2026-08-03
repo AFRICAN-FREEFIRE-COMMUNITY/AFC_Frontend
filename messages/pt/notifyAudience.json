@@ -1,0 +1,71 @@
+{
+  "title": "Enviar uma notificação",
+  "description": "Escolhe os destinatários, confirma quantas pessoas são e depois envia. Não é possível anular.",
+  "everyone": {
+    "label": "Todos na AFC",
+    "help": "{count, plural, =1 {# conta ativa} other {# contas ativas}} no total. Esta opção anula todos os filtros abaixo.",
+    "helpLoading": "Todas as contas ativas. Esta opção anula todos os filtros abaixo."
+  },
+  "pick": {
+    "teams": "Equipas",
+    "teamsPlaceholder": "Procurar equipas...",
+    "teamsHelp": "Todo o plantel, mais o proprietário da equipa.",
+    "players": "Jogadores",
+    "playersPlaceholder": "Procurar jogadores...",
+    "playersHelp": "Pessoas indicadas individualmente, somadas a tudo o resto que escolheres."
+  },
+  "filters": {
+    "title": "Ou filtrar por categoria",
+    "tier": "Escalão",
+    "tierValue": "Escalão {tier}",
+    "country": "País",
+    "role": "Função",
+    "language": "Idioma",
+    "help": "Os filtros desta caixa combinam-se entre si: Escalão 1 mais Nigéria significa jogadores de Escalão 1 na Nigéria. As equipas e os jogadores escolhidos acima são somados ao resultado."
+  },
+  "includeSuspended": "Incluir também contas suspensas",
+  "count": {
+    "none": "Escolhe uma equipa, um jogador ou um filtro para veres quantas pessoas isto alcança.",
+    "loading": "A contar os destinatários...",
+    "recipients": "{count, plural, =1 {pessoa vai receber isto} other {pessoas vão receber isto}}",
+    "withEmail": "{count, plural, =1 {# tem endereço de e-mail} other {# têm endereço de e-mail}}"
+  },
+  "volume": {
+    "confirmLabel": "Compreendo, enviar os e-mails mesmo assim"
+  },
+  "sample": {
+    "user": "Utilizador",
+    "country": "País",
+    "role": "Função",
+    "email": "E-mail",
+    "yes": "Sim",
+    "no": "Não",
+    "more": "A mostrar {shown} de {total} destinatários."
+  },
+  "compose": {
+    "titleLabel": "Título (opcional)",
+    "titlePlaceholder": "Título curto, usado também como assunto do e-mail",
+    "messageLabel": "Mensagem",
+    "messagePlaceholder": "O que lhes queres dizer?",
+    "deliveryLabel": "Como enviar",
+    "deliveryPush": "Notificação na aplicação",
+    "deliveryEmail": "E-mail",
+    "deliveryBoth": "Notificação na aplicação e e-mail",
+    "emailUnavailable": "O e-mail não está disponível para uma audiência desta dimensão. Envia uma notificação na aplicação, ou reduz a audiência."
+  },
+  "send": {
+    "button": "Enviar",
+    "buttonWithCount": "Enviar a {count, plural, =1 {# pessoa} other {# pessoas}}",
+    "sending": "A enviar...",
+    "confirmTitle": "Enviar agora?",
+    "confirmBody": "Isto vai alcançar {count, plural, =1 {# pessoa} other {# pessoas}} por {channel}. Não pode ser anulado.",
+    "confirmAction": "Enviar",
+    "cancel": "Cancelar"
+  },
+  "toast": {
+    "optionsError": "Não foi possível carregar os filtros de audiência.",
+    "previewError": "Não foi possível contar os destinatários.",
+    "sendError": "Não foi possível enviar.",
+    "countChanged": "A audiência passou para {count} pessoas. Confirma o novo número e envia novamente."
+  }
+}

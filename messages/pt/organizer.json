@@ -562,7 +562,15 @@
       "reasonPlaceholder": "Por que é que esta equipa está a ser colocada na lista negra?",
       "helper": "A equipa e todos os jogadores que fazem atualmente parte do seu plantel ficarão impedidos de se inscreverem nos seus eventos durante o intervalo de datas selecionado. Este bloqueio mantém-se para cada jogador, mesmo que este venha a deixar a equipa posteriormente.",
       "submitting": "Colocar na lista negra...",
-      "submit": "Equipa da Lista Negra"
+      "submit": "Equipa da Lista Negra",
+      "buttonAny": "Adicionar à lista negra",
+      "titlePlayer": "Colocar um jogador na lista negra",
+      "targetTeam": "Equipa",
+      "targetPlayer": "Jogador",
+      "playerLabel": "Jogador",
+      "playerPlaceholder": "Procurar um jogador para colocar na lista negra...",
+      "helperPlayer": "Este jogador ficará impedido de se inscrever nos teus eventos durante o intervalo de datas selecionado, tanto sozinho como integrado numa equipa. Os colegas de equipa não são afetados.",
+      "submitPlayer": "Colocar jogador na lista negra"
     },
     "table": {
       "title": "Equipas incluídas na lista negra ({count})",
@@ -572,7 +580,9 @@
       "start": "Início",
       "end": "Fim",
       "status": "Estado",
-      "playerCount": "{count, plural,  =1 { # jogador }  other { # jogadores } }"
+      "playerCount": "{count, plural,  =1 { # jogador }  other { # jogadores } }",
+      "target": "Alvo",
+      "playerTag": "Jogador"
     },
     "teamFallback": "Equipa n.º {id}",
     "userFallback": "Utilizador n.º {id}",
@@ -581,7 +591,9 @@
       "confirmTitle": "Retirar esta lista negra?",
       "confirmDescription": "{team} e todas as pessoas incluídas nesse instantâneo poderão voltar a inscrever-se nos seus eventos de imediato. Esta ação não pode ser revertida.",
       "thisTeam": "Esta equipa",
-      "confirmAction": "Levantar a lista negra"
+      "confirmAction": "Levantar a lista negra",
+      "confirmDescriptionPlayer": "{player} poderá voltar a inscrever-se nos teus eventos de imediato. Esta ação não pode ser revertida.",
+      "thisPlayer": "Este jogador"
     },
     "snapshot": {
       "empty": "Nenhum jogador foi incluído nesta lista negra.",
@@ -637,7 +649,8 @@
       "requestApproved": "Pedido de elevador aprovado.",
       "requestDenied": "Pedido de elevador recusado.",
       "decideError": "Não foi possível decidir sobre o pedido.",
-      "lookupError": "A pesquisa falhou."
+      "lookupError": "A pesquisa falhou.",
+      "pickPlayer": "Escolhe um jogador para colocar na lista negra."
     }
   },
   "profile": {

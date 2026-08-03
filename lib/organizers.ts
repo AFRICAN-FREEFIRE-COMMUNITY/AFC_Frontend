@@ -180,13 +180,20 @@ export const organizersApi = {
   //     CONSUMED BY the team page "Request blacklist lift" section (app/(user)/teams/[id]/page.tsx).
   // All gating + validation lives server-side; the FE just surfaces the result.
 
-  // createBlacklist - POST blacklists/ -> 201 { message, blacklist }. Blacklists a team for a
-  // calendar date RANGE and snapshots its current roster. body: { organization_id, team_id,
-  // start_date, end_date, reason }. start_date / end_date are ISO "YYYY-MM-DD" (the backend now
-  // takes the range directly; duration_days is only a legacy fallback the FE no longer sends).
+  // createBlacklist - POST blacklists/ -> 201 { message, blacklist }. Blacklists a TEAM or a
+  // single PLAYER for a calendar date RANGE. start_date / end_date are ISO "YYYY-MM-DD" (the
+  // backend takes the range directly; duration_days is only a legacy fallback the FE no longer
+  // sends).
+  //   target_type "team"   (default) -> send team_id. The team AND its current roster are
+  //                                     snapshotted and blocked; the block follows each player.
+  //   target_type "player" -> send user_id. ONE person is blocked from this organizer's events,
+  //                                     with no team implicated (owner backlog item 1, 2026-08-03).
+  // A 409 means that player is already under an active blacklist of this organization.
   createBlacklist: (body: {
     organization_id: number;
-    team_id: number;
+    target_type?: "team" | "player";
+    team_id?: number;
+    user_id?: number;
     start_date: string;
     end_date: string;
     reason?: string;

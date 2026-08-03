@@ -1,0 +1,71 @@
+{
+  "title": "Send a notification",
+  "description": "Choose who this goes to, check how many people that is, then send. There is no undo.",
+  "everyone": {
+    "label": "Everyone on AFC",
+    "help": "All {count, plural, =1 {# active account} other {# active accounts}}. Overrides every filter below.",
+    "helpLoading": "Every active account. Overrides every filter below."
+  },
+  "pick": {
+    "teams": "Teams",
+    "teamsPlaceholder": "Search teams...",
+    "teamsHelp": "Everyone on the roster, plus the team owner.",
+    "players": "Players",
+    "playersPlaceholder": "Search players...",
+    "playersHelp": "Named individuals, added on top of anything else you pick."
+  },
+  "filters": {
+    "title": "Or filter by category",
+    "tier": "Tier",
+    "tierValue": "Tier {tier}",
+    "country": "Country",
+    "role": "Role",
+    "language": "Language",
+    "help": "Filters within this box narrow each other: Tier 1 plus Nigeria means Tier 1 players in Nigeria. Teams and players you picked above are added on top."
+  },
+  "includeSuspended": "Also include suspended accounts",
+  "count": {
+    "none": "Pick a team, a player, or a filter to see how many people this reaches.",
+    "loading": "Counting recipients...",
+    "recipients": "{count, plural, =1 {person will receive this} other {people will receive this}}",
+    "withEmail": "{count, plural, =1 {# has an email address} other {# have an email address}}"
+  },
+  "volume": {
+    "confirmLabel": "I understand, send the emails anyway"
+  },
+  "sample": {
+    "user": "User",
+    "country": "Country",
+    "role": "Role",
+    "email": "Email",
+    "yes": "Yes",
+    "no": "No",
+    "more": "Showing {shown} of {total} recipients."
+  },
+  "compose": {
+    "titleLabel": "Title (optional)",
+    "titlePlaceholder": "Short headline, also used as the email subject",
+    "messageLabel": "Message",
+    "messagePlaceholder": "What do you want to tell them?",
+    "deliveryLabel": "How to send it",
+    "deliveryPush": "In-app notification",
+    "deliveryEmail": "Email",
+    "deliveryBoth": "In-app notification and email",
+    "emailUnavailable": "Email is unavailable for an audience this large. Send in-app instead, or narrow the audience."
+  },
+  "send": {
+    "button": "Send",
+    "buttonWithCount": "Send to {count, plural, =1 {# person} other {# people}}",
+    "sending": "Sending...",
+    "confirmTitle": "Send this now?",
+    "confirmBody": "This will reach {count, plural, =1 {# person} other {# people}} by {channel}. It cannot be undone.",
+    "confirmAction": "Send it",
+    "cancel": "Cancel"
+  },
+  "toast": {
+    "optionsError": "Failed to load the audience filters.",
+    "previewError": "Failed to count the recipients.",
+    "sendError": "Failed to send.",
+    "countChanged": "The audience changed to {count} people. Check the new number and send again."
+  }
+}

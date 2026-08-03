@@ -1,0 +1,71 @@
+{
+  "title": "Envoyer une notification",
+  "description": "Choisissez les destinataires, vérifiez combien de personnes cela représente, puis envoyez. Cette action est irréversible.",
+  "everyone": {
+    "label": "Tout le monde sur AFC",
+    "help": "{count, plural, =1 {# compte actif} other {# comptes actifs}} au total. Ce choix annule tous les filtres ci-dessous.",
+    "helpLoading": "Tous les comptes actifs. Ce choix annule tous les filtres ci-dessous."
+  },
+  "pick": {
+    "teams": "Équipes",
+    "teamsPlaceholder": "Rechercher des équipes...",
+    "teamsHelp": "Tout l'effectif, ainsi que le propriétaire de l'équipe.",
+    "players": "Joueurs",
+    "playersPlaceholder": "Rechercher des joueurs...",
+    "playersHelp": "Des personnes nommément désignées, ajoutées à tout le reste de votre sélection."
+  },
+  "filters": {
+    "title": "Ou filtrer par catégorie",
+    "tier": "Palier",
+    "tierValue": "Palier {tier}",
+    "country": "Pays",
+    "role": "Rôle",
+    "language": "Langue",
+    "help": "Les filtres de cette zone se combinent entre eux : Palier 1 plus Nigeria signifie les joueurs de Palier 1 situés au Nigeria. Les équipes et les joueurs choisis ci-dessus s'ajoutent au résultat."
+  },
+  "includeSuspended": "Inclure aussi les comptes suspendus",
+  "count": {
+    "none": "Choisissez une équipe, un joueur ou un filtre pour voir combien de personnes seront touchées.",
+    "loading": "Calcul du nombre de destinataires...",
+    "recipients": "{count, plural, =1 {personne recevra ce message} other {personnes recevront ce message}}",
+    "withEmail": "{count, plural, =1 {# possède une adresse e-mail} other {# possèdent une adresse e-mail}}"
+  },
+  "volume": {
+    "confirmLabel": "J'ai compris, envoyer quand même les e-mails"
+  },
+  "sample": {
+    "user": "Utilisateur",
+    "country": "Pays",
+    "role": "Rôle",
+    "email": "E-mail",
+    "yes": "Oui",
+    "no": "Non",
+    "more": "Affichage de {shown} destinataires sur {total}."
+  },
+  "compose": {
+    "titleLabel": "Titre (facultatif)",
+    "titlePlaceholder": "Titre court, également utilisé comme objet de l'e-mail",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Que voulez-vous leur dire ?",
+    "deliveryLabel": "Mode d'envoi",
+    "deliveryPush": "Notification dans l'application",
+    "deliveryEmail": "E-mail",
+    "deliveryBoth": "Notification dans l'application et e-mail",
+    "emailUnavailable": "L'e-mail n'est pas disponible pour une audience de cette taille. Envoyez une notification dans l'application, ou réduisez l'audience."
+  },
+  "send": {
+    "button": "Envoyer",
+    "buttonWithCount": "Envoyer à {count, plural, =1 {# personne} other {# personnes}}",
+    "sending": "Envoi en cours...",
+    "confirmTitle": "Envoyer maintenant ?",
+    "confirmBody": "Ce message atteindra {count, plural, =1 {# personne} other {# personnes}} par {channel}. Cette action est irréversible.",
+    "confirmAction": "Envoyer",
+    "cancel": "Annuler"
+  },
+  "toast": {
+    "optionsError": "Échec du chargement des filtres d'audience.",
+    "previewError": "Impossible de compter les destinataires.",
+    "sendError": "Échec de l'envoi.",
+    "countChanged": "L'audience est passée à {count} personnes. Vérifiez le nouveau nombre et renvoyez."
+  }
+}

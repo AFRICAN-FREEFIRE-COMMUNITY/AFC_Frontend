@@ -562,7 +562,15 @@
       "reasonPlaceholder": "Pourquoi cette équipe est-elle mise sur liste noire ?",
       "helper": "L'équipe et tous les joueurs figurant actuellement dans son effectif ne pourront pas s'inscrire à vos événements pendant la période sélectionnée. Cette restriction s'applique à chaque joueur, même s'il quitte l'équipe par la suite.",
       "submitting": "Mise sur liste noire...",
-      "submit": "L'équipe Blacklist"
+      "submit": "L'équipe Blacklist",
+      "buttonAny": "Ajouter à la liste noire",
+      "titlePlayer": "Ajouter un joueur à la liste noire",
+      "targetTeam": "Équipe",
+      "targetPlayer": "Joueur",
+      "playerLabel": "Joueur",
+      "playerPlaceholder": "Rechercher un joueur à ajouter à la liste noire...",
+      "helperPlayer": "Ce joueur ne pourra pas s'inscrire à vos événements pendant la période sélectionnée, ni seul ni au sein d'une équipe. Ses coéquipiers ne sont pas concernés.",
+      "submitPlayer": "Ajouter le joueur"
     },
     "table": {
       "title": "Équipes sur liste noire ({count})",
@@ -572,7 +580,9 @@
       "start": "Démarrer",
       "end": "Fin",
       "status": "Statut",
-      "playerCount": "{count, plural,  =1 { # joueur }  other { # joueurs } }"
+      "playerCount": "{count, plural,  =1 { # joueur }  other { # joueurs } }",
+      "target": "Cible",
+      "playerTag": "Joueur"
     },
     "teamFallback": "Équipe n° {id}",
     "userFallback": "Utilisateur n° {id}",
@@ -581,7 +591,9 @@
       "confirmTitle": "Supprimer cette liste noire ?",
       "confirmDescription": "{team} et toutes les personnes figurant dans cet instantané pourront à nouveau s'inscrire à vos événements immédiatement. Cette action est irréversible.",
       "thisTeam": "Cette équipe",
-      "confirmAction": "Liste noire des ascenseurs"
+      "confirmAction": "Liste noire des ascenseurs",
+      "confirmDescriptionPlayer": "{player} pourra à nouveau s'inscrire à vos événements immédiatement. Cette action est irréversible.",
+      "thisPlayer": "Ce joueur"
     },
     "snapshot": {
       "empty": "Aucun joueur n'a été ajouté à cette liste noire.",
@@ -637,7 +649,8 @@
       "requestApproved": "Demande de levage approuvée.",
       "requestDenied": "Demande de transport refusée.",
       "decideError": "Impossible de traiter la demande.",
-      "lookupError": "Échec de la recherche."
+      "lookupError": "Échec de la recherche.",
+      "pickPlayer": "Choisissez un joueur à mettre sur liste noire."
     }
   },
   "profile": {
