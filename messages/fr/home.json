@@ -93,7 +93,8 @@
       "wins": "Victoires",
       "kills": "Éliminations",
       "events": "Tournois"
-    }
+    },
+    "showingPrevious": "Affichage de {shown}. {pending} n'est pas encore publié."
   },
   "latestNews": {
     "title": "Dernières nouvelles et mises à jour",

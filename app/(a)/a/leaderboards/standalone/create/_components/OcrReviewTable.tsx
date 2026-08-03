@@ -132,13 +132,26 @@ interface ReviewRow {
   ghostCountry: string;
 }
 
+// The single auto-resolve gate for this table: a suggestion below this confidence is offered but
+// never pre-selected, so the admin has to look at it. Applied to BOTH the team row and each player
+// row (they used to disagree: players were gated at 0.75, the team row was not gated at all).
+// The backend mirrors this value as afc_leaderboard.ocr.PLAYER_TRUST.
+const ROW_AUTO_RESOLVE_MIN = 0.75;
+
 // A confidently matched row arrives pre-resolved as {kind:"real", id} so the admin only touches the
 // unmatched / wrong ones.
 function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
   const matchedId =
     format === "team" ? r.matched_team_id ?? null : r.matched_user_id ?? null;
+  // AUTO-resolve only a CONFIDENT match (>= 75%), the same gate the per-player rows below use.
+  // The row used to pre-resolve on `matched_team_id != null` alone, with no threshold at all, so a
+  // 2-3 character clan tag read off the screen bound the standing to whatever team scored highest:
+  // on real prod data "ST" pre-resolved to "Satolas", "XIT" to "QX4", "R3D" to "AETHELGARD". The
+  // weak candidates are still one click away in the Select; the row just starts unresolved so a
+  // wrong team can never ride into a committed leaderboard unnoticed.
+  const confident = (r.confidence ?? 0) >= ROW_AUTO_RESOLVE_MIN;
   const resolved =
-    !r.is_unmatched && matchedId != null
+    !r.is_unmatched && matchedId != null && confident
       ? ({ kind: "real", id: matchedId } as OcrRowResolution)
       : null;
   // Per-player edit state from the backend's players_detail; fall back to the plain players_read
@@ -163,9 +176,9 @@ function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
     // AUTO-pick only confident matches (>= 75%). Below that the best guess was actively
     // misleading (owner 2026-06-12: "NOXY CVS" auto-showed teammate "PUNKY CVS" at 67%) - the
     // weak candidates stay one click away in the Select, but the row starts "not on platform".
-    chosenUserId: p.confidence >= 0.75 ? p.matched_user_id : null,
-    chosenUsername: p.confidence >= 0.75 ? p.matched_username : null,
-    chosenTeamName: p.confidence >= 0.75 ? p.matched_team_name ?? null : null,
+    chosenUserId: p.confidence >= ROW_AUTO_RESOLVE_MIN ? p.matched_user_id : null,
+    chosenUsername: p.confidence >= ROW_AUTO_RESOLVE_MIN ? p.matched_username : null,
+    chosenTeamName: p.confidence >= ROW_AUTO_RESOLVE_MIN ? p.matched_team_name ?? null : null,
     searchOpen: false,
   }));
   return {

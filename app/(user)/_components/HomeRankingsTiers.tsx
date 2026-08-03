@@ -106,6 +106,26 @@ function HomeNote({ reason }: { reason: string }) {
   );
 }
 
+/**
+ * Banner shown when the API fell back to an older PUBLISHED period because the live season's
+ * rankings are still pending (envelope is_current_period === false).
+ *
+ * This is REQUIRED, not decoration: without it the card would present last quarter's standings as
+ * if they were current, which is the same class of bug as the hardcoded arrays this component
+ * replaced. Same dashed-strip idiom as the "tiers coming soon" notice on /rankings.
+ */
+function PreviousPeriodNote({ shown, pending }: { shown: string; pending: string }) {
+  const t = useTranslations("home");
+  return (
+    <div className="mb-4 flex items-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+      <IconClock className="size-4 shrink-0" />
+      <span>
+        {t("rankingsTiers.showingPrevious", { shown, pending })}
+      </span>
+    </div>
+  );
+}
+
 export function HomeRankingsTiers() {
   // Namespace == messages/en/home.json -> "rankingsTiers".
   const t = useTranslations("home");
@@ -119,6 +139,11 @@ export function HomeRankingsTiers() {
   const [quarterly, setQuarterly] = useState<TeamRow[]>([]);
   const [quarterlySeason, setQuarterlySeason] = useState<SeasonFlags | null>(null);
   const [loading, setLoading] = useState(true);
+  // Fallback flags (owner 2026-08-03): false => these rows are the last PUBLISHED period, not the
+  // live one, and must be labelled. `pendingSeason` is the season still awaiting publication.
+  const [monthlyIsCurrent, setMonthlyIsCurrent] = useState(true);
+  const [quarterlyIsCurrent, setQuarterlyIsCurrent] = useState(true);
+  const [pendingSeason, setPendingSeason] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -133,6 +158,11 @@ export function HomeRankingsTiers() {
         setMonth(m.month);
         setQuarterly(q.results);
         setQuarterlySeason((q.season as SeasonFlags) ?? null);
+        // `!== false` so an older backend that omits the flag is treated as current (no banner),
+        // rather than labelling every ladder as stale.
+        setMonthlyIsCurrent(m.is_current_period !== false);
+        setQuarterlyIsCurrent(q.is_current_period !== false);
+        setPendingSeason(q.current_season?.name ?? m.current_season?.name ?? null);
       })
       // A failed poll must not blank the card: keep whatever is already rendered.
       .catch(() => undefined)
@@ -194,7 +224,15 @@ export function HomeRankingsTiers() {
             ) : topMonthly.length === 0 ? (
               <HomeNote reason={t("rankingsTiers.empty")} />
             ) : (
-              <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+              <div>
+                {/* Not the live period: name the month being shown and the season still pending. */}
+                {!monthlyIsCurrent && pendingSeason && (
+                  <PreviousPeriodNote
+                    shown={monthLabel(month, locale) || (monthlySeason?.name ?? "")}
+                    pending={pendingSeason}
+                  />
+                )}
+                <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -240,6 +278,7 @@ export function HomeRankingsTiers() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </div>
             )}
           </TabsContent>
@@ -271,7 +310,12 @@ export function HomeRankingsTiers() {
             ) : topQuarterly.length === 0 ? (
               <HomeNote reason={t("rankingsTiers.empty")} />
             ) : (
-              <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+              <div>
+                {/* Not the live season: name the season shown and the one still pending. */}
+                {!quarterlyIsCurrent && pendingSeason && quarterlySeason?.name && (
+                  <PreviousPeriodNote shown={quarterlySeason.name} pending={pendingSeason} />
+                )}
+                <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -308,6 +352,7 @@ export function HomeRankingsTiers() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </div>
             )}
           </TabsContent>

@@ -93,7 +93,8 @@
       "wins": "Wins",
       "kills": "Kills",
       "events": "Events"
-    }
+    },
+    "showingPrevious": "Showing {shown}. {pending} is not published yet."
   },
   "latestNews": {
     "title": "Latest News & Updates",

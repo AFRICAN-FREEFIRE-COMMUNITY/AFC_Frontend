@@ -93,7 +93,20 @@ export interface Envelope<T> {
   results: T[];
   pagination: Pagination;
   month?: string;
+  // The season/month the returned rows actually belong to. NOT necessarily the live one: see
+  // is_current_period below.
   season?: Season | null;
+  /**
+   * Owner 2026-08-03 ("it should show the past one pending when a new one is published").
+   *
+   * When the live season's rankings are not published yet, the backend keeps serving the last
+   * PUBLISHED period instead of an empty ladder (afc_rankings.views._resolve_month /
+   * _resolve_quarterly_season) and sets is_current_period=false. Any UI rendering these rows MUST
+   * label them when this is false, otherwise a viewer reads last quarter's standings as today's.
+   * current_season names the season that is still pending, for that label.
+   */
+  is_current_period?: boolean;
+  current_season?: Season | null;
 }
 
 async function get<T>(path: string, params?: Record<string, any>): Promise<Envelope<T>> {

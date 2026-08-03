@@ -8,7 +8,7 @@ import { authHeaders } from "@/lib/http";
  * MIRRORS lib/rankingsAdmin.ts (axios + the BASE url + an authHeaders() helper that reads the
  * `auth_token` cookie that AuthContext writes on login). Every call carries the Bearer token because
  * the standalone endpoints are gated server-side (AFC event-admin OR an organizer with
- * can_upload_results on the leaderboard's org — see afc_leaderboard.permissions.can_manage_standalone_lb).
+ * can_upload_results on the leaderboard's org - see afc_leaderboard.permissions.can_manage_standalone_lb).
  *
  * Backend app: afc_leaderboard (views.py). The list/detail GETs return the house pagination envelope
  * {results, has_more, next_offset, total_count}; create/edit return {leaderboard}; participant/match
@@ -16,11 +16,11 @@ import { authHeaders } from "@/lib/http";
  * handled with a toast at each call site (same idiom as the rest of the app).
  *
  * CONSUMED BY:
- *  - app/(a)/a/leaderboards/standalone/create/page.tsx (the 4-step create wizard) — create, addParticipant,
+ *  - app/(a)/a/leaderboards/standalone/create/page.tsx (the 4-step create wizard) - create, addParticipant,
  *    removeParticipant, addMatch, saveResults, detail, update(publish).
- *  - app/(a)/a/leaderboards/standalone/[id]/page.tsx (view page) — detail.
+ *  - app/(a)/a/leaderboards/standalone/[id]/page.tsx (view page) - detail.
  *  - app/(a)/a/_components/LeaderboardsAdminContent.tsx + app/(organizer)/organizer/leaderboards/page.tsx
- *    (list sections) — list, remove.
+ *    (list sections) - list, remove.
  */
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
@@ -174,6 +174,9 @@ export interface OcrPlayerDetail {
   matched_username: string | null;
   // The matched player's CURRENT platform team (owner 2026-06-12: shown next to every player
   // suggestion so reviewers can tell same-named players apart). Candidates carry team_name too.
+  // matched_team_id is what the backend tallies to infer the ROW's team from its players
+  // (afc_leaderboard.ocr.team_from_players); the table itself only renders the name.
+  matched_team_id?: number | null;
   matched_team_name?: string | null;
   confidence: number;
   top_candidates: OcrCandidate[]; // user-shaped candidates ({user_id, username, team_name?, confidence})

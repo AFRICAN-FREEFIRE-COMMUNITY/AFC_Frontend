@@ -93,7 +93,8 @@
       "wins": "Vitórias",
       "kills": "Abates",
       "events": "Torneios"
-    }
+    },
+    "showingPrevious": "Mostrando {shown}. {pending} ainda não foi publicado."
   },
   "latestNews": {
     "title": "Últimas Notícias e Atualizações",
