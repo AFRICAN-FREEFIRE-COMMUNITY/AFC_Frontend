@@ -177,6 +177,10 @@
       "sent": "Envoyé",
       "delivered": "Livré",
       "read": "Lu"
-    }
+    },
+    "sentFallback": "Détails de la salle envoyés aux joueurs.",
+    "channels": "{pushed} dans l'app, {emailed} par e-mail, {whatsapped} sur WhatsApp",
+    "skippedNoNumber": ", {count} sans numéro WhatsApp",
+    "resentFallback": "Renvoyé."
   }
 }

@@ -138,4 +138,10 @@ export const rankingsAdminApi = {
   // endpoints return nothing until published).
   adminTeamsQuarterly: (seasonId?: number) => aGet("admin/teams/quarterly/", seasonId ? { season_id: seasonId } : undefined),
   adminPlayersQuarterly: (seasonId?: number) => aGet("admin/players/quarterly/", seasonId ? { season_id: seasonId } : undefined),
+  // Monthly twins of the two draft reads above (afc_rankings.admin_publish.admin_teams_monthly /
+  // admin_players_monthly). `month` is "YYYY-MM"; omit it to get the newest month that actually has
+  // scores. The envelope adds `month` + `published` - published only REPORTS whether the period is
+  // live to the public here, it never withholds rows. Consumed by app/(a)/a/rankings/ladders.
+  adminTeamsMonthly: (month?: string) => aGet("admin/teams/monthly/", month ? { month } : undefined),
+  adminPlayersMonthly: (month?: string) => aGet("admin/players/monthly/", month ? { month } : undefined),
 };

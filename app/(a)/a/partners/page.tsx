@@ -1,18 +1,31 @@
 "use client";
 
-// ── Admin · Partners list ────────────────────────────────────────────────────
-// Head-admin / partner-admin view of EVERY data-API partner (afc_partner_api admin
-// API). A Partner is an AFC-approved external consumer of completed/published
-// tournament data; this list is the entry point into managing one. Mirrors the
-// admin Organizations list idiom (app/(a)/a/organizations/page.tsx): search box +
-// shadcn Table + the shared Pagination component, plus a "Create partner" dialog.
-// Paginates SERVER-side via partnersApi.listPartners({ search, limit, offset })
-// because that endpoint already returns { results, total_count, has_more }.
-// Each row links to /a/partners/[slug] for the scope/toggles/keys detail view.
+// ── Admin · API Keys ─────────────────────────────────────────────────────────
+// One page, TWO partner programs, one per tab (owner 2026-08-03, "where do we control
+// the sso for our partners, can it be under api keys"):
+//
+//   Data API           - every afc_partner_api Partner: an AFC-approved external
+//                        consumer of completed/published tournament data, with its
+//                        per-partner field toggles and issued API keys. This file.
+//   Sign in with AFC   - every afc_sso AFCSSOApplication: a partner site that lets
+//                        players sign in with their AFC account, with the eight
+//                        toggles deciding what it may read about them. Rendered by
+//                        _components/SsoAppsPanel.tsx (backend afc_sso/admin_api.py).
+//
+// They sit together because they are the same idea for different products, and staff
+// approve both through the same process.
+//
+// The Data API tab below mirrors the admin Organizations list idiom
+// (app/(a)/a/organizations/page.tsx): search box + shadcn Table + the shared
+// Pagination component, plus a "Create partner" dialog. It paginates SERVER-side via
+// partnersApi.listPartners({ search, limit, offset }) because that endpoint already
+// returns { results, total_count, has_more }. Each row links to /a/partners/[slug]
+// for the scope/toggles/keys detail view.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { FullLoader } from "@/components/Loader";
@@ -47,10 +60,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { IconPlus, IconSearch, IconX } from "@tabler/icons-react";
 import { partnersApi, type PartnerSummary } from "@/lib/partners";
 import { InfoTip } from "@/components/ui/info-tip";
+import SsoAppsPanel from "./_components/SsoAppsPanel";
 
 // Shared status pill - outline badge whose border/text colour tracks the partner
 // status (active = green, suspended = orange, anything else = neutral). Same idiom
@@ -80,6 +95,15 @@ export default function PartnersAdminPage() {
   // straight to its detail page (where the Connection details + Issue key + Scope &
   // Toggles controls live). See handleCreate below.
   const router = useRouter();
+
+  // Tab labels live in the `ssoAdmin` namespace because that is the namespace the
+  // second tab's whole surface uses; the Data API tab's own copy is unchanged here.
+  const t = useTranslations("ssoAdmin");
+
+  // Which partner program is on screen. Controlled state (not defaultValue) so the
+  // header description can follow the active tab. "data" first: it is the older,
+  // busier program and the anchors the admin tour walks live in it.
+  const [tab, setTab] = useState("data");
 
   const [partners, setPartners] = useState<PartnerSummary[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -183,170 +207,197 @@ export default function PartnersAdminPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-1">
-        <PageHeader
-          // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
-          // Heading reads "API Keys" (owner request 2026-06-09) to match the renamed
-          // sidebar entry. The underlying entity is still a Partner (an AFC-approved
-          // external API consumer that holds an API key); only the user-facing label changed.
-          title={
-            <span className="inline-flex items-center">
-              API Keys
-              <InfoTip id="partners._page" className="ml-1.5" />
-            </span>
-          }
-          description={`${totalCount} API key${totalCount !== 1 ? "s" : ""}`}
-        />
-        {/* ⓘ sits beside the create button (sibling, not nested). */}
-        <div className="flex w-full items-center gap-1 md:w-auto">
-          {/* data-tour="orgs-misc-partners-create": admin-tour anchor (orgs-misc area). */}
-          <Button
-            data-tour="orgs-misc-partners-create"
-            className="w-full md:w-auto"
-            onClick={() => setCreateOpen(true)}
-          >
-            <IconPlus />
-            Create API key
-          </Button>
-          <InfoTip id="partners.create" />
-        </div>
-      </div>
+      <PageHeader
+        // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
+        // Heading reads "API Keys" (owner request 2026-06-09) to match the renamed
+        // sidebar entry. It now covers BOTH partner programs (see the file header), so the
+        // description follows the active tab rather than always counting data-API keys.
+        title={
+          <span className="inline-flex items-center">
+            API Keys
+            <InfoTip id="partners._page" className="ml-1.5" />
+          </span>
+        }
+        description={
+          tab === "data"
+            ? `${totalCount} API key${totalCount !== 1 ? "s" : ""}`
+            : undefined
+        }
+      />
 
-      {/* Search - debounce-free; each keystroke triggers a server refetch via the
-          fetchPartners dependency on `search` (matches the organizations search UX). */}
-      <div className="relative">
-        <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        {/* data-tour="orgs-misc-partners-search": admin-tour anchor (orgs-misc area). */}
-        <Input
-          data-tour="orgs-misc-partners-search"
-          placeholder="Search by name or slug..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
-        {search && (
-          <button
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            onClick={() => setSearch("")}
-          >
-            <IconX className="size-4" />
-          </button>
-        )}
-      </div>
+      {/* Two programs, one page. Controlled value so the header description above can
+          follow the tab; shadcn pill/segment style, per the AFC design constants. */}
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList className="w-full">
+          <TabsTrigger value="data" className="w-full">
+            {t("tabs.dataApi")}
+          </TabsTrigger>
+          <TabsTrigger value="sso" className="w-full">
+            {t("tabs.sso")}
+          </TabsTrigger>
+        </TabsList>
 
-      {partners.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center text-muted-foreground">
-            {search
-              ? "No API keys match your search."
-              : "No API keys yet. Create one to get started."}
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="pt-2">
-          <CardContent>
-            {/* data-tour="orgs-misc-partners-table": admin-tour anchor (orgs-misc area). */}
-            <div className="overflow-x-auto" data-tour="orgs-misc-partners-table">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Slug</TableHead>
-                    <TableHead>Status</TableHead>
-                    {/* data-tour="orgs-misc-partners-active-keys": admin-tour anchor (orgs-misc area). */}
-                    <TableHead data-tour="orgs-misc-partners-active-keys">
-                      <span className="inline-flex items-center">
-                        Active keys
-                        <InfoTip id="partners.active_keys" className="ml-1" />
-                      </span>
-                    </TableHead>
-                    <TableHead>Created</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {partners.map((p) => (
-                    <TableRow key={p.partner_id}>
-                      <TableCell className="font-medium">
-                        <Link
-                          href={`/a/partners/${p.slug}`}
-                          className="hover:text-primary hover:underline"
-                        >
-                          {p.name}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {p.slug}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={p.status} />
-                      </TableCell>
-                      <TableCell>{p.active_key_count ?? 0}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {p.created_at ? p.created_at.slice(0, 10) : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+        {/* ── Data API tab: the existing partner list, unchanged apart from being
+            wrapped here (the create action moved in with it so it only shows for
+            the program it belongs to). ── */}
+        <TabsContent value="data" className="mt-4 flex flex-col gap-6">
+          <div className="flex items-center justify-end gap-1">
+            {/* ⓘ sits beside the create button (sibling, not nested). */}
+            {/* data-tour="orgs-misc-partners-create": admin-tour anchor (orgs-misc area). */}
+            <Button
+              data-tour="orgs-misc-partners-create"
+              className="w-full md:w-auto"
+              onClick={() => setCreateOpen(true)}
+            >
+              <IconPlus />
+              Create API key
+            </Button>
+            <InfoTip id="partners.create" />
+          </div>
 
-            {totalPages > 1 && (
-              <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
-                <p className="text-xs text-muted-foreground">
-                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
-                  {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
-                </p>
-                {/* data-tour="orgs-misc-partners-pagination": admin-tour anchor (orgs-misc area). */}
-                <Pagination data-tour="orgs-misc-partners-pagination">
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        aria-disabled={page === 1}
-                        className={
-                          page === 1
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
-                    </PaginationItem>
-                    {pageNumbers.map((p, idx) =>
-                      p === "ellipsis" ? (
-                        <PaginationItem key={`ellipsis-${idx}`}>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      ) : (
-                        <PaginationItem key={p}>
-                          <PaginationLink
-                            isActive={page === p}
-                            onClick={() => setPage(p as number)}
-                            className="cursor-pointer"
-                          >
-                            {p}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ),
-                    )}
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() =>
-                          setPage((p) => Math.min(totalPages, p + 1))
-                        }
-                        aria-disabled={page === totalPages}
-                        className={
-                          page === totalPages
-                            ? "pointer-events-none opacity-50"
-                            : "cursor-pointer"
-                        }
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
+          {/* Search - debounce-free; each keystroke triggers a server refetch via the
+              fetchPartners dependency on `search` (matches the organizations search UX). */}
+          <div className="relative">
+            <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            {/* data-tour="orgs-misc-partners-search": admin-tour anchor (orgs-misc area). */}
+            <Input
+              data-tour="orgs-misc-partners-search"
+              placeholder="Search by name or slug..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+            {search && (
+              <button
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                onClick={() => setSearch("")}
+              >
+                <IconX className="size-4" />
+              </button>
             )}
-          </CardContent>
-        </Card>
-      )}
+          </div>
+
+          {partners.length === 0 ? (
+            <Card>
+              <CardContent className="py-16 text-center text-muted-foreground">
+                {search
+                  ? "No API keys match your search."
+                  : "No API keys yet. Create one to get started."}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="pt-2">
+              <CardContent>
+                {/* data-tour="orgs-misc-partners-table": admin-tour anchor (orgs-misc area). */}
+                <div className="overflow-x-auto" data-tour="orgs-misc-partners-table">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Slug</TableHead>
+                        <TableHead>Status</TableHead>
+                        {/* data-tour="orgs-misc-partners-active-keys": admin-tour anchor (orgs-misc area). */}
+                        <TableHead data-tour="orgs-misc-partners-active-keys">
+                          <span className="inline-flex items-center">
+                            Active keys
+                            <InfoTip id="partners.active_keys" className="ml-1" />
+                          </span>
+                        </TableHead>
+                        <TableHead>Created</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {partners.map((p) => (
+                        <TableRow key={p.partner_id}>
+                          <TableCell className="font-medium">
+                            <Link
+                              href={`/a/partners/${p.slug}`}
+                              className="hover:text-primary hover:underline"
+                            >
+                              {p.name}
+                            </Link>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {p.slug}
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge status={p.status} />
+                          </TableCell>
+                          <TableCell>{p.active_key_count ?? 0}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {p.created_at ? p.created_at.slice(0, 10) : "-"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="px-4 py-3 border-t flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <p className="text-xs text-muted-foreground">
+                      Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
+                      {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
+                    </p>
+                    {/* data-tour="orgs-misc-partners-pagination": admin-tour anchor (orgs-misc area). */}
+                    <Pagination data-tour="orgs-misc-partners-pagination">
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            aria-disabled={page === 1}
+                            className={
+                              page === 1
+                                ? "pointer-events-none opacity-50"
+                                : "cursor-pointer"
+                            }
+                          />
+                        </PaginationItem>
+                        {pageNumbers.map((p, idx) =>
+                          p === "ellipsis" ? (
+                            <PaginationItem key={`ellipsis-${idx}`}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          ) : (
+                            <PaginationItem key={p}>
+                              <PaginationLink
+                                isActive={page === p}
+                                onClick={() => setPage(p as number)}
+                                className="cursor-pointer"
+                              >
+                                {p}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ),
+                        )}
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() =>
+                              setPage((p) => Math.min(totalPages, p + 1))
+                            }
+                            aria-disabled={page === totalPages}
+                            className={
+                              page === totalPages
+                                ? "pointer-events-none opacity-50"
+                                : "cursor-pointer"
+                            }
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* ── Sign in with AFC tab: the SSO partner applications (afc_sso). Whole
+            surface lives in its own component so this file stays the Data API list. ── */}
+        <TabsContent value="sso" className="mt-4">
+          <SsoAppsPanel />
+        </TabsContent>
+      </Tabs>
 
       {/* ── Create partner dialog (name + optional contact email) ── */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>

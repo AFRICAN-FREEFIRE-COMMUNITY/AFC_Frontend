@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { EyeOffIcon, EyeIcon, Check, Loader2, Send } from "lucide-react";
 import { IconPencil } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import { RoomDeliveryPanel } from "./RoomDeliveryPanel";
 
 export const EditMatchModal = ({
@@ -47,6 +48,10 @@ export const EditMatchModal = ({
 }) => {
   const [open, setOpen] = useState(false);
   const { token } = useAuth();
+  // Same namespace the delivery panel below uses. The rest of this modal is still
+  // hardcoded English, part of the wider admin translation backlog, but anything added
+  // from 2026-08-03 onward is internationalized from creation.
+  const t = useTranslations("evEditStages");
   const [isVisible, setIsVisible] = useState(false);
 
   const [rId, setRId] = useState("");
@@ -135,15 +140,16 @@ export const EditMatchModal = ({
       // rely on WhatsApp got anything. `whatsapp_skipped` counts players with no number on
       // file or who opted out, which is a profile problem, not a delivery failure.
       const d = res.data || {};
-      const parts = [
-        `${d.pushed ?? 0} in-app`,
-        `${d.emailed ?? 0} email`,
-        `${d.whatsapped ?? 0} WhatsApp`,
-      ];
+      const channels = t("waDelivery.channels", {
+        pushed: d.pushed ?? 0,
+        emailed: d.emailed ?? 0,
+        whatsapped: d.whatsapped ?? 0,
+      });
+      const skipped = d.whatsapp_skipped
+        ? t("waDelivery.skippedNoNumber", { count: d.whatsapp_skipped })
+        : "";
       toast.success(
-        `${d.message || "Room details sent to players."} (${parts.join(", ")}` +
-          (d.whatsapp_skipped ? `, ${d.whatsapp_skipped} without a WhatsApp number` : "") +
-          ")",
+        `${d.message || t("waDelivery.sentFallback")} (${channels}${skipped})`,
       );
       setDeliveryKey((k) => k + 1); // make the delivery panel re-read after a send
       // No refetch here either (keeps the modal open after sending); parent syncs on close.

@@ -1,0 +1,136 @@
+{
+  "tabs": {
+    "dataApi": "Data API",
+    "sso": "Sign in with AFC"
+  },
+  "intro": "Partner sites that let players sign in with their AFC account. Each toggle below decides the most a partner can ever learn about a player, and every one starts off.",
+  "search": "Search by name or client ID...",
+  "clearSearch": "Clear search",
+  "add": "Add partner",
+  "count": "{count, plural, =0 {No sign-in partners} one {# sign-in partner} other {# sign-in partners}}",
+  "manage": "Manage",
+  "loadFailed": "We could not load the sign-in partners. Please try again.",
+  "table": {
+    "name": "Name",
+    "clientId": "Client ID",
+    "status": "Status",
+    "sharing": "Data shared",
+    "created": "Created",
+    "actions": "Actions",
+    "sharingValue": "{count} of {total}"
+  },
+  "status": {
+    "active": "Active",
+    "suspended": "Suspended"
+  },
+  "empty": {
+    "none": "No sign-in partners yet. Add one to let a partner site offer Sign in with AFC.",
+    "noMatch": "No sign-in partners match your search."
+  },
+  "create": {
+    "title": "Add sign-in partner",
+    "description": "Register a partner site that may offer Sign in with AFC. It starts with every data toggle off, so it learns nothing about a player until you grant it.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Partner Esports",
+    "nameHint": "Internal name for AFC staff.",
+    "displayName": "Display name",
+    "displayNameHint": "The name the player sees on the sign-in screen. Defaults to the name above.",
+    "redirectUris": "Redirect URIs",
+    "redirectUrisPlaceholder": "https://partner.example/auth/afc/callback",
+    "redirectUrisHint": "Where AFC sends the player back after they sign in. One per line, https only (http is allowed for localhost during development).",
+    "homepage": "Homepage URL",
+    "logo": "Logo URL",
+    "webhook": "Deletion webhook URL",
+    "webhookHint": "Where AFC signals that a player has disconnected. Leave empty if the partner has none.",
+    "optional": "(optional)",
+    "cancel": "Cancel",
+    "submit": "Add partner",
+    "submitting": "Adding...",
+    "created": "Sign-in partner added.",
+    "failed": "We could not add the sign-in partner. Please try again."
+  },
+  "secret": {
+    "title": "Client secret",
+    "description": "Give the partner the client ID and this secret. Copy it now: it is stored hashed, so this is the only time it can be shown.",
+    "clientId": "Client ID",
+    "clientSecret": "Client secret",
+    "copy": "Copy",
+    "copyFailed": "We could not copy it. Select the text and copy it manually.",
+    "done": "Done"
+  },
+  "edit": {
+    "title": "Manage {name}",
+    "description": "Everything this partner may read about a player, and where AFC is allowed to send them back to.",
+    "identity": "Identity",
+    "connection": "Connection",
+    "dataTitle": "What this partner can read",
+    "dataIntro": "Each switch below grants one thing, and the wording is exactly what the player is asked to approve. Off means the partner can never receive it, whatever it asks for.",
+    "defaultOff": "Everything is off by default. Turn on only what this partner has been approved for.",
+    "onCount": "{count} of {total} on",
+    "nothingShared": "Nothing shared. This partner can confirm who a player is and nothing else.",
+    "save": "Save changes",
+    "saving": "Saving...",
+    "saved": "Sign-in partner updated.",
+    "failed": "We could not save the changes. Please try again.",
+    "close": "Close"
+  },
+  "toggles": {
+    "share_profile": {
+      "label": "Profile",
+      "description": "Your in-game name, avatar, country and language"
+    },
+    "share_email": {
+      "label": "Email address",
+      "description": "Your email address"
+    },
+    "share_freefire_uid": {
+      "label": "Free Fire UID",
+      "description": "Your Free Fire UID"
+    },
+    "share_team": {
+      "label": "Team",
+      "description": "Your current team and your role in it"
+    },
+    "share_history": {
+      "label": "Tournament history",
+      "description": "Tournaments you have played"
+    },
+    "share_stats": {
+      "label": "Match statistics",
+      "description": "Your match statistics"
+    },
+    "share_ranking": {
+      "label": "AFC ranking",
+      "description": "Your AFC rank and ranking points"
+    },
+    "share_standing": {
+      "label": "Account standing",
+      "description": "Whether your AFC account is in good standing"
+    }
+  },
+  "suspend": {
+    "sectionTitle": "Danger zone",
+    "suspend": "Suspend partner",
+    "unsuspend": "Unsuspend partner",
+    "suspendHint": "Stops every new sign-in with this partner. Players stay connected until their access expires, and nothing is deleted.",
+    "unsuspendHint": "Let this partner sign players in again. Its settings come back exactly as they were.",
+    "working": "Working...",
+    "confirmTitle": "Suspend {name}?",
+    "confirmBody": "Nobody will be able to sign in to {name} with their AFC account until you unsuspend it. Players who are already signed in stay signed in until their access expires. You can undo this at any time.",
+    "confirm": "Suspend",
+    "cancel": "Cancel",
+    "suspended": "{name} is suspended.",
+    "unsuspended": "{name} can sign players in again.",
+    "failed": "We could not change the suspension. Please try again."
+  },
+  "rotate": {
+    "button": "Rotate client secret",
+    "hint": "Issues a new secret and kills the old one straight away.",
+    "confirmTitle": "Rotate the client secret for {name}?",
+    "confirmBody": "The current secret stops working immediately. Sign in with AFC will fail for {name} until they deploy the new secret, and the new secret is shown only once. Only do this if the secret has leaked or the partner has lost it.",
+    "confirm": "Rotate secret",
+    "working": "Rotating...",
+    "rotated": "New client secret issued.",
+    "failed": "We could not rotate the secret. Please try again."
+  }
+}

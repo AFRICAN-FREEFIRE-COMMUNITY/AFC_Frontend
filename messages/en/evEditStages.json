@@ -177,6 +177,10 @@
       "sent": "Sent",
       "delivered": "Delivered",
       "read": "Read"
-    }
+    },
+    "sentFallback": "Room details sent to players.",
+    "channels": "{pushed} in-app, {emailed} email, {whatsapped} WhatsApp",
+    "skippedNoNumber": ", {count} without a WhatsApp number",
+    "resentFallback": "Resent."
   }
 }

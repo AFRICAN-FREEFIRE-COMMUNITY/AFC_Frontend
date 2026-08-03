@@ -3,31 +3,40 @@
 // Admin sub-nav for the Rankings dashboard, mounted once by app/(a)/a/rankings/layout.tsx so
 // every /a/rankings/* page shows it; order mirrors the admin workflow; role-gating is handled
 // upstream by adminNavLinks (head_admin + metrics_admin) in constants/nav-links.ts.
+//
+// i18n: labels come from the rankings namespace (messages/{en,fr,pt}/rankings.json -> admin.nav.*).
+// Client component, so it reads next-intl's useTranslations directly.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
   IconLayoutDashboard, IconClipboardCheck, IconSettings, IconGhost2,
   IconBrandInstagram, IconCoin, IconAdjustments, IconHistory, IconCalculator,
-  IconStack2,
+  IconStack2, IconTrophy,
 } from "@tabler/icons-react";
 
+// `key` indexes into the admin.nav.* message block; the English value lives there, never here.
 const ITEMS = [
-  { href: "/a/rankings", label: "Overview", icon: IconLayoutDashboard },
-  { href: "/a/rankings/scoring-config", label: "Scoring Config", icon: IconCalculator },
-  { href: "/a/rankings/tournament-tiers", label: "Tournament Tiers", icon: IconStack2 },
-  { href: "/a/rankings/results", label: "Result Markers", icon: IconClipboardCheck },
-  { href: "/a/rankings/seasons", label: "Seasons", icon: IconSettings },
-  { href: "/a/rankings/ghost-teams", label: "Ghost Teams", icon: IconGhost2 },
-  { href: "/a/rankings/social", label: "Social", icon: IconBrandInstagram },
-  { href: "/a/rankings/prize", label: "Prize", icon: IconCoin },
-  { href: "/a/rankings/overrides", label: "Overrides", icon: IconAdjustments },
-  { href: "/a/rankings/audit", label: "Audit", icon: IconHistory },
-];
+  { href: "/a/rankings", key: "overview", icon: IconLayoutDashboard },
+  // Ladders = the read-only preview of the team + player standings that publishing exposes
+  // (owner 2026-08-03: an admin was asked to publish a ladder they had no way to look at).
+  { href: "/a/rankings/ladders", key: "ladders", icon: IconTrophy },
+  { href: "/a/rankings/scoring-config", key: "scoringConfig", icon: IconCalculator },
+  { href: "/a/rankings/tournament-tiers", key: "tournamentTiers", icon: IconStack2 },
+  { href: "/a/rankings/results", key: "resultMarkers", icon: IconClipboardCheck },
+  { href: "/a/rankings/seasons", key: "seasons", icon: IconSettings },
+  { href: "/a/rankings/ghost-teams", key: "ghostTeams", icon: IconGhost2 },
+  { href: "/a/rankings/social", key: "social", icon: IconBrandInstagram },
+  { href: "/a/rankings/prize", key: "prize", icon: IconCoin },
+  { href: "/a/rankings/overrides", key: "overrides", icon: IconAdjustments },
+  { href: "/a/rankings/audit", key: "audit", icon: IconHistory },
+] as const;
 
 export function RankingsSubNav() {
   const pathname = usePathname();
+  const t = useTranslations("rankings.admin.nav");
   return (
     <div className="mb-5 flex gap-1 overflow-x-auto pb-1">
       {ITEMS.map((it) => {
@@ -41,7 +50,7 @@ export function RankingsSubNav() {
               active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted",
             )}
           >
-            <it.icon className="size-4" /> {it.label}
+            <it.icon className="size-4" /> {t(it.key)}
           </Link>
         );
       })}

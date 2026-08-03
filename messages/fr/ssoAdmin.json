@@ -1,0 +1,136 @@
+{
+  "tabs": {
+    "dataApi": "API de données",
+    "sso": "Se connecter avec AFC"
+  },
+  "intro": "Les sites partenaires qui permettent aux joueurs de se connecter avec leur compte AFC. Chaque interrupteur ci-dessous décide du maximum qu'un partenaire peut apprendre sur un joueur, et ils sont tous désactivés au départ.",
+  "search": "Rechercher par nom ou identifiant client...",
+  "clearSearch": "Effacer la recherche",
+  "add": "Ajouter un partenaire",
+  "count": "{count, plural, =0 {Aucun partenaire de connexion} one {# partenaire de connexion} other {# partenaires de connexion}}",
+  "manage": "Gérer",
+  "loadFailed": "Impossible de charger les partenaires de connexion. Veuillez réessayer.",
+  "table": {
+    "name": "Nom",
+    "clientId": "Identifiant client",
+    "status": "Statut",
+    "sharing": "Données partagées",
+    "created": "Créé le",
+    "actions": "Actions",
+    "sharingValue": "{count} sur {total}"
+  },
+  "status": {
+    "active": "Actif",
+    "suspended": "Suspendu"
+  },
+  "empty": {
+    "none": "Aucun partenaire de connexion pour l'instant. Ajoutez-en un pour qu'un site partenaire puisse proposer Se connecter avec AFC.",
+    "noMatch": "Aucun partenaire de connexion ne correspond à votre recherche."
+  },
+  "create": {
+    "title": "Ajouter un partenaire de connexion",
+    "description": "Enregistrez un site partenaire autorisé à proposer Se connecter avec AFC. Il démarre avec toutes les données désactivées : il n'apprend donc rien sur un joueur tant que vous ne lui accordez rien.",
+    "name": "Nom",
+    "namePlaceholder": "ex. Partner Esports",
+    "nameHint": "Nom interne, pour l'équipe AFC.",
+    "displayName": "Nom affiché",
+    "displayNameHint": "Le nom que le joueur voit sur l'écran de connexion. Par défaut, le nom ci-dessus.",
+    "redirectUris": "URI de redirection",
+    "redirectUrisPlaceholder": "https://partner.example/auth/afc/callback",
+    "redirectUrisHint": "L'adresse à laquelle AFC renvoie le joueur après sa connexion. Une par ligne, en https uniquement (http est accepté pour localhost pendant le développement).",
+    "homepage": "URL du site",
+    "logo": "URL du logo",
+    "webhook": "URL du webhook de suppression",
+    "webhookHint": "L'adresse à laquelle AFC signale qu'un joueur s'est déconnecté. Laissez vide si le partenaire n'en a pas.",
+    "optional": "(facultatif)",
+    "cancel": "Annuler",
+    "submit": "Ajouter le partenaire",
+    "submitting": "Ajout en cours...",
+    "created": "Partenaire de connexion ajouté.",
+    "failed": "Impossible d'ajouter le partenaire de connexion. Veuillez réessayer."
+  },
+  "secret": {
+    "title": "Secret client",
+    "description": "Transmettez au partenaire l'identifiant client et ce secret. Copiez-le maintenant : il est stocké sous forme hachée, c'est donc la seule fois où il peut être affiché.",
+    "clientId": "Identifiant client",
+    "clientSecret": "Secret client",
+    "copy": "Copier",
+    "copyFailed": "Impossible de le copier. Sélectionnez le texte et copiez-le manuellement.",
+    "done": "Terminé"
+  },
+  "edit": {
+    "title": "Gérer {name}",
+    "description": "Tout ce que ce partenaire peut lire sur un joueur, et les adresses vers lesquelles AFC a le droit de le renvoyer.",
+    "identity": "Identité",
+    "connection": "Connexion",
+    "dataTitle": "Ce que ce partenaire peut lire",
+    "dataIntro": "Chaque interrupteur ci-dessous accorde une chose, et la formulation est exactement celle que le joueur doit approuver. Désactivé signifie que le partenaire ne pourra jamais la recevoir, quoi qu'il demande.",
+    "defaultOff": "Tout est désactivé par défaut. N'activez que ce pour quoi ce partenaire a été approuvé.",
+    "onCount": "{count} sur {total} activés",
+    "nothingShared": "Rien de partagé. Ce partenaire peut confirmer qui est un joueur, et rien d'autre.",
+    "save": "Enregistrer les modifications",
+    "saving": "Enregistrement en cours...",
+    "saved": "Partenaire de connexion mis à jour.",
+    "failed": "Impossible d'enregistrer les modifications. Veuillez réessayer.",
+    "close": "Fermer"
+  },
+  "toggles": {
+    "share_profile": {
+      "label": "Profil",
+      "description": "Votre pseudo en jeu, votre avatar, votre pays et votre langue"
+    },
+    "share_email": {
+      "label": "Adresse e-mail",
+      "description": "Votre adresse e-mail"
+    },
+    "share_freefire_uid": {
+      "label": "UID Free Fire",
+      "description": "Votre UID Free Fire"
+    },
+    "share_team": {
+      "label": "Équipe",
+      "description": "Votre équipe actuelle et votre rôle dans celle-ci"
+    },
+    "share_history": {
+      "label": "Historique des tournois",
+      "description": "Les tournois auxquels vous avez participé"
+    },
+    "share_stats": {
+      "label": "Statistiques de match",
+      "description": "Vos statistiques de match"
+    },
+    "share_ranking": {
+      "label": "Classement AFC",
+      "description": "Votre classement AFC et vos points de classement"
+    },
+    "share_standing": {
+      "label": "Situation du compte",
+      "description": "Si votre compte AFC est en règle"
+    }
+  },
+  "suspend": {
+    "sectionTitle": "Zone sensible",
+    "suspend": "Suspendre le partenaire",
+    "unsuspend": "Réactiver le partenaire",
+    "suspendHint": "Bloque toute nouvelle connexion avec ce partenaire. Les joueurs restent connectés jusqu'à l'expiration de leur accès, et rien n'est supprimé.",
+    "unsuspendHint": "Autorise à nouveau ce partenaire à connecter des joueurs. Ses réglages reviennent exactement comme ils étaient.",
+    "working": "En cours...",
+    "confirmTitle": "Suspendre {name} ?",
+    "confirmBody": "Plus personne ne pourra se connecter à {name} avec son compte AFC tant que vous ne l'aurez pas réactivé. Les joueurs déjà connectés le restent jusqu'à l'expiration de leur accès. Vous pouvez annuler à tout moment.",
+    "confirm": "Suspendre",
+    "cancel": "Annuler",
+    "suspended": "{name} est suspendu.",
+    "unsuspended": "{name} peut de nouveau connecter des joueurs.",
+    "failed": "Impossible de modifier la suspension. Veuillez réessayer."
+  },
+  "rotate": {
+    "button": "Renouveler le secret client",
+    "hint": "Émet un nouveau secret et invalide l'ancien immédiatement.",
+    "confirmTitle": "Renouveler le secret client de {name} ?",
+    "confirmBody": "Le secret actuel cesse de fonctionner immédiatement. Se connecter avec AFC échouera pour {name} jusqu'à ce qu'ils déploient le nouveau secret, et ce nouveau secret n'est affiché qu'une seule fois. Ne le faites que si le secret a fuité ou si le partenaire l'a perdu.",
+    "confirm": "Renouveler le secret",
+    "working": "Renouvellement en cours...",
+    "rotated": "Nouveau secret client émis.",
+    "failed": "Impossible de renouveler le secret. Veuillez réessayer."
+  }
+}

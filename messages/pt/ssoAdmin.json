@@ -1,0 +1,136 @@
+{
+  "tabs": {
+    "dataApi": "API de dados",
+    "sso": "Iniciar sessão com a AFC"
+  },
+  "intro": "Os sites parceiros que permitem aos jogadores iniciar sessão com a sua conta AFC. Cada interruptor abaixo decide o máximo que um parceiro pode saber sobre um jogador, e todos começam desligados.",
+  "search": "Procurar por nome ou ID de cliente...",
+  "clearSearch": "Limpar pesquisa",
+  "add": "Adicionar parceiro",
+  "count": "{count, plural, =0 {Nenhum parceiro de início de sessão} one {# parceiro de início de sessão} other {# parceiros de início de sessão}}",
+  "manage": "Gerir",
+  "loadFailed": "Não foi possível carregar os parceiros de início de sessão. Tente novamente.",
+  "table": {
+    "name": "Nome",
+    "clientId": "ID de cliente",
+    "status": "Estado",
+    "sharing": "Dados partilhados",
+    "created": "Criado a",
+    "actions": "Ações",
+    "sharingValue": "{count} de {total}"
+  },
+  "status": {
+    "active": "Ativo",
+    "suspended": "Suspenso"
+  },
+  "empty": {
+    "none": "Ainda não há parceiros de início de sessão. Adicione um para que um site parceiro possa oferecer Iniciar sessão com a AFC.",
+    "noMatch": "Nenhum parceiro de início de sessão corresponde à sua pesquisa."
+  },
+  "create": {
+    "title": "Adicionar parceiro de início de sessão",
+    "description": "Registe um site parceiro autorizado a oferecer Iniciar sessão com a AFC. Começa com todos os dados desligados, por isso não fica a saber nada sobre um jogador enquanto não lhe conceder acesso.",
+    "name": "Nome",
+    "namePlaceholder": "por exemplo, Partner Esports",
+    "nameHint": "Nome interno, para a equipa da AFC.",
+    "displayName": "Nome apresentado",
+    "displayNameHint": "O nome que o jogador vê no ecrã de início de sessão. Por predefinição, o nome acima.",
+    "redirectUris": "URI de redirecionamento",
+    "redirectUrisPlaceholder": "https://partner.example/auth/afc/callback",
+    "redirectUrisHint": "Para onde a AFC envia o jogador de volta depois de iniciar sessão. Um por linha, apenas https (http é aceite para localhost durante o desenvolvimento).",
+    "homepage": "URL do site",
+    "logo": "URL do logótipo",
+    "webhook": "URL do webhook de eliminação",
+    "webhookHint": "Para onde a AFC avisa que um jogador se desligou. Deixe vazio se o parceiro não tiver nenhum.",
+    "optional": "(opcional)",
+    "cancel": "Cancelar",
+    "submit": "Adicionar parceiro",
+    "submitting": "A adicionar...",
+    "created": "Parceiro de início de sessão adicionado.",
+    "failed": "Não foi possível adicionar o parceiro de início de sessão. Tente novamente."
+  },
+  "secret": {
+    "title": "Segredo de cliente",
+    "description": "Entregue ao parceiro o ID de cliente e este segredo. Copie-o agora: fica guardado com hash, por isso esta é a única vez que pode ser mostrado.",
+    "clientId": "ID de cliente",
+    "clientSecret": "Segredo de cliente",
+    "copy": "Copiar",
+    "copyFailed": "Não foi possível copiar. Selecione o texto e copie manualmente.",
+    "done": "Concluído"
+  },
+  "edit": {
+    "title": "Gerir {name}",
+    "description": "Tudo o que este parceiro pode ler sobre um jogador, e os endereços para onde a AFC o pode devolver.",
+    "identity": "Identidade",
+    "connection": "Ligação",
+    "dataTitle": "O que este parceiro pode ler",
+    "dataIntro": "Cada interruptor abaixo concede uma coisa, e o texto é exatamente aquele que o jogador tem de aprovar. Desligado significa que o parceiro nunca a poderá receber, independentemente do que peça.",
+    "defaultOff": "Está tudo desligado por predefinição. Ligue apenas aquilo para que este parceiro foi aprovado.",
+    "onCount": "{count} de {total} ligados",
+    "nothingShared": "Nada partilhado. Este parceiro pode confirmar quem é um jogador e mais nada.",
+    "save": "Guardar alterações",
+    "saving": "A guardar...",
+    "saved": "Parceiro de início de sessão atualizado.",
+    "failed": "Não foi possível guardar as alterações. Tente novamente.",
+    "close": "Fechar"
+  },
+  "toggles": {
+    "share_profile": {
+      "label": "Perfil",
+      "description": "O seu nome no jogo, avatar, país e idioma"
+    },
+    "share_email": {
+      "label": "Endereço de e-mail",
+      "description": "O seu endereço de e-mail"
+    },
+    "share_freefire_uid": {
+      "label": "UID do Free Fire",
+      "description": "O seu UID do Free Fire"
+    },
+    "share_team": {
+      "label": "Equipa",
+      "description": "A sua equipa atual e a sua função nela"
+    },
+    "share_history": {
+      "label": "Histórico de torneios",
+      "description": "Os torneios em que participou"
+    },
+    "share_stats": {
+      "label": "Estatísticas de jogo",
+      "description": "As suas estatísticas de jogo"
+    },
+    "share_ranking": {
+      "label": "Classificação AFC",
+      "description": "A sua classificação AFC e pontos de classificação"
+    },
+    "share_standing": {
+      "label": "Situação da conta",
+      "description": "Se a sua conta AFC está em situação regular"
+    }
+  },
+  "suspend": {
+    "sectionTitle": "Zona de risco",
+    "suspend": "Suspender parceiro",
+    "unsuspend": "Reativar parceiro",
+    "suspendHint": "Impede qualquer novo início de sessão com este parceiro. Os jogadores continuam ligados até o acesso expirar, e nada é eliminado.",
+    "unsuspendHint": "Volta a permitir que este parceiro inicie sessão a jogadores. As definições regressam exatamente como estavam.",
+    "working": "A processar...",
+    "confirmTitle": "Suspender {name}?",
+    "confirmBody": "Ninguém conseguirá iniciar sessão em {name} com a conta AFC até o reativar. Os jogadores que já iniciaram sessão continuam ligados até o acesso expirar. Pode anular isto a qualquer momento.",
+    "confirm": "Suspender",
+    "cancel": "Cancelar",
+    "suspended": "{name} está suspenso.",
+    "unsuspended": "{name} já pode voltar a iniciar sessão a jogadores.",
+    "failed": "Não foi possível alterar a suspensão. Tente novamente."
+  },
+  "rotate": {
+    "button": "Renovar segredo de cliente",
+    "hint": "Emite um novo segredo e invalida o antigo de imediato.",
+    "confirmTitle": "Renovar o segredo de cliente de {name}?",
+    "confirmBody": "O segredo atual deixa de funcionar de imediato. Iniciar sessão com a AFC vai falhar em {name} até implementarem o novo segredo, e esse novo segredo só é mostrado uma vez. Faça isto apenas se o segredo tiver sido divulgado ou o parceiro o tiver perdido.",
+    "confirm": "Renovar segredo",
+    "working": "A renovar...",
+    "rotated": "Novo segredo de cliente emitido.",
+    "failed": "Não foi possível renovar o segredo. Tente novamente."
+  }
+}
