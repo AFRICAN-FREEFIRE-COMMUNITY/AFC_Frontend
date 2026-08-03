@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * components/ui/letter-avatar-picker.tsx — A-Z Letter-Avatar picker primitive.
+ * components/ui/letter-avatar-picker.tsx - A-Z Letter-Avatar picker primitive.
  *
  * Purpose
  * -------
@@ -26,7 +26,7 @@
  *    cannot be unset by hand.
  *  - i18n: every component in components/ui/ is locale-agnostic by repo
  *    convention (NONE of them call useTranslations). User-facing words are taken
- *    as props with English defaults — exactly like phone-combobox's
+ *    as props with English defaults - exactly like phone-combobox's
  *    `otherLabel = 'Use "{q}"'`. The consuming feature component passes the
  *    translated strings from ITS namespace (e.g. `t('letterAvatars.selectAll')`)
  *    so this primitive never reaches into the message catalog itself. The
@@ -114,7 +114,7 @@ export interface LetterAvatarPickerProps {
 }
 
 /**
- * LetterAvatarPicker — controlled A-Z toggle grid. See file header for the full
+ * LetterAvatarPicker - controlled A-Z toggle grid. See file header for the full
  * contract and caller map.
  */
 export function LetterAvatarPicker({
@@ -259,7 +259,7 @@ export function LetterAvatarPicker({
               title={isLocked ? lockedHint : undefined}
               onClick={interactive ? () => toggle(letter) : undefined}
               className={cn(
-                // Base chip: square-ish, rounded-full, text-xs — the tier-badge idiom.
+                // Base chip: square-ish, rounded-full, text-xs - the tier-badge idiom.
                 "flex h-9 w-full items-center justify-center rounded-full border text-xs font-semibold transition-colors outline-none",
                 "focus-visible:ring-ring/50 focus-visible:ring-[3px]",
                 isSelected

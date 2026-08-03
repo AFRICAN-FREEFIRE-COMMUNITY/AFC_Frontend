@@ -286,7 +286,7 @@
       "uploading": "Carregando imagem de esport...",
       "saved": "Imagem de esport salva.",
       "uploadFailed": "Falha ao carregar a imagem de esport.",
-      "tooLarge": "Essa imagem é demasiado grande. O tamanho máximo é de 15 MB — por favor, escolha uma fotografia mais pequena (uma fotografia normal tirada com o telemóvel serve)."
+      "tooLarge": "Essa imagem é demasiado grande. O tamanho máximo é de 15 MB - por favor, escolha uma fotografia mais pequena (uma fotografia normal tirada com o telemóvel serve)."
     },
     "identityLocked": "Bloqueado enquanto estiver registado para um evento. Pode editar isto novamente assim que os seus eventos terminarem.",
     "statsVisible": {

@@ -1,14 +1,14 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AdminTour.tsx  —  the interactive guided walkthrough for the admin area
+// AdminTour.tsx  -  the interactive guided walkthrough for the admin area
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   This is the "Take a tour" guide the owner asked about ("where is the guide /
 //   helper for the admin section, I don't see it"). It is a STEP-BY-STEP TOUR that
 //   highlights the real controls on an admin page one at a time, with Next / Back /
 //   Skip. It is SEPARATE from the per-element ⓘ InfoTip tooltips (info-tip.tsx +
-//   lib/help-content.ts) that already sit next to individual fields — the tooltips
+//   lib/help-content.ts) that already sit next to individual fields - the tooltips
 //   explain one control on hover; the tour walks you through the whole page.
 //
 // WHAT THIS FILE EXPORTS
@@ -22,7 +22,7 @@
 // HOW IT CONNECTS (data + callers)
 //   - STEPS come from app/(a)/a/_components/admin-tour-steps.ts
 //     (ADMIN_TOUR_STEPS[pageKey]). Each step targets a real control by CSS selector
-//     — mostly the [data-tour="…"] hooks we added on the admin pages.
+//     - mostly the [data-tour="…"] hooks we added on the admin pages.
 //   - The LAUNCHER + AUTO-SHOW are mounted from the persistent admin header,
 //     components/site-header.tsx → <AdminTourLauncher/>, which reads the current
 //     pathname (usePathname), resolves it to a pageKey via resolveAdminTourPageKey,
@@ -50,7 +50,7 @@
 //   - allowClose + Escape + overlay click all end the tour and mark it done.
 //
 // COPY RULES: NO em or en dashes in any user-facing string. (Comments may use the
-// box-drawing dash above — that never renders to the user.)
+// box-drawing dash above - that never renders to the user.)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import * as React from "react";
@@ -80,14 +80,14 @@ function hasSeenTour(pageKey: AdminTourPageKey): boolean {
   }
 }
 
-// Persist the "seen" flag. Swallows storage errors (quota / disabled) silently —
+// Persist the "seen" flag. Swallows storage errors (quota / disabled) silently - 
 // failing to remember is harmless, it just means the tour might auto-show again.
 function setSeenTour(pageKey: AdminTourPageKey): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(doneStorageKey(pageKey), "1");
   } catch {
-    /* storage unavailable — ignore */
+    /* storage unavailable - ignore */
   }
 }
 
@@ -229,7 +229,7 @@ export function useAdminTour(pageKey: AdminTourPageKey) {
       ADMIN_TOUR_STEPS[pageKey] ?? [],
       () => driverRef.current,
     );
-    if (steps.length === 0) return; // nothing to show — do not open an empty overlay
+    if (steps.length === 0) return; // nothing to show - do not open an empty overlay
 
     // Destroy a previous run before starting a new one.
     destroy();
@@ -301,12 +301,12 @@ export function AdminTourButton({
 // Mount this once per admin page (we mount it from the header). On the user's FIRST
 // visit to a page (no "done" flag yet) it auto-opens the tour after a short delay so
 // the page's async content has time to render. After that it does nothing on its own
-// — the user replays via <AdminTourButton>.
+// - the user replays via <AdminTourButton>.
 export function AdminTour({ pageKey }: { pageKey: AdminTourPageKey }) {
   const { start } = useAdminTour(pageKey);
 
   React.useEffect(() => {
-    // Respect the "already seen / dismissed" flag — never auto-show twice.
+    // Respect the "already seen / dismissed" flag - never auto-show twice.
     if (hasSeenTour(pageKey)) return;
 
     // Wait a beat so PageHeaders, tables and tab content have mounted; otherwise

@@ -63,7 +63,7 @@ import { matchesSearch } from "@/lib/search";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizer } from "../_components/OrganizerContext";
 import { useLiveTick } from "@/hooks/useLiveTick";
-// Standalone (event-less) leaderboards section — shared with the admin surface, scoped here to this
+// Standalone (event-less) leaderboards section - shared with the admin surface, scoped here to this
 // org via organizationId so the organizer only sees + creates leaderboards owned by their org.
 import { StandaloneLeaderboardList } from "@/app/(a)/a/leaderboards/standalone/_components/StandaloneLeaderboardList";
 

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// guided-tour-stops.ts  —  the ordered stop list for the interactive welcome tour
+// guided-tour-stops.ts  -  the ordered stop list for the interactive welcome tour
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   One central, ordered catalogue describing every STOP in the guided welcome

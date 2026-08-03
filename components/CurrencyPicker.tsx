@@ -1,11 +1,11 @@
 "use client";
 
 /**
- * CurrencyPicker.tsx — <CurrencyPicker/>
+ * CurrencyPicker.tsx - <CurrencyPicker/>
  * ──────────────────────────────────────
  * Lets the user choose the currency money is DISPLAYED in (multi-currency, owner 2026-06-30).
  * Reads/writes CurrencyContext (setCurrency persists to localStorage + the user's profile via
- * /auth/set-currency/). Independent of the RHF profile form — it applies immediately on change.
+ * /auth/set-currency/). Independent of the RHF profile form - it applies immediately on change.
  *
  * `label` is passed in already-translated by the caller (so this stays i18n-agnostic + reusable).
  * Used on the profile edit page beside the language selector.
@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// AFC-relevant currencies + majors. Codes are ISO-4217 (universal — not translated); the friendly
+// AFC-relevant currencies + majors. Codes are ISO-4217 (universal - not translated); the friendly
 // name is in English (currency names aren't user-content). Order: the community's main currencies first.
 const CURRENCIES: { code: string; name: string }[] = [
   { code: "USD", name: "US Dollar" },

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// ApprovalBadge — the product approval-status pill for the vendor PRODUCTS section
+// ApprovalBadge - the product approval-status pill for the vendor PRODUCTS section
 // (products/page.tsx). Sibling to StateBadge (the fulfilment-state pill) so the two
 // vendor surfaces read as one designer's work: same outline Badge, rounded-full,
 // text-xs, coloured by state.

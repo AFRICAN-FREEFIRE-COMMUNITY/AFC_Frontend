@@ -2,7 +2,7 @@
   "teams": {
     "roster": {
       "_page": "Gérez l'effectif de votre équipe : définissez le rôle de chaque membre dans le jeu et au sein de l'encadrement, ou retirez-le de l'effectif. Seuls le propriétaire de l'équipe et les entraîneurs peuvent gérer l'effectif ; les capitaines n'en ont pas le droit.",
-      "in_game_role": "Le rôle occupé par un joueur (attaquant, tireur d'élite, soutien, grenadier). Seuls les JOUEURS – capitaine, vice-capitaine ou membre – peuvent avoir un rôle dans le jeu, et une équipe peut en aligner au maximum 6.",
+      "in_game_role": "Le rôle occupé par un joueur (attaquant, tireur d'élite, soutien, grenadier). Seuls les JOUEURS - capitaine, vice-capitaine ou membre - peuvent avoir un rôle dans le jeu, et une équipe peut en aligner au maximum 6.",
       "management_role": "Le rôle d'un membre au sein de l'équipe. Les JOUEURS (capitaine, vice-capitaine, membre) participent aux compétitions et peuvent occuper un rôle dans le jeu. Le PERSONNEL (entraîneur, manager, analyste) n'assure qu'un rôle de soutien, n'est jamais aligné en tant que joueur, et une équipe ne peut compter qu'un seul représentant de chaque catégorie. Le passage d'un membre du statut de joueur à celui de membre du personnel n'est autorisé que pendant la période des transferts."
     },
     "create": {

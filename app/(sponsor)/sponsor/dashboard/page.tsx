@@ -366,7 +366,7 @@ function LegacySponsorDashboard() {
         </Select>
       </div>
 
-      {/* Table — data-tour: Sponsor Tour "your events and registrants" step. Wraps the
+      {/* Table - data-tour: Sponsor Tour "your events and registrants" step. Wraps the
           registrants table region so the anchor is present in both the empty and
           populated states. The scoped dashboard carries the same anchor name. */}
       <div data-tour="sponsor-dashboard-list">

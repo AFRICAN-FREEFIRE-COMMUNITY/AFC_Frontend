@@ -61,7 +61,7 @@ export default async function RootLayout({
           generateMetadata overrides it where richer data exists. The old manual
           <meta property="og:image" content="/opengraph.png"> here was a RELATIVE
           URL (uncrawlable) that also pointed at a non-existent file, so it is
-          removed — the Metadata API handles the default correctly.
+          removed - the Metadata API handles the default correctly.
         */}
         <script
           type="application/ld+json"

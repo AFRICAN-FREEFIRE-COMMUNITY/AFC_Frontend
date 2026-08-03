@@ -248,11 +248,11 @@
       },
       "cards": {
         "title": "As suas sobreposições guardadas",
-        "description": "Cada cartão é uma sobreposição com uma pré-visualização AO VIVO do seu link real. Altere o seu design, palco ou grupo, as animações ou o modo de sala 3D ao vivo, acione o temporizador ou o «booyah», escolha adversários para um confronto direto — o mesmo link atualiza-se automaticamente no seu software de streaming. Renomeie, duplique ou elimine a partir do cartão."
+        "description": "Cada cartão é uma sobreposição com uma pré-visualização AO VIVO do seu link real. Altere o seu design, palco ou grupo, as animações ou o modo de sala 3D ao vivo, acione o temporizador ou o «booyah», escolha adversários para um confronto direto - o mesmo link atualiza-se automaticamente no seu software de streaming. Renomeie, duplique ou elimine a partir do cartão."
       },
       "broadcast": {
         "title": "Controlo de transmissões e meios de comunicação social",
-        "description": "As sobreposições definidas para «Seguir a seleção da transmissão» mostram o que escolher aqui — pode alternar entre o palco ao vivo ou o grupo sem precisar de tocar no seu software de streaming. Ao lado, o painel de meios de transmissão mostra quais as equipas e jogadores que não têm logótipos ou imagens de e-sports, permite-lhe sinalizar imagens inadequadas (o proprietário é notificado) e ocultar um logótipo ou imagem apenas para este evento."
+        "description": "As sobreposições definidas para «Seguir a seleção da transmissão» mostram o que escolher aqui - pode alternar entre o palco ao vivo ou o grupo sem precisar de tocar no seu software de streaming. Ao lado, o painel de meios de transmissão mostra quais as equipas e jogadores que não têm logótipos ou imagens de e-sports, permite-lhe sinalizar imagens inadequadas (o proprietário é notificado) e ocultar um logótipo ou imagem apenas para este evento."
       }
     }
   },
@@ -1331,7 +1331,7 @@
     "searchEvents": "Pesquisar eventos...",
     "noEvents": "Não foram encontrados eventos.",
     "openOverlays": "Sobreposições abertas",
-    "pageDescription": "As sobreposições guardadas para este evento. Cada uma tem UM link permanente: basta adicioná-lo ao seu software de transmissão uma vez e, depois, pode alterar o seu design, palco ou grupo, animações ou ativá-lo a partir daqui — o link atualiza-se automaticamente.",
+    "pageDescription": "As sobreposições guardadas para este evento. Cada uma tem UM link permanente: basta adicioná-lo ao seu software de transmissão uma vez e, depois, pode alterar o seu design, palco ou grupo, animações ou ativá-lo a partir daqui - o link atualiza-se automaticamente.",
     "allEvents": "Todos os eventos",
     "captureKey": "Tecla de captura",
     "leaderboard": "Tabela de classificação",
@@ -1342,7 +1342,7 @@
     "defaultSuffix": "(padrão)",
     "addLeaderboard": "Adicionar sobreposição da tabela de classificação",
     "addTimer": "Adicionar temporizador",
-    "empty": "Ainda não há sobreposições. Cria uma a partir de um dos designs acima — receberás um link permanente para inserir no teu software de streaming e, depois, podes gerir tudo a partir daqui.",
+    "empty": "Ainda não há sobreposições. Cria uma a partir de um dos designs acima - receberás um link permanente para inserir no teu software de streaming e, depois, podes gerir tudo a partir daqui.",
     "kindLeaderboard": "Tabela de classificação",
     "kindTimer": "Temporizador",
     "rename": "Renomear sobreposição",
@@ -1375,14 +1375,14 @@
     "timerLabelPh": "por exemplo, PRÓXIMO JOGO",
     "trigger": "Gatilho",
     "hide": "Ocultar",
-    "timerHiddenHint": "Oculto — transparente até ser ativado.",
+    "timerHiddenHint": "Oculto - transparente até ser ativado.",
     "timerNeedsDuration": "Defina primeiro uma duração ou uma hora de término.",
     "timerLive": "O cronómetro está a funcionar.",
     "timerCreated": "Sobreposição do temporizador criada.",
     "copyLink": "Copiar link",
-    "copied": "Copiado de «{name}» — o link permanece sempre o mesmo.",
+    "copied": "Copiado de «{name}» - o link permanece sempre o mesmo.",
     "copyError": "Não foi possível copiar o link.",
-    "created": "Overlay «{name}» criado — basta copiar o link uma vez e editá-lo sempre que quiser.",
+    "created": "Overlay «{name}» criado - basta copiar o link uma vez e editá-lo sempre que quiser.",
     "createError": "Não foi possível criar a sobreposição.",
     "saveError": "Não foi possível guardar a sobreposição.",
     "duplicated": "Duplicado como «{name}».",

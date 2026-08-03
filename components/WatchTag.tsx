@@ -7,7 +7,7 @@
 // team/player admin pages, the upload review), warning them the subject is on the shared
 // advisory watchlist. Presentational only: the caller decides whether to render it (it
 // already knows the subject is watched, e.g. from watchlistApi.tags). The `reason` shows
-// on hover. Admin/organizer surfaces only — never public, never shown to the flagged user.
+// on hover. Admin/organizer surfaces only - never public, never shown to the flagged user.
 // ─────────────────────────────────────────────────────────────────────────────
 import { IconEye } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";

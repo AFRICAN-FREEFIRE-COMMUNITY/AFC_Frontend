@@ -103,7 +103,7 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
   // can remove any watchlist entry. Organizers can only remove entries they themselves added
   // (entry.added_by_id === user.user_id). This mirrors the server-side PATCH 403 rule; the
   // client-side check avoids the wasted round-trip in the happy path. A 403 can still arrive
-  // on a race (entry re-fetched while the page is open) — the existing catch block in remove()
+  // on a race (entry re-fetched while the page is open) - the existing catch block in remove()
   // already surfaces err.response.data.message via toast.error, so no extra handling is needed.
   const { user, isAdmin } = useAuth();
 
@@ -192,7 +192,7 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
         <p className="mt-1 text-sm text-muted-foreground">{labels.subtitle}</p>
       </div>
 
-      {/* ── Tabs (Players | Teams) — AFC pill segment ── */}
+      {/* ── Tabs (Players | Teams) - AFC pill segment ── */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="inline-flex rounded-md border bg-muted p-0.5">
           <button type="button" className={pillBtn(tab === "player")} onClick={() => setTab("player")}>
@@ -267,7 +267,7 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
                     </TableCell>
                     <TableCell className="p-2 text-right">
                       {canRemoveEntry(e) ? (
-                        // Admin OR the organizer who added this entry — show the destructive Remove button.
+                        // Admin OR the organizer who added this entry - show the destructive Remove button.
                         <Button
                           size="sm"
                           variant="outline"
@@ -278,7 +278,7 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
                           {labels.remove}
                         </Button>
                       ) : (
-                        // Organizer does not own this entry — show who added it instead of a Remove button.
+                        // Organizer does not own this entry - show who added it instead of a Remove button.
                         // The server also returns 403 on PATCH for this case (race guard); the existing
                         // catch in remove() would surface the server message via toast.error if it fires.
                         <span className="text-xs text-muted-foreground">

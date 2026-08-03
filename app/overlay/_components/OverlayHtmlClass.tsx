@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OverlayHtmlClass — toggles `class="overlay"` on <html> for the lifetime of any
+// OverlayHtmlClass - toggles `class="overlay"` on <html> for the lifetime of any
 // /overlay page. Paired with globals.css `html.overlay body { background: transparent }`
 // so the OBS Browser Source page paints fully see-through (only the leaderboard board
 // shows). Added on mount, removed on unmount so navigating AWAY from the overlay

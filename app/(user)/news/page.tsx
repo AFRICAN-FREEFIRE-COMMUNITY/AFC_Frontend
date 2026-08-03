@@ -169,7 +169,7 @@ const page = () => {
 
         // PUBLIC feed never shows SCHEDULED (not-yet-published) articles, even to a news admin.
         // get-all-news returns scheduled items to admins on purpose (so the ADMIN news page at
-        // /a/news can render + manage them), and this public list reuses that endpoint — so without
+        // /a/news can render + manage them), and this public list reuses that endpoint - so without
         // this guard an admin browsing /news saw their own scheduled posts inline. Admins manage
         // scheduled posts on /a/news; here we drop anything not yet published for everyone.
         const publishedNews = newsData.filter(

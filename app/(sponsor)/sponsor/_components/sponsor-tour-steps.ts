@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// sponsor-tour-steps.ts  —  step definitions for the guided Sponsor Tour
+// sponsor-tour-steps.ts  -  step definitions for the guided Sponsor Tour
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   Page-keyed catalogue of the "Take a tour" guided walkthrough for the SPONSOR
@@ -27,7 +27,7 @@
 //   tour works whichever variant renders.
 //
 // HOW IT CONNECTS
-//   - CONSUMED BY: ./SponsorTourLauncher.tsx — reads SPONSOR_TOUR_STEPS[pageKey],
+//   - CONSUMED BY: ./SponsorTourLauncher.tsx - reads SPONSOR_TOUR_STEPS[pageKey],
 //     translates each step, and drives driver.js. Mounted once in the sponsor
 //     header (app/(sponsor)/sponsor/layout.tsx); the page key comes from
 //     resolveSponsorTourPageKey(pathname).
@@ -52,7 +52,7 @@ export type SponsorTourPageKey = "dashboard";
 
 // ── Per-page steps ───────────────────────────────────────────────────────────
 export const SPONSOR_TOUR_STEPS: Record<SponsorTourPageKey, SponsorTourStep[]> = {
-  // Sponsor dashboard (app/(sponsor)/sponsor/dashboard/page.tsx — either the scoped
+  // Sponsor dashboard (app/(sponsor)/sponsor/dashboard/page.tsx - either the scoped
   // or the legacy dashboard; both carry these anchors).
   dashboard: [
     {

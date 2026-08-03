@@ -18,7 +18,7 @@
 // (afc_tournament_and_scrims.views.edit_match_scoring_config). That endpoint stores
 // match.scoring_settings ONLY (it does not recompute the stored per-map points), and it
 // already authorises AFC event admins OR org members holding can_upload_results on the
-// event's owning org — so no per-caller change is needed for the organizer. Because the
+// event's owning org - so no per-caller change is needed for the organizer. Because the
 // endpoint does not recompute points, the single-match "Save Scoring Config" action
 // calls back to the parent via onScoringSaved so the parent can re-save that map's
 // results (which DOES recompute) and refresh. The admin passes its handleSaveMatch; the
@@ -98,7 +98,7 @@ interface MatchScoringConfig {
 }
 
 interface ScoringConfigPanelProps {
-  // Every stage of the event, each with groups[].matches[] — drives the "Apply to..."
+  // Every stage of the event, each with groups[].matches[] - drives the "Apply to..."
   // fan-out (this group / each stage / each group / entire event). Admin + organizer both
   // pass eventData?.stages ?? [].
   stages: any[];

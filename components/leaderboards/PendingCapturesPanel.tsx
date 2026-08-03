@@ -1,15 +1,15 @@
 "use client";
 
 /**
- * PendingCapturesPanel — admin/organizer resolver for "decide later" capture uploads (complaint D).
+ * PendingCapturesPanel - admin/organizer resolver for "decide later" capture uploads (complaint D).
  *
  * When the desktop AFC Capture client has an EXTRA game (every configured map slot for a group is
  * already scored) the operator can choose "decide later", which parks the raw upload server-side
  * (afc_tournament_and_scrims.PendingCaptureUpload) instead of inventing a phantom map. This panel lists
  * those parked uploads for an event and lets an admin/organizer:
- *   • RESOLVE one — score it into a chosen group as a NEW map or as a REPLACEMENT of an existing map
+ *   • RESOLVE one - score it into a chosen group as a NEW map or as a REPLACEMENT of an existing map
  *     (runs the SAME scoring path a live upload uses), or
- *   • DISCARD one — drop a genuine mis-capture (wrong event, duplicate run).
+ *   • DISCARD one - drop a genuine mis-capture (wrong event, duplicate run).
  * Each action calls lib/pendingCaptures then refetches + calls onChanged() so the parent reloads the
  * standings. Mounted on the admin event leaderboard editor's Flagging tab (app/(a)/a/leaderboards/[id]/
  * edit). Admin (a)/ surface -> i18n-exempt (English copy). No pending captures -> renders nothing.

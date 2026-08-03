@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DesignBoard — PRESENTATIONAL live-leaderboard board for the OBS overlay.
+// DesignBoard - PRESENTATIONAL live-leaderboard board for the OBS overlay.
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   Renders one leaderboard DESIGN (background, placed connected-columns, logos,
@@ -10,7 +10,7 @@
 //   app/(a)/a/leaderboards/standalone/_components/DesignFieldsEditor.tsx (the draw
 //   at ~L1697-1842): SAME geometry (bg <img> unless transparent, fields absolutely
 //   positioned by x_pct + column-group row tiling + font_size_pct% of canvas height
-//   + color, logos by x/y_pct, texts by x/y_pct) — but fed the feed's `standings`
+//   + color, logos by x/y_pct, texts by x/y_pct) - but fed the feed's `standings`
 //   instead of MOCK_TEAMS, plus an animation layer.
 //
 // WHERE THE DATA COMES FROM
@@ -58,14 +58,14 @@ export type OverlayReveal = "staggered" | "all";
 
 const BACKEND = env.NEXT_PUBLIC_BACKEND_API_URL;
 
-// Canvas aspect per size — mirrors CANVAS_RATIO_BY_SIZE in DesignFieldsEditor so the overlay board
+// Canvas aspect per size - mirrors CANVAS_RATIO_BY_SIZE in DesignFieldsEditor so the overlay board
 // is proportioned identically to the editor preview + the PNG export.
 const RATIO_BY_SIZE: Record<OverlaySize, number> = {
   youtube: 1920 / 1080,
   instagram: 1080 / 1350,
 };
 
-// Logo longest-edge as a fraction of canvas height — mirrors afc_leaderboard.graphic.LOGO_SIZE_FRAC
+// Logo longest-edge as a fraction of canvas height - mirrors afc_leaderboard.graphic.LOGO_SIZE_FRAC
 // (and the manager preview), so overlay logos match the export size.
 const LOGO_SIZE_FRAC: Record<string, number> = {
   small: 0.07,
@@ -444,7 +444,7 @@ export function DesignBoard({
             onError={() => setBgReady(true)}
             className="pointer-events-none absolute inset-0 size-full object-cover"
             // BG behaviour (owner 2026-07-02, design.background_behavior): "persistent" (default)
-            // paints the bg statically — always on, never animates. "animate" fades the bg in WITH
+            // paints the bg statically - always on, never animates. "animate" fades the bg in WITH
             // the content on every load/refresh of the overlay page (opacity keyed on the same
             // revealed gate the rows use, so bg + rows animate in together).
             style={

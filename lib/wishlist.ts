@@ -21,7 +21,7 @@
 // AUTH: every endpoint is per-user and needs a Bearer token (the signed-in user's
 // own saved list). Anonymous callers have no token; the UI gates the heart for them.
 //
-// BACKEND CONTRACT (afc_shop wishlist endpoints — backend is DONE):
+// BACKEND CONTRACT (afc_shop wishlist endpoints - backend is DONE):
 //   POST /shop/wishlist/toggle/  body {product_id} -> {saved, message} (201 added / 200 removed)
 //   GET  /shop/wishlist/         -> {products: WishlistProduct[], count}
 //   GET  /shop/wishlist/ids/     -> {product_ids: number[]}
@@ -56,7 +56,7 @@ export interface WishlistProduct {
   in_stock: boolean;
 }
 
-// POST /shop/wishlist/toggle/ — add or remove a product from the signed-in user's saved
+// POST /shop/wishlist/toggle/ - add or remove a product from the signed-in user's saved
 // list. Idempotent per state: returns { saved: true } (201, just added) or { saved: false }
 // (200, just removed) plus a server message. Called by the heart toggle on ShopClient cards,
 // the Save / Saved button on ProductDetailPage, and the Remove button on WishlistClient.
@@ -72,7 +72,7 @@ export async function toggleWishlist(
   return res.data;
 }
 
-// GET /shop/wishlist/ — the full saved-items list (product cards + a count). Consumed by
+// GET /shop/wishlist/ - the full saved-items list (product cards + a count). Consumed by
 // WishlistClient on the /shop/saved page.
 export async function getMyWishlist(
   token: string | null | undefined,
@@ -83,7 +83,7 @@ export async function getMyWishlist(
   return res.data;
 }
 
-// GET /shop/wishlist/ids/ — just the saved product ids (no product payload). Cheap lookup
+// GET /shop/wishlist/ids/ - just the saved product ids (no product payload). Cheap lookup
 // used to seed the "which cards are already saved" Set on ShopClient and the saved state on
 // ProductDetailPage, so each heart renders filled / outline correctly on mount.
 export async function getMyWishlistIds(

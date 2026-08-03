@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// vendor-tour-steps.ts  —  step definitions for the guided Vendor Tour
+// vendor-tour-steps.ts  -  step definitions for the guided Vendor Tour
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   Page-keyed catalogue of the "Take a tour" guided walkthrough for the VENDOR
@@ -17,7 +17,7 @@
 //   "tour" namespace; fr/pt are machine-generated from it (pnpm i18n:translate).
 //
 // HOW IT CONNECTS
-//   - CONSUMED BY: ./VendorTourLauncher.tsx — reads VENDOR_TOUR_STEPS[pageKey],
+//   - CONSUMED BY: ./VendorTourLauncher.tsx - reads VENDOR_TOUR_STEPS[pageKey],
 //     translates each step, and feeds them into driver.js (the same tiny
 //     walkthrough lib the admin tour uses). The launcher is mounted once in the
 //     vendor header (app/(vendor)/vendor/layout.tsx) and decides the page key from
@@ -51,7 +51,7 @@ export type VendorTourStep = {
   align?: "start" | "center" | "end";
 };
 
-// Known vendor page keys. Kept short + stable — they are the localStorage suffix
+// Known vendor page keys. Kept short + stable - they are the localStorage suffix
 // (afc_vendor_tour_<pageKey>_done), so renaming one re-shows that tour.
 export type VendorTourPageKey =
   | "orders"

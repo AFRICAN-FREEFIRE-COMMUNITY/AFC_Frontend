@@ -4,7 +4,7 @@
 // The page where a vendor drives ONE order through the lifecycle:
 //   received → acknowledged → ship_scheduled → shipped → completed
 // (the backend state machine, afc_shop/fulfilment.py). It shows the full order +
-// delivery details, a STEPPER of the five stages, and — at the CURRENT stage — the
+// delivery details, a STEPPER of the five stages, and - at the CURRENT stage - the
 // single action that advances it:
 //   • received       → "Acknowledge order"            → POST acknowledge
 //   • acknowledged   → date picker + "Set ship date"  → POST set-ship-date
@@ -12,15 +12,15 @@
 //   • shipped        → "Mark completed"               → POST mark-completed
 //   • completed      → a done state (no action)
 //
-// DATA SOURCE — there is NO per-order GET endpoint on the backend (afc_shop/urls.py
+// DATA SOURCE - there is NO per-order GET endpoint on the backend (afc_shop/urls.py
 // only exposes the queue + the four transitions). So this page does NOT fetch its own
 // order: it reads the matching order out of the SHARED queue the portal layout loaded
 // (useVendor().orders, found by id). After every successful action it calls
 // useVendor().refetch() to re-pull the queue, so the stepper + state badge advance.
 // If the id isn't in the caller's queue (not their order, or a bad url), we show a
-// "not found" notice — a vendor only ever sees their own orders.
+// "not found" notice - a vendor only ever sees their own orders.
 //
-// EVIDENCE — the mark-shipped response returns only an `evidence_saved` COUNT (the
+// EVIDENCE - the mark-shipped response returns only an `evidence_saved` COUNT (the
 // backend stores FulfillmentEvidence rows but exposes no read endpoint for them yet),
 // so after a successful ship we surface "N evidence file(s) uploaded" as confirmation
 // rather than rendering the media. Noted for the follow-up that adds an evidence GET.

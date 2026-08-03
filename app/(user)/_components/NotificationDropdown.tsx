@@ -65,7 +65,7 @@ interface NotificationDropdownProps {
   onNotificationUpdate: () => void;
 }
 
-// Icon per target type — gives each notification an at-a-glance source. Default bell
+// Icon per target type - gives each notification an at-a-glance source. Default bell
 // for general/unknown types. Tabler icons (same set the rest of the chrome uses).
 const TYPE_ICON: Record<string, typeof IconBell> = {
   event: IconTrophy,

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Organizer › Live Capture — download the AFC Capture desktop client + directions.
+// Organizer › Live Capture - download the AFC Capture desktop client + directions.
 //
 // PURPOSE
 //   The on-site home for the AFC Capture Windows app (the afc-capture/ tray client that watches the
@@ -81,7 +81,7 @@ export default function OrganizerCapturePage() {
 
   // The AFC Capture INSTALLER is served by THIS frontend from public/downloads/AFC-Capture-Setup.exe
   // (an Inno Setup wrapper around the PyInstaller exe: installs it, adds a searchable Start-menu entry
-  // + desktop icon + uninstaller, so operators no longer hunt for a loose exe — owner 2026-07-02).
+  // + desktop icon + uninstaller, so operators no longer hunt for a loose exe - owner 2026-07-02).
   // Committed to the repo, so it ships inside the prod image -> no separate host needed.
   // NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL is an optional override (e.g. a CDN/signed release URL).
   const downloadUrl =

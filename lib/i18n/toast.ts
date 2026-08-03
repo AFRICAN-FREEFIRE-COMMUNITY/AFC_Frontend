@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * lib/i18n/toast.ts — localize sonner toasts via next-intl.
+ * lib/i18n/toast.ts - localize sonner toasts via next-intl.
  *
  * Purpose: convenience layer so a Client Component can fire a translated toast
  * with one call instead of hand-wiring useTranslations() + sonner every time.
@@ -14,7 +14,7 @@
  *    I18nProvider (NextIntlClientProvider) wraps the app in app/layout.tsx.
  *  - Wraps the `toast` API from sonner (the project's toast library).
  *  - Translation keys live under a namespace file, e.g. messages/en/toast.json
- *    or messages/en/common.json — the caller passes a fully-qualified key like
+ *    or messages/en/common.json - the caller passes a fully-qualified key like
  *    'common:actions.save' or a key relative to a chosen namespace.
  *
  * Usage (inside a Client Component):
@@ -38,7 +38,7 @@ type Values = Record<string, string | number | Date>;
  * translates `key` (with optional `{placeholder}` values) and forwards the
  * resulting string to the matching sonner toast variant.
  *
- * @param namespace messages/en/<namespace>.json — the namespace to resolve keys
+ * @param namespace messages/en/<namespace>.json - the namespace to resolve keys
  *                  against (defaults to 'common').
  */
 export function useLocalizedToast(namespace: string = "common") {

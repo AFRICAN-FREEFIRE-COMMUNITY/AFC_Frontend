@@ -4,7 +4,7 @@
 // The SHARED scope selector + "Download" (through-a-design PNG export) bar for the two PLAYER-driven
 // boards: the MVP tab (MvpTab.tsx) and the Top Killers tab (TopKillersTab.tsx). Both boards rank
 // PLAYERS and both can be scoped to the WHOLE EVENT or COMBINED across selected whole stages +
-// individual groups — the SAME combine idea the leaderboard overlay card + export dialog use
+// individual groups - the SAME combine idea the leaderboard overlay card + export dialog use
 // (complaints B/C). This component owns the combine selection UI and reports the resolved
 // {groupIds, stageIds} up to the parent tab (which re-fetches its ranking through that scope), and
 // hosts the Download dialog (design + size -> events/<id>/player-board-graphic/, downloadPlayerBoardGraphic).
@@ -14,7 +14,7 @@
 //   • leaderboardDesignsApi.list(organizationId)          -> the design library for the Download picker.
 //   • downloadPlayerBoardGraphic(eventId, {kind, ...})    -> the PNG blob (esports_image drawn as an image).
 // Reuses the leaderboard COMBINE path: whole stages expand to their groups on the backend, so a stage
-// checkbox implicitly checks (and disables) its group checkboxes here — identical to the export dialog.
+// checkbox implicitly checks (and disables) its group checkboxes here - identical to the export dialog.
 //
 // This is a reused ADMIN _component (mounted on the admin editor AND the organizer leaderboard page via
 // MvpTab/TopKillersTab); it keeps its English copy, matching the MvpTab / ManualMatchResultStep precedent.
@@ -108,7 +108,7 @@ export function PlayerBoardControls({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [combineMode, groupIds, stageIds]);
 
-  // Toggling a WHOLE stage drops its individual group picks (redundant — the backend expands a stage
+  // Toggling a WHOLE stage drops its individual group picks (redundant - the backend expands a stage
   // to all its groups). Group checkboxes are disabled while their stage is selected (mirrors the export dialog).
   const toggleStage = (sid: number) => {
     setStageIds((prev) => {
@@ -184,7 +184,7 @@ export function PlayerBoardControls({
       toast.success("Board downloaded.");
       setOpen(false);
     } catch (err: any) {
-      // Blob error bodies carry JSON — decode to read the backend message.
+      // Blob error bodies carry JSON - decode to read the backend message.
       let message = "Could not download the board.";
       const data = err?.response?.data;
       if (data instanceof Blob) {

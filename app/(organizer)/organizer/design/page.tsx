@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Organizer › Design — the org's self-serve leaderboard DESIGN LIBRARY.
+// Organizer › Design - the org's self-serve leaderboard DESIGN LIBRARY.
 //
 // Owner 2026-06-13: the old "request a design" flow (organizer submits a brief, AFC builds it)
 // was removed in favour of this self-serve library. Organizers now build their own branded

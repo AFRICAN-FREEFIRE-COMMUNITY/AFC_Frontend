@@ -1,15 +1,15 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WelcomeTour.tsx  —  the cheerful, VERY animated HUB modal of the guided tour
+// WelcomeTour.tsx  -  the cheerful, VERY animated HUB modal of the guided tour
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   The hub modal of the interactive guided welcome tour. It is piece 2 of 3:
-//     1. contexts/GuidedTourContext.tsx  — the cross-page orchestrator (state + API).
-//     2. THIS FILE                        — the animated hub modal that reads the
+//     1. contexts/GuidedTourContext.tsx  - the cross-page orchestrator (state + API).
+//     2. THIS FILE                        - the animated hub modal that reads the
 //          orchestrator and renders the intro, each stop's "Show me on the <page>"
 //          launcher, the "Ready for the next stop?" return prompt, and the outro.
-//     3. app/(user)/_components/PageGuide.tsx — the on-page driver.js spotlight.
+//     3. app/(user)/_components/PageGuide.tsx - the on-page driver.js spotlight.
 //
 //   The tour is no longer a self-contained carousel. For a GUIDE stop the hub shows
 //   a "Show me on the <page>" button; clicking it calls goToPageGuide(route), which
@@ -40,7 +40,7 @@
 //     orchestrator / next router; the hub does not push routes directly except the
 //     glossary link.
 //
-// ANIMATION (framer-motion only, NO new dependency) — UNCHANGED from the original:
+// ANIMATION (framer-motion only, NO new dependency) - UNCHANGED from the original:
 //   spring pop-in, per-step slide+fade, looping idle icon animation, animated
 //   progress dots, and the outro sparkle/confetti burst.
 //

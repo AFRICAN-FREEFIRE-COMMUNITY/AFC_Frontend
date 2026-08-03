@@ -1,5 +1,5 @@
 /**
- * lib/sponsors.ts — typed client for the sponsor-system redesign P1 (backend afc_sponsors).
+ * lib/sponsors.ts - typed client for the sponsor-system redesign P1 (backend afc_sponsors).
  *
  * Backend: afc_sponsors/views.py, mounted at /sponsors/ (see that module's header for the full
  * request/response shapes). Auth: Bearer auth_token cookie, same axios idiom as

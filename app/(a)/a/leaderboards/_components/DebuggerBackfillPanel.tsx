@@ -1,7 +1,7 @@
 "use client";
 
 // ── DebuggerBackfillPanel (owner 2026-07-02) ─────────────────────────────────
-// "Uploading the debugger file even when not live can still give all the needed data" — this panel
+// "Uploading the debugger file even when not live can still give all the needed data" - this panel
 // is that upload. The operator drops the 3D-room client's Debugger/debugger-*.log (one file spans a
 // whole session = several rounds); we DRY-RUN parse it server-side, list every detected round with
 // its player/kill counts, let the operator map each round to the right MATCH (same UX as the
@@ -11,7 +11,7 @@
 //
 // CONNECTS TO: POST events/<event_id>/debugger-backfill/ (debugger_ingest.py; dry run without
 // `apply`, fill with it). Mounted on the admin leaderboard edit page's Upload Results tab
-// (app/(a)/a/leaderboards/[id]/edit). Admin surface — English.
+// (app/(a)/a/leaderboards/[id]/edit). Admin surface - English.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";

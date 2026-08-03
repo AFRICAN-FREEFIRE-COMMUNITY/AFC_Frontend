@@ -34,7 +34,7 @@ export interface WatchlistEntry {
   context: string;
   status: "active" | "cleared";
   added_by_username: string | null;
-  // Numeric id of the user who added this entry — used client-side to gate the Remove button
+  // Numeric id of the user who added this entry - used client-side to gate the Remove button
   // for organizers (they may only remove entries they themselves added; admins can remove any).
   // Echoed by GET /auth/watchlist/ as of 2026-06-27 backend update.
   added_by_id: number | null;
@@ -96,7 +96,7 @@ export const watchlistApi = {
     return res.data.entry;
   },
 
-  /** Bulk "which of these ids are actively watched" — one call per list page for <WatchTag>. */
+  /** Bulk "which of these ids are actively watched" - one call per list page for <WatchTag>. */
   async tags(input: { playerIds?: number[]; teamIds?: number[] }): Promise<{
     watched_player_ids: number[];
     watched_team_ids: number[];

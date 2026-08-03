@@ -3,13 +3,13 @@
 // ── EventOverlayStudio (owner 2026-07-02) ────────────────────────────────────
 // The SHARED per-event overlay studio, mounted by BOTH:
 //   • admin:     app/(a)/a/overlays/[eventId]/page.tsx      (any event)
-//   • organizer: app/(organizer)/organizer/overlays/[eventId]/page.tsx (THEIR org's events only —
+//   • organizer: app/(organizer)/organizer/overlays/[eventId]/page.tsx (THEIR org's events only - 
 //     the backend gate (views_overlays._broadcast_gate: org must can_edit_events on the event's org)
 //     403s anything else, and the design library is scoped to organizationId, so an organizer only
 //     ever sees + edits their OWN designs and data. Owner 2026-07-02.)
 //
 // Overlays are saved, named entities (EventOverlay): created from a design (or a timer scene), each
-// with ONE permanent link (/overlay/view/<token>/<id>) — edits here (design, stage/group, animations,
+// with ONE permanent link (/overlay/view/<token>/<id>) - edits here (design, stage/group, animations,
 // live 3D-room mode, timer trigger) update what the SAME Browser Source renders. Cards support
 // rename / duplicate / delete / copy link, with a live scaled preview of the real link.
 //

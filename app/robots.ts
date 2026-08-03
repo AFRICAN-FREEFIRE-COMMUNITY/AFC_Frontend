@@ -3,7 +3,7 @@
 // Generates /robots.txt for AFC via the Next.js MetadataRoute.Robots API.
 //
 // GOALS:
-//   1. Let normal search crawlers (Googlebot, Bingbot, etc. — covered by the "*"
+//   1. Let normal search crawlers (Googlebot, Bingbot, etc. - covered by the "*"
 //      rule) index every PUBLIC page, while keeping private/admin/auth surfaces
 //      out of the index.
 //   2. EXPLICITLY welcome the major AI crawlers (GPTBot, ClaudeBot, PerplexityBot,
@@ -31,7 +31,7 @@ import { siteConfig } from "@/lib/seo";
 //   - /onboarding, /email-confirmation → onboarding flow
 //   - /unauthorized      → access-denied page
 //   - /*/edit            → any entity edit screen (teams/news/events/etc.)
-//   - /api/              → Next route handlers (og-image proxy, etc.) — not pages
+//   - /api/              → Next route handlers (og-image proxy, etc.) - not pages
 //   - /profile, /orders, /cart → authenticated, user-private surfaces
 const DISALLOW: string[] = [
   "/a/",

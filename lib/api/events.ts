@@ -34,7 +34,7 @@ const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
 // All endpoints sit under the /events/ prefix.
 const url = (path: string) => `${BASE}/events/${path}`;
 
-/** 201 response of POST /events/<event_id>/duplicate-event/ — the new draft event. */
+/** 201 response of POST /events/<event_id>/duplicate-event/ - the new draft event. */
 export interface DuplicateEventResponse {
   message: string;
   // The newly-created (draft) event's id. Used to route to its edit page.

@@ -2,16 +2,16 @@
 
 // ── MvpTab (owner 2026-07-02) ────────────────────────────────────────────────
 // The "MVPs" tab on the event leaderboard edit page. The admin arranges CRITERIA exactly like
-// tie-breakers (kills, damage, assists, deaths, survival time, headshots, KDR — reorder with
+// tie-breakers (kills, damage, assists, deaths, survival time, headshots, KDR - reorder with
 // up/down): players are compared on the 1st criterion, ties fall through to the 2nd, and so on.
 // Scope picks the candidate pool: the OVERALL event, or only the WINNING TEAM's players.
-// Criteria whose data isn't stored yet (deaths / survival / headshots / KDR — they arrive with the
+// Criteria whose data isn't stored yet (deaths / survival / headshots / KDR - they arrive with the
 // 3D-room debugger ingest) are shown tagged "needs live 3D-room data" and don't rank until then.
 //
 // CONNECTS TO: GET/POST events/<event_id>/mvp/ (afc_tournament_and_scrims/views_mvp.py). GET
 // computes with the event's saved Event.mvp_config; POST saves {criteria, scope} then returns the
 // recomputed ranking, so "Save & recompute" is one round trip. Mounted by
-// app/(a)/a/leaderboards/[id]/edit/page.tsx (TabsContent value="mvp"). Admin surface — English.
+// app/(a)/a/leaderboards/[id]/edit/page.tsx (TabsContent value="mvp"). Admin surface - English.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";

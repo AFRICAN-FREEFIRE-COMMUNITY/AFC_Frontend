@@ -8,7 +8,7 @@
 // which scope/event, how many people it reached, and the FULL message content.
 //
 // Data: GET /auth/all-broadcasts/ (afc_auth.get_all_broadcasts) via broadcastsApi.all (lib/broadcasts).
-// Server-gated to AFC admins (is_broadcast_admin — the same set exempt from the organizer rate limit);
+// Server-gated to AFC admins (is_broadcast_admin - the same set exempt from the organizer rate limit);
 // the sidebar entry in constants/nav-links.ts is gated to the matching granular roles. Read-only.
 //
 // Look + feel: mirrors the per-event BroadcastHistory row (scope badge + where line + LocalTime +
@@ -18,7 +18,7 @@
 // per-row "Show more" expander so the full message is on demand. Source rows: SentBroadcast.
 //
 // Connections: lib/broadcasts.ts (broadcastsApi.all + AdminBroadcastRow), components/LocalTime (UTC →
-// viewer tz), components/PageHeader. No backend writes — this page only reads the audit log.
+// viewer tz), components/PageHeader. No backend writes - this page only reads the audit log.
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -42,7 +42,7 @@ import { Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { broadcastsApi, type AdminBroadcastRow } from "@/lib/broadcasts";
 
-// Page size — matches the endpoint's default limit (20). "Load more" appends the next page.
+// Page size - matches the endpoint's default limit (20). "Load more" appends the next page.
 const PAGE = 20;
 
 // Human delivery-channel label for the small channel tag (same map as BroadcastHistory).
@@ -75,7 +75,7 @@ export default function AdminBroadcastsPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(""); // what actually hits the server
   const [scope, setScope] = useState("all");
-  // Sender filter — set by clicking a sender in a row ("show only this organizer's broadcasts").
+  // Sender filter - set by clicking a sender in a row ("show only this organizer's broadcasts").
   const [sender, setSender] = useState<{ id: number; name: string } | null>(null);
 
   // Per-row expand state: the audit shows the FULL message on demand (collapsed to 4 lines otherwise).
@@ -130,7 +130,7 @@ export default function AdminBroadcastsPage() {
       return next;
     });
 
-  // First load only — keep everything on-screen during filter/page refetches.
+  // First load only - keep everything on-screen during filter/page refetches.
   if (loading && rows.length === 0) return <FullLoader />;
 
   const hasFilters = !!debouncedSearch || scope !== "all" || !!sender;
@@ -266,7 +266,7 @@ export default function AdminBroadcastsPage() {
                     {b.recipient_count} recipient{b.recipient_count === 1 ? "" : "s"}
                   </span>
                   <span>{DELIVERY_LABEL[b.delivery] || b.delivery}</span>
-                  {/* Sender — click to filter the audit to just this organizer's broadcasts. */}
+                  {/* Sender - click to filter the audit to just this organizer's broadcasts. */}
                   {b.sender_username &&
                     (b.sender_id ? (
                       <button

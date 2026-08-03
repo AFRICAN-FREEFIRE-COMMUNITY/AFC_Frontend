@@ -21,7 +21,7 @@ import {
 } from "@/lib/seo";
 
 // NOTE ON THE WRAPPER PATTERN:
-// app/(user)/teams/[id]/page.tsx is a CLIENT component ("use client" — it uses
+// app/(user)/teams/[id]/page.tsx is a CLIENT component ("use client" - it uses
 // hooks, dialogs, auth). Client components CANNOT export generateMetadata, so the
 // route's metadata lives here in this SERVER layout instead. The layout fetches
 // the team's REAL data and returns the rich embed; the client page renders below
@@ -93,7 +93,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     path,
     // The sibling opengraph-image.tsx renders a branded 1200x630 card (logo +
-    // name + tier + stats) as THE og:image for this route — a raw logo embeds
+    // name + tier + stats) as THE og:image for this route - a raw logo embeds
     // poorly, the card always reads well. omitImage avoids a second, competing
     // og:image tag. The JSON-LD below still references the real logo.
     omitImage: true,

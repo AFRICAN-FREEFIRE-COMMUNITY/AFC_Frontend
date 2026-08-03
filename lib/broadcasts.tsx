@@ -4,17 +4,17 @@
 //
 // Two concerns live in this one domain file:
 //
-//  1. broadcastsApi — typed client for the two broadcast read surfaces:
+//  1. broadcastsApi - typed client for the two broadcast read surfaces:
 //       • all()         GET /auth/all-broadcasts/             ADMIN audit of EVERY broadcast (any
-//                       sender / scope / event) — powers the admin "Broadcasts" page
+//                       sender / scope / event) - powers the admin "Broadcasts" page
 //                       (app/(a)/a/broadcasts/page.tsx). Server-gated to is_broadcast_admin.
 //       • rateStatus()  GET /events/broadcast-rate-status/    the CURRENT user's organizer broadcast
 //                       budget, read WITHOUT consuming a slot, so a composer can show "N of 5 left"
 //                       the moment it opens. Any authenticated user (the numbers are self-scoped).
-//     Bearer auth from the auth_token cookie — same pattern as lib/watchlist.ts / lib/eventLinks.ts.
+//     Bearer auth from the auth_token cookie - same pattern as lib/watchlist.ts / lib/eventLinks.ts.
 //     Backend: afc_auth.get_all_broadcasts + afc_tournament_and_scrims.broadcast_rate_status.
 //
-//  2. useBroadcastRate() hook + <BroadcastRateNotice/> — the shared rate-limit UI that BOTH broadcast
+//  2. useBroadcastRate() hook + <BroadcastRateNotice/> - the shared rate-limit UI that BOTH broadcast
 //     composers reuse: app/(a)/a/events/_components/SendNotificationModal.tsx (per-group "Message
 //     group") and the announcement dialog in
 //     app/(a)/a/events/[slug]/edit/_components/ActionsTab.tsx. The hook fetches the budget when the
@@ -47,7 +47,7 @@ export type BroadcastScope =
   | "direct";
 
 // One row from GET /auth/all-broadcasts/ (SentBroadcast.to_history_dict + sender_id). created_at is a
-// UTC instant — render with <LocalTime>. Same shape as the per-event BroadcastHistory row, plus
+// UTC instant - render with <LocalTime>. Same shape as the per-event BroadcastHistory row, plus
 // sender_id (so the audit can filter to one organizer) and event_name (which event it came from).
 export interface AdminBroadcastRow {
   id: number;
@@ -132,7 +132,7 @@ export const broadcastsApi = {
 // ── Shared rate-limit UI for the broadcast composers ──────────────────────────
 
 /**
- * useBroadcastRate — owns the organizer rate-limit budget for ONE broadcast composer.
+ * useBroadcastRate - owns the organizer rate-limit budget for ONE broadcast composer.
  *
  * @param open  the composer's open flag; the budget is (re)fetched each time it flips open so the
  *              counter is fresh the moment the dialog appears.
@@ -191,7 +191,7 @@ export function useBroadcastRate(open: boolean) {
 }
 
 /**
- * BroadcastRateNotice — the small "N of {limit} broadcasts left this hour" line, plus a live
+ * BroadcastRateNotice - the small "N of {limit} broadcasts left this hour" line, plus a live
  * "you can send again at <local time> (mm:ss)" countdown while a cooldown is active.
  *
  * Renders NOTHING when the sender is exempt (admins) or the budget has not loaded, so admin composers

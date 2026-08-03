@@ -6,7 +6,7 @@ import ProductDetailPage from "../_components/ProductDetailPage";
 // 404 → notFound() (real 404, no soft-404); "error" = transient → keep the 200
 // fallback so a live product page is never deindexed on an API blip.
 import { fetchDetail } from "@/lib/detailFetch";
-// Shared link-embed builder (lib/seo.ts) — LARGE Twitter card + absolute URLs.
+// Shared link-embed builder (lib/seo.ts) - LARGE Twitter card + absolute URLs.
 //   generateProductSchema    → JSON-LD Product (offers in NGN) for this product
 //   generateBreadcrumbSchema → Home > Shop > <product> trail
 //   jsonLd                   → render a schema object as a <script ld+json>
@@ -49,11 +49,11 @@ function cheapestActivePrice(product: any): number | null {
 
 // ── generateMetadata: rich link embed for a single shop product ──────────────
 // Data source: GET /shop/view-product-details/?product_id=<id> (public, no auth)
-// — the same endpoint ProductDetailPage reads. Response shape:
+// - the same endpoint ProductDetailPage reads. Response shape:
 //   { product: { id, name, description, image (absolute), variants: [{ price, ... }] } }.
 // The embed shows the product name + starting price and uses the product's real
 // primary image (already an absolute URL from the backend's _abs_url). Falls back
-// to site-default metadata when the product is missing — never throws.
+// to site-default metadata when the product is missing - never throws.
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const result = await getProductData(id);

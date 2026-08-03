@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Vendor › Orders (the fulfilment QUEUE).
 //
-// The vendor's list of paid orders to fulfil. The data is NOT fetched here — the
+// The vendor's list of paid orders to fulfil. The data is NOT fetched here - the
 // portal layout (app/(vendor)/vendor/layout.tsx) already loaded GET /shop/fulfilment/
 // my-orders/ as the vendor gate and handed the results down through VendorContext;
 // this page reads that list (useVendor().orders). Each row shows the buyer name, a
@@ -10,7 +10,7 @@
 //
 // FILTERING (client-side, over the already-loaded list): a free-text search (matches
 // the buyer name, the order id, or any item name) + a state dropdown (received /
-// acknowledged / ship_scheduled / shipped / completed / all). No round-trip — the
+// acknowledged / ship_scheduled / shipped / completed / all). No round-trip - the
 // queue is small and lives entirely in context.
 //
 // Design mirrors the organizer events list (app/(organizer)/organizer/events/page.tsx):

@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// ProductFormDialog — the shared CREATE / EDIT product form for the vendor PRODUCTS
+// ProductFormDialog - the shared CREATE / EDIT product form for the vendor PRODUCTS
 // section. One dialog drives both flows (mode="create" | "edit") so a vendor adds
 // and edits a product through an identical UI, mirroring the admin AddProductModal
 // field idiom (name, category Select, description, limited-stock switch, an optional
@@ -103,7 +103,7 @@ interface VariantRow {
   stock_qty: string;
 }
 
-// An empty variant row (the form always shows at least one — the backend requires a
+// An empty variant row (the form always shows at least one - the backend requires a
 // non-empty variants list on create).
 const emptyVariant = (): VariantRow => ({
   title: "",
@@ -142,7 +142,7 @@ export function ProductFormDialog({
 
   // ── Multi-media gallery state (images + videos) ──
   // galleryProductId is the SAVED product the ProductMediaManager edits. It is the
-  // edited product's id in EDIT mode, or — in CREATE mode — gets set to the new id
+  // edited product's id in EDIT mode, or - in CREATE mode - gets set to the new id
   // once createProduct succeeds (the "just-created" view). While null, the gallery
   // cannot render (media needs a real product to attach to). galleryMedia is the
   // current media list; onChanged refetches it so the grid refreshes after each
@@ -339,7 +339,7 @@ export function ProductFormDialog({
           setGalleryMedia([]); // brand-new product has no media yet
           setJustCreated(true);
         } else {
-          // No id came back (unexpected) — fall back to the old behaviour and close,
+          // No id came back (unexpected) - fall back to the old behaviour and close,
           // so the vendor is not stranded in a dialog with no working gallery.
           onOpenChange(false);
         }
@@ -355,7 +355,7 @@ export function ProductFormDialog({
 
   // ── Gallery visibility ──
   // Show the multi-media manager only when there is a SAVED product to attach media
-  // to AND that product is in an editable (draft/rejected) state — the vendor media
+  // to AND that product is in an editable (draft/rejected) state - the vendor media
   // endpoints reject anything else. In EDIT we can read approval_status off the
   // product; the just-created case is always a draft, so it qualifies. (galleryProductId
   // is non-null exactly in those two cases.)

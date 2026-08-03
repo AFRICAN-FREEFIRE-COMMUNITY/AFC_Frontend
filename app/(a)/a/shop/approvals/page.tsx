@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Admin Shop — Product Approvals  (route: /a/shop/approvals)
+// Admin Shop - Product Approvals  (route: /a/shop/approvals)
 //
 // Purpose: the AFC admin queue for vendor-submitted products. A vendor product is
 // hidden from the storefront until an admin approves it here. This page lets a shop
@@ -25,7 +25,7 @@
 //   • /a/shop/vendors          → the sibling marketplace surface (vendor roster).
 //
 // PRICE display: a product can carry several variants, each with its own price. We
-// show the price RANGE (min–max, or the single price) computed from the variants in
+// show the price RANGE (min - max, or the single price) computed from the variants in
 // the serialised payload, since the queue is a quick scan not a full editor.
 // ─────────────────────────────────────────────────────────────────────────────
 

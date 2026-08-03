@@ -1,8 +1,8 @@
 {
   "teams": {
     "roster": {
-      "_page": "Gestione o plantel da sua equipa: defina a função de cada membro no jogo e na gestão, ou elimine-os. Apenas o proprietário da equipa e os treinadores podem gerir o plantel — os capitães não têm essa possibilidade.",
-      "in_game_role": "A posição competitiva que um jogador ocupa (Rusher, Sniper, Support, Grenader). Apenas os JOGADORES — Capitão, Vice-capitão ou Membro — podem ter uma função no jogo, e uma equipa pode alinhar, no máximo, 6.",
+      "_page": "Gestione o plantel da sua equipa: defina a função de cada membro no jogo e na gestão, ou elimine-os. Apenas o proprietário da equipa e os treinadores podem gerir o plantel - os capitães não têm essa possibilidade.",
+      "in_game_role": "A posição competitiva que um jogador ocupa (Rusher, Sniper, Support, Grenader). Apenas os JOGADORES - Capitão, Vice-capitão ou Membro - podem ter uma função no jogo, e uma equipa pode alinhar, no máximo, 6.",
       "management_role": "A função de um membro na equipa. Os JOGADORES (Capitão, Vice-capitão, Membro) competem e podem desempenhar uma função no jogo. O PESSOAL TÉCNICO (Treinador, Diretor desportivo, Analista) tem apenas funções de apoio, nunca entra em campo como jogador e uma equipa pode ter, no máximo, um de cada. A transferência de um membro da categoria de jogador para a de pessoal técnico só é permitida enquanto a janela de transferências estiver aberta."
     },
     "create": {

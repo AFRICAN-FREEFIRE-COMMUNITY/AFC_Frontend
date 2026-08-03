@@ -45,7 +45,7 @@ export interface ShippingQuoteItem {
 }
 
 /**
- * Fetch courier options for a delivery address + cart. Never throws — any failure (network,
+ * Fetch courier options for a delivery address + cart. Never throws - any failure (network,
  * 4xx, shipping disabled) resolves to a disabled quote so the checkout page keeps working.
  */
 export async function fetchShippingQuote(

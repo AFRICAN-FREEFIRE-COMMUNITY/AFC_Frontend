@@ -62,7 +62,7 @@ export interface HeaderStyle {
 }
 
 export type FieldType =
-  // esports_image (owner 2026-07-02): the player's esports photo — image cell like team_logo;
+  // esports_image (owner 2026-07-02): the player's esports photo - image cell like team_logo;
   // blank on team standings rows, populated by solo/versus/MVP feeds.
   | "pos" | "team_name" | "team_logo" | "team_flag" | "esports_image" | "booyah" | "placement_points" | "kill_points"
   | "total_points" | "rush_points" | "kills" | "matches" | "base_total" | "bonus" | "penalty"
@@ -301,7 +301,7 @@ export const leaderboardDesignsApi = {
       )
       .then((r) => r.data);
   },
-  // PATCH .../logos/<logoId>/  — reposition/resize (only the keys sent are changed) -> {logo}
+  // PATCH .../logos/<logoId>/  - reposition/resize (only the keys sent are changed) -> {logo}
   updateLogo: (
     designId: number,
     logoId: number,
@@ -352,7 +352,7 @@ export const leaderboardDesignsApi = {
         { headers: authHeaders() },
       )
       .then((r) => r.data),
-  // PATCH .../fields/<fieldId>/ — only keys sent change -> {field}
+  // PATCH .../fields/<fieldId>/ - only keys sent change -> {field}
   updateField: (
     designId: number,
     fieldId: number,

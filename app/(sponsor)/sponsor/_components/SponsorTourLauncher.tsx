@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SponsorTourLauncher.tsx  —  the guided "Take a tour" for the sponsor portal
+// SponsorTourLauncher.tsx  -  the guided "Take a tour" for the sponsor portal
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   A pathname-aware launcher that gives the sponsor dashboard a step-by-step guided
@@ -72,7 +72,7 @@ function setSeenTour(pageKey: SponsorTourPageKey): void {
   try {
     window.localStorage.setItem(doneStorageKey(pageKey), "1");
   } catch {
-    /* storage unavailable — ignore */
+    /* storage unavailable - ignore */
   }
 }
 
@@ -126,7 +126,7 @@ export function SponsorTourLauncher() {
   const start = React.useCallback(() => {
     if (!pageKey) return;
     const steps = buildSteps(SPONSOR_TOUR_STEPS[pageKey] ?? [], (key) => t(key));
-    if (steps.length === 0) return; // nothing to show — do not open an empty overlay
+    if (steps.length === 0) return; // nothing to show - do not open an empty overlay
 
     destroy();
 

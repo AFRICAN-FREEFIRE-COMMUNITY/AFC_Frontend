@@ -1,13 +1,13 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EventDraftResumeDialog — the "you have an unsaved event, resume or start fresh?"
+// EventDraftResumeDialog - the "you have an unsaved event, resume or start fresh?"
 // prompt shown on the event CREATE pages when useEventCreateDraft finds a saved draft
 // in localStorage (owner 2026-07-01, so organizers stop losing in-progress work).
 //
 // NON-BLOCKING BANNER (owner 2026-07-01 fix): this is an inline banner at the top of
 // the form, NOT a modal. An earlier version used a Radix <AlertDialog> whose full-screen
-// overlay (pointer-events:auto) sat over the whole page — so while a draft existed the
+// overlay (pointer-events:auto) sat over the whole page - so while a draft existed the
 // "Create event" / "Save to draft" buttons were unclickable (the modal was also not
 // closing reliably because it was a controlled AlertDialog with no onOpenChange). A
 // resume prompt must NEVER block event creation, so it now renders as a dismissible

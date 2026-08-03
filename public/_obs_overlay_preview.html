@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  OBS overlay v3 preview — LIVE DOM render of a leaderboard design (not a baked PNG), so it can
+  OBS overlay v3 preview - LIVE DOM render of a leaderboard design (not a baked PNG), so it can
   animate, be transparent, and update only the values (stable layout, smooth re-sort).
   Left  = "OBS overlay link" config: leaderboard target + design + size + TRANSPARENT + ANIMATION +
           which COLUMNS + top-N + refresh -> copyable link. Access note: organizer=own, super=all.
@@ -10,7 +10,7 @@
 -->
 <html lang="en"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AFC OBS Overlay v3 — Preview</title>
+<title>AFC OBS Overlay v3 - Preview</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..900&display=swap" rel="stylesheet"/>
 <style>
   :root{
@@ -78,7 +78,7 @@
       <div class="h2s">Organizers see only their own events + designs. Super admins see all.</div>
 
       <div class="field"><label>Leaderboard</label>
-        <select id="lb"><option>DYNASTY CUP MADAGASCAR — event</option><option>DYNASTY CUP NIGERIA — event</option><option>Weekly Scrims Ladder — standalone</option></select></div>
+        <select id="lb"><option>DYNASTY CUP MADAGASCAR - event</option><option>DYNASTY CUP NIGERIA - event</option><option>Weekly Scrims Ladder - standalone</option></select></div>
       <div class="row2">
         <div class="field"><label>Stage</label><select id="stage"><option>Group Stage</option><option>Grand Finals</option></select></div>
         <div class="field"><label>Group</label><select id="group"><option>Group A</option><option>Cumulative</option></select></div>
@@ -173,7 +173,7 @@
   document.getElementById('iv').addEventListener('change',buildUrl);
   document.getElementById('cols').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;cols[c.dataset.c]=!cols[c.dataset.c];c.classList.toggle('on');buildUrl();paint(true);});
   ['lb','stage','group','design'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{
-    document.getElementById('bt').textContent=document.getElementById('design').value.includes('DYNASTY')?'DYNASTY CUP':document.getElementById('lb').value.split(' — ')[0];
+    document.getElementById('bt').textContent=document.getElementById('design').value.includes('DYNASTY')?'DYNASTY CUP':document.getElementById('lb').value.split(' - ')[0];
     document.getElementById('bs').textContent=document.getElementById('stage').value+' · '+document.getElementById('group').value;buildUrl();}));
   document.getElementById('copy').addEventListener('click',e=>{navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('url').value);e.target.textContent='Copied';setTimeout(()=>e.target.textContent='Copy',1200);});
 

@@ -2,7 +2,7 @@
 
 // ── Admin · Live Overlays · EVENT STUDIO (/a/overlays/[eventId]) ─────────────
 // Thin wrapper: resolves the event's name + owning org (get-all-events, Bearer admin), then mounts
-// the SHARED <EventOverlayStudio> (components/overlay/EventOverlayStudio.tsx) — the same studio the
+// the SHARED <EventOverlayStudio> (components/overlay/EventOverlayStudio.tsx) - the same studio the
 // organizer portal mounts at /organizer/overlays/[eventId], org-gated there. All behaviour +
 // strings live in the shared component (organizer.studio.* i18n keys; admins read the English).
 // ─────────────────────────────────────────────────────────────────────────────

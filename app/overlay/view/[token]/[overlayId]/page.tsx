@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// /overlay/view/<overlay_token>/<overlayId> — the STABLE link behind ONE saved overlay
+// /overlay/view/<overlay_token>/<overlayId> - the STABLE link behind ONE saved overlay
 // (owner 2026-07-02, studio v2: "per overlay/scene it should be the same link").
 //
 // This page never carries settings in its URL. It polls the PUBLIC config feed
@@ -9,7 +9,7 @@
 // whatever the overlay currently IS:
 //   • kind "leaderboard" → an inner iframe of the existing battle-tested leaderboard overlay page
 //     (/overlay/leaderboard/<token>?…params built from config: design, stage/group or
-//     follow-broadcast, animations, page interval, and LIVE in-round mode when config.live is on —
+//     follow-broadcast, animations, page interval, and LIVE in-round mode when config.live is on - 
 //     the capture client's 2s Redis snapshot keeps the board updating mid-round). The iframe is
 //     re-mounted ONLY when the config actually changes, so an edit in the studio (new design, new
 //     group…) animates in on the same OBS source with no re-copy.
@@ -592,8 +592,8 @@ function H2HView({ feed }: { feed: OverlayConfigFeed }) {
 // resolved ranked PLAYER ROWS + the bound design's LOOK (background + colors + transparent), exactly like
 // _h2h_payload / _booyah_payload. Each row is keyed by the design player FIELD_CHOICES field types
 // (pos / player_name / team_name / team_country / esports_image / kills / damage / assists / mvp_count /
-// matches — build_player_design_rows), and esports_image is a URL drawn as an <img>. ONE renderer serves
-// both kinds (they share the payload shape): the only difference is the HEADLINE stat — the MVP board
+// matches - build_player_design_rows), and esports_image is a URL drawn as an <img>. ONE renderer serves
+// both kinds (they share the payload shape): the only difference is the HEADLINE stat - the MVP board
 // leads with mvp_count (map MVPs won), the Top Killers board with kills. Rows are already ordered by pos.
 // Always render (no trigger), so it renders whenever the overlay is active. Styled in the AFC house look
 // like BooyahView / H2HView (the design LOOK sets bg + colors); the full field-placement render is the
@@ -773,7 +773,7 @@ export default function OverlayViewPage() {
 
   // Leaderboard: render the existing overlay page inside a full-viewport iframe. Keyed by the
   // config JSON so ONLY a real change re-mounts it (fresh animate-in); poll ticks with an unchanged
-  // config leave it alone — the inner page keeps its own feed polling + page cycling.
+  // config leave it alone - the inner page keeps its own feed polling + page cycling.
   const inner = leaderboardUrl(token, feed.event_id, feed.config as Record<string, any>);
   return (
     <iframe

@@ -10,7 +10,7 @@ import type { LeaderboardDesign } from "@/lib/leaderboardDesigns";
  *
  *   1. The PUBLIC overlay FEED (afc_tournament_and_scrims.views, prefix `events/`):
  *        GET events/overlay/feed/?token=&stage=&group=&design=&size=&live=&cols=
- *      No auth — the `token` (Event.overlay_token) is itself the read capability. It returns the
+ *      No auth - the `token` (Event.overlay_token) is itself the read capability. It returns the
  *      resolved DESIGN (full _serialize_design output) + the live STANDINGS in one call, so the OBS
  *      Browser Source page (app/overlay/leaderboard/[token]/page.tsx) needs only this one request.
  *      Fetched with a raw axios GET WITHOUT authHeaders (precedent: EventDetailsWrapper's
@@ -97,7 +97,7 @@ export interface OverlayFeedParams {
   design?: string | number | null;
   size?: OverlaySize;
   live?: boolean;
-  cols?: string; // "pos,team_name,total_points" — subset of the design's placed fields
+  cols?: string; // "pos,team_name,total_points" - subset of the design's placed fields
 }
 
 export async function fetchOverlayFeed(
@@ -125,7 +125,7 @@ export async function fetchOverlayFeed(
 }
 
 // ── Token mint / rotate (Bearer, org-scoped) ─────────────────────────────────
-// ensure(): POST events/<eventId>/overlay/token/ — creates the token if the event has none, else
+// ensure(): POST events/<eventId>/overlay/token/ - creates the token if the event has none, else
 // returns the existing one. regenerate:true adds ?regenerate=1 to ROTATE it (invalidates old links).
 // The backend response field name isn't final, so we read overlay_token first, then a couple of
 // sensible fallbacks, so the dialog keeps working whichever the server settles on.
@@ -185,7 +185,7 @@ export const uploadTokenApi = {
 // Lets an organizer/admin choose ON THE WEBSITE which stage/group the live overlay shows, and combine
 // groups/stages into a CUMULATIVE, WITHOUT touching OBS (owner 2026-07-01). The overlay feed
 // (events/overlay/feed/) resolves the event's saved broadcast selection whenever its URL OMITS both
-// stage & group, so a single "follow broadcast" overlay link tracks whatever is set here — the overlay
+// stage & group, so a single "follow broadcast" overlay link tracks whatever is set here - the overlay
 // re-reads it within one self-poll (see app/overlay/leaderboard/[token]/page.tsx + fetchOverlayFeed).
 //
 // Consumed by components/overlay/BroadcastControl.tsx (mounted on the admin leaderboard edit page and
@@ -259,13 +259,13 @@ export const broadcastApi = {
 // Saved, NAMED overlays per event: created from a design (kind "leaderboard") or as a scene (kind
 // "timer"), renamed, duplicated, deleted. Each overlay's public link is STABLE
 // (/overlay/view/<overlay_token>/<id>): it polls overlayConfigApi below, so studio edits (design,
-// stage/group, animations, timer trigger) update what the SAME link renders — no re-copying into OBS.
+// stage/group, animations, timer trigger) update what the SAME link renders - no re-copying into OBS.
 // BE: afc_tournament_and_scrims/views_overlays.py (CRUD via the broadcast gate; config feed public).
 
 // Overlay KINDS (owner 2026-07-05, complaints G + H): "mvp" (the event MVP board) and "top_killers"
 // (players ranked by summed kills) join the existing leaderboard / timer / booyah / h2h scenes. Both
 // are PLAYER-driven boards that render THROUGH a bound design and REUSE the leaderboard COMBINE shape
-// ({scope, group_ids, stage_ids}) — see PlayerBoardConfig / PlayerBoardPayload below and the render
+// ({scope, group_ids, stage_ids}) - see PlayerBoardConfig / PlayerBoardPayload below and the render
 // branches in app/overlay/view/[token]/[overlayId]/page.tsx.
 export type OverlayKind =
   | "leaderboard"
@@ -403,7 +403,7 @@ export interface OverlayConfigFeed {
   event_id: number;
   server_time: string;
   // kind "leaderboard" only: the RESOLVED standings the overlay currently shows, bundled with the
-  // poll (owner 2026-07-05, complaint C) — combine configs return rows spanning every chosen
+  // poll (owner 2026-07-05, complaint C) - combine configs return rows spanning every chosen
   // group/stage. The stable link still RENDERS leaderboards via the inner /overlay/leaderboard iframe
   // (which pulls the same rows from overlay_feed); this field is the config poll's own copy, so a
   // direct consumer / verification sees the combined result without a second request.
@@ -458,7 +458,7 @@ export interface OverlayConfigFeed {
 // the config carries a bound design_id + a {scope, group_ids, stage_ids} selection (whole STAGES +
 // individual GROUPS), and the backend resolves it with the SAME validator a leaderboard board uses.
 // The overlay renders each board's ROWS through the bound design's look (bg + colors), with
-// esports_image drawn as an <img>, ordered by pos — the same "draw field_type rows through a design"
+// esports_image drawn as an <img>, ordered by pos - the same "draw field_type rows through a design"
 // idea the leaderboard overlay uses, adapted to the scene-payload shape h2h/booyah already ship.
 
 // One RANKED player row, keyed by the design player FIELD_CHOICES field types (build_player_design_rows
@@ -504,8 +504,8 @@ export interface PlayerBoardPayload {
 // stage_ids reuse the leaderboard COMBINE shape (scope "single" -> one whole stage or one group; scope
 // "combine" -> merge the checked whole stages + groups). ui_stage_id is a FE-only picker context for the
 // single-scope group dropdown (the backend never reads it). The backend reads group_ids/stage_ids (+ a
-// singular group_id/stage_id fold-in), so single scope writes the plural arrays too — never a bare
-// singular — to keep "one group" from implicitly pulling in its whole stage.
+// singular group_id/stage_id fold-in), so single scope writes the plural arrays too - never a bare
+// singular - to keep "one group" from implicitly pulling in its whole stage.
 export interface PlayerBoardConfig {
   design_id?: number | null;
   scope?: "single" | "combine";
@@ -579,7 +579,7 @@ function scopeParams(scope?: PlayerBoardScope): Record<string, string> {
   return q;
 }
 
-// GET events/<id>/top-killers/ — players ranked by summed kills over the (optional) combine scope.
+// GET events/<id>/top-killers/ - players ranked by summed kills over the (optional) combine scope.
 export async function fetchTopKillers(
   eventId: number | string,
   scope?: PlayerBoardScope,
@@ -591,7 +591,7 @@ export async function fetchTopKillers(
   return res.data;
 }
 
-// GET events/<id>/player-board-graphic/ — the MVP / Top Killers board rendered THROUGH a design as a
+// GET events/<id>/player-board-graphic/ - the MVP / Top Killers board rendered THROUGH a design as a
 // PNG blob (esports_image drawn as an image server-side). Same auth-gated blob idiom as
 // leaderboardDesignsApi.downloadEventStageGraphic (a plain <a href> would omit the Bearer + 403).
 export async function downloadPlayerBoardGraphic(

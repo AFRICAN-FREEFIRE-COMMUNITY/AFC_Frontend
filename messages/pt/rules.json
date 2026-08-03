@@ -6,7 +6,7 @@
       "rules": {
         "0": {
           "title": "Requisitos da conta",
-          "content": "Os jogadores devem possuir uma conta ativa do FreeFire que tenha atingido, no mínimo, o nível 20 na classificação Platina IV. Os nomes no jogo não podem ser alterados durante os torneios, a menos que haja autorização dos moderadores — as violações são consideradas como a utilização de um jogador não registado. Os jogadores devem utilizar contas oficiais do FreeFire que atinjam ou ultrapassem os marcos de classificação e nível estabelecidos, sendo que qualquer alteração de nome requer comunicação e autorização por parte dos responsáveis pelo torneio."
+          "content": "Os jogadores devem possuir uma conta ativa do FreeFire que tenha atingido, no mínimo, o nível 20 na classificação Platina IV. Os nomes no jogo não podem ser alterados durante os torneios, a menos que haja autorização dos moderadores - as violações são consideradas como a utilização de um jogador não registado. Os jogadores devem utilizar contas oficiais do FreeFire que atinjam ou ultrapassem os marcos de classificação e nível estabelecidos, sendo que qualquer alteração de nome requer comunicação e autorização por parte dos responsáveis pelo torneio."
         },
         "1": {
           "title": "Requisitos de idade",
@@ -540,7 +540,7 @@
         },
         "2": {
           "title": "Classificação do torneio",
-          "content": "Os torneios são classificados em níveis com base no prémio total e na estrutura: Nível 1 (equivalente a ₦ 1 000+ ou evento oficial do FreeFire), Nível 2 (equivalente a ₦ 300–999 ou evento LAN), Nível 3 (inferior a 300 $). A classificação por níveis afeta o prestígio e a visibilidade na plataforma da AFC. Os pontos dos torneios mantêm-se consistentes em todos os níveis, mas os eventos de nível superior recebem um emblema de reconhecimento no site da AFC."
+          "content": "Os torneios são classificados em níveis com base no prémio total e na estrutura: Nível 1 (equivalente a ₦ 1 000+ ou evento oficial do FreeFire), Nível 2 (equivalente a ₦ 300-999 ou evento LAN), Nível 3 (inferior a 300 $). A classificação por níveis afeta o prestígio e a visibilidade na plataforma da AFC. Os pontos dos torneios mantêm-se consistentes em todos os níveis, mas os eventos de nível superior recebem um emblema de reconhecimento no site da AFC."
         }
       }
     },

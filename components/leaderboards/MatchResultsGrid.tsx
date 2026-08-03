@@ -22,11 +22,11 @@
 //   • the Save row: "Redo this map" (destructive confirm), "Save all maps", "Save this map"
 //
 // ── CONSUMERS ──
-//   • app/(a)/a/leaderboards/[id]/edit/page.tsx  — admin editor (English defaults; passes
+//   • app/(a)/a/leaderboards/[id]/edit/page.tsx  - admin editor (English defaults; passes
 //     its shared selectedMatchId / editRows / playerGroups state + handlers, and the two
 //     admin-tour data-tour anchors). No `labels` passed = the English defaults below, so
 //     the admin surface is unchanged.
-//   • app/(organizer)/organizer/events/[slug]/leaderboard/page.tsx — organizer editor
+//   • app/(organizer)/organizer/events/[slug]/leaderboard/page.tsx - organizer editor
 //     (passes i18n `labels` from next-intl + its own group-scoped state). Gated by the
 //     organizer page's can_upload_results baseline (the same permission the underlying
 //     /events/edit-match-result & /events/edit-solo-match-result endpoints enforce), with
@@ -114,7 +114,7 @@ export interface TeamPlayerGroup {
 }
 
 // One row of the live Match Leaderboard preview. A superset of this (the admin's RawStat /
-// the organizer's match.stats element) is assignable here — it only reads these fields.
+// the organizer's match.stats element) is assignable here - it only reads these fields.
 export interface MatchStatLite {
   competitor_id?: number;
   tournament_team_id?: number;

@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// VendorTourLauncher.tsx  —  the interactive guided "Take a tour" for the vendor portal
+// VendorTourLauncher.tsx  -  the interactive guided "Take a tour" for the vendor portal
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   A pathname-aware launcher that gives every vendor page a step-by-step guided
@@ -83,7 +83,7 @@ function setSeenTour(pageKey: VendorTourPageKey): void {
   try {
     window.localStorage.setItem(doneStorageKey(pageKey), "1");
   } catch {
-    /* storage unavailable — ignore */
+    /* storage unavailable - ignore */
   }
 }
 
@@ -146,7 +146,7 @@ export function VendorTourLauncher() {
   const start = React.useCallback(() => {
     if (!pageKey) return;
     const steps = buildSteps(VENDOR_TOUR_STEPS[pageKey] ?? [], (key) => t(key));
-    if (steps.length === 0) return; // nothing to show — do not open an empty overlay
+    if (steps.length === 0) return; // nothing to show - do not open an empty overlay
 
     destroy(); // clear a previous run
 

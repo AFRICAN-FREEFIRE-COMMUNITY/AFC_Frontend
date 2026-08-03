@@ -53,7 +53,7 @@ function LoginFormContent() {
     if (!isAuthenticated || !user) return;
     // Return the user to where they were. Priority: an explicit ?redirect= param, then the page
     // stashed when their session expired (owner 2026-06-15: "take me back to where I was" after a
-    // timeout re-login — set by AuthContext.stashPostLoginRedirect, consumed + cleared here), then
+    // timeout re-login - set by AuthContext.stashPostLoginRedirect, consumed + cleared here), then
     // /home as the default.
     let target = redirectUrl;
     if (!target) {

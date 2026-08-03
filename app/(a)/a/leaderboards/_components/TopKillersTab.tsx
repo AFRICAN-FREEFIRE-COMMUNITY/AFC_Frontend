@@ -9,7 +9,7 @@
 // CONNECTS TO: GET events/<event_id>/top-killers/?group_ids=&stage_ids= (afc_tournament_and_scrims/
 // views_mvp.py, compute_top_killers). Gate = _broadcast_gate (AFC event admin OR org can_edit_events),
 // the SAME gate MvpTab / the MVP endpoint use. Mounted by app/(a)/a/leaderboards/[id]/edit/page.tsx
-// (TabsContent value="top_killers") and the organizer leaderboard page. Admin surface — English, matching
+// (TabsContent value="top_killers") and the organizer leaderboard page. Admin surface - English, matching
 // the MvpTab convention (a reused admin component keeps its English copy on the organizer page too).
 //
 // This board + the MVP board share ONE overlay renderer (the "mvp" / "top_killers" branches in
@@ -56,7 +56,7 @@ export default function TopKillersTab({
   const scopeInit = useRef(false);
 
   // Load the ranking over the current combine scope. `background` (a tick / scope-change refresh) skips
-  // the spinner + error toast, so a heartbeat never flashes the panel — mirrors MvpTab's load().
+  // the spinner + error toast, so a heartbeat never flashes the panel - mirrors MvpTab's load().
   const load = useCallback(
     async (background = false) => {
       if (!background) setLoading(true);

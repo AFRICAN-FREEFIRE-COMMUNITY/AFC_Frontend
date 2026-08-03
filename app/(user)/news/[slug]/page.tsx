@@ -127,7 +127,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: news.news_title,
     description,
     path: `/news/${slug}`,
-    // Article banner — resolveOgImage proxies backend /media/ images through our
+    // Article banner - resolveOgImage proxies backend /media/ images through our
     // own /api/og-image so crawlers can fetch them; null falls back to site default.
     image: news.images_url || null,
     type: "article",

@@ -89,7 +89,7 @@
       },
       "multiple": {
         "q": "Puis-je afficher plusieurs superpositions à la fois ?",
-        "a": "Oui. Chaque superposition constitue un lien à part entière (avec son propre design et son propre tableau). Vous pouvez en ajouter plusieurs en tant que sources de navigateur distinctes — un classement général, un tableau des MVP, une carte des meilleurs tueurs — et elles se mettent toutes à jour simultanément à partir du même événement."
+        "a": "Oui. Chaque superposition constitue un lien à part entière (avec son propre design et son propre tableau). Vous pouvez en ajouter plusieurs en tant que sources de navigateur distinctes - un classement général, un tableau des MVP, une carte des meilleurs tueurs - et elles se mettent toutes à jour simultanément à partir du même événement."
       },
       "solo": {
         "q": "Est-ce que ça fonctionne pour les événements en solo ?",

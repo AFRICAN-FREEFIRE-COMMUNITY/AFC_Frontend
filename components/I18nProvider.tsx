@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * components/I18nProvider.tsx — client wrapper around NextIntlClientProvider.
+ * components/I18nProvider.tsx - client wrapper around NextIntlClientProvider.
  *
  * Purpose: makes the request's locale and message catalog available to every
  * Client Component via the useTranslations() / useLocale() hooks. next-intl's

@@ -31,7 +31,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 // "All maps at once" mode (owner 2026-06-25): the 3D Room File picker can upload a single map OR
 // every map in the group at once. The multi-map panel is the same one the standalone "Upload all
-// maps (.log)" button uses — reused here so the all-maps option lives INSIDE the 3D Room File flow.
+// maps (.log)" button uses - reused here so the all-maps option lives INSIDE the 3D Room File flow.
 import { MultiMapLogPanel, type MatchOption } from "./MultiMapLogUpload";
 // Shared watchlist client (lib/watchlist.ts). The upload review lets admins flag teams/players
 // straight from the off-roster flags here; entries land on the AFC-wide advisory watchlist that
@@ -113,8 +113,8 @@ interface RosterMismatchTeam {
 }
 // Booyah "map winner missing" flag from /events/upload-team-match-result/. When the uploaded map
 // has no stored 1st-place team it contributes 0 booyahs, so the backend tells us WHY:
-//   • winner_unmatched      — a 1st-place block existed but did not match a registered team (team_name set)
-//   • no_first_place_in_file — the file had no 1st place at all
+//   • winner_unmatched      - a 1st-place block existed but did not match a registered team (team_name set)
+//   • no_first_place_in_file - the file had no 1st place at all
 // Surfaced as a heads-up banner in the review panel below so the undercount is visible, not silent.
 interface MissingWinner {
   reason: "winner_unmatched" | "no_first_place_in_file";

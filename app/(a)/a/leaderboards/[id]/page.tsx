@@ -94,7 +94,7 @@ export default function IndividualLeaderboardPage({
   const [editingMatch, setEditingMatch] = useState<{
     match: { match_id: number; match_name: string };
     view: MatchView;
-    // The matches of the GROUP that owns this match — fed to FileUploadStep so its "All maps at
+    // The matches of the GROUP that owns this match - fed to FileUploadStep so its "All maps at
     // once" mode (3D Room File) targets the right group, even if the picker chose a different group.
     groupMatches?: MatchOption[];
   } | null>(null);
@@ -692,7 +692,7 @@ export default function IndividualLeaderboardPage({
       )}
 
       {/* Multi-map .log upload (owner 2026-06-22; SOLO support 2026-06-25): drop every map's
-          match-log at once, assign each to a match in THIS group, review, then apply — reuses the
+          match-log at once, assign each to a match in THIS group, review, then apply - reuses the
           single-map upload pipeline per file. Works for team AND solo events (participantType picks
           the endpoint). Fed the current group's matches. */}
       {!editingMatch && !groupEditOpen && eventData && currentGroup && (

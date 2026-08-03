@@ -43,13 +43,13 @@ async function getPlayerData(ign: string) {
 }
 
 // ── generateMetadata: rich link embed for a single player profile ────────────
-// Data source: POST /player/get-public-player-stats/ (public, no auth, no PII) —
+// Data source: POST /player/get-public-player-stats/ (public, no auth, no PII) - 
 // the SAME endpoint PlayerClient reads, so the embed matches what the page shows.
 // Response shape: { player: { username, team: {team_name,...}|null,
 //   profile_picture, esports_picture, kdr, total_kills, total_wins, win_rate, ... } }.
 // The embed surfaces the player IGN + team + headline stats (kills / wins / KDR)
 // and uses the profile/esports picture as the image. Falls back to site-default
-// metadata when the player is missing — never throws.
+// metadata when the player is missing - never throws.
 export async function generateMetadata({
   params,
 }: {

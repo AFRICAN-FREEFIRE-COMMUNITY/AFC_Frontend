@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OrganizerTourLauncher.tsx  —  the "Take a tour" guide for the organizer portal
+// OrganizerTourLauncher.tsx  -  the "Take a tour" guide for the organizer portal
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   The organizer-portal counterpart of the admin tour
@@ -20,7 +20,7 @@
 // HOW IT CONNECTS
 //   - MOUNTED BY: app/(organizer)/organizer/layout.tsx, in the portal header next to
 //     the Log out control. Because that header is on every organizer page, the
-//     launcher is too — it simply hides itself where no tour exists.
+//     launcher is too - it simply hides itself where no tour exists.
 //   - STEPS + ROUTE MAP come from ./organizer-tour-steps (ORGANIZER_TOUR_STEPS +
 //     resolveOrganizerTourPageKey). Each step targets a control by the
 //     `[data-tour="org-…"]` hooks added on the organizer pages and on the sidebar
@@ -45,7 +45,7 @@
 //     empty overlay.
 //
 // COPY RULES: NO em or en dashes in any user-facing string. (Comments may use the
-// box-drawing dash above — that never renders to the user.)
+// box-drawing dash above - that never renders to the user.)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import * as React from "react";
@@ -82,14 +82,14 @@ function hasSeenTour(pageKey: OrganizerTourPageKey): boolean {
   }
 }
 
-// Persist the "seen" flag. Swallows storage errors (quota / disabled) silently —
+// Persist the "seen" flag. Swallows storage errors (quota / disabled) silently - 
 // failing to remember is harmless, it just means the tour might auto-show again.
 function setSeenTour(pageKey: OrganizerTourPageKey): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(doneStorageKey(pageKey), "1");
   } catch {
-    /* storage unavailable — ignore */
+    /* storage unavailable - ignore */
   }
 }
 
@@ -215,7 +215,7 @@ function useOrganizerTour(pageKey: OrganizerTourPageKey, t: Translate) {
       tRef.current,
       () => driverRef.current,
     );
-    if (steps.length === 0) return; // nothing to show — do not open an empty overlay
+    if (steps.length === 0) return; // nothing to show - do not open an empty overlay
 
     destroy(); // destroy a previous run before starting a new one
 

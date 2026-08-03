@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BroadcastControl — "what does the live overlay show?" switch (owner 2026-07-01).
+// BroadcastControl - "what does the live overlay show?" switch (owner 2026-07-01).
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   Lets an organizer/admin choose ON THE WEBSITE which stage/group the live OBS
@@ -17,7 +17,7 @@
 //     (both Bearer + org/event-admin gated). See lib/overlay.ts for the contract.
 //   • The overlay feed (events/overlay/feed/) resolves THIS selection whenever its URL
 //     omits stage & group, so a "follow broadcast" overlay link tracks whatever is set
-//     here and picks the change up within ONE self-poll — no OBS change, no re-copy.
+//     here and picks the change up within ONE self-poll - no OBS change, no re-copy.
 //     (app/overlay/leaderboard/[token]/page.tsx polls fetchOverlayFeed on an interval.)
 //
 // MOUNTED ON
@@ -55,7 +55,7 @@ interface BroadcastControlProps {
   // The NUMERIC event id (the broadcast endpoints are event-scoped). Both host pages already
   // have this: the admin page from its [id] route param, the organizer page from its resolved slug.
   eventId: number | string;
-  // The owning org (informational only here — the endpoints authorise off the event + the caller's
+  // The owning org (informational only here - the endpoints authorise off the event + the caller's
   // org/event-admin rights server-side, so no per-call scoping is needed). Kept for parity with
   // CopyOverlayLinkDialog and to make the mount sites read the same.
   organizationId?: number | null;
@@ -138,7 +138,7 @@ export function BroadcastControl({ eventId }: BroadcastControlProps) {
 
   // ── Human-readable description of a selection (for the "Live: ..." status line). ──
   // Uses the same scope labels the Select shows, then appends the stage/group name(s) so the organizer
-  // can read exactly what is on air. No em/en dashes (AFC copy rule) — names are joined with " / ".
+  // can read exactly what is on air. No em/en dashes (AFC copy rule) - names are joined with " / ".
   const describe = useCallback(
     (sel: BroadcastSelection | null): string => {
       if (!sel) return "";

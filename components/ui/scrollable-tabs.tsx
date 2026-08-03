@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ScrollableTabsList — a drop-in replacement for the
+ * ScrollableTabsList - a drop-in replacement for the
  *   <ScrollArea><TabsList>…triggers…</TabsList><ScrollBar orientation="horizontal" /></ScrollArea>
  * pattern used on the tab bars across the app.
  *
@@ -26,7 +26,7 @@
  *   <TabsTrigger> elements) and className, so the surrounding <TabsContent> blocks are untouched and
  *   the Radix Tabs value still drives everything. Any extra props (id, data-tour, aria-*) are
  *   forwarded to the inner TabsList. It reads the active trigger via Radix's data-state="active" so it
- *   is fully data-driven by the Tabs value — no extra wiring needed at the call site.
+ *   is fully data-driven by the Tabs value - no extra wiring needed at the call site.
  *   Callers (all replacing the ScrollArea+TabsList pattern): the event detail + leaderboard + shop +
  *   settings + votes + profile + players + teams tab bars. Shares the exact fade/auto-centre behaviour
  *   with EventEditSectionNav (that one adds a phone dropdown because it also carries per-section status

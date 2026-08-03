@@ -10,7 +10,7 @@
 //      on /overlay, so only the leaderboard board paints over the stream.
 //
 // This layout nests INSIDE the root app/layout.tsx (providers + PageGradient + Toaster
-// still wrap it), so no site chrome needs re-wiring — the transparency is handled purely
+// still wrap it), so no site chrome needs re-wiring - the transparency is handled purely
 // by the html.overlay class + the path-aware gradient.
 // ─────────────────────────────────────────────────────────────────────────────
 

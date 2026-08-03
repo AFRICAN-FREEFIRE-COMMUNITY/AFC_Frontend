@@ -17,7 +17,7 @@
 //
 // AUTH: every endpoint is per-user and authenticated. Unlike the admin client
 // (which reads the cookie via authHeaders()), these helpers take the SESSION TOKEN
-// explicitly so callers can pass useAuth().token directly — the same Bearer style
+// explicitly so callers can pass useAuth().token directly - the same Bearer style
 // CartDetails already uses for /shop/buy-now/. The token threads through because the
 // checkout flow and the profile page both already hold it from AuthContext.
 //
@@ -77,7 +77,7 @@ export interface UpdateDeliveryProfilePayload extends Partial<DeliveryProfilePay
   profile_id: number;
 }
 
-// GET /shop/delivery-profiles/ — every saved address for the logged-in user, default
+// GET /shop/delivery-profiles/ - every saved address for the logged-in user, default
 // first. Returns the bare array (the endpoint wraps it as { profiles }).
 export async function listDeliveryProfiles(
   token: string,
@@ -89,7 +89,7 @@ export async function listDeliveryProfiles(
   return res.data.profiles ?? [];
 }
 
-// POST /shop/delivery-profiles/create/ — save a new address. Returns the created row.
+// POST /shop/delivery-profiles/create/ - save a new address. Returns the created row.
 export async function createDeliveryProfile(
   payload: DeliveryProfilePayload,
   token: string,
@@ -102,7 +102,7 @@ export async function createDeliveryProfile(
   return res.data.profile;
 }
 
-// POST /shop/delivery-profiles/update/ — edit an existing address (by profile_id).
+// POST /shop/delivery-profiles/update/ - edit an existing address (by profile_id).
 // Returns the updated row.
 export async function updateDeliveryProfile(
   payload: UpdateDeliveryProfilePayload,
@@ -116,7 +116,7 @@ export async function updateDeliveryProfile(
   return res.data.profile;
 }
 
-// POST /shop/delivery-profiles/delete/ — remove a saved address (by profile_id).
+// POST /shop/delivery-profiles/delete/ - remove a saved address (by profile_id).
 export async function deleteDeliveryProfile(
   id: number,
   token: string,
@@ -129,7 +129,7 @@ export async function deleteDeliveryProfile(
   return res.data;
 }
 
-// POST /shop/delivery-profiles/set-default/ — make a saved address the default (the
+// POST /shop/delivery-profiles/set-default/ - make a saved address the default (the
 // one preselected at checkout).
 export async function setDefaultDeliveryProfile(
   id: number,

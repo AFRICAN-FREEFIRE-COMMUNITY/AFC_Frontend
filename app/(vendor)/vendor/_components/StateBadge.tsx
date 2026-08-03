@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// StateBadge — the fulfilment-state pill, shared by the vendor orders QUEUE
+// StateBadge - the fulfilment-state pill, shared by the vendor orders QUEUE
 // (orders/page.tsx) and the per-order page (orders/[id]/page.tsx) so a given state
 // always reads the same colour + label across the portal.
 //

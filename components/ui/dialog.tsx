@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 // inert, and is supposed to restore it on close. With @radix-ui/react-dialog
 // 1.1.x under React 19, when another Radix dismissable layer (a Select / Popover)
 // lives INSIDE the dialog, the layered cleanup can race and leave that lock stuck
-// on <body> after the dialog closes — making the ENTIRE page unclickable by mouse.
+// on <body> after the dialog closes - making the ENTIRE page unclickable by mouse.
 //
 // This is the exact cause of the "Create Event button is not working" report:
 // the create-event wizard's stage-config dialog (StageModal, which contains a
@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 // stacked/nested dialogs working (we never strip the lock a still-open dialog
 // needs). This is a no-op when Radix cleans up correctly on its own.
 //
-// CONNECTS TO: every consumer of this shadcn <Dialog>/<DialogContent> wrapper —
+// CONNECTS TO: every consumer of this shadcn <Dialog>/<DialogContent> wrapper - 
 // notably app/(a)/a/events/create/_components/StageModal.tsx and
 // app/(a)/a/events/[slug]/edit/_components/StageConfigModal.tsx.
 function restoreBodyPointerEventsIfStuck() {
@@ -86,7 +86,7 @@ function DialogOverlay({
       // restarts the 0.2s `exit` keyframe on every render, so `animationend` never
       // fires and Radix's <Presence> never unmounts the closed overlay/content.
       // The leftover overlay (fixed inset-0, z-50, pointer-events auto) then sits
-      // over the whole page and eats every click — which is what disabled the
+      // over the whole page and eats every click - which is what disabled the
       // "Create Event" submit. Without an exit animation, Presence unmounts the
       // overlay synchronously on close, so it can never linger. Keep the OPEN
       // (enter) animation for a smooth appearance.
@@ -118,7 +118,7 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
-        // CLOSE/exit animation utilities intentionally omitted — see the note on
+        // CLOSE/exit animation utilities intentionally omitted - see the note on
         // DialogOverlay above. A stuck `exit` keyframe kept the closed content
         // mounted (visible ghost panel + pointer-events auto) and froze the page.
         // Dropping the exit animation lets <Presence> unmount it immediately on

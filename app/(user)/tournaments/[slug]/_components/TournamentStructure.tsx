@@ -533,7 +533,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
         {String(stage.stage_format || "").startsWith("cs") ? (
           // Clash-Squad stage: show the read-only head-to-head bracket instead of the group grid
           // (a CS stage has no groups). registeredTeams=[] because the public viewer never seeds/
-          // generates — that control is manager-only and hidden by isManager={false}.
+          // generates - that control is manager-only and hidden by isManager={false}.
           <H2HBracketCard
             stageId={stage.stage_id}
             stageName={stage.stage_name}

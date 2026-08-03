@@ -869,7 +869,7 @@ export function PlayerClient({ username }: { username: string }) {
                   The upcoming/ongoing events this player is CURRENTLY registered for
                   (solo + squad). Data: player.registered_events from
                   /player/get-public-player-stats/ (afc_player.aggregation
-                  .compute_registered_events), returned for EVERY viewer — it sits
+                  .compute_registered_events), returned for EVERY viewer - it sits
                   OUTSIDE the stats privacy gate, so it shows even when the detailed
                   stats are hidden. (The Statistics / Events / Performance tabs only
                   render for permitted viewers, so the always-visible Overview tab is

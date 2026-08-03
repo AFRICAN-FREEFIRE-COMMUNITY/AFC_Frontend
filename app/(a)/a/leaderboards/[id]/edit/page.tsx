@@ -102,7 +102,7 @@ import { watchlistApi } from "@/lib/watchlist";
 import { ManualMatchResultStep } from "../../_components/ManualMatchResultStep";
 import { MatchMethodSelectionStep } from "../../_components/MatchMethodSelectionStep";
 import { FileUploadStep } from "../../_components/FileUploadStep";
-// "Upload all maps (.log)" — multi-map match-log upload (per-file map pick + review + apply),
+// "Upload all maps (.log)" - multi-map match-log upload (per-file map pick + review + apply),
 // mirroring the leaderboard view page so the edit page offers it too (owner 2026-06-29).
 import { MultiMapLogUpload } from "../../_components/MultiMapLogUpload";
 import { GroupBulkUploadPanel } from "../../_components/GroupBulkUploadPanel";
@@ -576,7 +576,7 @@ export default function EditLeaderboardPage({
               kills: sp?.kills ?? 0,
               damage: sp?.damage ?? 0,
               assists: sp?.assists ?? 0,
-              // Free Fire squad allows at most 4 PLAYED players per match — the backend
+              // Free Fire squad allows at most 4 PLAYED players per match - the backend
               // (edit-match-result) rejects any team with >4 played. A registered roster
               // can hold 5-6 (substitutes), so a roster member counts as "played" by
               // DEFAULT only when they have a saved per-player stat for THIS map (sp set).
@@ -727,7 +727,7 @@ export default function EditLeaderboardPage({
           const next = { ...p, [field]: value };
           // Entering any stat for a player implies they played (a player who did not play
           // has no stats), so auto-tick "Played". This stops the save from silently dropping
-          // a player whose kills were typed while "Played" was left unticked — the save only
+          // a player whose kills were typed while "Played" was left unticked - the save only
           // sends played=true players to respect the 4-per-squad cap. (bug fix 2026-06-15)
           if (field !== "played" && typeof value === "number" && value > 0) {
             next.played = true;
@@ -961,7 +961,7 @@ export default function EditLeaderboardPage({
         toast.success(
           `Saved all ${ok} map${ok !== 1 ? "s" : ""} in this group.`,
         );
-        // Only resync from the server when everything saved — see note above.
+        // Only resync from the server when everything saved - see note above.
         fetchData();
       }
     } catch (err: any) {
@@ -1640,7 +1640,7 @@ export default function EditLeaderboardPage({
               />
 
               {/* Bulk: upload every map's match-LOG / 3D-room file at once for this group,
-                  assign each file to a map, review, then apply (owner 2026-06-29 — parity with
+                  assign each file to a map, review, then apply (owner 2026-06-29 - parity with
                   the leaderboard view page). Works for team + solo (participantType picks the
                   endpoint). */}
               <div className="flex justify-end">
@@ -1816,7 +1816,7 @@ export default function EditLeaderboardPage({
                   formData={uploadFormData}
                   participantTypeOverride={participantType}
                   // Enables the "All maps at once" toggle on the 3D Room File step, scoped to this
-                  // group's matches (owner 2026-06-29 — parity with the leaderboard view page).
+                  // group's matches (owner 2026-06-29 - parity with the leaderboard view page).
                   groupMatches={currentGroup?.matches ?? []}
                   onAllMapsApplied={() => {
                     fetchData();

@@ -66,7 +66,7 @@ import { InfoTip } from "@/components/ui/info-tip";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; the event + leaderboard lists
 // re-fetch on each tick (and on tab return) so this tab updates without a manual reload.
 import { useLiveTick } from "@/hooks/useLiveTick";
-// Standalone (event-less) leaderboards section — the shared list + "Create standalone" button.
+// Standalone (event-less) leaderboards section - the shared list + "Create standalone" button.
 // Additive: it sits below the existing event-leaderboard table and does not touch that UI.
 import { StandaloneLeaderboardList } from "../leaderboards/standalone/_components/StandaloneLeaderboardList";
 

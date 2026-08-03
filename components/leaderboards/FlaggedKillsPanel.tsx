@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * FlaggedKillsPanel — admin/organizer control for "ringer" kills on an event leaderboard.
+ * FlaggedKillsPanel - admin/organizer control for "ringer" kills on an event leaderboard.
  *
  * A flagged player is a Free Fire UID that a match-log FILE upload credited to a team it is NOT
  * rostered on (afc_tournament_and_scrims.MatchKillFlag). This panel shows the flagged players plus
  * the event-wide "count flagged kills" default, and lets an admin or organizer:
- *   • flip the event default (Switch) — count vs drop ALL flagged kills, or
+ *   • flip the event default (Switch) - count vs drop ALL flagged kills, or
  *   • override one player (Select: Follow / Count / Do not count).
  * Each change PATCHes the backend (lib/flaggedKills) which recomputes the team totals, then we
  * refetch + call onChanged() so the parent reloads the standings.
@@ -15,7 +15,7 @@
  * the whole event. By default the panel FOLLOWS the stage/group the parent leaderboard is currently
  * viewing (selectedStageId/selectedGroupId props) and re-fetches as that changes. A "Combine" picker
  * (stage + group checkboxes, mirroring CombinedStandings) lets the manager override that and view
- * flagged players across any set of stages/groups. Scoping is DISPLAY-ONLY — the count/exclude
+ * flagged players across any set of stages/groups. Scoping is DISPLAY-ONLY - the count/exclude
  * decisions and the team-total recompute are unchanged (still event-wide).
  *
  * Mounted on the admin event leaderboard (app/(a)/a/leaderboards/[id] + its /edit) and the organizer
@@ -239,7 +239,7 @@ export function FlaggedKillsPanel({
   };
 
   // Reject every unmatched in-game team block at once (leave them all uncounted). There is no
-  // "accept all" for teams since each block has no single obvious target — those stay per-row.
+  // "accept all" for teams since each block has no single obvious target - those stay per-row.
   const bulkRejectTeams = async () => {
     if (!token || busy || unmatched.length === 0) return;
     setBusy(true);

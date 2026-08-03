@@ -42,7 +42,7 @@ const url = (path: string) => `${BASE}/shop/fulfilment/${path}`;
 
 // ── Response/row shapes ────────────────────────────────────────────────────────
 // These mirror vendor_my_orders' PII-firewalled payload in afc_shop/fulfilment.py
-// EXACTLY (buyer NAME + delivery address + items + state only — never the buyer's
+// EXACTLY (buyer NAME + delivery address + items + state only - never the buyer's
 // email, phone, account id, payment refs, or money internals).
 
 // The five lifecycle states the backend VALID_TRANSITIONS map allows. "cancelled"
@@ -125,7 +125,7 @@ export const vendorApi = {
   // the buyer is emailed "on the way". We send the files under the "evidence" field
   // (the backend accepts files under ANY field name via request.FILES.items()); an
   // optional "note" rides along. We set NO explicit Content-Type so axios fills in
-  // the multipart boundary itself — the same upload idiom as lib/organizers.ts and
+  // the multipart boundary itself - the same upload idiom as lib/organizers.ts and
   // teams/[id]/edit. Returns { evidence_saved, fulfilment_state }.
   markShipped: async (orderId: number, files: File[], note?: string) => {
     const form = new FormData();
@@ -151,7 +151,7 @@ export const vendorApi = {
 // VENDOR PRODUCT CRUD  (backend prefix /shop/vendor/, afc_shop/vendors.py cluster C)
 //
 // The data layer behind the AFC Vendor Portal › PRODUCTS section
-// (app/(vendor)/vendor/products/*) — the vendor's self-serve catalogue. A vendor
+// (app/(vendor)/vendor/products/*) - the vendor's self-serve catalogue. A vendor
 // manages ONLY their own products and can NEVER approve their own; the lifecycle is:
 //
 //   draft ──submit──▶ submitted ──(AFC admin)──▶ approved | rejected
@@ -171,7 +171,7 @@ export const vendorApi = {
 // BACKEND MODELS this rides on (afc_shop/models.py): Product (+ the Phase B1
 // approval fields approval_status / submitted_at / approved_by / rejection_reason),
 // ProductVariant (a product carries variants, each {sku, price, ...}), ProductMedia
-// (the optional image gallery — the create form sends a single primary `image`,
+// (the optional image gallery - the create form sends a single primary `image`,
 // matching views.add_product). Vendor is the ownership edge (product.vendor == caller).
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -338,10 +338,10 @@ export const vendorProductApi = {
 };
 
 // ═════════════════════════════════════════════════════════════════════════════
-// VENDOR PAYOUTS — Paystack Transfers (the PRIMARY payout rail, afc_shop/paystack_payout.py)
+// VENDOR PAYOUTS - Paystack Transfers (the PRIMARY payout rail, afc_shop/paystack_payout.py)
 //
 // The data layer behind the AFC Vendor Portal › PAYOUTS section
-// (app/(vendor)/vendor/payouts/page.tsx) — where a vendor adds the LOCAL BANK ACCOUNT
+// (app/(vendor)/vendor/payouts/page.tsx) - where a vendor adds the LOCAL BANK ACCOUNT
 // AFC pays their share out to. AFC's vendors are majority African; Stripe Connect can
 // NOT pay out to NGN/most-African banks, but PAYSTACK can (and the shop already charges
 // via Paystack), so Paystack Transfers is the DEFAULT payout rail. The save flow is:
@@ -351,9 +351,9 @@ export const vendorProductApi = {
 //   Vendor.payout_provider to "paystack").
 //
 // The transfer itself fires automatically server-side on an order's shipped → completed
-// transition (afc_shop/fulfilment.py order_mark_completed, PROVIDER-AWARE — a Paystack
+// transition (afc_shop/fulfilment.py order_mark_completed, PROVIDER-AWARE - a Paystack
 // vendor is settled by paystack_payout.settle_order_payout_paystack; a Stripe vendor by
-// connect.settle_order_payout). There is no "pay me now" button here — the vendor just
+// connect.settle_order_payout). There is no "pay me now" button here - the vendor just
 // keeps a valid bank on file. All endpoints are Bearer-gated to the caller's own ACTIVE
 // Vendor (paystack_payout._require_active_vendor), the SAME auth as the clients above.
 //

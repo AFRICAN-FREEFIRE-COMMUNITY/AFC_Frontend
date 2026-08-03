@@ -8,7 +8,7 @@
  *
  * Source: Event.tournament_tier (afc_tournament_and_scrims), returned by get_all_events /
  * get_all_events_paginated (card list) and get_event_details (detail header). Distinct from the
- * player/team RANKINGS tiers in components/rankings/TierBadge.tsx — this is the tournament tier.
+ * player/team RANKINGS tiers in components/rankings/TierBadge.tsx - this is the tournament tier.
  *
  * Style follows the AFC tier-badge idiom (outline, rounded-full, px-2 py-0.5 text-xs) with the same
  * tier accents already used for the organizer-directory tier badge (1 = gold/best, 2 = green,

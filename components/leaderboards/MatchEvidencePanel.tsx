@@ -1,6 +1,6 @@
 "use client";
 
-// MatchEvidencePanel — surfaces the STORED evidence for one map so an admin or organizer can re-check a
+// MatchEvidencePanel - surfaces the STORED evidence for one map so an admin or organizer can re-check a
 // disputed result later (owner 2026-07-07 "store the match files ... so it can be checked later if
 // needed"). For the selected map it fetches:
 //   • the .log RESULT FILES the scoring upload retained  -> POST /events/match-result-logs/ {match_id}

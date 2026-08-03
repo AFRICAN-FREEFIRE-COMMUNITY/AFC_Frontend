@@ -1,5 +1,5 @@
 /**
- * lib/headToHead.ts — typed client for the CLASH SQUAD head-to-head BRACKET feature.
+ * lib/headToHead.ts - typed client for the CLASH SQUAD head-to-head BRACKET feature.
  *
  * Backend: afc_tournament_and_scrims/head_to_head_views.py, mounted under /events/ (see that
  * module's header for full shapes). A bracket = seeded H2H matches for a clash squad stage

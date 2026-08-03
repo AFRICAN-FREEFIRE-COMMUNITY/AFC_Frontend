@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Public OBS overlay page — /overlay/leaderboard/<token>?...
+// Public OBS overlay page - /overlay/leaderboard/<token>?...
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   The URL an organizer pastes into OBS as a Browser Source. It is BARE + PUBLIC:
@@ -13,7 +13,7 @@
 // URL CONTRACT (built by components/overlay/CopyOverlayLinkDialog.tsx)
 //   /overlay/leaderboard/<token>?type=event&event=&stage=&group=&design=&size=
 //                                &anim=&reveal=&interval=&cols=&live=
-//   - token   : Event.overlay_token (path segment) — the read capability.
+//   - token   : Event.overlay_token (path segment) - the read capability.
 //   - stage / group / design / size : which standings + design the feed resolves.
 //   - cols    : comma-separated field_type subset to show (default = all design fields).
 //   - anim    : fade | slide | flash | none      (default fade)
@@ -23,7 +23,7 @@
 //   - type / event : context only (the token already scopes to the event server-side).
 //
 // DATA
-//   lib/overlay.fetchOverlayFeed() (raw fetch, no auth — precedent: EventDetailsWrapper's
+//   lib/overlay.fetchOverlayFeed() (raw fetch, no auth - precedent: EventDetailsWrapper's
 //   get-event-details-not-logged-in). Returns { design, standings, board, size, live }.
 //   Passed straight into DesignBoard (app/overlay/leaderboard/_components/DesignBoard.tsx).
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,7 +127,7 @@ function OverlayLeaderboardInner() {
           }
         }
       } catch (err: any) {
-        // Ignore intentional aborts; surface anything else quietly (broadcast graphic — no toasts).
+        // Ignore intentional aborts; surface anything else quietly (broadcast graphic - no toasts).
         if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") return;
         if (!cancelled) setError("Waiting for the leaderboard feed...");
       }

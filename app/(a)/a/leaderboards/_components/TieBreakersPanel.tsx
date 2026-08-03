@@ -9,7 +9,7 @@
 // CONNECTS TO: GET/POST events/<event_id>/tie-breakers/ (views_mvp.event_tie_breakers). Scope:
 // "all" saves the event default (+ optional wipe of overrides), "stage"/"group" save an override
 // for the CURRENTLY SELECTED stage/group passed in by the host page. Mounted on the leaderboard
-// edit page's Scoring Config tab. Admin surface — English.
+// edit page's Scoring Config tab. Admin surface - English.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";

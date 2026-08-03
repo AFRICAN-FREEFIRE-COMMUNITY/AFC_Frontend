@@ -6,7 +6,7 @@
 // The Teams admin surface, extracted VERBATIM from the old standalone
 // app/(a)/a/teams/page.tsx so it can be rendered as the "Teams" tab of the
 // combined Teams & Players page (owner request 2026-06-09: merge the two admin
-// pages into one tabbed page). Behaviour is unchanged — same team list
+// pages into one tabbed page). Behaviour is unchanged - same team list
 // (GET /team/get-all-teams/), the Rank-Teams-into-Tiers action, and the live
 // Ghost Teams create/delete (afc_rankings ghost-teams admin API).
 //

@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PageGuide.tsx  —  the on-page driver.js spotlight for the guided welcome tour
+// PageGuide.tsx  -  the on-page driver.js spotlight for the guided welcome tour
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   Piece 3 of 3 of the interactive guided welcome tour (see GuidedTourContext.tsx

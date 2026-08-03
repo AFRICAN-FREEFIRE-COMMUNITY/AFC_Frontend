@@ -1,14 +1,14 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FeaturedShop — the "Featured Shop Items" card on the user home page (/home).
+// FeaturedShop - the "Featured Shop Items" card on the user home page (/home).
 //
 // Replaces the old mock `shopItems` placeholder list + the <ComingSoon/> overlay
 // (the shop is live now, so users must be able to reach it). It fetches REAL active
 // products from the PUBLIC storefront endpoint and shows the first few as a teaser,
 // each linking to its product page, plus a "Visit Shop" button.
 //
-// Data: GET /shop/view-active-products/  (public, active-only — same endpoint the
+// Data: GET /shop/view-active-products/  (public, active-only - same endpoint the
 //       storefront ShopClient uses). No auth required.
 // Renders into: app/(user)/home/page.tsx (the News + Shop row).
 // ─────────────────────────────────────────────────────────────────────────────

@@ -595,7 +595,7 @@ export default function page({ params }: { params: Params }) {
               {/* ── Team stats visibility ──────────────────────────────────────────────────
                   Rendered ONLY for team owners and managers (can_manage_stats from
                   get-team-details response). Toggling fires an immediate POST to
-                  /team/set-stats-visibility/ — this is NOT part of the main form
+                  /team/set-stats-visibility/ - this is NOT part of the main form
                   submit, it saves instantly so the owner sees clear feedback. Default
                   is private (off); turning it on lets everyone see the team's stats. */}
               {teamDetails?.can_manage_stats && (
@@ -623,7 +623,7 @@ export default function page({ params }: { params: Params }) {
                   the team's MANUAL extras (value=manualLetters); letters already covered by a
                   roster member are passed as disabledLetters so they stay locked-on and the manager
                   can only ADD. Saving is a separate action (NOT part of the main form submit) that
-                  POSTs to /team/set-team-letters/ — mirrors the stats-visibility control above. */}
+                  POSTs to /team/set-team-letters/ - mirrors the stats-visibility control above. */}
               {teamDetails?.can_manage_letters && (
                 <div className="space-y-3 rounded-md border p-4">
                   <div className="space-y-0.5">

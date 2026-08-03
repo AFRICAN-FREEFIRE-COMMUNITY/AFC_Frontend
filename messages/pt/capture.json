@@ -53,7 +53,7 @@
       },
       "setup": {
         "q": "Como é que se configura?",
-        "a": "1) Descarregue e execute o AFC Capture. 2) Nesta página, selecione o seu evento e gere uma chave de captura; em seguida, copie-a. 3) Na janela «Definições» da aplicação, cole a chave e clique em «Obter a partir da chave» — isto preenche o evento e permite-lhe selecionar a fase e o grupo. 4) Defina a «Pasta de vigilância» para a pasta «Free Fire_64_Data» do Free Fire (utilize «Detetar» ou «Procurar»). 5) Guarde. Deixe a aplicação a funcionar enquanto hospeda a sala."
+        "a": "1) Descarregue e execute o AFC Capture. 2) Nesta página, selecione o seu evento e gere uma chave de captura; em seguida, copie-a. 3) Na janela «Definições» da aplicação, cole a chave e clique em «Obter a partir da chave» - isto preenche o evento e permite-lhe selecionar a fase e o grupo. 4) Defina a «Pasta de vigilância» para a pasta «Free Fire_64_Data» do Free Fire (utilize «Detetar» ou «Procurar»). 5) Guarde. Deixe a aplicação a funcionar enquanto hospeda a sala."
       },
       "key": {
         "q": "Onde posso obter a minha chave de captura e o que é isso?",
@@ -89,7 +89,7 @@
       },
       "multiple": {
         "q": "Posso mostrar mais do que uma sobreposição ao mesmo tempo?",
-        "a": "Sim. Cada sobreposição é um link independente (com o seu próprio design e quadro). Adicione várias como «Fontes do navegador» separadas — um quadro de classificação principal, uma tabela de MVP, um cartão dos melhores assassinos — e todas elas são atualizadas em simultâneo a partir do mesmo evento."
+        "a": "Sim. Cada sobreposição é um link independente (com o seu próprio design e quadro). Adicione várias como «Fontes do navegador» separadas - um quadro de classificação principal, uma tabela de MVP, um cartão dos melhores assassinos - e todas elas são atualizadas em simultâneo a partir do mesmo evento."
       },
       "solo": {
         "q": "Funciona para eventos individuais?",

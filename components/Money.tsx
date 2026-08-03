@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Money.tsx — <Money/>
+ * Money.tsx - <Money/>
  * ────────────────────
  * The single money-rendering chokepoint (multi-currency, owner 2026-06-30). Converts a stored
  * amount into the viewer's display currency (from CurrencyContext) and formats it with the right
@@ -14,7 +14,7 @@
  *           pass "USD" for USD-stored amounts (e.g. event registration fees / prizepools already in USD).
  *   className: optional styling on the <span>.
  *
- * Display-only: it never changes stored values or charges — it just shows the viewer their currency.
+ * Display-only: it never changes stored values or charges - it just shows the viewer their currency.
  */
 
 import { useCurrency } from "@/contexts/CurrencyContext";

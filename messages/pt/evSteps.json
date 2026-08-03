@@ -134,7 +134,7 @@
     "inviteBot": "Convida o bot da AFC para o teu servidor",
     "verifyBot": "Verificar se o bot está no servidor",
     "botFound": "O bot está no teu servidor",
-    "botNotFound": "Bot não encontrado — convida-o primeiro",
+    "botNotFound": "Bot não encontrado - convida-o primeiro",
     "requireDiscord": "Exigir o registo no Discord",
     "requireDiscordHelp": "Os jogadores têm de estar ligados ao Discord e ser membros deste servidor.",
     "toggleDisabledHelp": "Convida o bot do AFC para o teu servidor e verifica-o antes de poderes exigir o Discord. Ou deixa o ID da guilda em branco para utilizares o servidor principal do AFC.",

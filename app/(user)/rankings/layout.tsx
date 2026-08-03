@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import { generatePageMetadata } from "@/lib/seo";
 
 // Static link embed for the Rankings list page. The page itself is a client
-// component ("use client"), so its metadata lives here in this server layout —
+// component ("use client"), so its metadata lives here in this server layout - 
 // same pattern as the other (user) list pages (tournaments/teams/players).
 // generatePageMetadata already emits a LARGE Twitter card so the share renders
 // as a big embed; the image is the site-default branded card.

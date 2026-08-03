@@ -19,7 +19,7 @@
 //
 // AUTH: every endpoint below is require_admin server-side (role == "admin"). The
 // vendor CRUD endpoints (cluster C, /shop/vendor/*) belong to the SEPARATE vendor
-// portal and live in lib/vendor.ts — they are intentionally NOT in this admin client.
+// portal and live in lib/vendor.ts - they are intentionally NOT in this admin client.
 //
 // VENDORS ARE INVITE-ONLY: there is no public "Sell on AFC" application. An admin
 // links an EXISTING User to a new Vendor (admin_create_vendor), so createVendor takes
@@ -218,18 +218,18 @@ export interface ReleasePayoutsResult {
 export const marketplaceAdminApi = {
   // ── A) VENDOR MANAGEMENT (require_admin) ──────────────────────────────────
 
-  // POST /shop/admin/vendors/create/ — link an EXISTING user (by user_id|email) to a
+  // POST /shop/admin/vendors/create/ - link an EXISTING user (by user_id|email) to a
   // new active Vendor. Returns 201 { message, vendor }. Consumed by the "Add vendor"
   // dialog on the Manage vendors page.
   createVendor: (body: CreateVendorBody) =>
     aPost<{ message: string; vendor: AdminVendor }>("vendors/create/", body),
 
-  // GET /shop/admin/vendors/list/ — every vendor (the Manage vendors table).
+  // GET /shop/admin/vendors/list/ - every vendor (the Manage vendors table).
   // Returns { count, vendors }.
   listVendors: () =>
     aGet<{ count: number; vendors: AdminVendor[] }>("vendors/list/"),
 
-  // POST /shop/admin/vendors/set-status/ — flip a vendor active <-> suspended (the
+  // POST /shop/admin/vendors/set-status/ - flip a vendor active <-> suspended (the
   // suspend/reactivate toggle). A suspended vendor is blocked from every vendor action
   // server-side. Returns { message, vendor }.
   setVendorStatus: (vendorId: number, status: VendorStatus) =>
@@ -238,7 +238,7 @@ export const marketplaceAdminApi = {
       status,
     }),
 
-  // POST /shop/admin/vendors/assign-product/ — set (vendorId) or clear (null) which
+  // POST /shop/admin/vendors/assign-product/ - set (vendorId) or clear (null) which
   // vendor owns a product. Used by the "assign product to vendor" action. Returns
   // { message, product_id, vendor_id }.
   assignProduct: (productId: number, vendorId: number | null) =>
@@ -260,7 +260,7 @@ export const marketplaceAdminApi = {
       status ? `products/pending/?status=${status}` : "products/pending/",
     ),
 
-  // POST /shop/admin/products/approve/ — submitted -> approved (the Approve button).
+  // POST /shop/admin/products/approve/ - submitted -> approved (the Approve button).
   // Returns { message, product_id, approval_status }.
   approveProduct: (productId: number) =>
     aPost<{ message: string; product_id: number; approval_status: string }>(
@@ -268,7 +268,7 @@ export const marketplaceAdminApi = {
       { product_id: productId },
     ),
 
-  // POST /shop/admin/products/reject/ — submitted -> rejected WITH a reason (shown
+  // POST /shop/admin/products/reject/ - submitted -> rejected WITH a reason (shown
   // back to the vendor). reason is required server-side. Returns { message,
   // product_id, approval_status }.
   rejectProduct: (productId: number, reason: string) =>

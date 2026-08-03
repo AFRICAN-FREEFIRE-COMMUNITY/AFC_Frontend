@@ -5,7 +5,7 @@
 // It lists the STATIC public routes plus the DYNAMIC entity pages, fetched
 // server-side from the Django backend at request time. Each entity fetch is
 // wrapped in its own try/catch and a hard cap, so:
-//   - one failing endpoint degrades to "just the other routes" (never a 500 —
+//   - one failing endpoint degrades to "just the other routes" (never a 500 - 
 //     a sitemap that errors is worse for SEO than a partial one), and
 //   - a huge collection can never blow up the response size.
 //

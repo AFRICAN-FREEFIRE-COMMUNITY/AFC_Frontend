@@ -18,8 +18,8 @@
 //   2. THE LAYOUT OWNS THE DATA. Because that gate call already fetches the whole
 //      fulfilment queue, the layout hands the orders (+ a refetch) down through
 //      <VendorProvider> (./_components/VendorContext) so neither the queue page nor
-//      the per-order page re-fetches. (There is no per-order GET endpoint anyway —
-//      see VendorContext's header note — so the per-order page reads its order out
+//      the per-order page re-fetches. (There is no per-order GET endpoint anyway - 
+//      see VendorContext's header note - so the per-order page reads its order out
 //      of this shared list by id.)
 //
 // The shell itself (SidebarProvider / Sidebar / SidebarTrigger / SidebarInset +
@@ -237,7 +237,7 @@ function VendorShell({ children }: { children: ReactNode }) {
     } catch (err: any) {
       const status = err?.response?.status;
       if (status === 403) {
-        // Backend says "You are not a vendor." — this is the no-access branch.
+        // Backend says "You are not a vendor." - this is the no-access branch.
         setGateState("no-access");
       } else {
         setGateState("error");
@@ -266,7 +266,7 @@ function VendorShell({ children }: { children: ReactNode }) {
             onExit={handleExitOverride}
           />
         )}
-        {/* Header — same shell as the organizer portal, fronted by the
+        {/* Header - same shell as the organizer portal, fronted by the
             SidebarTrigger hamburger that toggles VendorSidebar. */}
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
           <div className="container mx-auto h-20 flex items-center justify-between">

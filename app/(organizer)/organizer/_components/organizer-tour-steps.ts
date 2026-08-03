@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// organizer-tour-steps.ts  —  step definitions for the guided Organizer Tour
+// organizer-tour-steps.ts  -  step definitions for the guided Organizer Tour
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   Central, page-keyed catalogue of the interactive "Take a tour" walkthrough for
@@ -31,7 +31,7 @@
 // COPY RULES (AFC hard rules)
 //   - NO em dashes or en dashes in any user-facing string. The strings live in
 //     messages/en/organizer.json, not here, but the same rule applies there.
-//   - Code comments may use box-drawing dashes — those never render to the user.
+//   - Code comments may use box-drawing dashes - those never render to the user.
 //
 // ADDING A NEW PAGE LATER (documented pattern)
 //   1. Add stable `data-tour="org-my-key"` attributes on the controls to highlight.
@@ -65,7 +65,7 @@ export type OrganizerTourStep = {
   lazy?: boolean;
 };
 
-// Known page keys. Short and stable — they are used as the localStorage suffix
+// Known page keys. Short and stable - they are used as the localStorage suffix
 // (afc_org_tour_<pageKey>_done) and as the i18n key segment, so renaming one
 // re-shows that tour and orphans its strings.
 export type OrganizerTourPageKey =
@@ -97,7 +97,7 @@ export type OrganizerTourPageKey =
 // learns where the sections live before we dive into the page itself. The anchor
 // `[data-tour="org-sidebar-nav"]` is added on the nav SidebarMenu in
 // app/(organizer)/organizer/layout.tsx. On mobile the sidebar is offcanvas
-// (hidden) — when the menu is not on screen the step is dropped automatically and
+// (hidden) - when the menu is not on screen the step is dropped automatically and
 // the tour starts at the page header instead.
 //
 // NOTE: this step's copy is shared across every page, so it resolves from
@@ -127,7 +127,7 @@ export const ORGANIZER_TOUR_STEPS: Record<
       align: "center",
     },
   ],
-  // Per-event overlay studio (app/(organizer)/organizer/overlays/[eventId]/page.tsx —
+  // Per-event overlay studio (app/(organizer)/organizer/overlays/[eventId]/page.tsx - 
   // the SHARED EventOverlayStudio, so the anchors match the admin studio's).
   "overlays-studio": [
     {

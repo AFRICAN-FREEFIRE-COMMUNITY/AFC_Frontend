@@ -1,5 +1,5 @@
 /**
- * lib/eventLinks.ts — typed client for EVENT LINKING / qualification chains (P1).
+ * lib/eventLinks.ts - typed client for EVENT LINKING / qualification chains (P1).
  *
  * Backend: afc_tournament_and_scrims/event_links.py, mounted under /events/ (see that module's
  * header for full shapes). A link = "top N of SOURCE STAGE qualify into TARGET EVENT"; firing

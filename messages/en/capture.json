@@ -53,7 +53,7 @@
       },
       "setup": {
         "q": "How do I set it up?",
-        "a": "1) Download and run AFC Capture. 2) On this page, pick your event and generate a capture key, then copy it. 3) In the app's Settings window paste the key and click 'Fetch from key' — it fills in the event and lets you pick the stage and group. 4) Point 'Watch folder' at your Free Fire 'Free Fire_64_Data' folder (use Detect or Browse). 5) Save. Leave it running while you host the room."
+        "a": "1) Download and run AFC Capture. 2) On this page, pick your event and generate a capture key, then copy it. 3) In the app's Settings window paste the key and click 'Fetch from key' - it fills in the event and lets you pick the stage and group. 4) Point 'Watch folder' at your Free Fire 'Free Fire_64_Data' folder (use Detect or Browse). 5) Save. Leave it running while you host the room."
       },
       "key": {
         "q": "Where do I get my capture key, and what is it?",
@@ -89,7 +89,7 @@
       },
       "multiple": {
         "q": "Can I show more than one overlay at once?",
-        "a": "Yes. Each overlay is its own link (its own design and board). Add several as separate Browser Sources — a main leaderboard, an MVP table, a top-kill card — and they all update together from the same event."
+        "a": "Yes. Each overlay is its own link (its own design and board). Add several as separate Browser Sources - a main leaderboard, an MVP table, a top-kill card - and they all update together from the same event."
       },
       "solo": {
         "q": "Does it work for solo events?",

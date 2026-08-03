@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 // "error" = transient → keep the 200 fallback so a live org page is never
 // deindexed on an API blip.
 import { fetchDetail } from "@/lib/detailFetch";
-// Shared link-embed builder (lib/seo.ts) — LARGE Twitter card + absolute URLs;
+// Shared link-embed builder (lib/seo.ts) - LARGE Twitter card + absolute URLs;
 // resolveOgImage (used inside it) proxies a backend /media/ banner through
 // /api/og-image so social crawlers can fetch it.
 //   generatePublicOrgSchema  → JSON-LD Organization for this organizer
@@ -21,7 +21,7 @@ import {
 } from "@/lib/seo";
 
 // WRAPPER PATTERN (same as teams/[id]/layout.tsx):
-// app/(user)/organizations/[slug]/page.tsx is a CLIENT component ("use client" —
+// app/(user)/organizations/[slug]/page.tsx is a CLIENT component ("use client" - 
 // it fetches via organizersApi in useEffect and renders dialogs). Client
 // components cannot export generateMetadata, so the route's rich link embed lives
 // here in this SERVER layout. The client page still renders below via {children},

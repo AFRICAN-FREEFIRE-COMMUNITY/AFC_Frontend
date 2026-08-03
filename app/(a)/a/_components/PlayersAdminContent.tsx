@@ -6,7 +6,7 @@
 // The Players admin surface, extracted VERBATIM from the old standalone
 // app/(a)/a/players/page.tsx so it can be rendered as the "Players" tab of the
 // combined Teams & Players page (owner request 2026-06-09: merge the two admin
-// pages into one tabbed page). Nothing about the behaviour changed — same data
+// pages into one tabbed page). Nothing about the behaviour changed - same data
 // source (GET /player/get-all-players/), same ban/unban + create-ghost-player
 // modals, same stats/filters/table/pagination.
 //

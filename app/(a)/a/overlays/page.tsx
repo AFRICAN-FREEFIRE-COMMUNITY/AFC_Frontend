@@ -6,7 +6,7 @@
 // Source, so nothing here is OBS-specific.
 //
 // WHAT AN ADMIN DOES HERE:
-//   • Get the AFC Capture software (download + how-to link) — the desktop app that auto-uploads
+//   • Get the AFC Capture software (download + how-to link) - the desktop app that auto-uploads
 //     results + pushes live standings.
 //   • Pick an event → the per-event OVERLAY STUDIO (/a/overlays/[eventId]) opens with EVERYTHING
 //     inline (owner 2026-07-02: no dialogs): every design as a live preview + per-link animation

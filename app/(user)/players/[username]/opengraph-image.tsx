@@ -5,7 +5,7 @@
 // player profile link is shared. We generate a BRANDED card (dark AFC background,
 // green/gold accents, the player IGN, their team, and headline stats: kills, wins,
 // KDR) with Next's ImageResponse, fetching REAL data from the public, no-auth,
-// no-PII endpoint POST /player/get-public-player-stats/ — the same data the page
+// no-PII endpoint POST /player/get-public-player-stats/ - the same data the page
 // and its generateMetadata use. The player's avatar/esports picture is composited
 // into the card when present.
 //

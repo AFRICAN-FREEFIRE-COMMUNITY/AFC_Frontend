@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Admin Shop — Manage Vendors  (route: /a/shop/vendors)
+// Admin Shop - Manage Vendors  (route: /a/shop/vendors)
 //
 // Purpose: the AFC admin surface for the marketplace vendor roster. Lets a shop
 // admin:
@@ -30,8 +30,8 @@
 //     queue). A vendor approved here can then have a product approved there.
 //
 // The product list for the "Assign product" dialog comes from the shop's existing
-// admin endpoint GET /shop/view-all-products/ (every status) — the SAME source the
-// inventory page uses — so we don't add a new endpoint just to pick a product.
+// admin endpoint GET /shop/view-all-products/ (every status) - the SAME source the
+// inventory page uses - so we don't add a new endpoint just to pick a product.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useState } from "react";

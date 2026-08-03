@@ -25,9 +25,9 @@
 // Every AFC detail endpoint returns HTTP 404 for a missing slug/id (verified
 // 2026-06-14 across the events / news / team / org / shop / player views), so
 // `response.status === 404` is the single reliable "entity is gone" signal.
-// Anything else stays a fallback — we ONLY ever 404 on a definitive 404.
+// Anything else stays a fallback - we ONLY ever 404 on a definitive 404.
 //
-// CONNECTS TO (callers — each wraps fetchDetail and, in BOTH its generateMetadata
+// CONNECTS TO (callers - each wraps fetchDetail and, in BOTH its generateMetadata
 // and its server render body, calls notFound() when the result is "missing"):
 //   - app/(user)/tournaments/[slug]/page.tsx        → getEventData
 //   - app/(user)/news/[slug]/page.tsx               → getNewsData
@@ -51,7 +51,7 @@ export type DetailResult<T> =
  *                `(j) => j?.event_details ?? j?.team`. A null/undefined
  *                extraction on an otherwise-OK 200 is treated as a TRANSIENT
  *                "error" (NOT "missing"), so we never 404 a real page on an
- *                unexpected-shape response — only a definitive backend 404 does.
+ *                unexpected-shape response - only a definitive backend 404 does.
  */
 export async function fetchDetail<T>(
   url: string,

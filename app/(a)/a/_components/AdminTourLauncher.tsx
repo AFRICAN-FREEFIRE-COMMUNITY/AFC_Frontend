@@ -14,7 +14,7 @@
 // HOW IT CONNECTS
 //   - MOUNTED BY: components/site-header.tsx (the persistent admin header rendered
 //     by app/(a)/a/layout.tsx). Because the header is on every admin page, the
-//     launcher is too — it simply hides itself where no tour exists.
+//     launcher is too - it simply hides itself where no tour exists.
 //   - PAGE KEY: resolveAdminTourPageKey(pathname) from ./admin-tour-steps maps the
 //     route (e.g. /a/events) to a tour key. Add a route there to light this up on a
 //     new page.

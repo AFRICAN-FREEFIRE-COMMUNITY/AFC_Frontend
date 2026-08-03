@@ -12,7 +12,7 @@
  * the shipment on payment success).
  *
  * SAFE-WHEN-DISABLED: when the backend has no shipping provider configured the quote comes
- * back { enabled: false }, and this component renders NOTHING — so dropping it into the
+ * back { enabled: false }, and this component renders NOTHING - so dropping it into the
  * checkout page leaves checkout completely unchanged until a provider + key are wired.
  * (Not yet mounted into CartDetails: the mount + the charged-total fold land together with
  * the provider client, per the deferred-shell plan.)

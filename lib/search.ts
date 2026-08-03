@@ -1,4 +1,4 @@
-// lib/search.ts — shared client-side fuzzy-ish text matching for every "Search ..." box on the site.
+// lib/search.ts - shared client-side fuzzy-ish text matching for every "Search ..." box on the site.
 //
 // WHY THIS EXISTS
 // Every list page used to filter with `field.toLowerCase().includes(query.toLowerCase())`. That is
@@ -28,7 +28,7 @@
 // generators, so folding them is what lets a normal-keyboard query find a stylized name.
 //
 // NFKD already handles the BIG families on its own (mathematical bold/italic/script/double-struck/
-// monospace/sans, fullwidth, circled, squared, fraktur) — those are NOT listed here. This map only
+// monospace/sans, fullwidth, circled, squared, fraktur) - those are NOT listed here. This map only
 // covers what NFKD leaves behind:
 //   - Latin small-caps / phonetic letters (ᴀ-ᴢ): the most common lowercase stylization in IGNs.
 //   - Cyrillic and Greek look-alikes (а е о ρ ν ...): visually identical to Latin letters.

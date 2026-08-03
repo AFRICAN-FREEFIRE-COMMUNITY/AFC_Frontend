@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * LinkifiedText.tsx — <LinkifiedText/>
+ * LinkifiedText.tsx - <LinkifiedText/>
  * ────────────────────────────────────
  * Renders a plain text string with any http(s) URLs turned into tappable, highlighted links
  * (owner 2026-06-30: notification bodies with links, e.g. a WhatsApp group invite an admin/organizer

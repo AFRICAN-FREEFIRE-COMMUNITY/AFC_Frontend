@@ -1115,7 +1115,7 @@ const Page = ({ params }: { params: Params }) => {
                     )}
                     {/*
                       Roster rule: a team fields at most 6 PLAYERS but can hold up to
-                      8 MEMBERS total — the extra slots are for staff (coach / manager
+                      8 MEMBERS total - the extra slots are for staff (coach / manager
                       / analyst), who never take a player slot. The invite form used to
                       vanish silently at 6 members, which both hid the staff path and
                       gave no explanation. Now it stays open until 8 with the rule spelt

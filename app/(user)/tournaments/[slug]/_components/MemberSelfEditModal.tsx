@@ -5,7 +5,7 @@
 // In-context "edit MY details" modal for a registered player, opened from the event page's roster
 // area. The owner's rule: while roster editing is allowed, EACH player can edit the roster context,
 // but only THEIR OWN profile details (never teammates', never the roster composition). So this modal
-// always acts on the SIGNED-IN user (useAuth().user) — there is no member parameter — and edits only
+// always acts on the SIGNED-IN user (useAuth().user) - there is no member parameter - and edits only
 // the fields the registration requirements care about: in-game name + Free Fire UID (the identity
 // fields), plus the profile image / esport image when the event requires them.
 //
@@ -13,7 +13,7 @@
 // to RELEASE exactly while roster editing is allowed for the event (registration still open OR an
 // org/admin roster-edit window is open, and no match has results). That same condition is surfaced as
 // user.identity_locked, so the caller (EventDetailsWrapper) only renders this modal's trigger when
-// !user.identity_locked — the edit can never hit the lock 400.
+// !user.identity_locked - the edit can never hit the lock 400.
 //
 // Endpoints: POST /auth/edit-profile/ (in_game_name/uid + preserved full_name/email, optional
 // profile_pic) and POST /auth/upload-esport-image/ (esport_image). On success we refresh the auth
@@ -90,7 +90,7 @@ export function MemberSelfEditModal({ event, onSuccess }: MemberSelfEditModalPro
     if (!token) return;
     startTransition(async () => {
       try {
-        // 1) Identity + profile image via edit-profile FIRST — it is the validation-prone call (UID
+        // 1) Identity + profile image via edit-profile FIRST - it is the validation-prone call (UID
         //    uniqueness, identity lock, required full_name/email). Doing it first means a rejection
         //    here leaves the (replace-only, immediately-committed) esport image untouched, avoiding a
         //    half-applied save. full_name/email are REQUIRED by the endpoint (it 400s without them) so

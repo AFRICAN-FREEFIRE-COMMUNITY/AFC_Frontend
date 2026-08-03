@@ -1,8 +1,8 @@
 "use client";
 
-// Organizer Watchlist page (/organizer/watchlist) — owner 2026-06-21.
-// The SAME shared advisory watchlist as the admin page (/a/watchlist) — one global list every
-// admin AND organizer sees — rendered through the shared <WatchlistManager>. This is an
+// Organizer Watchlist page (/organizer/watchlist) - owner 2026-06-21.
+// The SAME shared advisory watchlist as the admin page (/a/watchlist) - one global list every
+// admin AND organizer sees - rendered through the shared <WatchlistManager>. This is an
 // ORGANIZER-facing surface, so it is INTERNATIONALIZED (next-intl, namespace "watchlist",
 // messages/en/watchlist.json -> fr/pt via `pnpm i18n:translate`), per the project i18n rule.
 // Data: lib/watchlist.ts -> afc_auth/views_watchlist.py (gate allows any active organizer).

@@ -29,7 +29,7 @@ type Props = {
 // 1. Centralized Fetch Function
 // Returns a DetailResult: "ok" with the event, "missing" on a backend 404
 // (unknown slug, or the event's org is suspended/deleted), or "error" on any
-// transient failure. Public endpoint — no auth needed.
+// transient failure. Public endpoint - no auth needed.
 async function getEventData(slug: string, locale?: string) {
   return fetchDetail(
     `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-not-logged-in/`,
@@ -132,7 +132,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 //
 // We re-use getEventData (already memoized-ish via Next fetch cache from
 // generateMetadata's identical request) to embed JSON-LD in the INITIAL HTML.
-// This is what search + AI crawlers read — the interactive UI still renders
+// This is what search + AI crawlers read - the interactive UI still renders
 // entirely inside the client EventDetailsWrapper below, unaffected.
 const Page = async ({ params }: Props) => {
   const { slug } = await params;

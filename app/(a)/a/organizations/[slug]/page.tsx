@@ -1002,7 +1002,7 @@ export default function OrganizationDetailPage({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {/* Copy fixed 2026-06-19 (adversarial review): the F5 soft-delete does NOT re-home
-                  events and IS reversible via the Restore button on this page — the old "re-home to
+                  events and IS reversible via the Restore button on this page - the old "re-home to
                   AFC / cannot be undone" wording was the opposite of the real behavior. */}
               This soft-deletes{" "}
               <span className="font-semibold text-foreground">

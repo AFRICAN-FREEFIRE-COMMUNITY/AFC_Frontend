@@ -1,16 +1,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Vendor › Products (the vendor's own CATALOGUE).
 //
-// The vendor's self-serve product list — every product they own, in any approval
+// The vendor's self-serve product list - every product they own, in any approval
 // state. Each row shows the product name, its lowest variant price, an approval
 // status badge (draft / submitted / approved / rejected), and, on a rejected
 // product, the AFC rejection reason so the vendor knows what to fix. Row actions:
-//   • Edit               (draft / rejected only — the backend locks submitted/approved)
+//   • Edit               (draft / rejected only - the backend locks submitted/approved)
 //   • Submit for approval (draft / rejected → submitted, into the AFC review queue)
 // plus a top-right "Create product" button. An inline notice explains that AFC
 // reviews every product before it goes live.
 //
-// DATA SOURCE — UNLIKE the orders queue (which the layout pre-loads via
+// DATA SOURCE - UNLIKE the orders queue (which the layout pre-loads via
 // VendorContext), the product list is owned by THIS page: VendorContext only carries
 // the fulfilment orders, so products are fetched here from GET /shop/vendor/products/
 // (lib/vendor.ts::vendorProductApi.getMyProducts). load() doubles as the refetch the

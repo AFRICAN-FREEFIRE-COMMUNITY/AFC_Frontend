@@ -30,7 +30,7 @@
 // never fetched.
 //
 // EMPTY STATE: when the org owns zero events the loader is cleared and a calm empty card
-// is shown — never an infinite spinner (the bug we fixed elsewhere in the portal). The
+// is shown - never an infinite spinner (the bug we fixed elsewhere in the portal). The
 // backend returns clean zeros + empty lists for a brand-new org, so this is data-driven.
 //
 // The selected slug is read from OrganizerContext (the portal layout owns "which org is
@@ -495,7 +495,7 @@ export default function OrganizerMetricsPage() {
   // layout re-mounts this subtree keyed on slug) AND whenever the date range changes,
   // so every card/chart/table reflects the selected window. ──
   useEffect(() => {
-    // Gated members see the lock notice, not the stats — skip the fetch entirely.
+    // Gated members see the lock notice, not the stats - skip the fetch entirely.
     if (!canViewMetrics) {
       setLoading(false);
       return;
@@ -510,7 +510,7 @@ export default function OrganizerMetricsPage() {
       } catch (err: any) {
         toast.error(err?.response?.data?.message || t("metrics.loadError"));
       } finally {
-        // Always clear the loader — including on error — so the page never spins forever.
+        // Always clear the loader - including on error - so the page never spins forever.
         setLoading(false);
       }
     };
@@ -539,7 +539,7 @@ export default function OrganizerMetricsPage() {
   const avgParticipants = totals.avg_participants_per_event ?? 0;
   const fillRate = totals.registration_fill_rate ?? null;
   const completionRate = totals.completion_rate ?? null;
-  // Page-view headline numbers (in range) — sourced from EventPageView server-side.
+  // Page-view headline numbers (in range) - sourced from EventPageView server-side.
   const totalViews =
     metrics?.page_views?.total_views ?? totals.total_views ?? 0;
   const uniqueViewers =
@@ -815,7 +815,7 @@ export default function OrganizerMetricsPage() {
           <TabsTrigger value="events">{t("metrics.tab.events")}</TabsTrigger>
         </TabsList>
 
-        {/* ════════ TAB 1 — Trends: activity over time + prize distribution ════════ */}
+        {/* ════════ TAB 1 - Trends: activity over time + prize distribution ════════ */}
         <TabsContent value="trends" className="mt-4 flex flex-col gap-4">
           {/* Activity over time: registrations + page views + matches per month (area chart).
               Built from the IN-RANGE activity timestamps, so it tracks the selected window. */}
@@ -956,7 +956,7 @@ export default function OrganizerMetricsPage() {
           </Card>
         </TabsContent>
 
-        {/* ════════ TAB 2 — Breakdown: event-type / status / mode splits ════════ */}
+        {/* ════════ TAB 2 - Breakdown: event-type / status / mode splits ════════ */}
         <TabsContent value="breakdown" className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* Event type split (tournament vs scrims) as a donut. */}
           <Card>
@@ -1076,7 +1076,7 @@ export default function OrganizerMetricsPage() {
           </Card>
         </TabsContent>
 
-        {/* ════════ TAB 3 — Leaderboards: top teams + top players (by kills) ════════ */}
+        {/* ════════ TAB 3 - Leaderboards: top teams + top players (by kills) ════════ */}
         <TabsContent value="leaderboards" className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* Top teams: bar chart + ranked table side rows. */}
           <Card>
@@ -1164,7 +1164,7 @@ export default function OrganizerMetricsPage() {
           </Card>
         </TabsContent>
 
-        {/* ════════ TAB 4 — Events: per-event breakdown, each row expands into detail ════════ */}
+        {/* ════════ TAB 4 - Events: per-event breakdown, each row expands into detail ════════ */}
         {/* The summary table mirrors the org headline at the per-event grain (in range). Click
             any row (or its chevron) to expand a DETAILED drill-down panel for that event:
             registration completeness, page views + unique viewers, matches, kills, prize, and

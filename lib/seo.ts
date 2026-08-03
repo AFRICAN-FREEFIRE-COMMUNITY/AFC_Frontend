@@ -1000,7 +1000,7 @@ export function generateEventSchema({
       name: siteConfig.name,
       url: siteConfig.url,
     },
-    // Prize pools are stored as free text ("1750.0 WORTH OF PRIZES") — surface it
+    // Prize pools are stored as free text ("1750.0 WORTH OF PRIZES") - surface it
     // as an offers description rather than a fake numeric price.
     ...(prizeText
       ? {
@@ -1037,7 +1037,7 @@ export function generatePlayerSchema({
   image?: string | null; // already absolute/crawler-safe
   teamName?: string | null;
   country?: string | null;
-  // Free-form, already-formatted stat bits (e.g. "120 kills", "8 wins") — only
+  // Free-form, already-formatted stat bits (e.g. "120 kills", "8 wins") - only
   // the ones the page actually has. Joined into the Person description.
   stats?: string[];
 }) {
@@ -1066,7 +1066,7 @@ export function generatePlayerSchema({
 
 /**
  * Organization schema for a PUBLIC organizer page (a tournament organizer that
- * runs events on AFC — NOT the AFC brand itself).
+ * runs events on AFC - NOT the AFC brand itself).
  * Source: app/(user)/organizations/[slug]/layout.tsx (reuses the org it fetched
  * from GET /organizers/get-organization-public/<slug>/).
  */

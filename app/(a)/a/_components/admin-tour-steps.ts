@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// admin-tour-steps.ts  —  step definitions for the guided Admin Tour
+// admin-tour-steps.ts  -  step definitions for the guided Admin Tour
 // ----------------------------------------------------------------------------
 // PURPOSE
 //   Central, page-keyed catalogue of the interactive walkthrough steps used by
@@ -8,7 +8,7 @@
 //   already live on each admin page (components/ui/info-tip.tsx + lib/help-content.ts).
 //
 // HOW IT CONNECTS
-//   - CONSUMED BY: app/(a)/a/_components/AdminTour.tsx — the <AdminTour pageKey=…/>
+//   - CONSUMED BY: app/(a)/a/_components/AdminTour.tsx - the <AdminTour pageKey=…/>
 //     component / useAdminTour() hook reads ADMIN_TOUR_STEPS[pageKey] and feeds the
 //     steps straight into driver.js (the lightweight tour library, see AdminTour.tsx).
 //   - The "Take a tour" launcher lives in the persistent admin header
@@ -35,18 +35,18 @@
 // COPY RULES (AFC hard rules)
 //   - NO em dashes or en dashes in any user-facing string below. Use commas,
 //     periods, parentheses, or a spaced hyphen. (Code comments may use box-drawing
-//     dashes — those never render to the user.)
+//     dashes - those never render to the user.)
 //   - Tone mirrors lib/help-content.ts: one or two short, plain sentences that say
 //     what the control does and why an admin would use it.
 //
-// ADDING A NEW PAGE LATER (documented pattern — see AdminTour.tsx header too)
+// ADDING A NEW PAGE LATER (documented pattern - see AdminTour.tsx header too)
 //   1. Add stable `data-tour="my-key"` attributes on the controls you want to
 //      highlight on that page (primary action button, main table, tabs, etc.).
 //   2. Add a new entry to ADMIN_TOUR_STEPS keyed by a short pageKey, listing the
 //      steps in order. Reuse SIDEBAR_STEP as the first step so every tour starts
 //      by pointing at the navigation.
 //   3. Map the route to that pageKey in resolveAdminTourPageKey.
-//   That is all — the launcher, auto-show, and localStorage persistence are generic
+//   That is all - the launcher, auto-show, and localStorage persistence are generic
 //   and need no further wiring.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -77,7 +77,7 @@ export type AdminTourStep = {
   lazy?: boolean;
 };
 
-// Known page keys. Keep these short and stable — they are used as the localStorage
+// Known page keys. Keep these short and stable - they are used as the localStorage
 // suffix (afc_admin_tour_<pageKey>_done), so renaming one re-shows that tour.
 export type AdminTourPageKey =
   | "dashboard"
@@ -138,7 +138,7 @@ export type AdminTourPageKey =
 // where the sections live before we dive into the page itself. The selector targets
 // the sidebar's nav menu (rendered by components/nav-main.tsx inside the Sidebar);
 // `[data-slot="sidebar-menu"]` is the stable shadcn slot the SidebarMenu emits.
-// On mobile the sidebar is offcanvas (hidden) — if the menu is not on screen the
+// On mobile the sidebar is offcanvas (hidden) - if the menu is not on screen the
 // step is dropped automatically, and the tour starts at the page header instead.
 const SIDEBAR_STEP: AdminTourStep = {
   element: '[data-slot="sidebar-menu"]',
@@ -521,7 +521,7 @@ export const ADMIN_TOUR_STEPS: Record<AdminTourPageKey, AdminTourStep[]> = {
   //   sub-page .tsx files are owned by other agents).
   // ═══════════════════════════════════════════════════════════════════════════
 
-  // Rankings Overview (app/(a)/a/rankings/page.tsx) — the same control room as the
+  // Rankings Overview (app/(a)/a/rankings/page.tsx) - the same control room as the
   // parent "rankings" tour, but keyed to the exact /a/rankings route. Uses the
   // fixed data-tour anchors from the area map.
   "rankings-overview": [
@@ -1354,7 +1354,7 @@ export const ADMIN_TOUR_STEPS: Record<AdminTourPageKey, AdminTourStep[]> = {
   //   on each page by other agents.
   // ═══════════════════════════════════════════════════════════════════════════
 
-  // Events & Leaderboards main page (app/(a)/a/events/page.tsx) — keyed to the
+  // Events & Leaderboards main page (app/(a)/a/events/page.tsx) - keyed to the
   // exact /a/events route, using the area-map anchors.
   "events-lb-main": [
     SIDEBAR_STEP,

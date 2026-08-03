@@ -247,7 +247,7 @@ export default function OrdersClient() {
         description={t("orders.pageDescription")}
       />
 
-      {/* Total spent across paid orders — a quick at-a-glance figure above the history. */}
+      {/* Total spent across paid orders - a quick at-a-glance figure above the history. */}
       {paidCount > 0 && (
         <div className="inline-flex flex-col rounded-md border bg-card px-4 py-3 shadow-sm">
           <span className="text-xs font-medium uppercase text-muted-foreground">

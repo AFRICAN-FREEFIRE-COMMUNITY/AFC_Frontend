@@ -1,16 +1,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// VendorContext — shares the caller-vendor's fulfilment QUEUE across the vendor
+// VendorContext - shares the caller-vendor's fulfilment QUEUE across the vendor
 // portal pages (the orders list + every per-order page).
 //
 // WHY a context (mirrors app/(organizer)/.../OrganizerContext.tsx): the portal
 // layout (app/(vendor)/vendor/layout.tsx) ALREADY calls GET /shop/fulfilment/my-orders/
-// once — that call is the VENDOR GATE (200 ⇒ vendor, render the portal; 403 ⇒
+// once - that call is the VENDOR GATE (200 ⇒ vendor, render the portal; 403 ⇒
 // "no vendor access" card). Rather than have each page re-fetch the same list, the
 // layout hands the loaded orders down through this context, plus a `refetch()` the
 // pages call after any lifecycle action (acknowledge / set-ship-date / mark-shipped /
 // mark-completed) to pull fresh state.
 //
-// IMPORTANT — there is NO per-order GET endpoint on the backend (afc_shop/urls.py
+// IMPORTANT - there is NO per-order GET endpoint on the backend (afc_shop/urls.py
 // only exposes the queue + the four transitions). So the per-order page
 // (orders/[id]) does NOT fetch its own detail: it reads the matching order out of
 // THIS shared list by id. `refetch()` is how it stays current after an action.

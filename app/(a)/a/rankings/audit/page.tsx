@@ -16,7 +16,7 @@ import {
 // numeric id (owner 2026-06-29: "we dont know IDs... no way to view the data"). Same pickers
 // used on the standalone-leaderboard + organizer-blacklist + overrides flows. TeamSearchSelect
 // emits the team_id; UserSearchSelect emits the username + the full PickedUser (we read user_id,
-// which is what playerRaw() keys off — player_id == User PK, per afc_rankings.admin_audit).
+// which is what playerRaw() keys off - player_id == User PK, per afc_rankings.admin_audit).
 import { TeamSearchSelect } from "@/components/ui/team-search-select";
 import { UserSearchSelect } from "@/components/ui/user-search-select";
 import {
