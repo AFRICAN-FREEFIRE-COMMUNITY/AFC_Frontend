@@ -1,0 +1,47 @@
+{
+  "launcher": {
+    "label": "Envoyer un avis",
+    "ariaLabel": "Ouvrir le formulaire d'avis"
+  },
+  "dialog": {
+    "loading": "Chargement du formulaire...",
+    "unavailable": "Ce formulaire n'est pas disponible pour le moment. Veuillez réessayer plus tard.",
+    "required": "obligatoire",
+    "optional": "Facultatif",
+    "cancel": "Annuler",
+    "send": "Envoyer",
+    "sending": "Envoi...",
+    "close": "Fermer",
+    "thankYouTitle": "Merci",
+    "thankYouDefault": "Merci. Votre avis va directement à l'équipe AFC.",
+    "sentFrom": "Envoyé depuis {path}",
+    "anonymousNote": "Vous n'êtes pas connecté. Vous pouvez quand même envoyer ce message, et nous le lirons.",
+    "signedInAs": "Envoi en tant que {username}",
+    "chooseOption": "Choisissez une option",
+    "ratingHint": "Touchez une étoile pour noter",
+    "clearRating": "Effacer la note",
+    "errorGeneric": "Votre avis n'a pas pu être envoyé. Veuillez réessayer.",
+    "errorEmpty": "Veuillez écrire quelque chose avant d'envoyer."
+  },
+  "forms": {
+    "site_feedback": {
+      "title": "Donnez-nous votre avis",
+      "description": "Vous avez trouvé un bug ou vous avez une idée ? Dites-le nous. Nous lisons tout.",
+      "thankYou": "Merci. Votre avis va directement à l'équipe AFC.",
+      "fields": {
+        "rating": {
+          "label": "Comment se passe votre expérience sur AFC jusqu'ici ?"
+        },
+        "comment": {
+          "label": "Que souhaitez-vous nous dire ?",
+          "placeholder": "Dites-nous ce qui a bien marché, ce qui n'a pas marché, ou ce que vous aimeriez voir."
+        },
+        "contact": {
+          "label": "E-mail ou nom d'utilisateur, si vous souhaitez une réponse",
+          "placeholder": "vous@exemple.com",
+          "helpText": "Facultatif. Laissez ce champ vide pour rester anonyme."
+        }
+      }
+    }
+  }
+}

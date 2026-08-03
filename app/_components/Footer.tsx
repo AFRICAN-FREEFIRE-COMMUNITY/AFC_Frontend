@@ -7,6 +7,7 @@ import React from "react";
 // getTranslations() (which throws "not supported in Client Components" when a client parent
 // renders it). Strings live in messages/en/common.json under the "common" namespace.
 import { useTranslations } from "next-intl";
+import { FeedbackLauncher } from "@/components/feedback/FeedbackLauncher";
 
 export const Footer = () => {
   const t = useTranslations("common");
@@ -154,6 +155,15 @@ export const Footer = () => {
                 >
                   {t("footer.rules")}
                 </Link>
+              </li>
+              {/* Always-on site feedback (owner backlog item 29). Lives here rather than in a
+                  floating button because the Footer is the one element rendered on EVERY public
+                  page (the user layout plus the landing, rules, privacy, terms, invite, auth and
+                  onboarding pages render it directly), and because a fixed button would obscure
+                  content on a 390px phone and sit under the bottom-center toaster. See
+                  components/feedback/FeedbackLauncher.tsx for the full reasoning. */}
+              <li>
+                <FeedbackLauncher />
               </li>
             </ul>
           </div>

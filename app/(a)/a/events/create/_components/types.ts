@@ -123,6 +123,7 @@ import { z } from "zod";
 // create flow, edit flow, and organizer flow can't drift. Re-exported below under the
 // historic STAGE_FORMATS / FORMATTED_WORD names so existing importers keep working.
 import { STAGE_FORMATS as SHARED_STAGE_FORMATS, FORMAT_LABEL } from "@/lib/eventFormats";
+import { AFC_CURRENCY_CODES } from "@/lib/currencies";
 
 export const GroupSchema = z.object({
   group_name: z.string().min(1, "Group name required"),
@@ -370,15 +371,12 @@ export const AVAILABLE_MAPS = [
 ];
 
 // Currencies an organizer/admin can charge a paid registration fee in. Drives the
-// registration_fee_currency Select in Step1EventDetails (create) + BasicInfoTab
-// (edit). USD is the default; the value is the 3-letter ISO code sent to the backend
-// (registration_fee_currency). Edit here to add/remove a supported currency.
-export const REGISTRATION_FEE_CURRENCIES = [
-  "USD",
-  "NGN",
-  "GHS",
-  "KES",
-  "ZAR",
-  "GBP",
-  "EUR",
-];
+// registration_fee_currency Select in Step1EventDetails (create) + BasicInfoTab (edit). USD is the
+// default; the value is the 3-letter ISO code sent to the backend (registration_fee_currency).
+//
+// Owner backlog item 28 (2026-08-03): this used to be its own 7-code array and was one of four
+// currency lists that had drifted apart. It is now a re-export of the canonical menu in
+// lib/currencies.ts. DO NOT add codes here - add them there, and to the backend twin
+// afc_auth/currencies.py. Kept as a named export so the existing importers (Step1EventDetails,
+// BasicInfoTab, CountryPaymentRulesEditor) keep working unchanged.
+export const REGISTRATION_FEE_CURRENCIES = AFC_CURRENCY_CODES;

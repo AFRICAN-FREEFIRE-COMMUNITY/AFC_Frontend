@@ -17,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { IconClock, IconCoin } from "@tabler/icons-react";
+import { AFC_CURRENCIES } from "@/lib/currencies";
 
 export function BroadcastTokenInserts({ onInsert }: { onInsert: (token: string) => void }) {
   const [timeOpen, setTimeOpen] = useState(false);
@@ -81,13 +82,22 @@ export function BroadcastTokenInserts({ onInsert }: { onInsert: (token: string) 
               placeholder="5000"
               className="h-8 text-sm"
             />
+            {/* Currency menu comes from lib/currencies.ts, the ONE place any currency list lives
+                (owner backlog item 28, 2026-08-03: currencies "missing ... when sending
+                notifications or announcements"). This control previously carried its own inline
+                8-code array, the shortest on the site: it offered BRL but neither XOF nor XAF, so an
+                announcement could not quote a prize in the currency most of francophone West and
+                Central Africa uses. The list is long now, so the dropdown is height-capped and
+                scrolls; the trigger is widened to fit a 3-letter code plus the chevron. */}
             <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger className="h-8 w-24 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                {["NGN", "USD", "GBP", "EUR", "ZAR", "GHS", "KES", "BRL"].map((c) => (
-                  <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
+              <SelectContent className="max-h-64">
+                {AFC_CURRENCIES.map((c) => (
+                  <SelectItem key={c.code} value={c.code} className="text-xs">
+                    {c.code}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>

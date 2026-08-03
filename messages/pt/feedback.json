@@ -1,0 +1,47 @@
+{
+  "launcher": {
+    "label": "Enviar comentários",
+    "ariaLabel": "Abrir o formulário de comentários"
+  },
+  "dialog": {
+    "loading": "A carregar o formulário...",
+    "unavailable": "Este formulário não está disponível de momento. Tente novamente mais tarde.",
+    "required": "obrigatório",
+    "optional": "Opcional",
+    "cancel": "Cancelar",
+    "send": "Enviar",
+    "sending": "A enviar...",
+    "close": "Fechar",
+    "thankYouTitle": "Obrigado",
+    "thankYouDefault": "Obrigado. Os seus comentários vão directamente para a equipa da AFC.",
+    "sentFrom": "Enviado a partir de {path}",
+    "anonymousNote": "Não tem sessão iniciada. Pode enviar na mesma, e nós vamos ler.",
+    "signedInAs": "A enviar como {username}",
+    "chooseOption": "Escolha uma opção",
+    "ratingHint": "Toque numa estrela para avaliar",
+    "clearRating": "Limpar avaliação",
+    "errorGeneric": "Não foi possível enviar os seus comentários. Tente novamente.",
+    "errorEmpty": "Escreva alguma coisa antes de enviar."
+  },
+  "forms": {
+    "site_feedback": {
+      "title": "Envie-nos os seus comentários",
+      "description": "Encontrou um erro ou tem uma ideia? Diga-nos. Lemos tudo.",
+      "thankYou": "Obrigado. Os seus comentários vão directamente para a equipa da AFC.",
+      "fields": {
+        "rating": {
+          "label": "Como tem sido a sua experiência na AFC até agora?"
+        },
+        "comment": {
+          "label": "O que gostaria de nos dizer?",
+          "placeholder": "Diga-nos o que funcionou, o que não funcionou, ou o que gostaria que existisse."
+        },
+        "contact": {
+          "label": "E-mail ou nome de utilizador, se quiser uma resposta",
+          "placeholder": "voce@exemplo.com",
+          "helpText": "Opcional. Deixe em branco para ficar anónimo."
+        }
+      }
+    }
+  }
+}

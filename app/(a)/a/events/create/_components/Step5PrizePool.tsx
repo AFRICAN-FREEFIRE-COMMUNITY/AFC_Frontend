@@ -17,6 +17,7 @@ import {
 import { Trash2 } from "lucide-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { EventFormType } from "./types";
+import { AFC_CURRENCIES } from "@/lib/currencies";
 // Shared prize-distribution helpers (see lib/eventFormats.ts). These renumber the map to
 // a contiguous "1".."N" on every add/remove, which is what fixes the "can't re-add a
 // deleted position / can't fix a wrong one" bug. The edit tab + organizer edit page use
@@ -29,31 +30,15 @@ import {
 // Live "distribution vs cash value" check (owner 2026-07-02). Same component + rule the edit tab uses.
 import { PrizeDistributionSummary } from "./PrizeDistributionSummary";
 
-// Prize-currency options (owner 2026-07-01: "more currencies, not just usd and ngn"). A curated set of
-// major world + African currencies AFC events actually award in; every code is FxRate-supported so the
-// backend (get_total_prize_pool) can convert it to USD. USD is the platform base + the default.
-export const PRIZE_CURRENCIES: { code: string; name: string }[] = [
-  { code: "USD", name: "US Dollar" },
-  { code: "NGN", name: "Nigerian Naira" },
-  { code: "GHS", name: "Ghanaian Cedi" },
-  { code: "KES", name: "Kenyan Shilling" },
-  { code: "ZAR", name: "South African Rand" },
-  { code: "EGP", name: "Egyptian Pound" },
-  { code: "MAD", name: "Moroccan Dirham" },
-  { code: "XOF", name: "West African CFA Franc" },
-  { code: "XAF", name: "Central African CFA Franc" },
-  { code: "TZS", name: "Tanzanian Shilling" },
-  { code: "UGX", name: "Ugandan Shilling" },
-  { code: "RWF", name: "Rwandan Franc" },
-  { code: "ETB", name: "Ethiopian Birr" },
-  { code: "DZD", name: "Algerian Dinar" },
-  { code: "AOA", name: "Angolan Kwanza" },
-  { code: "MZN", name: "Mozambican Metical" },
-  { code: "ZMW", name: "Zambian Kwacha" },
-  { code: "EUR", name: "Euro" },
-  { code: "GBP", name: "British Pound" },
-  { code: "INR", name: "Indian Rupee" },
-];
+// Prize-currency options (owner 2026-07-01: "more currencies, not just usd and ngn"; widened again by
+// backlog item 28, 2026-08-03: "some currencies are missing when entering a prize pool").
+//
+// This used to be a 20-code array maintained here. It is now the canonical menu from
+// lib/currencies.ts, which every currency picker on the site shares, so the prize-pool list can no
+// longer drift away from the display-currency and broadcast lists. Every code is FxRate-backed, so
+// the backend (get_total_prize_pool) can convert it to USD. USD is the platform base + the default.
+// Re-exported under the original name so PrizeRulesTab's import keeps working.
+export const PRIZE_CURRENCIES = AFC_CURRENCIES;
 
 interface Step5Props {
   form: UseFormReturn<EventFormType>;
@@ -170,9 +155,10 @@ export function Step5PrizePool({ form }: Step5Props) {
                   <SelectContent>
                     {PRIZE_CURRENCIES.map((c) => (
                       <SelectItem key={c.code} value={c.code}>
-                        {/* c.code ∈ PRIZE_CURRENCIES (20 fixed codes, all enumerated under
-                            step5.currencyNames.*); t.has guard falls back to the English c.name
-                            if a new code is added to the constant before its key exists. */}
+                        {/* c.code comes from the shared menu in lib/currencies.ts. Names are
+                            translated under step5.currencyNames.*; the t.has guard falls back to the
+                            English c.name for any code added to the shared list before its key
+                            exists, so widening the menu can never render a raw MISSING_MESSAGE. */}
                         {c.code} -{" "}
                         {t.has(`step5.currencyNames.${c.code}`)
                           ? t(`step5.currencyNames.${c.code}`)

@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/select";
 import { InfoTip } from "@/components/ui/info-tip";
 import { countries } from "@/constants";
-import { REGISTRATION_FEE_CURRENCIES } from "@/app/(a)/a/events/create/_components/types";
+import { COUNTRY_PAYMENT_RULE_CURRENCIES } from "@/lib/currencies";
 
 export type CountryPaymentRule = {
   pays: boolean;
@@ -219,10 +219,16 @@ export default function CountryPaymentRulesEditor({
                     <SelectTrigger className="w-24">
                       <SelectValue />
                     </SelectTrigger>
+                    {/* Deliberately the NARROW menu, not the full one. A per-country override feeds a
+                        real Stripe charge, and the backend validator `_ALLOWED_CCY` in
+                        afc_tournament_and_scrims/views.py (_parse_country_payment_rules) still rejects
+                        anything outside these seven codes with a 400. Offering the full list here
+                        would let an admin pick, say, XOF and then hit an unexplained save failure.
+                        See COUNTRY_PAYMENT_RULE_CURRENCIES in lib/currencies.ts for how to lift it. */}
                     <SelectContent>
-                      {REGISTRATION_FEE_CURRENCIES.map((code) => (
-                        <SelectItem key={code} value={code}>
-                          {code}
+                      {COUNTRY_PAYMENT_RULE_CURRENCIES.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.code}
                         </SelectItem>
                       ))}
                     </SelectContent>

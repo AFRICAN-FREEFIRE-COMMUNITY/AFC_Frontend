@@ -8,6 +8,7 @@ import {
   IconHome,
   IconInfoCircle,
   IconMessage,
+  IconMessage2,
   IconNews,
   IconPlugConnected,
   IconScan,
@@ -248,6 +249,26 @@ export const adminNavLinks: AdminNavLink[] = [
     slug: "/a/broadcasts",
     icon: IconMessage,
     allowedRoles: ["head_admin", "event_admin", "organizer_admin", "metrics_admin"],
+  },
+  {
+    // Site Feedback (owner backlog item 29, 2026-08-03): the INBOUND counterpart to Broadcasts
+    // above, hence its position. Page app/(a)/a/feedback/page.tsx -> GET /feedback/admin/submissions/
+    // (afc_feedback). It reads what visitors sent through the always-on form in the site footer.
+    //
+    // A standalone entry rather than a tab on an existing page (the repo's usual habit for triage
+    // queues) because site feedback is not SCOPED to any one subject: a submission can be about the
+    // shop, an event, the rankings or signing up, so no existing page owns it.
+    //
+    // allowedRoles mirrors afc_feedback.views.is_feedback_admin exactly: the granular head_admin
+    // (super_admin and head_admin always pass in canAccess anyway) plus the COARSE admin / moderator
+    // / support roles, which the backend also lets in and which canAccess matches from user.role.
+    // Area admins (shop_admin, news_admin, ...) are deliberately excluded: platform-wide feedback is
+    // not an area admin's queue.
+    label: "Site Feedback",
+    navKey: "siteFeedback",
+    slug: "/a/feedback",
+    icon: IconMessage2,
+    allowedRoles: ["head_admin", "admin", "moderator", "support"],
   },
   {
     // OBS Overlays (owner 2026-07-01): the cross-event manager for the live-leaderboard browser

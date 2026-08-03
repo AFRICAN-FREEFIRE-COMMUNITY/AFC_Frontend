@@ -12,6 +12,7 @@
  */
 
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { AFC_CURRENCIES } from "@/lib/currencies";
 import {
   Select,
   SelectContent,
@@ -20,23 +21,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// AFC-relevant currencies + majors. Codes are ISO-4217 (universal - not translated); the friendly
-// name is in English (currency names aren't user-content). Order: the community's main currencies first.
-const CURRENCIES: { code: string; name: string }[] = [
-  { code: "USD", name: "US Dollar" },
-  { code: "NGN", name: "Nigerian Naira" },
-  { code: "GHS", name: "Ghanaian Cedi" },
-  { code: "KES", name: "Kenyan Shilling" },
-  { code: "ZAR", name: "South African Rand" },
-  { code: "XOF", name: "West African CFA franc" },
-  { code: "XAF", name: "Central African CFA franc" },
-  { code: "TZS", name: "Tanzanian Shilling" },
-  { code: "UGX", name: "Ugandan Shilling" },
-  { code: "EGP", name: "Egyptian Pound" },
-  { code: "MAD", name: "Moroccan Dirham" },
-  { code: "EUR", name: "Euro" },
-  { code: "GBP", name: "British Pound" },
-];
+// The currency menu now comes from lib/currencies.ts, the ONE place any currency list is defined
+// (owner backlog item 28, 2026-08-03). This picker used to carry its own 13-code array, which had
+// drifted away from the prize-pool and broadcast lists. Codes are ISO-4217 (universal, not
+// translated); the friendly name is English because currency names are not user content.
+const CURRENCIES = AFC_CURRENCIES;
 
 export function CurrencyPicker({
   label,
