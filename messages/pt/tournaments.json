@@ -190,7 +190,10 @@
     "loadFailed": "Falha ao carregar detalhes do evento",
     "loadTeamFailed": "Falha ao carregar dados da equipe",
     "noTeam": "Você não tem uma equipe. Por favor, crie uma primeiro.",
-    "loadingTeamData": "Carregando dados da equipe..."
+    "loadingTeamData": "Carregando dados da equipe...",
+    "streams": {
+      "title": "Ver em direto"
+    }
   },
   "leaveModal": {
     "trigger": "Sair do Torneio",

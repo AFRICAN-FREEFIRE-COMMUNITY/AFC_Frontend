@@ -5,5 +5,7 @@
   "openBodyWithDate": "Les changements d'effectif sont autorisés ; la période de transfert prend fin le {date}.",
   "closedBody": "Les changements d'effectif sont gelés ; les joueurs ne peuvent ni quitter leur équipe, ni en être exclus, ni dissoudre leur équipe tant que la période de transfert n'aura pas repris.",
   "openBadge": "OUVERT",
-  "closedBadge": "FERMÉ"
+  "closedBadge": "FERMÉ",
+  "closedBodyWithOpenDate": "Les changements d'effectif sont gelés ; les joueurs ne peuvent ni quitter leur équipe, ni en être exclus, ni dissoudre leur équipe. La période de transfert ouvre le {date}.",
+  "closedBodyAfterClose": "Les changements d'effectif sont gelés ; les joueurs ne peuvent ni quitter leur équipe, ni en être exclus, ni dissoudre leur équipe. La période de transfert a pris fin le {date} et rouvrira la saison prochaine."
 }

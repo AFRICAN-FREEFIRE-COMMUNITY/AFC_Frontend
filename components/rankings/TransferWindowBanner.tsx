@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { rankingsApi, Season } from "@/lib/rankings";
 import { useTranslations } from "next-intl";
-// i18n date: render the transfer-window close date in the VIEWER's timezone + language
-// (so months localize to fr/pt) via the shared string helper, instead of a hardcoded
-// en-US toLocaleDateString. String form (not <LocalTime/>) because it is interpolated
-// into the banner copy via t("openBodyWithDate", { date }).
-import { formatLocalTime } from "@/lib/i18n/time";
+// i18n date: render the transfer-window dates in the viewer's LANGUAGE (so months localize to
+// fr/pt) via the shared helper, instead of a hardcoded en-US toLocaleDateString. String form (not
+// <LocalTime/>) because the value is interpolated into the banner copy via t(.., { date }).
+// formatLocalDateOnly, not formatLocalTime: these are calendar dates, see fmtDate below.
+import { formatLocalDateOnly } from "@/lib/i18n/time";
 
 /**
  * Prominent, self-contained OPEN / CLOSED transfer-window banner.
@@ -24,17 +24,22 @@ import { formatLocalTime } from "@/lib/i18n/time";
  */
 
 // The runtime season payload carries these Phase-2c fields; the base TS type may not declare them.
+// transfer_window_open was on the wire already (afc_rankings/serializers.py `season()` emits all
+// three) but was never declared here, which is why the CLOSED state could not name a reopen date.
 type SeasonFlags = Season & {
   transfer_window_is_open?: boolean;
+  transfer_window_open?: string;
   transfer_window_close?: string;
 };
 
 function fmtDate(iso?: string) {
   if (!iso) return "";
-  // formatLocalTime renders in the browser's own timezone + active locale; falls back
-  // to the raw ISO on the server / when unparseable (the banner only shows client-side
-  // after the season loads, so the localized value is what users actually see).
-  return formatLocalTime(iso, "date") || iso;
+  // Season.transfer_window_open / _close are Django DateFields, so these are bare "YYYY-MM-DD"
+  // calendar dates with NO time component. formatLocalDateOnly renders them as the same calendar
+  // date for every viewer, localized to the active language. It must NOT go through
+  // formatLocalTime(.., "date"), which parses a date-only string as UTC midnight and therefore
+  // shows the PREVIOUS day to anyone west of UTC (owner 2026-08-03, item 10).
+  return formatLocalDateOnly(iso) || iso;
 }
 
 // Rendered on /teams, /player-markets and /rankings; self-fetches rankingsApi.currentSeason();
@@ -53,6 +58,41 @@ export function TransferWindowBanner({ className }: { className?: string }) {
   if (!season) return null; // nothing to show until a season loads
   const open = !!season.transfer_window_is_open;
 
+  // ── Body copy: always name the real dates (owner 2026-08-03, backlog item 10) ────────────────
+  // "Show the actual open/close date and time: when it will open, or if open, when it closes."
+  // Previously the CLOSED state said only "roster moves are locked" with no date, so a player had
+  // no idea when they could move again. Three cases, since a closed window is either BEFORE its
+  // open date (we can promise a reopen date) or AFTER its close date (this season's window is
+  // spent, so the honest thing is to say when it ended). Every branch degrades to the old
+  // date-less copy when the season has no dates set.
+  let body: string;
+  if (open) {
+    body = season.transfer_window_close
+      ? t("openBodyWithDate", { date: fmtDate(season.transfer_window_close) })
+      : t("openBody");
+  } else {
+    // Today as a LOCAL calendar date. toISOString() would give the UTC date, which flips a few
+    // hours early or late depending on the viewer and would mislabel the window on the boundary
+    // day. The window dates are floating calendar dates, so compare like with like.
+    const now = new Date();
+    const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+      now.getDate(),
+    ).padStart(2, "0")}`;
+    const opensLater =
+      !!season.transfer_window_open && season.transfer_window_open > todayIso;
+    if (opensLater) {
+      body = t("closedBodyWithOpenDate", {
+        date: fmtDate(season.transfer_window_open),
+      });
+    } else if (season.transfer_window_close) {
+      body = t("closedBodyAfterClose", {
+        date: fmtDate(season.transfer_window_close),
+      });
+    } else {
+      body = t("closedBody");
+    }
+  }
+
   return (
     <div
       className={cn(
@@ -68,13 +108,7 @@ export function TransferWindowBanner({ className }: { className?: string }) {
         <p className="text-base font-bold">
           {open ? t("openTitle") : t("closedTitle")}
         </p>
-        <p className="text-sm text-muted-foreground">
-          {open
-            ? season.transfer_window_close
-              ? t("openBodyWithDate", { date: fmtDate(season.transfer_window_close) })
-              : t("openBody")
-            : t("closedBody")}
-        </p>
+        <p className="text-sm text-muted-foreground">{body}</p>
       </div>
       <Badge
         variant="outline"

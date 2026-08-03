@@ -207,6 +207,36 @@ export function formatLocalTime(
   }).format(date);
 }
 
+/**
+ * Format a CALENDAR DATE ("YYYY-MM-DD" from a Django DateField) for display.
+ *
+ * Use this, never formatLocalTime(value, "date"), when the backend value is a bare date with no
+ * time component. A DateField is a floating calendar date, not an instant: "the transfer window
+ * opens on 10 August" means the 10th everywhere on earth. Passing "2026-08-10" to formatLocalTime
+ * goes through `new Date(...)`, which parses a date-only string as UTC MIDNIGHT, and rendering that
+ * instant in a viewer's timezone shifts it: anyone west of UTC (Lagos is fine, but America/New_York
+ * at UTC-4 is not) sees "9 August" instead. That is the same class of bug as the registration
+ * window one fixed on 2026-08-03 (backlog item 38).
+ *
+ * So the date is rebuilt at LOCAL midnight and formatted in the browser's own zone, which round
+ * trips to exactly the calendar date the organizer entered, while month names still localize to
+ * the active UI language. Non-date-only input falls back to formatLocalTime so callers cannot get
+ * a silently wrong result.
+ *
+ * CONNECTS TO: components/rankings/TransferWindowBanner.tsx (Season.transfer_window_open /
+ * transfer_window_close, both DateFields on afc_rankings.Season).
+ */
+export function formatLocalDateOnly(value?: string | null, locale?: string): string {
+  if (!value) return "";
+  if (typeof window === "undefined") return "";
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return formatLocalTime(value, "date", locale); // has a time component: a real instant
+  const [, y, mo, d] = match;
+  const local = new Date(Number(y), Number(mo) - 1, Number(d));
+  if (Number.isNaN(local.getTime())) return value;
+  return new Intl.DateTimeFormat(locale ?? getActiveLocale(), optionsFor("date")).format(local);
+}
+
 // ── Event times (host wall-clock + tz) ────────────────────────────────────────
 // Event start/end + registration times are stored as the HOST's wall-clock
 // (a "YYYY-MM-DD" date + an "HH:MM[:SS]" time) PLUS the host's IANA timezone

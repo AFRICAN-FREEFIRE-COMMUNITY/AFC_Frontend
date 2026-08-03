@@ -190,7 +190,10 @@
     "loadFailed": "Échec du chargement des détails de l'événement",
     "loadTeamFailed": "Échec du chargement des données de l'équipe",
     "noTeam": "Vous n'avez pas d'équipe. Veuillez en créer une d'abord.",
-    "loadingTeamData": "Chargement des données de l'équipe..."
+    "loadingTeamData": "Chargement des données de l'équipe...",
+    "streams": {
+      "title": "Regarder en direct"
+    }
   },
   "leaveModal": {
     "trigger": "Quitter le tournoi",

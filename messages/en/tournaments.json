@@ -190,7 +190,10 @@
     "loadFailed": "Failed to load event details",
     "loadTeamFailed": "Failed to load team data",
     "noTeam": "You don't have a team. Please create one first.",
-    "loadingTeamData": "Loading team data..."
+    "loadingTeamData": "Loading team data...",
+    "streams": {
+      "title": "Watch live"
+    }
   },
   "leaveModal": {
     "trigger": "Leave Tournament",

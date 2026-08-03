@@ -73,6 +73,9 @@ import {
   IconUsers,
   IconUsersGroup,
   IconLoader2,
+  // Watch-live card (owner 2026-08-03, item 37): stream links on the public event page.
+  IconExternalLink,
+  IconPlayerPlay,
 } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
 import { TournamentTierBadge } from "@/components/TournamentTierBadge";
@@ -322,6 +325,28 @@ interface Stage {
   groups: StageGroup[];
 }
 
+// Human label for a stream URL (owner 2026-08-03, item 37). StreamChannel stores only a bare
+// channel_url with no platform field, and a raw URL is both ugly and unreadable on a phone, so the
+// platform is derived from the hostname. Anything unrecognised falls back to the bare hostname
+// (never the full URL, which overflows the chip on mobile). Platform names are proper nouns, so
+// they are NOT translated; only the card's title/description are.
+function streamLinkLabel(url: string): string {
+  let host = "";
+  try {
+    host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return url; // malformed URL saved by an older form: show it verbatim rather than crashing
+  }
+  if (host.includes("youtube") || host === "youtu.be") return "YouTube";
+  if (host.includes("twitch")) return "Twitch";
+  if (host.includes("facebook") || host === "fb.gg") return "Facebook";
+  if (host.includes("kick")) return "Kick";
+  if (host.includes("tiktok")) return "TikTok";
+  if (host.includes("instagram")) return "Instagram";
+  if (host.includes("trovo")) return "Trovo";
+  return host;
+}
+
 interface EventDetails {
   event_id: number;
   competition_type: string;
@@ -342,6 +367,14 @@ interface EventDetails {
   // Host IANA timezone the times were entered in (owner 2026-06-21); paired with the
   // *_time fields by <LocalEventTime/> to show viewer-local + host time.
   timezone?: string | null;
+  // The registration window already RESOLVED to absolute instants by the server (ISO-8601 UTC),
+  // from registration_window_instants() in afc_tournament_and_scrims/views.py. Open/closed is
+  // decided from these, never by re-parsing the naive date+time pairs above in the browser's
+  // timezone (owner 2026-08-03, item 38). Optional so older cached payloads still render.
+  registration_opens_at?: string | null;
+  registration_closes_at?: string | null;
+  // The server's own verdict on the same window, so the button state matches the 403 exactly.
+  registration_is_open?: boolean | null;
   prizepool: string;
   prize_distribution: { [key: string]: number };
   event_rules: string;
@@ -5143,31 +5176,55 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // Determine if user can register
   const canRegister = eventDetails.is_public || hasValidInvite;
 
-  // The timezone the event's naive date+time strings were entered in. NEVER the viewer's browser
-  // clock: use the event's stored organizer timezone, and for legacy events created before that field
-  // existed, fall back to the AFC base timezone (Africa/Lagos) - NOT the browser - so every viewer
-  // resolves the SAME instant. (owner 2026-07-04: registration showed "closed" for a viewer west of
-  // the event tz while it was actually open, because the window was parsed in each browser's local
-  // time. Users must SEE the time in their own tz, but the underlying instant is one global moment.)
+  // ── Event window as ABSOLUTE INSTANTS (owner 2026-08-03, backlog item 38) ────────────────────
+  // A registration window is ONE instant in time: when it opens, it opens for everybody at once.
+  // The API sends the window as NAIVE date + time strings (the host's wall clock), so building a
+  // Date with `new Date("<date>T<time>")` silently interprets them in the VIEWER's browser tz and
+  // shifts the boundary by that viewer's offset. An organizer opened CTL scrims registration and
+  // players in Ethiopia (UTC+3, east of Lagos UTC+1) still saw "Registration Closed", because their
+  // browser hit the CLOSE boundary two hours early; viewers WEST of the event tz saw the OPEN
+  // boundary late for the same reason.
+  //
+  // So: resolve the window against the EVENT's timezone, never the browser's. Displaying the time in
+  // the viewer's own zone stays correct and is handled separately by LocalTime / LocalEventTime;
+  // it is DECIDING open/closed from a local wall clock that is the bug.
   const eventWallClockTz = eventDetails.timezone || "Africa/Lagos";
-  const combineDateAndTime = (date: string, time?: string | null) => {
-    if (time) {
-      const inst = zonedWallClockToInstant(date, time, eventWallClockTz);
-      if (inst) return inst;
-    }
-    if (!time) return new Date(date);
-    return new Date(`${date}T${time}`); // defensive last resort (malformed date/time only)
+  // `endOfDay` picks the fallback when the organizer left the time blank: an OPEN boundary with no
+  // time means "from 00:00 that day", a CLOSE boundary means "until 23:59:59 that day". Previously
+  // both fell back to `new Date(date)` (UTC midnight), which closed registration at the very START
+  // of the end date and lost a whole day of entries.
+  const combineDateAndTime = (
+    date: string,
+    time?: string | null,
+    endOfDay = false,
+  ) => {
+    const inst = zonedWallClockToInstant(
+      date,
+      time || (endOfDay ? "23:59:59" : "00:00:00"),
+      eventWallClockTz,
+    );
+    if (inst) return inst;
+    return new Date(`${date}T${time || "00:00:00"}`); // defensive last resort (malformed input only)
   };
 
   const now = new Date();
-  const registrationOpenDateTime = combineDateAndTime(
-    eventDetails.registration_open_date,
-    eventDetails.registration_start_time,
-  );
-  const registrationCloseDateTime = combineDateAndTime(
-    eventDetails.registration_end_date,
-    eventDetails.registration_end_time,
-  );
+  // Prefer the instants the SERVER already resolved (registration_opens_at / registration_closes_at,
+  // ISO-8601 UTC from registration_window_instants() in afc_tournament_and_scrims/views.py). Those
+  // are what the backend's own registration gate enforces, so trusting them means the button state
+  // and the 403 can never disagree. Fall back to the local resolution above for older payloads.
+  const registrationOpenDateTime = eventDetails.registration_opens_at
+    ? new Date(eventDetails.registration_opens_at)
+    : combineDateAndTime(
+        eventDetails.registration_open_date,
+        eventDetails.registration_start_time,
+      );
+  const registrationCloseDateTime = eventDetails.registration_closes_at
+    ? new Date(eventDetails.registration_closes_at)
+    : combineDateAndTime(
+        eventDetails.registration_end_date,
+        eventDetails.registration_end_time,
+        true, // no end time set => window runs to the end of the closing day
+      );
   const eventStartDateTime = combineDateAndTime(
     eventDetails.start_date,
     eventDetails.event_start_time,
@@ -5621,6 +5678,40 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 sponsorRequirementDescription={eventDetails.sponsor_requirement_description}
                 sponsorFieldLabel={eventDetails.sponsor_field_label}
               />
+
+              {/* ── Watch live (owner 2026-08-03, backlog item 37) ────────────────────────────────
+                  Stream links entered via "+ Add Streaming Link" in the event create/edit form are
+                  stored as StreamChannel rows and were ALREADY served publicly as
+                  `stream_channels` by get_event_details / get_event_details_not_logged_in. The
+                  admin (app/(a)/a/events/[slug]) and organizer event pages rendered them, but this
+                  public page only declared the field on its interface and never displayed it, so a
+                  normal visitor could not find the broadcast. This card closes that gap.
+                  Anonymous viewers included: the field is on the logged-out payload too. */}
+              {eventDetails.stream_channels &&
+                eventDetails.stream_channels.length > 0 && (
+                  <Card className="mt-4">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <IconPlayerPlay className="size-4" />
+                        {t("detail.streams.title")}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-wrap gap-3">
+                      {eventDetails.stream_channels.map((url, i) => (
+                        <a
+                          key={i}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-primary/10 text-primary flex items-center gap-2 rounded-md border-none px-4 py-2 text-sm font-medium hover:underline"
+                        >
+                          <IconExternalLink className="size-4 shrink-0" />
+                          {streamLinkLabel(url)}
+                        </a>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
 
               {/* "Your match" callout (owner 2026-06-29): for registered participants, surface their
                   play time + room ID/password at the TOP so they don't have to open Structure and tap
