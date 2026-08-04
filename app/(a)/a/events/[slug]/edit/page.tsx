@@ -352,6 +352,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     require_player_profile_image: false,
     // WhatsApp number gate (owner 2026-08-03): same shape as the four above.
     require_whatsapp: false,
+    // Teams filing their own map results (owner backlog item 6, 2026-08-04). NOT a registration
+    // requirement like the toggles above, it is a capability the organizer switches on for this
+    // event, but it rides the same waitlistForm state and the same save so an organizer does not
+    // have to hunt for a second Save button. Default OFF: most organizers will not want it.
+    allow_team_result_submissions: false,
     // Letter-avatars gate (feature #7, owner 2026-06-29): a NUMBER (0 = off, 1-26 = required min),
     // not a bool. Edited on Basic Info (BasicInfoTab) alongside the require_* toggles, prefilled from
     // ed.min_letter_avatars below and persisted by saveWaitlistSettings -> edit_event.
@@ -726,6 +731,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           require_player_uid: ed.require_player_uid ?? false,
           require_player_profile_image: ed.require_player_profile_image ?? false,
           require_whatsapp: ed.require_whatsapp ?? false,
+          allow_team_result_submissions: ed.allow_team_result_submissions ?? false,
           // Letter-avatars gate (feature #7): rehydrate the count from the event (0 = off). Coerced
           // to a clean 0-or-positive number so the BasicInfoTab control reads a real value.
           min_letter_avatars: Number(ed.min_letter_avatars ?? 0) || 0,
@@ -1493,6 +1499,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       );
       // WhatsApp number gate (owner 2026-08-03), saved with the requirements above.
       formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
+      // Teams filing their own map results (item 6). Read by edit_event, which flips
+      // Event.allow_team_result_submissions; the submit endpoint refuses when it is off.
+      formData.append(
+        "allow_team_result_submissions",
+        waitlistForm.allow_team_result_submissions ? "True" : "False",
+      );
       // Letter-avatars gate (feature #7): a NUMBER (0-26), not a bool. edit_event re-parses + clamps
       // it (_parse_min_letter_avatars). Without this append, editing the count never reached the API.
       formData.append(
@@ -1821,6 +1833,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
         formData.append("require_player_profile_image", waitlistForm.require_player_profile_image ? "True" : "False");
         formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
+        formData.append(
+          "allow_team_result_submissions",
+          waitlistForm.allow_team_result_submissions ? "True" : "False",
+        );
         formData.append("min_letter_avatars", String(Number(waitlistForm.min_letter_avatars ?? 0) || 0));
         // Paid-vs-free registration (re-sent on save so the values persist).
         appendRegistrationFeeFields(formData, data);

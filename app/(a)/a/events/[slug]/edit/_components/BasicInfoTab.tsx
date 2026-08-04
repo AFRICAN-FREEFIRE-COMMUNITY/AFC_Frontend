@@ -150,6 +150,10 @@ export default function BasicInfoTab({
 }: BasicInfoTabProps) {
   const form = useFormContext<EventFormType>();
   const t = useTranslations("evEditTabs");
+  // The team-result switch reads from the namespace that also holds the two screens it turns on
+  // (the team's submit panel and the organizer's queue), so the wording cannot drift apart from
+  // what an organizer sees after enabling it.
+  const tr = useTranslations("teamResults");
   // Guarded translate: used for the few keys built from a variable (requirement-toggle keys and the
   // registration-restriction type). Falls back to the English key stem if a key is ever missing, so a
   // dynamic lookup can never throw a MISSING_MESSAGE at render.
@@ -419,6 +423,30 @@ export default function BasicInfoTab({
             waitlistForm state + setter the edit page already owns, so saving is unchanged
             (saveWaitlistSettings still persists them). The Discord gate (below) is the
             fifth registration requirement and sits with them. */}
+        {/* ── Teams filing their own map results (owner backlog item 6, 2026-08-04) ──────
+            Its OWN block rather than a sixth row in REQUIREMENT_TOGGLES below, because those
+            all mean "block registration until this is satisfied" and this means the opposite
+            kind of thing: it hands a job to teams. Grouping it with them would misdescribe it
+            to the organizer reading the screen.
+            Backed by the same requirementsForm state and the same Save, so an organizer does
+            not have to find a second button. Off by default. Copy lives in the teamResults
+            namespace beside the two screens it switches on. */}
+        <div className="space-y-3 rounded-lg border p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="allow-team-results">{tr("settings.label")}</Label>
+              <p className="text-xs text-muted-foreground">{tr("settings.help")}</p>
+            </div>
+            <Switch
+              id="allow-team-results"
+              checked={Boolean(requirementsForm.allow_team_result_submissions)}
+              onCheckedChange={(v) =>
+                setRequirementsForm((p: any) => ({ ...p, allow_team_result_submissions: v }))
+              }
+            />
+          </div>
+        </div>
+
         <div className="space-y-3 rounded-lg border p-4">
           <div>
             <Label>{t("basicInfo.requirementsTitle")}</Label>
