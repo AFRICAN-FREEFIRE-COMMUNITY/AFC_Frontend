@@ -45,6 +45,8 @@
     "redirectUris": "URI de redirection",
     "redirectUrisPlaceholder": "https://partner.example/auth/afc/callback",
     "redirectUrisHint": "L'adresse à laquelle AFC renvoie le joueur après sa connexion. Une par ligne, en https uniquement (http est accepté pour localhost pendant le développement).",
+    "postLogoutUris": "URI de redirection après déconnexion",
+    "postLogoutUrisHint": "L'adresse à laquelle le partenaire peut renvoyer le joueur après sa déconnexion d'AFC. Une par ligne, mêmes règles que ci-dessus. Laissez vide si le partenaire ne propose pas la déconnexion d'AFC.",
     "homepage": "URL du site",
     "logoHint": "Vous pourrez importer le logo du partenaire une fois celui-ci créé, depuis Gérer.",
     "webhook": "URL du webhook de suppression",

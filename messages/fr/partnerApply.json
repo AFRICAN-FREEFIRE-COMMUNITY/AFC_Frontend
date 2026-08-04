@@ -1,0 +1,190 @@
+{
+  "apply": {
+    "title": "Devenir partenaire AFC",
+    "description": "Parlez-nous de votre organisation et de ce que vous voulez construire. Un administrateur AFC lit chaque demande et répond dans tous les cas.",
+    "doneTitle": "Votre demande est bien arrivée",
+    "doneBody": "Nous avons envoyé à {email} un lien pour suivre votre demande et pour la modifier si nous vous le demandons.",
+    "referenceLabel": "Votre référence",
+    "doneNote": "Conservez cet e-mail. Le lien qu'il contient est votre accès à votre demande, et c'est là que vos identifiants vous attendront si nous vous approuvons.",
+    "openStatus": "Suivre une demande"
+  },
+  "form": {
+    "submit": "Envoyer ma demande",
+    "sending": "Envoi...",
+    "sent": "Merci. Votre demande est bien arrivée à l'AFC.",
+    "alreadyPending": "Vous avez déjà une demande en cours chez nous. Nous vous avons renvoyé le lien par e-mail.",
+    "footnote": "L'AFC ne demande jamais de mot de passe, et vous n'avez pas besoin d'un compte AFC pour postuler.",
+    "errors": {
+      "chooseProduct": "Choisissez au moins un produit avant d'envoyer.",
+      "redirectRequired": "Sign in with AFC nécessite au moins une URI de redirection.",
+      "generic": "Votre demande n'a pas pu être envoyée. Vérifiez le formulaire et réessayez."
+    },
+    "products": {
+      "title": "Ce que vous souhaitez utiliser",
+      "description": "Choisissez l'un ou les deux. Cela nous indique seulement quoi préparer, ce n'est pas une demande d'accès à des données particulières.",
+      "sso": "Sign in with AFC",
+      "ssoHint": "Permettez aux joueurs AFC de se connecter à votre site avec leur compte AFC.",
+      "dataApi": "L'API de données AFC",
+      "dataApiHint": "Lisez les résultats de tournois publiés, les classements et les compositions d'équipes de l'AFC."
+    },
+    "org": {
+      "title": "Votre organisation",
+      "description": "Qui vous êtes. Le nom affiché est celui que voit un joueur lorsqu'on lui demande de vous autoriser.",
+      "name": "Nom de l'organisation",
+      "displayName": "Nom affiché aux joueurs",
+      "displayNameHint": "Laissez vide pour utiliser le nom de votre organisation.",
+      "website": "Site web",
+      "country": "Pays",
+      "logo": "Logo",
+      "logoHint": "Facultatif. PNG, JPG ou WEBP, jusqu'à 2 Mo. Affiché aux joueurs au moment de vous autoriser."
+    },
+    "contact": {
+      "title": "Votre interlocuteur",
+      "description": "Une personne que nous pouvons contacter au sujet de cette demande.",
+      "name": "Nom du contact",
+      "email": "E-mail du contact",
+      "emailHint": "Toutes nos réponses arrivent ici, y compris le lien vers vos identifiants. Vérifiez-le attentivement.",
+      "role": "Sa fonction"
+    },
+    "technical": {
+      "title": "Configuration de Sign in with AFC",
+      "description": "Les adresses vers lesquelles l'AFC renverra les joueurs. Nous les vérifions maintenant pour que vous puissiez corriger une erreur ici plutôt qu'à votre première connexion.",
+      "redirectUris": "URI de redirection",
+      "redirectHint": "Une par ligne. Doit être en https, sauf http://localhost pour votre propre machine. Pas de caractères génériques, pas de chaîne de requête, pas de fragment. Enregistrez séparément la production, la préproduction et le local.",
+      "postLogout": "URI de redirection après déconnexion",
+      "postLogoutHint": "Facultatif. Uniquement si vous voulez offrir aux joueurs un moyen de se déconnecter de l'AFC en même temps que de votre site.",
+      "webhook": "URL du webhook de déconnexion",
+      "webhookHint": "Facultatif. L'AFC y envoie un avis signé lorsqu'un joueur vous déconnecte, afin que vous puissiez supprimer votre copie de ses données."
+    },
+    "about": {
+      "title": "Ce que vous construisez",
+      "description": "C'est sur cette base que la décision est réellement prise, alors quelques phrases valent mieux que quelques mots.",
+      "useCase": "Que construisez-vous, et qui l'utilise",
+      "useCasePlaceholder": "Par exemple : un site communautaire où les joueurs africains de Free Fire suivent leur historique de tournois et le comparent avec leurs amis.",
+      "dataNeeded": "De quoi avez-vous besoin de la part de l'AFC, et pourquoi",
+      "dataNeededPlaceholder": "Par exemple : le nom AFC d'un joueur et son classement actuel, afin de les afficher sur son profil.",
+      "dataNeededHint": "Décrivez-le avec vos propres mots. L'AFC détermine à quels champs cela correspond et accorde le minimum nécessaire."
+    }
+  },
+  "statusLabel": {
+    "pending": "Chez l'AFC",
+    "changes_requested": "Action requise",
+    "approved": "Approuvée",
+    "rejected": "Non approuvée"
+  },
+  "status": {
+    "title": "Votre demande de partenariat",
+    "description": "Consultez l'état de votre demande et apportez les modifications que l'AFC vous a demandées.",
+    "lookupTitle": "Ouvrir votre demande",
+    "lookupDescription": "Utilisez le lien de l'e-mail que l'AFC vous a envoyé, ou collez votre référence et votre code d'accès ci-dessous.",
+    "referenceLabel": "Référence",
+    "tokenLabel": "Code d'accès",
+    "open": "Ouvrir",
+    "loading": "Ouverture...",
+    "notFound": "Nous n'avons pas trouvé cette demande. Vérifiez le lien dans votre e-mail.",
+    "fromAfc": "Message de l'AFC",
+    "submittedAt": "Envoyée",
+    "updatedAt": "Dernière mise à jour",
+    "frozen": "Il n'y a rien à faire pour l'instant. Nous vous écrirons dès qu'il y aura du nouveau.",
+    "explain": {
+      "pending": "Un administrateur AFC a votre demande et répondra dans tous les cas. Rien n'est attendu de votre part.",
+      "changes_requested": "L'AFC demande une modification. Faites-la ci-dessous et renvoyez-la : votre demande revient automatiquement dans la file.",
+      "approved": "Vous êtes partenaire AFC. Récupérez vos identifiants ci-dessous si ce n'est pas déjà fait.",
+      "rejected": "L'AFC n'a pas pu approuver cette demande. Vous pouvez en déposer une nouvelle si le point soulevé évolue."
+    },
+    "approvedTitle": "Approuvée",
+    "collect": "Récupérer vos identifiants",
+    "alreadyCollected": "Vos identifiants ont déjà été récupérés. Demandez un nouveau lien à l'AFC si vous devez les réémettre.",
+    "linkExpired": "Votre lien vers les identifiants a expiré. Demandez-en un nouveau à l'AFC.",
+    "editTitle": "Apporter la modification demandée",
+    "editDescription": "Corrigez ce qui doit l'être et renvoyez-le. Tout le reste est conservé tel que vous l'avez écrit.",
+    "save": "Renvoyer à l'AFC",
+    "saving": "Envoi...",
+    "saveFailed": "Vos modifications n'ont pas pu être enregistrées."
+  },
+  "credentials": {
+    "title": "Vos identifiants AFC",
+    "description": "Récupérez les identifiants de votre demande de partenariat approuvée.",
+    "collectTitle": "Récupérer vos identifiants",
+    "collectDescription": "Utilisez le lien envoyé par l'AFC. Si vous êtes arrivé sur cette page autrement, collez votre référence et le code contenu dans ce lien.",
+    "tokenLabel": "Code reçu par e-mail",
+    "beforeYouClickTitle": "À lire avant de continuer",
+    "beforeYouClick": "Votre secret client s'affiche une seule fois à l'écran suivant, et plus jamais ensuite. Ce lien ne fonctionne qu'une fois. Prévoyez un endroit sûr où le coller avant de continuer, par exemple votre gestionnaire de mots de passe ou le coffre à secrets de votre serveur.",
+    "claim": "Afficher mes identifiants",
+    "claiming": "En cours...",
+    "failed": "Ces identifiants n'ont pas pu être récupérés.",
+    "readyTitle": "Les voici",
+    "readyBody": "Copiez-les maintenant. Fermer cette page les perd, et l'AFC ne peut pas vous les réafficher.",
+    "clientIdHint": "Public. Il circule dans chaque URL de connexion, vous pouvez donc le garder dans votre configuration.",
+    "clientSecretHint": "Secret. Gardez-le uniquement sur votre serveur, jamais dans du code navigateur ni dans un dépôt public.",
+    "apiKeyHint": "Secret. Envoyez-le comme en-tête de clé de l'API de données, et gardez-le uniquement sur votre serveur.",
+    "lastWarning": "Si vous les perdez, l'AFC ne peut pas les récupérer. Demandez-nous un nouveau lien et nous en émettrons de nouveaux.",
+    "copy": "Copier",
+    "copied": "Copié.",
+    "copyFailed": "Copie impossible. Sélectionnez le texte et copiez-le à la main."
+  },
+  "admin": {
+    "tab": "Demandes",
+    "loading": "Chargement des demandes...",
+    "loadFailed": "Les demandes n'ont pas pu être chargées.",
+    "decideFailed": "Cette décision n'a pas pu être enregistrée.",
+    "empty": "Aucune demande ici.",
+    "searchPlaceholder": "Organisation, e-mail ou référence",
+    "count": "{count, plural, one {# demande} other {# demandes}}",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "review": "Examiner",
+    "close": "Fermer",
+    "filters": {
+      "pending": "À examiner",
+      "approved": "Approuvées",
+      "rejected": "Refusées",
+      "all": "Toutes"
+    },
+    "table": {
+      "organisation": "Organisation",
+      "reference": "Référence",
+      "wants": "Demande",
+      "status": "Statut",
+      "submitted": "Envoyée",
+      "sso": "Connexion",
+      "dataApi": "API de données"
+    },
+    "earlier": "{count, plural, one {# demande précédente} other {# demandes précédentes}} depuis cette adresse e-mail.",
+    "whatTheySaid": "Ce qu'ils nous ont dit",
+    "whatWillBeCreated": "Ce que l'approbation va créer",
+    "editableHint": "Prérempli à partir de leur demande et modifiable. Ce que vous approuvez ici est ce qui sera mis en ligne, y compris le nom que les joueurs voient sur l'écran d'autorisation.",
+    "fields": {
+      "name": "Nom du partenaire",
+      "displayName": "Nom affiché aux joueurs",
+      "displayNameHint": "Il apparaît sur l'écran d'autorisation que le joueur lit avant de leur faire confiance."
+    },
+    "grantsSso": "Ce qu'ils peuvent voir d'un joueur",
+    "grantsHint": "Tout est désactivé. Accordez le minimum nécessaire au projet qu'ils ont décrit.",
+    "grantsData": "Accès à l'API de données",
+    "noteLabel": "Message au demandeur",
+    "notePlaceholder": "Obligatoire en cas de refus ou de demande de modification.",
+    "noteHint": "C'est tout l'e-mail qu'ils recevront, alors écrivez-le pour eux.",
+    "internalNoteLabel": "Note interne AFC",
+    "internalNoteHint": "Jamais montrée au demandeur.",
+    "approve": "Approuver et provisionner",
+    "reject": "Refuser",
+    "requestChanges": "Demander une modification",
+    "provisioned": "Provisionné",
+    "claimed": "Ils ont récupéré leurs identifiants.",
+    "claimOpen": "Leur lien vers les identifiants est actif et n'a pas encore été utilisé.",
+    "claimExpired": "Leur lien vers les identifiants a expiré.",
+    "resend": "Envoyer un nouveau lien d'identifiants",
+    "resendHint": "Invalide tout lien précédent. Le secret n'est renouvelé que lorsqu'ils ouvrent le nouveau lien : s'ils disent que l'ancien fonctionne encore, personne ne l'a ouvert.",
+    "toggles": {
+      "share_profile": "Nom, avatar, pays et langue",
+      "share_email": "Adresse e-mail",
+      "share_freefire_uid": "UID Free Fire",
+      "share_team": "Équipe actuelle et rôle",
+      "share_history": "Tournois disputés",
+      "share_stats": "Statistiques de matchs",
+      "share_ranking": "Classement et points AFC",
+      "share_standing": "Compte en règle"
+    }
+  }
+}

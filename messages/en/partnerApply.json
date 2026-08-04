@@ -1,0 +1,190 @@
+{
+  "apply": {
+    "title": "Become an AFC partner",
+    "description": "Tell us about your organisation and what you want to build. An AFC admin reads every application and replies either way.",
+    "doneTitle": "Your application is with AFC",
+    "doneBody": "We have emailed {email} a link you can use to check on it, and to make changes if we ask for any.",
+    "referenceLabel": "Your reference",
+    "doneNote": "Keep that email. The link in it is how you reach your application, and it is where your credentials will be waiting if we approve you.",
+    "openStatus": "Check an application"
+  },
+  "form": {
+    "submit": "Send my application",
+    "sending": "Sending...",
+    "sent": "Thanks. Your application is with AFC.",
+    "alreadyPending": "You already have an application open with us. We have emailed you the link again.",
+    "footnote": "AFC never asks for a password, and you do not need an AFC account to apply.",
+    "errors": {
+      "chooseProduct": "Choose at least one product before sending.",
+      "redirectRequired": "Sign in with AFC needs at least one redirect URI.",
+      "generic": "Your application could not be sent. Please check the form and try again."
+    },
+    "products": {
+      "title": "What do you want to use",
+      "description": "Pick one or both. This only tells us what to set up, it is not a request for any particular data.",
+      "sso": "Sign in with AFC",
+      "ssoHint": "Let AFC players sign in to your site with their AFC account.",
+      "dataApi": "The AFC Data API",
+      "dataApiHint": "Read published tournament results, standings and rosters from AFC."
+    },
+    "org": {
+      "title": "Your organisation",
+      "description": "Who you are. The display name is what a player sees when they are asked to approve you.",
+      "name": "Organisation name",
+      "displayName": "Name shown to players",
+      "displayNameHint": "Leave this blank to use your organisation name.",
+      "website": "Website",
+      "country": "Country",
+      "logo": "Logo",
+      "logoHint": "Optional. PNG, JPG or WEBP, up to 2 MB. Shown to players when they approve you."
+    },
+    "contact": {
+      "title": "Who we talk to",
+      "description": "One person we can reach about this application.",
+      "name": "Contact name",
+      "email": "Contact email",
+      "emailHint": "Every reply goes here, including the link to your credentials. Check it carefully.",
+      "role": "Their role"
+    },
+    "technical": {
+      "title": "Sign in with AFC setup",
+      "description": "The addresses AFC will send players back to. We check these now so you can fix any mistake here rather than at your first sign-in.",
+      "redirectUris": "Redirect URIs",
+      "redirectHint": "One per line. Must be https, except http://localhost for your own machine. No wildcards, no query strings, no fragments. Register production, staging and local separately.",
+      "postLogout": "Post-logout redirect URIs",
+      "postLogoutHint": "Optional. Only if you want to offer players a way to sign out of AFC as well as your site.",
+      "webhook": "Disconnection webhook URL",
+      "webhookHint": "Optional. AFC POSTs a signed notice here when a player disconnects you, so you can delete your copy of their data."
+    },
+    "about": {
+      "title": "What you are building",
+      "description": "This is what the decision is actually based on, so it is worth a few sentences rather than a few words.",
+      "useCase": "What are you building, and who uses it",
+      "useCasePlaceholder": "For example: a community site where African Free Fire players track their tournament history and compare it with friends.",
+      "dataNeeded": "What do you need from AFC, and why",
+      "dataNeededPlaceholder": "For example: a player's AFC name and their current rank, so we can show it on their profile.",
+      "dataNeededHint": "Describe it in your own words. AFC decides which fields that works out to, and grants the minimum that does the job."
+    }
+  },
+  "statusLabel": {
+    "pending": "With AFC",
+    "changes_requested": "Needs your attention",
+    "approved": "Approved",
+    "rejected": "Not approved"
+  },
+  "status": {
+    "title": "Your partner application",
+    "description": "Check where your application stands, and make any changes AFC has asked for.",
+    "lookupTitle": "Open your application",
+    "lookupDescription": "Use the link in the email AFC sent you, or paste your reference and access code below.",
+    "referenceLabel": "Reference",
+    "tokenLabel": "Access code",
+    "open": "Open",
+    "loading": "Opening...",
+    "notFound": "We could not find that application. Check the link in your email.",
+    "fromAfc": "From AFC",
+    "submittedAt": "Sent",
+    "updatedAt": "Last updated",
+    "frozen": "There is nothing to do right now. We will email you as soon as there is.",
+    "explain": {
+      "pending": "An AFC admin has your application and will reply either way. Nothing is needed from you.",
+      "changes_requested": "AFC has asked for a change. Make it below and send it back, and your application returns to the queue automatically.",
+      "approved": "You are an AFC partner. Collect your credentials below if you have not already.",
+      "rejected": "AFC was not able to approve this application. You are welcome to apply again if what we raised changes."
+    },
+    "approvedTitle": "Approved",
+    "collect": "Collect your credentials",
+    "alreadyCollected": "Your credentials have already been collected. Ask AFC for a new link if you need to reissue them.",
+    "linkExpired": "Your credentials link has expired. Ask AFC to send a new one.",
+    "editTitle": "Make the change AFC asked for",
+    "editDescription": "Edit what needs fixing and send it back. Everything else stays as you wrote it.",
+    "save": "Send it back to AFC",
+    "saving": "Sending...",
+    "saveFailed": "Your changes could not be saved."
+  },
+  "credentials": {
+    "title": "Your AFC credentials",
+    "description": "Collect the credentials for your approved partner application.",
+    "collectTitle": "Collect your credentials",
+    "collectDescription": "Use the link AFC emailed you. If you opened this page some other way, paste your reference and the code from that link.",
+    "tokenLabel": "Code from your email",
+    "beforeYouClickTitle": "Read this first",
+    "beforeYouClick": "Your client secret is shown on the next screen once, and never again. This link works one time. Have somewhere safe to paste it before you continue, such as your password manager or your server's secret store.",
+    "claim": "Show my credentials",
+    "claiming": "Working...",
+    "failed": "Those credentials could not be collected.",
+    "readyTitle": "Here they are",
+    "readyBody": "Copy these now. Closing this page loses them, and AFC cannot show them to you again.",
+    "clientIdHint": "Public. It travels in every sign-in URL, so it is safe to keep in your configuration.",
+    "clientSecretHint": "Secret. Keep it on your server only, never in browser code or a public repository.",
+    "apiKeyHint": "Secret. Send it as your Data API key header, and keep it on your server only.",
+    "lastWarning": "If you lose these, AFC cannot recover them. Ask us for a new link and we will issue fresh ones.",
+    "copy": "Copy",
+    "copied": "Copied.",
+    "copyFailed": "Could not copy. Select the text and copy it by hand."
+  },
+  "admin": {
+    "tab": "Applications",
+    "loading": "Loading applications...",
+    "loadFailed": "The applications could not be loaded.",
+    "decideFailed": "That decision could not be saved.",
+    "empty": "No applications here.",
+    "searchPlaceholder": "Organisation, email or reference",
+    "count": "{count, plural, one {# application} other {# applications}}",
+    "previous": "Previous",
+    "next": "Next",
+    "review": "Review",
+    "close": "Close",
+    "filters": {
+      "pending": "To review",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "all": "All"
+    },
+    "table": {
+      "organisation": "Organisation",
+      "reference": "Reference",
+      "wants": "Wants",
+      "status": "Status",
+      "submitted": "Submitted",
+      "sso": "Sign in",
+      "dataApi": "Data API"
+    },
+    "earlier": "{count, plural, one {# earlier application} other {# earlier applications}} from this email address.",
+    "whatTheySaid": "What they told us",
+    "whatWillBeCreated": "What approving creates",
+    "editableHint": "Prefilled from their application and editable. What you approve here is what goes live, including the name players see on the consent screen.",
+    "fields": {
+      "name": "Partner name",
+      "displayName": "Name shown to players",
+      "displayNameHint": "This appears on the consent screen a player reads before trusting them."
+    },
+    "grantsSso": "What they may see about a player",
+    "grantsHint": "Every one is off. Grant the minimum that does the job they described.",
+    "grantsData": "Data API access",
+    "noteLabel": "Message to the applicant",
+    "notePlaceholder": "Required when rejecting or asking for changes.",
+    "noteHint": "This is the whole email they receive, so write it to be read by them.",
+    "internalNoteLabel": "Note for AFC",
+    "internalNoteHint": "Never shown to the applicant.",
+    "approve": "Approve and provision",
+    "reject": "Reject",
+    "requestChanges": "Ask for changes",
+    "provisioned": "Provisioned",
+    "claimed": "They have collected their credentials.",
+    "claimOpen": "Their credentials link is live and has not been used yet.",
+    "claimExpired": "Their credentials link has expired.",
+    "resend": "Send a new credentials link",
+    "resendHint": "Invalidates any earlier link. The secret is only rotated when they open the new one, so if they say the old one still works, nobody opened it.",
+    "toggles": {
+      "share_profile": "Name, avatar, country and language",
+      "share_email": "Email address",
+      "share_freefire_uid": "Free Fire UID",
+      "share_team": "Current team and role",
+      "share_history": "Tournaments played",
+      "share_stats": "Match statistics",
+      "share_ranking": "AFC rank and points",
+      "share_standing": "Account in good standing"
+    }
+  }
+}

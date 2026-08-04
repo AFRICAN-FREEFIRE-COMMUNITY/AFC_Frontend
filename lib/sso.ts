@@ -110,6 +110,9 @@ export type SsoApplicationDetail = SsoApplicationSummary & {
   homepage_url: string;
   deletion_webhook_url: string;
   redirect_uris: string;
+  // Space-separated, like redirect_uris. Empty for a partner that does not offer
+  // RP-initiated logout. Same backend policy applies (afc_sso/redirect_policy.py).
+  post_logout_redirect_uris: string;
   scopes: string[];
 };
 
@@ -126,6 +129,7 @@ export interface SsoSecretResponse {
 export interface CreateSsoApplicationBody {
   name: string;
   redirect_uris: string;
+  post_logout_redirect_uris?: string;
   display_name?: string;
   homepage_url?: string;
   logo_url?: string;
@@ -141,6 +145,7 @@ export type EditSsoApplicationBody = Partial<Record<SsoToggle, boolean>> & {
   logo_url?: string;
   homepage_url?: string;
   redirect_uris?: string;
+  post_logout_redirect_uris?: string;
   deletion_webhook_url?: string;
 };
 

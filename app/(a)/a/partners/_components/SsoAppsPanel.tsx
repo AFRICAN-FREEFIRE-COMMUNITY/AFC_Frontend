@@ -182,6 +182,9 @@ const EMPTY_CREATE_FORM = {
   name: "",
   display_name: "",
   redirect_uris: "",
+  // Where the partner may send the player after RP-initiated logout. Optional, and blank
+  // for the many partners that never implement "sign out of AFC too" at all.
+  post_logout_redirect_uris: "",
   homepage_url: "",
   deletion_webhook_url: "",
 };
@@ -314,6 +317,7 @@ export default function SsoAppsPanel() {
         // The textarea takes one URI per line; the API accepts either a list or a
         // space-separated string and normalises to the library's storage format.
         redirect_uris: createForm.redirect_uris.trim(),
+        post_logout_redirect_uris: createForm.post_logout_redirect_uris.trim(),
         homepage_url: createForm.homepage_url.trim() || undefined,
         deletion_webhook_url: createForm.deletion_webhook_url.trim() || undefined,
       });
@@ -347,6 +351,10 @@ export default function SsoAppsPanel() {
         display_name: app.display_name,
         // Stored space-separated by django-oauth-toolkit; edited one per line here.
         redirect_uris: app.redirect_uris.split(/\s+/).filter(Boolean).join("\n"),
+        post_logout_redirect_uris: (app.post_logout_redirect_uris || "")
+          .split(/\s+/)
+          .filter(Boolean)
+          .join("\n"),
         homepage_url: app.homepage_url,
         deletion_webhook_url: app.deletion_webhook_url,
       });
@@ -379,6 +387,10 @@ export default function SsoAppsPanel() {
         display_name: form.display_name.trim(),
         // Newlines back to the space-separated form the backend validates and stores.
         redirect_uris: form.redirect_uris.split(/\s+/).filter(Boolean).join(" "),
+        post_logout_redirect_uris: form.post_logout_redirect_uris
+          .split(/\s+/)
+          .filter(Boolean)
+          .join(" "),
         homepage_url: form.homepage_url.trim(),
         // logo_url is deliberately NOT sent. It is a legacy field the logo control owns
         // now, and this is a true PATCH: leaving the key out means an older partner's
@@ -963,6 +975,30 @@ export default function SsoAppsPanel() {
                   />
                   <p className="text-xs text-muted-foreground">
                     {t("create.redirectUrisHint")}
+                  </p>
+                </div>
+                {/* Post-logout URIs sit beside the redirect URIs because they are the
+                    same kind of promise (an address AFC will send a player to) and the
+                    backend checks both with the same policy. Optional: a partner that
+                    does not offer "sign out of AFC too" leaves it empty. */}
+                <div className="space-y-2">
+                  <Label htmlFor="sso-edit-post-logout">
+                    {t("create.postLogoutUris")}
+                  </Label>
+                  <Textarea
+                    id="sso-edit-post-logout"
+                    value={form.post_logout_redirect_uris}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        post_logout_redirect_uris: e.target.value,
+                      }))
+                    }
+                    className="font-mono text-xs"
+                    rows={2}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t("create.postLogoutUrisHint")}
                   </p>
                 </div>
                 <div className="space-y-2">

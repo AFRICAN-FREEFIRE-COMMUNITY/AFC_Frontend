@@ -174,16 +174,20 @@ interface OrgOption {
 
 // Status pill - same green/orange idiom as the list page + Organizations detail.
 function StatusBadge({ status }: { status: string }) {
+  // Own translator (partners.status.*), shared word-for-word with the list page's badge.
+  // An unrecognised status prints raw: there is nothing to translate for a state the UI
+  // does not know about, and showing it beats showing nothing.
+  const t = useTranslations("partners");
   if (status === "active")
     return (
       <Badge variant="outline" className="border-green-600/60 text-green-400">
-        Active
+        {t("status.active")}
       </Badge>
     );
   if (status === "suspended")
     return (
       <Badge variant="outline" className="border-orange-500/40 text-orange-400">
-        Suspended
+        {t("status.suspended")}
       </Badge>
     );
   return (
@@ -543,10 +547,10 @@ export default function PartnerDetailPage({
   if (!detail)
     return (
       <div className="flex flex-col gap-3">
-        <PageHeader back title="Partner" />
+        <PageHeader back title={t("detail.fallbackTitle")} />
         <Card>
           <CardContent className="py-16 text-center text-muted-foreground">
-            Partner not found.
+            {t("detail.notFound")}
           </CardContent>
         </Card>
       </div>
@@ -576,7 +580,7 @@ export default function PartnerDetailPage({
               value="profile"
               className="w-full"
             >
-              Profile
+              {t("detail.tabs.profile")}
             </TabsTrigger>
             <InfoTip id="partners.profile._section" className="ml-1" />
           </span>
@@ -587,7 +591,7 @@ export default function PartnerDetailPage({
               value="scope"
               className="w-full"
             >
-              Scope &amp; Toggles
+              {t("detail.tabs.scope")}
             </TabsTrigger>
             <InfoTip id="partners.scope._section" className="ml-1" />
           </span>
@@ -598,7 +602,7 @@ export default function PartnerDetailPage({
               value="keys"
               className="w-full"
             >
-              Keys
+              {t("detail.tabs.keys")}
             </TabsTrigger>
             <InfoTip id="partners.keys._section" className="ml-1" />
           </span>
@@ -608,18 +612,18 @@ export default function PartnerDetailPage({
         <TabsContent value="profile" className="mt-4 space-y-4">
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>Partner profile</CardTitle>
+              <CardTitle>{t("detail.profile.cardTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="profile-name">Name</Label>
+                <Label htmlFor="profile-name">{t("detail.profile.name")}</Label>
                 {/* Name/slug are set at creation and used as identifiers - shown
                     read-only here (editing them would break the partner's keys' scope). */}
                 <Input id="profile-name" value={detail.name} disabled />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="profile-email">
-                  Contact email
+                  {t("detail.profile.email")}
                   <InfoTip id="partners.contact_email" className="ml-1" />
                 </Label>
                 <Input
@@ -629,7 +633,7 @@ export default function PartnerDetailPage({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Status</Label>
+                <Label>{t("detail.profile.status")}</Label>
                 <div>
                   <StatusBadge status={detail.status} />
                 </div>
@@ -640,17 +644,19 @@ export default function PartnerDetailPage({
           {/* ── Danger zone - suspend / unsuspend (freezes every key at once) ── */}
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>Danger zone</CardTitle>
+              <CardTitle>{t("detail.profile.dangerZone")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium">
-                  {isSuspended ? "Unsuspend partner" : "Suspend partner"}
+                  {isSuspended
+                    ? t("detail.profile.unsuspendTitle")
+                    : t("detail.profile.suspendTitle")}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {isSuspended
-                    ? "Restore the partner - its keys authenticate again."
-                    : "Block every key at once without revoking them individually."}
+                    ? t("detail.profile.unsuspendHint")
+                    : t("detail.profile.suspendHint")}
                 </p>
               </div>
               {/* ⓘ is a SIBLING of the button (not nested). */}
@@ -661,10 +667,10 @@ export default function PartnerDetailPage({
                   disabled={suspending}
                 >
                   {suspending
-                    ? "Working..."
+                    ? t("working")
                     : isSuspended
-                      ? "Unsuspend"
-                      : "Suspend"}
+                      ? t("detail.profile.unsuspend")
+                      : t("detail.profile.suspend")}
                 </Button>
                 <InfoTip id="partners.suspend" />
               </div>
@@ -677,18 +683,13 @@ export default function PartnerDetailPage({
           {/* Orientation hint: spells out the three things that decide what this partner
               can actually read, so the admin knows the full flow (the owner's "control
               what data they had access to" gap). All of it is enforced by the read API. */}
-          <p className="text-sm text-muted-foreground">
-            Control exactly what this partner can read: pick the events (or whole
-            organizations) in scope, publish those events so the API will return them,
-            then choose which resources and fields are exposed. Everything on this tab is
-            enforced by the partner API.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("detail.scope.intro")}</p>
 
           {/* ── Scope: which events the partner may read ── */}
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="inline-flex items-center">
-                Scope
+                {t("detail.scope.cardTitle")}
                 <InfoTip id="partners.scope_grants._section" className="ml-1" />
               </CardTitle>
             </CardHeader>
@@ -701,11 +702,11 @@ export default function PartnerDetailPage({
               >
                 <span className="flex flex-col">
                   <span className="inline-flex items-center text-sm font-medium">
-                    All native AFC events
+                    {t("detail.scope.allNative")}
                     <InfoTip id="partners.allow_all_native_afc" className="ml-1" />
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    Grants every AFC-run event (no organizer) in one switch.
+                    {t("detail.scope.allNativeHint")}
                   </span>
                 </span>
                 <Switch
@@ -719,18 +720,18 @@ export default function PartnerDetailPage({
               {/* data-tour="orgs-misc-partners-allowed-events": admin-tour anchor (orgs-misc area). */}
               <div data-tour="orgs-misc-partners-allowed-events" className="space-y-2">
                 <Label className="inline-flex items-center">
-                  Allowed events
+                  {t("detail.scope.allowedEvents")}
                   <InfoTip id="partners.allowed_events" className="ml-1" />
                   {allowedEventIds.length > 0 && (
                     <Badge variant="secondary" className="ml-2">
-                      {allowedEventIds.length} selected
+                      {t("detail.scope.selected", { count: allowedEventIds.length })}
                     </Badge>
                   )}
                 </Label>
                 <div className="relative">
                   <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search events..."
+                    placeholder={t("detail.scope.searchEvents")}
                     value={eventSearch}
                     onChange={(e) => setEventSearch(e.target.value)}
                     className="pl-9"
@@ -741,8 +742,8 @@ export default function PartnerDetailPage({
                     {filteredEvents.length === 0 ? (
                       <p className="px-3 py-6 text-center text-sm text-muted-foreground">
                         {eventOptions.length === 0
-                          ? "No events found."
-                          : "No events match your search."}
+                          ? t("detail.scope.noEvents")
+                          : t("detail.scope.noEventsMatch")}
                       </p>
                     ) : (
                       filteredEvents.map((e) => (
@@ -774,18 +775,18 @@ export default function PartnerDetailPage({
               {/* allowed_organizations multiselect - grants ALL of an org's events */}
               <div className="space-y-2">
                 <Label className="inline-flex items-center">
-                  Allowed organizations
+                  {t("detail.scope.allowedOrgs")}
                   <InfoTip id="partners.allowed_organizations" className="ml-1" />
                   {allowedOrgIds.length > 0 && (
                     <Badge variant="secondary" className="ml-2">
-                      {allowedOrgIds.length} selected
+                      {t("detail.scope.selected", { count: allowedOrgIds.length })}
                     </Badge>
                   )}
                 </Label>
                 <div className="relative">
                   <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search organizations..."
+                    placeholder={t("detail.scope.searchOrgs")}
                     value={orgSearch}
                     onChange={(e) => setOrgSearch(e.target.value)}
                     className="pl-9"
@@ -796,8 +797,8 @@ export default function PartnerDetailPage({
                     {filteredOrgs.length === 0 ? (
                       <p className="px-3 py-6 text-center text-sm text-muted-foreground">
                         {orgOptions.length === 0
-                          ? "No organizations found."
-                          : "No organizations match your search."}
+                          ? t("detail.scope.noOrgs")
+                          : t("detail.scope.noOrgsMatch")}
                       </p>
                     ) : (
                       filteredOrgs.map((o) => (
@@ -836,18 +837,13 @@ export default function PartnerDetailPage({
               because partner_published is a global per-event flag, not partner config. */}
           <Card>
             <CardHeader className="border-b">
-              <CardTitle>Publish to partner API</CardTitle>
+              <CardTitle>{t("detail.publish.cardTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 pt-4">
-              <p className="text-sm text-muted-foreground">
-                Publishing makes an event readable through the partner API. A configured
-                key returns no events until they are published. This applies immediately
-                and globally for the event, separately from Save scope &amp; toggles.
-              </p>
+              <p className="text-sm text-muted-foreground">{t("detail.publish.intro")}</p>
               {scopedEvents.length === 0 ? (
                 <p className="rounded-md border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
-                  Add events under &quot;Allowed events&quot; above, then publish them here
-                  so this partner can read them.
+                  {t("detail.publish.empty")}
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
@@ -876,12 +872,12 @@ export default function PartnerDetailPage({
                               variant="outline"
                               className="border-green-600/60 text-green-400"
                             >
-                              Published
+                              {t("detail.publish.publishedBadge")}
                             </Badge>
                           )}
                           {state === false && (
                             <Badge variant="outline" className="text-muted-foreground">
-                              Withdrawn
+                              {t("detail.publish.withdrawnBadge")}
                             </Badge>
                           )}
                           {state ? (
@@ -892,7 +888,7 @@ export default function PartnerDetailPage({
                               disabled={busy}
                               onClick={() => handlePublishEvent(ev, false)}
                             >
-                              {busy ? "Working..." : "Withdraw"}
+                              {busy ? t("working") : t("detail.publish.withdraw")}
                             </Button>
                           ) : (
                             // Not published (or not acted on yet) → primary publish action.
@@ -901,7 +897,7 @@ export default function PartnerDetailPage({
                               disabled={busy}
                               onClick={() => handlePublishEvent(ev, true)}
                             >
-                              {busy ? "Working..." : "Publish to partner API"}
+                              {busy ? t("working") : t("detail.publish.action")}
                             </Button>
                           )}
                         </div>
@@ -909,9 +905,7 @@ export default function PartnerDetailPage({
                     );
                   })}
                   <p className="text-xs text-muted-foreground">
-                    This panel does not preload each event&apos;s current publish state, so
-                    a button reflects what you set here. Publishing again is harmless if the
-                    event is already published.
+                    {t("detail.publish.note")}
                   </p>
                 </div>
               )}
@@ -922,7 +916,7 @@ export default function PartnerDetailPage({
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="inline-flex items-center">
-                Resource toggles
+                {t("detail.toggleGroups.resource")}
                 <InfoTip id="partners.resource_toggles._section" className="ml-1" />
               </CardTitle>
             </CardHeader>
@@ -934,10 +928,10 @@ export default function PartnerDetailPage({
                     className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
                   >
                     <span className="min-w-0 text-sm">
-                      {TOGGLE_LABELS[key]}
-                      {TOGGLE_HINTS[key] ? (
+                      {t(`detail.toggles.${key}`)}
+                      {TOGGLE_HINT_IDS.includes(key) ? (
                         <span className="mt-0.5 block text-xs text-muted-foreground">
-                          {TOGGLE_HINTS[key]}
+                          {t(`detail.toggleHints.${key}`)}
                         </span>
                       ) : null}
                     </span>
@@ -955,7 +949,7 @@ export default function PartnerDetailPage({
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="inline-flex items-center">
-                Field toggles
+                {t("detail.toggleGroups.field")}
                 <InfoTip id="partners.field_toggles._section" className="ml-1" />
               </CardTitle>
             </CardHeader>
@@ -967,10 +961,10 @@ export default function PartnerDetailPage({
                     className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
                   >
                     <span className="min-w-0 text-sm">
-                      {TOGGLE_LABELS[key]}
-                      {TOGGLE_HINTS[key] ? (
+                      {t(`detail.toggles.${key}`)}
+                      {TOGGLE_HINT_IDS.includes(key) ? (
                         <span className="mt-0.5 block text-xs text-muted-foreground">
-                          {TOGGLE_HINTS[key]}
+                          {t(`detail.toggleHints.${key}`)}
                         </span>
                       ) : null}
                     </span>
@@ -986,7 +980,7 @@ export default function PartnerDetailPage({
 
           <div className="flex justify-end">
             <Button onClick={handleSaveScope} disabled={savingScope}>
-              {savingScope ? "Saving..." : "Save scope & toggles"}
+              {savingScope ? t("saving") : t("detail.scope.save")}
             </Button>
           </div>
         </TabsContent>
@@ -1004,23 +998,25 @@ export default function PartnerDetailPage({
             <CardHeader className="border-b">
               <CardTitle className="inline-flex items-center gap-2">
                 <IconWorld className="size-5 text-primary" />
-                Connection details
+                {t("detail.connection.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-5 pt-4">
+              {/* t.rich so the header name keeps its <code> styling inside one translated
+                  sentence, instead of being split across three keys per locale. */}
               <p className="text-sm text-muted-foreground">
-                Hand the partner the base URL below plus an API key (issue one under
-                &quot;API keys&quot;). Every request must send the key in the{" "}
-                <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-                  X-API-Key
-                </code>{" "}
-                header. Note: an event only appears here once you publish it on the Scope
-                &amp; Toggles tab.
+                {t.rich("detail.connection.intro", {
+                  code: (chunks) => (
+                    <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
+                      {chunks}
+                    </code>
+                  ),
+                })}
               </p>
 
               {/* Base URL + copy */}
               <div className="space-y-2">
-                <Label>Base URL</Label>
+                <Label>{t("detail.connection.baseUrl")}</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     readOnly
@@ -1034,7 +1030,7 @@ export default function PartnerDetailPage({
 
               {/* Auth header */}
               <div className="space-y-2">
-                <Label>Auth header</Label>
+                <Label>{t("detail.connection.authHeader")}</Label>
                 <div className="flex items-center gap-2">
                   <Input
                     readOnly
@@ -1045,14 +1041,15 @@ export default function PartnerDetailPage({
                   <CopyButton value={PARTNER_AUTH_HEADER} />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Replace &lt;api key&gt; with a key issued below. The full key is shown
-                  only once, immediately after issuing.
+                  {/* The literal stand-in is passed IN, never written into each locale:
+                      "<api key>" reads as a tag to the ICU parser. */}
+                  {t("detail.connection.authNote", { placeholder: API_KEY_PLACEHOLDER })}
                 </p>
               </div>
 
               {/* Available endpoints (relative to the base URL) */}
               <div className="space-y-2">
-                <Label>Available endpoints</Label>
+                <Label>{t("detail.connection.endpointsTitle")}</Label>
                 <div className="divide-y rounded-md border">
                   {PARTNER_ENDPOINTS.map((ep) => (
                     <div
@@ -1063,20 +1060,19 @@ export default function PartnerDetailPage({
                         GET {ep.path}
                       </code>
                       <span className="text-right text-xs text-muted-foreground">
-                        {ep.desc}
+                        {t(`detail.connection.endpoints.${ep.descKey}`)}
                       </span>
                     </div>
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Paths are relative to the base URL. Each one also obeys this partner&apos;s
-                  resource and field toggles.
+                  {t("detail.connection.endpointsNote")}
                 </p>
               </div>
 
               {/* Sample request (copy-paste curl) */}
               <div className="space-y-2">
-                <Label>Sample request</Label>
+                <Label>{t("detail.connection.sample")}</Label>
                 <div className="flex items-start gap-2">
                   <pre className="flex-1 overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs">
                     {SAMPLE_CURL}
@@ -1091,7 +1087,7 @@ export default function PartnerDetailPage({
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
                 <CardTitle className="inline-flex items-center">
-                  API keys
+                  {t("detail.keys.title")}
                   <InfoTip id="partners.keys_table._section" className="ml-1" />
                 </CardTitle>
                 {/* ⓘ sits beside the issue-key button (sibling, not nested). */}
@@ -1104,7 +1100,7 @@ export default function PartnerDetailPage({
                     onClick={() => setIssueOpen(true)}
                   >
                     <IconKey className="size-4" />
-                    Issue key
+                    {t("detail.keys.issue")}
                   </Button>
                   <InfoTip id="partners.issue_key" />
                 </div>
@@ -1112,8 +1108,7 @@ export default function PartnerDetailPage({
               {/* Tie-in hint: connects this card to the Connection details above so the
                   admin knows the full hand-off (issue a key, pair it with the base URL). */}
               <p className="mt-1 text-sm text-muted-foreground">
-                Issue a key here, then give it to the partner along with the connection
-                details above. The full key is shown only once, so copy it immediately.
+                {t("detail.keys.intro")}
               </p>
             </CardHeader>
             <CardContent className="mt-2">
@@ -1122,12 +1117,12 @@ export default function PartnerDetailPage({
                   <TableRow>
                     {/* Prefix is the only safe handle for a key - the secret is
                         never stored, so it can never be shown after issue. */}
-                    <TableHead>Prefix</TableHead>
-                    <TableHead>Label</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Rate / min</TableHead>
-                    <TableHead>Last used</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("detail.keys.colPrefix")}</TableHead>
+                    <TableHead>{t("detail.keys.colLabel")}</TableHead>
+                    <TableHead>{t("detail.keys.colStatus")}</TableHead>
+                    <TableHead>{t("detail.keys.colRate")}</TableHead>
+                    <TableHead>{t("detail.keys.colLastUsed")}</TableHead>
+                    <TableHead className="text-right">{t("detail.keys.colActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1146,20 +1141,20 @@ export default function PartnerDetailPage({
                               variant="outline"
                               className="border-green-600/60 text-green-400"
                             >
-                              Active
+                              {t("detail.keys.active")}
                             </Badge>
                           ) : (
                             <Badge
                               variant="outline"
                               className="text-muted-foreground"
                             >
-                              Revoked
+                              {t("detail.keys.revoked")}
                             </Badge>
                           )}
                         </TableCell>
                         <TableCell>{k.rate_limit_per_min}</TableCell>
                         <TableCell className="text-muted-foreground">
-                          {k.last_used_at ? k.last_used_at.slice(0, 10) : "Never"}
+                          {k.last_used_at ? k.last_used_at.slice(0, 10) : t("detail.keys.never")}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="inline-flex items-center justify-end gap-1">
@@ -1173,7 +1168,7 @@ export default function PartnerDetailPage({
                                   className="border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-500"
                                   onClick={() => setRevokeTarget(k)}
                                 >
-                                  Revoke
+                                  {t("detail.keys.revoke")}
                                 </Button>
                                 <InfoTip id="partners.revoke_key" />
                               </>
@@ -1187,7 +1182,7 @@ export default function PartnerDetailPage({
                               onClick={() => setDeleteTarget(k)}
                             >
                               <IconTrash className="size-4" />
-                              Delete
+                              {tc("delete")}
                             </Button>
                           </div>
                         </TableCell>
@@ -1199,7 +1194,7 @@ export default function PartnerDetailPage({
                         colSpan={6}
                         className="text-center py-8 text-muted-foreground"
                       >
-                        No keys yet. Issue one to give this partner API access.
+                        {t("detail.keys.empty")}
                       </TableCell>
                     </TableRow>
                   )}
@@ -1224,11 +1219,10 @@ export default function PartnerDetailPage({
               <DialogHeader>
                 <DialogTitle className="inline-flex items-center gap-2">
                   <IconCheck className="size-5 text-green-500" />
-                  API key issued
+                  {t("detail.issue.successTitle")}
                 </DialogTitle>
                 <DialogDescription>
-                  Copy this key now and store it securely. For your security it is
-                  shown only once - you won&apos;t be able to see it again.
+                  {t("detail.issue.successDescription")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -1249,35 +1243,33 @@ export default function PartnerDetailPage({
               </div>
 
               <DialogFooter>
-                <Button onClick={closeIssueDialog}>Done</Button>
+                <Button onClick={closeIssueDialog}>{tc("done")}</Button>
               </DialogFooter>
             </>
           ) : (
             // ── Issue form: optional label + per-key rate limit ──
             <>
               <DialogHeader>
-                <DialogTitle>Issue API key</DialogTitle>
-                <DialogDescription>
-                  Mint a new key for this partner. The full key is shown only once,
-                  immediately after issuing.
-                </DialogDescription>
+                <DialogTitle>{t("detail.issue.title")}</DialogTitle>
+                <DialogDescription>{t("detail.issue.description")}</DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="key-label">
-                    Label <span className="text-muted-foreground">(optional)</span>
+                    {t("detail.issue.label")}{" "}
+                    <span className="text-muted-foreground">{t("optional")}</span>
                   </Label>
                   <Input
                     id="key-label"
                     value={keyLabel}
                     onChange={(e) => setKeyLabel(e.target.value)}
-                    placeholder="e.g. Production key"
+                    placeholder={t("detail.issue.labelPlaceholder")}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="key-rate" className="inline-flex items-center">
-                    Rate limit (requests / min)
+                    {t("detail.issue.rateLimit")}
                     <InfoTip id="partners.rate_limit" className="ml-1" />
                   </Label>
                   <Input
@@ -1293,10 +1285,10 @@ export default function PartnerDetailPage({
 
               <DialogFooter>
                 <Button variant="outline" onClick={closeIssueDialog}>
-                  Cancel
+                  {tc("cancel")}
                 </Button>
                 <Button disabled={issuing} onClick={handleIssueKey}>
-                  {issuing ? "Issuing..." : "Issue key"}
+                  {issuing ? t("detail.issue.issuing") : t("detail.issue.action")}
                 </Button>
               </DialogFooter>
             </>
@@ -1314,27 +1306,29 @@ export default function PartnerDetailPage({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive">
-              Revoke API key?
+              {t("detail.revoke.title")}
             </AlertDialogTitle>
+            {/* t.rich keeps the key prefix styled inside one translated sentence, so no
+                locale has to reason about where the mono span begins and ends. */}
             <AlertDialogDescription>
-              This permanently disables{" "}
-              <span className="font-mono font-semibold text-foreground">
-                {revokeTarget?.key_prefix}…
-              </span>
-              . Any integration using it stops working immediately. This cannot be
-              undone.
+              {t.rich("detail.revoke.description", {
+                prefix: `${revokeTarget?.key_prefix ?? ""}…`,
+                key: (chunks) => (
+                  <span className="font-mono font-semibold text-foreground">{chunks}</span>
+                ),
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setRevokeTarget(null)}>
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button
               variant="destructive"
               disabled={revoking}
               onClick={() => revokeTarget && handleRevokeKey(revokeTarget)}
             >
-              {revoking ? "Revoking..." : "Revoke key"}
+              {revoking ? t("detail.revoke.working") : t("detail.revoke.action")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1350,27 +1344,27 @@ export default function PartnerDetailPage({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive">
-              Delete API key?
+              {t("detail.delete.title")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently deletes{" "}
-              <span className="font-mono font-semibold text-foreground">
-                {deleteTarget?.key_prefix}…
-              </span>{" "}
-              and removes it from the list. Any integration using it stops working
-              immediately. This cannot be undone.
+              {t.rich("detail.delete.description", {
+                prefix: `${deleteTarget?.key_prefix ?? ""}…`,
+                key: (chunks) => (
+                  <span className="font-mono font-semibold text-foreground">{chunks}</span>
+                ),
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
-              Cancel
+              {tc("cancel")}
             </Button>
             <Button
               variant="destructive"
               disabled={deletingKey}
               onClick={() => deleteTarget && handleDeleteKey(deleteTarget)}
             >
-              {deletingKey ? "Deleting..." : "Delete key"}
+              {deletingKey ? t("detail.delete.working") : t("detail.delete.action")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

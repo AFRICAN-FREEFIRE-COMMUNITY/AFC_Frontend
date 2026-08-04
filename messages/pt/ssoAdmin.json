@@ -45,6 +45,8 @@
     "redirectUris": "URI de redirecionamento",
     "redirectUrisPlaceholder": "https://partner.example/auth/afc/callback",
     "redirectUrisHint": "Para onde a AFC envia o jogador de volta depois de iniciar sessão. Um por linha, apenas https (http é aceite para localhost durante o desenvolvimento).",
+    "postLogoutUris": "URI de redirecionamento após terminar sessão",
+    "postLogoutUrisHint": "Para onde o parceiro pode enviar o jogador depois de terminar sessão na AFC. Um por linha, com as mesmas regras acima. Deixe vazio se o parceiro não oferecer o fim de sessão na AFC.",
     "homepage": "URL do site",
     "logoHint": "Pode carregar o logótipo do parceiro depois de o criar, a partir de Gerir.",
     "webhook": "URL do webhook de eliminação",

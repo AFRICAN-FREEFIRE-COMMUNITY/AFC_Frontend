@@ -66,6 +66,9 @@ import { IconPlus, IconSearch, IconX } from "@tabler/icons-react";
 import { partnersApi, type PartnerSummary } from "@/lib/partners";
 import { InfoTip } from "@/components/ui/info-tip";
 import SsoAppsPanel from "./_components/SsoAppsPanel";
+// The queue of organisations that applied at the public /partners/apply form. Approving one
+// provisions a partner for either product, so it belongs on this page rather than its own.
+import PartnerApplicationsPanel from "./_components/PartnerApplicationsPanel";
 
 // Shared status pill - outline badge whose border/text colour tracks the partner
 // status (active = green, suspended = orange, anything else = neutral). Same idiom
@@ -112,6 +115,10 @@ export default function PartnersAdminPage() {
   const t = useTranslations("ssoAdmin");
   const tp = useTranslations("partners");
   const tc = useTranslations("common");
+  // partnerApply namespace: the third tab's label. Its panel owns the rest of that copy, and
+  // shares the namespace with the PUBLIC application form so the owner's wording and the
+  // applicant's cannot drift ("they were told the link works once").
+  const ta = useTranslations("partnerApply");
 
   // Which partner program is on screen. Controlled state (not defaultValue) so the
   // header description can follow the active tab. "data" first: it is the older,
@@ -238,8 +245,9 @@ export default function PartnersAdminPage() {
         }
       />
 
-      {/* Two programs, one page. Controlled value so the header description above can
-          follow the tab; shadcn pill/segment style, per the AFC design constants. */}
+      {/* Two programs and the queue that feeds both, on one page. Controlled value so the
+          header description above can follow the tab; shadcn pill/segment style, per the
+          AFC design constants. */}
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-full">
           <TabsTrigger value="data" className="w-full">
@@ -247,6 +255,12 @@ export default function PartnersAdminPage() {
           </TabsTrigger>
           <TabsTrigger value="sso" className="w-full">
             {t("tabs.sso")}
+          </TabsTrigger>
+          {/* Applications sits LAST because it is where a partner starts and the other two
+              tabs are where one ends up: the owner reads this page left to right as the two
+              products, then the inbox that provisions into them. */}
+          <TabsTrigger value="applications" className="w-full">
+            {ta("admin.tab")}
           </TabsTrigger>
         </TabsList>
 
@@ -410,6 +424,14 @@ export default function PartnersAdminPage() {
             surface lives in its own component so this file stays the Data API list. ── */}
         <TabsContent value="sso" className="mt-4">
           <SsoAppsPanel />
+        </TabsContent>
+
+        {/* ── Applications tab: organisations that applied at the public /partners/apply
+            form (afc_partner_apply). Approving one provisions through the SAME path the
+            two tabs above use, so an approved partner and a hand-typed one are the same
+            kind of row. Whole surface lives in its own component. ── */}
+        <TabsContent value="applications" className="mt-4">
+          <PartnerApplicationsPanel />
         </TabsContent>
       </Tabs>
 

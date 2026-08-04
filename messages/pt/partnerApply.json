@@ -1,0 +1,190 @@
+{
+  "apply": {
+    "title": "Torne-se parceiro da AFC",
+    "description": "Fale-nos da sua organização e do que pretende construir. Um administrador da AFC lê todas as candidaturas e responde em qualquer dos casos.",
+    "doneTitle": "A sua candidatura chegou à AFC",
+    "doneBody": "Enviámos para {email} uma ligação para acompanhar a candidatura e para a alterar, caso lhe peçamos.",
+    "referenceLabel": "A sua referência",
+    "doneNote": "Guarde esse e-mail. A ligação que contém é a sua forma de aceder à candidatura, e é onde as suas credenciais o esperarão se o aprovarmos.",
+    "openStatus": "Consultar uma candidatura"
+  },
+  "form": {
+    "submit": "Enviar a minha candidatura",
+    "sending": "A enviar...",
+    "sent": "Obrigado. A sua candidatura chegou à AFC.",
+    "alreadyPending": "Já tem uma candidatura em aberto connosco. Voltámos a enviar-lhe a ligação por e-mail.",
+    "footnote": "A AFC nunca pede palavras-passe, e não precisa de uma conta AFC para se candidatar.",
+    "errors": {
+      "chooseProduct": "Escolha pelo menos um produto antes de enviar.",
+      "redirectRequired": "O Sign in with AFC precisa de pelo menos um URI de redirecionamento.",
+      "generic": "Não foi possível enviar a sua candidatura. Verifique o formulário e tente novamente."
+    },
+    "products": {
+      "title": "O que pretende utilizar",
+      "description": "Escolha um ou ambos. Isto apenas nos diz o que preparar, não é um pedido de acesso a dados específicos.",
+      "sso": "Sign in with AFC",
+      "ssoHint": "Permita que os jogadores da AFC iniciem sessão no seu site com a conta AFC.",
+      "dataApi": "A API de dados da AFC",
+      "dataApiHint": "Leia resultados de torneios publicados, classificações e planteis da AFC."
+    },
+    "org": {
+      "title": "A sua organização",
+      "description": "Quem são. O nome apresentado é o que um jogador vê quando lhe é pedido que vos autorize.",
+      "name": "Nome da organização",
+      "displayName": "Nome apresentado aos jogadores",
+      "displayNameHint": "Deixe em branco para usar o nome da sua organização.",
+      "website": "Site",
+      "country": "País",
+      "logo": "Logótipo",
+      "logoHint": "Opcional. PNG, JPG ou WEBP, até 2 MB. Apresentado aos jogadores no momento da autorização."
+    },
+    "contact": {
+      "title": "Com quem falamos",
+      "description": "Uma pessoa que possamos contactar sobre esta candidatura.",
+      "name": "Nome do contacto",
+      "email": "E-mail do contacto",
+      "emailHint": "Todas as respostas chegam aqui, incluindo a ligação para as suas credenciais. Verifique com atenção.",
+      "role": "Função"
+    },
+    "technical": {
+      "title": "Configuração do Sign in with AFC",
+      "description": "Os endereços para onde a AFC devolve os jogadores. Verificamo-los agora para que possa corrigir um erro aqui e não no primeiro início de sessão.",
+      "redirectUris": "URI de redirecionamento",
+      "redirectHint": "Um por linha. Tem de ser https, exceto http://localhost para a sua própria máquina. Sem caracteres universais, sem cadeia de consulta, sem fragmentos. Registe produção, pré-produção e local em separado.",
+      "postLogout": "URI de redirecionamento após terminar sessão",
+      "postLogoutHint": "Opcional. Apenas se quiser dar aos jogadores a possibilidade de terminarem também a sessão na AFC.",
+      "webhook": "URL do webhook de desconexão",
+      "webhookHint": "Opcional. A AFC envia para aí um aviso assinado quando um jogador vos desliga, para que possam apagar a vossa cópia dos dados dele."
+    },
+    "about": {
+      "title": "O que estão a construir",
+      "description": "É nisto que a decisão se baseia, por isso vale mais algumas frases do que algumas palavras.",
+      "useCase": "O que estão a construir, e quem o utiliza",
+      "useCasePlaceholder": "Por exemplo: um site comunitário onde os jogadores africanos de Free Fire acompanham o seu histórico de torneios e o comparam com amigos.",
+      "dataNeeded": "Do que precisam da AFC, e porquê",
+      "dataNeededPlaceholder": "Por exemplo: o nome AFC de um jogador e a sua classificação atual, para os mostrarmos no perfil dele.",
+      "dataNeededHint": "Descreva por palavras suas. A AFC decide a que campos isso corresponde e concede o mínimo necessário."
+    }
+  },
+  "statusLabel": {
+    "pending": "Com a AFC",
+    "changes_requested": "Precisa da sua atenção",
+    "approved": "Aprovada",
+    "rejected": "Não aprovada"
+  },
+  "status": {
+    "title": "A sua candidatura a parceiro",
+    "description": "Veja o estado da sua candidatura e faça as alterações que a AFC pediu.",
+    "lookupTitle": "Abrir a sua candidatura",
+    "lookupDescription": "Use a ligação do e-mail que a AFC lhe enviou, ou cole a sua referência e o código de acesso abaixo.",
+    "referenceLabel": "Referência",
+    "tokenLabel": "Código de acesso",
+    "open": "Abrir",
+    "loading": "A abrir...",
+    "notFound": "Não encontrámos essa candidatura. Verifique a ligação no seu e-mail.",
+    "fromAfc": "Mensagem da AFC",
+    "submittedAt": "Enviada",
+    "updatedAt": "Última atualização",
+    "frozen": "Neste momento não há nada a fazer. Escrevemos-lhe assim que houver.",
+    "explain": {
+      "pending": "Um administrador da AFC tem a sua candidatura e vai responder em qualquer dos casos. Não é preciso nada da sua parte.",
+      "changes_requested": "A AFC pediu uma alteração. Faça-a abaixo e reenvie: a candidatura volta automaticamente para a fila.",
+      "approved": "É parceiro da AFC. Recolha as suas credenciais abaixo, se ainda não o fez.",
+      "rejected": "A AFC não pôde aprovar esta candidatura. Pode candidatar-se de novo se o ponto que levantámos mudar."
+    },
+    "approvedTitle": "Aprovada",
+    "collect": "Recolher as credenciais",
+    "alreadyCollected": "As suas credenciais já foram recolhidas. Peça uma nova ligação à AFC se precisar de as reemitir.",
+    "linkExpired": "A sua ligação para as credenciais expirou. Peça uma nova à AFC.",
+    "editTitle": "Fazer a alteração que a AFC pediu",
+    "editDescription": "Corrija o que for preciso e reenvie. Tudo o resto fica como escreveu.",
+    "save": "Reenviar à AFC",
+    "saving": "A enviar...",
+    "saveFailed": "Não foi possível guardar as suas alterações."
+  },
+  "credentials": {
+    "title": "As suas credenciais AFC",
+    "description": "Recolha as credenciais da sua candidatura a parceiro aprovada.",
+    "collectTitle": "Recolher as suas credenciais",
+    "collectDescription": "Use a ligação que a AFC lhe enviou. Se chegou a esta página de outra forma, cole a sua referência e o código dessa ligação.",
+    "tokenLabel": "Código do seu e-mail",
+    "beforeYouClickTitle": "Leia isto primeiro",
+    "beforeYouClick": "O seu segredo de cliente é mostrado uma única vez no ecrã seguinte, e nunca mais. Esta ligação funciona uma só vez. Tenha um local seguro para o colar antes de continuar, como o seu gestor de palavras-passe ou o cofre de segredos do seu servidor.",
+    "claim": "Mostrar as minhas credenciais",
+    "claiming": "A processar...",
+    "failed": "Não foi possível recolher essas credenciais.",
+    "readyTitle": "Aqui estão",
+    "readyBody": "Copie-as agora. Fechar esta página perde-as, e a AFC não as pode voltar a mostrar.",
+    "clientIdHint": "Público. Circula em todos os URL de início de sessão, por isso pode ficar na sua configuração.",
+    "clientSecretHint": "Secreto. Guarde-o apenas no seu servidor, nunca em código do navegador nem num repositório público.",
+    "apiKeyHint": "Secreta. Envie-a como cabeçalho de chave da API de dados e guarde-a apenas no seu servidor.",
+    "lastWarning": "Se as perder, a AFC não as consegue recuperar. Peça-nos uma nova ligação e emitiremos novas.",
+    "copy": "Copiar",
+    "copied": "Copiado.",
+    "copyFailed": "Não foi possível copiar. Selecione o texto e copie manualmente."
+  },
+  "admin": {
+    "tab": "Candidaturas",
+    "loading": "A carregar candidaturas...",
+    "loadFailed": "Não foi possível carregar as candidaturas.",
+    "decideFailed": "Não foi possível guardar essa decisão.",
+    "empty": "Não há candidaturas aqui.",
+    "searchPlaceholder": "Organização, e-mail ou referência",
+    "count": "{count, plural, one {# candidatura} other {# candidaturas}}",
+    "previous": "Anterior",
+    "next": "Seguinte",
+    "review": "Analisar",
+    "close": "Fechar",
+    "filters": {
+      "pending": "Por analisar",
+      "approved": "Aprovadas",
+      "rejected": "Recusadas",
+      "all": "Todas"
+    },
+    "table": {
+      "organisation": "Organização",
+      "reference": "Referência",
+      "wants": "Pretende",
+      "status": "Estado",
+      "submitted": "Enviada",
+      "sso": "Início de sessão",
+      "dataApi": "API de dados"
+    },
+    "earlier": "{count, plural, one {# candidatura anterior} other {# candidaturas anteriores}} deste endereço de e-mail.",
+    "whatTheySaid": "O que nos disseram",
+    "whatWillBeCreated": "O que a aprovação vai criar",
+    "editableHint": "Pré-preenchido a partir da candidatura e editável. O que aprovar aqui é o que fica ativo, incluindo o nome que os jogadores veem no ecrã de autorização.",
+    "fields": {
+      "name": "Nome do parceiro",
+      "displayName": "Nome apresentado aos jogadores",
+      "displayNameHint": "Aparece no ecrã de autorização que o jogador lê antes de confiar neles."
+    },
+    "grantsSso": "O que podem ver de um jogador",
+    "grantsHint": "Está tudo desligado. Conceda o mínimo necessário para o que descreveram.",
+    "grantsData": "Acesso à API de dados",
+    "noteLabel": "Mensagem para o candidato",
+    "notePlaceholder": "Obrigatória ao recusar ou ao pedir alterações.",
+    "noteHint": "É todo o e-mail que vão receber, por isso escreva-o a pensar neles.",
+    "internalNoteLabel": "Nota interna da AFC",
+    "internalNoteHint": "Nunca é mostrada ao candidato.",
+    "approve": "Aprovar e provisionar",
+    "reject": "Recusar",
+    "requestChanges": "Pedir alterações",
+    "provisioned": "Provisionado",
+    "claimed": "Já recolheram as credenciais.",
+    "claimOpen": "A ligação para as credenciais está ativa e ainda não foi usada.",
+    "claimExpired": "A ligação para as credenciais expirou.",
+    "resend": "Enviar uma nova ligação de credenciais",
+    "resendHint": "Invalida qualquer ligação anterior. O segredo só é renovado quando abrirem a nova ligação: se disserem que a antiga ainda funciona, ninguém a abriu.",
+    "toggles": {
+      "share_profile": "Nome, avatar, país e idioma",
+      "share_email": "Endereço de e-mail",
+      "share_freefire_uid": "UID do Free Fire",
+      "share_team": "Equipa atual e função",
+      "share_history": "Torneios disputados",
+      "share_stats": "Estatísticas de jogos",
+      "share_ranking": "Classificação e pontos AFC",
+      "share_standing": "Conta em situação regular"
+    }
+  }
+}

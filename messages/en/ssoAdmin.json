@@ -45,6 +45,8 @@
     "redirectUris": "Redirect URIs",
     "redirectUrisPlaceholder": "https://partner.example/auth/afc/callback",
     "redirectUrisHint": "Where AFC sends the player back after they sign in. One per line, https only (http is allowed for localhost during development).",
+    "postLogoutUris": "Post-logout redirect URIs",
+    "postLogoutUrisHint": "Where the partner may send the player after they sign out of AFC. One per line, same rules as above. Leave empty unless the partner offers \"sign out of AFC too\".",
     "homepage": "Homepage URL",
     "logoHint": "You can upload the partner's logo once it is created, from Manage.",
     "webhook": "Deletion webhook URL",
