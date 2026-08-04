@@ -25,7 +25,9 @@
       "rejected": "Rejected",
       "superseded": "Replaced by a later result"
     },
-    "closed": "This event is not taking result submissions from teams."
+    "closed": "This event is not taking result submissions from teams.",
+    "pickFour": "Tick the {count} players who were in the lobby.",
+    "selectedCount": "{selected} of {max} picked."
   },
   "queue": {
     "title": "Results teams sent in",

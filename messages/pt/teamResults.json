@@ -25,7 +25,9 @@
       "rejected": "Recusado",
       "superseded": "Substituído por um resultado mais recente"
     },
-    "closed": "Este evento não aceita resultados enviados pelas equipas."
+    "closed": "Este evento não aceita resultados enviados pelas equipas.",
+    "pickFour": "Marque os {count} jogadores que estiveram no lobby.",
+    "selectedCount": "{selected} de {max} escolhidos."
   },
   "queue": {
     "title": "Resultados enviados pelas equipas",

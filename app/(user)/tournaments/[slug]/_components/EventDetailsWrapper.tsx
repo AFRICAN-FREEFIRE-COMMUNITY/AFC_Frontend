@@ -59,6 +59,9 @@ import { formatMoneyInput } from "@/lib/utils";
 // in UTC). formatLocalTime is its string form for non-JSX needs (here: the
 // interpolated "Used at: {time}" invite message). See components/LocalTime.tsx.
 import { LocalTime } from "@/components/LocalTime";
+// The team's own half of team-submitted map results (owner backlog item 6). The organizer's half
+// is app/(a)/a/events/[slug]/team-results.
+import { TeamMapResultPanel } from "@/components/events/TeamMapResultPanel";
 import { LocalEventTime } from "@/components/LocalEventTime";
 import { formatLocalTime, zonedWallClockToInstant } from "@/lib/i18n/time";
 import { toast } from "sonner";
@@ -394,6 +397,10 @@ interface EventDetails {
   event_banner_url: string | null;
   uploaded_rules_url: string | null;
   is_registered: boolean;
+  // Teams filing their own map results (owner backlog item 6). Emitted by get_event_details and
+  // get_event_details_not_logged_in. Absent on older payloads, hence optional: absent reads as off,
+  // which is the safe default for a feature most organizers will not want.
+  allow_team_result_submissions?: boolean;
   is_public: boolean;
   // Per-event results visibility (owner 2026-06-29): Event.results_published, echoed by the detail
   // endpoints. false => the organizer has HIDDEN the public standings, so the Results + Structure
@@ -3451,6 +3458,13 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const t = useTranslations("tournaments");
+  // Copy for the team's own result submission (owner backlog item 6). Read from the namespace the
+  // organizer's queue and the per-event switch also read, so the three descriptions of one feature
+  // cannot drift apart.
+  const tTeamResults = useTranslations("teamResults");
+  // Which map the team is filing a result for. A submission is filed against ONE match, so this is
+  // a single id rather than a set. Seeded from the first map once the structure loads.
+  const [teamResultMatchId, setTeamResultMatchId] = useState<number | null>(null);
   // refreshUser (owner 2026-08-02): re-pulls get-user-profile and RETURNS the fresh user, which the
   // ROSTER_REQUIREMENTS "Re-check and continue" needs - reading the `user` from this render would
   // still be the stale pre-fix profile and would wrongly keep a solo registrant blocked.
@@ -3472,6 +3486,35 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const tick = useLiveTick();
 
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
+
+  // Every map in the event, flattened for the "which map are you filing?" picker. A match IS a map
+  // here, which is why the label names the stage and group rather than a fixture. Empty until the
+  // structure loads, which is also what hides the panel on an event with no maps yet.
+  const teamResultMaps = useMemo(() => {
+    const out: { matchId: number; label: string }[] = [];
+    for (const stage of eventDetails?.stages ?? []) {
+      for (const group of stage.groups ?? []) {
+        for (const m of (group.matches ?? []) as any[]) {
+          if (!m?.match_id) continue;
+          out.push({
+            matchId: m.match_id,
+            label: [stage.stage_name, group.group_name, m.match_number ? `${m.match_number}` : ""]
+              .filter(Boolean)
+              .join(" / "),
+          });
+        }
+      }
+    }
+    return out;
+  }, [eventDetails]);
+
+  // Seed the picker once, and only once: re-seeding on every structure refresh (this page polls)
+  // would yank the selection back to the first map while a team was typing into another one.
+  useEffect(() => {
+    if (teamResultMatchId === null && teamResultMaps.length > 0) {
+      setTeamResultMatchId(teamResultMaps[0].matchId);
+    }
+  }, [teamResultMaps, teamResultMatchId]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -5678,6 +5721,56 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 sponsorRequirementDescription={eventDetails.sponsor_requirement_description}
                 sponsorFieldLabel={eventDetails.sponsor_field_label}
               />
+
+              {/* ── Send your own map result (owner backlog item 6, 2026-08-04) ─────────────────
+                  Shown only when BOTH are true: the organizer switched the feature on for this
+                  event (allow_team_result_submissions, set on the edit form's Basic Info tab) and
+                  this viewer's team is actually registered. A player on no team here has nothing
+                  to file, and showing the form to them would be an invitation to a 403.
+
+                  It sits with the other per-event cards rather than inside the results tab: a team
+                  files its result right after playing, from the page they are already on, and the
+                  results tab is where they later go to READ what was published.
+
+                  The roster comes from userTeam, which this page has already loaded, so the panel
+                  does not fetch it a second time. Everything else (submitting, the state of what
+                  they sent, the organizer's rejection note) lives in the component. */}
+              {eventDetails.allow_team_result_submissions &&
+                eventDetails.is_registered &&
+                userTeam &&
+                teamResultMaps.length > 0 && (
+                  <Card className="mt-4">
+                    <CardContent className="space-y-3 pt-6">
+                      {/* One map at a time, because a submission is filed against one match. */}
+                      <div className="space-y-1">
+                        <label className="text-xs text-muted-foreground" htmlFor="team-result-map">
+                          {tTeamResults("queue.subtitle")}
+                        </label>
+                        <select
+                          id="team-result-map"
+                          className="h-10 w-full rounded-md border bg-background px-2 text-xs sm:max-w-96"
+                          value={teamResultMatchId ?? undefined}
+                          onChange={(e) => setTeamResultMatchId(Number(e.target.value))}
+                        >
+                          {teamResultMaps.map((m) => (
+                            <option key={m.matchId} value={m.matchId}>
+                              {m.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {teamResultMatchId && (
+                        <TeamMapResultPanel
+                          matchId={teamResultMatchId}
+                          roster={(userTeam.members || []).map((mem) => ({
+                            user_id: Number(mem.id),
+                            name: mem.username,
+                          }))}
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
 
               {/* ── Watch live (owner 2026-08-03, backlog item 37) ────────────────────────────────
                   Stream links entered via "+ Add Streaming Link" in the event create/edit form are

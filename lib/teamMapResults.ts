@@ -143,7 +143,11 @@ export const teamMapResultsApi = {
     (
       await axios.post(
         url(`${submissionId}/reject/`),
-        { review_note: note },
+        // The body key is `note`, NOT `review_note`. review_note is what the MODEL column is
+        // called and what comes back on the serialized submission, which is exactly why this was
+        // wrong first time: sending review_note left the endpoint seeing no note at all and
+        // refusing every rejection, with the organizer staring at a filled-in box.
+        { note },
         { headers: authHeaders() },
       )
     ).data as { submission: TeamMapSubmission },

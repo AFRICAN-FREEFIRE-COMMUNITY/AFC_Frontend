@@ -45,6 +45,10 @@ import {
 
 export type RosterPlayer = { user_id: number; name: string };
 
+/** A Free Fire squad is four. The backend enforces the same number on submit, so this constant
+ *  exists to keep the form from letting a team build something the server will refuse. */
+const MAX_PLAYERS_PER_MAP = 4;
+
 export function TeamMapResultPanel({
   matchId,
   roster,
@@ -62,6 +66,24 @@ export function TeamMapResultPanel({
   const [placement, setPlacement] = useState("");
   const [didNotPlay, setDidNotPlay] = useState(false);
   const [kills, setKills] = useState<Record<number, string>>({});
+
+  // WHO PLAYED, and why this is a choice rather than the whole roster.
+  // A Free Fire squad is FOUR, but a team's roster holds up to six (substitutes). The backend
+  // refuses a submission marking more than four as having played ("At most four players can be
+  // marked as having played a map."), so sending the whole roster made the form unusable for any
+  // team with a bench: they filled it in, pressed send, and were refused every time. The team
+  // picks the four who were actually in the lobby, which is information only they have anyway.
+  // Seeded with the first four so the common case (a roster of exactly four) is one less step.
+  const [played, setPlayed] = useState<Record<number, boolean>>({});
+  useEffect(() => {
+    setPlayed((prev) =>
+      Object.keys(prev).length > 0
+        ? prev
+        : Object.fromEntries(roster.slice(0, MAX_PLAYERS_PER_MAP).map((p) => [p.user_id, true])),
+    );
+  }, [roster]);
+
+  const playedIds = roster.filter((p) => played[p.user_id]).map((p) => p.user_id);
 
   const load = useCallback(async () => {
     try {
@@ -85,15 +107,24 @@ export function TeamMapResultPanel({
       toast.error(t("team.placementHint"));
       return;
     }
+    // Checked client-side as well as server-side so the team is told BEFORE they press send, not
+    // by a refusal afterwards.
+    if (!didNotPlay && playedIds.length !== MAX_PLAYERS_PER_MAP) {
+      toast.error(t("team.pickFour", { count: MAX_PLAYERS_PER_MAP }));
+      return;
+    }
     setSending(true);
     try {
       await teamMapResultsApi.submit(matchId, {
         placement: didNotPlay ? 0 : Number(placement),
         played: !didNotPlay,
+        // Only the players the team said were in the lobby are marked as having played. The rest
+        // are still sent, with played false and no kills, so the organizer can see the full roster
+        // and who sat out rather than having to infer it from an absence.
         players: roster.map((p) => ({
           user_id: p.user_id,
-          kills: Number(kills[p.user_id]) || 0,
-          played: !didNotPlay,
+          kills: played[p.user_id] && !didNotPlay ? Number(kills[p.user_id]) || 0 : 0,
+          played: !didNotPlay && Boolean(played[p.user_id]),
         })),
       });
       toast.success(t("team.sent"));
@@ -143,19 +174,45 @@ export function TeamMapResultPanel({
         {!didNotPlay && roster.length > 0 && (
           <div className="space-y-2">
             <Label className="text-xs">{t("team.players")}</Label>
-            {roster.map((p) => (
-              <div key={p.user_id} className="flex items-center justify-between gap-2">
-                <span className="min-w-0 truncate text-xs">{p.name}</span>
-                <Input
-                  type="number" min={0}
-                  aria-label={`${p.name} ${t("team.kills")}`}
-                  className="h-10 w-24"
-                  value={kills[p.user_id] ?? ""}
-                  onChange={(e) =>
-                    setKills((prev) => ({ ...prev, [p.user_id]: e.target.value }))}
-                />
-              </div>
-            ))}
+            <p className="text-xs text-muted-foreground">
+              {t("team.pickFour", { count: MAX_PLAYERS_PER_MAP })}
+              {" "}
+              {t("team.selectedCount", { selected: playedIds.length, max: MAX_PLAYERS_PER_MAP })}
+            </p>
+            {roster.map((p) => {
+              const isOn = Boolean(played[p.user_id]);
+              // A fifth tick is refused rather than silently swapping someone out: the team should
+              // untick whoever sat out, so the choice stays theirs and stays visible.
+              const atLimit = !isOn && playedIds.length >= MAX_PLAYERS_PER_MAP;
+              return (
+                <div key={p.user_id} className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Checkbox
+                      id={`played-${p.user_id}`}
+                      checked={isOn}
+                      disabled={atLimit}
+                      onCheckedChange={(v) =>
+                        setPlayed((prev) => ({ ...prev, [p.user_id]: v === true }))}
+                    />
+                    <Label
+                      htmlFor={`played-${p.user_id}`}
+                      className="min-w-0 truncate text-xs font-normal"
+                    >
+                      {p.name}
+                    </Label>
+                  </div>
+                  <Input
+                    type="number" min={0}
+                    disabled={!isOn}
+                    aria-label={`${p.name} ${t("team.kills")}`}
+                    className="h-10 w-24"
+                    value={kills[p.user_id] ?? ""}
+                    onChange={(e) =>
+                      setKills((prev) => ({ ...prev, [p.user_id]: e.target.value }))}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
 
