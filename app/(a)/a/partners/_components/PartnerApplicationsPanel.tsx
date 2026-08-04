@@ -405,6 +405,25 @@ export default function PartnerApplicationsPanel() {
                   <div className="grid gap-3 text-xs sm:grid-cols-2">
                     <ReadOnly label={t("form.contact.name")} value={detail.contact_name} />
                     <ReadOnly label={t("form.contact.role")} value={detail.contact_role || "-"} />
+                    {/* The number the owner asked for, shown to whoever is deciding. A plain
+                        ReadOnly when there is none, and a wa.me link when there is, because the
+                        point of collecting it was that somebody could actually message it: the
+                        stored value is E.164 so stripping the "+" is all wa.me needs. */}
+                    {detail.contact_whatsapp ? (
+                      <div>
+                        <p className="text-muted-foreground">{t("form.contact.whatsapp")}</p>
+                        <a
+                          href={`https://wa.me/${detail.contact_whatsapp.replace(/\D/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {detail.contact_whatsapp}
+                        </a>
+                      </div>
+                    ) : (
+                      <ReadOnly label={t("form.contact.whatsapp")} value="-" />
+                    )}
                     <ReadOnly label={t("form.org.country")} value={detail.country || "-"} />
                     <div>
                       <p className="text-muted-foreground">{t("form.org.website")}</p>

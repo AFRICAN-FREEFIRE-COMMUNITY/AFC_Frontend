@@ -30,6 +30,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
+// The same phone control the profile edit screen uses, so this app has ONE phone input rather
+// than a second hand-rolled dial-code list. It emits a single E.164 string.
+import * as RPNInput from "react-phone-number-input";
 import {
   IconArrowRight,
   IconCircleCheck,
@@ -52,6 +55,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CountrySelect, FlagComponent, PhoneInput } from "@/components/PhoneNumberInput";
 import { Textarea } from "@/components/ui/textarea";
 import { getErrorMessage } from "@/lib/http";
 import { submitApplication } from "@/lib/partnerApply";
@@ -66,6 +70,10 @@ interface FormState {
   contact_name: string;
   contact_email: string;
   contact_role: string;
+  /** E.164 straight from RPNInput, e.g. "+2348051234567". The backend normalises again and
+   *  refuses what it cannot read, so this being loose is fine; it is never a dial code plus a
+   *  separate number, because the control emits one joined string. */
+  contact_whatsapp: string;
   wants_sso: boolean;
   wants_data_api: boolean;
   redirect_uris: string;
@@ -83,6 +91,7 @@ const EMPTY: FormState = {
   contact_name: "",
   contact_email: "",
   contact_role: "",
+  contact_whatsapp: "",
   // Both start off, so the applicant makes an active choice. The backend refuses a submission
   // with neither, which is checked here first so they never spend a rate-limit slot on it.
   wants_sso: false,
@@ -315,6 +324,28 @@ export default function PartnerApplyPage() {
                   value={form.contact_role}
                   onChange={(v) => set("contact_role", v)}
                 />
+                {/* WhatsApp number (owner 2026-08-04). NOT a Field: that helper wraps a plain
+                    Input, and this needs the country picker glued to the number, so it follows
+                    the logo block's pattern of its own labelled div. The control is the SAME
+                    PhoneNumberInput the profile edit screen uses, so there is one phone control
+                    in this app rather than two, and it emits a single E.164 string, which is why
+                    there is no separate dial-code field in FormState. */}
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="contact_whatsapp">{t("form.contact.whatsapp")}</Label>
+                  <RPNInput.default
+                    id="contact_whatsapp"
+                    className="flex rounded-md shadow-xs"
+                    international
+                    flagComponent={FlagComponent}
+                    countrySelectComponent={CountrySelect}
+                    inputComponent={PhoneInput}
+                    value={form.contact_whatsapp}
+                    // RPNInput hands back undefined when the field is cleared; FormState is all
+                    // strings because every value ends up in a FormData.
+                    onChange={(v) => set("contact_whatsapp", v ?? "")}
+                  />
+                  <p className="text-muted-foreground text-xs">{t("form.contact.whatsappHint")}</p>
+                </div>
               </CardContent>
             </Card>
 

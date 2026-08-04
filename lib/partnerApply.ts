@@ -56,6 +56,9 @@ export interface ApplicantView {
   contact_name: string;
   contact_email: string;
   contact_role: string;
+  /** Echoed back NORMALISED, so an applicant who typed a local number can see which country
+   *  it resolved to before AFC ever messages it. */
+  contact_whatsapp: string;
   wants_sso: boolean;
   wants_data_api: boolean;
   redirect_uris: string;
@@ -95,6 +98,9 @@ export interface ApplicationDetail extends ApplicationSummary {
   homepage_url: string;
   contact_name: string;
   contact_role: string;
+  /** E.164, or "" when the applicant gave none. Normalised server side, so it is safe to
+   *  render straight into a wa.me link. */
+  contact_whatsapp: string;
   redirect_uris: string;
   post_logout_redirect_uris: string;
   deletion_webhook_url: string;

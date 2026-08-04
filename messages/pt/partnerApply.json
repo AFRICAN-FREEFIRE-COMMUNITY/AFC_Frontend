@@ -44,7 +44,9 @@
       "name": "Nome do contacto",
       "email": "E-mail do contacto",
       "emailHint": "Todas as respostas chegam aqui, incluindo a ligação para as suas credenciais. Verifique com atenção.",
-      "role": "Função"
+      "role": "Função",
+      "whatsapp": "Número de WhatsApp",
+      "whatsappHint": "Opcional. Inclua o indicativo do seu país. Podemos enviar mensagem para este número sobre a sua candidatura."
     },
     "technical": {
       "title": "Configuração do Sign in with AFC",

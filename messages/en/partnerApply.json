@@ -44,7 +44,9 @@
       "name": "Contact name",
       "email": "Contact email",
       "emailHint": "Every reply goes here, including the link to your credentials. Check it carefully.",
-      "role": "Their role"
+      "role": "Their role",
+      "whatsapp": "WhatsApp number",
+      "whatsappHint": "Optional. Include your country code. We may message this number about your application."
     },
     "technical": {
       "title": "Sign in with AFC setup",
