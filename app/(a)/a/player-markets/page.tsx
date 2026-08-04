@@ -11,6 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+// The System Health card reports the LIVE transfer window rather than asserting one, so it reads
+// the same public season endpoint as /rankings. Calendar dates go through formatLocalDateOnly.
+import { rankingsApi, Season } from "@/lib/rankings";
+import { formatLocalDateOnly } from "@/lib/i18n/time";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
@@ -864,6 +868,21 @@ export default function AdminPlayerMarketPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, reportStatusFilter, reportCatFilter, reportSearch]);
 
+  // ── the live transfer window, for the System Health card ──
+  // That card used to print a hardcoded "Open" badge with nothing behind it, so it read as Open
+  // on a day the window had been shut for weeks. This is the same public endpoint the /rankings
+  // banner and the admin rankings card read (unauthenticated on purpose, it is public data), so
+  // all three now agree. Null while loading, and if the request fails the card says so rather
+  // than inventing a state.
+  const [transferSeason, setTransferSeason] = useState<Season | null>(null);
+  const [transferSeasonFailed, setTransferSeasonFailed] = useState(false);
+  useEffect(() => {
+    rankingsApi
+      .currentSeason()
+      .then((s) => setTransferSeason(s))
+      .catch(() => setTransferSeasonFailed(true));
+  }, []);
+
   // Open the Resolve dialog seeded with the row's current status + notes.
   const openResolve = (row: MarketReportRow) => {
     setResolveTarget(row);
@@ -1068,7 +1087,23 @@ export default function AdminPlayerMarketPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm">Transfer Window Status</span>
-                <Badge variant="outline">Open</Badge>
+                {transferSeasonFailed ? (
+                  <Badge variant="outline" className="text-muted-foreground">Unknown</Badge>
+                ) : !transferSeason ? (
+                  <Badge variant="outline" className="text-muted-foreground">Checking</Badge>
+                ) : transferSeason.transfer_window_is_open ? (
+                  <Badge variant="outline" className="border-green-500/50 text-green-500">
+                    Open{transferSeason.transfer_window_close
+                      ? ` until ${formatLocalDateOnly(transferSeason.transfer_window_close)}`
+                      : ""}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-orange-500/50 text-orange-500">
+                    Locked{transferSeason.transfer_window_close
+                      ? ` since ${formatLocalDateOnly(transferSeason.transfer_window_close)}`
+                      : ""}
+                  </Badge>
+                )}
               </div>
               <Separator />
               <div className="flex items-center justify-between">

@@ -97,6 +97,45 @@ export interface PlayerRow {
   kills?: number;
   mvps?: number;
   tier?: 0 | 1 | 2 | 3 | null;
+  /**
+   * STORED in-game role for this period, and the play behind it (owner 2026-08-04: "role history
+   * is not stored ... fix the above so it records properly using data and is stored").
+   *
+   * `role` is the role the player actually held WHEN the points were earned, not the one they hold
+   * today: the backend stamps it on each match result from the frozen event roster and files the
+   * period under the role played most (afc_rankings/aggregation.primary_role). null is a real
+   * answer meaning no role was recorded for the period, which is the truth for staff, ghosts, a
+   * period spent on solo leaderboards, and anything played before the stamping existed. Render it
+   * as "not recorded", never as a blank that reads like "has no role".
+   *
+   * `role_matches` / `role_kills` are scoped TO THAT ROLE, so a mixed-role player's numbers describe
+   * their sniper games rather than their whole month. Kills are the only per-player statistic the
+   * match pipeline actually records, so these two are the honest limit of what a role column can
+   * show; there is no role-specific score and none is invented.
+   *
+   * `role_is_mixed` = played two or more roles in the period. The row is still listed under exactly
+   * one role so the tables stay a partition of the ladder; this flag is how the UI discloses that.
+   *
+   * Emitted by afc_rankings.serializers._role_columns on EVERY player row, ladder or role table.
+   */
+  role?: string | null;
+  role_matches?: number;
+  role_kills?: number;
+  role_is_mixed?: boolean;
+}
+
+/**
+ * How much of a period actually HAS a stored role, from GET /rankings/players/by-role/.
+ *
+ * Exists so the UI can be honest about a period that predates the role stamping: without it, a
+ * month recorded before the feature shipped renders four empty role tabs that read as "nobody
+ * played these roles" instead of "this was not recorded back then". `has_role_data` false means
+ * show the notice. Zeroed for a period the publish gate is hiding, so it cannot leak through.
+ */
+export interface PlayerRoleCoverage {
+  players_with_role: number;
+  players_scored: number;
+  has_role_data: boolean;
 }
 
 export interface Season {
@@ -107,6 +146,16 @@ export interface Season {
   start_date: string;
   end_date: string;
   is_active: boolean;
+  // ── the transfer window ──
+  // These three have always been on the wire (see rankings/seasons/current/) and were simply
+  // never declared here, so anything reading a Season could not see them and fell back to
+  // guessing. That is exactly why the admin rankings page printed the SEASON's end date under
+  // "Transfer Window" and hardcoded the state as locked. Dates are calendar dates ("2026-07-14"),
+  // so render them with formatLocalDateOnly, never with the date-and-time formatter, which reads
+  // a bare date as midnight UTC and shows the previous day to anyone west of London.
+  transfer_window_open?: string | null;
+  transfer_window_close?: string | null;
+  transfer_window_is_open?: boolean;
 }
 
 export interface Envelope<T> {
@@ -149,6 +198,11 @@ export const rankingsApi = {
    * the population differs, and the ranks are renumbered within the role. Pass no `role` (or
    * "all") for the unfiltered ladder. Publish gating is the same as the plain ladders.
    *
+   * The role a row is filed under is the one it was STORED with for that period (see PlayerRow
+   * .role), so an old month keeps the roles it was played under even after a player transfers or
+   * switches role. `role_coverage` says whether the period has any stored role data at all; when
+   * it does not, the page must say so rather than present empty role tabs as fact.
+   *
    * Consumed by app/(user)/rankings/page.tsx (the player role tabs).
    */
   playersByRole: (params?: { role?: string; period?: "monthly" | "quarterly"; month?: string; seasonId?: number }) =>
@@ -157,7 +211,12 @@ export const rankingsApi = {
       ...(params?.period ? { period: params.period } : {}),
       ...(params?.month ? { month: params.month } : {}),
       ...(params?.seasonId ? { season_id: params.seasonId } : {}),
-    }) as Promise<Envelope<PlayerRow> & { role: string | null; roles: PlayerRoleOption[]; published?: boolean }>,
+    }) as Promise<Envelope<PlayerRow> & {
+      role: string | null;
+      roles: PlayerRoleOption[];
+      role_coverage?: PlayerRoleCoverage;
+      published?: boolean;
+    }>,
   // Feeds the transfer-window banner on /rankings, /teams and /player-markets; response
   // carries Phase-2c flags (transfer_window_is_open, transfer_window_close,
   // rankings_published, tiers_published).

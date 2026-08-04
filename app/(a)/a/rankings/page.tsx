@@ -22,6 +22,9 @@ import {
 import { FullLoader } from "@/components/Loader";
 import { TierBadge, tierMeta } from "@/components/rankings/TierBadge";
 import { rankingsApi, TeamRow as ApiTeamRow, Season } from "@/lib/rankings";
+// Calendar dates (no time component) must go through this, not the date-and-time formatter:
+// a bare "2026-07-14" parsed as a Date is midnight UTC and renders as the 13th west of London.
+import { formatLocalDateOnly } from "@/lib/i18n/time";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import axios from "axios";
 import { env } from "@/lib/env";
@@ -170,7 +173,21 @@ export default function AdminRankingsPage() {
   // Use the shared matchesSearch helper so the teams box is punctuation/font-insensitive (a team
   // literally named "V-E" is found by typing "ve", stylized in-game names fold too).
   const filtered = teams.filter((t) => matchesSearch(t.team_name, q));
-  const transferOpen = false; // derived from window dates in Phase 2
+  // The season payload carries the window state and both its dates, so read them instead of
+  // asserting. This card used to say "Locked" unconditionally and print the SEASON's end date
+  // (Oct 1) under "Transfer Window" when the window itself had closed on Jul 14, which is the
+  // one number an admin comes to this card for. The public banner on /rankings has always had
+  // this right; the two now agree because they read the same fields.
+  const transferOpen = !!season?.transfer_window_is_open;
+  const transferWindowSub = !season
+    ? ""
+    : transferOpen
+      ? season.transfer_window_close
+        ? `Closes ${formatLocalDateOnly(season.transfer_window_close)}`
+        : "Open"
+      : season.transfer_window_open
+        ? `Opened ${formatLocalDateOnly(season.transfer_window_open)}, closed ${formatLocalDateOnly(season.transfer_window_close)}`
+        : "No window set for this season";
   const belowFloor = teams.filter((t) => !t.meets_participation_floor).length;
 
   // status-card derivations from the live recalc/eval status
@@ -226,7 +243,7 @@ export default function AdminRankingsPage() {
           value={season?.name ?? "None"} sub={season?.is_active ? "Active" : "Closed"} />
         <StatCard icon={<IconArrowsExchange className="size-4" />} title="Transfer Window"
           value={transferOpen ? "Open" : "Locked"}
-          sub={season ? `Closes ${new Date(season.end_date).toLocaleDateString()}` : ""}
+          sub={transferWindowSub}
           tone={transferOpen ? "text-green-500" : "text-orange-500"} />
         <StatCard icon={<IconRefresh className={cn("size-4", recalculating && "animate-spin")} />} title="Recalculation"
           value={recalculating ? "Recalculating" : "Idle"}
