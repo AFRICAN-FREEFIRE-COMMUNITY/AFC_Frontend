@@ -16,7 +16,7 @@
   "alignRight": "Aligner à droite",
   "editLink": "Modifier le lien",
   "insertLink": "Insérer un lien",
-  "linkUpdate": "Mise à jour",
+  "linkUpdate": "Mettre à jour",
   "linkAdd": "Ajouter",
   "removeLink": "Supprimer le lien",
   "insertImage": "Insérer une image",
@@ -26,6 +26,6 @@
   "horizontalRule": "Ligne horizontale",
   "undo": "Annuler (Ctrl+Z)",
   "redo": "Rétablir (Ctrl+Y)",
-  "wordCount": "{count, plural,  one { # mot }  other { # mots } }",
+  "wordCount": "{count, plural, one {# mot} other {# mots}}",
   "contentError": "Le contenu n'a pas pu être affiché"
 }

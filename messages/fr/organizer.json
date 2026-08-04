@@ -1,17 +1,17 @@
 {
   "actAs": {
-    "orgBanner": "Règle de l'administrateur : gestion de {name}",
-    "exit": "Sortie"
+    "orgBanner": "Accès administrateur : gestion de {name}",
+    "exit": "Quitter"
   },
   "tour": {
     "button": "Faites une visite guidée",
     "sidebar": {
-      "title": "Navigation dans votre agenda",
+      "title": "Navigation dans votre espace organisateur",
       "description": "Cette barre latérale vous permet de naviguer au sein de votre organisation : aperçu, événements, classements, membres, paiements et bien plus encore. La section dans laquelle vous vous trouvez est surlignée en vert."
     },
     "overview": {
       "title": {
-        "title": "Bienvenue dans l'aperçu de votre agenda",
+        "title": "Bienvenue dans l'aperçu de votre espace organisateur",
         "description": "Il s'agit du centre névralgique de votre organisation. Il vous permet d'avoir un aperçu rapide de votre activité en un clin d'œil."
       },
       "stats": {
@@ -26,7 +26,7 @@
       },
       "images": {
         "title": "Logo et bannière",
-        "description": "Téléchargez le logo et la bannière qui identifient la page et les événements de votre organisation. Glissez une image ou cliquez pour sélectionner un fichier."
+        "description": "Importez le logo et la bannière qui identifient la page et les événements de votre organisation. Glissez une image ou cliquez pour sélectionner un fichier."
       },
       "save": {
         "title": "Enregistrez vos modifications",
@@ -40,7 +40,7 @@
       },
       "create": {
         "title": "Créer un événement",
-        "description": "Lancez un nouveau tournoi ou un match d'entraînement. Un assistant vous guide à travers les détails, les étapes, les prix et les règles, puis publie votre événement."
+        "description": "Lancez un nouveau tournoi ou un match d'entraînement. Un assistant vous guide à travers les détails, les phases, les prix et les règles, puis publie votre événement."
       },
       "table": {
         "title": "Votre liste d'événements",
@@ -54,7 +54,7 @@
       },
       "form": {
         "title": "Suivez les étapes",
-        "description": "Chaque étape présente une partie de l'événement : détails, étapes, cagnotte, règlement et plus encore. Utilisez les boutons « Suivant » et « Précédent » pour passer de l'une à l'autre."
+        "description": "Chaque étape recueille une partie de l'événement : détails, phases, cagnotte, règlement et plus encore. Utilisez les boutons « Suivant » et « Précédent » pour passer de l'une à l'autre."
       },
       "submit": {
         "title": "Publiez votre événement",
@@ -63,12 +63,12 @@
     },
     "drafts": {
       "title": {
-        "title": "Vos événements provisoires",
+        "title": "Vos événements en brouillon",
         "description": "Les événements que vous avez commencés mais que vous n'avez pas encore publiés sont enregistrés ici afin que vous puissiez les terminer lorsque vous serez prêt."
       },
       "create": {
         "title": "Créer un nouvel événement",
-        "description": "Lancez une nouvelle manifestation à partir de ce même assistant. Elle apparaîtra ici sous forme de brouillon jusqu'à ce que vous la publiiez."
+        "description": "Lancez un nouvel événement à partir de ce même assistant. Il apparaîtra ici sous forme de brouillon jusqu'à ce que vous le publiiez."
       },
       "table": {
         "title": "Votre liste de brouillons",
@@ -78,14 +78,14 @@
     "event-detail": {
       "title": {
         "title": "Détails de l'événement",
-        "description": "La plateforme dédiée à un événement spécifique. C'est ici que vous trouverez toutes les informations le concernant : son cadre, les inscriptions, les groupes et les résultats."
+        "description": "Le centre de gestion d'un événement. C'est ici que vous accédez à tout ce qui le concerne : ses paramètres, les inscriptions, les groupes et les résultats."
       },
       "edit": {
         "title": "Modifier cet événement",
-        "description": "Rouvrez l'événement dans l'assistant pour modifier tout détail, étape, prix ou règle après sa création."
+        "description": "Rouvrez l'événement dans l'assistant pour modifier tout détail, phase, prix ou règle après sa création."
       },
       "links": {
-        "title": "Événements liés et épreuves de qualification",
+        "title": "Événements liés et événements de qualification",
         "description": "Découvrez les liens entre cet événement et d'autres, par exemple quels sont les événements qui permettent aux équipes de s'y qualifier ou qui lui font suite."
       }
     },
@@ -96,48 +96,48 @@
       },
       "tabs": {
         "title": "Modifier par section",
-        "description": "Chaque onglet permet de modifier un aspect de l'événement : informations générales, équipes inscrites, épreuves et groupes, prix et règlement, paramètres relatifs aux sponsors et à la liste d'attente, ainsi que les actions de publication."
+        "description": "Chaque onglet permet de modifier un aspect de l'événement : informations générales, équipes inscrites, phases et groupes, prix et règlement, paramètres relatifs aux sponsors et à la liste d'attente, ainsi que les actions de publication."
       }
     },
     "event-groups": {
       "title": {
-        "title": "Groupes et listes de joueurs",
-        "description": "Découvrez la répartition des équipes dans les différents groupes pour cette compétition et consultez la composition de chaque équipe avant le début des matchs."
+        "title": "Groupes et effectifs",
+        "description": "Découvrez la répartition des équipes dans les différents groupes pour cet événement et consultez la composition de chaque équipe avant le début des matchs."
       },
       "search": {
         "title": "Trouver rapidement un joueur ou une équipe",
-        "description": "Effectuez une recherche par nom de personnage, équipe ou UID pour accéder directement à un concurrent, tous groupes confondus."
+        "description": "Effectuez une recherche par pseudo en jeu, équipe ou UID pour accéder directement à un concurrent, tous groupes confondus."
       },
       "stages": {
-        "title": "Les étapes et leurs groupes",
-        "description": "Chaque carte représente une phase du tournoi, avec la répartition des groupes et des équipes qui y sont classées. C'est un moyen rapide de vérifier que le tableau est correctement établi."
+        "title": "Les phases et leurs groupes",
+        "description": "Chaque carte représente une phase, avec le détail de ses groupes et des équipes qui y sont réparties. C'est un moyen rapide de vérifier que le tableau est correctement établi."
       }
     },
     "event-leaderboard": {
       "title": {
         "title": "Classement de l'événement",
-        "description": "Consultez et gérez le classement de cette compétition. C'est ici que les résultats bruts des matchs sont transformés en classement officiel."
+        "description": "Consultez et gérez le classement de cet événement. C'est ici que les résultats bruts des matchs deviennent le classement publié."
       },
       "stageTabs": {
-        "title": "Choisissez une étape",
-        "description": "Passez d'une épreuve à l'autre pour consulter le classement de chacune d'entre elles."
+        "title": "Choisissez une phase",
+        "description": "Passez d'une phase à l'autre pour consulter le classement de chacune d'entre elles."
       },
       "table": {
         "title": "Le classement",
-        "description": "Classement, nombre de victimes et total de points pour chaque concurrent. Utilisez les commandes de téléchargement et de modification pour saisir ou corriger les résultats des matchs."
+        "description": "Classement, éliminations et total de points pour chaque concurrent. Utilisez les commandes d'import et de modification pour saisir ou corriger les résultats des matchs."
       }
     },
     "leaderboards": {
       "title": {
         "title": "Classements",
-        "description": "Gérez les résultats et les classements de toutes les compétitions organisées par votre structure depuis un seul et même endroit."
+        "description": "Gérez les résultats et les classements de tous les événements de votre organisation depuis un seul et même endroit."
       },
       "search": {
         "title": "Trouver un événement",
         "description": "Recherchez vos événements par nom, type ou statut pour trouver rapidement celui que vous souhaitez noter."
       },
       "table": {
-        "title": "Vos événements à ne pas manquer",
+        "title": "Vos événements à noter",
         "description": "Chaque ligne correspond à un événement pour lequel vous pouvez créer ou mettre à jour un classement. Ouvrez-en une pour saisir les résultats manuellement ou via une capture d'écran, configurer les points, puis consulter ou modifier le classement."
       }
     },
@@ -160,16 +160,16 @@
       },
       "add": {
         "title": "Ajouter un co-organisateur",
-        "description": "Invitez un autre utilisateur à rejoindre votre organisation et accordez-lui les autorisations dont il a besoin, par exemple pour créer des événements ou publier des résultats."
+        "description": "Invitez un autre utilisateur à rejoindre votre organisation et accordez-lui les autorisations dont il a besoin, par exemple pour créer des événements ou importer des résultats."
       },
       "table": {
         "title": "Le tableau des membres",
-        "description": "Chaque membre, avec son rôle et ses autorisations. Vous pouvez modifier les droits d'un membre ou le supprimer à partir d'ici."
+        "description": "Chaque membre, avec son rôle et ses autorisations. Vous pouvez modifier les droits d'un membre ou le retirer à partir d'ici."
       }
     },
     "payouts": {
       "title": {
-        "title": "Vos gains",
+        "title": "Vos paiements",
         "description": "Suivez la part des recettes issues des événements payants revenant à votre organisation et veillez à ce que vos coordonnées bancaires soient à jour afin de pouvoir recevoir vos paiements."
       },
       "stats": {
@@ -177,14 +177,14 @@
         "description": "Ces fiches indiquent le montant qui vous est dû et celui qui a déjà été versé à votre organisation."
       },
       "table": {
-        "title": "Votre registre des revenus",
+        "title": "Votre registre des gains",
         "description": "Une ligne pour chaque paiement, indiquant l'événement, le montant et son statut. L'historique complet de vos recettes en un seul endroit."
       }
     },
     "metrics": {
       "title": {
         "title": "Vos indicateurs",
-        "description": "Statistiques globales de votre organisation, regroupant les événements, les équipes, les joueurs, les éliminations et les classements."
+        "description": "Statistiques globales de votre organisation, regroupant les événements, les équipes, les joueurs, les éliminations et les notes."
       },
       "stats": {
         "title": "Principaux indicateurs",
@@ -198,35 +198,35 @@
     "reviews": {
       "title": {
         "title": "Vos avis",
-        "description": "Consultez les notes et les commentaires laissés par les joueurs sur les événements organisés par votre association."
+        "description": "Consultez les notes et les commentaires laissés par les joueurs sur les événements de votre organisation."
       },
       "events": {
-        "title": "Audiences par événement",
+        "title": "Notes par événement",
         "description": "Chaque événement affiche sa note moyenne et vous permet de cliquer pour lire les commentaires. Tous les commentaires sont anonymes afin de garantir l'honnêteté des avis."
       }
     },
     "design": {
       "title": {
-        "title": "Conception du classement",
+        "title": "Design du classement",
         "description": "Personnalisez l'apparence des classements de votre organisation, notamment leurs couleurs et leurs logos."
       },
       "manager": {
-        "title": "Gérez vos créations",
+        "title": "Gérez vos designs",
         "description": "Importez et modifiez les éléments graphiques utilisés pour vos classements. Les modifications apportées ici seront répercutées dans vos classements publiés."
       }
     },
     "blacklists": {
       "title": {
         "title": "Vos listes noires",
-        "description": "Empêchez une équipe, ainsi que ses joueurs, de s'inscrire aux événements organisés par votre association. Vous pouvez également examiner les demandes de levée d'un blocage."
+        "description": "Empêchez une équipe, ainsi que ses joueurs, de s'inscrire aux événements de votre organisation. Vous pouvez également examiner les demandes de levée d'un blocage."
       },
       "add": {
         "title": "Ajouter une équipe à la liste noire",
-        "description": "Ajoutez une équipe à votre liste noire afin qu'elle ne puisse plus s'inscrire à vos événements. Les joueurs figurant dans son effectif sont automatiquement ajoutés à la liste noire."
+        "description": "Ajoutez une équipe à votre liste noire afin qu'elle ne puisse plus s'inscrire à vos événements. Les joueurs figurant dans son effectif sont enregistrés en même temps."
       },
       "table": {
         "title": "Équipes mises sur liste noire",
-        "description": "Toutes les équipes que vous avez bloquées, avec la composition de l'équipe telle qu'elle était au moment où vous les avez ajoutées. Développez une ligne pour afficher l'aperçu, ou levez le blocage le moment venu."
+        "description": "Toutes les équipes que vous avez bloquées, avec la composition de l'équipe telle qu'elle était au moment où vous les avez ajoutées. Développez une ligne pour afficher l'instantané, ou levez le blocage le moment venu."
       }
     },
     "watchlist": {
@@ -238,21 +238,21 @@
     "overlays": {
       "list": {
         "title": "Vos superpositions en direct",
-        "description": "Tous les événements de votre organisation sont répertoriés ici. Ouvrez-en un pour gérer TOUS ses éléments d'affichage à l'écran : les designs du classement avec aperçu en direct, le compte à rebours, la bannière « Booyah », les comparaisons en face à face, les commandes de diffusion et la touche de capture. Vous ne voyez que vos propres événements et designs."
+        "description": "Tous les événements de votre organisation sont répertoriés ici. Ouvrez-en un pour gérer TOUTES ses superpositions de diffusion : les designs du classement avec aperçu en direct, le compte à rebours, la bannière « Booyah », les comparaisons en face à face, le contrôle de la diffusion et la clé de capture. Vous ne voyez que vos propres événements et designs."
       }
     },
     "overlays-studio": {
       "new": {
         "title": "Créer une superposition",
-        "description": "Créez un nouveau calque à partir de l'un de vos designs de classement, ou ajoutez un compte à rebours, une bannière « Booyah » ou un face-à-face. Chaque calque dispose d'UN lien permanent : ajoutez-le une seule fois à OBS, vMix ou tout autre logiciel de streaming, puis gérez tout depuis ici par la suite."
+        "description": "Créez une nouvelle superposition à partir de l'un de vos designs de classement, ou ajoutez un compte à rebours, une bannière « Booyah » ou un face-à-face. Chaque superposition dispose d'UN lien permanent : ajoutez-le une seule fois à OBS, vMix ou tout autre logiciel de streaming, puis gérez tout depuis ici par la suite."
       },
       "cards": {
         "title": "Vos superpositions enregistrées",
-        "description": "Chaque carte correspond à une superposition offrant un aperçu EN DIRECT de son lien réel. Modifiez son design, sa scène ou son groupe, ses animations ou le mode « salle 3D en direct », déclenchez le chronomètre ou le « booyah », choisissez vos adversaires en face-à-face : le lien correspondant se met automatiquement à jour dans votre logiciel de streaming. Vous pouvez renommer, dupliquer ou supprimer la carte."
+        "description": "Chaque carte correspond à une superposition offrant un aperçu EN DIRECT de son lien réel. Modifiez son design, sa phase ou son groupe, ses animations ou le mode « salle 3D en direct », déclenchez le chronomètre ou le « booyah », choisissez vos adversaires en face-à-face : le lien correspondant se met automatiquement à jour dans votre logiciel de streaming. Vous pouvez renommer, dupliquer ou supprimer la carte."
       },
       "broadcast": {
         "title": "Contrôle de la diffusion et médias",
-        "description": "Les superpositions configurées sur « Suivre la sélection de diffusion » affichent ce que vous choisissez ici : vous pouvez ainsi changer de scène ou de groupe en direct sans avoir à intervenir dans votre logiciel de streaming. À côté, le panneau des médias de diffusion indique les équipes et les joueurs dont les logos ou les images e-sport manquent, vous permet de signaler un visuel non conforme (le propriétaire en est informé) et de masquer un logo ou une image pour cet événement uniquement."
+        "description": "Les superpositions configurées sur « Suivre la sélection de diffusion » affichent ce que vous choisissez ici : vous pouvez ainsi changer de phase ou de groupe en direct sans avoir à intervenir dans votre logiciel de streaming. À côté, le panneau des médias de diffusion indique les équipes et les joueurs dont les logos ou les images e-sport manquent, vous permet de signaler un visuel non conforme (le propriétaire en est informé) et de masquer un logo ou une image pour cet événement uniquement."
       }
     }
   },
@@ -262,7 +262,7 @@
     "drafts": "Brouillons",
     "leaderboards": "Classements",
     "capture": "Capture en direct",
-    "design": "Conception",
+    "design": "Design",
     "profile": "Profil",
     "members": "Membres",
     "metrics": "Indicateurs",
@@ -293,13 +293,13 @@
     "status": {
       "unknown": "inconnu"
     },
-    "logoAlt": "{name} logo",
+    "logoAlt": "Logo de {name}",
     "members": "Membres",
     "events": "Événements"
   },
   "design": {
-    "title": "Conception",
-    "description": "Créez des classements personnalisés à l'image de votre marque : importez des arrière-plans, définissez les couleurs et glissez-déposez vos logos. Choisissez un thème lors de l'exportation d'un classement."
+    "title": "Design",
+    "description": "Créez des designs de classement à l'image de votre marque : importez des arrière-plans, définissez les couleurs et glissez-déposez vos logos. Choisissez un design lors de l'exportation d'un classement."
   },
   "members": {
     "role": {
@@ -308,23 +308,23 @@
     },
     "toast": {
       "leftOrg": "Vous avez quitté l'organisation.",
-      "leaveError": "Il n'a pas réussi à quitter l'organisation.",
+      "leaveError": "Impossible de quitter l'organisation.",
       "orgReactivated": "L'organisation a été réactivée.",
       "orgSuspended": "Organisation suspendue.",
       "updateOrgError": "Échec de la mise à jour de l'organisation.",
-      "orgDeleted": "L'organisation a été supprimée. Un administrateur de l'AFC peut la restaurer si nécessaire.",
+      "orgDeleted": "L'organisation a été supprimée. Un administrateur AFC peut la restaurer si nécessaire.",
       "deleteOrgError": "Impossible de supprimer l'organisation.",
       "loadError": "Impossible de charger les membres.",
       "enterUsername": "Entrez un nom d'utilisateur.",
       "added": "{name} ajouté.",
       "addError": "L'ajout du membre a échoué.",
       "permissionsError": "Échec de la mise à jour des autorisations.",
-      "removed": "{name} supprimé.",
-      "removeError": "Échec de la suppression du membre."
+      "removed": "{name} retiré.",
+      "removeError": "Échec du retrait du membre."
     },
     "loading": "Chargement des membres…",
     "title": "Membres",
-    "memberCount": "{count, plural,  one { # membre }  other { # membres } }",
+    "memberCount": "{count, plural, one {# membre} other {# membres}}",
     "addSubOrganizer": "Ajouter un co-organisateur",
     "userLabel": "Utilisateur",
     "searchPlaceholder": "Rechercher par nom d'utilisateur ou par nom...",
@@ -332,9 +332,9 @@
     "permissions": {
       "can_create_events": "Créer des événements",
       "can_edit_events": "Modifier les événements",
-      "can_upload_results": "Télécharger les résultats",
+      "can_upload_results": "Importer des résultats",
       "can_manage_registrations": "Gérer les inscriptions",
-      "can_submit_designs": "Envoyer des créations",
+      "can_submit_designs": "Envoyer des designs",
       "can_view_metrics": "Afficher les indicateurs",
       "can_view_reviews": "Consulter les avis",
       "can_manage_members": "Gérer les membres"
@@ -344,7 +344,7 @@
     "table": {
       "username": "Nom d'utilisateur",
       "fullName": "Nom complet",
-      "role": "Fonction",
+      "role": "Rôle",
       "status": "Statut",
       "permissions": "Autorisations",
       "actions": "Actions"
@@ -352,32 +352,32 @@
     "empty": "Il n'y a pas encore de membres.",
     "fullAccess": "Accès complet",
     "remove": {
-      "button": "Supprimer",
-      "confirmTitle": "Supprimer « {name} » ?",
-      "confirmDesc": "Cette opération entraîne le retrait d''{name} de l'organisation. Il perdra tous ses droits d'accès. Cette action est irréversible."
+      "button": "Retirer",
+      "confirmTitle": "Retirer « {name} » ?",
+      "confirmDesc": "Cette opération retire {name} de l'organisation. Cette personne perdra tous ses accès. Cette action est irréversible."
     },
     "org": {
-      "controlsTitle": "Contrôles organisationnels",
+      "controlsTitle": "Contrôles de l'organisation",
       "suspendedDesc": "Votre organisation a été suspendue et n'apparaît plus sur le site public.",
-      "activeDesc": "L'option « Masquer » cache votre organisation et ses événements sur le site public. La suppression est réversible par un administrateur de l'AFC.",
+      "activeDesc": "« Suspendre » masque votre organisation et ses événements sur le site public. La suppression est réversible par un administrateur AFC.",
       "reactivate": "Réactiver",
       "suspend": "Suspendre",
-      "deleteButton": "Supprimer une organisation",
+      "deleteButton": "Supprimer l'organisation",
       "deleteConfirmTitle": "Supprimer cette organisation ?",
-      "deleteConfirmDesc": "Votre organisation et ses événements seront masqués sur le site. Il s'agit d'une suppression temporaire : un administrateur de l'AFC peut tout restaurer tel quel. Vos événements et vos résultats sont toujours conservés.",
+      "deleteConfirmDesc": "Votre organisation et ses événements seront masqués sur le site. Il s'agit d'une suppression temporaire : un administrateur AFC peut tout restaurer tel quel. Vos événements et vos résultats sont toujours conservés.",
       "delete": "Supprimer"
     },
     "leave": {
-      "title": "Organisation des congés",
+      "title": "Quitter l'organisation",
       "desc": "Retirez-vous de cette organisation. Vous n'aurez alors plus accès à son tableau de bord.",
-      "button": "Organisation des congés",
+      "button": "Quitter l'organisation",
       "confirmTitle": "Quitter cette organisation ?",
-      "confirmDesc": "Vous serez exclu de cette organisation et perdrez l'accès à son tableau de bord. Un propriétaire pourra vous réinviter ultérieurement.",
-      "confirm": "Partir"
+      "confirmDesc": "Vous serez retiré de cette organisation et perdrez l'accès à son tableau de bord. Un propriétaire pourra vous réinviter ultérieurement.",
+      "confirm": "Quitter"
     }
   },
   "payouts": {
-    "loadError": "Impossible de charger les résultats financiers.",
+    "loadError": "Impossible de charger les gains.",
     "accountSaved": "Le compte de versement a été enregistré.",
     "saveError": "Impossible d'enregistrer le compte de versement.",
     "title": "Paiements",
@@ -386,40 +386,40 @@
     "accountTitle": "Compte de versement",
     "accountDesc": "C'est là que l'AFC vous verse votre part une fois que les recettes d'un événement ont été débloquées.",
     "bankCode": "Code bancaire",
-    "bankCodePlaceholder": "par exemple 058",
+    "bankCodePlaceholder": "par exemple : 058",
     "accountNumber": "Numéro de compte",
     "accountNumberPlaceholder": "0123456789",
     "accountName": "Nom du compte",
     "accountNamePlaceholder": "Nom du titulaire du compte",
     "saveButton": "Enregistrer le compte de versement",
-    "earningsTitle": "Résultats",
+    "earningsTitle": "Gains",
     "table": {
       "event": "Événement",
-      "share": "Partager",
+      "share": "Part",
       "gross": "Brut",
-      "afcFee": "Frais de l'AFC",
+      "afcFee": "Frais AFC",
       "net": "Net",
       "status": "Statut"
     },
     "loading": "Chargement en cours…",
-    "empty": "Aucun revenu pour l'instant. Les revenus apparaissent dès que les recettes d'un événement payant sont comptabilisées.",
+    "empty": "Aucun gain pour l'instant. Les gains apparaissent dès que les recettes d'un événement payant sont débloquées.",
     "status": {
       "owed": "Dû",
-      "released": "Publié",
-      "paid": "Payant"
+      "released": "Débloqué",
+      "paid": "Payé"
     }
   },
   "reviews": {
     "anonymityNotice": "Les notes et les commentaires sont anonymes : seuls le texte et la date du commentaire sont affichés, jamais l'identité de la personne qui l'a laissé.",
-    "noRatings": "Pas encore d'avis",
-    "ratingCount": "({count, plural,  one { # rating }  other { # ratings } })",
+    "noRatings": "Pas encore de note",
+    "ratingCount": "({count, plural, one {# note} other {# notes}})",
     "title": "Avis",
     "lockDescription": "Notes et avis sur vos événements.",
     "noPermission": "Vous n'avez pas l'autorisation de consulter les avis concernant cette organisation.",
     "loadingReviews": "Chargement des avis...",
-    "description": "Évaluations et commentaires anonymes sur chacun de vos événements.",
+    "description": "Notes et commentaires anonymes sur chacun de vos événements.",
     "noEvents": "Votre organisation n'a encore organisé aucun événement ; il n'y a donc aucun avis à afficher.",
-    "loadingRating": "Chargement de la capacité de charge...",
+    "loadingRating": "Chargement de la note...",
     "comments": "Commentaires",
     "loadingComments": "Chargement des commentaires...",
     "noComments": "Aucun commentaire n'a encore été publié sur cet événement.",
@@ -432,13 +432,13 @@
     "descriptionShort": "Un tableau de bord de performance pour votre organisation.",
     "lockNotice": "Vous n'avez pas l'autorisation de consulter les indicateurs de cette organisation.",
     "loading": "Chargement des indicateurs...",
-    "loadError": "Impossible de charger les métriques.",
-    "emptyNoEvents": "Votre organisation n'a encore organisé aucun événement. Les statistiques s'afficheront ici dès que vous aurez créé et organisé votre premier événement.",
-    "emptyNoActivity": "Aucune activité n'a été enregistrée pendant cette période. Essayez d'élargir la plage de dates (ou sélectionnez « Depuis le début ») pour afficher les inscriptions, les consultations, les correspondances et les notes.",
+    "loadError": "Impossible de charger les indicateurs.",
+    "emptyNoEvents": "Votre organisation n'a encore organisé aucun événement. Les indicateurs s'afficheront ici dès que vous aurez créé et organisé votre premier événement.",
+    "emptyNoActivity": "Aucune activité n'a été enregistrée pendant cette période. Essayez d'élargir la plage de dates (ou sélectionnez « Depuis le début ») pour afficher les inscriptions, les vues, les matchs et les notes.",
     "showing": "Affichage :",
-    "updating": "Mise à jour en cours...",
-    "timeframe": "Calendrier",
-    "custom": "Personnalisé",
+    "updating": "mise à jour en cours...",
+    "timeframe": "Période",
+    "custom": "Personnalisée",
     "to": "à",
     "customStartAria": "Date de début personnalisée",
     "customEndAria": "Date de fin personnalisée",
@@ -446,39 +446,39 @@
       "unknown": "inconnu"
     },
     "presets": {
-      "last7": "Au cours des 7 derniers jours",
-      "last30": "Au cours des 30 derniers jours",
+      "last7": "7 derniers jours",
+      "last30": "30 derniers jours",
       "last90": "90 derniers jours",
-      "allTime": "De tous les temps"
+      "allTime": "Depuis le début"
     },
     "range": {
-      "between": "{start} sur {end}",
-      "from": "Source : {date}",
-      "upTo": "Jusqu'à {date}"
+      "between": "du {start} au {end}",
+      "from": "À partir du {date}",
+      "upTo": "Jusqu'au {date}"
     },
     "cards": {
       "eventsRun": "Événements organisés",
-      "completed": "{count} terminé",
-      "eventViews": "Vues d'événements",
-      "uniqueViewers": "{count, plural,  one { {formatted} visiteurs uniques }  other { {formatted} visiteurs uniques } }",
+      "completed": "{count} terminés",
+      "eventViews": "Vues des événements",
+      "uniqueViewers": "{count, plural, one {{formatted} visiteur unique} other {{formatted} visiteurs uniques}}",
       "uniquePlayers": "Joueurs uniques",
-      "registeredInRange": "enregistré dans la plage",
-      "uniqueTeams": "Des équipes uniques",
+      "registeredInRange": "inscrits sur la période",
+      "uniqueTeams": "Équipes uniques",
       "confirmedRegistrations": "Inscriptions confirmées",
-      "incomplete": "{count} incomplet",
+      "incomplete": "{count} incomplets",
       "matchesPlayed": "Matchs disputés",
-      "totalAcrossEvents": "total toutes compétitions confondues",
-      "totalKills": "Nombre total de victimes",
-      "talliedInAllMatches": "total des matchs",
-      "prizeMoney": "Prix en argent",
-      "awardedToDate": "attribués à ce jour",
+      "totalAcrossEvents": "total tous événements confondus",
+      "totalKills": "Total des éliminations",
+      "talliedInAllMatches": "comptabilisées sur tous les matchs",
+      "prizeMoney": "Dotations",
+      "awardedToDate": "attribuées à ce jour",
       "avgParticipants": "Nombre moyen de participants",
       "perEvent": "par événement",
       "averageRating": "Note moyenne",
-      "fromRatings": "{count, plural,  one { Source : {formatted} Évaluation : }  other { Source : {formatted} Évaluations : } }",
+      "fromRatings": "{count, plural, one {sur {formatted} note} other {sur {formatted} notes}}",
       "fillRate": "Taux de remplissage",
-      "ofRegistrationCapacity": "de capacité d'enregistrement",
-      "completionRate": "Taux de réussite",
+      "ofRegistrationCapacity": "de la capacité d'inscription",
+      "completionRate": "Taux d'achèvement",
       "eventsCompleted": "événements terminés"
     },
     "tab": {
@@ -490,55 +490,55 @@
     "charts": {
       "activityOverTime": "Évolution de l'activité au fil du temps",
       "activityEmpty": "L'activité est insuffisante sur cette période pour tracer une tendance. Ce graphique s'affiche dès qu'il y a de l'activité sur au moins deux mois. Essayez de choisir une période plus longue.",
-      "pageViews": "Nombre de pages vues",
+      "pageViews": "Pages vues",
       "registrations": "Inscriptions",
-      "matches": "Rencontres",
-      "prizeByEvent": "Dotations financières par épreuve",
-      "prizeEmpty": "Aucun versement de gains n'a encore été enregistré. Ce tableau s'affiche dès que les versements relatifs à l'événement sont saisis.",
-      "prize": "Prix",
+      "matches": "Matchs",
+      "prizeByEvent": "Dotations par événement",
+      "prizeEmpty": "Aucun versement de dotation n'a encore été enregistré. Ce graphique s'affiche dès que les versements de l'événement sont saisis.",
+      "prize": "Dotation",
       "eventsByType": "Événements par type",
       "eventsByStatus": "Événements par statut",
-      "eventsByMode": "Événements par mode de transport",
+      "eventsByMode": "Événements par mode",
       "events": "Événements",
-      "topTeams": "Les meilleures équipes au classement des attaques décisives",
+      "topTeams": "Meilleures équipes par éliminations",
       "noTeamStats": "Aucune statistique de match par équipe n'a encore été enregistrée.",
-      "topPlayers": "Meilleurs joueurs au nombre de kills",
-      "noPlayerStats": "Aucune statistique de match n'a encore été enregistrée pour ce joueur.",
+      "topPlayers": "Meilleurs joueurs par éliminations",
+      "noPlayerStats": "Aucune statistique de match par joueur n'a encore été enregistrée.",
       "noData": "Il n'y a pas encore de données à représenter graphiquement."
     },
     "table": {
       "team": "Équipe",
       "wins": "Victoires",
-      "kills": "Tues",
+      "kills": "Éliminations",
       "player": "Joueur",
       "event": "Événement",
       "date": "Date",
       "status": "Statut",
       "participants": "Participants",
       "views": "Vues",
-      "matches": "Rencontres",
-      "prize": "Prix",
+      "matches": "Matchs",
+      "prize": "Dotation",
       "rating": "Note"
     },
     "events": {
       "perEventBreakdown": "Répartition par événement",
-      "count": "{count, plural,  one { {formatted} événement }  other { {formatted} événements } }",
-      "mostRecentShown": "(les plus récents s'affichent en premier)",
-      "emptyTable": "Aucun événement n'a eu lieu pendant cette période. Essayez d'élargir la plage de dates."
+      "count": "{count, plural, one {{formatted} événement} other {{formatted} événements}}",
+      "mostRecentShown": "(les plus récents affichés)",
+      "emptyTable": "Aucun événement avec de l'activité sur cette période. Essayez d'élargir la plage de dates."
     },
     "detail": {
       "registrations": "Inscriptions",
-      "confirmed": "Confirmé",
-      "incomplete": "Incomplet",
+      "confirmed": "Confirmées",
+      "incomplete": "Incomplètes",
       "totalCapacity": "Total / capacité",
-      "audience": "Public",
-      "pageViews": "Nombre de pages vues",
+      "audience": "Audience",
+      "pageViews": "Pages vues",
       "uniqueViewers": "Visiteurs uniques",
       "competition": "Compétition",
-      "matches": "Rencontres",
-      "kills": "Tues",
+      "matches": "Matchs",
+      "kills": "Éliminations",
       "outcome": "Résultat",
-      "prizeMoney": "Prix en argent",
+      "prizeMoney": "Dotations",
       "rating": "Note",
       "noRatings": "Aucune note"
     }
@@ -558,62 +558,62 @@
       "startLabel": "Date de début",
       "endLabel": "Date de fin",
       "rangeError": "La date de fin doit être postérieure à la date de début.",
-      "reasonLabel": "Raison",
+      "reasonLabel": "Motif",
       "reasonPlaceholder": "Pourquoi cette équipe est-elle mise sur liste noire ?",
       "helper": "L'équipe et tous les joueurs figurant actuellement dans son effectif ne pourront pas s'inscrire à vos événements pendant la période sélectionnée. Cette restriction s'applique à chaque joueur, même s'il quitte l'équipe par la suite.",
       "submitting": "Mise sur liste noire...",
-      "submit": "L'équipe Blacklist",
-      "buttonAny": "Ajouter à la liste noire",
+      "submit": "Mettre l'équipe sur liste noire",
+      "buttonAny": "Ajouter une entrée à la liste noire",
       "titlePlayer": "Ajouter un joueur à la liste noire",
       "targetTeam": "Équipe",
       "targetPlayer": "Joueur",
       "playerLabel": "Joueur",
       "playerPlaceholder": "Rechercher un joueur à ajouter à la liste noire...",
       "helperPlayer": "Ce joueur ne pourra pas s'inscrire à vos événements pendant la période sélectionnée, ni seul ni au sein d'une équipe. Ses coéquipiers ne sont pas concernés.",
-      "submitPlayer": "Ajouter le joueur"
+      "submitPlayer": "Mettre le joueur sur liste noire"
     },
     "table": {
       "title": "Équipes sur liste noire ({count})",
       "empty": "Vous n'avez encore mis aucune équipe sur liste noire.",
       "team": "Équipe",
-      "reason": "Raison",
-      "start": "Démarrer",
+      "reason": "Motif",
+      "start": "Début",
       "end": "Fin",
       "status": "Statut",
-      "playerCount": "{count, plural,  =1 { # joueur }  other { # joueurs } }",
+      "playerCount": "{count, plural, =1 {# joueur} other {# joueurs}}",
       "target": "Cible",
       "playerTag": "Joueur"
     },
     "teamFallback": "Équipe n° {id}",
     "userFallback": "Utilisateur n° {id}",
     "lift": {
-      "button": "Ascenseur",
-      "confirmTitle": "Supprimer cette liste noire ?",
-      "confirmDescription": "{team} et toutes les personnes figurant dans cet instantané pourront à nouveau s'inscrire à vos événements immédiatement. Cette action est irréversible.",
+      "button": "Lever",
+      "confirmTitle": "Lever cette mise sur liste noire ?",
+      "confirmDescription": "{team} et toutes les personnes figurant dans son instantané pourront à nouveau s'inscrire à vos événements immédiatement. Cette action est irréversible.",
       "thisTeam": "Cette équipe",
-      "confirmAction": "Liste noire des ascenseurs",
+      "confirmAction": "Lever la mise sur liste noire",
       "confirmDescriptionPlayer": "{player} pourra à nouveau s'inscrire à vos événements immédiatement. Cette action est irréversible.",
       "thisPlayer": "Ce joueur"
     },
     "snapshot": {
-      "empty": "Aucun joueur n'a été ajouté à cette liste noire.",
+      "empty": "Aucun joueur n'a été enregistré dans l'instantané de cette liste noire.",
       "blocked": "Bloqué",
-      "lifted": "Soulevé"
+      "lifted": "Levée"
     },
     "requests": {
-      "title": "Demandes de transport ({count})",
-      "empty": "Aucune demande de transport en attente.",
+      "title": "Demandes de levée ({count})",
+      "empty": "Aucune demande de levée en attente.",
       "wholeTeam": "Toute l'équipe",
       "player": "Joueur : {name}",
-      "requestedBy": "À la demande de",
-      "onDate": "sur {date}",
+      "requestedBy": "Demandé par",
+      "onDate": "le {date}",
       "unknown": "Inconnu"
     },
     "decide": {
       "deny": "Refuser",
       "approve": "Approuver",
-      "denyTitle": "Refuser la demande de transport",
-      "approveTitle": "Valider la demande d'ascenseur",
+      "denyTitle": "Refuser la demande de levée",
+      "approveTitle": "Approuver la demande de levée",
       "noteLabel": "Remarque (facultative)",
       "notePlaceholder": "Ajoutez un petit message à l'attention de l'auteur de la demande."
     },
@@ -622,19 +622,19 @@
       "description": "Vérifiez si une équipe ou un joueur a été mis sur liste noire par d'autres organisations : combien de fois, par qui et quand. Les motifs restent confidentiels et ne sont connus que de l'organisation à l'origine de la mise sur liste noire.",
       "team": "Équipe",
       "player": "Joueur",
-      "teamPlaceholder": "Rechercher une équipe pour consulter...",
-      "playerPlaceholder": "Rechercher un joueur pour consulter...",
-      "fromLabel": "De (facultatif)",
-      "toLabel": "À (facultatif)",
+      "teamPlaceholder": "Rechercher une équipe à consulter...",
+      "playerPlaceholder": "Rechercher un joueur à consulter...",
+      "fromLabel": "Du (facultatif)",
+      "toLabel": "Au (facultatif)",
       "search": "Rechercher",
       "notBlacklistedWindow": "n'a pas été mis sur liste noire au cours de la période sélectionnée.",
       "notBlacklistedAll": "n'a pas été mis sur liste noire.",
       "blacklisted": "mis sur liste noire",
-      "timesCount": "{count, plural,  =1 { # heure }  other { # heures } }",
-      "activeCount": "({count} actif)",
+      "timesCount": "{count, plural, =1 {# fois} other {# fois}}",
+      "activeCount": "({count} en cours)",
       "colOrganization": "Organisation",
       "colTeam": "Équipe",
-      "colStart": "Démarrer",
+      "colStart": "Début",
       "colEnd": "Fin",
       "colStatus": "Statut"
     },
@@ -646,8 +646,8 @@
       "createError": "Impossible d'ajouter l'équipe à la liste noire.",
       "lifted": "La liste noire a été levée.",
       "liftError": "La levée de la liste noire a échoué.",
-      "requestApproved": "Demande de levage approuvée.",
-      "requestDenied": "Demande de transport refusée.",
+      "requestApproved": "Demande de levée approuvée.",
+      "requestDenied": "Demande de levée refusée.",
       "decideError": "Impossible de traiter la demande.",
       "lookupError": "Échec de la recherche.",
       "pickPlayer": "Choisissez un joueur à mettre sur liste noire."
@@ -672,9 +672,9 @@
     "descriptionPlaceholder": "Présentez votre organisation aux joueurs...",
     "socialsLabel": "Liens vers les réseaux sociaux (facultatif)",
     "socialsEmpty": "Aucun lien vers les réseaux sociaux pour l'instant. Ajoutez-en un ci-dessous.",
-    "platformPlaceholder": "Plateforme (par exemple, TikTok)",
+    "platformPlaceholder": "Plateforme (par exemple : TikTok)",
     "socialUrlPlaceholder": "Lien ou identifiant (par exemple : https://tiktok.com/@org)",
-    "removeSocialAria": "Supprimer le lien vers les réseaux sociaux",
+    "removeSocialAria": "Retirer le lien vers les réseaux sociaux",
     "addSocial": "Ajouter un lien vers les réseaux sociaux",
     "saving": "Enregistrement en cours...",
     "save": "Enregistrer les modifications",
@@ -683,8 +683,8 @@
       "dropPrefix": "Glissez une image ici, ou",
       "browse": "parcourir",
       "supports": "Formats pris en charge : PNG, JPG, JPEG, WEBP",
-      "previewAlt": "{label} aperçu",
-      "remove": "Supprimer",
+      "previewAlt": "Aperçu de {label}",
+      "remove": "Retirer",
       "replace": "Remplacer"
     }
   },
@@ -703,18 +703,18 @@
       "totalTournaments": "Nombre total de tournois",
       "totalTournamentsSub": "Tournois inscrits",
       "totalScrims": "Nombre total de matchs d'entraînement",
-      "totalScrimsSub": "Scrims enregistrés",
+      "totalScrimsSub": "Matchs d'entraînement inscrits",
       "upcoming": "Événements à venir",
       "upcomingSub": "Événements en cours de préparation ou ouverts aux inscriptions",
       "ongoing": "Événements en cours",
-      "ongoingSub": "Événements en cours",
-      "completed": "Événements passés",
-      "completedSub": "Événements terminés",
+      "ongoingSub": "Événements actuellement actifs",
+      "completed": "Événements terminés",
+      "completedSub": "Événements qui se sont achevés",
       "avgParticipants": "Nombre moyen de participants",
       "avgParticipantsSub": "Par événement"
     },
     "pagination": {
-      "showing": "Affichage de {from} - {to} de {total}"
+      "showing": "Affichage de {from} à {to} sur {total}"
     },
     "status": {
       "unknown": "inconnu"
@@ -735,24 +735,24 @@
       "view": "Afficher",
       "publicPage": "Page publique",
       "edit": "Modifier",
-      "unpublishing": "Retrait de la publication...",
-      "unpublish": "Retirer de la publication",
+      "unpublishing": "Dépublication...",
+      "unpublish": "Dépublier",
       "resultsLeaderboard": "Résultats et classement",
       "links": "Liens",
-      "groupsRosters": "Groupes et listes de joueurs"
+      "groupsRosters": "Groupes et effectifs"
     },
     "toast": {
       "loadFailed": "Impossible de charger vos événements.",
-      "unpublished": "Événement non publié. Il s'agit désormais d'un brouillon.",
-      "unpublishFailed": "Échec de la suppression de la publication de l'événement."
+      "unpublished": "Événement dépublié. C'est désormais un brouillon.",
+      "unpublishFailed": "Échec de la dépublication de l'événement."
     }
   },
   "drafts": {
     "title": "Brouillons",
-    "description": "Finalisez et publiez les ébauches d'événements de votre organisation.",
+    "description": "Finalisez et publiez les brouillons d'événements de votre organisation.",
     "createEvent": "Créer un événement",
     "createEventAlt": "Créer un événement",
-    "cardTitle": "Épreuves de draft",
+    "cardTitle": "Événements en brouillon",
     "loading": "Chargement des brouillons...",
     "empty": "Votre organisation ne comporte aucun événement en brouillon. Créez-en un et enregistrez-le en brouillon pour le terminer plus tard.",
     "noPermission": "Vous n'êtes pas autorisé(e) à gérer les brouillons d'événements pour cette organisation.",
@@ -796,15 +796,15 @@
   },
   "eventDetail": {
     "fallbackTitle": "Événement",
-    "fallbackDescription": "Détails de l'événement et liens vers les conditions de participation.",
+    "fallbackDescription": "Détails de l'événement et liens de qualification.",
     "noPermission": "Vous n'avez pas l'autorisation de gérer les événements de cette organisation.",
     "notFound": "Cet événement n'a pas été trouvé au sein de cette organisation.",
     "description": "Gérez les liens de qualification de cet événement ou accédez directement à ses pages de tâches.",
     "edit": "Modifier",
-    "groupsAndRosters": "Groupes et listes de joueurs",
+    "groupsAndRosters": "Groupes et effectifs",
     "leaderboard": "Classement",
-    "sponsorReview": "Avis sur le sponsor",
-    "ocrResults": "Résultats de l'OCR",
+    "sponsorReview": "Vérification des sponsors",
+    "ocrResults": "Résultats OCR",
     "privateTooltip": "Il s'agit d'un événement privé",
     "tabs": {
       "overview": "Présentation générale",
@@ -816,8 +816,8 @@
       "totalRegistered": "Nombre total d'inscrits",
       "prizePool": "Cagnotte",
       "daysUntilStart": "Jours restants avant le début",
-      "totalStages": "Nombre total d'étapes",
-      "days": "{count, plural,  one { # jour }  other { # jours } }"
+      "totalStages": "Nombre total de phases",
+      "days": "{count, plural, one {# jour} other {# jours}}"
     },
     "config": {
       "title": "Configuration de l'événement",
@@ -834,10 +834,10 @@
       "countries": "Pays :"
     },
     "streams": {
-      "title": "Chaînes en streaming"
+      "title": "Chaînes de diffusion"
     },
     "timeline": {
-      "title": "Chronologie des événements",
+      "title": "Chronologie de l'événement",
       "to": "à",
       "status": {
         "completed": "Terminé",
@@ -849,34 +849,34 @@
       "type": "Type",
       "location": "Lieu",
       "maxPlayers": "Nombre maximal de joueurs",
-      "tier": "Niveau",
+      "tier": "Palier",
       "startDate": "Date de début",
       "endDate": "Date de fin",
       "regOpens": "Ouverture des inscriptions",
-      "regCloses": "Fin des inscriptions",
+      "regCloses": "Clôture des inscriptions",
       "prizePool": "Cagnotte",
       "status": "Statut",
       "registrationLink": "Lien d'inscription",
-      "prizeDistribution": "Remise des prix",
+      "prizeDistribution": "Répartition des prix",
       "eventRules": "Règlement de l'événement",
       "rulesViaDocument": "Règles fournies dans le document :",
       "downloadRules": "Télécharger le règlement officiel",
-      "noRules": "Aucun document contenant les règles ni aucune règle dactylographiée n'ont été fournis."
+      "noRules": "Aucun document de règlement ni règles saisies n'ont été fournis."
     },
     "registrations": {
       "rate": "Taux d'inscription",
-      "ofMaxCapacity": "de capacité maximale (emplacements {count})",
+      "ofMaxCapacity": "de la capacité maximale ({count} places)",
       "averagePerDay": "Moyenne journalière",
       "playersPerDay": "joueurs/jour sur {count} jours",
       "timeUntilClose": "Temps restant avant la clôture",
-      "closesOn": "Les inscriptions se terminent le {date}",
+      "closesOn": "Les inscriptions se clôturent le {date}",
       "recent": "Inscriptions récentes (total : {count})",
       "teams": "Équipes",
       "players": "Joueurs",
       "status": "Statut"
     },
     "invites": {
-      "title": "Invitations à des événements privés",
+      "title": "Invitations à un événement privé",
       "download": "Télécharger",
       "downloadXlsx": "Télécharger au format Excel (.xlsx)",
       "downloadCsv": "Télécharger au format CSV (.csv)",
@@ -890,23 +890,23 @@
       "cancel": "Annuler",
       "generate": "Générer",
       "explainerSharedLabel": "Lien partagé (premier arrivé, premier servi) :",
-      "explainerShared": "un lien que vous partagez avec l'ensemble du groupe. Les premiers {count} à s'inscrire via ce lien obtiennent les places disponibles, dans l'ordre d'inscription ; une fois l'événement complet, le lien cesse de fonctionner. Ce même lien peut être utilisé par plusieurs personnes.",
+      "explainerShared": "un lien que vous partagez avec l'ensemble du groupe. Les {count} premiers à s'inscrire via ce lien obtiennent les places, dans l'ordre d'inscription ; une fois l'événement complet, le lien cesse de fonctionner. Le même lien peut être utilisé par plusieurs personnes.",
       "explainerSingleLabel": "Lien à usage unique :",
       "explainerSingle": "ne fonctionne que pour une seule inscription, puis il est fermé.",
       "loading": "Chargement des liens d'invitation...",
       "empty": "Aucun lien d'invitation n'a encore été généré. Cliquez sur le bouton ci-dessus pour en créer un.",
       "createdBy": "Créé par : {name}",
-      "sharedBadge": "En commun (premier arrivé, premier servi)",
-      "expires": "Date d'expiration : {date}",
-      "usedBy": "Utilisé par {name} sur {date}",
+      "sharedBadge": "Partagé (premier arrivé, premier servi)",
+      "expires": "Expire le {date}",
+      "usedBy": "Utilisé par {name} le {date}",
       "active": "Actif",
       "generatedSingle": "Le lien d'invitation a été généré avec succès !",
       "generatedShared": "Le lien d'invitation partagé a été généré. Partagez-le avec votre groupe.",
-      "generatedBulk": "{count} Les liens d'invitation ont été générés avec succès !",
+      "generatedBulk": "{count} liens d'invitation ont été générés avec succès !",
       "generateFailed": "Impossible de générer le lien d'invitation",
       "copied": "Le lien a été copié dans le presse-papiers !",
       "copyFailed": "Échec de la copie du lien",
-      "nothingToDownload": "Pas de liens d'invitation pour le téléchargement",
+      "nothingToDownload": "Aucun lien d'invitation à télécharger",
       "downloadedXlsx": "Liens d'invitation téléchargés au format Excel !",
       "downloadedCsv": "Liens d'invitation téléchargés au format CSV !",
       "colLink": "Lien d'invitation",
@@ -915,53 +915,53 @@
       "colCreatedAt": "Créé le",
       "colStatus": "Statut",
       "colUsedBy": "Utilisé par",
-      "colUsedAt": "Utilisé à",
+      "colUsedAt": "Utilisé le",
       "typeShared": "Partagé (FCFS)",
       "typeSingle": "À usage unique",
       "statusReusable": "Réutilisable",
-      "statusUsed": "D'occasion",
+      "statusUsed": "Utilisé",
       "statusActive": "Actif",
       "na": "N/A"
     },
     "engagement": {
-      "pageViews": "Nombre de pages vues",
+      "pageViews": "Pages vues",
       "totalVisits": "Nombre total de visites",
       "uniqueVisitors": "Visiteurs uniques",
       "uniqueUsers": "Utilisateurs uniques",
       "conversionRate": "Taux de conversion",
-      "visitorsToRegistrations": "Visiteurs et inscriptions",
+      "visitorsToRegistrations": "Visiteurs convertis en inscriptions",
       "socialShares": "Partages sur les réseaux sociaux",
       "sharesAcrossPlatforms": "Partages sur toutes les plateformes"
     },
     "actions": {
       "export": "Exporter",
       "exportCsv": "Exporter les participants (CSV)",
-      "exportXlsx": "Exporter la liste des participants (Excel)",
-      "exportDone": "Exportation effectuée",
+      "exportXlsx": "Exporter les participants (Excel)",
+      "exportDone": "Exportation téléchargée",
       "exportFailed": "L'exportation a échoué",
       "cancelEvent": "Annuler l'événement",
       "cancelTitle": "Annuler cet événement ?",
-      "cancelBody": "Cette action entraîne l'annulation de « {name} » et en informe tous les joueurs inscrits. Les inscriptions sont gelées. Cette action est irréversible.",
+      "cancelBody": "Cette action marque « {name} » comme annulé et en informe tous les joueurs inscrits. Les inscriptions sont gelées. Cette action est irréversible depuis cette page.",
       "cancelKeep": "Conserver l'événement",
       "cancelConfirm": "Oui, annuler l'événement",
       "cancelFailed": "Impossible d'annuler l'événement"
     }
   },
   "eventSponsors": {
-    "title": "Avis sur le sponsor",
+    "title": "Vérification des sponsors",
     "noPermission": "Vous n'êtes pas autorisé(e) à gérer les inscriptions pour cette organisation.",
-    "notMine": "Nous n'avons pas trouvé cet événement dans votre organisation. Vous ne pouvez consulter les identifiants des sponsors que pour vos propres événements.",
+    "notMine": "Nous n'avons pas trouvé cet événement dans votre organisation. Vous ne pouvez vérifier les identifiants sponsor que pour vos propres événements.",
     "backToEvents": "Retour à la liste des événements",
     "loadEventError": "Échec du chargement de l'événement.",
     "loadError": "Impossible de charger les inscriptions des sponsors.",
-    "sponsorIdDefault": "Identifiant du parrain",
-    "counts": "{all, plural,  one { # demandeur }  other { # demandeurs } } · {pending} en attente · {confirmed} confirmés · {rejected} rejetés",
-    "searchPlaceholder": "Recherche par nom d'utilisateur, identifiant de parrain ou équipe...",
+    "sponsorIdDefault": "Identifiant sponsor",
+    "counts": "{all, plural, one {# inscrit} other {# inscrits}} · {pending} en attente · {confirmed} confirmés · {rejected} rejetés",
+    "searchPlaceholder": "Rechercher par nom d'utilisateur, identifiant sponsor ou équipe...",
     "filterPlaceholder": "Filtrer par statut",
-    "filterAll": "Tout ({count})",
+    "filterAll": "Tous ({count})",
     "filterPending": "En attente ({count})",
-    "filterConfirmed": "Confirmé ({count})",
-    "filterRejected": "Rejeté ({count})",
+    "filterConfirmed": "Confirmés ({count})",
+    "filterRejected": "Rejetés ({count})",
     "emptyNone": "Aucune inscription trouvée.",
     "emptyFiltered": "Aucun résultat ne correspond à votre recherche ou à vos critères de filtrage.",
     "table": {
@@ -978,27 +978,27 @@
     "confirm": "Confirmer",
     "reject": "Refuser",
     "confirmSuccess": "{username} confirmé.",
-    "confirmError": "Impossible de valider l'adresse {username}.",
+    "confirmError": "Impossible de confirmer {username}.",
     "rejectSuccess": "{username} rejeté.",
     "rejectError": "Impossible de rejeter {username}.",
-    "showing": "Affichage de {from} - {to} de {total}",
-    "rejectDialogTitle": "Refuser «{username} » ?",
-    "reasonLabel": "Raison",
+    "showing": "Affichage de {from} à {to} sur {total}",
+    "rejectDialogTitle": "Refuser « {username} » ?",
+    "reasonLabel": "Motif",
     "reasonOptional": "(facultatif)",
     "reasonPlaceholder": "Indiquez un motif de refus...",
     "cancel": "Annuler"
   },
   "eventOcr": {
-    "title": "Résultats de la compétition OCR",
-    "description": "Vérifier les extraits issus de la reconnaissance optique de caractères (OCR) pour {event}",
+    "title": "Résultats de match par OCR",
+    "description": "Vérifiez les résultats extraits par OCR pour {event}",
     "noPermission": "Vous ne disposez pas des droits nécessaires pour gérer les résultats de cette organisation.",
     "notMine": "Nous n'avons pas trouvé cet événement dans votre organisation. Vous ne pouvez consulter les sessions OCR que pour vos propres événements.",
     "backToEvents": "Retour à la liste des événements",
     "loadingEvent": "Chargement de l'événement...",
     "refresh": "Actualiser",
-    "uploadTitle": "Télécharger des captures d'écran",
-    "uploadDescription": "Les captures d'écran des résultats sont mises en ligne pour chaque match depuis la page du classement de cet événement. Chaque mise en ligne génère une session ci-dessous que vous pouvez consulter, valider ou rejeter.",
-    "openLeaderboard": "Classement général",
+    "uploadTitle": "Importer des captures d'écran",
+    "uploadDescription": "Les captures d'écran des résultats sont importées match par match depuis la page du classement de cet événement. Chaque import génère une session ci-dessous que vous pouvez vérifier, valider ou supprimer.",
+    "openLeaderboard": "Ouvrir le classement",
     "sessionsTitle": "Sessions OCR",
     "loadError": "Impossible de charger les sessions OCR.",
     "table": {
@@ -1008,42 +1008,42 @@
       "actions": "Actions"
     },
     "loading": "Chargement en cours...",
-    "empty": "Aucune session OCR n'a encore été créée. Pour en créer une, téléchargez une capture d'écran des résultats d'un match depuis la page du classement.",
-    "review": "Critique",
+    "empty": "Aucune session OCR n'a encore été créée. Pour en créer une, importez une capture d'écran des résultats d'un match depuis la page du classement.",
+    "review": "Vérifier",
     "commit": "Valider",
-    "committing": "En cours de sauvegarde...",
+    "committing": "Validation en cours...",
     "commitSuccess": "Résultats enregistrés.",
     "commitError": "Échec de la validation.",
     "deleteSuccess": "Session supprimée.",
-    "deleteError": "Impossible de fermer la session.",
+    "deleteError": "Impossible de supprimer la session.",
     "detailError": "Impossible de charger les détails de la session.",
-    "dialogTitle": "Bilan de la session",
+    "dialogTitle": "Vérification de la session",
     "extractedData": "Données extraites",
     "close": "Fermer",
-    "commitResults": "Résultats de la validation",
+    "commitResults": "Valider les résultats",
     "status": {
-      "pending_review": "En attente d'examen",
-      "committed": "Engagé",
-      "discarded": "Écarté"
+      "pending_review": "En attente de vérification",
+      "committed": "Validée",
+      "discarded": "Supprimée"
     }
   },
   "groups": {
-    "title": "Groupes et listes de joueurs",
+    "title": "Groupes et effectifs",
     "lock": {
-      "noPermission": "Vous n'êtes pas autorisé(e) à consulter les listes des membres de cette organisation."
+      "noPermission": "Vous n'êtes pas autorisé(e) à consulter les effectifs de cette organisation."
     },
     "backToEvents": "Retour à la liste des événements",
     "loadingEvent": "Chargement de l'événement...",
-    "notMine": "Nous n'avons pas trouvé cet événement dans votre organisation. Vous ne pouvez consulter les listes de participants que pour vos propres événements.",
-    "loadingRosters": "Chargement des listes...",
-    "description": "{event} • Événement «{type} » • {count} {stageWord}",
+    "notMine": "Nous n'avons pas trouvé cet événement dans votre organisation. Vous ne pouvez consulter les effectifs que pour vos propres événements.",
+    "loadingRosters": "Chargement des effectifs...",
+    "description": "{event} • Événement {type} • {count} {stageWord}",
     "solo": "En solo",
     "team": "Équipe",
-    "stage": "scène",
-    "stages": "étapes",
-    "searchPlaceholder": "Recherche par IGN, équipe ou UID",
-    "noStages": "Aucune étape n'a encore été définie pour cette épreuve.",
-    "noGroups": "Il n'y a pas encore de groupes ; commencez par créer cette phase.",
+    "stage": "phase",
+    "stages": "phases",
+    "searchPlaceholder": "Rechercher par IGN, équipe ou UID",
+    "noStages": "Aucune phase n'a encore été définie pour cet événement.",
+    "noGroups": "Il n'y a pas encore de groupes, commencez par répartir cette phase.",
     "playerCount": "{count} joueurs",
     "teamCount": "{count} équipes",
     "noPlayers": "Il n'y a pas encore de joueurs.",
@@ -1053,19 +1053,19 @@
       "uid": "UID",
       "status": "Statut"
     },
-    "removePlayer": "Supprimer un joueur",
-    "removeTitle": "Supprimer « {name} » ?",
+    "removePlayer": "Retirer le joueur",
+    "removeTitle": "Retirer « {name} » ?",
     "removeFromGroup": "Retirer du groupe",
-    "removeFromStage": "Retirer de la scène",
-    "removePlayerDescription": "Retirez ce joueur uniquement de ce groupe (il conserve sa place dans la phase), ou de l'ensemble de la phase. Dans les deux cas, il reste inscrit à la compétition.",
+    "removeFromStage": "Retirer de la phase",
+    "removePlayerDescription": "Retirez ce joueur uniquement de ce groupe (il conserve sa place dans la phase), ou de l'ensemble de la phase. Dans les deux cas, il reste inscrit à l'événement.",
     "cancel": "Annuler",
-    "playerRemovedFromGroup": "{name} exclu du groupe.",
-    "playerRemovedFromStage": "{name} retiré de la scène.",
-    "removeFailed": "Impossible de supprimer le lecteur."
+    "playerRemovedFromGroup": "{name} retiré du groupe.",
+    "playerRemovedFromStage": "{name} retiré de la phase.",
+    "removeFailed": "Impossible de retirer le joueur."
   },
   "eventLeaderboard": {
-    "csBracketTitle": "Cette phase se déroule sous la forme d'un tournoi par élimination directe de type « Clash Squad ».",
-    "csBracketHint": "Les résultats et le classement de Clash Squad sont gérés à partir du tableau figurant sur la page de l'événement, et non ici.",
+    "csBracketTitle": "Cette phase se déroule sous forme de tableau Clash Squad",
+    "csBracketHint": "Les résultats et le classement du Clash Squad sont gérés à partir du tableau figurant sur la page de l'événement, et non ici.",
     "csBracketGoto": "Accéder au tableau",
     "manageTitle": "Gérer le classement",
     "noPermission": "Vous ne disposez pas des droits nécessaires pour gérer les résultats de cette organisation.",
@@ -1075,40 +1075,40 @@
     "wizard": {
       "basicInfo": "Informations générales",
       "configurePoints": "Configurer le système de points",
-      "matchOverview": "Présentation du match",
-      "selectMethod": "Sélectionnez la méthode de téléchargement",
+      "matchOverview": "Aperçu des matchs",
+      "selectMethod": "Sélectionnez la méthode d'import",
       "manualInput": "Saisie manuelle",
-      "imageUpload": "Téléchargement d'images",
-      "roomFileUpload": "Téléchargement de fichiers de pièces en 3D",
+      "imageUpload": "Import d'images",
+      "roomFileUpload": "Import du fichier de salle 3D",
       "editLeaderboard": "Modifier le classement"
     },
     "createLeaderboard": "Créer un classement",
-    "tournamentDescription": "{type} Tournoi • Étapes de l''{count}",
+    "tournamentDescription": "Tournoi {type} • {count} phases",
     "solo": "En solo",
     "team": "Équipe",
-    "matchLabel": "{number} de match ({map})",
-    "matchOption": "{number} - {map}",
+    "matchLabel": "Match {number} ({map})",
+    "matchOption": "Match {number} - {map}",
     "missingWinnerBadge": "Pas de vainqueur",
-    "missingWinnerTooltip": "Cette carte ne comporte aucune équipe classée première ; elle n'ajoute donc aucun « booyah ».",
-    "emptyState": "Il n'y a pas encore de classement pour cet événement. Les classements sont créés automatiquement dès que chaque groupe a configuré ses cartes. Ajoutez des cartes aux groupes de cet événement dans l'éditeur d'événements, puis revenez ici pour classer les participants et saisir les résultats.",
+    "missingWinnerTooltip": "Cette carte ne comporte aucune équipe classée première ; elle n'ajoute donc aucun booyah.",
+    "emptyState": "Il n'y a pas encore de classement pour cet événement. Les classements sont créés automatiquement dès que chaque groupe a ses cartes configurées. Ajoutez des cartes aux groupes de cet événement dans l'éditeur d'événements, puis revenez ici pour répartir les concurrents et saisir les résultats.",
     "openEventEditor": "Ouvrir l'éditeur d'événements",
     "group": "Groupe",
     "selectGroup": "Sélectionner un groupe",
     "pickerSelectGroup": "Sélectionner un groupe",
     "viewType": "Type d'affichage",
     "overallLeaderboard": "Classement général",
-    "currentKillPoints": "Points de mise à mort actuels",
+    "currentKillPoints": "Points par élimination actuels",
     "rankings": "Classements",
     "table": {
-      "rank": "Classement",
+      "rank": "Rang",
       "player": "Joueur",
-      "matches": "Rencontres",
-      "kills": "Tues",
+      "matches": "Matchs",
+      "kills": "Éliminations",
       "totalPts": "Total des points",
       "team": "Équipe",
       "booyahs": "Booyahs",
       "damage": "Dégâts",
-      "assists": "Passes décisives"
+      "assists": "Assistances"
     },
     "unknown": "Inconnu",
     "noResult": "Aucun résultat trouvé !",
@@ -1117,33 +1117,33 @@
     "playerLeaderboard": "Classement des joueurs",
     "editMatchResults": "Modifier les résultats du match",
     "uploadEditGroup": "Importer / Modifier l'ensemble du groupe",
-    "exportGraphic": "Exporter le graphique",
+    "exportGraphic": "Exporter le visuel",
     "pickerDescription": "Sélectionnez le groupe et le match que vous souhaitez modifier.",
     "match": "Match",
     "selectMatch": "Sélectionner un match",
     "cancel": "Annuler",
     "continue": "Continuer",
     "watch": {
-      "label": "Regarder",
-      "reason": "Sur la liste de surveillance à titre indicatif"
+      "label": "Surveillance",
+      "reason": "Présent sur la liste de surveillance"
     },
     "redoMap": {
-      "button": "Refaites cette carte",
-      "clearing": "Chargement...",
+      "button": "Refaire cette carte",
+      "clearing": "Effacement...",
       "title": "Refaire cette carte ?",
       "description": "Cette opération efface tous les résultats de cette carte. Les autres cartes ne sont pas concernées. Vous pouvez ensuite saisir à nouveau les résultats.",
       "confirm": "Refaire la carte",
-      "success": "La carte a été effacée. Vous pouvez à nouveau saisir des résultats pour cette carte.",
+      "success": "La carte a été effacée. Vous pouvez saisir à nouveau les résultats de cette carte.",
       "error": "Échec de la suppression des résultats de la carte"
     },
     "redoAllMaps": {
       "button": "Refaire toutes les cartes",
-      "clearing": "Tout effacer...",
+      "clearing": "Effacement de tout...",
       "title": "Refaire toutes les cartes de ce groupe ?",
       "description": "Cette opération efface les résultats de TOUTES les cartes de ce groupe afin que vous puissiez les saisir à nouveau. Les cartes des autres groupes ne sont pas concernées.",
       "confirm": "Refaire toutes les cartes",
-      "success": "Toutes les cartes « {count} » de ce groupe ont été validées. Veuillez saisir à nouveau les résultats.",
-      "someFailed": "Suppression de {ok} des cartes de {total}. Échec de {failed}, veuillez réessayer."
+      "success": "Les {count} cartes de ce groupe ont été effacées. Saisissez à nouveau les résultats.",
+      "someFailed": "{ok} carte(s) sur {total} effacée(s). {failed} en échec, réessayez."
     },
     "evidence": {
       "title": "Fichiers de matchs enregistrés",
@@ -1171,39 +1171,39 @@
       "totalTab": "Classement général",
       "tieBreakersTab": "Critères de départage",
       "mvpTab": "MVP",
-      "topKillersTab": "Meilleurs tueurs",
-      "backfillTab": "Remplissage du débogueur",
-      "scoringTab": "Configuration de la notation",
+      "topKillersTab": "Meilleurs éliminateurs",
+      "backfillTab": "Recalcul de débogage",
+      "scoringTab": "Configuration des points",
       "totalTitle": "Classement général",
-      "totalDescription": "Appliquez les ajustements de points au classement général. Les valeurs positives ajoutent des points de bonus ; les valeurs négatives ajoutent des points de pénalité à la première carte.",
-      "noData": "Il n'y a pas encore de données concernant le classement.",
-      "placePts": "Classement Points",
+      "totalDescription": "Appliquez des ajustements de points au classement général. Les valeurs positives ajoutent des points de bonus ; les valeurs négatives ajoutent des points de pénalité à la première carte.",
+      "noData": "Il n'y a pas encore de données de classement.",
+      "placePts": "Points de place",
       "adjust": "Ajuster",
-      "saveAdjustments": "Enregistrer les modifications",
+      "saveAdjustments": "Enregistrer les ajustements",
       "saving": "Enregistrement en cours...",
-      "adjustmentsSaved": "Les réglages ont été enregistrés !",
+      "adjustmentsSaved": "Les ajustements ont été enregistrés !",
       "noAdjustments": "Aucun ajustement à enregistrer",
       "noLeaderboard": "Aucun classement n'a été trouvé pour ce groupe",
-      "noMatches": "Aucun résultat correspondant n'a été trouvé pour appliquer les ajustements",
-      "adjustmentsError": "Échec de l'enregistrement des réglages"
+      "noMatches": "Aucun match trouvé pour appliquer les ajustements",
+      "adjustmentsError": "Échec de l'enregistrement des ajustements"
     },
     "matchResults": {
       "tab": "Résultats des matchs",
-      "noMatches": "Aucun résultat n'a été trouvé pour ce groupe.",
+      "noMatches": "Aucun match trouvé pour ce groupe.",
       "noResults": "Aucun résultat n'a encore été saisi pour cette carte.",
-      "teamPlacementsTitle": "Affectations au sein des équipes",
+      "teamPlacementsTitle": "Classement des équipes",
       "playerResultsTitle": "Résultats des joueurs",
-      "teamPlacementsDesc": "Modifier la composition des équipes et les participations pour cette carte.",
-      "playerResultsDesc": "Modifier le classement, le nombre de victimes et les points de bonus/malus.",
+      "teamPlacementsDesc": "Modifiez le classement et la participation des équipes pour cette carte.",
+      "playerResultsDesc": "Modifiez le classement, les éliminations et les points de bonus ou de pénalité.",
       "placement": "Placement",
       "bonusPts": "Points bonus",
       "penaltyPts": "Points de pénalité",
       "played": "Joué",
       "playerStatsTitle": "Statistiques des joueurs",
-      "playerStatsDesc": "Modifiez le nombre de victimes, les dégâts infligés et les passes décisives de chaque joueur pour chaque équipe. Cliquez sur une équipe pour développer la liste.",
+      "playerStatsDesc": "Modifiez les éliminations, les dégâts et les assistances de chaque joueur, pour chaque équipe. Cliquez sur une équipe pour développer la liste.",
       "noPlayerData": "Aucune donnée sur les joueurs n'est disponible pour cette équipe.",
-      "playerCount": "{count, plural,  one { # joueur }  other { # joueurs } }",
-      "matchLeaderboardTitle": "Classement des matchs",
+      "playerCount": "{count, plural, one {# joueur} other {# joueurs}}",
+      "matchLeaderboardTitle": "Classement du match",
       "matchLeaderboardDesc": "Classement calculé pour cette carte. Modifiez les points de bonus et de pénalité, puis enregistrez en haut de la page.",
       "killPts": "Points d'élimination",
       "bonus": "Bonus",
@@ -1214,43 +1214,43 @@
       "saveThisMap": "Enregistrer cette carte",
       "saveSuccess": "Les résultats du match ont été enregistrés !",
       "saveError": "Échec de l'enregistrement des résultats du match",
-      "noMapsToSave": "Aucune carte n'a encore été enregistrée dans ce groupe.",
-      "savedAllMaps": "J'ai enregistré tous les liens suivants dans ce groupe : {count, plural,  one { # carte }  other { # cartes } }.",
+      "noMapsToSave": "Aucun résultat de carte à enregistrer dans ce groupe pour le moment.",
+      "savedAllMaps": "{count, plural, one {# carte enregistrée} other {# cartes enregistrées}} dans ce groupe.",
       "savedSomeMaps": "{ok} carte(s) sur {total} enregistrée(s). Échec pour {failed} : {reason}",
       "saveGroupError": "Impossible d'enregistrer les cartes du groupe",
-      "retryHint": "Ouvrez la carte qui pose problème et réessayez."
+      "retryHint": "ouvrez la carte qui pose problème et réessayez"
     }
   },
   "exportGraphic": {
-    "loadDesignsError": "Impossible de charger les modèles.",
-    "downloadedImages": "Téléchargement d'images de « {count} ».",
-    "graphicDownloaded": "Image téléchargée.",
-    "exportError": "L'exportation du graphique a échoué.",
-    "button": "Exporter le graphique",
-    "dialogTitle": "Graphique du classement des exportations",
-    "dialogDescription": "Choisissez l'étape et le groupe à afficher, intégrez ces classements dans un visuel personnalisé, puis téléchargez-le sous forme d'image.",
-    "stage": "Scène",
-    "selectStage": "Sélectionnez une étape",
-    "stageFallback": "Étape{id}",
+    "loadDesignsError": "Impossible de charger les designs.",
+    "downloadedImages": "{count} images téléchargées.",
+    "graphicDownloaded": "Visuel téléchargé.",
+    "exportError": "L'exportation du visuel a échoué.",
+    "button": "Exporter le visuel",
+    "dialogTitle": "Exporter le visuel du classement",
+    "dialogDescription": "Choisissez la phase et le groupe à afficher, intégrez ce classement dans un design personnalisé, puis téléchargez-le sous forme d'image.",
+    "stage": "Phase",
+    "selectStage": "Sélectionnez une phase",
+    "stageFallback": "Phase {id}",
     "group": "Groupe",
-    "wholeStage": "L'ensemble de la scène (tous les groupes)",
-    "groupFallback": "{id} du groupe",
-    "design": "Conception",
-    "selectDesign": "Choisissez un motif",
+    "wholeStage": "Toute la phase (tous les groupes)",
+    "groupFallback": "Groupe {id}",
+    "design": "Design",
+    "selectDesign": "Sélectionnez un design",
     "defaultDesign": "Par défaut / fond uni",
     "defaultSuffix": " (par défaut)",
-    "loadingDesigns": "Chargement des modèles...",
-    "noDesigns": "Il n'y a pas encore de visuels. Ajoutez-en un dans la section « Visuels du classement » pour personnaliser l'exportation.",
-    "multiPageNote": "Ce modèle comporte plusieurs pages. Chaque page s'affiche sous forme d'image distincte.",
-    "combineToggle": "Regrouper plusieurs groupes ou étapes",
-    "combineHint": "Fusionner les classements de plusieurs étapes et groupes en un seul classement général.",
-    "combineSelectLabel": "Groupes et étapes à combiner",
-    "combineWholeStageTag": "(toute la scène)",
-    "combineSelectHint": "Sélectionnez au moins une étape ou un groupe à regrouper.",
-    "combineSelectedCount": "{count} sélectionné.",
-    "combineNoneSelected": "Sélectionnez au moins une étape ou un groupe à regrouper.",
-    "combineMultiPageNote": "Un forum dont le nombre de lignes dépasse la capacité d'une page est disponible au téléchargement sous forme de fichier ZIP contenant chaque page.",
-    "combineDownloadedZip": "Classement combiné téléchargé (fichier ZIP contenant toutes les pages).",
+    "loadingDesigns": "Chargement des designs...",
+    "noDesigns": "Il n'y a pas encore de designs. Ajoutez-en un dans la section « Designs du classement » pour personnaliser l'exportation.",
+    "multiPageNote": "Ce design comporte plusieurs pages. Chaque page est téléchargée comme une image distincte.",
+    "combineToggle": "Regrouper plusieurs groupes ou phases",
+    "combineHint": "Fusionner les classements de plusieurs phases et groupes en un seul classement.",
+    "combineSelectLabel": "Groupes et phases à regrouper",
+    "combineWholeStageTag": "(toute la phase)",
+    "combineSelectHint": "Sélectionnez au moins une phase ou un groupe à regrouper.",
+    "combineSelectedCount": "{count} sélectionnés.",
+    "combineNoneSelected": "Sélectionnez au moins une phase ou un groupe à regrouper.",
+    "combineMultiPageNote": "Un classement regroupé comptant plus de lignes qu'une page ne peut en contenir est téléchargé sous forme de fichier ZIP contenant toutes les pages.",
+    "combineDownloadedZip": "Classement regroupé téléchargé (fichier ZIP contenant toutes les pages).",
     "size": "Taille",
     "sizeYoutube": "YouTube (1920 x 1080)",
     "sizeInstagram": "Instagram (1080 x 1350)",
@@ -1258,241 +1258,241 @@
     "titlePlaceholder": "Titre de l'événement",
     "subtitle": "Sous-titre",
     "optional": "(facultatif)",
-    "subtitlePlaceholder": "par exemple : phase de groupes - 1er tour",
+    "subtitlePlaceholder": "par exemple : phase de groupes - manche 1",
     "cancel": "Annuler",
     "download": "Télécharger"
   },
   "obsOverlay": {
-    "button": "Copier le lien de superposition",
-    "dialogTitle": "Affichage en superposition du classement en temps réel",
-    "dialogDescription": "Créez un lien à intégrer dans OBS, vMix ou tout autre logiciel en tant que « Source navigateur ». Il affiche le design de votre choix avec des classements en temps réel qui se mettent à jour automatiquement.",
-    "stage": "Scène",
-    "selectStage": "Sélectionnez une étape",
-    "stageFallback": "Étape{id}",
+    "button": "Copier le lien de la superposition",
+    "dialogTitle": "Superposition du classement en direct",
+    "dialogDescription": "Créez un lien à intégrer dans OBS, vMix ou tout autre logiciel en tant que « Source navigateur ». Il affiche le design de votre choix avec un classement en direct qui se met à jour tout seul.",
+    "stage": "Phase",
+    "selectStage": "Sélectionnez une phase",
+    "stageFallback": "Phase {id}",
     "group": "Groupe",
-    "wholeStage": "L'ensemble de la scène (tous les groupes)",
-    "groupFallback": "{id} du groupe",
-    "design": "Conception",
-    "selectDesign": "Choisissez un motif",
+    "wholeStage": "Toute la phase (tous les groupes)",
+    "groupFallback": "Groupe {id}",
+    "design": "Design",
+    "selectDesign": "Sélectionnez un design",
     "defaultDesign": "Par défaut / bibliothèque par défaut",
     "defaultSuffix": " (par défaut)",
-    "loadingDesigns": "Chargement des modèles...",
+    "loadingDesigns": "Chargement des designs...",
     "columns": "Colonnes à afficher",
-    "columnsHint": "Voici les colonnes affichées sur le thème sélectionné. Décochez celles que vous souhaitez masquer dans la superposition.",
+    "columnsHint": "Voici les colonnes placées sur le design sélectionné. Décochez celles que vous souhaitez masquer dans la superposition.",
     "size": "Taille",
     "sizeYoutube": "YouTube (1920 x 1080)",
     "sizeInstagram": "Instagram (1080 x 1350)",
     "animation": "Animation",
     "animFade": "Fondu + comptage ascendant",
-    "animSlide": "Glisser pour ouvrir",
-    "animFlash": "Flash sur le changement",
-    "animNone": "Aucun",
-    "reveal": "Afficher",
-    "revealStaggered": "Décalé",
+    "animSlide": "Glissement",
+    "animFlash": "Flash au changement",
+    "animNone": "Aucune",
+    "reveal": "Apparition",
+    "revealStaggered": "Décalée",
     "revealAll": "Tout d'un coup",
-    "refresh": "Actualiser (en secondes)",
+    "refresh": "Actualisation (en secondes)",
     "live": "En direct (pendant la manche)",
-    "liveHelp": "Afficher les scores en temps réel au fur et à mesure que les équipes jouent. Nécessite que le client de capture d'écran soit en cours d'exécution sur l'ordinateur hôte. Les colonnes de statistiques détaillées (décès, renversements, etc.) ne s'affichent qu'en direct.",
-    "follow": "Suivez la sélection des programmes du site",
-    "followHelp": "Retirez la scène et le groupe du lien afin que la superposition affiche ce que vous avez défini dans le panneau de contrôle « Diffusion ». Ensuite, basculez entre la scène et le groupe en direct depuis le panneau de contrôle « Diffusion », sans modifier les paramètres dans OBS.",
-    "link": "Lien superposé",
+    "liveHelp": "Affiche les scores en cours de manche pendant que les équipes jouent. Nécessite que le client de capture soit lancé sur le PC hôte. Les colonnes de statistiques détaillées (morts, mises à terre, et le reste) ne se remplissent qu'en direct.",
+    "follow": "Suivre la sélection de diffusion du site",
+    "followHelp": "Ne mettez ni la phase ni le groupe dans le lien : la superposition affiche alors ce que vous choisissez dans le contrôle de la diffusion. Vous pouvez ensuite changer de phase ou de groupe en direct depuis le contrôle de la diffusion, sans rien modifier dans OBS.",
+    "link": "Lien de la superposition",
     "preparing": "Préparation du lien...",
     "copyTitle": "Copier le lien",
     "obsHint": "Dans votre logiciel de streaming (OBS, vMix, etc.) : ajoutez une source « Navigateur » et collez ce lien. Réglez la largeur et la hauteur en fonction des dimensions que vous avez choisies.",
     "copyLink": "Copier le lien",
-    "copied": "Lien de superposition copié.",
+    "copied": "Lien de la superposition copié.",
     "copyError": "Impossible de copier le lien. Sélectionnez-le et copiez-le manuellement.",
-    "regenerate": "Réinitialiser le jeton",
-    "regenerated": "Le jeton a été régénéré. Veuillez mettre à jour tous les liens déjà présents dans OBS.",
+    "regenerate": "Régénérer le jeton",
+    "regenerated": "Le jeton a été régénéré. Mettez à jour tous les liens déjà présents dans OBS.",
     "tokenError": "Impossible de préparer le jeton de superposition.",
-    "loadDesignsError": "Impossible de charger les modèles.",
+    "loadDesignsError": "Impossible de charger les designs.",
     "close": "Fermer"
   },
   "broadcast": {
     "title": "Contrôle de la diffusion",
-    "description": "Choisissez ce que l'incrustation en direct affiche. Changez de scène ou de groupe, ou combinez-les en une incrustation cumulative : celle-ci s'adapte en quelques secondes. Aucune modification n'est nécessaire dans OBS.",
+    "description": "Choisissez ce que la superposition en direct affiche. Changez de phase ou de groupe, ou combinez-les en un cumul : la superposition suit en quelques secondes. Aucune modification n'est nécessaire dans OBS.",
     "loading": "Chargement de la sélection actuelle…",
-    "loadError": "Impossible de charger la sélection d'émissions.",
+    "loadError": "Impossible de charger la sélection de diffusion.",
     "scopeLabel": "Que montrer ?",
     "scope": {
       "group": "Ce groupe",
-      "stage": "Ensemble de la phase (cumulé)",
-      "event": "Ensemble de l'événement (cumulé)",
+      "stage": "Toute la phase (cumul)",
+      "event": "Tout l'événement (cumul)",
       "custom": "Groupes personnalisés"
     },
-    "stage": "Scène",
-    "selectStage": "Sélectionnez une étape",
+    "stage": "Phase",
+    "selectStage": "Sélectionnez une phase",
     "group": "Groupe",
     "selectGroup": "Sélectionnez un groupe",
-    "customGroups": "Groupes à fusionner",
-    "customGroupsHint": "Sélectionnez les groupes à regrouper dans un seul classement général.",
+    "customGroups": "Groupes à regrouper",
+    "customGroupsHint": "Sélectionnez les groupes à fusionner dans un seul classement cumulé.",
     "noGroups": "Il n'y a pas encore de groupes parmi lesquels choisir.",
-    "groupCount": "{count} sélectionné",
+    "groupCount": "{count} sélectionnés",
     "live": "En direct : {selection}",
-    "noneLive": "Rien n'est encore en ligne. Choisissez une sélection et mettez-la en ligne.",
-    "needStageGroup": "Sélectionnez d'abord une scène et un groupe, puis cliquez sur « Mettre en ligne ».",
-    "needStage": "Sélectionnez d'abord une étape, puis cliquez sur « Mettre en ligne ».",
-    "needCustomGroups": "Sélectionnez d'abord au moins un groupe, puis cliquez sur « Activer ».",
-    "setLive": "Diffusion en direct",
+    "noneLive": "Rien n'est encore en direct. Choisissez une sélection et mettez-la en direct.",
+    "needStageGroup": "Sélectionnez d'abord une phase et un groupe, puis cliquez sur « Mettre en direct ».",
+    "needStage": "Sélectionnez d'abord une phase, puis cliquez sur « Mettre en direct ».",
+    "needCustomGroups": "Sélectionnez d'abord au moins un groupe, puis cliquez sur « Mettre en direct ».",
+    "setLive": "Mettre en direct",
     "setSuccess": "La superposition suit désormais cette sélection.",
-    "setError": "Impossible de mettre à jour la sélection des émissions.",
-    "followHint": "La superposition le détecte automatiquement, aucun réglage n'est nécessaire dans OBS."
+    "setError": "Impossible de mettre à jour la sélection de diffusion.",
+    "followHint": "La superposition le détecte toute seule, aucun réglage n'est nécessaire dans OBS."
   },
   "studio": {
     "listTitle": "Superpositions en direct",
-    "listDescription": "Lancez vos superpositions pour vos diffusions en direct. Chaque superposition dispose d'un lien permanent pour OBS, vMix ou tout autre logiciel prenant en charge une source navigateur.",
+    "listDescription": "Pilotez vos superpositions de diffusion en direct. Chaque superposition dispose d'un lien permanent pour OBS, vMix ou tout autre logiciel prenant en charge une source navigateur.",
     "searchEvents": "Rechercher des événements...",
     "noEvents": "Aucun événement trouvé.",
-    "openOverlays": "Superpositions ouvertes",
-    "pageDescription": "Les superpositions enregistrées pour cet événement. Chacune dispose d'UN lien permanent : ajoutez-le une seule fois à votre logiciel de streaming, puis modifiez son design, sa scène ou son groupe, ses animations, ou déclenchez-la depuis ici - le lien se met à jour automatiquement.",
+    "openOverlays": "Ouvrir les superpositions",
+    "pageDescription": "Les superpositions enregistrées pour cet événement. Chacune dispose d'UN lien permanent : ajoutez-le une seule fois à votre logiciel de streaming, puis modifiez son design, sa phase ou son groupe, ses animations, ou déclenchez-la depuis ici - le lien se met à jour tout seul.",
     "allEvents": "Tous les événements",
-    "captureKey": "Touche de capture",
+    "captureKey": "Clé de capture",
     "leaderboard": "Classement",
     "newOverlay": "Nouvelle superposition",
-    "fromDesign": "De la conception",
-    "pickDesign": "Choisissez un motif",
-    "pickDesignFirst": "Commencez par choisir un motif.",
+    "fromDesign": "À partir d'un design",
+    "pickDesign": "Choisissez un design",
+    "pickDesignFirst": "Commencez par choisir un design.",
     "defaultSuffix": "(par défaut)",
-    "addLeaderboard": "Ajouter une superposition du classement",
+    "addLeaderboard": "Ajouter une superposition de classement",
     "addTimer": "Ajouter un minuteur",
-    "empty": "Il n'y a pas encore de superpositions. Créez-en une à partir d'un modèle ci-dessus : vous obtiendrez un lien permanent à intégrer à votre logiciel de streaming, puis vous pourrez tout gérer depuis cette page.",
+    "empty": "Il n'y a pas encore de superpositions. Créez-en une à partir d'un design ci-dessus : vous obtenez un lien permanent à intégrer à votre logiciel de streaming, puis vous gérez tout depuis cette page.",
     "kindLeaderboard": "Classement",
-    "kindTimer": "Minuterie",
+    "kindTimer": "Minuteur",
     "rename": "Renommer la superposition",
-    "design": "Conception",
-    "followBroadcast": "Suivez la sélection des émissions",
-    "stage": "Scène",
+    "design": "Design",
+    "followBroadcast": "Suivre la sélection de diffusion",
+    "stage": "Phase",
     "group": "Groupe",
     "allGroups": "Tous les groupes",
     "scope": "Classement",
-    "scopeSingle": "Un seul groupe ou une seule étape",
-    "scopeCombine": "Combiner plusieurs",
+    "scopeSingle": "Un seul groupe ou une seule phase",
+    "scopeCombine": "En regrouper plusieurs",
     "combineUnits": "Regrouper en un seul tableau",
-    "combineHint": "Sélectionnez les étapes et les groupes de votre choix pour les regrouper en un seul tableau cumulatif.",
-    "wholeStage": "toute la scène",
+    "combineHint": "Choisissez les phases entières et les groupes à fusionner en un seul tableau cumulé.",
+    "wholeStage": "toute la phase",
     "openStudioLink": "Superpositions en direct",
     "animation": "Animation",
     "animFade": "Fondu",
-    "animSlide": "Diapositive",
+    "animSlide": "Glissement",
     "animFlash": "Flash",
-    "animNone": "Aucun",
-    "reveal": "Affichage des lignes",
-    "revealStaggered": "Décalé",
+    "animNone": "Aucune",
+    "reveal": "Apparition des lignes",
+    "revealStaggered": "Décalée",
     "revealAll": "Tout d'un coup",
     "interval": "Intervalle entre les pages",
-    "live3d": "Données en temps réel sur les pièces en 3D",
-    "minutes": "Procès-verbal",
+    "live3d": "Données de la salle 3D en direct",
+    "minutes": "Minutes",
     "seconds": "Secondes",
-    "endClock": "Ou fin du temps réglementaire (heure locale)",
+    "endClock": "Ou heure de fin (locale)",
     "timerLabel": "Libellé (facultatif)",
     "timerLabelPh": "par exemple : PROCHAIN MATCH",
-    "trigger": "Déclencheur",
+    "trigger": "Déclencher",
     "hide": "Masquer",
-    "timerHiddenHint": "Masqué - transparent jusqu'à ce qu'il soit activé.",
+    "timerHiddenHint": "Masqué - transparent jusqu'à son déclenchement.",
     "timerNeedsDuration": "Commencez par définir une durée ou une heure de fin.",
-    "timerLive": "Le compte à rebours est lancé.",
-    "timerCreated": "Superposition du minuteur créée.",
+    "timerLive": "Le minuteur est en direct.",
+    "timerCreated": "Superposition de minuteur créée.",
     "copyLink": "Copier le lien",
-    "copied": "Copié depuis « {name} » : le lien reste inchangé.",
+    "copied": "« {name} » copié : le lien reste le même pour toujours.",
     "copyError": "Impossible de copier le lien.",
-    "created": "Superposition « {name} » créée : copiez son lien une seule fois, modifiez-le à volonté.",
+    "created": "Superposition « {name} » créée : copiez son lien une seule fois, modifiez-la à volonté.",
     "createError": "Impossible de créer la superposition.",
     "saveError": "Impossible d'enregistrer la superposition.",
-    "duplicated": "Dupliqué sous le titre « {name} ».",
+    "duplicated": "Dupliquée sous le nom « {name} ».",
     "duplicateError": "Impossible de dupliquer la superposition.",
-    "deleteConfirm": "Supprimer la superposition « {name} » ? Son lien deviendra inactif dans votre logiciel de streaming.",
+    "deleteConfirm": "Supprimer la superposition « {name} » ? Son lien deviendra vide dans votre logiciel de streaming.",
     "deleted": "Superposition supprimée.",
     "deleteError": "Impossible de supprimer la superposition.",
     "captureKeyCopied": "La clé de capture a été copiée. Collez-la dans AFC Capture.",
     "captureKeyError": "Impossible de générer la clé de capture.",
     "loadError": "Impossible de charger les superpositions.",
-    "notYourEvent": "Cet événement n'est pas organisé par votre organisation.",
-    "kindBooyah": "Bannière « Booyah »",
-    "addBooyah": "Ajouter une bannière « Booyah »",
-    "booyahCreated": "La bannière « Booyah » a été créée. Elle s'affiche automatiquement à l'issue de chaque partie, mais vous pouvez également la déclencher manuellement.",
-    "booyahAuto": "Tirer automatiquement dès qu'un résultat de carte apparaît",
+    "notYourEvent": "Cet événement n'appartient pas à votre organisation.",
+    "kindBooyah": "Bannière Booyah",
+    "addBooyah": "Ajouter une bannière Booyah",
+    "booyahCreated": "Bannière Booyah créée. Elle se déclenche automatiquement à chaque résultat de carte, ou vous pouvez la déclencher manuellement.",
+    "booyahAuto": "Se déclencher automatiquement dès qu'un résultat de carte arrive",
     "booyahTeam": "Équipe",
     "booyahPickTeam": "Choisissez l'équipe gagnante",
-    "booyahNeedsTeam": "Commence par choisir une équipe.",
+    "booyahNeedsTeam": "Commencez par choisir une équipe.",
     "booyahMap": "Carte (facultative)",
-    "booyahDuration": "Émission consacrée à",
-    "booyahLive": "La bannière « Booyah » est en ligne.",
+    "booyahDuration": "Afficher pendant",
+    "booyahLive": "La bannière Booyah est en direct.",
     "kindH2h": "Face à face",
     "addH2h": "Ajouter un face-à-face",
-    "h2hCreated": "Le face-à-face a été créé. Choisissez 2 ou 3 concurrents, puis lancez-le.",
+    "h2hCreated": "Face-à-face créé. Choisissez 2 ou 3 concurrents, puis déclenchez-le.",
     "h2hMode": "Comparer",
     "h2hTeams": "Équipes (cet événement)",
     "h2hPlayers": "Joueurs (cet événement)",
-    "h2hBracket": "Tableau du Clash Squad",
-    "h2hStage": "Phase à élimination directe",
-    "h2hStagePick": "Choisissez une étape",
-    "h2hBracketHint": "Affiche le tableau du Clash Squad de cette étape. Choisissez l'étape du Clash Squad.",
-    "h2hSlot": "{n}, concurrent",
+    "h2hBracket": "Tableau Clash Squad",
+    "h2hStage": "Phase du tableau",
+    "h2hStagePick": "Choisissez une phase",
+    "h2hBracketHint": "Affiche le tableau Clash Squad de cette phase. Choisissez la phase Clash Squad.",
+    "h2hSlot": "Concurrent {n}",
     "h2hOptional": "(facultatif)",
-    "h2hPick": "Choisis...",
-    "booyahFollow": "En direct : suivez le classement (l'équipe se classe en fonction de son dernier « booyah »)",
-    "bgBehavior": "Contexte",
-    "bgPersistent": "Toujours allumé (ne s'éteint jamais)",
-    "bgAnimate": "S'affiche avec une animation au chargement",
-    "kindMvp": "Conseil d'administration de MVP",
-    "kindTopKillers": "Meilleurs tueurs",
+    "h2hPick": "Choisir...",
+    "booyahFollow": "En direct : suivre le classement (l'équipe est définie automatiquement d'après le dernier booyah)",
+    "bgBehavior": "Arrière-plan",
+    "bgPersistent": "Toujours affiché (ne disparaît jamais)",
+    "bgAnimate": "Apparaît avec une animation au chargement",
+    "kindMvp": "Tableau MVP",
+    "kindTopKillers": "Meilleurs éliminateurs",
     "addMvp": "Ajouter un tableau MVP",
-    "addTopKillers": "Ajouter les meilleurs tueurs",
-    "mvpCreated": "Tableau MVP créé. Associez-y un design et définissez sa portée, puis copiez son lien une seule fois.",
-    "topKillersCreated": "Classement des meilleurs tueurs créé. Associez un design, choisissez sa portée, puis copiez son lien une fois."
+    "addTopKillers": "Ajouter les meilleurs éliminateurs",
+    "mvpCreated": "Tableau MVP créé. Associez-lui un design et choisissez sa portée, puis copiez son lien une seule fois.",
+    "topKillersCreated": "Tableau des meilleurs éliminateurs créé. Associez-lui un design et choisissez sa portée, puis copiez son lien une seule fois."
   },
   "mediaAudit": {
-    "title": "Médias audiovisuels",
-    "description": "Les logos des équipes et les images des joueurs d'e-sport s'affichent sur les superpositions à une taille fixe. Corrigez les décalages, signalez les visuels de mauvaise qualité (leur propriétaire sera averti afin de les remplacer) ou masquez un logo ou une image pour cet événement uniquement.",
-    "summary": "{teams} les équipes et les joueurs de l''{players}, absents des médias",
+    "title": "Médias de diffusion",
+    "description": "Les logos des équipes et les images e-sport des joueurs s'affichent sur les superpositions à une taille fixe. Comblez les manques, signalez un visuel non conforme (le propriétaire est averti pour le remplacer) ou masquez un logo ou une image pour cet événement uniquement.",
+    "summary": "{teams} équipes et {players} joueurs sans média",
     "teamLogos": "Logos des équipes",
-    "playerImages": "Images de joueurs d'e-sport",
+    "playerImages": "Images e-sport des joueurs",
     "missing": "manquant",
-    "flag": "Drapeau",
+    "flag": "Signaler",
     "flaggedBadge": "signalé",
     "flagReasonPrompt": "Pourquoi faudrait-il le remplacer ? (facultatif)",
-    "flagged": "Signalé. Le propriétaire a été invité à le remplacer.",
-    "flagError": "Je n'ai pas pu le signaler.",
-    "suppress": "Masquer cet événement",
+    "flagged": "Signalé. Le propriétaire a été averti pour le remplacer.",
+    "flagError": "Impossible de le signaler.",
+    "suppress": "Masquer sur cet événement",
     "restore": "Afficher à nouveau",
-    "suppressed": "C'est caché dans les superpositions de cet événement. Le fichier mis en ligne n'a pas été modifié.",
-    "restored": "À nouveau visible sur les incrustations de cet événement.",
+    "suppressed": "Masqué sur les superpositions de cet événement. Le fichier importé n'est pas modifié.",
+    "restored": "À nouveau affiché sur les superpositions de cet événement.",
     "suppressError": "Impossible de le mettre à jour.",
     "noTeams": "Aucune équipe n'est encore inscrite.",
-    "noPlayers": "Il n'y a pas encore de joueurs dans l'effectif.",
-    "loading": "Vérification des médias audiovisuels...",
-    "loadError": "Impossible de charger l'audit média.",
+    "noPlayers": "Il n'y a pas encore de joueurs dans les effectifs.",
+    "loading": "Vérification des médias de diffusion...",
+    "loadError": "Impossible de charger l'audit des médias.",
     "viewLarger": "Agrandir l'image",
-    "upload": "Télécharger une image",
-    "uploaded": "Mise à jour des médias.",
-    "uploadFailed": "Impossible de télécharger l'image.",
+    "upload": "Importer une image",
+    "uploaded": "Médias mis à jour.",
+    "uploadFailed": "Impossible d'importer l'image.",
     "download": "Télécharger",
     "downloadTitle": "Télécharger l'image",
     "downloadFailed": "Échec du téléchargement",
     "fileName": "Nom du fichier",
     "size": "Taille",
     "format": "Format",
-    "noFace": "Cette image ne comporte aucun visage identifiable. Une image de joueur d'e-sport doit être une photo du joueur, et non un logo.",
-    "uploadAnyway": "Téléverser quand même"
+    "noFace": "Cette image ne comporte aucun visage identifiable. Une image e-sport de joueur doit être une photo du joueur, et non un logo.",
+    "uploadAnyway": "Importer quand même"
   },
   "broadcastKit": {
     "title": "Kit de diffusion",
     "summary": "{teams} équipes",
-    "description": "Téléchargez les fichiers du client PC de Free Fire pour cet événement, déjà personnalisés. Décompressez-les dans votre dossier Free Fire_64_Data, puis lancez le client d'observateur.",
-    "warnLetters": "{count} Ces équipes n'ont pas de lettre attribuée ; elles n'apparaissent donc pas dans le jeu. Attribuez-leur une lettre dans l'onglet « Équipes inscrites ».",
-    "warnLogos": "{count} Certaines équipes ont une lettre mais pas de logo ; leur drapeau sera donc vierge.",
+    "description": "Téléchargez les fichiers du client PC de Free Fire pour cet événement, déjà personnalisés. Décompressez-les dans votre dossier Free Fire_64_Data, puis lancez le client observateur.",
+    "warnLetters": "{count} équipe(s) n'ont pas de lettre attribuée, elles n'auront donc pas de drapeau en jeu. Attribuez les lettres dans l'onglet « Équipes inscrites ».",
+    "warnLogos": "{count} équipe(s) ont une lettre mais pas de logo, leur drapeau sera donc vierge.",
     "colTeam": "Équipe",
     "colLetter": "Lettre",
     "colLogo": "Logo",
     "colPlayers": "Joueurs",
     "none": "aucun",
-    "casterName": "Nom du lanceur (facultatif)",
-    "casterUid": "UID de l'auteur (facultatif)",
-    "billboard": "Image de l'affiche (facultative)",
-    "skybox": "Image Skybox (facultative)",
+    "casterName": "Nom du commentateur (facultatif)",
+    "casterUid": "UID du commentateur (facultatif)",
+    "billboard": "Image du panneau (facultative)",
+    "skybox": "Image du ciel (facultative)",
     "download": "Télécharger le kit",
     "downloaded": "Kit téléchargé.",
-    "downloadFailed": "Je n'ai pas réussi à monter le kit.",
+    "downloadFailed": "Impossible de générer le kit.",
     "noTeams": "Aucune équipe n'est encore inscrite."
   }
 }

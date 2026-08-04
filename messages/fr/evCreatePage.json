@@ -1,7 +1,7 @@
 {
   "header": {
     "title": "Créer un nouvel événement",
-    "titleDuplicate": "Événement en double",
+    "titleDuplicate": "Dupliquer l'événement",
     "description": "Créez un nouvel événement pour votre organisation.",
     "duplicateHint": "Vous êtes en train de dupliquer un événement existant. Tous les détails ont été préremplis ; modifiez ce que vous souhaitez, puis validez la création."
   },
@@ -13,7 +13,7 @@
   "resume": {
     "title": "Voulez-vous reprendre la création de votre événement non enregistré ?",
     "description": "Vous avez commencé à créer un événement sans le terminer. Reprenez là où vous vous êtes arrêté ou recommencez depuis le début. Après avoir repris, joignez à nouveau toute bannière ou tout fichier de règles.",
-    "resume": "CV",
+    "resume": "Reprendre",
     "startFresh": "Prendre un nouveau départ"
   },
   "nav": {
@@ -27,22 +27,22 @@
     "draftRestored": "Le brouillon a été restauré. Si vous aviez joint une bannière ou un fichier de règles, veuillez les joindre à nouveau.",
     "draftModeSelected": "Mode « Brouillon » sélectionné. Les options de publication sont automatiquement désélectionnées.",
     "publishingSelected": "Option « Publier » sélectionnée. Le mode « Brouillon » est automatiquement désélectionné.",
-    "fillRequiredStageFields": "Veuillez remplir tous les champs obligatoires de cette étape",
+    "fillRequiredStageFields": "Veuillez remplir tous les champs obligatoires de la phase",
     "roundRobinTwoGroups": "Une phase de tournoi à la ronde nécessite au moins deux groupes de base.",
     "baseGroupLabel": "Chaque groupe de base doit porter une étiquette.",
     "gamesPerDayMin": "Il faut qu'il y ait au moins un match par jour.",
     "completeGroupDetails": "Veuillez remplir correctement toutes les informations relatives au groupe, notamment en sélectionnant au moins une carte par groupe.",
-    "stageAtLeastOneGroup": "Une étape doit comporter au moins un groupe.",
-    "stageSaved": "L'étape a été enregistrée avec succès",
-    "stageMoved": "Déplacé de {name} à {direction}",
-    "stageDeleted": "L'étape a été supprimée avec succès",
-    "eventAtLeastOneStage": "Un événement doit comporter au moins une étape.",
-    "numStagesMin": "Le nombre d'étapes doit être au moins égal à 1.",
-    "configureAllStages": "Veuillez configurer toutes les étapes d''{total}ation avant de continuer. Seule l'étape {configured} a été configurée.",
-    "stagesNotConfigured": "Une ou plusieurs étapes n'ont pas été entièrement configurées avec des groupes.",
+    "stageAtLeastOneGroup": "Une phase doit comporter au moins un groupe.",
+    "stageSaved": "La phase a été enregistrée avec succès",
+    "stageMoved": "Phase {name} déplacée {direction}",
+    "stageDeleted": "La phase a été supprimée avec succès",
+    "eventAtLeastOneStage": "Un événement doit comporter au moins une phase.",
+    "numStagesMin": "Le nombre de phases doit être au moins égal à 1.",
+    "configureAllStages": "Veuillez configurer les {total} phases avant de continuer. Seules {configured} sont configurées.",
+    "stagesNotConfigured": "Une ou plusieurs phases n'ont pas été entièrement configurées avec des groupes.",
     "enterEventRules": "Veuillez saisir le règlement de l'événement.",
     "uploadRulesDocument": "Veuillez mettre en ligne le document contenant le règlement.",
-    "moreIssues": "(+ {count}, etc.)",
+    "moreIssues": "(+{count} autres)",
     "discordInviteRequired": "Ajoutez un lien d'invitation Discord pour rendre l'inscription sur Discord obligatoire.",
     "serverError": "Erreur serveur : format de réponse inattendu.",
     "sponsorAttachFailed": "L'événement a été créé, mais l'ajout des sponsors a échoué pour : {names}. Veuillez les ajouter à nouveau depuis l'onglet « Sponsors » de l'événement.",
@@ -52,10 +52,10 @@
     "someFieldsMissing": "Certains champs obligatoires ne sont pas remplis. Veuillez vérifier chaque étape.",
     "pleaseFix": "Merci de corriger : {details}",
     "fieldRequired": "obligatoire",
-    "duplicating": "Dupliquer « {name} ». Modifiez les détails, puis créez-le.",
+    "duplicating": "Duplication de « {name} ». Modifiez les détails, puis créez l'événement.",
     "duplicateLoadFailed": "Impossible de charger l'événement à dupliquer.",
-    "prizeDistributionOver": "Le montant total de vos gains s'élève à {sum} {currency}, ce qui est {diff} {currency} SUPÉRIEUR à la valeur en espèces de la cagnotte ({cash} {currency}). Veuillez ajuster les montants afin qu'ils correspondent exactement.",
-    "prizeDistributionUnder": "Le montant total de vos gains s'élève à {sum} {currency}, ce qui est {diff} {currency} INFÉRIEUR à la valeur en espèces de la cagnotte ({cash} {currency}). Veuillez ajuster les montants afin qu'ils correspondent exactement.",
+    "prizeDistributionOver": "Votre répartition des prix totalise {sum} {currency}, soit {diff} {currency} de PLUS que la valeur en espèces de la cagnotte ({cash} {currency}). Ajustez les montants pour qu'ils correspondent exactement.",
+    "prizeDistributionUnder": "Votre répartition des prix totalise {sum} {currency}, soit {diff} {currency} de MOINS que la valeur en espèces de la cagnotte ({cash} {currency}). Ajustez les montants pour qu'ils correspondent exactement.",
     "direction": {
       "up": "vers le haut",
       "down": "vers le bas"
@@ -63,10 +63,10 @@
   },
   "prizeValidate": {
     "required": "La valeur en espèces de la cagnotte doit être indiquée.",
-    "over": "La distribution des lots s'effectue via la valeur en espèces proposée par {amount} {currency}. Réduisez-la à {target} {currency}.",
-    "under": "La distribution des prix s'effectue en fonction de la valeur en espèces indiquée par {amount} {currency}. Ajoutez {amount} {currency} pour accéder à {target} {currency}."
+    "over": "La répartition des prix DÉPASSE la valeur en espèces de {amount} {currency}. Réduisez-la à {target} {currency}.",
+    "under": "La répartition des prix est INFÉRIEURE à la valeur en espèces de {amount} {currency}. Ajoutez {amount} {currency} pour atteindre {target} {currency}."
   },
   "misc": {
-    "stageFallback": "Scène"
+    "stageFallback": "Phase"
   }
 }

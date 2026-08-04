@@ -1,12 +1,12 @@
 {
-  "minChars": "{field} doit comporter au moins{min}s de caractères.",
+  "minChars": "{field} doit comporter au moins {min} caractères.",
   "unsafeChars": "{field} ne peut contenir que des lettres, des chiffres, des espaces et des symboles de base (_, -, ., ', @). Les caractères spéciaux, tels que les emojis ou le texte Unicode fantaisie, ne sont pas autorisés.",
   "unsafeCharsShort": "{field} ne peut contenir que des lettres, des chiffres, des espaces et des symboles de base (_, -, ., ', @).",
   "fields": {
     "ingameName": "Pseudo dans le jeu",
     "fullName": "Nom complet",
     "teamName": "Nom de l'équipe",
-    "teamTag": "Étiquette d'équipe"
+    "teamTag": "Tag d'équipe"
   },
   "uidMin": "L'UID doit comporter au moins 2 caractères.",
   "uidRequired": "L'UID est obligatoire.",
@@ -25,7 +25,7 @@
   "nameMin": "Le nom doit comporter au moins 2 caractères.",
   "messageMin": "Le message doit comporter au moins 2 caractères.",
   "teamDescriptionMin": "La description de l'équipe doit comporter au moins 2 caractères.",
-  "joinSettingsRequired": "Les paramètres de jonction doivent être sélectionnés.",
+  "joinSettingsRequired": "Les paramètres d'adhésion doivent être sélectionnés.",
   "teamIdRequired": "L'identifiant de l'équipe est obligatoire.",
   "roomIdMin": "L'identifiant doit comporter au moins 1 caractère.",
   "roomNameMin": "Le nom doit comporter au moins 1 caractère.",

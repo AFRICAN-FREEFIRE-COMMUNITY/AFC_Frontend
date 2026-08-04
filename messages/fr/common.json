@@ -32,7 +32,7 @@
     "profile": "Profil",
     "glossary": "Glossaire",
     "awards": "Récompenses",
-    "tournamentsScrims": "Tournois et matchs d'entraînement",
+    "tournamentsScrims": "Tournois et scrims",
     "rankingsTiers": "Classements et niveaux",
     "playerMarkets": "Marchés des joueurs",
     "newsUpdates": "Actualités et mises à jour",
@@ -119,7 +119,7 @@
   },
   "cart": {
     "title": "Votre panier",
-    "itemCount": "{count, plural,  one { # article }  other { # articles } }",
+    "itemCount": "{count, plural, one {# article} other {# articles}}",
     "clearAll": "Tout effacer",
     "empty": "Votre panier est un peu vide !",
     "goToShop": "Aller à la boutique",
@@ -191,6 +191,6 @@
   "eventTime": {
     "to": "à",
     "yourTime": "(heure locale)",
-    "host": "(animateur)"
+    "host": "(heure de l'organisateur)"
   }
 }

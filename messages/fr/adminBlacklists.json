@@ -1,0 +1,52 @@
+{
+  "title": "Listes noires",
+  "description": "Toutes les listes noires des organisateurs, toutes organisations confondues : combien de fois, par qui et pourquoi.",
+  "loadFailed": "Impossible de charger les listes noires.",
+  "stats": {
+    "total": "Total des listes noires",
+    "active": "Actives maintenant",
+    "activeSub": "Bloquent actuellement les inscriptions",
+    "topOrg": "Organisation en tête",
+    "topOrgSub": "{count, plural, one {# liste noire prononcée} other {# listes noires prononcées}}",
+    "topTeam": "Équipe la plus bloquée",
+    "topTeamSub": "{count, plural, one {# fois} other {# fois}}"
+  },
+  "filters": {
+    "search": "Rechercher",
+    "searchPlaceholder": "Rechercher par équipe ou organisation...",
+    "status": "Statut",
+    "statusPlaceholder": "Filtrer par statut",
+    "allStatuses": "Tous les statuts",
+    "from": "Du",
+    "to": "Au"
+  },
+  "status": {
+    "active": "Active",
+    "expired": "Expirée",
+    "lifted": "Levée"
+  },
+  "empty": {
+    "noMatch": "Aucune liste noire ne correspond à ces filtres.",
+    "none": "Aucune liste noire d'organisateur pour le moment."
+  },
+  "table": {
+    "organization": "Organisation",
+    "target": "Cible",
+    "reason": "Motif",
+    "status": "Statut",
+    "start": "Début",
+    "end": "Fin",
+    "lifted": "Levée",
+    "players": "Joueurs"
+  },
+  "row": {
+    "playerBadge": "Joueur",
+    "unknownUser": "Utilisateur #{id}",
+    "unknownTeam": "Équipe #{id}",
+    "liftedByOn": "{name} le {date}",
+    "liftedByOrganizer": "Par l'organisateur"
+  },
+  "pagination": {
+    "showing": "Affichage de {from}-{to} sur {total}"
+  }
+}

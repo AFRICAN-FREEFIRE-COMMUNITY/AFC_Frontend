@@ -6,7 +6,7 @@
         "description": "Voici votre espace sponsor. Utilisez l'en-tête pour revenir au site principal ou vous déconnecter. Vous trouverez ci-dessous tout ce dont vous avez besoin pour gérer vos événements sponsorisés."
       },
       "welcome": {
-        "title": "Votre tableau de bord de parrainage",
+        "title": "Votre tableau de bord sponsor",
         "description": "Un aperçu rapide des inscrits à tous les événements que vous parrainez, pour que vous puissiez identifier d'un seul coup d'œil les points qui nécessitent votre attention."
       },
       "filters": {
@@ -15,7 +15,7 @@
       },
       "list": {
         "title": "Vos événements et vos inscrits",
-        "description": "Ouvrez une manifestation pour consulter la liste des joueurs inscrits sous votre parrainage, les valider ou les refuser, puis exportez cette liste lorsque vous en avez besoin."
+        "description": "Ouvrez un événement pour consulter les joueurs inscrits sous votre parrainage, les valider ou les refuser, puis exportez la liste lorsque vous en avez besoin."
       }
     }
   },
@@ -26,37 +26,37 @@
     "emptyCreate": "Aucun sponsor trouvé. Créez-en un en cliquant sur le bouton ci-dessous.",
     "intro": "Sélectionnez des sponsors existants (pas de noms saisis librement). Un événement peut compter plusieurs sponsors ; chacun apporte ses propres engagements.",
     "introCreateSuffix": "Les sponsors sont ajoutés dès la création de l'événement.",
-    "searchPlaceholder": "Rechercher un parrain...",
+    "searchPlaceholder": "Rechercher un sponsor...",
     "searching": "Recherche en cours...",
-    "eventsCount": "{count, plural,  one { # événement }  other { # événements } } jusqu'à présent",
+    "eventsCount": "{count, plural, one {# événement} other {# événements}} jusqu'à présent",
     "noneAdded": "Aucun sponsor n'a encore été ajouté. Utilisez le champ de recherche ci-dessus pour en ajouter un.",
-    "attached": "ci-joint",
-    "willAttach": "sera joint lors de la création",
+    "attached": "associé",
+    "willAttach": "sera associé à la création",
     "removeSponsor": "Supprimer « {name} »",
-    "mustApprove": "L'organisateur doit valider les inscriptions",
+    "mustApprove": "Le sponsor doit valider les inscriptions",
     "engagementsHeading": "Engagements",
-    "noEngagements": "Aucune activité pour l'instant. Ajoutez-en une ci-dessous ; les participants devront les réaliser dans cet ordre.",
-    "entryN": "{n} de l'entrée",
+    "noEngagements": "Aucun engagement pour l'instant. Ajoutez-en un ci-dessous ; les inscrits les réalisent dans cet ordre.",
+    "entryN": "Entrée {n}",
     "moveUp": "Remonter",
     "moveDown": "Descendre",
     "deleteEngagement": "Supprimer l'engagement",
-    "addEngagement": "Renforcer l'engagement",
-    "multiCollectNote": "Chaque entrée « identifiant de collecte » correspond à un champ distinct lors de l'inscription ; un parrain peut donc demander plusieurs valeurs.",
+    "addEngagement": "Ajouter un engagement",
+    "multiCollectNote": "Chaque entrée « collecter un identifiant » correspond à un champ distinct lors de l'inscription ; un sponsor peut donc demander plusieurs valeurs.",
     "engType": {
-      "collect_id": "Obtenir une pièce d'identité",
-      "follow_social": "Suivez-nous sur les réseaux sociaux",
+      "collect_id": "Collecter un identifiant",
+      "follow_social": "Suivre les réseaux sociaux",
       "create_account": "Créer un compte",
       "join_group": "Rejoindre un groupe"
     },
     "badge": {
-      "collect_id": "collecter l'identifiant",
-      "follow_social": "Suivez-nous sur les réseaux sociaux",
-      "create_account": "Créer un compte",
+      "collect_id": "collecter un identifiant",
+      "follow_social": "suivre les réseaux sociaux",
+      "create_account": "créer un compte",
       "join_group": "rejoindre un groupe"
     },
     "socialAction": {
       "follow": "suivre",
-      "like": "comme",
+      "like": "aimer",
       "share": "partager"
     },
     "fields": {
@@ -70,10 +70,10 @@
       "followUrlPlaceholder": "par exemple : instagram.com/ydpay",
       "followActions": "Actions",
       "followCollectProfile": "Récupérer le lien vers le profil de l'inscrit",
-      "followCollectProfileYes": "Oui, demande-leur le lien vers leur profil",
+      "followCollectProfileYes": "oui, demander le lien de leur profil",
       "createSignupUrl": "Lien d'inscription",
       "createSignupUrlPlaceholder": "par exemple : app.sponsor.com/signup",
-      "createLabel": "Étiquette de terrain collectée",
+      "createLabel": "Libellé du champ collecté",
       "createLabelPlaceholder": "par exemple : nom d'utilisateur de l'application",
       "joinPlatform": "Plateforme",
       "joinPlatformPlaceholder": "Choisissez une plateforme",
@@ -83,19 +83,19 @@
       "joinInviteUrlPlaceholder": "par exemple : chat.whatsapp.com/votre-communauté"
     },
     "issues": {
-      "where": "{sponsor} : page {n}",
-      "collectIdLabel": "{where} (Obtenir un identifiant) nécessite une libellé de champ.",
-      "followPlatform": "{where} (Suivez-nous sur les réseaux sociaux) a besoin d'une plateforme.",
-      "followUrl": "{where} (Suivre sur les réseaux sociaux) nécessite une URL de page.",
-      "followAction": "{where} (Suivre sur les réseaux sociaux) nécessite au moins une action.",
-      "createAccountLabel": "{where} (Créer un compte) nécessite une libellé de champ.",
+      "where": "{sponsor} : entrée {n}",
+      "collectIdLabel": "{where} (Collecter un identifiant) nécessite un libellé de champ.",
+      "followPlatform": "{where} (Suivre les réseaux sociaux) nécessite une plateforme.",
+      "followUrl": "{where} (Suivre les réseaux sociaux) nécessite une URL de page.",
+      "followAction": "{where} (Suivre les réseaux sociaux) nécessite au moins une action.",
+      "createAccountLabel": "{where} (Créer un compte) nécessite un libellé de champ.",
       "createAccountUrl": "{where} (Créer un compte) nécessite une URL d'inscription.",
       "joinPlatform": "{where} (Rejoindre un groupe) nécessite une plateforme.",
       "joinInvite": "{where} (Rejoindre un groupe) nécessite un lien d'invitation."
     },
     "modal": {
       "title": "Créer un sponsor",
-      "description": "Les événements liés au profil de la marque auxquels les membres participent et auxquels ils sont affiliés.",
+      "description": "Le profil de marque auquel les événements sont rattachés et auquel les membres appartiennent.",
       "nameLabel": "Nom",
       "namePlaceholder": "par exemple : ydpay",
       "websiteLabel": "Site web (facultatif)",
@@ -103,9 +103,9 @@
       "descriptionLabel": "Description (facultative)",
       "cancel": "Annuler",
       "submit": "Créer",
-      "nameRequired": "Donnez un nom au parrain.",
-      "created": "Parrain créé.",
-      "createFailed": "Échec de la création du parrain."
+      "nameRequired": "Donnez un nom au sponsor.",
+      "created": "Sponsor créé.",
+      "createFailed": "Échec de la création du sponsor."
     }
   }
 }
