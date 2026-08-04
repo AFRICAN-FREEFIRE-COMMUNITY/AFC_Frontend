@@ -45,15 +45,28 @@ import {
 
 export type RosterPlayer = { user_id: number; name: string };
 
-/** A Free Fire squad is four. The backend enforces the same number on submit, so this constant
- *  exists to keep the form from letting a team build something the server will refuse. */
-const MAX_PLAYERS_PER_MAP = 4;
+/** How many players may be marked as having played ONE map, by event format.
+ *
+ *  This was hardcoded to four, which made the form unusable on DUO events: it demanded exactly
+ *  four ticks while the backend refused more than two, so every Send failed with no way for the
+ *  team to satisfy both. Mirrors `PLAYERS_PER_MAP` in
+ *  backend/afc_tournament_and_scrims/views_team_submissions.py, including the fall back to the
+ *  squad size for an unrecognised or missing type. */
+const PLAYERS_PER_MAP: Record<string, number> = { solo: 1, duo: 2, squad: 4 };
+const SQUAD_PLAYERS_PER_MAP = 4;
+
+const playersPerMap = (participantType?: string | null) =>
+  PLAYERS_PER_MAP[(participantType || "").trim().toLowerCase()] ?? SQUAD_PLAYERS_PER_MAP;
 
 export function TeamMapResultPanel({
   matchId,
   roster,
+  participantType,
 }: {
   matchId: number;
+  /** The event's format (solo / duo / squad). Decides how many players may be marked as having
+   *  played this map, so the form asks for the number the backend will actually accept. */
+  participantType?: string | null;
   /** The player's own team-mates. Supplied by the caller because the event page already has the
    *  roster loaded; refetching it here would be a second request for data on the screen. */
   roster: RosterPlayer[];
@@ -68,20 +81,21 @@ export function TeamMapResultPanel({
   const [kills, setKills] = useState<Record<number, string>>({});
 
   // WHO PLAYED, and why this is a choice rather than the whole roster.
-  // A Free Fire squad is FOUR, but a team's roster holds up to six (substitutes). The backend
-  // refuses a submission marking more than four as having played ("At most four players can be
-  // marked as having played a map."), so sending the whole roster made the form unusable for any
-  // team with a bench: they filled it in, pressed send, and were refused every time. The team
-  // picks the four who were actually in the lobby, which is information only they have anyway.
-  // Seeded with the first four so the common case (a roster of exactly four) is one less step.
+  // A roster holds up to six (substitutes) while a map is played by the event's squad size. The
+  // backend refuses a submission marking more than that many as having played, so sending the
+  // whole roster made the form unusable for any team with a bench: they filled it in, pressed
+  // send, and were refused every time. The team picks the players who were actually in the lobby,
+  // which is information only they have anyway. Seeded with the first `maxPlayers` so the common
+  // case (a roster of exactly the squad size) is one less step.
+  const maxPlayers = playersPerMap(participantType);
   const [played, setPlayed] = useState<Record<number, boolean>>({});
   useEffect(() => {
     setPlayed((prev) =>
       Object.keys(prev).length > 0
         ? prev
-        : Object.fromEntries(roster.slice(0, MAX_PLAYERS_PER_MAP).map((p) => [p.user_id, true])),
+        : Object.fromEntries(roster.slice(0, maxPlayers).map((p) => [p.user_id, true])),
     );
-  }, [roster]);
+  }, [roster, maxPlayers]);
 
   const playedIds = roster.filter((p) => played[p.user_id]).map((p) => p.user_id);
 
@@ -109,8 +123,8 @@ export function TeamMapResultPanel({
     }
     // Checked client-side as well as server-side so the team is told BEFORE they press send, not
     // by a refusal afterwards.
-    if (!didNotPlay && playedIds.length !== MAX_PLAYERS_PER_MAP) {
-      toast.error(t("team.pickFour", { count: MAX_PLAYERS_PER_MAP }));
+    if (!didNotPlay && playedIds.length !== maxPlayers) {
+      toast.error(t("team.pickFour", { count: maxPlayers }));
       return;
     }
     setSending(true);
@@ -175,15 +189,15 @@ export function TeamMapResultPanel({
           <div className="space-y-2">
             <Label className="text-xs">{t("team.players")}</Label>
             <p className="text-xs text-muted-foreground">
-              {t("team.pickFour", { count: MAX_PLAYERS_PER_MAP })}
+              {t("team.pickFour", { count: maxPlayers })}
               {" "}
-              {t("team.selectedCount", { selected: playedIds.length, max: MAX_PLAYERS_PER_MAP })}
+              {t("team.selectedCount", { selected: playedIds.length, max: maxPlayers })}
             </p>
             {roster.map((p) => {
               const isOn = Boolean(played[p.user_id]);
               // A fifth tick is refused rather than silently swapping someone out: the team should
               // untick whoever sat out, so the choice stays theirs and stays visible.
-              const atLimit = !isOn && playedIds.length >= MAX_PLAYERS_PER_MAP;
+              const atLimit = !isOn && playedIds.length >= maxPlayers;
               return (
                 <div key={p.user_id} className="flex items-center justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2">

@@ -5762,6 +5762,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                       {teamResultMatchId && (
                         <TeamMapResultPanel
                           matchId={teamResultMatchId}
+                          // The event's format decides how many players may be marked as having
+                          // played a map. Without it the panel assumed a squad of four and every
+                          // Send on a DUO event was refused by the backend, with no way for the
+                          // team to satisfy both sides.
+                          participantType={eventDetails.participant_type}
                           roster={(userTeam.members || []).map((mem) => ({
                             user_id: Number(mem.id),
                             name: mem.username,

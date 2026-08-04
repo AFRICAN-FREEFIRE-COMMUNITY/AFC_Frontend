@@ -74,6 +74,11 @@ export type TeamMapSubmission = {
   reviewed_by_username: string;
   reviewed_at: string | null;
   review_note: string;
+  /** `{ "7709": "NXT TYSTER" }` for every player named in either payload, so the organizer's
+   *  queue can show WHOSE ranking the kills land in rather than a bare total. Keyed by the id as
+   *  a string because it arrives as a JSON object. Missing ids are simply absent, and the UI
+   *  falls back to the id: a deleted account should not blank the row. */
+  player_names?: Record<string, string>;
   submitted_payload?: TeamResultPayload | null;
   /** What was ACTUALLY written. Null until approved. When it differs from submitted_payload,
    *  the organizer corrected something, and showing both is what makes that visible instead of

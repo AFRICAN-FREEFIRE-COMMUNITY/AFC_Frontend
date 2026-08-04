@@ -198,6 +198,25 @@ export function TeamResultQueue({ matchId }: { matchId: number }) {
                   : `${t("queue.placementLabel", { placement: payload?.placement ?? 0 })}, ${t("queue.kills", { count: kills })}`}
               </p>
 
+              {/* WHO the kills are being credited to. Approval is the only thing standing between
+                  a submission and the standings, so the organizer has to see the per-player split
+                  rather than a total: 12 kills is not reviewable, "4 to this player, 8 to that
+                  one" is. The backend also refuses any player not on this team's event roster,
+                  so these names are the roster, not whoever the payload named. */}
+              {payload?.played !== false && (payload?.players?.length ?? 0) > 0 && (
+                <ul className="flex flex-wrap gap-x-3 gap-y-0.5">
+                  {payload!.players
+                    .filter((p) => p.played !== false)
+                    .map((p) => (
+                      <li key={p.user_id} className="text-xs text-muted-foreground">
+                        {row.player_names?.[String(p.user_id)] ?? `#${p.user_id}`}
+                        {": "}
+                        {t("queue.kills", { count: Number(p.kills) || 0 })}
+                      </li>
+                    ))}
+                </ul>
+              )}
+
               {/* A conflict lives ON the row it affects. Put in a summary elsewhere it reads as
                   background noise; here it is impossible to approve without seeing it. */}
               {(row.conflicts?.length ?? 0) > 0 && (
