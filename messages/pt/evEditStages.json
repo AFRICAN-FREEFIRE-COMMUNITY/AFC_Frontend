@@ -85,7 +85,7 @@
   "stageDiscordRoleId": "ID da função no Discord do Stage",
   "discordRolePlaceholder": "por exemplo: 1234567890",
   "stagePrizePool": "Prémio total da etapa (opcional)",
-  "configureGroupsNext": "Na próxima etapa, irá configurar um ou mais grup{count}es",
+  "configureGroupsNext": "Irá configurar {count} grupo(s) na próxima etapa",
   "stageColon": "Fase:",
   "dateTo": "para",
   "stagePrizeColon": "Prémio da etapa:",

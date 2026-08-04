@@ -52,7 +52,7 @@
   "noPositions": "Ainda não foram adicionadas posições. Clique abaixo para adicionar uma.",
   "prizeValuePlaceholder": "por exemplo, 200 $ ou 1000 Diamantes",
   "addPrizePosition": "Adicionar posição do prémio",
-  "configureGroupsNext": "Na próxima etapa, irá configurar um ou mais grup{count}es",
+  "configureGroupsNext": "Irá configurar {count} grupo(s) na próxima etapa",
   "stageLabel": "Fase:",
   "dateFormatLine": "{start} para {end} | {format}",
   "stagePrize": "Prémio da etapa: {prize}",

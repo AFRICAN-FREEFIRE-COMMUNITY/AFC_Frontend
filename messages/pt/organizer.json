@@ -587,7 +587,7 @@
     "teamFallback": "Equipa n.º {id}",
     "userFallback": "Utilizador n.º {id}",
     "lift": {
-      "button": "Elevador",
+      "button": "Levantar",
       "confirmTitle": "Retirar esta lista negra?",
       "confirmDescription": "{team} e todas as pessoas incluídas nesse instantâneo poderão voltar a inscrever-se nos seus eventos de imediato. Esta ação não pode ser revertida.",
       "thisTeam": "Esta equipa",
@@ -601,8 +601,8 @@
       "lifted": "Elevado"
     },
     "requests": {
-      "title": "Pedidos de elevador ({count})",
-      "empty": "Não há pedidos de elevador pendentes.",
+      "title": "Pedidos de levantamento ({count})",
+      "empty": "Não há pedidos de levantamento pendentes.",
       "wholeTeam": "Toda a equipa",
       "player": "Jogador: {name}",
       "requestedBy": "Solicitado por",
@@ -613,7 +613,7 @@
       "deny": "Negar",
       "approve": "Aprovar",
       "denyTitle": "Recusar pedido de transporte",
-      "approveTitle": "Aprovar pedido de elevador",
+      "approveTitle": "Aprovar pedido de levantamento",
       "noteLabel": "Nota (opcional)",
       "notePlaceholder": "Adicione uma breve nota para o requerente."
     },
@@ -646,8 +646,8 @@
       "createError": "Não foi possível colocar a equipa na lista negra.",
       "lifted": "A lista negra foi levantada.",
       "liftError": "Não foi possível retirar a inclusão na lista negra.",
-      "requestApproved": "Pedido de elevador aprovado.",
-      "requestDenied": "Pedido de elevador recusado.",
+      "requestApproved": "Pedido de levantamento aprovado.",
+      "requestDenied": "Pedido de levantamento recusado.",
       "decideError": "Não foi possível decidir sobre o pedido.",
       "lookupError": "A pesquisa falhou.",
       "pickPlayer": "Escolhe um jogador para colocar na lista negra."
