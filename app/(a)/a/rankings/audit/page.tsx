@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,9 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { FullLoader } from "@/components/Loader";
+// changed_at is a UTC DateTimeField (afc_rankings.AuditLog), i.e. an instant, so it renders
+// through LocalTime: the VIEWER's timezone + the active UI language, hydration-safe.
+import { LocalTime } from "@/components/LocalTime";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { Season } from "@/lib/rankings";
 import { matchesSearch } from "@/lib/search";
@@ -37,22 +41,22 @@ import { InfoTip } from "@/components/ui/info-tip";
 // One entry per object_type the backend audit logger emits (admin_audit; spec §16, every
 // write is logged). Every reason-gated action across the sibling rankings admin pages -
 // results / overrides / ghost-teams / social / prize / seasons - lands here as one of these.
+// Only the RAW enum values live here: they are sent back to the API as the ?object_type=
+// filter. The friendly label of each one is translated copy and lives in the message
+// catalog under rankings.admin.audit.objectTypes.<value>.
 const OBJECT_TYPES = [
-  { value: "tournament_result", label: "Tournament result" },
-  { value: "scrim_result", label: "Scrim result" },
-  { value: "prize_money", label: "Prize money" },
-  { value: "social_media", label: "Social media" },
-  { value: "roster", label: "Roster" },
-  { value: "ghost_claim", label: "Ghost claim" },
-  { value: "tier_override", label: "Tier override" },
-  { value: "ban_zeroing", label: "Ban / zeroing" },
-  { value: "transfer_window", label: "Transfer window" },
-  { value: "season", label: "Season" },
-  { value: "evaluation", label: "Evaluation" },
+  "tournament_result",
+  "scrim_result",
+  "prize_money",
+  "social_media",
+  "roster",
+  "ghost_claim",
+  "tier_override",
+  "ban_zeroing",
+  "transfer_window",
+  "season",
+  "evaluation",
 ] as const;
-
-const TYPE_LABEL: Record<string, string> =
-  Object.fromEntries(OBJECT_TYPES.map((t) => [t.value, t.label]));
 
 // Per-type badge colour so the table scans fast. Destructive things read red/orange.
 const TYPE_TONE: Record<string, string> = {
@@ -68,14 +72,6 @@ const TYPE_TONE: Record<string, string> = {
   season: "text-muted-foreground border-border",
   evaluation: "text-primary border-primary/50",
 };
-
-function fmtTime(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleString(undefined, {
-    year: "numeric", month: "short", day: "2-digit",
-    hour: "2-digit", minute: "2-digit",
-  });
-}
 
 // One audit row as returned by GET /rankings/admin/audit-log/ (admin_audit.serialize_audit).
 interface AuditRow {
@@ -123,32 +119,35 @@ interface RawResponse {
   raw: RawBreakdown;
 }
 
-// Human labels for the raw-breakdown component keys, in display order.
-const RAW_LABELS: { key: keyof RawBreakdown; label: string }[] = [
-  { key: "tournament_pts", label: "Tournament points" },
-  { key: "scrim_pts", label: "Scrim points" },
-  { key: "kill_pts", label: "Kill points" },
-  { key: "placement_pts", label: "Placement points" },
-  { key: "mvp_pts", label: "MVP points" },
-  { key: "finals_pts", label: "Finals points" },
-  { key: "team_win_pts", label: "Team-win points" },
-  { key: "participation_pts", label: "Participation points" },
-  { key: "scrim_kill_pts", label: "Scrim kill points" },
-  { key: "scrim_win_pts", label: "Scrim win points" },
-  { key: "prize_money_pts", label: "Prize-money points" },
-  { key: "social_media_pts", label: "Social-media points" },
+// The raw-breakdown component keys, in display order. The human label of each one is
+// translated copy: rankings.admin.audit.raw.components.<key> in the message catalog.
+const RAW_COMPONENT_KEYS: (keyof RawBreakdown)[] = [
+  "tournament_pts",
+  "scrim_pts",
+  "kill_pts",
+  "placement_pts",
+  "mvp_pts",
+  "finals_pts",
+  "team_win_pts",
+  "participation_pts",
+  "scrim_kill_pts",
+  "scrim_win_pts",
+  "prize_money_pts",
+  "social_media_pts",
 ];
 
 // Tiebreaker / count keys shown as a compact footer chip row, not as score rows.
-const RAW_COUNTS: { key: keyof RawBreakdown; label: string }[] = [
-  { key: "wins", label: "Wins" },
-  { key: "kills", label: "Kills" },
-  { key: "mvps", label: "MVPs" },
-  { key: "finals_appearances", label: "Finals" },
-  { key: "tournaments_played", label: "Tournaments" },
+// Labels: rankings.admin.audit.raw.counts.<key>.
+const RAW_COUNT_KEYS: (keyof RawBreakdown)[] = [
+  "wins",
+  "kills",
+  "mvps",
+  "finals_appearances",
+  "tournaments_played",
 ];
 
 export default function AuditLogPage() {
+  const t = useTranslations("rankings.admin.audit");
   // ── audit log state ──────────────────────────────────────────────────────
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,7 +174,7 @@ export default function AuditLogPage() {
       })
       .catch((err: any) => {
         if (!active) return;
-        toast.error(err?.response?.data?.message || "Failed to load audit log");
+        toast.error(err?.response?.data?.message || t("loadFailed"));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -183,6 +182,8 @@ export default function AuditLogPage() {
     return () => {
       active = false;
     };
+    // `t` is only read inside the error toast; re-fetching on a language change is not wanted.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, from, to]);
 
   // Reason free-text narrowing happens on the already-fetched rows.
@@ -195,6 +196,13 @@ export default function AuditLogPage() {
 
   const clearFilters = () => { setType("all"); setQ(""); setFrom(""); setTo(""); };
   const filtersActive = type !== "all" || q.trim() !== "" || from !== "" || to !== "";
+
+  // Friendly label for an object_type enum. A value the frontend does not know about (the
+  // backend can add new choices) falls back to the RAW enum, which is API data, not UI copy.
+  const typeLabel = (value: string) =>
+    (OBJECT_TYPES as readonly string[]).includes(value)
+      ? t(`objectTypes.${value}` as never)
+      : value;
 
   // ── raw data viewer state ────────────────────────────────────────────────
   const [rawOpen, setRawOpen] = useState(false);
@@ -215,7 +223,9 @@ export default function AuditLogPage() {
 
   const loadRaw = () => {
     if (!rawSubjectId) {
-      toast.error(rawKind === "team" ? "Pick a team to view." : "Pick a player to view.");
+      // Separate keys per kind: "a team" / "a player" take a different article and gender
+      // in French and Portuguese, so this cannot be one sentence plus a noun.
+      toast.error(rawKind === "team" ? t("raw.pickTeam") : t("raw.pickPlayer"));
       return;
     }
     setRawLoading(true);
@@ -226,7 +236,7 @@ export default function AuditLogPage() {
     req
       .then((r: RawResponse) => setRaw(r))
       .catch((err: any) =>
-        toast.error(err?.response?.data?.message || "Failed to load raw data"))
+        toast.error(err?.response?.data?.message || t("raw.loadFailed")))
       .finally(() => setRawLoading(false));
   };
 
@@ -238,14 +248,14 @@ export default function AuditLogPage() {
 
   // Only the component rows the current breakdown actually carries.
   const rawScoreRows = raw
-    ? RAW_LABELS.filter(({ key }) => raw.raw[key] != null)
+    ? RAW_COMPONENT_KEYS.filter((key) => raw.raw[key] != null)
     : [];
   const rawCountChips = raw
-    ? RAW_COUNTS.filter(({ key }) => raw.raw[key] != null)
+    ? RAW_COUNT_KEYS.filter((key) => raw.raw[key] != null)
     : [];
   const rawSubjectName = raw?.team_name ?? raw?.username ?? "";
 
-  if (loading && rows.length === 0) return <FullLoader text="Loading audit log" />;
+  if (loading && rows.length === 0) return <FullLoader text={t("loading")} />;
 
   return (
     <div className="space-y-4">
@@ -255,17 +265,17 @@ export default function AuditLogPage() {
         // data-tour anchor: audit tour "Audit log" step.
         title={
           <span data-tour="audit-title" className="inline-flex items-center">
-            Audit Log
+            {t("title")}
             <InfoTip id="rankings.audit._page" className="ml-1.5" />
           </span>
         }
-        description="Every ranking edit, override, and recalculation, who, what, when, and why. Plus the admins-only raw scoring data."
+        description={t("description")}
         action={
           // ⓘ sits beside the raw-data button (sibling, not nested).
           <div className="flex items-center gap-1">
             {/* data-tour anchor: audit tour "Raw data breakdown" step. */}
             <Button data-tour="audit-raw" variant="outline" onClick={() => setRawOpen(true)}>
-              <IconDatabase className="mr-1.5 size-4" /> Raw data viewer
+              <IconDatabase className="mr-1.5 size-4" /> {t("rawViewerCta")}
             </Button>
             <InfoTip id="rankings.audit.raw_viewer" />
           </div>
@@ -275,7 +285,7 @@ export default function AuditLogPage() {
       {/* admins-only notice */}
       <div className="flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
         <IconShieldLock className="size-4 shrink-0 text-primary" />
-        Audit entries and uncompressed raw data are visible to Head Admin and Metrics Admin only. All values below are read-only.
+        {t("adminsOnly")}
       </div>
 
       {/* filter row
@@ -283,22 +293,26 @@ export default function AuditLogPage() {
       <Card data-tour="audit-filters">
         <CardHeader className="flex-row items-center justify-between gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
-            <IconFilter className="size-4 text-muted-foreground" /> Filters
+            <IconFilter className="size-4 text-muted-foreground" /> {t("filters.title")}
           </CardTitle>
           <span className="text-xs text-muted-foreground tabular-nums">
-            {filtered.length} of {rows.length} entries
+            {/* One ICU sentence, so "entry / entries" pluralizes per language instead of
+                gluing a hardcoded "s" onto a translated noun. */}
+            {t("filters.count", { shown: filtered.length, total: rows.length })}
           </span>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
             <Select value={type} onValueChange={setType}>
               <SelectTrigger className="h-9 w-full">
-                <SelectValue placeholder="Object type" />
+                <SelectValue placeholder={t("filters.objectTypePlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All object types</SelectItem>
-                {OBJECT_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                <SelectItem value="all">{t("filters.allObjectTypes")}</SelectItem>
+                {/* The option VALUE stays the raw enum (it is the API filter argument);
+                    only the label is translated. */}
+                {OBJECT_TYPES.map((v) => (
+                  <SelectItem key={v} value={v}>{typeLabel(v)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -309,7 +323,7 @@ export default function AuditLogPage() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search reason"
+                placeholder={t("filters.searchReason")}
                 className="h-9 pl-8"
               />
             </div>
@@ -321,7 +335,7 @@ export default function AuditLogPage() {
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
                 className="h-9 pl-8"
-                aria-label="From date"
+                aria-label={t("filters.fromDate")}
               />
             </div>
 
@@ -332,14 +346,14 @@ export default function AuditLogPage() {
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
                 className="h-9 pl-8"
-                aria-label="To date"
+                aria-label={t("filters.toDate")}
               />
             </div>
           </div>
           {filtersActive && (
             <div className="mt-2 flex justify-end">
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs">
-                Clear filters
+                {t("filters.clear")}
               </Button>
             </div>
           )}
@@ -351,7 +365,7 @@ export default function AuditLogPage() {
       <Card data-tour="audit-list">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <IconHistory className="size-4 text-muted-foreground" /> Audit Log
+            <IconHistory className="size-4 text-muted-foreground" /> {t("table.title")}
           </CardTitle>
         </CardHeader>
         {/* data-tour anchor: audit tour "Before and after" step. The table body is the stable
@@ -361,29 +375,31 @@ export default function AuditLogPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-40">Time</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="w-28">Ref</TableHead>
-                <TableHead className="w-28">Action</TableHead>
-                <TableHead className="w-32">By</TableHead>
-                <TableHead>Reason</TableHead>
+                <TableHead className="w-40">{t("table.colTime")}</TableHead>
+                <TableHead>{t("table.colType")}</TableHead>
+                <TableHead className="w-28">{t("table.colRef")}</TableHead>
+                <TableHead className="w-28">{t("table.colAction")}</TableHead>
+                <TableHead className="w-32">{t("table.colBy")}</TableHead>
+                <TableHead>{t("table.colReason")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                    No audit entries match these filters.
+                    {t("table.empty")}
                   </TableCell>
                 </TableRow>
               ) : filtered.map((r) => (
                 <TableRow key={r.audit_id}>
                   <TableCell className="whitespace-nowrap text-xs text-muted-foreground tabular-nums">
-                    {fmtTime(r.changed_at)}
+                    {/* changed_at is a UTC instant, so it renders in the viewer's timezone
+                        and the active UI language, not the browser's own locale. */}
+                    <LocalTime value={r.changed_at} />
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={cn("rounded-full text-xs", TYPE_TONE[r.object_type])}>
-                      {TYPE_LABEL[r.object_type] ?? r.object_type}
+                      {typeLabel(r.object_type)}
                     </Badge>
                   </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">{r.object_ref ?? "-"}</TableCell>
@@ -407,17 +423,17 @@ export default function AuditLogPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <IconDatabase className="size-5 text-primary" />
-              Raw Scoring Data{rawSubjectName ? `, ${rawSubjectName}` : ""}
+              {/* Whole sentence per case rather than a title plus a glued-on ", name". */}
+              {rawSubjectName ? t("raw.titleWithSubject", { name: rawSubjectName }) : t("raw.title")}
             </DialogTitle>
             <DialogDescription>
-              Recomputed component breakdown behind a team or player&apos;s current-quarter score, before
-              it was rolled up to a single total. Use this to audit exactly how a published score was built.
+              {t("raw.desc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex items-center gap-2 rounded-md border border-orange-600/30 bg-orange-500/5 px-3 py-2 text-xs text-orange-400">
             <IconShieldLock className="size-4 shrink-0" />
-            Admins-only raw data. These uncompressed values are never exposed publicly (spec §17).
+            {t("raw.adminsOnly")}
           </div>
 
           {/* subject picker - drives teamRaw(id) / playerRaw(id) */}
@@ -427,8 +443,9 @@ export default function AuditLogPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="team">Team</SelectItem>
-                <SelectItem value="player">Player</SelectItem>
+                {/* Values stay "team" / "player": they pick the teamRaw / playerRaw endpoint. */}
+                <SelectItem value="team">{t("raw.team")}</SelectItem>
+                <SelectItem value="player">{t("raw.player")}</SelectItem>
               </SelectContent>
             </Select>
             {/* Search by NAME (owner 2026-06-29) instead of a raw id box: pick a team -> we use its
@@ -437,17 +454,17 @@ export default function AuditLogPage() {
               <TeamSearchSelect
                 value={rawTeamId}
                 onChange={(teamId) => setRawTeamId(teamId)}
-                placeholder="Search a team by name..."
+                placeholder={t("raw.searchTeam")}
               />
             ) : (
               <UserSearchSelect
                 value={rawUsername}
                 onChange={(username, user) => { setRawUsername(username); setRawUserId(user?.user_id ?? null); }}
-                placeholder="Search a player by name..."
+                placeholder={t("raw.searchPlayer")}
               />
             )}
             <Button onClick={loadRaw} disabled={rawLoading || !rawSubjectId}>
-              {rawLoading ? "Loading…" : "Load"}
+              {rawLoading ? t("raw.loading") : t("raw.load")}
             </Button>
           </div>
 
@@ -457,14 +474,14 @@ export default function AuditLogPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Component</TableHead>
-                      <TableHead className="text-right">Points</TableHead>
+                      <TableHead>{t("raw.colComponent")}</TableHead>
+                      <TableHead className="text-right">{t("raw.colPoints")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {rawScoreRows.map(({ key, label }) => (
+                    {rawScoreRows.map((key) => (
                       <TableRow key={key}>
-                        <TableCell className="text-xs font-medium">{label}</TableCell>
+                        <TableCell className="text-xs font-medium">{t(`raw.components.${key}` as never)}</TableCell>
                         <TableCell className="text-right text-xs tabular-nums text-muted-foreground">
                           {Number(raw.raw[key]).toFixed(1)}
                         </TableCell>
@@ -472,7 +489,7 @@ export default function AuditLogPage() {
                     ))}
                     <TableRow className="border-t-2">
                       <TableCell className="text-right text-xs font-semibold">
-                        Total score
+                        {t("raw.total")}
                       </TableCell>
                       <TableCell className="text-right text-sm font-bold tabular-nums text-primary">
                         {Number(raw.raw.total).toFixed(0)}
@@ -484,14 +501,19 @@ export default function AuditLogPage() {
 
               {rawCountChips.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {rawCountChips.map(({ key, label }) => (
+                  {/* chipLabel carries the colon so French can keep its space before it
+                      ("Victoires :"); the value itself stays in its own styled span. */}
+                  {rawCountChips.map((key) => (
                     <Badge key={key} variant="outline" className="rounded-full text-[11px] text-muted-foreground">
-                      {label}: <span className="ml-1 tabular-nums text-foreground">{raw.raw[key]}</span>
+                      {t("raw.chipLabel", { label: t(`raw.counts.${key}` as never) })}
+                      <span className="ml-1 tabular-nums text-foreground">{raw.raw[key]}</span>
                     </Badge>
                   ))}
                   {raw.season && (
                     <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">
-                      Season: <span className="ml-1 text-foreground">{raw.season.name}</span>
+                      {t("raw.chipLabel", { label: t("raw.season") })}
+                      {/* The season NAME is API data, so it is never translated. */}
+                      <span className="ml-1 text-foreground">{raw.season.name}</span>
                     </Badge>
                   )}
                 </div>
@@ -499,21 +521,21 @@ export default function AuditLogPage() {
 
               <div className="flex items-start gap-2 rounded-md bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
                 <IconAlertTriangle className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-                Component points are recomputed from source results (not re-read from the stored row), so this
-                breakdown is the exact derivation behind the current-quarter total. The count chips above are the
-                tiebreaker tallies that feed ranking, not score inputs.
+                {t("raw.note")}
               </div>
             </>
           ) : (
             <div className="flex items-center justify-center rounded-md border border-dashed py-10 text-center text-xs text-muted-foreground">
+              {/* One full sentence per kind instead of interpolating the noun: "a team" and
+                  "a player" carry different articles and genders in French and Portuguese. */}
               {rawLoading
-                ? "Loading raw scoring data…"
-                : `Search for a ${rawKind} and load to see its uncompressed component breakdown.`}
+                ? t("raw.loadingData")
+                : rawKind === "team" ? t("raw.emptyTeam") : t("raw.emptyPlayer")}
             </div>
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onRawOpenChange(false)}>Close</Button>
+            <Button variant="outline" onClick={() => onRawOpenChange(false)}>{t("raw.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

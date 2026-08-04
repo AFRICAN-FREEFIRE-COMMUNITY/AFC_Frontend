@@ -1,0 +1,133 @@
+{
+  "title": "Result Markers",
+  "description": "Control which tournament results count toward rankings. Disable a whole event, or exclude specific teams or players from counting.",
+  "loading": "Loading result markers",
+  "charMin": "{count}/{min} characters minimum.",
+  "stats": {
+    "total": "Tournaments this period",
+    "totalSub": "Across the current season",
+    "counting": "Fully counting",
+    "countingSub": "All markers on · no exclusions",
+    "partial": "Partially disabled",
+    "partialSub": "A marker off, or has exclusions",
+    "excluded": "Excluded teams / players",
+    "excludedSub": "Entities not counting"
+  },
+  "status": {
+    "counting": "Counting",
+    "partial": "Partial",
+    "disabled": "Disabled"
+  },
+  "filters": {
+    "search": "Search tournaments",
+    "tierPlaceholder": "Tier",
+    "allTiers": "All tiers",
+    "tier1": "Tier 1",
+    "tier2": "Tier 2",
+    "tier3": "Tier 3",
+    "scrimsOnly": "Scrims only",
+    "statusPlaceholder": "Status",
+    "allStatuses": "All statuses",
+    "fullyCounting": "Fully counting",
+    "hasExclusions": "Has exclusions",
+    "disabled": "Disabled"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# tournament selected} other {# tournaments selected}}",
+    "enable": "Enable counting",
+    "disable": "Disable counting",
+    "clear": "Clear selection"
+  },
+  "flags": {
+    "winner": "Winner",
+    "placement": "Placement",
+    "kills": "Kills"
+  },
+  "flagsLower": {
+    "winner": "winner",
+    "placement": "placement",
+    "kills": "kills"
+  },
+  "table": {
+    "selectAll": "Select all",
+    "selectRow": "Select {name}",
+    "tournament": "Tournament",
+    "tier": "Tier",
+    "teams": "Teams",
+    "status": "Status",
+    "actions": "Actions",
+    "winnerToggle": "{name} winner counting",
+    "placementToggle": "{name} placement counting",
+    "killsToggle": "{name} kills counting"
+  },
+  "list": {
+    "title": "Tournaments",
+    "scrim": "Scrim",
+    "exclShort": "{count} excl",
+    "exclusions": "Exclusions",
+    "disableAll": "Disable all",
+    "enableAll": "Enable all",
+    "noMatch": "No tournaments match the current filters.",
+    "empty": "No tournaments this period yet."
+  },
+  "drill": {
+    "title": "Exclusions for {tournament}",
+    "description": "Exclude specific teams or players so their results don't count toward rankings for this tournament, or remove an existing exclusion. Both require a reason.",
+    "currentlyExcluded": "Currently excluded",
+    "loading": "Loading exclusions...",
+    "empty": "No teams or players are excluded for this tournament.",
+    "excluded": "Excluded",
+    "reinclude": "Re-include",
+    "teamFallback": "Team {id}",
+    "playerFallback": "Player {id}",
+    "entityTeam": "team",
+    "entityPlayer": "player",
+    "addTitle": "Add exclusion",
+    "typePlaceholder": "Type",
+    "team": "Team",
+    "player": "Player",
+    "searchTeam": "Search team name...",
+    "searchPlayer": "Search player name...",
+    "noMatches": "No matches",
+    "reason": "Reason",
+    "reasonPlaceholder": "Why is this team / player being excluded? (min 10 characters)",
+    "adding": "Adding...",
+    "add": "Exclude from counting",
+    "done": "Done"
+  },
+  "reasonDialog": {
+    "flagTitle": "Disable \"{flag}\" for {tournament}",
+    "disableAllTitle": "Disable all markers for {tournament}",
+    "bulkTitle": "Disable counting for {count} tournaments",
+    "reincludeTitle": "Re-include {name} in {tournament}",
+    "descReincludeTeam": "This team's results will count toward rankings again for this tournament. The change is written to the audit log with your reason.",
+    "descReincludePlayer": "This player's results will count toward rankings again for this tournament. The change is written to the audit log with your reason.",
+    "descDisable": "Turning counting off removes these results from every affected ranking calculation. The change is written to the audit log with your reason.",
+    "reason": "Reason",
+    "placeholder": "Why are these results being excluded from counting? (min 10 characters)",
+    "goBack": "Go back",
+    "saving": "Saving...",
+    "reinclude": "Re-include",
+    "disable": "Disable counting"
+  },
+  "toasts": {
+    "loadSeasonFailed": "Failed to load season",
+    "loadMarkersFailed": "Failed to load result markers",
+    "refreshFailed": "Failed to refresh result markers",
+    "loadExclusionsFailed": "Failed to load exclusions",
+    "loadEntitiesFailed": "Failed to load teams and players",
+    "flagReenabled": "{flag} re-enabled for {tournament}",
+    "flagReenableFailed": "Failed to re-enable {flag}",
+    "allMarkersReenabled": "All markers re-enabled for {tournament}",
+    "reenableMarkersFailed": "Failed to re-enable markers",
+    "excluded": "{name} excluded from counting for {tournament}",
+    "addExclusionFailed": "Failed to add exclusion",
+    "bulkEnabled": "{count, plural, one {Counting re-enabled for # tournament} other {Counting re-enabled for # tournaments}}",
+    "bulkEnableFailed": "Failed to re-enable counting",
+    "flagDisabled": "{flag} disabled for {tournament}",
+    "allMarkersDisabled": "All markers disabled for {tournament}",
+    "bulkDisabled": "{count, plural, one {Counting disabled for # tournament} other {Counting disabled for # tournaments}}",
+    "reincluded": "{name} now counts again for {tournament}",
+    "actionFailed": "Action failed"
+  }
+}

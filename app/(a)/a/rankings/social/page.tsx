@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,10 @@ import { FullLoader } from "@/components/Loader";
 import { rankingsApi, Season } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { matchesSearch } from "@/lib/search";
+// verified_at is a UTC DateTimeField (afc_rankings.SocialMediaSnapshot), so it must render in the
+// VIEWER's timezone + language. It is interpolated into the "{date} · {by}" caption rather than
+// rendered on its own, so it takes the STRING helper, not the <LocalTime/> component.
+import { formatLocalTime } from "@/lib/i18n/time";
 import {
   IconBrandInstagram, IconBrandTiktok, IconCircleCheck, IconClock, IconSearch,
   IconShieldCheck, IconUsers, IconSparkles, IconAlertTriangle, IconPlugConnected,
@@ -59,7 +64,10 @@ function pointsFor(combined: number): number {
 }
 
 const MIN_REASON = 10;
-const fmt = (n: number) => n.toLocaleString();
+// Follower counts are grouped for the ACTIVE UI language ("50 000" in French), not for the
+// browser's own language: a bare toLocaleString() follows navigator.language and would disagree
+// with the rest of the translated page, so callers pass the next-intl locale.
+const fmt = (n: number, locale?: string) => n.toLocaleString(locale);
 
 // Live row shape - mirrors backend serialize_social_row, plus a client-only `dirty`
 // flag (follower counts edited since the last save/verify). Handles/followers are
@@ -106,6 +114,8 @@ type Pending =
   | null;
 
 export default function SocialVerificationPage() {
+  const t = useTranslations("rankings.admin.social");
+  const locale = useLocale();
   const [season, setSeason] = useState<Season | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,7 +140,7 @@ export default function SocialVerificationPage() {
         if (!s) setLoading(false);
       } catch (err: any) {
         if (!active) return;
-        toast.error(err?.response?.data?.message || "Failed to load season");
+        toast.error(err?.response?.data?.message || t("toasts.loadSeasonFailed"));
         setLoading(false);
       }
     })();
@@ -149,7 +159,7 @@ export default function SocialVerificationPage() {
     setLoading(true);
     loadRows(season.season_id)
       .catch((err: any) => {
-        toast.error(err?.response?.data?.message || "Failed to load social verifications");
+        toast.error(err?.response?.data?.message || t("toasts.loadFailed"));
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -176,6 +186,8 @@ export default function SocialVerificationPage() {
       tiktok_followers: row.tiktok_followers,
       instagram_handle: row.instagram_handle ?? undefined,
       tiktok_handle: row.tiktok_handle ?? undefined,
+      // NOT user-facing: this reason string is an API argument written to the backend audit
+      // trail (afc_rankings audit log), so it stays English like the rest of the log payload.
       reason: "Admin corrected follower counts before verification.",
     });
     return true;
@@ -191,10 +203,16 @@ export default function SocialVerificationPage() {
       if (row.dirty) await saveCounts(row);
       await rankingsAdminApi.socialVerify(season.season_id, row.team_id, { reason: verifyReason });
       const combined = row.instagram_followers + row.tiktok_followers;
-      toast.success(`${row.team_name} verified, ${fmt(combined)} combined followers, ${pointsFor(combined)} pts.`);
+      // Both counts are ICU plurals, so each language picks its own forms (and formats the
+      // number itself) instead of relying on the English "add an s" trick.
+      toast.success(t("toasts.verified", {
+        team: row.team_name,
+        followers: combined,
+        points: pointsFor(combined),
+      }));
       await loadRows(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to verify team");
+      toast.error(err?.response?.data?.message || t("toasts.verifyFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -205,6 +223,7 @@ export default function SocialVerificationPage() {
       setReason("");
       setPending({ kind: "reverify", row });
     } else {
+      // NOT user-facing: audit-trail reason sent to the API, English like the rest of the log.
       commitVerify(row, "First-time verification of connected social snapshot.");
     }
   };
@@ -219,7 +238,7 @@ export default function SocialVerificationPage() {
     if (!season) return;
     const eligible = rows.filter((r) => r.connected && !r.is_verified);
     if (eligible.length === 0) {
-      toast.info("Nothing to verify, every connected team is already verified.");
+      toast.info(t("toasts.nothingToVerify"));
       return;
     }
     setSubmitting(true);
@@ -227,13 +246,15 @@ export default function SocialVerificationPage() {
       for (const r of eligible) {
         if (r.dirty) await saveCounts(r);
         await rankingsAdminApi.socialVerify(season.season_id, r.team_id, {
+          // NOT user-facing: audit-trail reason sent to the API, English like the rest of the log.
           reason: "Bulk first-time verification of connected social snapshots.",
         });
       }
-      toast.success(`Verified ${eligible.length} connected team${eligible.length > 1 ? "s" : ""} for this quarter.`);
+      // ICU plural, not a hand-built "s" - French and Portuguese also agree the participle.
+      toast.success(t("toasts.verifiedBulk", { count: eligible.length }));
       await loadRows(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to verify teams");
+      toast.error(err?.response?.data?.message || t("toasts.verifyAllFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -249,16 +270,20 @@ export default function SocialVerificationPage() {
         if (pending.row.dirty) await saveCounts(pending.row);
         await rankingsAdminApi.socialVerify(season.season_id, pending.row.team_id, { reason: reason.trim() });
         const combined = pending.row.instagram_followers + pending.row.tiktok_followers;
-        toast.success(`${pending.row.team_name} re-verified, ${fmt(combined)} combined followers, ${pointsFor(combined)} pts.`);
+        toast.success(t("toasts.reverified", {
+          team: pending.row.team_name,
+          followers: combined,
+          points: pointsFor(combined),
+        }));
       } else {
         await rankingsAdminApi.socialUnverify(season.season_id, pending.row.team_id, { reason: reason.trim() });
-        toast.info(`${pending.row.team_name} unverified, social points removed until re-verified.`);
+        toast.info(t("toasts.unverified", { team: pending.row.team_name }));
       }
       setPending(null);
       setReason("");
       await loadRows(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to update verification");
+      toast.error(err?.response?.data?.message || t("toasts.updateFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -288,7 +313,7 @@ export default function SocialVerificationPage() {
   }, [rows]);
 
   if (loading && rows.length === 0) {
-    return <FullLoader text="Loading social verifications" />;
+    return <FullLoader text={t("loading")} />;
   }
 
   return (
@@ -299,16 +324,16 @@ export default function SocialVerificationPage() {
         // data-tour anchor: social tour "Social media verification" step.
         title={
           <span data-tour="social-title" className="inline-flex items-center">
-            Social Verification
+            {t("title")}
             <InfoTip id="rankings.social._page" className="ml-1.5" />
           </span>
         }
-        description="Teams connect their own Instagram and TikTok. Admins verify, unverify, or correct the follower counts. Capped at 10 points."
+        description={t("description")}
         action={
           // ⓘ sits beside the verify-all button (sibling, not nested).
           <div className="flex w-full items-center gap-1 md:w-auto">
             <Button className="w-full md:w-auto" onClick={handleVerifyAll} disabled={submitting}>
-              <IconShieldCheck className="mr-1.5 size-4" /> Save &amp; verify all
+              <IconShieldCheck className="mr-1.5 size-4" /> {t("verifyAll")}
             </Button>
             <InfoTip id="rankings.social.verify_all" />
           </div>
@@ -317,24 +342,25 @@ export default function SocialVerificationPage() {
 
       {/* status strip */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
-        <StatCard icon={<IconPlugConnected className="size-4" />} title="Connected"
-          value={`${totals.connectedCount} / ${rows.length}`} sub="Teams that linked their socials" />
-        <StatCard icon={<IconCircleCheck className="size-4" />} title="Verified this quarter"
-          value={totals.verifiedCount} sub="Verified - counts toward score" tone="text-green-500" />
-        <StatCard icon={<IconClock className="size-4" />} title="Pending verification"
-          value={totals.pendingCount} sub="Connected but unverified or edited" tone="text-orange-500" />
-        <StatCard icon={<IconSparkles className="size-4" />} title="Social points awarded"
-          value={totals.ptsSum} sub={`Max ${rows.length * 10} possible`} tone="text-primary" />
+        <StatCard icon={<IconPlugConnected className="size-4" />} title={t("stats.connected")}
+          value={`${totals.connectedCount} / ${rows.length}`} sub={t("stats.connectedSub")} />
+        <StatCard icon={<IconCircleCheck className="size-4" />} title={t("stats.verified")}
+          value={totals.verifiedCount} sub={t("stats.verifiedSub")} tone="text-green-500" />
+        <StatCard icon={<IconClock className="size-4" />} title={t("stats.pending")}
+          value={totals.pendingCount} sub={t("stats.pendingSub")} tone="text-orange-500" />
+        <StatCard icon={<IconSparkles className="size-4" />} title={t("stats.points")}
+          value={totals.ptsSum} sub={t("stats.pointsSub", { max: rows.length * 10 })} tone="text-primary" />
       </div>
 
       {/* self-connect info note */}
       <p className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
         <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
         <span>
-          <span className="font-semibold text-foreground">Teams connect their own socials</span> from
-          the team dashboard, linking their Instagram and TikTok handles themselves. Only connected teams
-          can be verified here, admins do not enter handles. Use the inputs to correct a follower count,
-          then verify, or unverify to pull a team&apos;s points until it is checked again.
+          {/* One message with an inline <b> lead sentence, so the emphasis can move with the
+              sentence order instead of being two glued fragments (same idiom as overrides/). */}
+          {t.rich("note", {
+            b: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
+          })}
         </span>
       </p>
 
@@ -342,21 +368,23 @@ export default function SocialVerificationPage() {
           data-tour anchor: social tour "Points scale preview" step. */}
       <Card data-tour="social-brackets" className="gap-1">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Points scale</CardTitle>
+          <CardTitle className="text-base">{t("brackets.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-1.5">
+            {/* The band edges are grouped for the active language ("1 000" in French) and the
+                "to" joiner is translated; the last band keeps the bare "+" form. */}
             {[
-              { label: "0 to 1,000", pts: 1 },
-              { label: "1,001 to 5,000", pts: 3 },
-              { label: "5,001 to 10,000", pts: 5 },
-              { label: "10,001 to 25,000", pts: 7 },
-              { label: "25,001 to 50,000", pts: 9 },
-              { label: "50,001+", pts: 10 },
+              { label: t("brackets.range", { from: fmt(0, locale), to: fmt(1000, locale) }), pts: 1 },
+              { label: t("brackets.range", { from: fmt(1001, locale), to: fmt(5000, locale) }), pts: 3 },
+              { label: t("brackets.range", { from: fmt(5001, locale), to: fmt(10000, locale) }), pts: 5 },
+              { label: t("brackets.range", { from: fmt(10001, locale), to: fmt(25000, locale) }), pts: 7 },
+              { label: t("brackets.range", { from: fmt(25001, locale), to: fmt(50000, locale) }), pts: 9 },
+              { label: t("brackets.plus", { from: fmt(50001, locale) }), pts: 10 },
             ].map((b) => (
               <Badge key={b.label} variant="outline" className="rounded-full text-[11px] font-normal">
                 {b.label}
-                <span className="ml-1 font-semibold text-primary">{b.pts} pt{b.pts > 1 ? "s" : ""}</span>
+                <span className="ml-1 font-semibold text-primary">{t("brackets.points", { count: b.pts })}</span>
               </Badge>
             ))}
           </div>
@@ -368,20 +396,22 @@ export default function SocialVerificationPage() {
       <Card data-tour="social-list">
         <CardHeader className="flex-row items-center justify-between gap-2">
           <CardTitle className="text-base">
-            Teams{season ? ` · ${season.name}` : ""}
+            {/* The season NAME is API data; only the wrapper sentence is translated, and a
+                separate key covers the no-season case so no dangling separator is printed. */}
+            {season ? t("table.cardTitleWithSeason", { season: season.name }) : t("table.cardTitle")}
           </CardTitle>
           {/* data-tour anchor: social tour "Find a team" step. */}
           <div data-tour="social-search" className="relative w-full sm:w-64">
             <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search teams" className="h-9 pl-8" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("table.search")} className="h-9 pl-8" />
           </div>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-foreground">Team</TableHead>
-                <TableHead className="text-foreground">Connection</TableHead>
+                <TableHead className="text-foreground">{t("table.colTeam")}</TableHead>
+                <TableHead className="text-foreground">{t("table.colConnection")}</TableHead>
                 {/* data-tour anchor: social tour "Correct follower counts" step. The Instagram
                     column header is the stable target for the editable IG/TikTok follower
                     count inputs (rendered per row below). */}
@@ -391,20 +421,20 @@ export default function SocialVerificationPage() {
                 <TableHead className="w-[140px] text-foreground">
                   <span className="inline-flex items-center gap-1"><IconBrandTiktok className="size-3.5" /> TikTok</span>
                 </TableHead>
-                <TableHead className="text-right text-foreground">Combined</TableHead>
-                <TableHead className="text-center text-foreground">Points</TableHead>
-                <TableHead className="text-foreground">Verification</TableHead>
+                <TableHead className="text-right text-foreground">{t("table.colCombined")}</TableHead>
+                <TableHead className="text-center text-foreground">{t("table.colPoints")}</TableHead>
+                <TableHead className="text-foreground">{t("table.colVerification")}</TableHead>
                 {/* data-tour anchor: social tour "Verify follower counts" step. The Actions
                     column header is the stable target for the per-row verify / re-verify /
                     unverify buttons. */}
-                <TableHead data-tour="social-verify" className="text-right text-foreground">Actions</TableHead>
+                <TableHead data-tour="social-verify" className="text-right text-foreground">{t("table.colActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
-                    {q ? `No teams match “${q}”.` : "No teams enrolled this season yet."}
+                    {q ? t("table.noMatch", { q }) : t("table.empty")}
                   </TableCell>
                 </TableRow>
               ) : filtered.map((r) => {
@@ -416,6 +446,10 @@ export default function SocialVerificationPage() {
                 // the backend get_or_creates a snapshot on edit, so not-connected rows are
                 // still editable, but we keep the disabled hint until the team connects.
                 const editable = r.connected;
+                // verified_at is a UTC DateTimeField, so it renders in the VIEWER's timezone and
+                // the active UI language. It used to be printed as verified_at.slice(0, 10), the
+                // raw UTC ISO day, which is neither localized nor the viewer's own date.
+                const verifiedWhen = r.verified_at ? formatLocalTime(r.verified_at, "date", locale) : "";
                 return (
                   <TableRow
                     key={r.team_id}
@@ -429,7 +463,7 @@ export default function SocialVerificationPage() {
                       {r.team_name}
                       {r.dirty && (
                         <Badge variant="outline" className="ml-2 rounded-full border-orange-500/40 px-1.5 py-0 text-[10px] text-orange-400">
-                          unsaved
+                          {t("table.unsaved")}
                         </Badge>
                       )}
                     </TableCell>
@@ -439,7 +473,7 @@ export default function SocialVerificationPage() {
                       {r.connected ? (
                         <div className="flex flex-col gap-0.5">
                           <Badge variant="outline" className="w-fit rounded-full border-green-600/60 text-green-400">
-                            <IconPlugConnected className="size-3" /> Connected
+                            <IconPlugConnected className="size-3" /> {t("table.connected")}
                           </Badge>
                           <span className="text-[10px] text-muted-foreground tabular-nums">
                             {r.instagram_handle || "-"} · {r.tiktok_handle || "-"}
@@ -447,7 +481,7 @@ export default function SocialVerificationPage() {
                         </div>
                       ) : (
                         <Badge variant="outline" className="rounded-full text-muted-foreground">
-                          <IconPlugConnectedX className="size-3" /> Not connected
+                          <IconPlugConnectedX className="size-3" /> {t("table.notConnected")}
                         </Badge>
                       )}
                     </TableCell>
@@ -478,7 +512,7 @@ export default function SocialVerificationPage() {
 
                     {/* Combined */}
                     <TableCell className="text-right text-xs font-medium tabular-nums">
-                      {r.connected ? fmt(combined) : <span className="text-muted-foreground">-</span>}
+                      {r.connected ? fmt(combined, locale) : <span className="text-muted-foreground">-</span>}
                     </TableCell>
 
                     {/* Points */}
@@ -504,15 +538,19 @@ export default function SocialVerificationPage() {
                       ) : verified ? (
                         <div className="flex flex-col">
                           <Badge variant="outline" className="w-fit rounded-full border-green-600/60 text-green-400">
-                            <IconCircleCheck className="size-3" /> Verified
+                            <IconCircleCheck className="size-3" /> {t("table.verified")}
                           </Badge>
+                          {/* "date · who" is one translated line so the separator and the order
+                              can move per language; either half can legitimately be missing. */}
                           <span className="mt-0.5 text-[10px] text-muted-foreground">
-                            {r.verified_at ? r.verified_at.slice(0, 10) : ""}{r.verified_by ? ` · ${r.verified_by}` : ""}
+                            {verifiedWhen && r.verified_by
+                              ? t("table.verifiedByLine", { date: verifiedWhen, by: r.verified_by })
+                              : verifiedWhen || r.verified_by || ""}
                           </span>
                         </div>
                       ) : (
                         <Badge variant="outline" className="rounded-full border-orange-500/40 text-orange-400">
-                          <IconClock className="size-3" /> Pending
+                          <IconClock className="size-3" /> {t("table.pending")}
                         </Badge>
                       )}
                     </TableCell>
@@ -522,14 +560,14 @@ export default function SocialVerificationPage() {
                       {!r.connected ? (
                         <div className="flex flex-col items-end gap-0.5">
                           <Button size="sm" variant="outline" disabled>
-                            Verify
+                            {t("table.verify")}
                           </Button>
-                          <span className="text-[10px] text-muted-foreground">Waiting on team to connect</span>
+                          <span className="text-[10px] text-muted-foreground">{t("table.waitingConnect")}</span>
                         </div>
                       ) : verified ? (
                         <div className="inline-flex items-center justify-end gap-2">
                           <Button size="sm" variant="outline" disabled={submitting} onClick={() => handleVerifyRow(r)}>
-                            Re-verify
+                            {t("table.reverify")}
                           </Button>
                           <Button
                             size="sm"
@@ -538,7 +576,7 @@ export default function SocialVerificationPage() {
                             className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                             onClick={() => openUnverify(r)}
                           >
-                            <IconShieldOff className="mr-1 size-3.5" /> Unverify
+                            <IconShieldOff className="mr-1 size-3.5" /> {t("table.unverify")}
                           </Button>
                           {/* ⓘ explains pulling a team's social points (sibling of the unverify button). */}
                           <InfoTip id="rankings.social.unverify" />
@@ -546,7 +584,7 @@ export default function SocialVerificationPage() {
                       ) : (
                         <div className="inline-flex items-center justify-end gap-1">
                           <Button size="sm" disabled={submitting} onClick={() => handleVerifyRow(r)}>
-                            <IconShieldCheck className="mr-1 size-3.5" /> Save &amp; verify
+                            <IconShieldCheck className="mr-1 size-3.5" /> {t("table.saveVerify")}
                           </Button>
                           {/* ⓘ explains awarding social points on verify (sibling of the verify button). */}
                           <InfoTip id="rankings.social.verify" />
@@ -569,23 +607,20 @@ export default function SocialVerificationPage() {
               <>
                 <DialogTitle className="flex items-center gap-2 text-destructive">
                   <IconShieldOff className="size-5" />
-                  Unverify {pending?.row.team_name}
+                  {t("dialog.unverifyTitle", { team: pending?.row.team_name ?? "" })}
                 </DialogTitle>
                 <DialogDescription>
-                  This removes the team&apos;s social points for the quarter until an admin re-verifies it.
-                  The team&apos;s connected counts are kept, but they award 0 social points while unverified.
-                  This is logged in the audit trail, a reason is required.
+                  {t("dialog.unverifyDesc")}
                 </DialogDescription>
               </>
             ) : (
               <>
                 <DialogTitle className="flex items-center gap-2">
                   <IconAlertTriangle className="size-5 text-orange-500" />
-                  Re-verify {pending?.row.team_name}
+                  {t("dialog.reverifyTitle", { team: pending?.row.team_name ?? "" })}
                 </DialogTitle>
                 <DialogDescription>
-                  This team was already verified this quarter. Overriding a verified follower count is logged
-                  in the audit trail and recalculates the team&apos;s social points. A reason is required.
+                  {t("dialog.reverifyDesc")}
                 </DialogDescription>
               </>
             )}
@@ -593,11 +628,12 @@ export default function SocialVerificationPage() {
 
           {pending && (
             <div className="rounded-md border divide-y text-sm">
-              <Row2 label="Instagram" value={fmt(pending.row.instagram_followers)} icon={<IconBrandInstagram className="size-3.5" />} />
-              <Row2 label="TikTok" value={fmt(pending.row.tiktok_followers)} icon={<IconBrandTiktok className="size-3.5" />} />
-              <Row2 label="Combined" value={fmt(pending.row.instagram_followers + pending.row.tiktok_followers)} />
+              {/* "Instagram" / "TikTok" are proper nouns, so those two labels stay as-is. */}
+              <Row2 label="Instagram" value={fmt(pending.row.instagram_followers, locale)} icon={<IconBrandInstagram className="size-3.5" />} />
+              <Row2 label="TikTok" value={fmt(pending.row.tiktok_followers, locale)} icon={<IconBrandTiktok className="size-3.5" />} />
+              <Row2 label={t("dialog.combined")} value={fmt(pending.row.instagram_followers + pending.row.tiktok_followers, locale)} />
               <Row2
-                label={pending.kind === "unverify" ? "Points after unverify" : "Points"}
+                label={pending.kind === "unverify" ? t("dialog.pointsAfterUnverify") : t("dialog.points")}
                 value={pending.kind === "unverify"
                   ? "0 / 10"
                   : `${pointsFor(pending.row.instagram_followers + pending.row.tiktok_followers)} / 10`}
@@ -607,32 +643,32 @@ export default function SocialVerificationPage() {
           )}
 
           <div className="space-y-1.5">
-            <Label htmlFor="social-reason">Reason <span className="text-destructive">*</span></Label>
+            <Label htmlFor="social-reason">{t("dialog.reasonLabel")} <span className="text-destructive">*</span></Label>
             <Textarea
               id="social-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={pending?.kind === "unverify"
-                ? "Why is this team being unverified? (min 10 characters)"
-                : "Why is the verified count being changed? (min 10 characters)"}
+                ? t("dialog.unverifyPlaceholder")
+                : t("dialog.reverifyPlaceholder")}
               className="min-h-24"
             />
             <p className="text-[11px] text-muted-foreground">
-              {reason.trim().length}/{MIN_REASON} characters minimum.
+              {t("dialog.minChars", { count: reason.trim().length, min: MIN_REASON })}
             </p>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => { setPending(null); setReason(""); }}>
-              Go back
+              {t("dialog.goBack")}
             </Button>
             {pending?.kind === "unverify" ? (
               <Button variant="destructive" disabled={!reasonValid || submitting} onClick={confirmDialog}>
-                <IconShieldOff className="mr-1.5 size-4" /> Confirm &amp; unverify
+                <IconShieldOff className="mr-1.5 size-4" /> {t("dialog.confirmUnverify")}
               </Button>
             ) : (
               <Button disabled={!reasonValid || submitting} onClick={confirmDialog}>
-                <IconCircleCheck className="mr-1.5 size-4" /> Confirm &amp; re-verify
+                <IconCircleCheck className="mr-1.5 size-4" /> {t("dialog.confirmReverify")}
               </Button>
             )}
           </DialogFooter>

@@ -1,0 +1,259 @@
+{
+  "title": "Administration du marché des joueurs",
+  "description": "Gestion, contrôle et supervision complets de toute l'activité du marché des joueurs",
+  "tabs": {
+    "overview": "Vue d'ensemble",
+    "teamListings": "Annonces d'équipes",
+    "playerListings": "Annonces de joueurs",
+    "trials": "Essais et candidatures",
+    "reports": "Signalements et alertes"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "close": "Fermer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "unknown": "Inconnu",
+    "dash": "-"
+  },
+  "overview": {
+    "sectionLabel": "Vue d'ensemble du marché",
+    "activeTeamListings": "Annonces d'équipes actives",
+    "activePlayerListings": "Annonces de joueurs actives",
+    "activeTrials": "Essais en cours",
+    "pendingReports": "Signalements en attente",
+    "flagged": "{count, plural, one {# annonce signalée} other {# annonces signalées}}",
+    "totalTrials": "{count} au total",
+    "totalReports": "{count, plural, one {# signalement au total} other {# signalements au total}}",
+    "health": {
+      "title": "État du système et conformité",
+      "transferWindow": "État de la fenêtre de transfert",
+      "unknown": "Inconnu",
+      "checking": "Vérification en cours",
+      "open": "Ouverte",
+      "openUntil": "Ouverte jusqu'au {date}",
+      "locked": "Fermée",
+      "lockedSince": "Fermée depuis le {date}",
+      "autoEnforcement": "Règles d'application automatique",
+      "active": "Actives",
+      "bannedAutoHidden": "Entités bannies masquées automatiquement",
+      "auditLog": "État du journal d'audit"
+    }
+  },
+  "listingStatus": {
+    "all": "Tous les statuts",
+    "active": "Active",
+    "expired": "Expirée"
+  },
+  "teamListings": {
+    "heading": "Annonces d'équipes",
+    "searchPlaceholder": "Rechercher par nom d'équipe...",
+    "loadFailed": "Impossible de charger les annonces d'équipes",
+    "empty": "Aucune annonce d'équipe trouvée",
+    "table": {
+      "id": "ID",
+      "team": "Équipe",
+      "minTier": "Niveau min.",
+      "commitment": "Engagement",
+      "rolesNeeded": "Rôles recherchés",
+      "countries": "Pays",
+      "expires": "Expire le",
+      "status": "Statut"
+    },
+    "anyCountry": "Tous"
+  },
+  "playerListings": {
+    "heading": "Annonces de joueurs",
+    "searchPlaceholder": "Rechercher par nom de joueur...",
+    "loadFailed": "Impossible de charger les annonces de joueurs",
+    "empty": "Aucune annonce de joueur trouvée",
+    "table": {
+      "id": "ID",
+      "player": "Joueur",
+      "country": "Pays",
+      "primaryRole": "Rôle principal",
+      "secondaryRole": "Rôle secondaire",
+      "availability": "Disponibilité",
+      "expires": "Expire le",
+      "status": "Statut"
+    }
+  },
+  "trials": {
+    "heading": "Essais et candidatures",
+    "loadFailed": "Impossible de charger les essais et les candidatures",
+    "total": "Total : {count}",
+    "searchPlaceholder": "Rechercher un joueur, une équipe ou un ID...",
+    "allStatuses": "Tous les statuts",
+    "empty": "Aucune candidature trouvée.",
+    "table": {
+      "number": "#",
+      "player": "Joueur",
+      "team": "Équipe",
+      "postType": "Type d'annonce",
+      "status": "Statut",
+      "applied": "Candidature",
+      "contact": "Contact",
+      "actions": "Actions"
+    },
+    "uid": "UID : {uid}",
+    "discord": "Discord : {handle}",
+    "tier": "Niveau {tier}",
+    "contactUnlocked": "Déverrouillé",
+    "contactLocked": "Verrouillé",
+    "viewDetails": "Voir les détails",
+    "readChat": "Lire la discussion",
+    "readChatTitle": "Lire cette discussion d'essai (lecture seule)",
+    "noChat": "Aucune discussion",
+    "noChatTitle": "Aucune discussion d'essai n'a encore été ouverte pour cette candidature"
+  },
+  "trialStatus": {
+    "PENDING": "En attente",
+    "SHORTLISTED": "Présélectionné",
+    "INVITED": "Invité",
+    "TRIAL_ONGOING": "Essai en cours",
+    "ACCEPTED": "Accepté",
+    "TRIAL_EXTENDED": "Essai prolongé",
+    "REJECTED": "Refusé"
+  },
+  "postType": {
+    "TEAM_RECRUITMENT": "Recrutement d'équipe",
+    "PLAYER_AVAILABLE": "Joueur disponible"
+  },
+  "applicationDialog": {
+    "title": "Candidature n° {id}",
+    "description": "Détails complets de cet essai ou de cette candidature.",
+    "status": "Statut",
+    "player": "Joueur",
+    "banned": "Banni",
+    "team": "Équipe",
+    "tag": "Tag : {tag}",
+    "post": "Annonce",
+    "applied": "Candidature envoyée",
+    "updated": "Mise à jour",
+    "inviteExpires": "Expiration de l'invitation",
+    "chatId": "ID de discussion",
+    "reason": "Motif"
+  },
+  "chatDialog": {
+    "title": "Discussion d'essai",
+    "descriptionWith": "Vue en lecture seule de la conversation entre <strong>{team}</strong> et <strong>{player}</strong>. Le staff peut lire les discussions d'essai mais ne peut pas y écrire.",
+    "descriptionFallback": "Vue en lecture seule d'une conversation d'essai.",
+    "loadFailed": "Impossible de charger la discussion d'essai.",
+    "loading": "Chargement des messages...",
+    "emptyTitle": "Aucun message pour le moment",
+    "emptyBody": "Cette discussion d'essai ne contient aucun message à afficher."
+  },
+  "reports": {
+    "heading": "Signalements et contenus alertés",
+    "loadFailed": "Impossible de charger les signalements.",
+    "searchPlaceholder": "Rechercher un signalement par équipe ou par joueur...",
+    "allStatuses": "Tous les statuts",
+    "allReasons": "Tous les motifs",
+    "empty": "Aucun signalement ne correspond.",
+    "table": {
+      "subject": "Cible du signalement",
+      "reason": "Motif",
+      "reporter": "Auteur du signalement",
+      "submitted": "Envoyé le",
+      "status": "Statut",
+      "action": "Action"
+    },
+    "resolve": "Traiter",
+    "ban": "Bannir",
+    "banTitle": "Bannir l'équipe ou le joueur signalé",
+    "banReporter": "Bannir l'auteur",
+    "banReporterTitle": "Bannir l'auteur pour un signalement faux ou abusif",
+    "footer": "{shown, plural, one {# signalement affiché} other {# signalements affichés}}. {open} en attente d'examen. Les plus récents en premier."
+  },
+  "reportCategory": {
+    "bad_tryout": "Essai négatif",
+    "bad_tryout_long": "Mauvaise expérience d'essai",
+    "scam": "Arnaque / fraude",
+    "abusive": "Comportement abusif",
+    "fake_post": "Annonce fausse ou trompeuse",
+    "other": "Autre"
+  },
+  "reportStatus": {
+    "open": "Ouvert",
+    "reviewing": "En cours d'examen",
+    "resolved": "Résolu",
+    "dismissed": "Classé sans suite",
+    "banned": "Banni"
+  },
+  "resolveDialog": {
+    "title": "Traiter le signalement",
+    "reporter": "Auteur du signalement :",
+    "subject": "Cible :",
+    "reporterSaid": "Ce qu'a écrit l'auteur du signalement",
+    "evidence": "Preuves",
+    "evidenceCount": "Preuves ({count})",
+    "evidenceAlt": "Preuve n° {index}",
+    "evidenceAltSingle": "Preuve du signalement",
+    "status": "Statut",
+    "notes": "Notes de traitement",
+    "notesOptional": "(facultatif)",
+    "notesPlaceholder": "Ce qui a été constaté et la mesure prise...",
+    "saving": "Enregistrement...",
+    "save": "Enregistrer les modifications",
+    "updated": "Signalement mis à jour.",
+    "updateFailed": "Impossible de mettre à jour le signalement."
+  },
+  "banReporterDialog": {
+    "title": "Bannir l'auteur (signalement faux)",
+    "description": "Bannit <strong>{reporter}</strong> du marché des joueurs pour avoir déposé un signalement faux ou abusif. Cette personne ne pourra plus publier d'annonce, postuler ni inviter. Le signalement est classé sans suite.",
+    "thisReporter": "cet auteur",
+    "reason": "Motif",
+    "reasonHint": "(visible par l'auteur banni)",
+    "reasonPlaceholder": "Expliquez pourquoi cet auteur est banni. Précisez que le signalement était faux ou abusif.",
+    "defaultReason": "Dépôt d'un signalement faux ou abusif sur le marché des joueurs. Les signalements doivent être honnêtes et étayés par des preuves.",
+    "warning": "Il s'agit d'un bannissement définitif de l'auteur du marché. À n'utiliser que lorsqu'un signalement est manifestement faux, inventé ou abusif.",
+    "banning": "Bannissement...",
+    "submit": "Bannir l'auteur",
+    "noReporter": "Aucun auteur enregistré pour ce signalement, impossible de le bannir.",
+    "reasonRequired": "Un motif de bannissement est obligatoire.",
+    "banned": "Auteur {reporter} banni du marché.",
+    "banFailed": "Impossible de bannir l'auteur du signalement."
+  },
+  "suspendDialog": {
+    "title": "Suspendre l'annonce",
+    "description": "Veuillez indiquer un motif pour cette action. Il sera enregistré dans le journal d'audit.",
+    "reason": "Motif *",
+    "reasonPlaceholder": "Saisissez le motif de cette action...",
+    "suspended": "Annonce {id} suspendue avec succès"
+  },
+  "trialTimeline": {
+    "title": "Chronologie de l'essai",
+    "description": "Chronologie détaillée de l'essai {id}",
+    "player": "Joueur",
+    "team": "Équipe",
+    "startDate": "Date de début",
+    "status": "Statut",
+    "events": "Événements de la chronologie",
+    "cancelTrial": "Annuler l'essai",
+    "cancelled": "Essai {id} annulé"
+  },
+  "reviewReport": {
+    "title": "Examiner le signalement",
+    "reportId": "ID du signalement : {id}",
+    "reportedBy": "Signalé par",
+    "reportedEntity": "Entité signalée",
+    "date": "Date",
+    "severity": "Gravité",
+    "reason": "Motif",
+    "descriptionLabel": "Description",
+    "evidence": "Preuves",
+    "viewEvidence": "Voir les preuves ({count} fichiers)",
+    "previousReports": "Signalements précédents",
+    "viewPreviousReports": "Voir les signalements précédents ({count})",
+    "takeAction": "Action à prendre *",
+    "selectAction": "Sélectionnez une action...",
+    "actions": {
+      "warn": "Avertir",
+      "suspend": "Suspendre l'annonce",
+      "ban": "Bannir l'utilisateur",
+      "dismiss": "Classer sans suite"
+    },
+    "confirmAction": "Confirmer l'action",
+    "actionTaken": "Action « {action} » appliquée au signalement {id}"
+  }
+}

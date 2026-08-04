@@ -1,0 +1,133 @@
+{
+  "title": "Marqueurs de résultats",
+  "description": "Choisissez quels résultats de tournoi comptent pour le classement. Désactivez un événement entier, ou excluez du décompte certaines équipes ou certains joueurs.",
+  "loading": "Chargement des marqueurs de résultats",
+  "charMin": "{count}/{min} caractères minimum.",
+  "stats": {
+    "total": "Tournois sur la période",
+    "totalSub": "Sur la saison en cours",
+    "counting": "Entièrement comptabilisés",
+    "countingSub": "Tous les marqueurs actifs · aucune exclusion",
+    "partial": "Partiellement désactivés",
+    "partialSub": "Un marqueur désactivé, ou des exclusions",
+    "excluded": "Équipes / joueurs exclus",
+    "excludedSub": "Entités non comptabilisées"
+  },
+  "status": {
+    "counting": "Comptabilisé",
+    "partial": "Partiel",
+    "disabled": "Désactivé"
+  },
+  "filters": {
+    "search": "Rechercher des tournois",
+    "tierPlaceholder": "Niveau",
+    "allTiers": "Tous les niveaux",
+    "tier1": "Niveau 1",
+    "tier2": "Niveau 2",
+    "tier3": "Niveau 3",
+    "scrimsOnly": "Scrims uniquement",
+    "statusPlaceholder": "Statut",
+    "allStatuses": "Tous les statuts",
+    "fullyCounting": "Entièrement comptabilisés",
+    "hasExclusions": "Comporte des exclusions",
+    "disabled": "Désactivés"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# tournoi sélectionné} other {# tournois sélectionnés}}",
+    "enable": "Activer le décompte",
+    "disable": "Désactiver le décompte",
+    "clear": "Effacer la sélection"
+  },
+  "flags": {
+    "winner": "Vainqueur",
+    "placement": "Classement",
+    "kills": "Éliminations"
+  },
+  "flagsLower": {
+    "winner": "le vainqueur",
+    "placement": "le classement",
+    "kills": "les éliminations"
+  },
+  "table": {
+    "selectAll": "Tout sélectionner",
+    "selectRow": "Sélectionner {name}",
+    "tournament": "Tournoi",
+    "tier": "Niveau",
+    "teams": "Équipes",
+    "status": "Statut",
+    "actions": "Actions",
+    "winnerToggle": "Décompte du vainqueur pour {name}",
+    "placementToggle": "Décompte du classement pour {name}",
+    "killsToggle": "Décompte des éliminations pour {name}"
+  },
+  "list": {
+    "title": "Tournois",
+    "scrim": "Scrim",
+    "exclShort": "{count} excl.",
+    "exclusions": "Exclusions",
+    "disableAll": "Tout désactiver",
+    "enableAll": "Tout activer",
+    "noMatch": "Aucun tournoi ne correspond aux filtres actuels.",
+    "empty": "Aucun tournoi sur cette période pour le moment."
+  },
+  "drill": {
+    "title": "Exclusions pour {tournament}",
+    "description": "Excluez certaines équipes ou certains joueurs pour que leurs résultats ne comptent pas pour le classement de ce tournoi, ou retirez une exclusion existante. Les deux exigent un motif.",
+    "currentlyExcluded": "Actuellement exclus",
+    "loading": "Chargement des exclusions...",
+    "empty": "Aucune équipe ni aucun joueur n'est exclu pour ce tournoi.",
+    "excluded": "Exclu",
+    "reinclude": "Réintégrer",
+    "teamFallback": "Équipe {id}",
+    "playerFallback": "Joueur {id}",
+    "entityTeam": "équipe",
+    "entityPlayer": "joueur",
+    "addTitle": "Ajouter une exclusion",
+    "typePlaceholder": "Type",
+    "team": "Équipe",
+    "player": "Joueur",
+    "searchTeam": "Rechercher un nom d'équipe...",
+    "searchPlayer": "Rechercher un nom de joueur...",
+    "noMatches": "Aucun résultat",
+    "reason": "Motif",
+    "reasonPlaceholder": "Pourquoi cette équipe ou ce joueur est-il exclu ? (10 caractères minimum)",
+    "adding": "Ajout...",
+    "add": "Exclure du décompte",
+    "done": "Terminé"
+  },
+  "reasonDialog": {
+    "flagTitle": "Désactiver \"{flag}\" pour {tournament}",
+    "disableAllTitle": "Désactiver tous les marqueurs pour {tournament}",
+    "bulkTitle": "Désactiver le décompte pour {count} tournois",
+    "reincludeTitle": "Réintégrer {name} dans {tournament}",
+    "descReincludeTeam": "Les résultats de cette équipe compteront à nouveau pour le classement de ce tournoi. La modification est inscrite au journal d'audit avec votre motif.",
+    "descReincludePlayer": "Les résultats de ce joueur compteront à nouveau pour le classement de ce tournoi. La modification est inscrite au journal d'audit avec votre motif.",
+    "descDisable": "Désactiver le décompte retire ces résultats de tous les calculs de classement concernés. La modification est inscrite au journal d'audit avec votre motif.",
+    "reason": "Motif",
+    "placeholder": "Pourquoi ces résultats sont-ils exclus du décompte ? (10 caractères minimum)",
+    "goBack": "Retour",
+    "saving": "Enregistrement...",
+    "reinclude": "Réintégrer",
+    "disable": "Désactiver le décompte"
+  },
+  "toasts": {
+    "loadSeasonFailed": "Impossible de charger la saison",
+    "loadMarkersFailed": "Impossible de charger les marqueurs de résultats",
+    "refreshFailed": "Impossible d'actualiser les marqueurs de résultats",
+    "loadExclusionsFailed": "Impossible de charger les exclusions",
+    "loadEntitiesFailed": "Impossible de charger les équipes et les joueurs",
+    "flagReenabled": "{flag} réactivé pour {tournament}",
+    "flagReenableFailed": "Impossible de réactiver {flag}",
+    "allMarkersReenabled": "Tous les marqueurs ont été réactivés pour {tournament}",
+    "reenableMarkersFailed": "Impossible de réactiver les marqueurs",
+    "excluded": "{name} exclu du décompte pour {tournament}",
+    "addExclusionFailed": "Impossible d'ajouter l'exclusion",
+    "bulkEnabled": "{count, plural, one {Décompte réactivé pour # tournoi} other {Décompte réactivé pour # tournois}}",
+    "bulkEnableFailed": "Impossible de réactiver le décompte",
+    "flagDisabled": "{flag} désactivé pour {tournament}",
+    "allMarkersDisabled": "Tous les marqueurs ont été désactivés pour {tournament}",
+    "bulkDisabled": "{count, plural, one {Décompte désactivé pour # tournoi} other {Décompte désactivé pour # tournois}}",
+    "reincluded": "{name} compte à nouveau pour {tournament}",
+    "actionFailed": "L'action a échoué"
+  }
+}

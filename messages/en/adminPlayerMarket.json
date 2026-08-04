@@ -1,0 +1,259 @@
+{
+  "title": "Player Market Administration",
+  "description": "Comprehensive management, control, and oversight of all player market activities",
+  "tabs": {
+    "overview": "Overview",
+    "teamListings": "Team Listings",
+    "playerListings": "Player Listings",
+    "trials": "Trials & Applications",
+    "reports": "Reports & Flags"
+  },
+  "common": {
+    "loading": "Loading...",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "unknown": "Unknown",
+    "dash": "-"
+  },
+  "overview": {
+    "sectionLabel": "Market overview",
+    "activeTeamListings": "Active Team Listings",
+    "activePlayerListings": "Active Player Listings",
+    "activeTrials": "Active Trials",
+    "pendingReports": "Pending Reports",
+    "flagged": "{count} flagged",
+    "totalTrials": "{count} total",
+    "totalReports": "{count, plural, one {# total report} other {# total reports}}",
+    "health": {
+      "title": "System Health & Compliance",
+      "transferWindow": "Transfer Window Status",
+      "unknown": "Unknown",
+      "checking": "Checking",
+      "open": "Open",
+      "openUntil": "Open until {date}",
+      "locked": "Locked",
+      "lockedSince": "Locked since {date}",
+      "autoEnforcement": "Auto-Enforcement Rules",
+      "active": "Active",
+      "bannedAutoHidden": "Banned Entities Auto-Hidden",
+      "auditLog": "Audit Log Status"
+    }
+  },
+  "listingStatus": {
+    "all": "All Status",
+    "active": "Active",
+    "expired": "Expired"
+  },
+  "teamListings": {
+    "heading": "Team Listings",
+    "searchPlaceholder": "Search by team name...",
+    "loadFailed": "Failed to load team listings",
+    "empty": "No team listings found",
+    "table": {
+      "id": "ID",
+      "team": "Team",
+      "minTier": "Min Tier",
+      "commitment": "Commitment",
+      "rolesNeeded": "Roles Needed",
+      "countries": "Countries",
+      "expires": "Expires",
+      "status": "Status"
+    },
+    "anyCountry": "Any"
+  },
+  "playerListings": {
+    "heading": "Player Listings",
+    "searchPlaceholder": "Search by player name...",
+    "loadFailed": "Failed to load player listings",
+    "empty": "No player listings found",
+    "table": {
+      "id": "ID",
+      "player": "Player",
+      "country": "Country",
+      "primaryRole": "Primary Role",
+      "secondaryRole": "Secondary Role",
+      "availability": "Availability",
+      "expires": "Expires",
+      "status": "Status"
+    }
+  },
+  "trials": {
+    "heading": "Trials & Applications",
+    "loadFailed": "Failed to load trials and applications",
+    "total": "Total: {count}",
+    "searchPlaceholder": "Search player, team, or ID...",
+    "allStatuses": "All Statuses",
+    "empty": "No applications found.",
+    "table": {
+      "number": "#",
+      "player": "Player",
+      "team": "Team",
+      "postType": "Post Type",
+      "status": "Status",
+      "applied": "Applied",
+      "contact": "Contact",
+      "actions": "Actions"
+    },
+    "uid": "UID: {uid}",
+    "discord": "Discord: {handle}",
+    "tier": "Tier {tier}",
+    "contactUnlocked": "Unlocked",
+    "contactLocked": "Locked",
+    "viewDetails": "View details",
+    "readChat": "Read Chat",
+    "readChatTitle": "Read this trial chat (read-only)",
+    "noChat": "No chat",
+    "noChatTitle": "No trial chat has been started for this application yet"
+  },
+  "trialStatus": {
+    "PENDING": "Pending",
+    "SHORTLISTED": "Shortlisted",
+    "INVITED": "Invited",
+    "TRIAL_ONGOING": "Trial Ongoing",
+    "ACCEPTED": "Accepted",
+    "TRIAL_EXTENDED": "Trial Extended",
+    "REJECTED": "Rejected"
+  },
+  "postType": {
+    "TEAM_RECRUITMENT": "Team Recruitment",
+    "PLAYER_AVAILABLE": "Player Available"
+  },
+  "applicationDialog": {
+    "title": "Application #{id}",
+    "description": "Full details for this trial or application.",
+    "status": "Status",
+    "player": "Player",
+    "banned": "Banned",
+    "team": "Team",
+    "tag": "Tag: {tag}",
+    "post": "Post",
+    "applied": "Applied",
+    "updated": "Updated",
+    "inviteExpires": "Invite Expires",
+    "chatId": "Chat ID",
+    "reason": "Reason"
+  },
+  "chatDialog": {
+    "title": "Trial Chat",
+    "descriptionWith": "Read-only view of the conversation between <strong>{team}</strong> and <strong>{player}</strong>. Staff may read trial chats but cannot post.",
+    "descriptionFallback": "Read-only view of a trial conversation.",
+    "loadFailed": "Failed to load trial chat.",
+    "loading": "Loading messages...",
+    "emptyTitle": "No messages yet",
+    "emptyBody": "This trial chat has no messages to show."
+  },
+  "reports": {
+    "heading": "Reports & Flagged Content",
+    "loadFailed": "Failed to load reports.",
+    "searchPlaceholder": "Search reports by team or player...",
+    "allStatuses": "All statuses",
+    "allReasons": "All reasons",
+    "empty": "No reports match.",
+    "table": {
+      "subject": "Reported subject",
+      "reason": "Reason",
+      "reporter": "Reporter",
+      "submitted": "Submitted",
+      "status": "Status",
+      "action": "Action"
+    },
+    "resolve": "Resolve",
+    "ban": "Ban",
+    "banTitle": "Ban the reported team or player",
+    "banReporter": "Ban reporter",
+    "banReporterTitle": "Ban the reporter for a false or abusive report",
+    "footer": "{shown, plural, one {# report shown} other {# reports shown}}. {open} open and awaiting review. Newest first."
+  },
+  "reportCategory": {
+    "bad_tryout": "Negative tryout",
+    "bad_tryout_long": "Negative tryout experience",
+    "scam": "Scam / fraud",
+    "abusive": "Abusive conduct",
+    "fake_post": "Fake / misleading post",
+    "other": "Other"
+  },
+  "reportStatus": {
+    "open": "Open",
+    "reviewing": "Reviewing",
+    "resolved": "Resolved",
+    "dismissed": "Dismissed",
+    "banned": "Banned"
+  },
+  "resolveDialog": {
+    "title": "Resolve report",
+    "reporter": "Reporter:",
+    "subject": "Subject:",
+    "reporterSaid": "What the reporter said",
+    "evidence": "Evidence",
+    "evidenceCount": "Evidence ({count})",
+    "evidenceAlt": "Report evidence {index}",
+    "evidenceAltSingle": "Report evidence",
+    "status": "Status",
+    "notes": "Resolution notes",
+    "notesOptional": "(optional)",
+    "notesPlaceholder": "What was found, and what action was taken...",
+    "saving": "Saving...",
+    "save": "Save changes",
+    "updated": "Report updated.",
+    "updateFailed": "Failed to update report."
+  },
+  "banReporterDialog": {
+    "title": "Ban reporter (false report)",
+    "description": "Bans <strong>{reporter}</strong> from the Player Market for filing a false or abusive report. They will no longer be able to create posts, apply, or invite. This report is closed as dismissed.",
+    "thisReporter": "this reporter",
+    "reason": "Reason",
+    "reasonHint": "(shown to the banned reporter)",
+    "reasonPlaceholder": "Explain why this reporter is being banned. Reference that the report was false or abusive.",
+    "defaultReason": "Filing a false or abusive report on the Player Market. Reports must be honest and backed by evidence.",
+    "warning": "This is a permanent market ban on the reporter. Use it only when a report is clearly false, fabricated, or abusive.",
+    "banning": "Banning...",
+    "submit": "Ban reporter",
+    "noReporter": "This report has no reporter on record to ban.",
+    "reasonRequired": "A ban reason is required.",
+    "banned": "Reporter {reporter} banned from the market.",
+    "banFailed": "Failed to ban reporter."
+  },
+  "suspendDialog": {
+    "title": "Suspend Listing",
+    "description": "Please provide a reason for this action. This will be logged in the audit trail.",
+    "reason": "Reason *",
+    "reasonPlaceholder": "Enter reason for this action...",
+    "suspended": "Listing {id} suspended successfully"
+  },
+  "trialTimeline": {
+    "title": "Trial Timeline",
+    "description": "Detailed timeline for trial {id}",
+    "player": "Player",
+    "team": "Team",
+    "startDate": "Start Date",
+    "status": "Status",
+    "events": "Timeline Events",
+    "cancelTrial": "Cancel Trial",
+    "cancelled": "Trial {id} cancelled"
+  },
+  "reviewReport": {
+    "title": "Review Report",
+    "reportId": "Report ID: {id}",
+    "reportedBy": "Reported By",
+    "reportedEntity": "Reported Entity",
+    "date": "Date",
+    "severity": "Severity",
+    "reason": "Reason",
+    "descriptionLabel": "Description",
+    "evidence": "Evidence",
+    "viewEvidence": "View Evidence ({count} files)",
+    "previousReports": "Previous Reports",
+    "viewPreviousReports": "View Previous Reports ({count})",
+    "takeAction": "Take Action *",
+    "selectAction": "Select action...",
+    "actions": {
+      "warn": "Warn",
+      "suspend": "Suspend Listing",
+      "ban": "Ban User",
+      "dismiss": "Dismiss"
+    },
+    "confirmAction": "Confirm Action",
+    "actionTaken": "Action \"{action}\" taken on report {id}"
+  }
+}

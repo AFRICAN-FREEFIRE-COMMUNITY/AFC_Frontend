@@ -1,0 +1,259 @@
+{
+  "title": "Administração do mercado de jogadores",
+  "description": "Gestão, controlo e supervisão completos de toda a atividade do mercado de jogadores",
+  "tabs": {
+    "overview": "Resumo",
+    "teamListings": "Anúncios de equipas",
+    "playerListings": "Anúncios de jogadores",
+    "trials": "Testes e candidaturas",
+    "reports": "Denúncias e sinalizações"
+  },
+  "common": {
+    "loading": "A carregar...",
+    "close": "Fechar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "unknown": "Desconhecido",
+    "dash": "-"
+  },
+  "overview": {
+    "sectionLabel": "Resumo do mercado",
+    "activeTeamListings": "Anúncios de equipas ativos",
+    "activePlayerListings": "Anúncios de jogadores ativos",
+    "activeTrials": "Testes a decorrer",
+    "pendingReports": "Denúncias pendentes",
+    "flagged": "{count, plural, one {# anúncio sinalizado} other {# anúncios sinalizados}}",
+    "totalTrials": "{count} no total",
+    "totalReports": "{count, plural, one {# denúncia no total} other {# denúncias no total}}",
+    "health": {
+      "title": "Estado do sistema e conformidade",
+      "transferWindow": "Estado da janela de transferências",
+      "unknown": "Desconhecido",
+      "checking": "A verificar",
+      "open": "Aberta",
+      "openUntil": "Aberta até {date}",
+      "locked": "Fechada",
+      "lockedSince": "Fechada desde {date}",
+      "autoEnforcement": "Regras de aplicação automática",
+      "active": "Ativas",
+      "bannedAutoHidden": "Entidades banidas ocultadas automaticamente",
+      "auditLog": "Estado do registo de auditoria"
+    }
+  },
+  "listingStatus": {
+    "all": "Todos os estados",
+    "active": "Ativo",
+    "expired": "Expirado"
+  },
+  "teamListings": {
+    "heading": "Anúncios de equipas",
+    "searchPlaceholder": "Pesquisar por nome de equipa...",
+    "loadFailed": "Não foi possível carregar os anúncios de equipas",
+    "empty": "Nenhum anúncio de equipa encontrado",
+    "table": {
+      "id": "ID",
+      "team": "Equipa",
+      "minTier": "Nível mín.",
+      "commitment": "Compromisso",
+      "rolesNeeded": "Funções procuradas",
+      "countries": "Países",
+      "expires": "Expira em",
+      "status": "Estado"
+    },
+    "anyCountry": "Todos"
+  },
+  "playerListings": {
+    "heading": "Anúncios de jogadores",
+    "searchPlaceholder": "Pesquisar por nome de jogador...",
+    "loadFailed": "Não foi possível carregar os anúncios de jogadores",
+    "empty": "Nenhum anúncio de jogador encontrado",
+    "table": {
+      "id": "ID",
+      "player": "Jogador",
+      "country": "País",
+      "primaryRole": "Função principal",
+      "secondaryRole": "Função secundária",
+      "availability": "Disponibilidade",
+      "expires": "Expira em",
+      "status": "Estado"
+    }
+  },
+  "trials": {
+    "heading": "Testes e candidaturas",
+    "loadFailed": "Não foi possível carregar os testes e as candidaturas",
+    "total": "Total: {count}",
+    "searchPlaceholder": "Pesquisar jogador, equipa ou ID...",
+    "allStatuses": "Todos os estados",
+    "empty": "Nenhuma candidatura encontrada.",
+    "table": {
+      "number": "#",
+      "player": "Jogador",
+      "team": "Equipa",
+      "postType": "Tipo de anúncio",
+      "status": "Estado",
+      "applied": "Candidatura",
+      "contact": "Contacto",
+      "actions": "Ações"
+    },
+    "uid": "UID: {uid}",
+    "discord": "Discord: {handle}",
+    "tier": "Nível {tier}",
+    "contactUnlocked": "Desbloqueado",
+    "contactLocked": "Bloqueado",
+    "viewDetails": "Ver detalhes",
+    "readChat": "Ler a conversa",
+    "readChatTitle": "Ler esta conversa de teste (apenas leitura)",
+    "noChat": "Sem conversa",
+    "noChatTitle": "Ainda não foi iniciada nenhuma conversa de teste para esta candidatura"
+  },
+  "trialStatus": {
+    "PENDING": "Pendente",
+    "SHORTLISTED": "Pré-selecionado",
+    "INVITED": "Convidado",
+    "TRIAL_ONGOING": "Teste a decorrer",
+    "ACCEPTED": "Aceite",
+    "TRIAL_EXTENDED": "Teste prolongado",
+    "REJECTED": "Rejeitado"
+  },
+  "postType": {
+    "TEAM_RECRUITMENT": "Recrutamento de equipa",
+    "PLAYER_AVAILABLE": "Jogador disponível"
+  },
+  "applicationDialog": {
+    "title": "Candidatura n.º {id}",
+    "description": "Detalhes completos deste teste ou desta candidatura.",
+    "status": "Estado",
+    "player": "Jogador",
+    "banned": "Banido",
+    "team": "Equipa",
+    "tag": "Tag: {tag}",
+    "post": "Anúncio",
+    "applied": "Candidatura enviada",
+    "updated": "Atualizada",
+    "inviteExpires": "Validade do convite",
+    "chatId": "ID da conversa",
+    "reason": "Motivo"
+  },
+  "chatDialog": {
+    "title": "Conversa do teste",
+    "descriptionWith": "Vista apenas de leitura da conversa entre <strong>{team}</strong> e <strong>{player}</strong>. A equipa da AFC pode ler as conversas de teste, mas não pode escrever nelas.",
+    "descriptionFallback": "Vista apenas de leitura de uma conversa de teste.",
+    "loadFailed": "Não foi possível carregar a conversa do teste.",
+    "loading": "A carregar as mensagens...",
+    "emptyTitle": "Ainda não há mensagens",
+    "emptyBody": "Esta conversa de teste não tem mensagens para mostrar."
+  },
+  "reports": {
+    "heading": "Denúncias e conteúdos sinalizados",
+    "loadFailed": "Não foi possível carregar as denúncias.",
+    "searchPlaceholder": "Pesquisar denúncias por equipa ou jogador...",
+    "allStatuses": "Todos os estados",
+    "allReasons": "Todos os motivos",
+    "empty": "Nenhuma denúncia corresponde.",
+    "table": {
+      "subject": "Alvo da denúncia",
+      "reason": "Motivo",
+      "reporter": "Autor da denúncia",
+      "submitted": "Enviada em",
+      "status": "Estado",
+      "action": "Ação"
+    },
+    "resolve": "Resolver",
+    "ban": "Banir",
+    "banTitle": "Banir a equipa ou o jogador denunciado",
+    "banReporter": "Banir o autor",
+    "banReporterTitle": "Banir o autor por uma denúncia falsa ou abusiva",
+    "footer": "{shown, plural, one {# denúncia apresentada} other {# denúncias apresentadas}}. {open} em aberto e a aguardar análise. Mais recentes primeiro."
+  },
+  "reportCategory": {
+    "bad_tryout": "Teste negativo",
+    "bad_tryout_long": "Má experiência de teste",
+    "scam": "Burla / fraude",
+    "abusive": "Conduta abusiva",
+    "fake_post": "Anúncio falso ou enganoso",
+    "other": "Outro"
+  },
+  "reportStatus": {
+    "open": "Em aberto",
+    "reviewing": "Em análise",
+    "resolved": "Resolvida",
+    "dismissed": "Arquivada",
+    "banned": "Banido"
+  },
+  "resolveDialog": {
+    "title": "Resolver a denúncia",
+    "reporter": "Autor da denúncia:",
+    "subject": "Alvo:",
+    "reporterSaid": "O que o autor da denúncia escreveu",
+    "evidence": "Provas",
+    "evidenceCount": "Provas ({count})",
+    "evidenceAlt": "Prova n.º {index}",
+    "evidenceAltSingle": "Prova da denúncia",
+    "status": "Estado",
+    "notes": "Notas de resolução",
+    "notesOptional": "(opcional)",
+    "notesPlaceholder": "O que foi apurado e que medida foi tomada...",
+    "saving": "A guardar...",
+    "save": "Guardar alterações",
+    "updated": "Denúncia atualizada.",
+    "updateFailed": "Não foi possível atualizar a denúncia."
+  },
+  "banReporterDialog": {
+    "title": "Banir o autor (denúncia falsa)",
+    "description": "Bane <strong>{reporter}</strong> do mercado de jogadores por ter apresentado uma denúncia falsa ou abusiva. Deixará de poder criar anúncios, candidatar-se ou convidar. Esta denúncia é arquivada.",
+    "thisReporter": "este autor",
+    "reason": "Motivo",
+    "reasonHint": "(visível para o autor banido)",
+    "reasonPlaceholder": "Explique porque este autor está a ser banido. Refira que a denúncia era falsa ou abusiva.",
+    "defaultReason": "Apresentação de uma denúncia falsa ou abusiva no mercado de jogadores. As denúncias têm de ser honestas e sustentadas por provas.",
+    "warning": "Trata-se de um banimento permanente do autor no mercado. Utilize apenas quando uma denúncia é claramente falsa, inventada ou abusiva.",
+    "banning": "A banir...",
+    "submit": "Banir o autor",
+    "noReporter": "Esta denúncia não tem nenhum autor registado para banir.",
+    "reasonRequired": "É obrigatório indicar um motivo de banimento.",
+    "banned": "Autor {reporter} banido do mercado.",
+    "banFailed": "Não foi possível banir o autor da denúncia."
+  },
+  "suspendDialog": {
+    "title": "Suspender o anúncio",
+    "description": "Indique um motivo para esta ação. Ficará registado no registo de auditoria.",
+    "reason": "Motivo *",
+    "reasonPlaceholder": "Introduza o motivo desta ação...",
+    "suspended": "Anúncio {id} suspenso com sucesso"
+  },
+  "trialTimeline": {
+    "title": "Cronologia do teste",
+    "description": "Cronologia detalhada do teste {id}",
+    "player": "Jogador",
+    "team": "Equipa",
+    "startDate": "Data de início",
+    "status": "Estado",
+    "events": "Eventos da cronologia",
+    "cancelTrial": "Cancelar o teste",
+    "cancelled": "Teste {id} cancelado"
+  },
+  "reviewReport": {
+    "title": "Analisar a denúncia",
+    "reportId": "ID da denúncia: {id}",
+    "reportedBy": "Denunciado por",
+    "reportedEntity": "Entidade denunciada",
+    "date": "Data",
+    "severity": "Gravidade",
+    "reason": "Motivo",
+    "descriptionLabel": "Descrição",
+    "evidence": "Provas",
+    "viewEvidence": "Ver as provas ({count} ficheiros)",
+    "previousReports": "Denúncias anteriores",
+    "viewPreviousReports": "Ver as denúncias anteriores ({count})",
+    "takeAction": "Ação a tomar *",
+    "selectAction": "Selecione uma ação...",
+    "actions": {
+      "warn": "Advertir",
+      "suspend": "Suspender o anúncio",
+      "ban": "Banir o utilizador",
+      "dismiss": "Arquivar"
+    },
+    "confirmAction": "Confirmar a ação",
+    "actionTaken": "Ação «{action}» aplicada à denúncia {id}"
+  }
+}

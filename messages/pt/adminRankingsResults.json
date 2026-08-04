@@ -1,0 +1,133 @@
+{
+  "title": "Marcadores de resultados",
+  "description": "Defina que resultados de torneio contam para a classificação. Desative um evento inteiro, ou exclua da contagem determinadas equipas ou jogadores.",
+  "loading": "A carregar os marcadores de resultados",
+  "charMin": "{count}/{min} caracteres no mínimo.",
+  "stats": {
+    "total": "Torneios neste período",
+    "totalSub": "Ao longo da temporada atual",
+    "counting": "Totalmente contabilizados",
+    "countingSub": "Todos os marcadores ativos · sem exclusões",
+    "partial": "Parcialmente desativados",
+    "partialSub": "Um marcador desativado, ou com exclusões",
+    "excluded": "Equipas / jogadores excluídos",
+    "excludedSub": "Entidades não contabilizadas"
+  },
+  "status": {
+    "counting": "Contabilizado",
+    "partial": "Parcial",
+    "disabled": "Desativado"
+  },
+  "filters": {
+    "search": "Pesquisar torneios",
+    "tierPlaceholder": "Nível",
+    "allTiers": "Todos os níveis",
+    "tier1": "Nível 1",
+    "tier2": "Nível 2",
+    "tier3": "Nível 3",
+    "scrimsOnly": "Apenas scrims",
+    "statusPlaceholder": "Estado",
+    "allStatuses": "Todos os estados",
+    "fullyCounting": "Totalmente contabilizados",
+    "hasExclusions": "Com exclusões",
+    "disabled": "Desativados"
+  },
+  "bulk": {
+    "selected": "{count, plural, one {# torneio selecionado} other {# torneios selecionados}}",
+    "enable": "Ativar a contagem",
+    "disable": "Desativar a contagem",
+    "clear": "Limpar a seleção"
+  },
+  "flags": {
+    "winner": "Vencedor",
+    "placement": "Classificação",
+    "kills": "Abates"
+  },
+  "flagsLower": {
+    "winner": "o vencedor",
+    "placement": "a classificação",
+    "kills": "os abates"
+  },
+  "table": {
+    "selectAll": "Selecionar tudo",
+    "selectRow": "Selecionar {name}",
+    "tournament": "Torneio",
+    "tier": "Nível",
+    "teams": "Equipas",
+    "status": "Estado",
+    "actions": "Ações",
+    "winnerToggle": "Contagem do vencedor em {name}",
+    "placementToggle": "Contagem da classificação em {name}",
+    "killsToggle": "Contagem dos abates em {name}"
+  },
+  "list": {
+    "title": "Torneios",
+    "scrim": "Scrim",
+    "exclShort": "{count} excl.",
+    "exclusions": "Exclusões",
+    "disableAll": "Desativar tudo",
+    "enableAll": "Ativar tudo",
+    "noMatch": "Nenhum torneio corresponde aos filtros atuais.",
+    "empty": "Ainda não há torneios neste período."
+  },
+  "drill": {
+    "title": "Exclusões em {tournament}",
+    "description": "Exclua determinadas equipas ou jogadores para que os seus resultados não contem para a classificação deste torneio, ou remova uma exclusão existente. Ambas as ações exigem um motivo.",
+    "currentlyExcluded": "Atualmente excluídos",
+    "loading": "A carregar as exclusões...",
+    "empty": "Não há equipas nem jogadores excluídos neste torneio.",
+    "excluded": "Excluído",
+    "reinclude": "Reincluir",
+    "teamFallback": "Equipa {id}",
+    "playerFallback": "Jogador {id}",
+    "entityTeam": "equipa",
+    "entityPlayer": "jogador",
+    "addTitle": "Adicionar exclusão",
+    "typePlaceholder": "Tipo",
+    "team": "Equipa",
+    "player": "Jogador",
+    "searchTeam": "Pesquisar nome de equipa...",
+    "searchPlayer": "Pesquisar nome de jogador...",
+    "noMatches": "Sem resultados",
+    "reason": "Motivo",
+    "reasonPlaceholder": "Porque está esta equipa ou este jogador a ser excluído? (mínimo de 10 caracteres)",
+    "adding": "A adicionar...",
+    "add": "Excluir da contagem",
+    "done": "Concluído"
+  },
+  "reasonDialog": {
+    "flagTitle": "Desativar \"{flag}\" em {tournament}",
+    "disableAllTitle": "Desativar todos os marcadores em {tournament}",
+    "bulkTitle": "Desativar a contagem em {count} torneios",
+    "reincludeTitle": "Reincluir {name} em {tournament}",
+    "descReincludeTeam": "Os resultados desta equipa voltarão a contar para a classificação deste torneio. A alteração fica inscrita no registo de auditoria com o seu motivo.",
+    "descReincludePlayer": "Os resultados deste jogador voltarão a contar para a classificação deste torneio. A alteração fica inscrita no registo de auditoria com o seu motivo.",
+    "descDisable": "Desativar a contagem retira estes resultados de todos os cálculos de classificação afetados. A alteração fica inscrita no registo de auditoria com o seu motivo.",
+    "reason": "Motivo",
+    "placeholder": "Porque estão estes resultados a ser excluídos da contagem? (mínimo de 10 caracteres)",
+    "goBack": "Voltar",
+    "saving": "A guardar...",
+    "reinclude": "Reincluir",
+    "disable": "Desativar a contagem"
+  },
+  "toasts": {
+    "loadSeasonFailed": "Não foi possível carregar a temporada",
+    "loadMarkersFailed": "Não foi possível carregar os marcadores de resultados",
+    "refreshFailed": "Não foi possível atualizar os marcadores de resultados",
+    "loadExclusionsFailed": "Não foi possível carregar as exclusões",
+    "loadEntitiesFailed": "Não foi possível carregar as equipas e os jogadores",
+    "flagReenabled": "{flag} reativado em {tournament}",
+    "flagReenableFailed": "Não foi possível reativar {flag}",
+    "allMarkersReenabled": "Todos os marcadores foram reativados em {tournament}",
+    "reenableMarkersFailed": "Não foi possível reativar os marcadores",
+    "excluded": "{name} excluído da contagem em {tournament}",
+    "addExclusionFailed": "Não foi possível adicionar a exclusão",
+    "bulkEnabled": "{count, plural, one {Contagem reativada em # torneio} other {Contagem reativada em # torneios}}",
+    "bulkEnableFailed": "Não foi possível reativar a contagem",
+    "flagDisabled": "{flag} desativado em {tournament}",
+    "allMarkersDisabled": "Todos os marcadores foram desativados em {tournament}",
+    "bulkDisabled": "{count, plural, one {Contagem desativada em # torneio} other {Contagem desativada em # torneios}}",
+    "reincluded": "{name} volta a contar em {tournament}",
+    "actionFailed": "A ação falhou"
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { displayMoney } from "@/lib/money";
 import { PageHeader } from "@/components/PageHeader";
@@ -20,6 +21,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FullLoader } from "@/components/Loader";
+// awarded_at is EventPrizePayout.created_at, a Django DateTimeField (a real UTC instant), so it
+// renders through <LocalTime/> in the VIEWER's timezone + the active AFC UI language. It used to
+// be new Date(...).toLocaleDateString(), which follows the BROWSER's language, not the UI one.
+import { LocalTime } from "@/components/LocalTime";
 import { rankingsApi, Season } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { matchesSearch } from "@/lib/search";
@@ -67,6 +72,7 @@ const MATCH_LIMIT = 8;
 const MIN_REASON = 10;
 
 export default function PrizeMoneyPage() {
+  const t = useTranslations("rankings.admin.prize");
   // Multi-currency display (owner 2026-06-30): prize amounts are STORED in NGN; show them in the
   // admin's chosen display currency (set currency=USD in profile to see USD, the original ask).
   // `fmt` converts a stored-NGN amount -> the viewer's currency. Inputs stay in Naira for now
@@ -103,7 +109,7 @@ export default function PrizeMoneyPage() {
             setSeasonId(active?.season_id ?? null);
           })
           .catch((err: any) => {
-            toast.error(err?.response?.data?.message || "Failed to load seasons.");
+            toast.error(err?.response?.data?.message || t("toasts.loadSeasonsFailed"));
             setSeasonId(null);
           });
       });
@@ -117,7 +123,7 @@ export default function PrizeMoneyPage() {
       const r = await rankingsAdminApi.prizes(id ? { season_id: id } : undefined);
       setRows(r.results ?? []);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load prize payouts.");
+      toast.error(err?.response?.data?.message || t("toasts.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -165,7 +171,7 @@ export default function PrizeMoneyPage() {
       setTeamOptions(teamRes.data?.teams ?? []);
       setOptionsLoaded(true);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load events and teams.");
+      toast.error(err?.response?.data?.message || t("toasts.loadOptionsFailed"));
     }
   }
 
@@ -222,12 +228,12 @@ export default function PrizeMoneyPage() {
         amount: Number(addAmount),
         reason: addReason.trim(),
       });
-      toast.success(`Prize of ${fmt(Number(addAmount))} recorded.`);
+      toast.success(t("toasts.added", { amount: fmt(Number(addAmount)) }));
       setAddOpen(false);
       resetAdd();
       await loadPrizes(seasonId);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to add prize.");
+      toast.error(err?.response?.data?.message || t("toasts.addFailed"));
     } finally {
       setAddSaving(false);
     }
@@ -258,11 +264,18 @@ export default function PrizeMoneyPage() {
         amount: Number(editAmount),
         reason: editReason.trim(),
       });
-      toast.success(`Prize for ${editRow.team_name ?? "team"} updated.`);
+      // Separate key for the "no team name on the row" case rather than interpolating a
+      // translated word for "team": "Prize for the team" needs a different article/contraction
+      // in French and Portuguese, so a fallback noun cannot be glued into the same sentence.
+      toast.success(
+        editRow.team_name
+          ? t("toasts.updated", { name: editRow.team_name })
+          : t("toasts.updatedFallback"),
+      );
       setEditRow(null);
       await loadPrizes(seasonId);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to update prize.");
+      toast.error(err?.response?.data?.message || t("toasts.updateFailed"));
     } finally {
       setEditSaving(false);
     }
@@ -287,18 +300,24 @@ export default function PrizeMoneyPage() {
       await rankingsAdminApi.deletePrize(deleteRow.payout_id, {
         reason: deleteReason.trim(),
       });
-      toast.success(`Prize entry for ${deleteRow.team_name ?? "team"} deleted.`);
+      // Same split as the edit toast: no team name on the row means a whole different sentence,
+      // not the same sentence with a translated "team" dropped into the slot.
+      toast.success(
+        deleteRow.team_name
+          ? t("toasts.deleted", { name: deleteRow.team_name })
+          : t("toasts.deletedFallback"),
+      );
       setDeleteRow(null);
       await loadPrizes(seasonId);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to delete prize.");
+      toast.error(err?.response?.data?.message || t("toasts.deleteFailed"));
     } finally {
       setDeleteSaving(false);
     }
   }
 
   if (loading && rows.length === 0) {
-    return <FullLoader text="Loading prize money" />;
+    return <FullLoader text={t("loading")} />;
   }
 
   return (
@@ -309,17 +328,17 @@ export default function PrizeMoneyPage() {
         // data-tour anchor: prize tour "Prize money tracking" step.
         title={
           <span data-tour="prize-title" className="inline-flex items-center">
-            Prize Money
+            {t("title")}
             <InfoTip id="rankings.prize._page" className="ml-1.5" />
           </span>
         }
-        description="Completed events fill in automatically from their prize pools (converted to Naira). Add or edit rows manually for evaluation-only adjustments - edited rows are never overwritten by the auto-sync."
+        description={t("description")}
         action={
           // ⓘ sits beside the add-prize button (sibling, not nested).
           <div className="flex items-center gap-1">
             {/* data-tour anchor: prize tour "Record a payout" step. */}
             <Button data-tour="prize-add" onClick={() => { setAddOpen(true); loadPickerOptions(); }}>
-              <IconPlus className="mr-1.5 size-4" /> Add prize
+              <IconPlus className="mr-1.5 size-4" /> {t("addCta")}
             </Button>
             <InfoTip id="rankings.prize.add" />
           </div>
@@ -335,14 +354,15 @@ export default function PrizeMoneyPage() {
         <Card data-tour="prize-total" className="gap-1 transition-shadow hover:shadow-lg">
           <CardHeader className="flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total prizes this season
+              {t("summary.totalTitle")}
             </CardTitle>
             <span className="text-primary"><IconCoin className="size-4" /></span>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold tabular-nums">{fmt(totalThisSeason)}</p>
+            {/* ICU plural, not an appended "s": each language picks its own plural forms. */}
             <p className="text-xs text-muted-foreground">
-              Across {rows.length} payout{rows.length === 1 ? "" : "s"}
+              {t("summary.acrossPayouts", { count: rows.length })}
             </p>
           </CardContent>
         </Card>
@@ -355,24 +375,24 @@ export default function PrizeMoneyPage() {
             search box; the payouts table header is the closest stable target for the
             "locate a specific prize" step. */}
         <CardHeader data-tour="prize-search">
-          <CardTitle className="text-base">Prize Payouts</CardTitle>
+          <CardTitle className="text-base">{t("table.cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Event</TableHead>
-                <TableHead>Team</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Awarded</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("table.colEvent")}</TableHead>
+                <TableHead>{t("table.colTeam")}</TableHead>
+                <TableHead className="text-right">{t("table.colAmount")}</TableHead>
+                <TableHead>{t("table.colAwarded")}</TableHead>
+                <TableHead className="text-right">{t("table.colActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                    No prize money recorded yet. Use “Add prize” to log a payout.
+                    {t("table.empty")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -382,7 +402,7 @@ export default function PrizeMoneyPage() {
                       {r.event_name ?? "-"}
                       {r.auto_synced ? (
                         <span className="text-primary border-primary/50 ml-2 rounded-full border px-2 py-0.5 text-[0.6rem] uppercase">
-                          auto
+                          {t("table.auto")}
                         </span>
                       ) : null}
                     </TableCell>
@@ -393,13 +413,14 @@ export default function PrizeMoneyPage() {
                     <TableCell className="text-muted-foreground tabular-nums">
                       <span className="inline-flex items-center gap-1">
                         <IconCalendar className="size-3" />
-                        {r.awarded_at ? new Date(r.awarded_at).toLocaleDateString() : "-"}
+                        {/* UTC instant (EventPrizePayout.created_at) -> viewer tz + UI language. */}
+                        {r.awarded_at ? <LocalTime value={r.awarded_at} mode="date" /> : "-"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1.5">
                         <Button size="sm" variant="outline" onClick={() => openEdit(r)}>
-                          <IconPencil className="mr-1 size-3.5" /> Edit
+                          <IconPencil className="mr-1 size-3.5" /> {t("table.edit")}
                         </Button>
                         <Button
                           size="sm"
@@ -407,7 +428,7 @@ export default function PrizeMoneyPage() {
                           className="text-destructive hover:text-destructive"
                           onClick={() => openDelete(r)}
                         >
-                          <IconTrash className="mr-1 size-3.5" /> Delete
+                          <IconTrash className="mr-1 size-3.5" /> {t("table.delete")}
                         </Button>
                       </div>
                     </TableCell>
@@ -430,9 +451,9 @@ export default function PrizeMoneyPage() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Add prize money</DialogTitle>
+            <DialogTitle>{t("addDialog.title")}</DialogTitle>
             <DialogDescription>
-              Enter the amount directly in Naira. No conversion is applied.
+              {t("addDialog.desc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -440,7 +461,7 @@ export default function PrizeMoneyPage() {
             <div className="grid grid-cols-2 gap-3">
               {/* Event name search → resolves to event_id */}
               <div className="space-y-1.5">
-                <Label>Event</Label>
+                <Label>{t("addDialog.eventLabel")}</Label>
                 <div className="relative">
                   <Input
                     value={addEventText}
@@ -451,13 +472,13 @@ export default function PrizeMoneyPage() {
                     }}
                     onFocus={() => setEventMenuOpen(true)}
                     onBlur={() => setTimeout(() => setEventMenuOpen(false), 120)}
-                    placeholder="Search events by name"
+                    placeholder={t("addDialog.eventPlaceholder")}
                     autoComplete="off"
                   />
                   {eventMenuOpen && (
                     <div className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
                       {eventMatches.length === 0 ? (
-                        <p className="px-2 py-1.5 text-sm text-muted-foreground">No matches</p>
+                        <p className="px-2 py-1.5 text-sm text-muted-foreground">{t("addDialog.noMatches")}</p>
                       ) : (
                         eventMatches.map((ev) => (
                           <button
@@ -482,7 +503,7 @@ export default function PrizeMoneyPage() {
 
               {/* Team name search → resolves to team_id */}
               <div className="space-y-1.5">
-                <Label>Team</Label>
+                <Label>{t("addDialog.teamLabel")}</Label>
                 <div className="relative">
                   <Input
                     value={addTeamText}
@@ -493,13 +514,13 @@ export default function PrizeMoneyPage() {
                     }}
                     onFocus={() => setTeamMenuOpen(true)}
                     onBlur={() => setTimeout(() => setTeamMenuOpen(false), 120)}
-                    placeholder="Search teams by name"
+                    placeholder={t("addDialog.teamPlaceholder")}
                     autoComplete="off"
                   />
                   {teamMenuOpen && (
                     <div className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
                       {teamMatches.length === 0 ? (
-                        <p className="px-2 py-1.5 text-sm text-muted-foreground">No matches</p>
+                        <p className="px-2 py-1.5 text-sm text-muted-foreground">{t("addDialog.noMatches")}</p>
                       ) : (
                         teamMatches.map((t) => (
                           <button
@@ -525,7 +546,9 @@ export default function PrizeMoneyPage() {
 
             <div className="space-y-1.5">
               <Label>
-                Amount (₦)
+                {/* The ₦ symbol stays inside the translated label: inputs are entered in Naira
+                    regardless of the admin's display currency (storage is NGN). */}
+                {t("common.amountLabel")}
                 <InfoTip id="rankings.prize.amount" className="ml-1" />
               </Label>
               <div className="relative">
@@ -543,32 +566,37 @@ export default function PrizeMoneyPage() {
 
             {Number(addAmount) > 0 && (
               <p className="text-xs text-muted-foreground">
-                Recording <span className="font-semibold text-primary">{fmt(Number(addAmount))}</span> in prize money.
+                {/* t.rich keeps the highlighted amount inside the sentence so each language owns
+                    the word order instead of gluing "Recording" + amount + "in prize money". */}
+                {t.rich("addDialog.recording", {
+                  amount: fmt(Number(addAmount)),
+                  b: (chunks) => <span className="font-semibold text-primary">{chunks}</span>,
+                })}
               </p>
             )}
 
             <div className="space-y-1.5">
               <Label>
-                Reason <span className="text-destructive">*</span>
+                {t("common.reasonLabel")} <span className="text-destructive">*</span>
               </Label>
               <Textarea
                 value={addReason}
                 onChange={(e) => setAddReason(e.target.value)}
-                placeholder="Why is this prize being recorded? (min 10 characters, written to the audit log)"
+                placeholder={t("addDialog.reasonPlaceholder")}
                 rows={3}
               />
               <p className="text-[11px] text-muted-foreground">
-                {addReason.trim().length}/{MIN_REASON} characters minimum.
+                {t("common.minChars", { count: addReason.trim().length, min: MIN_REASON })}
               </p>
             </div>
           </div>
 
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => { setAddOpen(false); resetAdd(); }}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button disabled={!addValid || addSaving} onClick={handleAdd}>
-              {addSaving ? "Adding…" : "Add prize"}
+              {addSaving ? t("addDialog.adding") : t("addCta")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -578,7 +606,7 @@ export default function PrizeMoneyPage() {
       <Dialog open={editRow !== null} onOpenChange={(o) => !o && setEditRow(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Edit prize money</DialogTitle>
+            <DialogTitle>{t("editDialog.title")}</DialogTitle>
             <DialogDescription>
               {editRow ? `${editRow.event_name ?? "-"} · ${editRow.team_name ?? "-"}` : ""}
             </DialogDescription>
@@ -587,7 +615,7 @@ export default function PrizeMoneyPage() {
           {editRow && (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <Label>Amount (₦)</Label>
+                <Label>{t("common.amountLabel")}</Label>
                 <div className="relative">
                   <IconCurrencyNaira className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -601,7 +629,7 @@ export default function PrizeMoneyPage() {
               </div>
 
               <div className="rounded-md border bg-muted/30 p-3 text-xs">
-                <span className="text-muted-foreground">Was </span>
+                <span className="text-muted-foreground">{t("editDialog.was")} </span>
                 <span className="line-through tabular-nums">{fmt(amountNumber(editRow.amount))}</span>
                 {Number(editAmount) !== amountNumber(editRow.amount) && Number(editAmount) > 0 && (
                   <>
@@ -613,16 +641,16 @@ export default function PrizeMoneyPage() {
 
               <div className="space-y-1.5">
                 <Label>
-                  Reason <span className="text-destructive">*</span>
+                  {t("common.reasonLabel")} <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
                   value={editReason}
                   onChange={(e) => setEditReason(e.target.value)}
-                  placeholder="Why is this prize being changed? (min 10 characters, written to the audit log)"
+                  placeholder={t("editDialog.reasonPlaceholder")}
                   rows={3}
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  {editReason.trim().length}/{MIN_REASON} characters minimum.
+                  {t("common.minChars", { count: editReason.trim().length, min: MIN_REASON })}
                 </p>
               </div>
             </div>
@@ -630,10 +658,10 @@ export default function PrizeMoneyPage() {
 
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setEditRow(null)}>
-              Go back
+              {t("common.goBack")}
             </Button>
             <Button disabled={!editValid || editSaving} onClick={handleEditSave}>
-              {editSaving ? "Saving…" : "Save changes"}
+              {editSaving ? t("editDialog.saving") : t("editDialog.saveCta")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -643,37 +671,48 @@ export default function PrizeMoneyPage() {
       <AlertDialog open={deleteRow !== null} onOpenChange={(o) => !o && setDeleteRow(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete prize entry?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
+              {/* Two whole sentences rather than one with a translated "team" dropped in: the
+                  no-team-name case needs its own phrasing in French and Portuguese. */}
               {deleteRow
-                ? `This removes the ${fmt(amountNumber(deleteRow.amount))} payout for ${deleteRow.team_name ?? "team"} (${deleteRow.event_name ?? "-"}). This cannot be undone.`
+                ? deleteRow.team_name
+                  ? t("deleteDialog.desc", {
+                      amount: fmt(amountNumber(deleteRow.amount)),
+                      name: deleteRow.team_name,
+                      event: deleteRow.event_name ?? "-",
+                    })
+                  : t("deleteDialog.descNoTeam", {
+                      amount: fmt(amountNumber(deleteRow.amount)),
+                      event: deleteRow.event_name ?? "-",
+                    })
                 : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <div className="space-y-1.5">
             <Label>
-              Reason <span className="text-destructive">*</span>
+              {t("common.reasonLabel")} <span className="text-destructive">*</span>
             </Label>
             <Textarea
               value={deleteReason}
               onChange={(e) => setDeleteReason(e.target.value)}
-              placeholder="Why is this payout being deleted? (min 10 characters, written to the audit log)"
+              placeholder={t("deleteDialog.reasonPlaceholder")}
               rows={3}
             />
             <p className="text-[11px] text-muted-foreground">
-              {deleteReason.trim().length}/{MIN_REASON} characters minimum.
+              {t("common.minChars", { count: deleteReason.trim().length, min: MIN_REASON })}
             </p>
           </div>
 
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <Button
               variant="destructive"
               onClick={(e) => { e.preventDefault(); handleDelete(); }}
               disabled={!deleteValid || deleteSaving}
             >
-              {deleteSaving ? "Deleting…" : "Delete"}
+              {deleteSaving ? t("deleteDialog.deleting") : t("deleteDialog.cta")}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -12,7 +12,7 @@
   "matchStandings": "Classement du championnat",
   "rank": "Classement",
   "competitor": "Concurrent",
-  "kills": "Tues",
+  "kills": "Éliminations",
   "points": "Points",
   "playerFallback": "{id} des joueurs",
   "noData": "Aucune donnée n'a été enregistrée pour cette sélection."

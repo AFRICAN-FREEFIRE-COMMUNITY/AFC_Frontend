@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { FullLoader } from "@/components/Loader";
 import { TierBadge } from "@/components/rankings/TierBadge";
-import { TIER_LABELS } from "@/lib/rankingsMock";
 import {
   rankingsApi,
   Season,
@@ -66,6 +66,10 @@ function TierOverrideDialog({
   onOpenChange: (v: boolean) => void;
   onConfirm: (tier: number, reason: string) => void;
 }) {
+  const t = useTranslations("rankings.admin.overrides");
+  // The tier label ("Tier 1" ... "Tier 4") lives in the SHARED rankings namespace, the same key
+  // TierBadge renders, so the dropdown option and the badge beside it can never drift apart.
+  const tTier = useTranslations("rankings");
   const [tier, setTier] = useState<string>("");
   const [reason, setReason] = useState("");
 
@@ -86,11 +90,10 @@ function TierOverrideDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <IconGavel className="size-5 text-primary" /> Override tier, {team.team_name}
+            <IconGavel className="size-5 text-primary" /> {t("tierDialog.title", { name: team.team_name })}
           </DialogTitle>
           <DialogDescription>
-            Manually set this team&apos;s tier. The override sticks until you change it
-            and is written to the audit log with your reason.
+            {t("tierDialog.desc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -98,58 +101,58 @@ function TierOverrideDialog({
           {/* what we're overriding (read-only context) */}
           <div className="flex items-center justify-between rounded-md border bg-muted/30 p-3">
             <div className="space-y-1">
-              <p className="text-xs uppercase font-semibold text-muted-foreground">Current tier</p>
+              <p className="text-xs uppercase font-semibold text-muted-foreground">{t("tierDialog.currentTier")}</p>
               <TierBadge tier={computed} />
             </div>
             <span className="text-muted-foreground">→</span>
             <div className="space-y-1 text-right">
-              <p className="text-xs uppercase font-semibold text-muted-foreground">Score</p>
+              <p className="text-xs uppercase font-semibold text-muted-foreground">{t("common.score")}</p>
               <p className="text-lg font-bold tabular-nums">{team.total_score}</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="ovr-tier">New tier</Label>
+            <Label htmlFor="ovr-tier">{t("tierDialog.newTier")}</Label>
             <Select value={tier} onValueChange={setTier}>
               <SelectTrigger id="ovr-tier" className="w-full">
-                <SelectValue placeholder="Select tier" />
+                <SelectValue placeholder={t("tierDialog.selectTier")} />
               </SelectTrigger>
               <SelectContent>
-                {TIERS.map((t) => (
-                  <SelectItem key={t} value={String(t)}>
-                    {TIER_LABELS[t]}
+                {TIERS.map((x) => (
+                  <SelectItem key={x} value={String(x)}>
+                    {tTier("tier", { tier: x + 1 })}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {!changed && tier !== "" && (
               <p className="text-xs text-muted-foreground">
-                Same as the current tier, saving will clear any existing override.
+                {t("tierDialog.sameAsCurrent")}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="ovr-reason">Reason</Label>
+            <Label htmlFor="ovr-reason">{t("common.reason")}</Label>
             <Textarea
               id="ovr-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Why is this tier being overridden? (min 10 characters, appears in the audit log)"
+              placeholder={t("tierDialog.reasonPlaceholder")}
             />
             <p className="text-xs text-muted-foreground">
-              {reason.trim().length}/{MIN_REASON} characters minimum.
+              {t("common.charMin", { count: reason.trim().length, min: MIN_REASON })}
             </p>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Go back</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.goBack")}</Button>
           <Button
             disabled={!ready}
             onClick={() => onConfirm(Number(tier), reason.trim())}
           >
-            <IconGavel className="mr-1.5 size-4" /> Apply override
+            <IconGavel className="mr-1.5 size-4" /> {t("tierDialog.cta")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -166,6 +169,7 @@ function DeductPointsDialog({
   onOpenChange: (v: boolean) => void;
   onConfirm: (points: number, reason: string) => void;
 }) {
+  const t = useTranslations("rankings.admin.overrides");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
 
@@ -191,11 +195,10 @@ function DeductPointsDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <IconArrowDown className="size-5 text-orange-400" /> Deduct points, {team.team_name}
+            <IconArrowDown className="size-5 text-orange-400" /> {t("deductDialog.title", { name: team.team_name })}
           </DialogTitle>
           <DialogDescription>
-            Subtract a specific number of points as a partial penalty. Unlike a ban-zero,
-            this leaves the team ranked, the deduction is written to the audit log with your reason.
+            {t("deductDialog.desc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -203,18 +206,18 @@ function DeductPointsDialog({
           {/* live current -> resulting context */}
           <div className="flex items-center justify-between rounded-md border bg-muted/30 p-3">
             <div className="space-y-1">
-              <p className="text-xs uppercase font-semibold text-muted-foreground">Current score</p>
+              <p className="text-xs uppercase font-semibold text-muted-foreground">{t("deductDialog.currentScore")}</p>
               <p className="text-lg font-bold tabular-nums">{current}</p>
             </div>
             <span className="text-muted-foreground">→</span>
             <div className="space-y-1 text-right">
-              <p className="text-xs uppercase font-semibold text-muted-foreground">Resulting score</p>
+              <p className="text-xs uppercase font-semibold text-muted-foreground">{t("deductDialog.resultingScore")}</p>
               <p className="text-lg font-bold tabular-nums text-orange-400">{resulting}</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="ded-amount">Points to deduct</Label>
+            <Label htmlFor="ded-amount">{t("deductDialog.amountLabel")}</Label>
             <Input
               id="ded-amount"
               type="number"
@@ -222,34 +225,34 @@ function DeductPointsDialog({
               max={current}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder={`1 - ${current}`}
+              placeholder={t("deductDialog.amountPlaceholder", { max: current })}
               className="tabular-nums"
             />
             {amount !== "" && !validAmount && (
               <p className="text-xs text-orange-400">
-                Enter a whole number between 1 and {current}.
+                {t("deductDialog.amountInvalid", { max: current })}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="ded-reason">Reason</Label>
+            <Label htmlFor="ded-reason">{t("common.reason")}</Label>
             <Textarea
               id="ded-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Why are points being deducted? (min 10 characters, appears in the audit log)"
+              placeholder={t("deductDialog.reasonPlaceholder")}
             />
             <p className="text-xs text-muted-foreground">
-              {reason.trim().length}/{MIN_REASON} characters minimum.
+              {t("common.charMin", { count: reason.trim().length, min: MIN_REASON })}
             </p>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Go back</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.goBack")}</Button>
           <Button disabled={!ready} onClick={() => onConfirm(deduction, reason.trim())}>
-            <IconMinus className="mr-1.5 size-4" /> Deduct points
+            <IconMinus className="mr-1.5 size-4" /> {t("deductDialog.cta")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -266,6 +269,7 @@ function ClearDeductionDialog({
   onOpenChange: (v: boolean) => void;
   onConfirm: (reason: string) => void;
 }) {
+  const t = useTranslations("rankings.admin.overrides");
   const [reason, setReason] = useState("");
   React.useEffect(() => { if (open) setReason(""); }, [open]);
   if (!team) return null;
@@ -276,31 +280,30 @@ function ClearDeductionDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <IconArrowBackUp className="size-5 text-primary" /> Reset deductions, {team.team_name}
+            <IconArrowBackUp className="size-5 text-primary" /> {t("clearDialog.title", { name: team.team_name })}
           </DialogTitle>
           <DialogDescription>
-            Removes the team&apos;s partial point penalty and restores its full derived
-            score. The reset is written to the audit log with your reason.
+            {t("clearDialog.desc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label htmlFor="clr-reason">Reason</Label>
+          <Label htmlFor="clr-reason">{t("common.reason")}</Label>
           <Textarea
             id="clr-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Why are the deductions being cleared? (min 10 characters, appears in the audit log)"
+            placeholder={t("clearDialog.reasonPlaceholder")}
           />
           <p className="text-xs text-muted-foreground">
-            {reason.trim().length}/{MIN_REASON} characters minimum.
+            {t("common.charMin", { count: reason.trim().length, min: MIN_REASON })}
           </p>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Go back</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.goBack")}</Button>
           <Button disabled={!ready} onClick={() => onConfirm(reason.trim())}>
-            <IconArrowBackUp className="mr-1.5 size-4" /> Clear deductions
+            <IconArrowBackUp className="mr-1.5 size-4" /> {t("clearDialog.cta")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -317,6 +320,7 @@ function BanZeroTeamDialog({
   onOpenChange: (v: boolean) => void;
   onConfirm: (reason: string) => void;
 }) {
+  const t = useTranslations("rankings.admin.overrides");
   const [reason, setReason] = useState("");
   React.useEffect(() => { if (open) setReason(""); }, [open]);
   if (!team) return null;
@@ -327,36 +331,38 @@ function BanZeroTeamDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-            <IconAlertTriangle className="size-5" /> Ban-zero {team.team_name}?
+            <IconAlertTriangle className="size-5" /> {t("banTeamDialog.title", { name: team.team_name })}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            This sets the team&apos;s score to <span className="font-semibold text-foreground">0</span> for
-            the current quarter and forces them to the bottom tier. Use only for confirmed
-            cheating or manipulation (§16). The team stays zeroed until you restore it.
+            {/* t.rich keeps the emphasised "0" inline, so each language can place it in its own
+                word order instead of the sentence being split into two glued fragments. */}
+            {t.rich("banTeamDialog.desc", {
+              b: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="space-y-2">
-          <Label htmlFor="ban-reason">Reason</Label>
+          <Label htmlFor="ban-reason">{t("common.reason")}</Label>
           <Textarea
             id="ban-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Why is this team being zeroed? (min 10 characters, appears in the audit log)"
+            placeholder={t("banTeamDialog.reasonPlaceholder")}
           />
           <p className="text-xs text-muted-foreground">
-            {reason.trim().length}/{MIN_REASON} characters minimum.
+            {t("common.charMin", { count: reason.trim().length, min: MIN_REASON })}
           </p>
         </div>
 
         <AlertDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
           <Button
             variant="destructive"
             disabled={!ready}
             onClick={() => onConfirm(reason.trim())}
           >
-            <IconBan className="mr-1.5 size-4" /> Zero for the quarter
+            <IconBan className="mr-1.5 size-4" /> {t("common.zeroForQuarter")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -373,6 +379,7 @@ function RestoreTeamDialog({
   onOpenChange: (v: boolean) => void;
   onConfirm: (reason: string) => void;
 }) {
+  const t = useTranslations("rankings.admin.overrides");
   const [reason, setReason] = useState("");
   React.useEffect(() => { if (open) setReason(""); }, [open]);
   if (!team) return null;
@@ -383,31 +390,30 @@ function RestoreTeamDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <IconArrowBackUp className="size-5 text-primary" /> Restore {team.team_name}
+            <IconArrowBackUp className="size-5 text-primary" /> {t("restoreDialog.title", { name: team.team_name })}
           </DialogTitle>
           <DialogDescription>
-            Lifts the team&apos;s ban-zero and lets the next recalculation recompute its
-            score and tier from scratch. The restore is written to the audit log with your reason.
+            {t("restoreDialog.desc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label htmlFor="rst-reason">Reason</Label>
+          <Label htmlFor="rst-reason">{t("common.reason")}</Label>
           <Textarea
             id="rst-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Why is this team being restored? (min 10 characters, appears in the audit log)"
+            placeholder={t("restoreDialog.reasonPlaceholder")}
           />
           <p className="text-xs text-muted-foreground">
-            {reason.trim().length}/{MIN_REASON} characters minimum.
+            {t("common.charMin", { count: reason.trim().length, min: MIN_REASON })}
           </p>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Go back</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.goBack")}</Button>
           <Button disabled={!ready} onClick={() => onConfirm(reason.trim())}>
-            <IconArrowBackUp className="mr-1.5 size-4" /> Restore team
+            <IconArrowBackUp className="mr-1.5 size-4" /> {t("restoreDialog.cta")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -424,6 +430,7 @@ function BanZeroPlayerDialog({
   onOpenChange: (v: boolean) => void;
   onConfirm: (reason: string) => void;
 }) {
+  const t = useTranslations("rankings.admin.overrides");
   const [reason, setReason] = useState("");
   React.useEffect(() => { if (open) setReason(""); }, [open]);
   if (!player) return null;
@@ -434,35 +441,34 @@ function BanZeroPlayerDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
-            <IconBan className="size-5" /> Ban-zero player, {player.username}
+            <IconBan className="size-5" /> {t("banPlayerDialog.title", { name: player.username })}
           </DialogTitle>
           <DialogDescription>
-            Zeroes this player&apos;s individual score for the current quarter and
-            recalculates their team. They stay zeroed until restored.
+            {t("banPlayerDialog.desc")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label htmlFor="pban-reason">Reason</Label>
+          <Label htmlFor="pban-reason">{t("common.reason")}</Label>
           <Textarea
             id="pban-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Why is this player being zeroed? (min 10 characters, appears in the audit log)"
+            placeholder={t("banPlayerDialog.reasonPlaceholder")}
           />
           <p className="text-xs text-muted-foreground">
-            {reason.trim().length}/{MIN_REASON} characters minimum.
+            {t("common.charMin", { count: reason.trim().length, min: MIN_REASON })}
           </p>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Go back</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.goBack")}</Button>
           <Button
             variant="destructive"
             disabled={!ready}
             onClick={() => onConfirm(reason.trim())}
           >
-            <IconBan className="mr-1.5 size-4" /> Zero for the quarter
+            <IconBan className="mr-1.5 size-4" /> {t("common.zeroForQuarter")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -491,6 +497,10 @@ function StatCard({ icon, title, value, sub, tone }: {
 
 /* ---------------------------------------------------------------- Page */
 export default function OverridesAndBansPage() {
+  const t = useTranslations("rankings.admin.overrides");
+  // Shared rankings namespace, used only for the "Tier N" label in the override toast so it
+  // matches the TierBadge pills rendered in the same table.
+  const tTier = useTranslations("rankings");
   const [tab, setTab] = useState<"teams" | "players">("teams");
   const [q, setQ] = useState("");
 
@@ -526,11 +536,12 @@ export default function OverridesAndBansPage() {
         if (!s) setLoading(false);
       } catch (err: any) {
         if (!active) return;
-        toast.error(err?.response?.data?.message || "Failed to load season");
+        toast.error(err?.response?.data?.message || t("toasts.loadSeasonFailed"));
         setLoading(false);
       }
     })();
     return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Admin surface: MUST read the ungated draft endpoints (adminTeamsQuarterly /
@@ -554,7 +565,7 @@ export default function OverridesAndBansPage() {
     setLoading(true);
     Promise.all([loadTeams(season.season_id), loadPlayers(season.season_id)])
       .catch((err: any) => {
-        toast.error(err?.response?.data?.message || "Failed to load overrides");
+        toast.error(err?.response?.data?.message || t("toasts.loadFailed"));
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -593,13 +604,17 @@ export default function OverridesAndBansPage() {
       await rankingsAdminApi.overrideTier(season.season_id, target.team_id, { tier, reason });
       toast.success(
         same
-          ? `Override cleared for ${target.team_name}`
-          : `${target.team_name} tier overridden to ${TIER_LABELS[tier]}`,
+          ? t("toasts.overrideCleared", { name: target.team_name })
+          // The tier name is resolved from the shared rankings namespace, not glued in English.
+          : t("toasts.tierOverridden", {
+              name: target.team_name,
+              tier: tTier("tier", { tier: tier + 1 }),
+            }),
       );
       setOverrideTeam(null);
       await loadTeams(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to override tier");
+      toast.error(err?.response?.data?.message || t("toasts.overrideFailed"));
     }
   };
 
@@ -608,11 +623,11 @@ export default function OverridesAndBansPage() {
     if (!target || !season || target.team_id == null) return;
     try {
       await rankingsAdminApi.deductPoints(season.season_id, target.team_id, { points, reason });
-      toast.success(`Deducted ${points} pts from ${target.team_name}`);
+      toast.success(t("toasts.deducted", { count: points, name: target.team_name }));
       setDeductTeam(null);
       await loadTeams(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to deduct points");
+      toast.error(err?.response?.data?.message || t("toasts.deductFailed"));
     }
   };
 
@@ -621,11 +636,11 @@ export default function OverridesAndBansPage() {
     if (!target || !season || target.team_id == null) return;
     try {
       await rankingsAdminApi.clearDeduction(season.season_id, target.team_id, { reason });
-      toast.success(`Deductions cleared for ${target.team_name}`);
+      toast.success(t("toasts.deductionsCleared", { name: target.team_name }));
       setClearTeam(null);
       await loadTeams(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to clear deductions");
+      toast.error(err?.response?.data?.message || t("toasts.clearFailed"));
     }
   };
 
@@ -634,11 +649,11 @@ export default function OverridesAndBansPage() {
     if (!target || !season || target.team_id == null) return;
     try {
       await rankingsAdminApi.zeroTeam(season.season_id, target.team_id, { reason });
-      toast.success("Team zeroed for the quarter");
+      toast.success(t("toasts.teamZeroed"));
       setBanTeam(null);
       await loadTeams(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to zero team");
+      toast.error(err?.response?.data?.message || t("toasts.zeroTeamFailed"));
     }
   };
 
@@ -647,11 +662,11 @@ export default function OverridesAndBansPage() {
     if (!target || !season || target.team_id == null) return;
     try {
       await rankingsAdminApi.unzeroTeam(season.season_id, target.team_id, { reason });
-      toast.success(`${target.team_name} restored`);
+      toast.success(t("toasts.teamRestored", { name: target.team_name }));
       setRestoreTeamRow(null);
       await loadTeams(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to restore team");
+      toast.error(err?.response?.data?.message || t("toasts.restoreFailed"));
     }
   };
 
@@ -660,18 +675,18 @@ export default function OverridesAndBansPage() {
     const target = banPlayer;
     try {
       await rankingsAdminApi.zeroPlayer(season.season_id, target.player_id, { reason });
-      toast.success("Player zeroed for the quarter");
+      toast.success(t("toasts.playerZeroed"));
       setBanPlayer(null);
       // Public player read omits is_zeroed; record it locally so the badge sticks.
       setZeroedPlayerIds((prev) => new Set(prev).add(target.player_id));
       await loadPlayers(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to zero player");
+      toast.error(err?.response?.data?.message || t("toasts.zeroPlayerFailed"));
     }
   };
 
   if (loading && !teams.length && !players.length) {
-    return <FullLoader text="Loading overrides & bans" />;
+    return <FullLoader text={t("loading")} />;
   }
 
   return (
@@ -682,36 +697,36 @@ export default function OverridesAndBansPage() {
         // data-tour anchor: overrides tour "Manual tier and score overrides" step.
         title={
           <span data-tour="overrides-title" className="inline-flex items-center">
-            Overrides & Bans
+            {t("title")}
             <InfoTip id="rankings.overrides._page" className="ml-1.5" />
           </span>
         }
-        description="Manually correct tier assignments and zero out cheating teams or players. Every action is logged with a reason."
+        description={t("description")}
       />
 
       {/* status strip */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
         <StatCard
           icon={<IconGavel className="size-4" />}
-          title="Tier overrides" value={overriddenCount}
-          sub="Teams on a manual tier"
+          title={t("stats.tierOverrides")} value={overriddenCount}
+          sub={t("stats.tierOverridesSub")}
         />
         <StatCard
           icon={<IconArrowDown className="size-4" />}
-          title="Point deductions" value={deductedTeamsCount}
-          sub={totalDeducted > 0 ? `${totalDeducted} pts removed this quarter` : "Teams with a partial penalty"}
+          title={t("stats.deductions")} value={deductedTeamsCount}
+          sub={totalDeducted > 0 ? t("stats.deductionsRemoved", { count: totalDeducted }) : t("stats.deductionsSub")}
           tone="text-orange-400"
         />
         <StatCard
           icon={<IconBan className="size-4" />}
-          title="Zeroed teams" value={zeroedCount}
-          sub="Banned this quarter"
+          title={t("stats.zeroedTeams")} value={zeroedCount}
+          sub={t("stats.bannedThisQuarter")}
           tone="text-destructive"
         />
         <StatCard
           icon={<IconUser className="size-4" />}
-          title="Zeroed players" value={playersView.filter((p) => p.zeroed).length}
-          sub="Banned this quarter"
+          title={t("stats.zeroedPlayers")} value={playersView.filter((p) => p.zeroed).length}
+          sub={t("stats.bannedThisQuarter")}
           tone="text-destructive"
         />
       </div>
@@ -720,8 +735,8 @@ export default function OverridesAndBansPage() {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="inline-flex h-9 w-fit items-center justify-center rounded-lg bg-muted p-[3px] text-muted-foreground">
           {([
-            { key: "teams", label: "Teams", icon: IconUsers },
-            { key: "players", label: "Players", icon: IconUser },
+            { key: "teams", label: t("tabs.teams"), icon: IconUsers },
+            { key: "players", label: t("tabs.players"), icon: IconUser },
           ] as const).map((t) => (
             <button
               key={t.key}
@@ -743,7 +758,7 @@ export default function OverridesAndBansPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={tab === "teams" ? "Search teams" : "Search players"}
+            placeholder={tab === "teams" ? t("searchTeams") : t("searchPlayers")}
             className="h-9 pl-8"
           />
         </div>
@@ -756,41 +771,42 @@ export default function OverridesAndBansPage() {
               default tab, so this Card is the stable target for the entity list step. */}
           <Card data-tour="overrides-list">
             <CardHeader>
-              <CardTitle className="text-base">Teams</CardTitle>
+              <CardTitle className="text-base">{t("teams.cardTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {/* "#" is the rank symbol, identical in every language, so it stays literal. */}
                     <TableHead className="w-12">#</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead>Tier</TableHead>
-                    <TableHead className="text-right">Score</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("teams.colTeam")}</TableHead>
+                    <TableHead>{t("teams.colTier")}</TableHead>
+                    <TableHead className="text-right">{t("teams.colScore")}</TableHead>
+                    <TableHead className="text-right">{t("teams.colActions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredTeams.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                        {q ? `No teams match “${q}”.` : "No evaluated teams for this season."}
+                        {q ? t("teams.noMatch", { q }) : t("teams.empty")}
                       </TableCell>
                     </TableRow>
-                  ) : filteredTeams.map((t, i) => {
-                    const effectiveTier = (t.tier ?? 3) as 0 | 1 | 2 | 3;
-                    const deducted = t.points_deducted ?? 0;
-                    const netScore = t.is_zeroed ? 0 : Math.max(0, t.effective_score ?? t.total_score);
+                  ) : filteredTeams.map((t2, i) => {
+                    const effectiveTier = (t2.tier ?? 3) as 0 | 1 | 2 | 3;
+                    const deducted = t2.points_deducted ?? 0;
+                    const netScore = t2.is_zeroed ? 0 : Math.max(0, t2.effective_score ?? t2.total_score);
                     return (
-                      <TableRow key={t.team_id} className={cn(t.is_zeroed && "bg-destructive/5")}>
+                      <TableRow key={t2.team_id} className={cn(t2.is_zeroed && "bg-destructive/5")}>
                         <TableCell className="font-semibold text-muted-foreground">
                           <span className="inline-flex items-center"><IconHash className="size-3" />{i + 1}</span>
                         </TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
-                            {t.team_name}
-                            {t.is_zeroed && (
+                            {t2.team_name}
+                            {t2.is_zeroed && (
                               <Badge variant="destructive" className="text-[10px]">
-                                <IconBan className="size-3" /> Zeroed
+                                <IconBan className="size-3" /> {t("teams.zeroed")}
                               </Badge>
                             )}
                           </div>
@@ -798,21 +814,21 @@ export default function OverridesAndBansPage() {
                         <TableCell>
                           <div className="flex items-center gap-1.5">
                             <TierBadge tier={effectiveTier} />
-                            {t.tier_overridden && !t.is_zeroed && (
+                            {t2.tier_overridden && !t2.is_zeroed && (
                               <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                                Overridden
+                                {t("teams.overridden")}
                               </Badge>
                             )}
                           </div>
                         </TableCell>
                         <TableCell className="text-right font-semibold tabular-nums text-primary">
                           <div className="inline-flex items-center justify-end gap-1.5">
-                            {!t.is_zeroed && deducted > 0 && (
+                            {!t2.is_zeroed && deducted > 0 && (
                               <Badge
                                 variant="outline"
                                 className="rounded-full border-orange-500/40 px-2 py-0.5 text-[10px] font-medium text-orange-400 tabular-nums"
                               >
-                                −{deducted} pts
+                                {t("teams.deducted", { count: deducted })}
                               </Badge>
                             )}
                             <span>{netScore}</span>
@@ -824,11 +840,11 @@ export default function OverridesAndBansPage() {
                             {/* data-tour anchor: overrides tour "Override tier" step. Anchored on
                                 the first row's (always-rendered) override button as the
                                 representative target for the per-row tier override action. */}
-                            <Button data-tour={i === 0 ? "overrides-tier" : undefined} size="sm" variant="outline" onClick={() => setOverrideTeam(t)}>
-                              <IconGavel className="mr-1 size-3.5" /> Override tier
+                            <Button data-tour={i === 0 ? "overrides-tier" : undefined} size="sm" variant="outline" onClick={() => setOverrideTeam(t2)}>
+                              <IconGavel className="mr-1 size-3.5" /> {t("teams.overrideTier")}
                             </Button>
                             <InfoTip id="rankings.overrides.override_tier" />
-                            {!t.is_zeroed && (
+                            {!t2.is_zeroed && (
                               <>
                                 {/* data-tour anchor: overrides tour "Deduct points" step
                                     (representative first non-zeroed row's deduct button). */}
@@ -837,30 +853,30 @@ export default function OverridesAndBansPage() {
                                   size="sm"
                                   variant="outline"
                                   className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 hover:text-orange-400"
-                                  onClick={() => setDeductTeam(t)}
+                                  onClick={() => setDeductTeam(t2)}
                                 >
-                                  <IconMinus className="mr-1 size-3.5" /> Deduct
+                                  <IconMinus className="mr-1 size-3.5" /> {t("teams.deduct")}
                                 </Button>
                                 <InfoTip id="rankings.overrides.deduct_points" />
                               </>
                             )}
-                            {!t.is_zeroed && deducted > 0 && (
+                            {!t2.is_zeroed && deducted > 0 && (
                               <>
                                 <Button
                                   size="sm"
                                   variant="ghost"
                                   className="text-muted-foreground hover:text-foreground"
-                                  onClick={() => setClearTeam(t)}
+                                  onClick={() => setClearTeam(t2)}
                                 >
-                                  <IconArrowBackUp className="mr-1 size-3.5" /> Reset
+                                  <IconArrowBackUp className="mr-1 size-3.5" /> {t("teams.reset")}
                                 </Button>
                                 <InfoTip id="rankings.overrides.clear_deduction" />
                               </>
                             )}
-                            {t.is_zeroed ? (
+                            {t2.is_zeroed ? (
                               <>
-                                <Button size="sm" variant="outline" onClick={() => setRestoreTeamRow(t)}>
-                                  <IconArrowBackUp className="mr-1 size-3.5" /> Restore
+                                <Button size="sm" variant="outline" onClick={() => setRestoreTeamRow(t2)}>
+                                  <IconArrowBackUp className="mr-1 size-3.5" /> {t("teams.restore")}
                                 </Button>
                                 <InfoTip id="rankings.overrides.restore_team" />
                               </>
@@ -873,9 +889,9 @@ export default function OverridesAndBansPage() {
                                   size="sm"
                                   variant="outline"
                                   className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                  onClick={() => setBanTeam(t)}
+                                  onClick={() => setBanTeam(t2)}
                                 >
-                                  <IconBan className="mr-1 size-3.5" /> Ban-zero
+                                  <IconBan className="mr-1 size-3.5" /> {t("teams.banZero")}
                                 </Button>
                                 <InfoTip id="rankings.overrides.ban_zero_team" />
                               </>
@@ -893,11 +909,11 @@ export default function OverridesAndBansPage() {
           <p className="flex items-start gap-2 rounded-md border border-orange-500/20 bg-orange-500/5 p-3 text-xs text-muted-foreground">
             <IconAlertTriangle className="mt-0.5 size-4 shrink-0 text-orange-500" />
             <span>
-              <span className="font-semibold text-foreground">Deduct for partial penalties, ban-zero
-              for total ones.</span> A deduction subtracts a set number of points and leaves the team
-              ranked, multiple deductions accumulate and can be reset. A ban-zero forces the
-              team&apos;s score to 0 and the bottom tier for the whole quarter, it is not lifted by
-              recalculation and stays until an admin explicitly restores the team.
+              {/* One message with an inline <b> lead sentence, so the emphasis can move with the
+                  sentence order instead of being two glued fragments. */}
+              {t.rich("teams.note", {
+                b: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
+              })}
             </span>
           </p>
         </>
@@ -909,32 +925,31 @@ export default function OverridesAndBansPage() {
           <p className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
             <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
             <span>
-              <span className="font-semibold text-foreground">Players inherit their team&apos;s tier
-              and are not individually overridden.</span> The only manual action available here is a
-              ban-zero, which removes a single player&apos;s contribution for the quarter (e.g. confirmed
-              individual cheating) and recalculates their team.
+              {t.rich("players.note", {
+                b: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
+              })}
             </span>
           </p>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Players</CardTitle>
+              <CardTitle className="text-base">{t("players.cardTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead>Inherited tier</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead>{t("players.colPlayer")}</TableHead>
+                    <TableHead>{t("players.colTeam")}</TableHead>
+                    <TableHead>{t("players.colInheritedTier")}</TableHead>
+                    <TableHead className="text-right">{t("players.colAction")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPlayers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
-                        {q ? `No players match “${q}”.` : "No players for this season."}
+                        {q ? t("players.noMatch", { q }) : t("players.empty")}
                       </TableCell>
                     </TableRow>
                   ) : filteredPlayers.map((p) => (
@@ -944,7 +959,7 @@ export default function OverridesAndBansPage() {
                           {p.username}
                           {p.zeroed && (
                             <Badge variant="destructive" className="text-[10px]">
-                              <IconBan className="size-3" /> Zeroed
+                              <IconBan className="size-3" /> {t("players.zeroed")}
                             </Badge>
                           )}
                         </div>
@@ -954,7 +969,7 @@ export default function OverridesAndBansPage() {
                         <div className="flex items-center gap-1.5">
                           <TierBadge tier={(p.tier ?? 3) as 0 | 1 | 2 | 3} />
                           <Badge variant="outline" className="text-[10px] text-muted-foreground">
-                            <IconShieldCheck className="size-3" /> Inherited
+                            <IconShieldCheck className="size-3" /> {t("players.inherited")}
                           </Badge>
                         </div>
                       </TableCell>
@@ -971,7 +986,7 @@ export default function OverridesAndBansPage() {
                             onClick={() => setBanPlayer(p)}
                           >
                             <IconBan className="mr-1 size-3.5" />
-                            {p.zeroed ? "Zeroed" : "Ban-zero player"}
+                            {p.zeroed ? t("players.zeroed") : t("players.banCta")}
                           </Button>
                           {/* ⓘ explains zeroing one player's contribution (sibling of the button). */}
                           <InfoTip id="rankings.overrides.ban_zero_player" />

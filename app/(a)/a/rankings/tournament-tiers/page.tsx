@@ -18,6 +18,10 @@ import {
   arrayMove, SortableContext, useSortable, verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+// i18n: every visible string on this page comes from messages/{en,fr,pt}/rankings.json under
+// rankings.admin.tournamentTiers. The shared "Tier N" label lives one level up (rankings.tier)
+// because components/rankings/TierBadge already renders it there, so both surfaces agree.
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,25 +77,31 @@ type Rule = {
   enabled: boolean;
 };
 
-const TIER_META: Record<Tier, { label: string; mult: string; cls: string }> = {
-  1: { label: "Tier 1", mult: "2.0×", cls: "text-amber-400 border-amber-500/60" },
-  2: { label: "Tier 2", mult: "1.5×", cls: "text-green-400 border-green-600/60" },
-  3: { label: "Tier 3", mult: "1.0×", cls: "text-blue-400 border-blue-600/60" },
+// Tier presentation. The visible LABEL is deliberately NOT stored here: it is resolved at render
+// from the shared rankings namespace via t("tier", { tier }) - the same key components/rankings/
+// TierBadge uses - so "Tier 1" becomes "Niveau 1" / "Nível 1" from a single source.
+const TIER_META: Record<Tier, { mult: string; cls: string }> = {
+  1: { mult: "2.0×", cls: "text-amber-400 border-amber-500/60" },
+  2: { mult: "1.5×", cls: "text-green-400 border-green-600/60" },
+  3: { mult: "1.0×", cls: "text-blue-400 border-blue-600/60" },
 };
 
-const FIELDS: { value: Field; label: string; numeric: boolean }[] = [
-  { value: "prize", label: "Prize pool (₦)", numeric: true },
-  { value: "teams", label: "Registered teams", numeric: true },
-  { value: "players", label: "Registered players", numeric: true },
-  { value: "format", label: "Format", numeric: false },
+// Condition builder vocabulary. These are module-level (they never change), so they carry a
+// message KEY rather than an English string; SortableRule resolves each one through its own
+// translator. English source values live in messages/en/rankings.json.
+const FIELDS: { value: Field; labelKey: string; numeric: boolean }[] = [
+  { value: "prize", labelKey: "fields.prize", numeric: true },
+  { value: "teams", labelKey: "fields.teams", numeric: true },
+  { value: "players", labelKey: "fields.players", numeric: true },
+  { value: "format", labelKey: "fields.format", numeric: false },
 ];
-const NUMERIC_OPS: { value: Op; label: string }[] = [
-  { value: "gte", label: "is at least (≥)" },
-  { value: "lte", label: "is at most (≤)" },
+const NUMERIC_OPS: { value: Op; labelKey: string }[] = [
+  { value: "gte", labelKey: "ops.gte" },
+  { value: "lte", labelKey: "ops.lte" },
 ];
-const FORMAT_OPS: { value: Op; label: string }[] = [
-  { value: "is_lan", label: "has a physical / LAN stage" },
-  { value: "is_virtual", label: "is fully virtual" },
+const FORMAT_OPS: { value: Op; labelKey: string }[] = [
+  { value: "is_lan", labelKey: "ops.isLan" },
+  { value: "is_virtual", labelKey: "ops.isVirtual" },
 ];
 const isNumeric = (f: Field) => f !== "format";
 const ngn = (n: number) => "₦" + n.toLocaleString();
@@ -100,6 +110,9 @@ let CID = 100;
 const cid = () => ++CID;
 
 // Default reason used for the batch save when nothing more specific is provided.
+// NOT translated on purpose: this is never rendered here, it is a value POSTed to the audit
+// endpoints and stored on the audit row, so keeping it English keeps the audit trail uniform
+// and searchable no matter which language the admin who saved was using.
 const DEFAULT_REASON = "Updated tournament tier classification rules via admin console.";
 
 /** Map a server-serialized rule (serialize_tier_rule) into local Rule state. */
@@ -143,17 +156,22 @@ function ruleSignature(rule: Rule) {
 
 function TierPill({ tier }: { tier: Tier }) {
   const m = TIER_META[tier];
+  // Shared "Tier N" label (rankings namespace), identical to TierBadge everywhere else.
+  const tTier = useTranslations("rankings");
   return (
     <Badge variant="outline" className={cn("rounded-full font-semibold", m.cls)}>
-      {m.label} · {m.mult}
+      {tTier("tier", { tier })} · {m.mult}
     </Badge>
   );
 }
 
-// human-readable one-liner for a condition (used in the test result + collapsed view)
-function condText(c: Condition) {
-  if (c.field === "format") return c.op === "is_lan" ? "has physical/LAN stage" : "is fully virtual";
-  const f = c.field === "prize" ? "prize" : c.field === "teams" ? "teams" : "players";
+// human-readable one-liner for a condition (used in the test result + collapsed view).
+// The translator is passed in rather than read from a hook because this runs inside a .map()
+// in the page body (same idiom as components/h2h-bracket.tsx fmtLabel). Only the field name
+// and the format phrases are words; ≥ / ≤ and the value are symbols/numbers, so they stay put.
+function condText(c: Condition, t: (key: string) => string) {
+  if (c.field === "format") return c.op === "is_lan" ? t("cond.lan") : t("cond.virtual");
+  const f = c.field === "prize" ? t("cond.prize") : c.field === "teams" ? t("cond.teams") : t("cond.players");
   const v = c.field === "prize" ? ngn(c.value) : c.value;
   return `${f} ${c.op === "gte" ? "≥" : "≤"} ${v}`;
 }
@@ -186,6 +204,8 @@ function SortableRule({
   rule: Rule; index: number; matchedInTest: boolean;
   onChange: (next: Rule) => void; onDelete: () => void;
 }) {
+  const t = useTranslations("rankings.admin.tournamentTiers");
+  const tTier = useTranslations("rankings");
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: rule.id });
 
@@ -220,11 +240,11 @@ function SortableRule({
         <button
           {...attributes} {...listeners}
           className="cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
-          aria-label="Drag to reorder"
+          aria-label={t("a11y.dragToReorder")}
         >
           <IconGripVertical className="size-4" />
         </button>
-        <Badge variant="outline" className="rounded-full text-[11px] tabular-nums">Rule {index + 1}</Badge>
+        <Badge variant="outline" className="rounded-full text-[11px] tabular-nums">{t("ruleBadge", { n: index + 1 })}</Badge>
         {/* ⓘ on the rule index explains drag-to-prioritise + first-match-wins (sibling of the drag handle, not nested). */}
         <InfoTip id="rankings.tiers.rule_priority" />
 
@@ -239,7 +259,7 @@ function SortableRule({
                 rule.match === m ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              {m === "all" ? "Match ALL" : "Match ANY"}
+              {m === "all" ? t("match.all") : t("match.any")}
             </button>
           ))}
         </div>
@@ -248,16 +268,16 @@ function SortableRule({
 
         {matchedInTest && (
           <Badge variant="outline" className="rounded-full border-primary/50 text-[10px] text-primary">
-            matches test
+            {t("matchesTest")}
           </Badge>
         )}
 
         <div className="ml-auto flex items-center gap-2">
-          <Switch checked={rule.enabled} onCheckedChange={(v) => onChange({ ...rule, enabled: v })} aria-label="Rule enabled" />
+          <Switch checked={rule.enabled} onCheckedChange={(v) => onChange({ ...rule, enabled: v })} aria-label={t("a11y.ruleEnabled")} />
           <Button
             variant="outline" size="icon"
             className="size-7 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={onDelete} aria-label="Delete rule"
+            onClick={onDelete} aria-label={t("a11y.deleteRule")}
           >
             <IconTrash className="size-3.5" />
           </Button>
@@ -269,19 +289,19 @@ function SortableRule({
         {rule.conditions.map((c, ci) => (
           <div key={c.id} className="flex flex-wrap items-center gap-2">
             <span className="w-10 text-[11px] uppercase text-muted-foreground">
-              {ci === 0 ? "If" : rule.match === "all" ? "and" : "or"}
+              {ci === 0 ? t("conn.if") : rule.match === "all" ? t("conn.and") : t("conn.or")}
             </span>
             <Select value={c.field} onValueChange={(v) => setField(c.id, v as Field)}>
               <SelectTrigger className="h-8 w-[170px] text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {FIELDS.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                {FIELDS.map((f) => <SelectItem key={f.value} value={f.value}>{t(f.labelKey)}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={c.op} onValueChange={(v) => patchCond(c.id, { op: v as Op })}>
               <SelectTrigger className="h-8 w-[210px] text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {(isNumeric(c.field) ? NUMERIC_OPS : FORMAT_OPS).map((o) => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  <SelectItem key={o.value} value={o.value}>{t(o.labelKey)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -301,7 +321,7 @@ function SortableRule({
               variant="ghost" size="icon"
               className="size-7 text-muted-foreground hover:text-destructive"
               disabled={rule.conditions.length <= 1}
-              onClick={() => removeCond(c.id)} aria-label="Remove condition"
+              onClick={() => removeCond(c.id)} aria-label={t("a11y.removeCondition")}
             >
               <IconX className="size-3.5" />
             </Button>
@@ -310,16 +330,17 @@ function SortableRule({
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={addCond}>
-            <IconPlus className="mr-1 size-3.5" /> Add condition
+            <IconPlus className="mr-1 size-3.5" /> {t("addCondition")}
           </Button>
           <div className="flex items-center gap-2">
             <IconArrowRight className="size-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">classify as</span>
+            <span className="text-xs text-muted-foreground">{t("classifyAs")}</span>
             <Select value={String(rule.tier)} onValueChange={(v) => onChange({ ...rule, tier: Number(v) as Tier })}>
               <SelectTrigger className="h-8 w-[150px] text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {([1, 2, 3] as Tier[]).map((t) => (
-                  <SelectItem key={t} value={String(t)}>{TIER_META[t].label} · {TIER_META[t].mult}</SelectItem>
+                {/* the map param is renamed off `t` so it does not shadow the translator */}
+                {([1, 2, 3] as Tier[]).map((tier) => (
+                  <SelectItem key={tier} value={String(tier)}>{tTier("tier", { tier })} · {TIER_META[tier].mult}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -332,6 +353,8 @@ function SortableRule({
 
 /* ----------------------------------------------------- page */
 export default function TournamentTiersPage() {
+  const t = useTranslations("rankings.admin.tournamentTiers");
+  const tTier = useTranslations("rankings");
   const [rules, setRules] = useState<Rule[]>([]);
   const [defaultTier, setDefaultTier] = useState<Tier>(3);
   const [loading, setLoading] = useState(true);
@@ -369,10 +392,11 @@ export default function TournamentTiersPage() {
       };
       setDirty(false);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load tournament tier rules.");
+      toast.error(err?.response?.data?.message || t("loadFailed"));
     } finally {
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -408,7 +432,8 @@ export default function TournamentTiersPage() {
     }
   }
 
-  const perTier = (t: Tier) => rules.filter((r) => r.tier === t && r.enabled).length;
+  // param renamed off `t` so it does not shadow the translator
+  const perTier = (tier: Tier) => rules.filter((r) => r.tier === tier && r.enabled).length;
 
   const addRule = () => mutate([...rules, {
     id: `new-${Date.now()}`, serverId: null, match: "all", tier: 2, enabled: true,
@@ -421,7 +446,7 @@ export default function TournamentTiersPage() {
     setRules(snap.rules.map((r) => ({ ...r, conditions: r.conditions.map((c) => ({ ...c })) })));
     setDefaultTier(snap.defaultTier);
     setDirty(false);
-    toast.info("Reverted to the saved classification rules.");
+    toast.info(t("resetDone"));
   };
 
   // ── save → diff local state vs the server snapshot, dispatch the real writes ───
@@ -495,12 +520,12 @@ export default function TournamentTiersPage() {
         }
       }
 
-      toast.success("Tournament tier rules saved; future events classify against the new rules.");
+      toast.success(t("saveSuccess"));
       setSaveOpen(false);
       setReason("");
       await load(); // re-sync state + snapshot with the server's canonical order
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to save tournament tier rules.");
+      toast.error(err?.response?.data?.message || t("saveFailed"));
       // refresh so the UI reflects whatever did persist before the failure
       await load();
     } finally {
@@ -508,7 +533,7 @@ export default function TournamentTiersPage() {
     }
   };
 
-  if (loading) return <FullLoader text="Loading tournament tiers" />;
+  if (loading) return <FullLoader text={t("loading")} />;
 
   return (
     <div className="space-y-4">
@@ -518,24 +543,24 @@ export default function TournamentTiersPage() {
         // data-tour anchor: tournament-tiers tour "Tournament Tiers classification" step.
         title={
           <span data-tour="tournament-tiers-title" className="inline-flex items-center">
-            Tournament Tiers
+            {t("title")}
             <InfoTip id="rankings.tiers._page" className="ml-1.5" />
           </span>
         }
-        description="Decide how events are classified into Tier 1-3. Rules run top-down - the first rule a tournament matches sets its tier, which drives the scoring multiplier."
+        description={t("description")}
         action={
           // Each action ⓘ is a SIBLING of its button (not nested) - Reset reverts, Save commits the rule set.
           <div className="flex w-full gap-2 md:w-auto">
             <div className="flex flex-1 items-center gap-1 md:flex-none">
               <Button variant="outline" className="flex-1 md:flex-none" onClick={reset} disabled={saving}>
-                <IconRestore className="mr-1.5 size-4" /> Reset
+                <IconRestore className="mr-1.5 size-4" /> {t("reset")}
               </Button>
               <InfoTip id="rankings.tiers.reset" />
             </div>
             <div className="flex flex-1 items-center gap-1 md:flex-none">
               {/* data-tour anchor: tournament-tiers tour "Save all changes" step. */}
               <Button data-tour="tournament-tiers-save" className="flex-1 md:flex-none" disabled={!dirty || saving} onClick={() => { setReason(""); setSaveOpen(true); }}>
-                <IconDeviceFloppy className="mr-1.5 size-4" /> Save rules{dirty ? " *" : ""}
+                <IconDeviceFloppy className="mr-1.5 size-4" /> {t("saveRules")}{dirty ? " *" : ""}
               </Button>
               <InfoTip id="rankings.tiers.save" />
             </div>
@@ -546,23 +571,25 @@ export default function TournamentTiersPage() {
       {/* status strip */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
         {/* data-tour anchor: tournament-tiers tour "Rule count" step. */}
-        <StatCard anchor="tournament-tiers-stats" icon={<IconStack2 className="size-4" />} title="Active rules"
-          value={rules.filter((r) => r.enabled).length} sub={`${rules.length} total · evaluated top-down`} />
-        <StatCard icon={<span className="text-xs font-bold">2.0×</span>} title="Tier 1 rules"
-          value={perTier(1)} sub="Highest - 2.0× multiplier" tone="text-amber-400" />
-        <StatCard icon={<span className="text-xs font-bold">1.5×</span>} title="Tier 2 rules"
-          value={perTier(2)} sub="1.5× multiplier" tone="text-green-400" />
-        <StatCard icon={<span className="text-xs font-bold">1.0×</span>} title="Default tier"
-          value={TIER_META[defaultTier].label} sub="When no rule matches" tone="text-blue-400" />
+        <StatCard anchor="tournament-tiers-stats" icon={<IconStack2 className="size-4" />} title={t("stats.activeRules")}
+          value={rules.filter((r) => r.enabled).length} sub={t("stats.activeRulesSub", { count: rules.length })} />
+        <StatCard icon={<span className="text-xs font-bold">2.0×</span>} title={t("stats.tierRules", { tier: 1 })}
+          value={perTier(1)} sub={t("stats.tier1Sub")} tone="text-amber-400" />
+        <StatCard icon={<span className="text-xs font-bold">1.5×</span>} title={t("stats.tierRules", { tier: 2 })}
+          value={perTier(2)} sub={t("stats.tier2Sub")} tone="text-green-400" />
+        <StatCard icon={<span className="text-xs font-bold">1.0×</span>} title={t("stats.defaultTier")}
+          value={tTier("tier", { tier: defaultTier })} sub={t("stats.defaultTierSub")} tone="text-blue-400" />
       </div>
 
       <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
         <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
         <span>
-          <span className="font-semibold text-foreground">First match wins.</span> Drag the handle to set
-          priority. Each rule combines conditions on prize pool, registered teams/players, and format (physical/LAN
-          vs fully virtual). Tier multipliers are configured in{" "}
-          <span className="font-medium text-foreground">Scoring Config</span> (Tier 1 = 2.0×, Tier 2 = 1.5×, Tier 3 = 1.0×).
+          {/* t.rich keeps the two emphasised fragments inline (the "first match wins" lead and the
+              Scoring Config page name) so each language can place them where its grammar wants. */}
+          {t.rich("explainer", {
+            b: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>,
+            cfg: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+          })}
         </span>
       </div>
 
@@ -574,8 +601,7 @@ export default function TournamentTiersPage() {
         <div data-tour="tournament-tiers-rules" className="space-y-3 lg:col-span-2">
           {rules.length === 0 ? (
             <div className="rounded-md border border-dashed bg-muted/20 px-3 py-10 text-center text-sm text-muted-foreground">
-              No classification rules yet. Add a rule to start tiering events - until then everything
-              falls through to the default tier.
+              {t("emptyRules")}
             </div>
           ) : (
             <DndContext
@@ -604,17 +630,18 @@ export default function TournamentTiersPage() {
 
           {/* default (pinned) */}
           <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed bg-muted/20 px-3 py-3">
-            <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">Default</Badge>
+            <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">{t("defaultBadge")}</Badge>
             <span className="inline-flex items-center text-xs text-muted-foreground">
-              Anything that matches no rule above
+              {t("defaultRowText")}
               <InfoTip id="rankings.tiers.default_tier" className="ml-1" />
             </span>
             <IconArrowRight className="size-4 text-muted-foreground" />
             <Select value={String(defaultTier)} onValueChange={(v) => { setDefaultTier(Number(v) as Tier); setDirty(true); }}>
               <SelectTrigger className="h-8 w-[150px] text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {([1, 2, 3] as Tier[]).map((t) => (
-                  <SelectItem key={t} value={String(t)}>{TIER_META[t].label} · {TIER_META[t].mult}</SelectItem>
+                {/* the map param is renamed off `t` so it does not shadow the translator */}
+                {([1, 2, 3] as Tier[]).map((tier) => (
+                  <SelectItem key={tier} value={String(tier)}>{tTier("tier", { tier })} · {TIER_META[tier].mult}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -622,7 +649,7 @@ export default function TournamentTiersPage() {
 
           {/* data-tour anchor: tournament-tiers tour "Add a new rule" step. */}
           <Button data-tour="tournament-tiers-add" variant="outline" className="w-full border-dashed" onClick={addRule}>
-            <IconPlus className="mr-1.5 size-4" /> Add rule
+            <IconPlus className="mr-1.5 size-4" /> {t("addRule")}
           </Button>
         </div>
 
@@ -632,16 +659,16 @@ export default function TournamentTiersPage() {
           <Card className="sticky top-4 gap-2">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-1.5 text-base">
-                <IconFlask className="size-4 text-primary" /> Test a tournament
+                <IconFlask className="size-4 text-primary" /> {t("test.title")}
                 <InfoTip id="rankings.tiers.test._section" />
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-xs text-muted-foreground">
-                Enter sample event details to see which rule fires and the tier it would get.
+                {t("test.blurb")}
               </p>
               <div className="space-y-1.5">
-                <Label className="text-xs">Prize pool</Label>
+                <Label className="text-xs">{t("test.prizeLabel")}</Label>
                 <div className="relative">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">₦</span>
                   <Input type="number" min={0} value={test.prize}
@@ -651,20 +678,20 @@ export default function TournamentTiersPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Teams</Label>
+                  <Label className="text-xs">{t("test.teamsLabel")}</Label>
                   <Input type="number" min={0} value={test.teams}
                     onChange={(e) => setTest((t) => ({ ...t, teams: Math.max(0, parseInt(e.target.value || "0", 10)) }))}
                     className="h-8 text-xs tabular-nums" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Players</Label>
+                  <Label className="text-xs">{t("test.playersLabel")}</Label>
                   <Input type="number" min={0} value={test.players}
                     onChange={(e) => setTest((t) => ({ ...t, players: Math.max(0, parseInt(e.target.value || "0", 10)) }))}
                     className="h-8 text-xs tabular-nums" />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Format</Label>
+                <Label className="text-xs">{t("test.formatLabel")}</Label>
                 <div className="inline-flex h-8 w-full items-center rounded-md bg-muted p-[3px] text-xs">
                   {(["lan", "virtual"] as const).map((f) => (
                     <button key={f}
@@ -674,7 +701,7 @@ export default function TournamentTiersPage() {
                         test.format === f ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
                       )}
                     >
-                      {f === "lan" ? "Physical / LAN" : "Fully virtual"}
+                      {f === "lan" ? t("test.formatLan") : t("test.formatVirtual")}
                     </button>
                   ))}
                 </div>
@@ -682,13 +709,26 @@ export default function TournamentTiersPage() {
 
               <div className="rounded-md border bg-muted/30 p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Classified as</span>
+                  <span className="text-xs text-muted-foreground">{t("test.classifiedAs")}</span>
                   <TierPill tier={result.tier} />
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground">
+                  {/* The AND / OR joiner is a translated word, so the surrounding spaces are added
+                      here rather than baked into the message (leading/trailing spaces in a
+                      catalog value get lost in translation tooling). */}
                   {result.ruleId
-                    ? `Matched Rule ${rules.findIndex((r) => r.id === result.ruleId) + 1}: ${rules.find((r) => r.id === result.ruleId)!.conditions.map(condText).join(rules.find((r) => r.id === result.ruleId)!.match === "all" ? " AND " : " OR ")}`
-                    : "No rule matched - fell through to the default tier."}
+                    ? t("test.matched", {
+                        n: rules.findIndex((r) => r.id === result.ruleId) + 1,
+                        conditions: rules
+                          .find((r) => r.id === result.ruleId)!
+                          .conditions.map((c) => condText(c, t))
+                          .join(
+                            rules.find((r) => r.id === result.ruleId)!.match === "all"
+                              ? ` ${t("test.joinAnd")} `
+                              : ` ${t("test.joinOr")} `,
+                          ),
+                      })
+                    : t("test.noMatch")}
                 </p>
               </div>
             </CardContent>
@@ -700,28 +740,30 @@ export default function TournamentTiersPage() {
       <Dialog open={saveOpen} onOpenChange={(o) => { if (!o && !saving) { setSaveOpen(false); setReason(""); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save tournament tier rules</DialogTitle>
+            <DialogTitle>{t("saveDialog.title")}</DialogTitle>
             <DialogDescription>
-              Saving updates how every future event is classified into a tier (and therefore its scoring
-              multiplier). Existing locked results are not retroactively re-tiered. Provide a reason for the audit log.
+              {t("saveDialog.desc")}
             </DialogDescription>
           </DialogHeader>
+          {/* the two summary labels reuse the status-strip keys - same words, one source */}
           <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
-            <div className="flex justify-between"><span>Active rules</span><span className="font-medium text-foreground">{rules.filter((r) => r.enabled).length}</span></div>
-            <div className="mt-1 flex justify-between"><span>Default tier</span><span className="font-medium text-foreground">{TIER_META[defaultTier].label}</span></div>
+            <div className="flex justify-between"><span>{t("stats.activeRules")}</span><span className="font-medium text-foreground">{rules.filter((r) => r.enabled).length}</span></div>
+            <div className="mt-1 flex justify-between"><span>{t("stats.defaultTier")}</span><span className="font-medium text-foreground">{tTier("tier", { tier: defaultTier })}</span></div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="tt-reason">Reason</Label>
+            <Label htmlFor="tt-reason">{t("saveDialog.reasonLabel")}</Label>
             <Textarea id="tt-reason" value={reason} onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Raised the Tier 1 prize bar to ₦1M and required a physical stage." className="min-h-24" />
+              placeholder={t("saveDialog.reasonPlaceholder")} className="min-h-24" />
             <p className="text-[11px] text-muted-foreground">
-              {reason.trim().length < 10 ? `At least 10 characters required (${reason.trim().length}/10).` : "Logged to the ranking audit trail."}
+              {reason.trim().length < 10
+                ? t("saveDialog.minChars", { count: reason.trim().length, min: 10 })
+                : t("saveDialog.reasonLogged")}
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setSaveOpen(false); setReason(""); }} disabled={saving}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setSaveOpen(false); setReason(""); }} disabled={saving}>{t("saveDialog.cancel")}</Button>
             <Button disabled={reason.trim().length < 10 || saving} onClick={confirmSave}>
-              {saving ? "Saving…" : "Save rules"}
+              {saving ? t("saveDialog.saving") : t("saveRules")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -40,6 +40,15 @@ import { matchesSearch } from "@/lib/search";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { InfoTip } from "@/components/ui/info-tip";
+// i18n: every user-facing string here comes from the adminRankingsResults namespace
+// (messages/{en,fr,pt}/adminRankingsResults.json). NOTE the hook is bound to `tr`, not the
+// usual `t`, because `t` is already the per-row Tournament variable throughout this file
+// (toggleFlag(t, ...), filtered.map((t) => ...)) and would be shadowed inside those scopes.
+import { useTranslations } from "next-intl";
+// Event.start_date is a Django DateField (a bare calendar date). Rendering it with
+// `new Date(...).toLocaleDateString()` reads it as midnight UTC and shows the PREVIOUS day to
+// anyone west of London, so it goes through formatLocalDateOnly instead.
+import { formatLocalDateOnly } from "@/lib/i18n/time";
 
 /**
  * Result Markers - counting-control surface wired to the LIVE backend
@@ -140,21 +149,22 @@ function statusOf(t: Tournament): Status {
 }
 
 function StatusBadge({ status }: { status: Status }) {
+  const tr = useTranslations("adminRankingsResults");
   if (status === "counting")
     return (
       <Badge variant="outline" className="rounded-full border-green-600/60 text-green-400">
-        <IconCircleCheckFilled className="size-3" /> Counting
+        <IconCircleCheckFilled className="size-3" /> {tr("status.counting")}
       </Badge>
     );
   if (status === "partial")
     return (
       <Badge variant="outline" className="rounded-full border-orange-500/40 text-orange-400">
-        <IconAlertTriangle className="size-3" /> Partial
+        <IconAlertTriangle className="size-3" /> {tr("status.partial")}
       </Badge>
     );
   return (
     <Badge variant="destructive" className="rounded-full">
-      Disabled
+      {tr("status.disabled")}
     </Badge>
   );
 }
@@ -179,6 +189,7 @@ function StatCard({ icon, title, value, sub, tone }: {
 type StatusFilter = "all" | "counting" | "exclusions" | "disabled";
 
 export default function ResultMarkersPage() {
+  const tr = useTranslations("adminRankingsResults");
   const [season, setSeason] = useState<Season | null>(null);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [loading, setLoading] = useState(true);
@@ -239,7 +250,7 @@ export default function ResultMarkersPage() {
         if (!s) setLoading(false);
       } catch (err: any) {
         if (!active) return;
-        toast.error(err?.response?.data?.message || "Failed to load season");
+        toast.error(err?.response?.data?.message || tr("toasts.loadSeasonFailed"));
         setLoading(false);
       }
     })();
@@ -258,7 +269,7 @@ export default function ResultMarkersPage() {
     setLoading(true);
     loadMarkers(season.season_id)
       .catch((err: any) => {
-        toast.error(err?.response?.data?.message || "Failed to load result markers");
+        toast.error(err?.response?.data?.message || tr("toasts.loadMarkersFailed"));
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -272,7 +283,7 @@ export default function ResultMarkersPage() {
     try {
       await loadMarkers(season.season_id);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to refresh result markers");
+      toast.error(err?.response?.data?.message || tr("toasts.refreshFailed"));
     }
   };
 
@@ -283,7 +294,7 @@ export default function ResultMarkersPage() {
       const r = await rankingsAdminApi.resultExclusions({ event_id: eventId });
       setDrillExclusions(((r?.results ?? []) as any[]).map(mapExclusion));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load exclusions");
+      toast.error(err?.response?.data?.message || tr("toasts.loadExclusionsFailed"));
     } finally {
       setDrillLoading(false);
     }
@@ -309,7 +320,7 @@ export default function ResultMarkersPage() {
         })),
       );
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load teams and players");
+      toast.error(err?.response?.data?.message || tr("toasts.loadEntitiesFailed"));
     }
   };
 
@@ -385,13 +396,19 @@ export default function ResultMarkersPage() {
     if (next) {
       // re-enable immediately with a canned reason (non-destructive).
       const field = flag === "countWinner" ? "count_winner" : flag === "countPlacement" ? "count_placement" : "count_kills";
+      // The failure toast reads the flag name mid-sentence, so it uses the lowercase variant
+      // from the catalog rather than .toLowerCase() (which is wrong in most languages).
+      const flagKey = flag === "countWinner" ? "winner" : flag === "countPlacement" ? "placement" : "kills";
       void (async () => {
         try {
           await rankingsAdminApi.setEventCounting(t.id, { [field]: true, reason: ENABLE_REASON });
-          toast.success(`${label} re-enabled for ${t.name}`);
+          toast.success(tr("toasts.flagReenabled", { flag: label, tournament: t.name }));
           await refreshMarkers();
         } catch (err: any) {
-          toast.error(err?.response?.data?.message || `Failed to re-enable ${label.toLowerCase()}`);
+          toast.error(
+            err?.response?.data?.message ||
+              tr("toasts.flagReenableFailed", { flag: tr(`flagsLower.${flagKey}`) }),
+          );
         }
       })();
     } else {
@@ -412,10 +429,10 @@ export default function ResultMarkersPage() {
           await rankingsAdminApi.setEventCounting(t.id, {
             count_winner: true, count_placement: true, count_kills: true, reason: ENABLE_REASON,
           });
-          toast.success(`All markers re-enabled for ${t.name}`);
+          toast.success(tr("toasts.allMarkersReenabled", { tournament: t.name }));
           await refreshMarkers();
         } catch (err: any) {
-          toast.error(err?.response?.data?.message || "Failed to re-enable markers");
+          toast.error(err?.response?.data?.message || tr("toasts.reenableMarkersFailed"));
         }
       })();
     }
@@ -429,7 +446,9 @@ export default function ResultMarkersPage() {
       id: t.id,
       exclusionId: x.id,
       tName: t.name,
-      eName: x.entityType === "team" ? (x.teamName ?? `Team ${x.teamId}`) : (x.playerUsername ?? `Player ${x.playerId}`),
+      eName: x.entityType === "team"
+        ? (x.teamName ?? tr("drill.teamFallback", { id: x.teamId ?? "" }))
+        : (x.playerUsername ?? tr("drill.playerFallback", { id: x.playerId ?? "" })),
       eKind: x.entityType,
     });
   };
@@ -440,7 +459,11 @@ export default function ResultMarkersPage() {
     if (!drill || addEntityId == null || !addReasonValid || adding) return;
     setAdding(true);
     const idNum = addEntityId;
-    const label = addQuery.trim() || `${addType === "team" ? "Team" : "Player"} ${idNum}`;
+    const label =
+      addQuery.trim() ||
+      (addType === "team"
+        ? tr("drill.teamFallback", { id: idNum })
+        : tr("drill.playerFallback", { id: idNum }));
     try {
       await rankingsAdminApi.createExclusion({
         event_id: drill.id,
@@ -448,13 +471,13 @@ export default function ResultMarkersPage() {
         ...(addType === "team" ? { team_id: idNum } : { player_id: idNum }),
         reason: addReason.trim(),
       });
-      toast.success(`${label} excluded from counting for ${drill.name}`);
+      toast.success(tr("toasts.excluded", { name: label, tournament: drill.name }));
       setAddQuery("");
       setAddEntityId(null);
       setAddReason("");
       await Promise.all([loadDrillExclusions(drill.id), refreshMarkers()]);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to add exclusion");
+      toast.error(err?.response?.data?.message || tr("toasts.addExclusionFailed"));
     } finally {
       setAdding(false);
     }
@@ -490,11 +513,11 @@ export default function ResultMarkersPage() {
             }),
           ),
         );
-        toast.success(`Counting re-enabled for ${ids.length} tournament${ids.length > 1 ? "s" : ""}`);
+        toast.success(tr("toasts.bulkEnabled", { count: ids.length }));
         clearSelection();
         await refreshMarkers();
       } catch (err: any) {
-        toast.error(err?.response?.data?.message || "Failed to re-enable counting");
+        toast.error(err?.response?.data?.message || tr("toasts.bulkEnableFailed"));
       }
     })();
   };
@@ -516,13 +539,15 @@ export default function ResultMarkersPage() {
             : pending.flag === "countPlacement" ? "count_placement"
               : "count_kills";
         await rankingsAdminApi.setEventCounting(pending.id, { [field]: false, reason: r });
-        toast.success(`${pending.label} disabled for ${pending.tName}`);
+        toast.success(
+          tr("toasts.flagDisabled", { flag: pending.label, tournament: pending.tName }),
+        );
         await refreshMarkers();
       } else if (pending.kind === "disableAll") {
         await rankingsAdminApi.setEventCounting(pending.id, {
           count_winner: false, count_placement: false, count_kills: false, reason: r,
         });
-        toast.success(`All markers disabled for ${pending.tName}`);
+        toast.success(tr("toasts.allMarkersDisabled", { tournament: pending.tName }));
         await refreshMarkers();
       } else if (pending.kind === "bulkDisable") {
         const ids = pending.ids;
@@ -533,12 +558,14 @@ export default function ResultMarkersPage() {
             }),
           ),
         );
-        toast.success(`Counting disabled for ${ids.length} tournament${ids.length > 1 ? "s" : ""}`);
+        toast.success(tr("toasts.bulkDisabled", { count: ids.length }));
         clearSelection();
         await refreshMarkers();
       } else if (pending.kind === "removeExclusion") {
         await rankingsAdminApi.deleteExclusion(pending.exclusionId, { reason: r });
-        toast.success(`${pending.eName} now counts again for ${pending.tName}`);
+        toast.success(
+          tr("toasts.reincluded", { name: pending.eName, tournament: pending.tName }),
+        );
         await Promise.all([
           drillId != null ? loadDrillExclusions(drillId) : Promise.resolve(),
           refreshMarkers(),
@@ -547,7 +574,7 @@ export default function ResultMarkersPage() {
       setPending(null);
       setReason("");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Action failed");
+      toast.error(err?.response?.data?.message || tr("toasts.actionFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -555,20 +582,27 @@ export default function ResultMarkersPage() {
 
   const pendingTitle = () => {
     if (!pending) return "";
-    if (pending.kind === "flag") return `Disable “${pending.label}” for ${pending.tName}`;
-    if (pending.kind === "disableAll") return `Disable all markers for ${pending.tName}`;
-    if (pending.kind === "bulkDisable") return `Disable counting for ${pending.ids.length} tournaments`;
-    return `Re-include ${pending.eName} in ${pending.tName}`;
+    if (pending.kind === "flag")
+      return tr("reasonDialog.flagTitle", { flag: pending.label, tournament: pending.tName });
+    if (pending.kind === "disableAll")
+      return tr("reasonDialog.disableAllTitle", { tournament: pending.tName });
+    if (pending.kind === "bulkDisable")
+      return tr("reasonDialog.bulkTitle", { count: pending.ids.length });
+    return tr("reasonDialog.reincludeTitle", { name: pending.eName, tournament: pending.tName });
   };
   const pendingDesc = () => {
     if (!pending) return "";
+    // Two separate sentences rather than an interpolated "team"/"player" noun: the possessive
+    // and the article around it differ per language, so the whole sentence has to be authored.
     if (pending.kind === "removeExclusion")
-      return `This ${pending.eKind === "team" ? "team" : "player"}'s results will count toward rankings again for this tournament. The change is written to the audit log with your reason.`;
-    return "Turning counting off removes these results from every affected ranking calculation. The change is written to the audit log with your reason.";
+      return pending.eKind === "team"
+        ? tr("reasonDialog.descReincludeTeam")
+        : tr("reasonDialog.descReincludePlayer");
+    return tr("reasonDialog.descDisable");
   };
 
   if (loading && tournaments.length === 0) {
-    return <FullLoader text="Loading result markers" />;
+    return <FullLoader text={tr("loading")} />;
   }
 
   return (
@@ -579,11 +613,11 @@ export default function ResultMarkersPage() {
         // data-tour anchor: result-markers tour "Result Markers control" step.
         title={
           <span data-tour="result-markers-title" className="inline-flex items-center">
-            Result Markers
+            {tr("title")}
             <InfoTip id="rankings.results._page" className="ml-1.5" />
           </span>
         }
-        description="Control which tournament results count toward rankings. Disable a whole event, or exclude specific teams or players from counting."
+        description={tr("description")}
       />
 
       {/* status strip
@@ -591,25 +625,25 @@ export default function ResultMarkersPage() {
       <div data-tour="result-markers-status" className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
         <StatCard
           icon={<IconClipboardCheck className="size-4" />}
-          title="Tournaments this period" value={stats.total}
-          sub="Across the current season"
+          title={tr("stats.total")} value={stats.total}
+          sub={tr("stats.totalSub")}
         />
         <StatCard
           icon={<IconCircleCheckFilled className="size-4" />}
-          title="Fully counting" value={stats.counting}
-          sub="All markers on · no exclusions"
+          title={tr("stats.counting")} value={stats.counting}
+          sub={tr("stats.countingSub")}
           tone="text-green-500"
         />
         <StatCard
           icon={<IconAlertTriangle className="size-4" />}
-          title="Partially disabled" value={stats.partial}
-          sub="A marker off, or has exclusions"
+          title={tr("stats.partial")} value={stats.partial}
+          sub={tr("stats.partialSub")}
           tone={stats.partial ? "text-orange-500" : "text-muted-foreground"}
         />
         <StatCard
           icon={<IconUsersGroup className="size-4" />}
-          title="Excluded teams / players" value={stats.excludedEntities}
-          sub="Entities not counting"
+          title={tr("stats.excluded")} value={stats.excludedEntities}
+          sub={tr("stats.excludedSub")}
           tone={stats.excludedEntities ? "text-orange-500" : "text-muted-foreground"}
         />
       </div>
@@ -619,7 +653,7 @@ export default function ResultMarkersPage() {
       <Card data-tour="result-markers-list">
         <CardHeader className="flex-col items-stretch gap-3 lg:flex-row lg:items-center lg:justify-between">
           <CardTitle className="text-base">
-            Tournaments{season ? ` · ${season.name}` : ""}
+            {tr("list.title")}{season ? ` · ${season.name}` : ""}
           </CardTitle>
           {/* filter row: search + tier + status. data-tour anchor: result-markers tour
               "Find an event" step (anchors the whole filter cluster so the highlight covers
@@ -630,33 +664,35 @@ export default function ResultMarkersPage() {
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search tournaments"
+                placeholder={tr("filters.search")}
                 className="h-9 pl-8"
               />
             </div>
+            {/* SelectItem values are the raw TierFilter / StatusFilter keys the filter logic
+                compares against; only the visible labels are translated. */}
             <Select value={tierFilter} onValueChange={(v) => setTierFilter(v as TierFilter)}>
               <SelectTrigger className="h-9 w-full sm:w-[140px] text-xs">
                 <IconFilter className="size-3.5 text-muted-foreground" />
-                <SelectValue placeholder="Tier" />
+                <SelectValue placeholder={tr("filters.tierPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All tiers</SelectItem>
-                <SelectItem value="tier_1">Tier 1</SelectItem>
-                <SelectItem value="tier_2">Tier 2</SelectItem>
-                <SelectItem value="tier_3">Tier 3</SelectItem>
-                <SelectItem value="scrims">Scrims only</SelectItem>
+                <SelectItem value="all">{tr("filters.allTiers")}</SelectItem>
+                <SelectItem value="tier_1">{tr("filters.tier1")}</SelectItem>
+                <SelectItem value="tier_2">{tr("filters.tier2")}</SelectItem>
+                <SelectItem value="tier_3">{tr("filters.tier3")}</SelectItem>
+                <SelectItem value="scrims">{tr("filters.scrimsOnly")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
               <SelectTrigger className="h-9 w-full sm:w-[170px] text-xs">
                 <IconAdjustments className="size-3.5 text-muted-foreground" />
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder={tr("filters.statusPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="counting">Fully counting</SelectItem>
-                <SelectItem value="exclusions">Has exclusions</SelectItem>
-                <SelectItem value="disabled">Disabled</SelectItem>
+                <SelectItem value="all">{tr("filters.allStatuses")}</SelectItem>
+                <SelectItem value="counting">{tr("filters.fullyCounting")}</SelectItem>
+                <SelectItem value="exclusions">{tr("filters.hasExclusions")}</SelectItem>
+                <SelectItem value="disabled">{tr("filters.disabled")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -666,11 +702,11 @@ export default function ResultMarkersPage() {
         {selected.size > 0 && (
           <div className="mx-6 mb-3 flex flex-col items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-2 sm:flex-row sm:items-center sm:justify-between">
             <span className="px-1 text-xs font-medium tabular-nums">
-              {selected.size} tournament{selected.size > 1 ? "s" : ""} selected
+              {tr("bulk.selected", { count: selected.size })}
             </span>
             <div className="flex flex-wrap items-center gap-2">
               <Button size="sm" variant="outline" onClick={bulkEnable}>
-                <IconCirclePlus className="mr-1 size-3.5" /> Enable counting
+                <IconCirclePlus className="mr-1 size-3.5" /> {tr("bulk.enable")}
               </Button>
               <Button
                 size="sm"
@@ -678,12 +714,12 @@ export default function ResultMarkersPage() {
                 className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={bulkDisable}
               >
-                <IconCircleMinus className="mr-1 size-3.5" /> Disable counting
+                <IconCircleMinus className="mr-1 size-3.5" /> {tr("bulk.disable")}
               </Button>
               {/* ⓘ beside the bulk action (sibling) - explains the multi-event disable. */}
               <InfoTip id="rankings.results.bulk_disable" />
               <Button size="sm" variant="ghost" onClick={clearSelection}>
-                <IconX className="mr-1 size-3.5" /> Clear selection
+                <IconX className="mr-1 size-3.5" /> {tr("bulk.clear")}
               </Button>
             </div>
           </div>
@@ -697,35 +733,35 @@ export default function ResultMarkersPage() {
                   <Checkbox
                     checked={allVisibleSelected}
                     onCheckedChange={toggleSelectAll}
-                    aria-label="Select all"
+                    aria-label={tr("table.selectAll")}
                   />
                 </TableHead>
-                <TableHead className="text-foreground">Tournament</TableHead>
-                <TableHead className="text-foreground">Tier</TableHead>
-                <TableHead className="text-center text-foreground">Teams</TableHead>
+                <TableHead className="text-foreground">{tr("table.tournament")}</TableHead>
+                <TableHead className="text-foreground">{tr("table.tier")}</TableHead>
+                <TableHead className="text-center text-foreground">{tr("table.teams")}</TableHead>
                 {/* data-tour anchor: result-markers tour "Counting flags" step. Anchors the
                     first of the three counting-flag columns (Winner / Placement / Kills) - it
                     is always rendered, so the highlight has a stable target for the flag set. */}
                 <TableHead data-tour="result-markers-flags" className="text-center text-foreground">
                   <span className="inline-flex items-center gap-1">
-                    <IconTrophy className="size-3.5" /> Winner
+                    <IconTrophy className="size-3.5" /> {tr("flags.winner")}
                     <InfoTip id="rankings.results.count_winner" />
                   </span>
                 </TableHead>
                 <TableHead className="text-center text-foreground">
                   <span className="inline-flex items-center gap-1">
-                    <IconMedal className="size-3.5" /> Placement
+                    <IconMedal className="size-3.5" /> {tr("flags.placement")}
                     <InfoTip id="rankings.results.count_placement" />
                   </span>
                 </TableHead>
                 <TableHead className="text-center text-foreground">
                   <span className="inline-flex items-center gap-1">
-                    <IconSwords className="size-3.5" /> Kills
+                    <IconSwords className="size-3.5" /> {tr("flags.kills")}
                     <InfoTip id="rankings.results.count_kills" />
                   </span>
                 </TableHead>
-                <TableHead className="text-foreground">Status</TableHead>
-                <TableHead className="text-right text-foreground">Actions</TableHead>
+                <TableHead className="text-foreground">{tr("table.status")}</TableHead>
+                <TableHead className="text-right text-foreground">{tr("table.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -733,8 +769,8 @@ export default function ResultMarkersPage() {
                 <TableRow>
                   <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
                     {q || tierFilter !== "all" || statusFilter !== "all"
-                      ? "No tournaments match the current filters."
-                      : "No tournaments this period yet."}
+                      ? tr("list.noMatch")
+                      : tr("list.empty")}
                   </TableCell>
                 </TableRow>
               ) : filtered.map((t) => {
@@ -753,14 +789,16 @@ export default function ResultMarkersPage() {
                       <Checkbox
                         checked={selected.has(t.id)}
                         onCheckedChange={() => toggleSelect(t.id)}
-                        aria-label={`Select ${t.name}`}
+                        aria-label={tr("table.selectRow", { name: t.name })}
                       />
                     </TableCell>
                     <TableCell className="text-xs font-medium">
                       <div className="flex flex-col">
                         <span>{t.name}</span>
+                        {/* Event.start_date is a bare DateField, see the formatLocalDateOnly note
+                            at the imports: the date-and-time formatter would shift it a day. */}
                         <span className="text-[10px] text-muted-foreground tabular-nums">
-                          {t.date ? new Date(t.date).toLocaleDateString() : "-"}
+                          {t.date ? formatLocalDateOnly(t.date) : "-"}
                         </span>
                       </div>
                     </TableCell>
@@ -769,7 +807,7 @@ export default function ResultMarkersPage() {
                           tournament_tier on a scrim row would claim a weight it never gets. */}
                       {t.isScrim ? (
                         <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-muted-foreground">
-                          Scrim
+                          {tr("list.scrim")}
                         </Badge>
                       ) : (
                         <TournamentTierBadge tier={t.tier} />
@@ -780,8 +818,8 @@ export default function ResultMarkersPage() {
                       <div className="flex justify-center">
                         <Switch
                           checked={t.countWinner}
-                          onCheckedChange={(v) => toggleFlag(t, "countWinner", "Winner", v)}
-                          aria-label={`${t.name} winner counting`}
+                          onCheckedChange={(v) => toggleFlag(t, "countWinner", tr("flags.winner"), v)}
+                          aria-label={tr("table.winnerToggle", { name: t.name })}
                         />
                       </div>
                     </TableCell>
@@ -789,8 +827,8 @@ export default function ResultMarkersPage() {
                       <div className="flex justify-center">
                         <Switch
                           checked={t.countPlacement}
-                          onCheckedChange={(v) => toggleFlag(t, "countPlacement", "Placement", v)}
-                          aria-label={`${t.name} placement counting`}
+                          onCheckedChange={(v) => toggleFlag(t, "countPlacement", tr("flags.placement"), v)}
+                          aria-label={tr("table.placementToggle", { name: t.name })}
                         />
                       </div>
                     </TableCell>
@@ -798,8 +836,8 @@ export default function ResultMarkersPage() {
                       <div className="flex justify-center">
                         <Switch
                           checked={t.countKills}
-                          onCheckedChange={(v) => toggleFlag(t, "countKills", "Kills", v)}
-                          aria-label={`${t.name} kills counting`}
+                          onCheckedChange={(v) => toggleFlag(t, "countKills", tr("flags.kills"), v)}
+                          aria-label={tr("table.killsToggle", { name: t.name })}
                         />
                       </div>
                     </TableCell>
@@ -808,7 +846,7 @@ export default function ResultMarkersPage() {
                         <StatusBadge status={status} />
                         {excl > 0 && (
                           <Badge variant="outline" className="rounded-full border-orange-500/40 px-1.5 py-0 text-[10px] text-orange-400 tabular-nums">
-                            {excl} excl
+                            {tr("list.exclShort", { count: excl })}
                           </Badge>
                         )}
                       </div>
@@ -816,7 +854,7 @@ export default function ResultMarkersPage() {
                     <TableCell className="text-right">
                       <div className="inline-flex items-center justify-end gap-1.5">
                         <Button size="sm" variant="outline" className="h-8" onClick={() => setDrillId(t.id)}>
-                          <IconUsersGroup className="mr-1 size-3.5" /> Exclusions
+                          <IconUsersGroup className="mr-1 size-3.5" /> {tr("list.exclusions")}
                           {excl > 0 && (
                             <span className="ml-1 rounded-full bg-orange-500/20 px-1.5 text-[10px] text-orange-400 tabular-nums">
                               {excl}
@@ -832,7 +870,7 @@ export default function ResultMarkersPage() {
                           )}
                           onClick={() => toggleAllFlags(t)}
                         >
-                          {allOn ? "Disable all" : "Enable all"}
+                          {allOn ? tr("list.disableAll") : tr("list.enableAll")}
                         </Button>
                         {/* ⓘ beside the per-event toggle-all (sibling of both action buttons). */}
                         <InfoTip id="rankings.results.toggle_all" />
@@ -852,18 +890,15 @@ export default function ResultMarkersPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <IconUsersGroup className="size-5 text-primary" />
-              Exclusions for {drill?.name}
+              {tr("drill.title", { tournament: drill?.name ?? "" })}
             </DialogTitle>
-            <DialogDescription>
-              Exclude specific teams or players so their results don&apos;t count toward rankings for this
-              tournament, or remove an existing exclusion. Both require a reason.
-            </DialogDescription>
+            <DialogDescription>{tr("drill.description")}</DialogDescription>
           </DialogHeader>
 
           {drill && (
             <>
               <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2 text-xs">
-                <span className="text-muted-foreground">Currently excluded</span>
+                <span className="text-muted-foreground">{tr("drill.currentlyExcluded")}</span>
                 <span className="font-semibold text-foreground tabular-nums">
                   {drillExclusions.length}
                 </span>
@@ -872,15 +907,15 @@ export default function ResultMarkersPage() {
               {/* existing exclusions */}
               <div className="max-h-[40vh] space-y-1.5 overflow-y-auto pr-1">
                 {drillLoading ? (
-                  <p className="py-6 text-center text-xs text-muted-foreground">Loading exclusions…</p>
+                  <p className="py-6 text-center text-xs text-muted-foreground">{tr("drill.loading")}</p>
                 ) : drillExclusions.length === 0 ? (
                   <p className="rounded-md border border-dashed py-6 text-center text-xs text-muted-foreground">
-                    No teams or players are excluded for this tournament.
+                    {tr("drill.empty")}
                   </p>
                 ) : drillExclusions.map((e) => {
                   const name = e.entityType === "team"
-                    ? (e.teamName ?? `Team ${e.teamId}`)
-                    : (e.playerUsername ?? `Player ${e.playerId}`);
+                    ? (e.teamName ?? tr("drill.teamFallback", { id: e.teamId ?? "" }))
+                    : (e.playerUsername ?? tr("drill.playerFallback", { id: e.playerId ?? "" }));
                   return (
                     <div
                       key={`${e.entityType}-${e.id}`}
@@ -892,10 +927,12 @@ export default function ResultMarkersPage() {
                           : <IconUser className="size-4 text-muted-foreground" />}
                         <div className="flex flex-col">
                           <span className="text-xs font-medium">{name}</span>
-                          <span className="text-[10px] capitalize text-muted-foreground">{e.entityType}</span>
+                          <span className="text-[10px] capitalize text-muted-foreground">
+                            {e.entityType === "team" ? tr("drill.entityTeam") : tr("drill.entityPlayer")}
+                          </span>
                         </div>
                         <Badge variant="outline" className="rounded-full border-orange-500/40 px-1.5 py-0 text-[10px] text-orange-400">
-                          Excluded
+                          {tr("drill.excluded")}
                         </Badge>
                       </div>
                       <Button
@@ -904,7 +941,7 @@ export default function ResultMarkersPage() {
                         className="h-8 text-muted-foreground hover:text-foreground"
                         onClick={() => removeExclusion(drill, e)}
                       >
-                        <IconCirclePlus className="mr-1 size-3.5" /> Re-include
+                        <IconCirclePlus className="mr-1 size-3.5" /> {tr("drill.reinclude")}
                       </Button>
                     </div>
                   );
@@ -917,17 +954,18 @@ export default function ResultMarkersPage() {
                   stable element when the dialog is open, vs. the per-row Exclusions buttons). */}
               <div data-tour="result-markers-exclusions" className="space-y-3 rounded-md border bg-muted/20 p-3">
                 <p className="flex items-center text-xs font-semibold text-foreground">
-                  Add exclusion
+                  {tr("drill.addTitle")}
                   <InfoTip id="rankings.results.exclusions" className="ml-1" />
                 </p>
                 <div className="flex gap-2">
+                  {/* Values stay "team"/"player" - they are the entity_type sent to the backend. */}
                   <Select value={addType} onValueChange={(v) => changeAddType(v as "team" | "player")}>
                     <SelectTrigger className="h-9 w-[120px] text-xs">
-                      <SelectValue placeholder="Type" />
+                      <SelectValue placeholder={tr("drill.typePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="team">Team</SelectItem>
-                      <SelectItem value="player">Player</SelectItem>
+                      <SelectItem value="team">{tr("drill.team")}</SelectItem>
+                      <SelectItem value="player">{tr("drill.player")}</SelectItem>
                     </SelectContent>
                   </Select>
                   {/* name-search picker - type a name, click a match to resolve the id */}
@@ -939,13 +977,13 @@ export default function ResultMarkersPage() {
                         // typing invalidates any previously resolved id until a new match is clicked
                         setAddEntityId(null);
                       }}
-                      placeholder={addType === "team" ? "Search team name…" : "Search player name…"}
+                      placeholder={addType === "team" ? tr("drill.searchTeam") : tr("drill.searchPlayer")}
                       className="h-9"
                     />
                     {addQuery.trim().length > 0 && addEntityId == null && (
                       <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
                         {addMatches.length === 0 ? (
-                          <p className="px-2 py-1.5 text-sm text-muted-foreground">No matches</p>
+                          <p className="px-2 py-1.5 text-sm text-muted-foreground">{tr("drill.noMatches")}</p>
                         ) : (
                           addMatches.map((o) => (
                             <button
@@ -967,17 +1005,17 @@ export default function ResultMarkersPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="add-excl-reason" className="text-xs">
-                    Reason <span className="text-destructive">*</span>
+                    {tr("drill.reason")} <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="add-excl-reason"
                     value={addReason}
                     onChange={(e) => setAddReason(e.target.value)}
-                    placeholder="Why is this team / player being excluded? (min 10 characters)"
+                    placeholder={tr("drill.reasonPlaceholder")}
                     className="min-h-20"
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    {addReason.trim().length}/{MIN_REASON} characters minimum.
+                    {tr("charMin", { count: addReason.trim().length, min: MIN_REASON })}
                   </p>
                 </div>
                 <Button
@@ -987,14 +1025,14 @@ export default function ResultMarkersPage() {
                   disabled={!addIdValid || !addReasonValid || adding}
                   onClick={addExclusion}
                 >
-                  <IconCircleMinus className="mr-1.5 size-3.5" /> {adding ? "Adding…" : "Exclude from counting"}
+                  <IconCircleMinus className="mr-1.5 size-3.5" /> {adding ? tr("drill.adding") : tr("drill.add")}
                 </Button>
               </div>
             </>
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDrillId(null)}>Done</Button>
+            <Button variant="outline" onClick={() => setDrillId(null)}>{tr("drill.done")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1011,30 +1049,32 @@ export default function ResultMarkersPage() {
           </DialogHeader>
 
           <div className="space-y-1.5">
-            <Label htmlFor="result-reason">Reason <span className="text-destructive">*</span></Label>
+            <Label htmlFor="result-reason">
+              {tr("reasonDialog.reason")} <span className="text-destructive">*</span>
+            </Label>
             <Textarea
               id="result-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Why are these results being excluded from counting? (min 10 characters)"
+              placeholder={tr("reasonDialog.placeholder")}
               className="min-h-24"
             />
             <p className="text-[11px] text-muted-foreground">
-              {reason.trim().length}/{MIN_REASON} characters minimum.
+              {tr("charMin", { count: reason.trim().length, min: MIN_REASON })}
             </p>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => { setPending(null); setReason(""); }}>
-              Go back
+              {tr("reasonDialog.goBack")}
             </Button>
             {pending?.kind === "removeExclusion" ? (
               <Button disabled={!reasonValid || submitting} onClick={confirmReason}>
-                <IconCirclePlus className="mr-1.5 size-4" /> {submitting ? "Saving…" : "Re-include"}
+                <IconCirclePlus className="mr-1.5 size-4" /> {submitting ? tr("reasonDialog.saving") : tr("reasonDialog.reinclude")}
               </Button>
             ) : (
               <Button variant="destructive" disabled={!reasonValid || submitting} onClick={confirmReason}>
-                <IconCircleMinus className="mr-1.5 size-4" /> {submitting ? "Saving…" : "Disable counting"}
+                <IconCircleMinus className="mr-1.5 size-4" /> {submitting ? tr("reasonDialog.saving") : tr("reasonDialog.disable")}
               </Button>
             )}
           </DialogFooter>

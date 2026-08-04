@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,8 @@ import { TierBadge, tierMeta } from "@/components/rankings/TierBadge";
 import { rankingsApi, TeamRow as ApiTeamRow, Season } from "@/lib/rankings";
 // Calendar dates (no time component) must go through this, not the date-and-time formatter:
 // a bare "2026-07-14" parsed as a Date is midnight UTC and renders as the 13th west of London.
-import { formatLocalDateOnly } from "@/lib/i18n/time";
+import { formatLocalDateOnly, formatLocalTime } from "@/lib/i18n/time";
+import { LocalTime } from "@/components/LocalTime";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import axios from "axios";
 import { env } from "@/lib/env";
@@ -75,8 +77,13 @@ interface EvalSummary {
   tier_distribution: Record<number, number>;
 }
 
-const fmtWhen = (iso: string | null | undefined) =>
-  iso ? new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null;
+// last_evaluation.at is a UTC DateTimeField, and this value is interpolated into the
+// "{when} · {by}" StatCard subtitle rather than rendered on its own, so it needs the
+// STRING helper. It used to call toLocaleString(undefined, ...), which follows the
+// BROWSER's language rather than the AFC UI language, so a French admin got English
+// month names; formatLocalTime reads the active locale instead.
+const fmtWhen = (iso: string | null | undefined, locale: string) =>
+  iso ? formatLocalTime(iso, "datetime", locale) : null;
 
 function StatCard({ icon, title, value, sub, tone }: any) {
   return (
@@ -94,6 +101,8 @@ function StatCard({ icon, title, value, sub, tone }: any) {
 }
 
 export default function AdminRankingsPage() {
+  const t = useTranslations("rankings.admin.overview");
+  const locale = useLocale();
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState<number | undefined>(undefined);
   const [season, setSeason] = useState<AdminSeason | null>(null);
@@ -157,7 +166,7 @@ export default function AdminRankingsPage() {
       loadRecalcStatus(seasonId),
     ]).catch((err: any) => {
       if (!active) return;
-      toast.error(err?.response?.data?.message || "Failed to load rankings admin");
+      toast.error(err?.response?.data?.message || t("loadFailed"));
     }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -179,27 +188,61 @@ export default function AdminRankingsPage() {
   // one number an admin comes to this card for. The public banner on /rankings has always had
   // this right; the two now agree because they read the same fields.
   const transferOpen = !!season?.transfer_window_is_open;
+  // The headline word has FOUR states, not two. "Locked" is only honest once we have a
+  // season AND the payload actually carried the flag: before the season loads we are still
+  // checking, and if the field is absent we genuinely do not know, so neither case should
+  // assert "Locked". transfer_window_open / _close are DateFields (bare calendar dates), so
+  // they keep going through formatLocalDateOnly, never the datetime formatter.
+  const transferState: "checking" | "unknown" | "open" | "locked" = !season
+    ? "checking"
+    : season.transfer_window_is_open === undefined
+      ? "unknown"
+      : season.transfer_window_is_open
+        ? "open"
+        : "locked";
+  const transferWindowValue = t(
+    transferState === "checking"
+      ? "stats.transferChecking"
+      : transferState === "unknown"
+        ? "stats.transferUnknown"
+        : transferState === "open"
+          ? "stats.transferOpen"
+          : "stats.transferLocked",
+  );
   const transferWindowSub = !season
     ? ""
     : transferOpen
       ? season.transfer_window_close
-        ? `Closes ${formatLocalDateOnly(season.transfer_window_close)}`
-        : "Open"
+        ? t("stats.transferClosesOn", { date: formatLocalDateOnly(season.transfer_window_close) })
+        : t("stats.transferOpen")
       : season.transfer_window_open
-        ? `Opened ${formatLocalDateOnly(season.transfer_window_open)}, closed ${formatLocalDateOnly(season.transfer_window_close)}`
-        : "No window set for this season";
+        ? // A window that has not started yet is not "Opened", it is "Opens". Saying a future
+          // date in the past tense made this card read "Locked, Opened Sep 1, closed Sep 14" on
+          // a season whose window had not begun, while the public banner correctly said it opens
+          // on Sep 1. Compared as calendar dates so a window opening today counts as open-ish
+          // rather than flipping on a UTC boundary.
+          new Date(`${season.transfer_window_open}T00:00:00`) > new Date()
+          ? t("stats.transferOpensOn", {
+              open: formatLocalDateOnly(season.transfer_window_open),
+              close: formatLocalDateOnly(season.transfer_window_close),
+            })
+          : t("stats.transferOpenedClosed", {
+              open: formatLocalDateOnly(season.transfer_window_open),
+              close: formatLocalDateOnly(season.transfer_window_close),
+            })
+        : t("stats.transferNoWindow");
   const belowFloor = teams.filter((t) => !t.meets_participation_floor).length;
 
   // status-card derivations from the live recalc/eval status
   const recalculating = recalc?.recalculating ?? false;
   const lastEval = recalc?.last_evaluation;
-  const lastEvalAt = fmtWhen(lastEval?.at);
+  const lastEvalAt = fmtWhen(lastEval?.at, locale);
 
   // publish state for the two INDEPENDENT public surfaces (read off the loaded season).
   const rankingsPublished = !!season?.rankings_published;
   const tiersPublished = !!season?.tiers_published;
 
-  if (loading && !teams.length) return <FullLoader text="Loading rankings admin" />;
+  if (loading && !teams.length) return <FullLoader text={t("loading")} />;
 
   return (
     <div className="space-y-4">
@@ -209,21 +252,22 @@ export default function AdminRankingsPage() {
         // → ADMIN_TOUR_STEPS.rankings). It introduces the sub-nav row of detail pages above.
         title={
           <span data-tour="rankings-header" className="inline-flex items-center">
-            Rankings & Tiering
+            {t("title")}
             <InfoTip id="rankings._page" className="ml-1.5" />
           </span>
         }
-        description="Control the tournament data, evaluation, and seasons that drive the public rankings."
+        description={t("description")}
         action={
           // ⓘ sits as a SIBLING of the season Select (not nested) so the tip explains the scope picker.
           // data-tour anchor: rankings tour "pick the season" step.
           <div data-tour="rankings-season" className="flex items-center gap-1">
           <Select value={seasonId ? String(seasonId) : undefined} onValueChange={(v) => setSeasonId(Number(v))}>
-            <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="Season" /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder={t("seasonPlaceholder")} /></SelectTrigger>
             <SelectContent>
               {seasons.map((s) => (
                 <SelectItem key={s.season_id} value={String(s.season_id)}>
-                  {s.name}{s.is_active ? " · current" : ""}
+                  {/* The season NAME is API data; only the "current" marker is translated. */}
+                  {s.is_active ? t("seasonCurrent", { name: s.name }) : s.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -239,21 +283,24 @@ export default function AdminRankingsPage() {
         data-tour="rankings-status"
         className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4"
       >
-        <StatCard icon={<IconCalendarStats className="size-4" />} title="Current Season"
-          value={season?.name ?? "None"} sub={season?.is_active ? "Active" : "Closed"} />
-        <StatCard icon={<IconArrowsExchange className="size-4" />} title="Transfer Window"
-          value={transferOpen ? "Open" : "Locked"}
+        <StatCard icon={<IconCalendarStats className="size-4" />} title={t("stats.currentSeason")}
+          value={season?.name ?? t("stats.noSeason")} sub={season?.is_active ? t("stats.seasonActive") : t("stats.seasonClosed")} />
+        <StatCard icon={<IconArrowsExchange className="size-4" />} title={t("stats.transferWindow")}
+          value={transferWindowValue}
           sub={transferWindowSub}
           tone={transferOpen ? "text-green-500" : "text-orange-500"} />
-        <StatCard icon={<IconRefresh className={cn("size-4", recalculating && "animate-spin")} />} title="Recalculation"
-          value={recalculating ? "Recalculating" : "Idle"}
-          sub={recalculating ? "Scores updating now" : "Live on every result edit"}
+        <StatCard icon={<IconRefresh className={cn("size-4", recalculating && "animate-spin")} />} title={t("stats.recalculation")}
+          value={recalculating ? t("stats.recalcRunning") : t("stats.recalcIdle")}
+          sub={recalculating ? t("stats.recalcRunningSub") : t("stats.recalcIdleSub")}
           tone={recalculating ? "text-blue-400" : "text-green-500"} />
-        <StatCard icon={<IconGavel className="size-4" />} title="Last Evaluation"
-          value={lastEval?.run ? "Run" : "Not run"}
+        <StatCard icon={<IconGavel className="size-4" />} title={t("stats.lastEvaluation")}
+          value={lastEval?.run ? t("stats.evalRun") : t("stats.evalNotRun")}
           sub={lastEval?.run
-            ? `${lastEvalAt ?? "Quarterly tier lock"}${lastEval?.by ? ` · ${lastEval.by}` : ""}`
-            : "Quarterly tier lock"} />
+            // "who · when" is one translated line so the separator and order can move per language.
+            ? (lastEval?.by
+                ? t("stats.evalByLine", { when: lastEvalAt ?? t("stats.evalFallback"), by: lastEval.by })
+                : (lastEvalAt ?? t("stats.evalFallback")))
+            : t("stats.evalFallback")} />
       </div>
 
       {/* run evaluation + tier distribution */}
@@ -262,24 +309,24 @@ export default function AdminRankingsPage() {
         <Card data-tour="rankings-evaluation" className="lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center text-base">
-              Quarterly Evaluation
+              {t("evaluation.cardTitle")}
               <InfoTip id="rankings.evaluation._section" className="ml-1.5" />
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Locks each team&apos;s tier for the next quarter from the current scores. Head Admin or Metrics Admin only.
+              {t("evaluation.blurb")}
             </p>
             {/* ⓘ sits beside each action button (sibling, not nested) - explains what the run/recalc actually does. */}
             <div className="flex items-center gap-1">
               <Button className="w-full" disabled={!seasonId} onClick={() => setEvalOpen(true)}>
-                <IconPlayerPlay className="mr-1.5 size-4" /> Run Quarterly Evaluation
+                <IconPlayerPlay className="mr-1.5 size-4" /> {t("evaluation.runCta")}
               </Button>
               <InfoTip id="rankings.run_evaluation" />
             </div>
             <div className="flex items-center gap-1">
               <Button variant="outline" className="w-full" disabled={!seasonId} onClick={() => setRecalcOpen(true)}>
-                <IconRefresh className="mr-1.5 size-4" /> Recalculate a Team / Player
+                <IconRefresh className="mr-1.5 size-4" /> {t("evaluation.recalcCta")}
               </Button>
               <InfoTip id="rankings.recalc_entity" />
             </div>
@@ -290,12 +337,12 @@ export default function AdminRankingsPage() {
         <Card data-tour="rankings-distribution" className="lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between">
             <CardTitle className="flex items-center text-base">
-              Tier Distribution
+              {t("distribution.cardTitle")}
               <InfoTip id="rankings.tier_distribution._section" className="ml-1.5" />
             </CardTitle>
             {belowFloor > 0 && (
               <Badge variant="outline" className="rounded-full text-[10px] text-muted-foreground">
-                {belowFloor} below activity floor
+                {t("distribution.belowFloor", { count: belowFloor })}
               </Badge>
             )}
           </CardHeader>
@@ -317,27 +364,37 @@ export default function AdminRankingsPage() {
         <CardHeader className="flex-row items-center justify-between gap-2">
           <div>
             <CardTitle className="flex items-center text-base">
-              Publish to public
+              {t("publish.cardTitle")}
               <InfoTip id="rankings.publish._section" className="ml-1.5" />
             </CardTitle>
             <p className="mt-1 text-xs text-muted-foreground">
-              The public rankings and tier badges stay hidden until you publish them. Each surface is
-              controlled separately - publish one without the other.
+              {t("publish.blurb")}
             </p>
           </div>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {/* The CTA is a whole translated sentence per surface, not "Publish " + label.toLowerCase():
+              lowercasing a translated noun and gluing it to a verb produces broken French and
+              Portuguese (article and gender both change). */}
           <PublishRow
-            label="Rankings"
-            desc="The public team & player ladder."
+            label={t("publish.rankingsLabel")}
+            desc={t("publish.rankingsDesc")}
+            liveLabel={t("publish.live")}
+            draftLabel={t("publish.draft")}
+            publishCta={t("publish.publishRankings")}
+            unpublishCta={t("publish.unpublishRankings")}
             published={rankingsPublished}
             disabled={!seasonId}
             helpId="rankings.publish_rankings"
             onToggle={() => setPublishTarget({ kind: "rankings", next: !rankingsPublished })}
           />
           <PublishRow
-            label="Tiers"
-            desc="The locked tier badges (S / A / B / C)."
+            label={t("publish.tiersLabel")}
+            desc={t("publish.tiersDesc")}
+            liveLabel={t("publish.live")}
+            draftLabel={t("publish.draft")}
+            publishCta={t("publish.publishTiers")}
+            unpublishCta={t("publish.unpublishTiers")}
             published={tiersPublished}
             disabled={!seasonId}
             helpId="rankings.publish_tiers"
@@ -350,12 +407,12 @@ export default function AdminRankingsPage() {
           data-tour anchor: rankings tour "jump to the detail pages" step. */}
       <div data-tour="rankings-quicklinks" className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         {[
-          { label: "Result Markers", icon: IconClipboardCheck, desc: "Winners, finals, MVP", href: "/a/rankings/results" },
-          { label: "Seasons", icon: IconSettings, desc: "Dates, transfer window", href: "/a/rankings/seasons" },
-          { label: "Ghost Teams", icon: IconGhost2, desc: "Create & claims", href: "/a/rankings/ghost-teams" },
-          { label: "Audit Log", icon: IconHistory, desc: "Every edit, raw data", href: "/a/rankings/audit" },
+          { label: t("quickLinks.resultMarkers"), icon: IconClipboardCheck, desc: t("quickLinks.resultMarkersDesc"), href: "/a/rankings/results" },
+          { label: t("quickLinks.seasons"), icon: IconSettings, desc: t("quickLinks.seasonsDesc"), href: "/a/rankings/seasons" },
+          { label: t("quickLinks.ghostTeams"), icon: IconGhost2, desc: t("quickLinks.ghostTeamsDesc"), href: "/a/rankings/ghost-teams" },
+          { label: t("quickLinks.audit"), icon: IconHistory, desc: t("quickLinks.auditDesc"), href: "/a/rankings/audit" },
         ].map((x) => (
-          <Link key={x.label} href={x.href}
+          <Link key={x.href} href={x.href}
             className="flex items-center gap-3 rounded-md border bg-card p-3 text-left transition-colors hover:bg-muted/40">
             <x.icon className="size-5 text-primary" />
             <div>
@@ -376,31 +433,31 @@ export default function AdminRankingsPage() {
       <Card data-tour="rankings-teams">
         <CardHeader className="flex-row items-center justify-between gap-2">
           <CardTitle className="flex items-center text-base">
-            Teams · {season?.name ?? ""}
+            {t("teams.cardTitle", { season: season?.name ?? "" })}
             <InfoTip id="rankings.teams_table._section" className="ml-1.5" />
           </CardTitle>
           <div className="relative w-full sm:w-64">
             <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search teams" className="h-9 pl-8" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("teams.search")} className="h-9 pl-8" />
           </div>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12">Rank</TableHead>
-                <TableHead>Team</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead className="text-right">Tournaments</TableHead>
-                <TableHead className="text-right">Kills</TableHead>
-                <TableHead className="text-right">Score</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-12">{t("teams.colRank")}</TableHead>
+                <TableHead>{t("teams.colTeam")}</TableHead>
+                <TableHead>{t("teams.colTier")}</TableHead>
+                <TableHead className="text-right">{t("teams.colTournaments")}</TableHead>
+                <TableHead className="text-right">{t("teams.colKills")}</TableHead>
+                <TableHead className="text-right">{t("teams.colScore")}</TableHead>
+                <TableHead className="text-right">{t("teams.colActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
-                  {q ? `No teams match “${q}”.` : "No team scores for this season yet."}
+                  {q ? t("teams.noMatch", { q }) : t("teams.empty")}
                 </TableCell></TableRow>
               ) : filtered.map((t) => (
                 <TableRow key={t.team_id}>
@@ -415,7 +472,7 @@ export default function AdminRankingsPage() {
                       {t.team_name}
                       {t.is_ghost && (
                         <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
-                          Ghost
+                          {t("teams.ghost")}
                         </Badge>
                       )}
                     </span>
@@ -426,7 +483,7 @@ export default function AdminRankingsPage() {
                   <TableCell className="text-right font-semibold tabular-nums text-primary">{t.total_score.toFixed(0)}</TableCell>
                   <TableCell className="text-right">
                     <Button size="sm" variant="outline" asChild>
-                      <Link href="/a/rankings/results">Edit markers</Link>
+                      <Link href="/a/rankings/results">{t("teams.editMarkers")}</Link>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -474,9 +531,15 @@ export default function AdminRankingsPage() {
 /* ------------------------------------------------------------------ */
 /* Publish row - status badge + publish/unpublish button (per surface) */
 /* ------------------------------------------------------------------ */
+// Every visible string arrives already translated from the caller (which holds the
+// translator), so this stays a dumb presentational row.
 function PublishRow({
   label,
   desc,
+  liveLabel,
+  draftLabel,
+  publishCta,
+  unpublishCta,
   published,
   disabled,
   helpId,
@@ -484,6 +547,11 @@ function PublishRow({
 }: {
   label: string;
   desc: string;
+  liveLabel: string;
+  draftLabel: string;
+  /** Full sentence, e.g. "Publish rankings" - never assembled from a verb + the label. */
+  publishCta: string;
+  unpublishCta: string;
   published: boolean;
   disabled?: boolean;
   helpId: HelpId; // centralized copy id for the per-surface publish ⓘ
@@ -508,9 +576,9 @@ function PublishRow({
           )}
         >
           {published ? (
-            <><IconWorld className="mr-1 size-3" /> Live - public</>
+            <><IconWorld className="mr-1 size-3" /> {liveLabel}</>
           ) : (
-            <><IconLock className="mr-1 size-3" /> Draft - not visible to public</>
+            <><IconLock className="mr-1 size-3" /> {draftLabel}</>
           )}
         </Badge>
       </div>
@@ -522,9 +590,9 @@ function PublishRow({
         onClick={onToggle}
       >
         {published ? (
-          <><IconLock className="mr-1.5 size-4" /> Unpublish {label.toLowerCase()}</>
+          <><IconLock className="mr-1.5 size-4" /> {unpublishCta}</>
         ) : (
-          <><IconBroadcast className="mr-1.5 size-4" /> Publish {label.toLowerCase()}</>
+          <><IconBroadcast className="mr-1.5 size-4" /> {publishCta}</>
         )}
       </Button>
     </div>
@@ -547,6 +615,7 @@ function PublishStateDialog({
   seasonName?: string;
   onPublished: () => void | Promise<void>;
 }) {
+  const t = useTranslations("rankings.admin.overview");
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
   const open = target !== null;
@@ -561,7 +630,11 @@ function PublishStateDialog({
   const reasonOk = reason.trim().length >= MIN_REASON;
   const surface = target?.kind === "tiers" ? "tiers" : "rankings";
   const publishing = target?.next === true;
-  const verb = publishing ? "Publish" : "Unpublish";
+  // Copy is keyed by surface AND direction rather than assembled from a verb plus a noun,
+  // because "Publish"/"Unpublish" + "rankings"/"tiers" does not compose in French or
+  // Portuguese (article, gender and number all shift). One full sentence per combination.
+  const copy = (field: string) =>
+    t(`publishDialog.${surface}.${publishing ? "publish" : "unpublish"}.${field}` as never);
 
   const submit = async () => {
     if (!target || !seasonId || !reasonOk || saving) return;
@@ -574,12 +647,14 @@ function PublishStateDialog({
           : { tiers_published: target.next, reason: reason.trim() };
       await rankingsAdminApi.publishState(seasonId, body);
       toast.success(
-        `${surface === "tiers" ? "Tiers" : "Rankings"} ${target.next ? "published to" : "hidden from"} the public for ${seasonName ?? "this season"}.`,
+        t(`publishDialog.${surface}.${target.next ? "publish" : "unpublish"}.success` as never, {
+          season: seasonName ?? t("publishDialog.thisSeason"),
+        }),
       );
       onOpenChange(false);
       await onPublished();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || `Failed to ${verb.toLowerCase()} ${surface}`);
+      toast.error(err?.response?.data?.message || copy("fail"));
     } finally {
       setSaving(false);
     }
@@ -593,30 +668,28 @@ function PublishStateDialog({
             {publishing
               ? <IconBroadcast className="size-5 text-primary" />
               : <IconLock className="size-5 text-primary" />}
-            {verb} {surface}{seasonName ? ` · ${seasonName}` : ""}
+            {seasonName
+              ? t("publishDialog.titleWithSeason", { action: copy("title"), season: seasonName })
+              : copy("title")}
           </DialogTitle>
-          <DialogDescription>
-            {publishing
-              ? `Makes the ${surface} visible to the public for this season. This does not change the other surface.`
-              : `Hides the ${surface} from the public again - the data is kept, just not shown. The other surface is unaffected.`}
-          </DialogDescription>
+          <DialogDescription>{copy("desc")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
-          <Label htmlFor="publish-reason">Reason</Label>
+          <Label htmlFor="publish-reason">{t("publishDialog.reasonLabel")}</Label>
           <Textarea
             id="publish-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder={`Why are you ${publishing ? "publishing" : "unpublishing"} the ${surface}? (logged to the audit trail, min 10 characters)`}
+            placeholder={copy("placeholder")}
           />
           <p className={cn("text-[11px]", reasonOk ? "text-muted-foreground" : "text-orange-500")}>
-            {reason.trim().length}/{MIN_REASON} characters minimum.
+            {t("publishDialog.minChars", { count: reason.trim().length, min: MIN_REASON })}
           </p>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>{t("publishDialog.cancel")}</Button>
           <Button
             variant={publishing ? "default" : "destructive"}
             onClick={submit}
@@ -625,7 +698,7 @@ function PublishStateDialog({
             {publishing
               ? <IconBroadcast className="mr-1.5 size-4" />
               : <IconLock className="mr-1.5 size-4" />}
-            {saving ? `${verb}ing…` : `${verb} ${surface}`}
+            {saving ? t("publishDialog.working") : copy("cta")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -651,6 +724,7 @@ function RunEvaluationDialog({
   alreadyRun: boolean;
   onEvaluated: () => void | Promise<void>;
 }) {
+  const t = useTranslations("rankings.admin.overview");
   const [reason, setReason] = useState("");
   const [preview, setPreview] = useState<EvalSummary | null>(null);
   const [previewing, setPreviewing] = useState(false);
@@ -679,7 +753,7 @@ function RunEvaluationDialog({
       const summary = await rankingsAdminApi.runEvaluation(seasonId, { dry_run: true, reason: reason.trim() });
       setPreview(summary as EvalSummary);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to preview evaluation");
+      toast.error(err?.response?.data?.message || t("evalDialog.previewFailed"));
     } finally {
       setPreviewing(false);
     }
@@ -692,13 +766,19 @@ function RunEvaluationDialog({
     setRunning(true);
     try {
       const summary = (await rankingsAdminApi.runEvaluation(seasonId, { force, reason: reason.trim() })) as EvalSummary;
+      // Two ICU plurals in one sentence, so each language picks its own forms rather
+      // than relying on the English "add an s" trick.
       toast.success(
-        `Evaluation locked ${summary.teams_evaluated} team${summary.teams_evaluated === 1 ? "" : "s"} and ${summary.players_evaluated} player${summary.players_evaluated === 1 ? "" : "s"} for ${seasonName ?? "this season"}.`,
+        t("evalDialog.success", {
+          teams: summary.teams_evaluated,
+          players: summary.players_evaluated,
+          season: seasonName ?? t("publishDialog.thisSeason"),
+        }),
       );
       onOpenChange(false);
       await onEvaluated();
     } catch (err: any) {
-      const msg = err?.response?.data?.message || "Failed to run evaluation";
+      const msg = err?.response?.data?.message || t("evalDialog.runFailed");
       const conflict = err?.response?.status === 409;
       if (conflict && !force) {
         // already evaluated - offer the force re-run.
@@ -719,22 +799,17 @@ function RunEvaluationDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <IconPlayerPlay className="size-5 text-primary" /> Run quarterly evaluation{seasonName ? `, ${seasonName}` : ""}
+            <IconPlayerPlay className="size-5 text-primary" />{" "}
+            {seasonName ? t("evalDialog.titleWithSeason", { season: seasonName }) : t("evalDialog.title")}
           </DialogTitle>
-          <DialogDescription>
-            Locks every team and player tier for the next quarter from the current scores.
-            Preview the would-be result first (it writes nothing), then run to commit. Head Admin or Metrics Admin only.
-          </DialogDescription>
+          <DialogDescription>{t("evalDialog.desc")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {showForce && (
             <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-500">
               <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
-              <span>
-                Evaluation has already been run for this season. Re-running will overwrite the previously
-                assigned tiers.
-              </span>
+              <span>{t("evalDialog.alreadyRun")}</span>
             </div>
           )}
 
@@ -742,16 +817,16 @@ function RunEvaluationDialog({
           {preview && (
             <div className="space-y-3 rounded-md border bg-muted/30 p-3">
               <p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-muted-foreground">
-                <IconEye className="size-3.5" /> Preview · nothing was written
+                <IconEye className="size-3.5" /> {t("evalDialog.previewHeading")}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-md border bg-card p-3 text-center">
                   <p className="text-lg font-bold tabular-nums">{preview.teams_evaluated}</p>
-                  <p className="text-[11px] text-muted-foreground">Teams evaluated</p>
+                  <p className="text-[11px] text-muted-foreground">{t("evalDialog.teamsEvaluated")}</p>
                 </div>
                 <div className="rounded-md border bg-card p-3 text-center">
                   <p className="text-lg font-bold tabular-nums">{preview.players_evaluated}</p>
-                  <p className="text-[11px] text-muted-foreground">Players evaluated</p>
+                  <p className="text-[11px] text-muted-foreground">{t("evalDialog.playersEvaluated")}</p>
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -766,31 +841,31 @@ function RunEvaluationDialog({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="eval-reason">Reason</Label>
+            <Label htmlFor="eval-reason">{t("evalDialog.reasonLabel")}</Label>
             <Textarea
               id="eval-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Why are you running the evaluation now? (logged to the audit trail, min 10 characters)"
+              placeholder={t("evalDialog.reasonPlaceholder")}
             />
             <p className={cn("text-[11px]", reasonOk ? "text-muted-foreground" : "text-orange-500")}>
-              {reason.trim().length}/{MIN_REASON} characters minimum.
+              {t("evalDialog.minChars", { count: reason.trim().length, min: MIN_REASON })}
             </p>
           </div>
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>{t("evalDialog.cancel")}</Button>
           <Button variant="outline" onClick={runPreview} disabled={!reasonOk || busy}>
-            <IconEye className="mr-1.5 size-4" /> {previewing ? "Previewing…" : "Preview (dry run)"}
+            <IconEye className="mr-1.5 size-4" /> {previewing ? t("evalDialog.previewing") : t("evalDialog.preview")}
           </Button>
           {showForce ? (
             <Button variant="destructive" onClick={() => runReal(true)} disabled={!reasonOk || busy}>
-              <IconPlayerPlay className="mr-1.5 size-4" /> {running ? "Running…" : "Force re-run"}
+              <IconPlayerPlay className="mr-1.5 size-4" /> {running ? t("evalDialog.running") : t("evalDialog.forceRerun")}
             </Button>
           ) : (
             <Button onClick={() => runReal(false)} disabled={!reasonOk || busy}>
-              <IconPlayerPlay className="mr-1.5 size-4" /> {running ? "Running…" : "Run evaluation"}
+              <IconPlayerPlay className="mr-1.5 size-4" /> {running ? t("evalDialog.running") : t("evalDialog.run")}
             </Button>
           )}
         </DialogFooter>
@@ -811,6 +886,7 @@ function RecalcEntityDialog({
   onOpenChange: (o: boolean) => void;
   seasonId: number | undefined;
 }) {
+  const t = useTranslations("rankings.admin.overview");
   const [entityType, setEntityType] = useState<"team" | "player">("team");
   // name picker - the text the admin types and the RESOLVED id (gate submit on this id).
   const [query, setQuery] = useState("");
@@ -847,7 +923,7 @@ function RecalcEntityDialog({
         setTeamOptions(list);
       })
       .catch((err: any) => {
-        if (active) toast.error(err?.response?.data?.message || "Failed to load teams");
+        if (active) toast.error(err?.response?.data?.message || t("recalcDialog.loadTeamsFailed"));
       });
     axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-all-players/`)
       .then((res) => {
@@ -856,7 +932,7 @@ function RecalcEntityDialog({
         setPlayerOptions(list);
       })
       .catch((err: any) => {
-        if (active) toast.error(err?.response?.data?.message || "Failed to load players");
+        if (active) toast.error(err?.response?.data?.message || t("recalcDialog.loadPlayersFailed"));
       });
     return () => { active = false; };
   }, [open]);
@@ -902,18 +978,24 @@ function RecalcEntityDialog({
       // reason is OPTIONAL for a recalc; pass it through when the admin entered one.
       if (reason.trim().length >= MIN_REASON) body.reason = reason.trim();
       await rankingsAdminApi.recalcEntity(body);
-      toast.success(`Recalc queued for ${entityType} ${resolvedName}.`);
+      // Separate keys per entity type: "for team X" / "for player X" needs a different
+      // article and gender in French and Portuguese, so it cannot be one string plus a noun.
+      toast.success(
+        entityType === "team"
+          ? t("recalcDialog.queuedTeam", { name: resolvedName })
+          : t("recalcDialog.queuedPlayer", { name: resolvedName }),
+      );
       onOpenChange(false);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to queue recalc");
+      toast.error(err?.response?.data?.message || t("recalcDialog.queueFailed"));
     } finally {
       setQueuing(false);
     }
   };
 
   const types: { key: "team" | "player"; label: string; icon: React.ReactNode }[] = [
-    { key: "team", label: "Team", icon: <IconUsers className="size-4" /> },
-    { key: "player", label: "Player", icon: <IconUser className="size-4" /> },
+    { key: "team", label: t("recalcDialog.team"), icon: <IconUsers className="size-4" /> },
+    { key: "player", label: t("recalcDialog.player"), icon: <IconUser className="size-4" /> },
   ];
 
   return (
@@ -921,17 +1003,14 @@ function RecalcEntityDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <IconRefresh className="size-5 text-primary" /> Recalculate a team / player
+            <IconRefresh className="size-5 text-primary" /> {t("recalcDialog.title")}
           </DialogTitle>
-          <DialogDescription>
-            Re-derive a single entity&apos;s score from the source data. The recalc is queued and runs through
-            the same pipeline as live edits, never inline.
-          </DialogDescription>
+          <DialogDescription>{t("recalcDialog.desc")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Entity</Label>
+            <Label>{t("recalcDialog.entityLabel")}</Label>
             <div className="grid grid-cols-2 gap-2">
               {types.map((t) => (
                 <button
@@ -952,7 +1031,7 @@ function RecalcEntityDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="recalc-entity">{entityType === "team" ? "Team" : "Player"}</Label>
+            <Label htmlFor="recalc-entity">{entityType === "team" ? t("recalcDialog.team") : t("recalcDialog.player")}</Label>
             <div className="relative">
               <Input
                 id="recalc-entity"
@@ -967,12 +1046,12 @@ function RecalcEntityDialog({
                 }}
                 onFocus={() => setShowOptions(true)}
                 onBlur={() => setTimeout(() => setShowOptions(false), 120)}
-                placeholder={entityType === "team" ? "Search by team name" : "Search by username"}
+                placeholder={entityType === "team" ? t("recalcDialog.searchTeam") : t("recalcDialog.searchPlayer")}
               />
               {dropdownOpen && (
                 <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
                   {matches.length === 0 ? (
-                    <p className="px-2 py-1.5 text-sm text-muted-foreground">No matches</p>
+                    <p className="px-2 py-1.5 text-sm text-muted-foreground">{t("recalcDialog.noMatches")}</p>
                   ) : (
                     matches.map((o) => (
                       <button
@@ -991,26 +1070,26 @@ function RecalcEntityDialog({
             </div>
             {query.trim() !== "" && !idOk && !dropdownOpen && (
               <p className="text-xs text-orange-500">
-                Pick a {entityType} from the list to continue.
+                {entityType === "team" ? t("recalcDialog.pickTeam") : t("recalcDialog.pickPlayer")}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="recalc-reason">Reason <span className="font-normal text-muted-foreground">(optional)</span></Label>
+            <Label htmlFor="recalc-reason">{t("recalcDialog.reasonLabel")} <span className="font-normal text-muted-foreground">{t("recalcDialog.reasonOptional")}</span></Label>
             <Textarea
               id="recalc-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Optional note for the audit log (min 10 characters if provided)."
+              placeholder={t("recalcDialog.reasonPlaceholder")}
             />
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={queuing}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={queuing}>{t("recalcDialog.cancel")}</Button>
           <Button onClick={submit} disabled={!idOk || queuing}>
-            <IconRefresh className="mr-1.5 size-4" /> {queuing ? "Queuing…" : "Queue recalc"}
+            <IconRefresh className="mr-1.5 size-4" /> {queuing ? t("recalcDialog.queuing") : t("recalcDialog.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1044,15 +1123,18 @@ interface ClaimRow {
   id: string;                 // ghost_team_id (uuid) for teams, String(id) for players
   name: string;               // ghost team_name / player ign
   requestedBy: number | null; // claim_requested_by (User id)
-  target: string;             // who it would map onto: "Team #<id>" / "User #<id>"
+  // Who it would map onto. Kept as the RAW id plus a kind marker so the label can be
+  // translated at render time; it used to be a pre-built English "Team #12" / "Unassigned".
+  targetId: number | null;
   evidence: string;           // claim_note
-  requestedAt: string;        // claim_requested_at (date slice)
+  requestedAt: string;        // claim_requested_at (raw UTC instant, formatted at render)
 }
 
 // The action a reason prompt is gathering (approve vs reject) on a specific row.
 type ClaimAction = { row: ClaimRow; mode: "approve" | "reject" } | null;
 
 function ClaimRequestsSection() {
+  const t = useTranslations("rankings.admin.overview");
   const [rows, setRows] = useState<ClaimRow[]>([]);
   const [loading, setLoading] = useState(true);
   // the row+mode a reason is being entered for (null = no prompt open).
@@ -1073,9 +1155,11 @@ function ClaimRequestsSection() {
           name: g.team_name,
           requestedBy: g.claim_requested_by ?? null,
           // claimed_by is the target afc_team.Team id (set by the request; confirmed on approve).
-          target: g.claimed_by != null ? `Team #${g.claimed_by}` : "Unassigned",
+          targetId: g.claimed_by ?? null,
           evidence: g.claim_note ?? "",
-          requestedAt: g.claim_requested_at ? String(g.claim_requested_at).slice(0, 10) : "",
+          // Keep the full instant. It used to be sliced to the first 10 chars of the UTC
+          // ISO string and printed raw, which is neither localized nor the viewer's day.
+          requestedAt: g.claim_requested_at ? String(g.claim_requested_at) : "",
         }));
         const playerRows: ClaimRow[] = (playersRes?.results ?? []).map((p: any) => ({
           kind: "player" as const,
@@ -1083,14 +1167,14 @@ function ClaimRequestsSection() {
           name: p.ign,
           requestedBy: p.claim_requested_by ?? null,
           // a self-claim: claimed_by is the requesting User id.
-          target: p.claimed_by != null ? `User #${p.claimed_by}` : "Self",
+          targetId: p.claimed_by ?? null,
           evidence: p.claim_note ?? "",
-          requestedAt: p.claim_requested_at ? String(p.claim_requested_at).slice(0, 10) : "",
+          requestedAt: p.claim_requested_at ? String(p.claim_requested_at) : "",
         }));
         setRows([...teamRows, ...playerRows]);
       })
       .catch((err: any) =>
-        toast.error(err?.response?.data?.message || "Failed to load claim requests."))
+        toast.error(err?.response?.data?.message || t("claims.loadFailed")))
       .finally(() => setLoading(false));
   }
 
@@ -1113,13 +1197,16 @@ function ClaimRequestsSection() {
       }
       toast.success(
         mode === "approve"
-          ? `Claim approved, "${row.name}" transferred. Scores recalculating.`
-          : `Claim on "${row.name}" rejected. It is unclaimed again.`,
+          ? t("claims.approved", { name: row.name })
+          : t("claims.rejected", { name: row.name }),
       );
       setAction(null);
       load(); // refetch the queue so the resolved row drops out
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || `Failed to ${mode} the claim.`);
+      toast.error(
+        err?.response?.data?.message ||
+          (mode === "approve" ? t("claims.approveFailed") : t("claims.rejectFailed")),
+      );
     }
   }
 
@@ -1127,13 +1214,13 @@ function ClaimRequestsSection() {
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-2">
         <CardTitle className="flex items-center text-base">
-          <IconClipboardCheck className="mr-1.5 size-4 text-primary" /> Claim requests
+          <IconClipboardCheck className="mr-1.5 size-4 text-primary" /> {t("claims.cardTitle")}
           {rows.length > 0 && (
             <Badge
               variant="outline"
               className="ml-2 rounded-full px-2 py-0.5 text-[10px] border-orange-500/40 text-orange-400"
             >
-              {rows.length} pending
+              {t("claims.pending", { count: rows.length })}
             </Badge>
           )}
         </CardTitle>
@@ -1142,13 +1229,13 @@ function ClaimRequestsSection() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Ghost</TableHead>
-              <TableHead>Kind</TableHead>
-              <TableHead>Requested by</TableHead>
-              <TableHead>Target</TableHead>
-              <TableHead>Evidence</TableHead>
-              <TableHead>Requested</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("claims.colGhost")}</TableHead>
+              <TableHead>{t("claims.colKind")}</TableHead>
+              <TableHead>{t("claims.colRequestedBy")}</TableHead>
+              <TableHead>{t("claims.colTarget")}</TableHead>
+              <TableHead>{t("claims.colEvidence")}</TableHead>
+              <TableHead>{t("claims.colRequested")}</TableHead>
+              <TableHead className="text-right">{t("claims.colActions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1156,14 +1243,14 @@ function ClaimRequestsSection() {
               <TableRow>
                 <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-2">
-                    <IconClock className="size-4 animate-pulse" /> Loading claim requests...
+                    <IconClock className="size-4 animate-pulse" /> {t("claims.loading")}
                   </span>
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
-                  No claim requests awaiting review.
+                  {t("claims.empty")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -1185,24 +1272,38 @@ function ClaimRequestsSection() {
                       )}
                     >
                       {r.kind === "team" ? (
-                        <><IconUsers className="mr-1 size-3" /> Team</>
+                        <><IconUsers className="mr-1 size-3" /> {t("claims.team")}</>
                       ) : (
-                        <><IconUser className="mr-1 size-3" /> Player</>
+                        <><IconUser className="mr-1 size-3" /> {t("claims.player")}</>
                       )}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {r.requestedBy != null ? `User #${r.requestedBy}` : "Unknown"}
+                    {r.requestedBy != null
+                      ? t("claims.requestedByUser", { id: r.requestedBy })
+                      : t("claims.unknownRequester")}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{r.target}</TableCell>
+                  {/* A team claim points at a Team id; a player claim is a self-claim, so a
+                      missing id reads "Self" there but "Unassigned" for a team. */}
+                  <TableCell className="text-muted-foreground">
+                    {r.targetId != null
+                      ? r.kind === "team"
+                        ? t("claims.targetTeam", { id: r.targetId })
+                        : t("claims.targetUser", { id: r.targetId })
+                      : r.kind === "team"
+                        ? t("claims.unassigned")
+                        : t("claims.self")}
+                  </TableCell>
                   <TableCell className="max-w-[16rem] truncate text-muted-foreground" title={r.evidence || undefined}>
-                    {r.evidence || <span className="italic">None provided</span>}
+                    {r.evidence || <span className="italic">{t("claims.noEvidence")}</span>}
                   </TableCell>
-                  <TableCell className="text-muted-foreground tabular-nums">{r.requestedAt}</TableCell>
+                  <TableCell className="text-muted-foreground tabular-nums">
+                    {r.requestedAt ? <LocalTime value={r.requestedAt} mode="date" /> : ""}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button size="sm" onClick={() => setAction({ row: r, mode: "approve" })}>
-                        <IconCheck className="mr-1 size-3.5" /> Approve
+                        <IconCheck className="mr-1 size-3.5" /> {t("claims.approve")}
                       </Button>
                       <Button
                         size="sm"
@@ -1210,7 +1311,7 @@ function ClaimRequestsSection() {
                         className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => setAction({ row: r, mode: "reject" })}
                       >
-                        <IconX className="mr-1 size-3.5" /> Reject
+                        <IconX className="mr-1 size-3.5" /> {t("claims.reject")}
                       </Button>
                     </div>
                   </TableCell>
@@ -1244,6 +1345,7 @@ function ClaimReasonDialog({
   onOpenChange: (o: boolean) => void;
   onConfirm: (reason: string) => void | Promise<void>;
 }) {
+  const t = useTranslations("rankings.admin.overview");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const open = action !== null;
@@ -1263,46 +1365,46 @@ function ClaimReasonDialog({
             {approving
               ? <IconCheck className="size-5 text-primary" />
               : <IconX className="size-5 text-destructive" />}
-            {approving ? "Approve claim" : "Reject claim"}
-            {action ? `, ${action.row.name}` : ""}
+            {action
+              ? t("claimDialog.titleWithName", {
+                  action: approving ? t("claimDialog.approveTitle") : t("claimDialog.rejectTitle"),
+                  name: action.row.name,
+                })
+              : approving
+                ? t("claimDialog.approveTitle")
+                : t("claimDialog.rejectTitle")}
           </DialogTitle>
           <DialogDescription>
-            {approving
-              ? "Approving transfers this ghost's historical results, stats, and prize money onto the claiming entity and recalculates the affected scores. This can only be undone with a revoke."
-              : "Rejecting sends this request back to unclaimed. Nothing is transferred; the ghost can be claimed again."}
+            {approving ? t("claimDialog.approveDesc") : t("claimDialog.rejectDesc")}
           </DialogDescription>
         </DialogHeader>
 
         {approving && (
           <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-300">
             <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
-            <span>
-              History re-attribution is retroactive across every affected month and season. If the
-              real entity already shares a leaderboard with this ghost, the approval is blocked and
-              must be resolved manually.
-            </span>
+            <span>{t("claimDialog.warning")}</span>
           </div>
         )}
 
         <div className="space-y-2">
           <Label htmlFor="claim-reason">
-            Reason <span className="text-orange-400">(required, logged)</span>
+            {t("claimDialog.reasonLabel")} <span className="text-orange-400">{t("claimDialog.reasonRequired")}</span>
           </Label>
           <Textarea
             id="claim-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Explain why, at least 10 characters. This is written to the audit log."
+            placeholder={t("claimDialog.reasonPlaceholder")}
             className="min-h-24"
           />
           <p className={cn("text-[11px]", reasonOk ? "text-muted-foreground" : "text-orange-500")}>
-            {reason.trim().length}/{MIN_REASON} characters minimum
+            {t("claimDialog.minChars", { count: reason.trim().length, min: MIN_REASON })}
           </p>
         </div>
 
         <DialogFooter className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
-            Go back
+            {t("claimDialog.goBack")}
           </Button>
           <Button
             variant={approving ? "default" : "destructive"}
@@ -1313,7 +1415,7 @@ function ClaimReasonDialog({
               finally { setSubmitting(false); }
             }}
           >
-            {approving ? "Approve & transfer" : "Reject request"}
+            {approving ? t("claimDialog.confirmApprove") : t("claimDialog.confirmReject")}
           </Button>
         </DialogFooter>
       </DialogContent>

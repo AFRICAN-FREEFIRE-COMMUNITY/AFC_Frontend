@@ -14,7 +14,18 @@ import { Separator } from "@/components/ui/separator";
 // The System Health card reports the LIVE transfer window rather than asserting one, so it reads
 // the same public season endpoint as /rankings. Calendar dates go through formatLocalDateOnly.
 import { rankingsApi, Season } from "@/lib/rankings";
+// i18n: every user-facing string on this page comes from the adminPlayerMarket namespace
+// (messages/{en,fr,pt}/adminPlayerMarket.json) via useTranslations("adminPlayerMarket").
+// Dates render in the VIEWER's timezone + language, and WHICH helper depends on the field:
+//  - bare Django DateFields (post expiry is afc_player_market.post_expiry_date) -> the string
+//    helper formatLocalDateOnly, because a date-only value is a floating calendar date and the
+//    datetime path would read it as midnight UTC and print the previous day west of London;
+//  - real UTC instants (applied_at / updated_at / invite_expires_at / created_at / sent_at) ->
+//    the <LocalTime/> COMPONENT, which is the canonical form for visible page text: it is
+//    hydration-safe (mount-gated placeholder) and emits a semantic <time dateTime>.
 import { formatLocalDateOnly } from "@/lib/i18n/time";
+import { LocalTime } from "@/components/LocalTime";
+import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select,
@@ -60,7 +71,6 @@ import {
 import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
-import { formatDate } from "@/lib/utils";
 // Shared site-wide search matcher (punctuation/font/accent-insensitive). Replaces
 // the old .toLowerCase().includes() filters on this page's listing tables.
 import { matchesSearch } from "@/lib/search";
@@ -640,29 +650,29 @@ function formatEnum(value: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-// ── Market-report label maps + badges (feature "J-market-reporting") ──────────
-// Human labels for the MarketReport categories + statuses (match the backend
-// CATEGORY_CHOICES / STATUS_CHOICES). Falls back to the raw value for anything the
-// backend adds later.
-const REPORT_CATEGORY_LABELS: Record<string, string> = {
-  bad_tryout: "Negative tryout",
-  scam: "Scam / fraud",
-  abusive: "Abusive conduct",
-  fake_post: "Fake / misleading post",
-  other: "Other",
-};
-
-const REPORT_STATUS_LABELS: Record<string, string> = {
-  open: "Open",
-  reviewing: "Reviewing",
-  resolved: "Resolved",
-  dismissed: "Dismissed",
-  banned: "Banned",
-};
+// ── Market-report label sets + badges (feature "J-market-reporting") ─────────
+// The MarketReport categories/statuses, the trial-application statuses and the post types
+// are CLOSED sets mirroring the backend choices, so their human labels are translated from
+// the adminPlayerMarket namespace (reportCategory.* / reportStatus.* / trialStatus.* /
+// postType.*). Membership is checked against these lists first so any value the backend
+// adds later degrades to the raw string instead of a missing-translation error.
+const REPORT_CATEGORIES = ["bad_tryout", "scam", "abusive", "fake_post", "other"];
+const REPORT_STATUSES = ["open", "reviewing", "resolved", "dismissed", "banned"];
+const TRIAL_STATUSES = [
+  "PENDING",
+  "SHORTLISTED",
+  "INVITED",
+  "TRIAL_ONGOING",
+  "ACCEPTED",
+  "TRIAL_EXTENDED",
+  "REJECTED",
+];
+const POST_TYPES = ["TEAM_RECRUITMENT", "PLAYER_AVAILABLE"];
 
 // Outline status badge, colour-coded per the mockup: open=yellow (unhandled),
 // reviewing=cyan, resolved=green, dismissed=muted, banned=red.
 function ReportStatusBadge({ status }: { status: string }) {
+  const t = useTranslations("adminPlayerMarket");
   const colour: Record<string, string> = {
     open: "border-yellow-500/50 text-yellow-500",
     reviewing: "border-cyan-500/50 text-cyan-400",
@@ -672,7 +682,7 @@ function ReportStatusBadge({ status }: { status: string }) {
   };
   return (
     <Badge variant="outline" className={`rounded-full ${colour[status] ?? ""}`}>
-      {REPORT_STATUS_LABELS[status] ?? status}
+      {REPORT_STATUSES.includes(status) ? t(`reportStatus.${status}`) : status}
     </Badge>
   );
 }
@@ -681,6 +691,16 @@ function ReportStatusBadge({ status }: { status: string }) {
 
 export default function AdminPlayerMarketPage() {
   const { token } = useAuth();
+  // i18n: single namespace for this whole admin surface (see messages/en/adminPlayerMarket.json).
+  const t = useTranslations("adminPlayerMarket");
+  // Closed-set label helpers (see the REPORT_CATEGORIES / TRIAL_STATUSES lists above): translate a
+  // known backend enum value, otherwise fall back to the raw / title-cased value.
+  const categoryLabel = (c: string) =>
+    REPORT_CATEGORIES.includes(c) ? t(`reportCategory.${c}`) : c;
+  const trialStatusLabel = (s: string) =>
+    TRIAL_STATUSES.includes(s) ? t(`trialStatus.${s}`) : formatEnum(s);
+  const postTypeLabel = (p: string) =>
+    POST_TYPES.includes(p) ? t(`postType.${p}`) : formatEnum(p);
   const [activeTab, setActiveTab] = useState("overview");
 
   // Team Listings state
@@ -747,7 +767,7 @@ export default function AdminPlayerMarketPage() {
       .then((res) => setChatConversation(res.data))
       .catch((err) =>
         toast.error(
-          err?.response?.data?.message || "Failed to load trial chat.",
+          err?.response?.data?.message || t("chatDialog.loadFailed"),
         ),
       )
       .finally(() => setChatLoading(false));
@@ -796,9 +816,7 @@ export default function AdminPlayerMarketPage() {
   // Open the confirm dialog seeded with a sensible default reason.
   const openBanReporter = (row: MarketReportRow) => {
     setBanReporterTarget(row);
-    setBanReporterReason(
-      "Filing a false or abusive report on the Player Market. Reports must be honest and backed by evidence.",
-    );
+    setBanReporterReason(t("banReporterDialog.defaultReason"));
   };
 
   // Ban the reporter via admin_market_ban (scope player, target = reporter id). On
@@ -808,11 +826,11 @@ export default function AdminPlayerMarketPage() {
     if (!banReporterTarget || banReporterSaving) return;
     const reporterId = banReporterTarget.reporter_id;
     if (!reporterId) {
-      toast.error("This report has no reporter on record to ban.");
+      toast.error(t("banReporterDialog.noReporter"));
       return;
     }
     if (!banReporterReason.trim()) {
-      toast.error("A ban reason is required.");
+      toast.error(t("banReporterDialog.reasonRequired"));
       return;
     }
     setBanReporterSaving(true);
@@ -830,12 +848,16 @@ export default function AdminPlayerMarketPage() {
         resolution_notes: `Reporter (${banReporterTarget.reporter_username ?? "unknown"}) banned for a false/abusive report. ${banReporterReason.trim()}`,
       });
       toast.success(
-        `Reporter ${banReporterTarget.reporter_username ?? ""} banned from the market.`.trim(),
+        t("banReporterDialog.banned", {
+          reporter: banReporterTarget.reporter_username ?? "",
+        }),
       );
       setBanReporterTarget(null);
       fetchReports();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to ban reporter.");
+      toast.error(
+        err?.response?.data?.message || t("banReporterDialog.banFailed"),
+      );
     } finally {
       setBanReporterSaving(false);
     }
@@ -856,7 +878,7 @@ export default function AdminPlayerMarketPage() {
       });
       setReports(res?.results ?? []);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load reports.");
+      toast.error(err?.response?.data?.message || t("reports.loadFailed"));
     } finally {
       setReportsLoading(false);
     }
@@ -899,11 +921,13 @@ export default function AdminPlayerMarketPage() {
         status: resolveStatus,
         resolution_notes: resolveNotes.trim(),
       });
-      toast.success("Report updated.");
+      toast.success(t("resolveDialog.updated"));
       setResolveTarget(null);
       fetchReports();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to update report.");
+      toast.error(
+        err?.response?.data?.message || t("resolveDialog.updateFailed"),
+      );
     } finally {
       setResolveSaving(false);
     }
@@ -928,7 +952,7 @@ export default function AdminPlayerMarketPage() {
         return res.json();
       })
       .then((data: TeamRecruitmentPost[]) => setTeamListings(data))
-      .catch(() => toast.error("Failed to load team listings"))
+      .catch(() => toast.error(t("teamListings.loadFailed")))
       .finally(() => setTeamLoading(false));
 
     fetch(
@@ -939,7 +963,7 @@ export default function AdminPlayerMarketPage() {
         return res.json();
       })
       .then((data: PlayerAvailabilityPost[]) => setPlayerListings(data))
-      .catch(() => toast.error("Failed to load player listings"))
+      .catch(() => toast.error(t("playerListings.loadFailed")))
       .finally(() => setPlayerLoading(false));
 
     if (token) {
@@ -949,7 +973,7 @@ export default function AdminPlayerMarketPage() {
           { headers: { Authorization: `Bearer ${token}` } },
         )
         .then((res) => setTrialsData(res.data))
-        .catch(() => toast.error("Failed to load trials & applications"))
+        .catch(() => toast.error(t("trials.loadFailed")))
         .finally(() => setTrialsLoading(false));
     }
   }, [token]);
@@ -989,11 +1013,11 @@ export default function AdminPlayerMarketPage() {
         title={
           // data-tour anchor: player-markets tour title step.
           <span data-tour="market-title" className="inline-flex items-center">
-            Player Market Administration
+            {t("title")}
             <InfoTip id="player_market._page" className="ml-1.5" />
           </span>
         }
-        description="Comprehensive management, control, and oversight of all player market activities"
+        description={t("description")}
         back
       />
 
@@ -1001,11 +1025,11 @@ export default function AdminPlayerMarketPage() {
         <ScrollArea>
           {/* data-tour anchor: player-markets tour "move between sections" step. */}
           <TabsList data-tour="market-tabs" className="w-full">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="team-listings">Team Listings</TabsTrigger>
-            <TabsTrigger value="player-listings">Player Listings</TabsTrigger>
-            <TabsTrigger value="trials">Trials & Applications</TabsTrigger>
-            <TabsTrigger value="reports">Reports & Flags</TabsTrigger>
+            <TabsTrigger value="overview">{t("tabs.overview")}</TabsTrigger>
+            <TabsTrigger value="team-listings">{t("tabs.teamListings")}</TabsTrigger>
+            <TabsTrigger value="player-listings">{t("tabs.playerListings")}</TabsTrigger>
+            <TabsTrigger value="trials">{t("tabs.trials")}</TabsTrigger>
+            <TabsTrigger value="reports">{t("tabs.reports")}</TabsTrigger>
           </TabsList>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
@@ -1014,7 +1038,7 @@ export default function AdminPlayerMarketPage() {
         <TabsContent value="overview" className="mt-4 space-y-4">
           {/* Section ⓘ heads the overview stat cards (sibling of the muted label). */}
           <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
-            Market overview
+            {t("overview.sectionLabel")}
             <InfoTip id="player_market.overview._section" />
           </div>
           {/* Stat Cards (data-tour anchor: player-markets "market at a glance" step). */}
@@ -1025,40 +1049,14 @@ export default function AdminPlayerMarketPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Active Team Listings
+                  {t("overview.activeTeamListings")}
                 </CardTitle>
                 <IconUsers className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{activeTeamListings}</div>
-                <p className="text-xs text-muted-foreground">1 flagged</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Active Player Listings
-                </CardTitle>
-                <IconUser className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{activePlayerListings}</div>
-                <p className="text-xs text-muted-foreground">1 flagged</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Active Trials
-                </CardTitle>
-                <IconEye className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{activeTrials}</div>
                 <p className="text-xs text-muted-foreground">
-                  {trialsData?.total ?? 0} total
+                  {t("overview.flagged", { count: 1 })}
                 </p>
               </CardContent>
             </Card>
@@ -1066,14 +1064,44 @@ export default function AdminPlayerMarketPage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Pending Reports
+                  {t("overview.activePlayerListings")}
+                </CardTitle>
+                <IconUser className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activePlayerListings}</div>
+                <p className="text-xs text-muted-foreground">
+                  {t("overview.flagged", { count: 1 })}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {t("overview.activeTrials")}
+                </CardTitle>
+                <IconEye className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{activeTrials}</div>
+                <p className="text-xs text-muted-foreground">
+                  {t("overview.totalTrials", { count: trialsData?.total ?? 0 })}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {t("overview.pendingReports")}
                 </CardTitle>
                 <IconAlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{pendingReports}</div>
                 <p className="text-xs text-muted-foreground">
-                  {reports.length} total reports
+                  {t("overview.totalReports", { count: reports.length })}
                 </p>
               </CardContent>
             </Card>
@@ -1082,45 +1110,53 @@ export default function AdminPlayerMarketPage() {
           {/* System Health & Compliance */}
           <Card>
             <CardHeader>
-              <CardTitle>System Health & Compliance</CardTitle>
+              <CardTitle>{t("overview.health.title")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm">Transfer Window Status</span>
+                <span className="text-sm">{t("overview.health.transferWindow")}</span>
                 {transferSeasonFailed ? (
-                  <Badge variant="outline" className="text-muted-foreground">Unknown</Badge>
+                  <Badge variant="outline" className="text-muted-foreground">
+                    {t("overview.health.unknown")}
+                  </Badge>
                 ) : !transferSeason ? (
-                  <Badge variant="outline" className="text-muted-foreground">Checking</Badge>
+                  <Badge variant="outline" className="text-muted-foreground">
+                    {t("overview.health.checking")}
+                  </Badge>
                 ) : transferSeason.transfer_window_is_open ? (
                   <Badge variant="outline" className="border-green-500/50 text-green-500">
-                    Open{transferSeason.transfer_window_close
-                      ? ` until ${formatLocalDateOnly(transferSeason.transfer_window_close)}`
-                      : ""}
+                    {transferSeason.transfer_window_close
+                      ? t("overview.health.openUntil", {
+                          date: formatLocalDateOnly(transferSeason.transfer_window_close),
+                        })
+                      : t("overview.health.open")}
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="border-orange-500/50 text-orange-500">
-                    Locked{transferSeason.transfer_window_close
-                      ? ` since ${formatLocalDateOnly(transferSeason.transfer_window_close)}`
-                      : ""}
+                    {transferSeason.transfer_window_close
+                      ? t("overview.health.lockedSince", {
+                          date: formatLocalDateOnly(transferSeason.transfer_window_close),
+                        })
+                      : t("overview.health.locked")}
                   </Badge>
                 )}
               </div>
               <Separator />
               <div className="flex items-center justify-between">
-                <span className="text-sm">Auto-Enforcement Rules</span>
-                <Badge variant="default">Active</Badge>
+                <span className="text-sm">{t("overview.health.autoEnforcement")}</span>
+                <Badge variant="default">{t("overview.health.active")}</Badge>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Banned Entities Auto-Hidden
+                  {t("overview.health.bannedAutoHidden")}
                 </span>
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Audit Log Status
+                  {t("overview.health.auditLog")}
                 </span>
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
               </div>
@@ -1132,14 +1168,14 @@ export default function AdminPlayerMarketPage() {
         <TabsContent value="team-listings" className="mt-4 space-y-4">
           {/* Section ⓘ heads the team-listings tab. */}
           <h2 className="text-lg font-semibold flex items-center">
-            Team Listings
+            {t("teamListings.heading")}
             <InfoTip id="player_market.team_listings._section" className="ml-1.5" />
           </h2>
           <div className="flex flex-col md:flex-row gap-2 items-start md:items-center justify-between">
             <div className="relative flex-1 w-full md:max-w-sm">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by team name..."
+                placeholder={t("teamListings.searchPlaceholder")}
                 value={teamSearch}
                 onChange={(e) => setTeamSearch(e.target.value)}
                 className="pl-9"
@@ -1150,12 +1186,14 @@ export default function AdminPlayerMarketPage() {
               onValueChange={setTeamStatusFilter}
             >
               <SelectTrigger className="w-full md:w-[150px]">
-                <SelectValue placeholder="All Status" />
+                <SelectValue placeholder={t("listingStatus.all")} />
               </SelectTrigger>
+              {/* SelectItem values stay the raw English status keys - they are compared against
+                  getListingStatus()'s return value, only the visible label is translated. */}
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Expired">Expired</SelectItem>
+                <SelectItem value="all">{t("listingStatus.all")}</SelectItem>
+                <SelectItem value="Active">{t("listingStatus.active")}</SelectItem>
+                <SelectItem value="Expired">{t("listingStatus.expired")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1164,20 +1202,20 @@ export default function AdminPlayerMarketPage() {
             <CardContent className="p-0">
               {teamLoading ? (
                 <div className="text-center py-12 text-sm text-muted-foreground">
-                  Loading...
+                  {t("common.loading")}
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Team</TableHead>
-                      <TableHead>Min Tier</TableHead>
-                      <TableHead>Commitment</TableHead>
-                      <TableHead>Roles Needed</TableHead>
-                      <TableHead>Countries</TableHead>
-                      <TableHead>Expires</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t("teamListings.table.id")}</TableHead>
+                      <TableHead>{t("teamListings.table.team")}</TableHead>
+                      <TableHead>{t("teamListings.table.minTier")}</TableHead>
+                      <TableHead>{t("teamListings.table.commitment")}</TableHead>
+                      <TableHead>{t("teamListings.table.rolesNeeded")}</TableHead>
+                      <TableHead>{t("teamListings.table.countries")}</TableHead>
+                      <TableHead>{t("teamListings.table.expires")}</TableHead>
+                      <TableHead>{t("teamListings.table.status")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1204,7 +1242,7 @@ export default function AdminPlayerMarketPage() {
                             <TableCell className="font-medium">
                               {listing.team ?? (
                                 <span className="italic text-muted-foreground">
-                                  Unknown
+                                  {t("common.unknown")}
                                 </span>
                               )}
                             </TableCell>
@@ -1242,12 +1280,15 @@ export default function AdminPlayerMarketPage() {
                                 listing.countries.join(", ")
                               ) : (
                                 <span className="text-muted-foreground">
-                                  Any
+                                  {t("teamListings.anyCountry")}
                                 </span>
                               )}
                             </TableCell>
+                            {/* post_expiry_date is a Django DateField (a bare calendar date), so it
+                                MUST go through formatLocalDateOnly - the date-and-time formatter
+                                reads it as midnight UTC and shows the previous day west of London. */}
                             <TableCell className="text-muted-foreground">
-                              {formatDate(listing.expiry)}
+                              {formatLocalDateOnly(listing.expiry)}
                             </TableCell>
                             <TableCell>
                               <Badge
@@ -1260,7 +1301,9 @@ export default function AdminPlayerMarketPage() {
                                     : "text-muted-foreground"
                                 }
                               >
-                                {status}
+                                {status === "Active"
+                                  ? t("listingStatus.active")
+                                  : t("listingStatus.expired")}
                               </Badge>
                             </TableCell>
                           </TableRow>
@@ -1272,7 +1315,7 @@ export default function AdminPlayerMarketPage() {
                           colSpan={8}
                           className="text-center text-muted-foreground py-8"
                         >
-                          No team listings found
+                          {t("teamListings.empty")}
                         </TableCell>
                       </TableRow>
                     )}
@@ -1287,14 +1330,14 @@ export default function AdminPlayerMarketPage() {
         <TabsContent value="player-listings" className="mt-4 space-y-4">
           {/* Section ⓘ heads the player-listings tab. */}
           <h2 className="text-lg font-semibold flex items-center">
-            Player Listings
+            {t("playerListings.heading")}
             <InfoTip id="player_market.player_listings._section" className="ml-1.5" />
           </h2>
           <div className="flex flex-col md:flex-row gap-2 items-start md:items-center justify-between">
             <div className="relative flex-1 w-full md:max-w-sm">
               <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by player name..."
+                placeholder={t("playerListings.searchPlaceholder")}
                 value={playerSearch}
                 onChange={(e) => setPlayerSearch(e.target.value)}
                 className="pl-9"
@@ -1305,12 +1348,13 @@ export default function AdminPlayerMarketPage() {
               onValueChange={setPlayerStatusFilter}
             >
               <SelectTrigger className="w-full md:w-[150px]">
-                <SelectValue placeholder="All Status" />
+                <SelectValue placeholder={t("listingStatus.all")} />
               </SelectTrigger>
+              {/* Values stay the raw status keys (compared against getListingStatus()). */}
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Expired">Expired</SelectItem>
+                <SelectItem value="all">{t("listingStatus.all")}</SelectItem>
+                <SelectItem value="Active">{t("listingStatus.active")}</SelectItem>
+                <SelectItem value="Expired">{t("listingStatus.expired")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1319,20 +1363,20 @@ export default function AdminPlayerMarketPage() {
             <CardContent className="p-0">
               {playerLoading ? (
                 <div className="text-center py-12 text-sm text-muted-foreground">
-                  Loading...
+                  {t("common.loading")}
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Player</TableHead>
-                      <TableHead>Country</TableHead>
-                      <TableHead>Primary Role</TableHead>
-                      <TableHead>Secondary Role</TableHead>
-                      <TableHead>Availability</TableHead>
-                      <TableHead>Expires</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{t("playerListings.table.id")}</TableHead>
+                      <TableHead>{t("playerListings.table.player")}</TableHead>
+                      <TableHead>{t("playerListings.table.country")}</TableHead>
+                      <TableHead>{t("playerListings.table.primaryRole")}</TableHead>
+                      <TableHead>{t("playerListings.table.secondaryRole")}</TableHead>
+                      <TableHead>{t("playerListings.table.availability")}</TableHead>
+                      <TableHead>{t("playerListings.table.expires")}</TableHead>
+                      <TableHead>{t("playerListings.table.status")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1398,8 +1442,9 @@ export default function AdminPlayerMarketPage() {
                                 "-"
                               )}
                             </TableCell>
+                            {/* Bare DateField, see the team-listings note above. */}
                             <TableCell className="text-sm text-muted-foreground">
-                              {formatDate(listing.expiry)}
+                              {formatLocalDateOnly(listing.expiry)}
                             </TableCell>
                             <TableCell>
                               <Badge
@@ -1412,7 +1457,9 @@ export default function AdminPlayerMarketPage() {
                                     : "text-muted-foreground"
                                 }
                               >
-                                {status}
+                                {status === "Active"
+                                  ? t("listingStatus.active")
+                                  : t("listingStatus.expired")}
                               </Badge>
                             </TableCell>
                           </TableRow>
@@ -1424,7 +1471,7 @@ export default function AdminPlayerMarketPage() {
                           colSpan={8}
                           className="text-center text-muted-foreground py-8"
                         >
-                          No player listings found
+                          {t("playerListings.empty")}
                         </TableCell>
                       </TableRow>
                     )}
@@ -1439,7 +1486,7 @@ export default function AdminPlayerMarketPage() {
         <TabsContent value="trials" className="mt-4 space-y-4">
           {/* Section ⓘ inline with the tab's heading. */}
           <h2 className="text-lg font-semibold flex items-center">
-            Trials & Applications
+            {t("trials.heading")}
             <InfoTip id="player_market.trials._section" className="ml-1.5" />
           </h2>
 
@@ -1447,7 +1494,7 @@ export default function AdminPlayerMarketPage() {
           {trialsData && (
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline" className="text-xs px-3 py-1">
-                Total: {trialsData.total}
+                {t("trials.total", { count: trialsData.total })}
               </Badge>
               {trialsData.summary.map((s) => (
                 <Badge
@@ -1455,7 +1502,7 @@ export default function AdminPlayerMarketPage() {
                   variant="outline"
                   className={`text-xs px-3 py-1 ${getTrialStatusColor(s.status)}`}
                 >
-                  {formatEnum(s.status)}: {s.count}
+                  {trialStatusLabel(s.status)}: {s.count}
                 </Badge>
               ))}
             </div>
@@ -1466,7 +1513,7 @@ export default function AdminPlayerMarketPage() {
             <div className="relative flex-1">
               <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search player, team, or ID..."
+                placeholder={t("trials.searchPlaceholder")}
                 value={trialsSearch}
                 onChange={(e) => setTrialsSearch(e.target.value)}
                 className="pl-9"
@@ -1477,16 +1524,17 @@ export default function AdminPlayerMarketPage() {
               onValueChange={setTrialsStatusFilter}
             >
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="All statuses" />
+                <SelectValue placeholder={t("trials.allStatuses")} />
               </SelectTrigger>
+              {/* Values are the raw backend status codes; only the labels are translated. */}
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="SHORTLISTED">Shortlisted</SelectItem>
-                <SelectItem value="INVITED">Invited</SelectItem>
-                <SelectItem value="TRIAL_ONGOING">Trial Ongoing</SelectItem>
-                <SelectItem value="ACCEPTED">Accepted</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
+                <SelectItem value="all">{t("trials.allStatuses")}</SelectItem>
+                <SelectItem value="PENDING">{t("trialStatus.PENDING")}</SelectItem>
+                <SelectItem value="SHORTLISTED">{t("trialStatus.SHORTLISTED")}</SelectItem>
+                <SelectItem value="INVITED">{t("trialStatus.INVITED")}</SelectItem>
+                <SelectItem value="TRIAL_ONGOING">{t("trialStatus.TRIAL_ONGOING")}</SelectItem>
+                <SelectItem value="ACCEPTED">{t("trialStatus.ACCEPTED")}</SelectItem>
+                <SelectItem value="REJECTED">{t("trialStatus.REJECTED")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1497,27 +1545,27 @@ export default function AdminPlayerMarketPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">#</TableHead>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Team</TableHead>
-                    <TableHead>Post Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Applied</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="w-12">{t("trials.table.number")}</TableHead>
+                    <TableHead>{t("trials.table.player")}</TableHead>
+                    <TableHead>{t("trials.table.team")}</TableHead>
+                    <TableHead>{t("trials.table.postType")}</TableHead>
+                    <TableHead>{t("trials.table.status")}</TableHead>
+                    <TableHead>{t("trials.table.applied")}</TableHead>
+                    <TableHead>{t("trials.table.contact")}</TableHead>
+                    <TableHead>{t("trials.table.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {trialsLoading ? (
                     <TableRow>
                       <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                        Loading...
+                        {t("common.loading")}
                       </TableCell>
                     </TableRow>
                   ) : filteredApplications.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                        No applications found.
+                        {t("trials.empty")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -1529,11 +1577,11 @@ export default function AdminPlayerMarketPage() {
                         <TableCell>
                           <div className="font-medium">{app.player.username}</div>
                           <div className="text-xs text-muted-foreground">
-                            UID: {app.player.uid}
+                            {t("trials.uid", { uid: app.player.uid })}
                           </div>
                           {app.player.discord && (
                             <div className="text-xs text-muted-foreground">
-                              Discord: {app.player.discord}
+                              {t("trials.discord", { handle: app.player.discord })}
                             </div>
                           )}
                         </TableCell>
@@ -1545,11 +1593,11 @@ export default function AdminPlayerMarketPage() {
                             </div>
                           )}
                           <div className="text-xs text-muted-foreground">
-                            Tier {app.team.tier}
+                            {t("trials.tier", { tier: app.team.tier })}
                           </div>
                         </TableCell>
                         <TableCell className="text-sm">
-                          {formatEnum(app.post.post_type)}
+                          {postTypeLabel(app.post.post_type)}
                           {app.post.roles_needed && app.post.roles_needed.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-1">
                               {app.post.roles_needed.map((r) => (
@@ -1562,20 +1610,23 @@ export default function AdminPlayerMarketPage() {
                         </TableCell>
                         <TableCell>
                           <Badge className={`text-xs ${getTrialStatusColor(app.status)}`}>
-                            {formatEnum(app.status)}
+                            {trialStatusLabel(app.status)}
                           </Badge>
                         </TableCell>
+                        {/* applied_at is a real instant (DateTimeField) - viewer-local date. */}
                         <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                          {formatDate(app.applied_at)}
+                          <LocalTime value={app.applied_at} mode="date" />
                         </TableCell>
                         <TableCell>
                           {app.contact_unlocked ? (
                             <span className="flex items-center gap-1 text-xs text-green-500">
                               <IconCircleCheck className="h-4 w-4" />
-                              Unlocked
+                              {t("trials.contactUnlocked")}
                             </span>
                           ) : (
-                            <span className="text-xs text-muted-foreground">Locked</span>
+                            <span className="text-xs text-muted-foreground">
+                              {t("trials.contactLocked")}
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -1584,7 +1635,7 @@ export default function AdminPlayerMarketPage() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
-                              title="View details"
+                              title={t("trials.viewDetails")}
                               onClick={() => setSelectedApplication(app)}
                             >
                               <IconEye className="h-4 w-4" />
@@ -1599,18 +1650,18 @@ export default function AdminPlayerMarketPage() {
                                 variant="outline"
                                 size="sm"
                                 className="h-8"
-                                title="Read this trial chat (read-only)"
+                                title={t("trials.readChatTitle")}
                                 onClick={() => openChat(app)}
                               >
                                 <IconMessage className="h-3.5 w-3.5 mr-1" />
-                                Read Chat
+                                {t("trials.readChat")}
                               </Button>
                             ) : (
                               <span
                                 className="text-xs text-muted-foreground"
-                                title="No trial chat has been started for this application yet"
+                                title={t("trials.noChatTitle")}
                               >
-                                No chat
+                                {t("trials.noChat")}
                               </span>
                             )}
                           </div>
@@ -1631,18 +1682,20 @@ export default function AdminPlayerMarketPage() {
         >
           <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
             <DialogHeader>
-              <DialogTitle>Application #{selectedApplication?.id}</DialogTitle>
+              <DialogTitle>
+                {t("applicationDialog.title", { id: selectedApplication?.id ?? "" })}
+              </DialogTitle>
               <DialogDescription>
-                Full details for this trial / application.
+                {t("applicationDialog.description")}
               </DialogDescription>
             </DialogHeader>
             {selectedApplication && (
               <div className="space-y-4 text-sm overflow-y-auto flex-1 pr-1">
                 {/* Status */}
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Status</span>
+                  <span className="text-muted-foreground">{t("applicationDialog.status")}</span>
                   <Badge className={getTrialStatusColor(selectedApplication.status)}>
-                    {formatEnum(selectedApplication.status)}
+                    {trialStatusLabel(selectedApplication.status)}
                   </Badge>
                 </div>
 
@@ -1650,14 +1703,20 @@ export default function AdminPlayerMarketPage() {
 
                 {/* Player */}
                 <div className="space-y-1">
-                  <p className="font-medium">Player</p>
+                  <p className="font-medium">{t("applicationDialog.player")}</p>
                   <p>{selectedApplication.player.username}</p>
-                  <p className="text-muted-foreground">UID: {selectedApplication.player.uid}</p>
+                  <p className="text-muted-foreground">
+                    {t("trials.uid", { uid: selectedApplication.player.uid })}
+                  </p>
                   {selectedApplication.player.discord && (
-                    <p className="text-muted-foreground">Discord: {selectedApplication.player.discord}</p>
+                    <p className="text-muted-foreground">
+                      {t("trials.discord", { handle: selectedApplication.player.discord })}
+                    </p>
                   )}
                   {selectedApplication.player.is_banned && (
-                    <Badge variant="destructive" className="text-xs">Banned</Badge>
+                    <Badge variant="destructive" className="text-xs">
+                      {t("applicationDialog.banned")}
+                    </Badge>
                   )}
                 </div>
 
@@ -1665,20 +1724,24 @@ export default function AdminPlayerMarketPage() {
 
                 {/* Team */}
                 <div className="space-y-1">
-                  <p className="font-medium">Team</p>
+                  <p className="font-medium">{t("applicationDialog.team")}</p>
                   <p>{selectedApplication.team.name}</p>
                   {selectedApplication.team.tag && (
-                    <p className="text-muted-foreground">Tag: {selectedApplication.team.tag}</p>
+                    <p className="text-muted-foreground">
+                      {t("applicationDialog.tag", { tag: selectedApplication.team.tag })}
+                    </p>
                   )}
-                  <p className="text-muted-foreground">Tier {selectedApplication.team.tier}</p>
+                  <p className="text-muted-foreground">
+                    {t("trials.tier", { tier: selectedApplication.team.tier })}
+                  </p>
                 </div>
 
                 <Separator />
 
                 {/* Post */}
                 <div className="space-y-1">
-                  <p className="font-medium">Post</p>
-                  <p>#{selectedApplication.post.id} - {formatEnum(selectedApplication.post.post_type)}</p>
+                  <p className="font-medium">{t("applicationDialog.post")}</p>
+                  <p>#{selectedApplication.post.id} - {postTypeLabel(selectedApplication.post.post_type)}</p>
                   {selectedApplication.post.commitment_type && (
                     <p className="text-muted-foreground">{formatEnum(selectedApplication.post.commitment_type)}</p>
                   )}
@@ -1695,23 +1758,26 @@ export default function AdminPlayerMarketPage() {
 
                 {/* Dates */}
                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  {/* All three are DateTimeFields (real instants), shown in the viewer's zone. */}
                   <div>
-                    <p className="font-medium text-foreground">Applied</p>
-                    <p>{formatDate(selectedApplication.applied_at)}</p>
+                    <p className="font-medium text-foreground">{t("applicationDialog.applied")}</p>
+                    <p><LocalTime value={selectedApplication.applied_at} mode="date" /></p>
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">Updated</p>
-                    <p>{formatDate(selectedApplication.updated_at)}</p>
+                    <p className="font-medium text-foreground">{t("applicationDialog.updated")}</p>
+                    <p><LocalTime value={selectedApplication.updated_at} mode="date" /></p>
                   </div>
                   {selectedApplication.invite_expires_at && (
                     <div>
-                      <p className="font-medium text-foreground">Invite Expires</p>
-                      <p>{formatDate(selectedApplication.invite_expires_at)}</p>
+                      <p className="font-medium text-foreground">
+                        {t("applicationDialog.inviteExpires")}
+                      </p>
+                      <p><LocalTime value={selectedApplication.invite_expires_at} mode="date" /></p>
                     </div>
                   )}
                   {selectedApplication.chat_id && (
                     <div>
-                      <p className="font-medium text-foreground">Chat ID</p>
+                      <p className="font-medium text-foreground">{t("applicationDialog.chatId")}</p>
                       <p>#{selectedApplication.chat_id}</p>
                     </div>
                   )}
@@ -1721,7 +1787,7 @@ export default function AdminPlayerMarketPage() {
                   <>
                     <Separator />
                     <div>
-                      <p className="font-medium mb-1">Reason</p>
+                      <p className="font-medium mb-1">{t("applicationDialog.reason")}</p>
                       <p className="text-muted-foreground">{selectedApplication.reason}</p>
                     </div>
                   </>
@@ -1730,7 +1796,7 @@ export default function AdminPlayerMarketPage() {
             )}
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button variant="outline">{t("common.close")}</Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>
@@ -1752,7 +1818,7 @@ export default function AdminPlayerMarketPage() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <IconMessage className="h-5 w-5 text-primary" />
-                Trial Chat
+                {t("chatDialog.title")}
                 {chatContext && (
                   <Badge variant="outline" className="rounded-full text-xs">
                     #{chatContext.chatId}
@@ -1760,21 +1826,17 @@ export default function AdminPlayerMarketPage() {
                 )}
               </DialogTitle>
               <DialogDescription>
-                {chatContext ? (
-                  <>
-                    Read-only view of the conversation between{" "}
-                    <span className="text-foreground font-medium">
-                      {chatContext.team}
-                    </span>{" "}
-                    and{" "}
-                    <span className="text-foreground font-medium">
-                      {chatContext.player}
-                    </span>
-                    . Staff may read trial chats but cannot post.
-                  </>
-                ) : (
-                  "Read-only view of a trial conversation."
-                )}
+                {/* t.rich keeps the team + player names bold inside one translatable sentence,
+                    so translators control the word order around them. */}
+                {chatContext
+                  ? t.rich("chatDialog.descriptionWith", {
+                      team: chatContext.team,
+                      player: chatContext.player,
+                      strong: (chunks) => (
+                        <span className="text-foreground font-medium">{chunks}</span>
+                      ),
+                    })
+                  : t("chatDialog.descriptionFallback")}
               </DialogDescription>
             </DialogHeader>
 
@@ -1783,16 +1845,14 @@ export default function AdminPlayerMarketPage() {
               {chatLoading ? (
                 <div className="flex items-center justify-center h-36 gap-2 text-sm text-muted-foreground">
                   <IconLoader2 className="h-4 w-4 animate-spin" />
-                  Loading messages...
+                  {t("chatDialog.loading")}
                 </div>
               ) : !chatConversation ||
                 chatConversation.messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-36 gap-2 text-muted-foreground">
                   <IconMessage className="h-10 w-10 opacity-30" />
-                  <p className="text-sm font-medium">No messages yet</p>
-                  <p className="text-xs">
-                    This trial chat has no messages to show.
-                  </p>
+                  <p className="text-sm font-medium">{t("chatDialog.emptyTitle")}</p>
+                  <p className="text-xs">{t("chatDialog.emptyBody")}</p>
                 </div>
               ) : (
                 // Admin reads BOTH sides, so every message is left-aligned with the
@@ -1811,9 +1871,12 @@ export default function AdminPlayerMarketPage() {
                         <span className="text-xs font-medium break-words">
                           {msg.sender}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {formatDate(msg.sent_at, true)}
-                        </span>
+                        {/* sent_at is a UTC instant: full date + time in the viewer's zone. */}
+                        <LocalTime
+                          value={msg.sent_at}
+                          mode="datetime"
+                          className="text-[10px] text-muted-foreground"
+                        />
                       </div>
                       <div className="rounded-2xl rounded-tl-sm bg-muted px-3 py-2 text-sm leading-relaxed break-words">
                         {msg.message}
@@ -1826,7 +1889,7 @@ export default function AdminPlayerMarketPage() {
 
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button variant="outline">{t("common.close")}</Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>
@@ -1836,7 +1899,7 @@ export default function AdminPlayerMarketPage() {
         <TabsContent value="reports" className="mt-4 space-y-4">
           {/* Section ⓘ inline with the tab's heading. */}
           <h2 className="text-lg font-semibold flex items-center">
-            Reports & Flagged Content
+            {t("reports.heading")}
             <InfoTip id="player_market.reports._section" className="ml-1.5" />
           </h2>
 
@@ -1845,7 +1908,7 @@ export default function AdminPlayerMarketPage() {
             <div className="relative flex-1">
               <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search reports by team or player..."
+                placeholder={t("reports.searchPlaceholder")}
                 value={reportSearch}
                 onChange={(e) => setReportSearch(e.target.value)}
                 className="pl-9"
@@ -1856,30 +1919,32 @@ export default function AdminPlayerMarketPage() {
               onValueChange={setReportStatusFilter}
             >
               <SelectTrigger className="w-full sm:w-44">
-                <SelectValue placeholder="All statuses" />
+                <SelectValue placeholder={t("reports.allStatuses")} />
               </SelectTrigger>
+              {/* Values are the backend status codes sent as the ?status= filter. */}
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="reviewing">Reviewing</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-                <SelectItem value="dismissed">Dismissed</SelectItem>
-                <SelectItem value="banned">Banned</SelectItem>
+                <SelectItem value="all">{t("reports.allStatuses")}</SelectItem>
+                <SelectItem value="open">{t("reportStatus.open")}</SelectItem>
+                <SelectItem value="reviewing">{t("reportStatus.reviewing")}</SelectItem>
+                <SelectItem value="resolved">{t("reportStatus.resolved")}</SelectItem>
+                <SelectItem value="dismissed">{t("reportStatus.dismissed")}</SelectItem>
+                <SelectItem value="banned">{t("reportStatus.banned")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={reportCatFilter} onValueChange={setReportCatFilter}>
               <SelectTrigger className="w-full sm:w-52">
-                <SelectValue placeholder="All reasons" />
+                <SelectValue placeholder={t("reports.allReasons")} />
               </SelectTrigger>
+              {/* Values are the backend category codes sent as the ?category= filter. */}
               <SelectContent>
-                <SelectItem value="all">All reasons</SelectItem>
+                <SelectItem value="all">{t("reports.allReasons")}</SelectItem>
                 <SelectItem value="bad_tryout">
-                  Negative tryout experience
+                  {t("reportCategory.bad_tryout_long")}
                 </SelectItem>
-                <SelectItem value="scam">Scam / fraud</SelectItem>
-                <SelectItem value="abusive">Abusive conduct</SelectItem>
-                <SelectItem value="fake_post">Fake / misleading post</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="scam">{t("reportCategory.scam")}</SelectItem>
+                <SelectItem value="abusive">{t("reportCategory.abusive")}</SelectItem>
+                <SelectItem value="fake_post">{t("reportCategory.fake_post")}</SelectItem>
+                <SelectItem value="other">{t("reportCategory.other")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1889,12 +1954,12 @@ export default function AdminPlayerMarketPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Reported subject</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead>Reporter</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead>{t("reports.table.subject")}</TableHead>
+                    <TableHead>{t("reports.table.reason")}</TableHead>
+                    <TableHead>{t("reports.table.reporter")}</TableHead>
+                    <TableHead>{t("reports.table.submitted")}</TableHead>
+                    <TableHead>{t("reports.table.status")}</TableHead>
+                    <TableHead className="text-right">{t("reports.table.action")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1904,7 +1969,7 @@ export default function AdminPlayerMarketPage() {
                         colSpan={6}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        Loading...
+                        {t("common.loading")}
                       </TableCell>
                     </TableRow>
                   ) : reports.length === 0 ? (
@@ -1913,7 +1978,7 @@ export default function AdminPlayerMarketPage() {
                         colSpan={6}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        No reports match.
+                        {t("reports.empty")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -1922,7 +1987,7 @@ export default function AdminPlayerMarketPage() {
                         {/* Subject + type (team / player) inline. */}
                         <TableCell>
                           <div className="font-medium">
-                            {report.subject_name ?? "Unknown"}
+                            {report.subject_name ?? t("common.unknown")}
                           </div>
                           <div className="text-xs text-muted-foreground capitalize">
                             {report.subject_type}
@@ -1941,8 +2006,7 @@ export default function AdminPlayerMarketPage() {
                                   : "text-muted-foreground"
                               }`}
                             >
-                              {REPORT_CATEGORY_LABELS[report.category] ??
-                                report.category}
+                              {categoryLabel(report.category)}
                             </Badge>
                             {report.details && (
                               <span className="text-xs text-muted-foreground line-clamp-2 max-w-xs">
@@ -1954,10 +2018,13 @@ export default function AdminPlayerMarketPage() {
                         <TableCell className="text-muted-foreground">
                           {report.reporter_username || "-"}
                         </TableCell>
+                        {/* created_at is a UTC instant - viewer-local date. */}
                         <TableCell className="text-muted-foreground whitespace-nowrap">
-                          {report.created_at
-                            ? formatDate(report.created_at)
-                            : "-"}
+                          {report.created_at ? (
+                            <LocalTime value={report.created_at} mode="date" />
+                          ) : (
+                            t("common.dash")
+                          )}
                         </TableCell>
                         <TableCell>
                           <ReportStatusBadge status={report.status} />
@@ -1969,17 +2036,17 @@ export default function AdminPlayerMarketPage() {
                               size="sm"
                               onClick={() => openResolve(report)}
                             >
-                              Resolve
+                              {t("reports.resolve")}
                             </Button>
                             {report.status !== "banned" && (
                               <Button
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => setBanTarget(report)}
-                                title="Ban the reported team or player"
+                                title={t("reports.banTitle")}
                               >
                                 <IconBan className="h-3.5 w-3.5 mr-1" />
-                                Ban
+                                {t("reports.ban")}
                               </Button>
                             )}
                             {/* J5: ban the REPORTER when the report is false / abusive.
@@ -1990,10 +2057,10 @@ export default function AdminPlayerMarketPage() {
                                 size="sm"
                                 className="border-red-500/50 text-red-500 hover:text-red-500"
                                 onClick={() => openBanReporter(report)}
-                                title="Ban the reporter for a false or abusive report"
+                                title={t("reports.banReporterTitle")}
                               >
                                 <IconFlag className="h-3.5 w-3.5 mr-1" />
-                                Ban reporter
+                                {t("reports.banReporter")}
                               </Button>
                             )}
                           </div>
@@ -2006,8 +2073,10 @@ export default function AdminPlayerMarketPage() {
             </CardContent>
           </Card>
           <p className="text-xs text-muted-foreground">
-            {reports.length} report{reports.length === 1 ? "" : "s"} shown.{" "}
-            {openReportsCount} open and awaiting review. Newest first.
+            {t("reports.footer", {
+              shown: reports.length,
+              open: openReportsCount,
+            })}
           </p>
         </TabsContent>
       </Tabs>
@@ -2019,17 +2088,16 @@ export default function AdminPlayerMarketPage() {
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Suspend Listing</DialogTitle>
+            <DialogTitle>{t("suspendDialog.title")}</DialogTitle>
             <DialogDescription>
-              Please provide a reason for this action. This will be logged in
-              the audit trail.
+              {t("suspendDialog.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Reason *</label>
+              <label className="text-sm font-medium">{t("suspendDialog.reason")}</label>
               <Textarea
-                placeholder="Enter reason for this action..."
+                placeholder={t("suspendDialog.reasonPlaceholder")}
                 rows={4}
                 value={suspendReason}
                 onChange={(e) => setSuspendReason(e.target.value)}
@@ -2038,12 +2106,14 @@ export default function AdminPlayerMarketPage() {
           </div>
           <DialogFooter className="gap-2">
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{t("common.cancel")}</Button>
             </DialogClose>
             <Button
               onClick={() => {
                 toast.success(
-                  `Listing ${suspendModal.listingId} suspended successfully`,
+                  t("suspendDialog.suspended", {
+                    id: suspendModal.listingId ?? "",
+                  }),
                 );
                 setSuspendModal({
                   open: false,
@@ -2054,7 +2124,7 @@ export default function AdminPlayerMarketPage() {
               }}
               disabled={!suspendReason.trim()}
             >
-              Confirm
+              {t("common.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2070,9 +2140,9 @@ export default function AdminPlayerMarketPage() {
         {viewTrial && (
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Trial Timeline</DialogTitle>
+              <DialogTitle>{t("trialTimeline.title")}</DialogTitle>
               <DialogDescription>
-                Detailed timeline for trial {viewTrial.id}
+                {t("trialTimeline.description", { id: viewTrial.id })}
               </DialogDescription>
             </DialogHeader>
 
@@ -2080,11 +2150,11 @@ export default function AdminPlayerMarketPage() {
               {/* Player & Team */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Player</p>
+                  <p className="text-xs text-muted-foreground">{t("trialTimeline.player")}</p>
                   <p className="font-semibold">{viewTrial.player}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Team</p>
+                  <p className="text-xs text-muted-foreground">{t("trialTimeline.team")}</p>
                   <p className="font-semibold">{viewTrial.team}</p>
                 </div>
               </div>
@@ -2092,11 +2162,13 @@ export default function AdminPlayerMarketPage() {
               {/* Start Date & Status */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Start Date</p>
-                  <p className="text-sm font-medium">{viewTrial.startDate}</p>
+                  <p className="text-xs text-muted-foreground">{t("trialTimeline.startDate")}</p>
+                  <p className="text-sm font-medium">
+                    {formatLocalDateOnly(viewTrial.startDate)}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Status</p>
+                  <p className="text-xs text-muted-foreground">{t("trialTimeline.status")}</p>
                   <Badge variant={getStatusVariant(viewTrial.status)}>
                     {viewTrial.status}
                   </Badge>
@@ -2107,7 +2179,7 @@ export default function AdminPlayerMarketPage() {
 
               {/* Timeline Events */}
               <div>
-                <h4 className="text-sm font-semibold mb-3">Timeline Events</h4>
+                <h4 className="text-sm font-semibold mb-3">{t("trialTimeline.events")}</h4>
                 <div className="space-y-3">
                   {viewTrial.events.map((event, idx) => (
                     <div key={idx} className="flex gap-3">
@@ -2122,7 +2194,7 @@ export default function AdminPlayerMarketPage() {
                           </p>
                         </div>
                         <p className="text-xs text-muted-foreground shrink-0 ml-4">
-                          {event.date}
+                          {formatLocalDateOnly(event.date)}
                         </p>
                       </div>
                     </div>
@@ -2133,17 +2205,17 @@ export default function AdminPlayerMarketPage() {
 
             <DialogFooter className="gap-2">
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button variant="outline">{t("common.close")}</Button>
               </DialogClose>
               {viewTrial.status === "Ongoing" && (
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    toast.success(`Trial ${viewTrial.id} cancelled`);
+                    toast.success(t("trialTimeline.cancelled", { id: viewTrial.id }));
                     setViewTrial(null);
                   }}
                 >
-                  Cancel Trial
+                  {t("trialTimeline.cancelTrial")}
                 </Button>
               )}
             </DialogFooter>
@@ -2164,20 +2236,24 @@ export default function AdminPlayerMarketPage() {
         {viewReport && (
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Review Report</DialogTitle>
-              <DialogDescription>Report ID: {viewReport.id}</DialogDescription>
+              <DialogTitle>{t("reviewReport.title")}</DialogTitle>
+              <DialogDescription>
+                {t("reviewReport.reportId", { id: viewReport.id })}
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4">
               {/* Reported By & Entity */}
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Reported By</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("reviewReport.reportedBy")}
+                  </p>
                   <p className="font-semibold">{viewReport.reportedBy}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">
-                    Reported Entity
+                    {t("reviewReport.reportedEntity")}
                   </p>
                   <p className="font-semibold">{viewReport.reportedEntity}</p>
                 </div>
@@ -2186,11 +2262,13 @@ export default function AdminPlayerMarketPage() {
               {/* Date & Severity */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground">Date</p>
-                  <p className="text-sm font-medium">{viewReport.date}</p>
+                  <p className="text-xs text-muted-foreground">{t("reviewReport.date")}</p>
+                  <p className="text-sm font-medium">
+                    {formatLocalDateOnly(viewReport.date)}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-muted-foreground">Severity</p>
+                  <p className="text-xs text-muted-foreground">{t("reviewReport.severity")}</p>
                   <Badge variant={getSeverityVariant(viewReport.severity)}>
                     {viewReport.severity}
                   </Badge>
@@ -2201,33 +2279,39 @@ export default function AdminPlayerMarketPage() {
 
               {/* Reason */}
               <div>
-                <p className="text-xs text-muted-foreground">Reason</p>
+                <p className="text-xs text-muted-foreground">{t("reviewReport.reason")}</p>
                 <p className="text-sm font-medium">{viewReport.reason}</p>
               </div>
 
               {/* Description */}
               <div>
-                <p className="text-xs text-muted-foreground">Description</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("reviewReport.descriptionLabel")}
+                </p>
                 <p className="text-sm">{viewReport.description}</p>
               </div>
 
               {/* Evidence */}
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Evidence</p>
+                <p className="text-xs text-muted-foreground mb-1">
+                  {t("reviewReport.evidence")}
+                </p>
                 <Button variant="outline" size="sm" className="text-xs">
                   <IconEye className="h-3.5 w-3.5 mr-1" />
-                  View Evidence ({viewReport.evidenceCount} files)
+                  {t("reviewReport.viewEvidence", { count: viewReport.evidenceCount })}
                 </Button>
               </div>
 
               {/* Previous Reports */}
               <div>
                 <p className="text-xs text-muted-foreground mb-1">
-                  Previous Reports
+                  {t("reviewReport.previousReports")}
                 </p>
                 <Button variant="outline" size="sm" className="text-xs">
                   <IconClipboardList className="h-3.5 w-3.5 mr-1" />
-                  View Previous Reports ({viewReport.previousReportsCount})
+                  {t("reviewReport.viewPreviousReports", {
+                    count: viewReport.previousReportsCount,
+                  })}
                 </Button>
               </div>
 
@@ -2236,16 +2320,16 @@ export default function AdminPlayerMarketPage() {
               {/* Take Action */}
               {viewReport.status !== "Resolved" && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Take Action *</label>
+                  <label className="text-sm font-medium">{t("reviewReport.takeAction")}</label>
                   <Select value={reportAction} onValueChange={setReportAction}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select action..." />
+                      <SelectValue placeholder={t("reviewReport.selectAction")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="warn">Warn</SelectItem>
-                      <SelectItem value="suspend">Suspend Listing</SelectItem>
-                      <SelectItem value="ban">Ban User</SelectItem>
-                      <SelectItem value="dismiss">Dismiss</SelectItem>
+                      <SelectItem value="warn">{t("reviewReport.actions.warn")}</SelectItem>
+                      <SelectItem value="suspend">{t("reviewReport.actions.suspend")}</SelectItem>
+                      <SelectItem value="ban">{t("reviewReport.actions.ban")}</SelectItem>
+                      <SelectItem value="dismiss">{t("reviewReport.actions.dismiss")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -2254,20 +2338,23 @@ export default function AdminPlayerMarketPage() {
 
             <DialogFooter className="gap-2">
               <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button variant="outline">{t("common.close")}</Button>
               </DialogClose>
               {viewReport.status !== "Resolved" && (
                 <Button
                   onClick={() => {
                     toast.success(
-                      `Action "${reportAction}" taken on report ${viewReport.id}`,
+                      t("reviewReport.actionTaken", {
+                        action: reportAction,
+                        id: viewReport.id,
+                      }),
                     );
                     setViewReport(null);
                     setReportAction("");
                   }}
                   disabled={!reportAction}
                 >
-                  Confirm Action
+                  {t("reviewReport.confirmAction")}
                 </Button>
               )}
             </DialogFooter>
@@ -2284,13 +2371,12 @@ export default function AdminPlayerMarketPage() {
       >
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Resolve report</DialogTitle>
+            <DialogTitle>{t("resolveDialog.title")}</DialogTitle>
             <DialogDescription>
               {resolveTarget
-                ? `${resolveTarget.subject_name ?? "Unknown"} - ${
-                    REPORT_CATEGORY_LABELS[resolveTarget.category] ??
-                    resolveTarget.category
-                  }`
+                ? `${resolveTarget.subject_name ?? t("common.unknown")} - ${categoryLabel(
+                    resolveTarget.category,
+                  )}`
                 : ""}
             </DialogDescription>
           </DialogHeader>
@@ -2300,13 +2386,13 @@ export default function AdminPlayerMarketPage() {
               {/* Reporter + subject context (read-only). */}
               <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
                 <span className="text-muted-foreground">
-                  Reporter:{" "}
+                  {t("resolveDialog.reporter")}{" "}
                   <span className="text-foreground">
-                    {resolveTarget.reporter_username || "-"}
+                    {resolveTarget.reporter_username || t("common.dash")}
                   </span>
                 </span>
                 <span className="text-muted-foreground capitalize">
-                  Subject:{" "}
+                  {t("resolveDialog.subject")}{" "}
                   <span className="text-foreground">
                     {resolveTarget.subject_name} ({resolveTarget.subject_type})
                   </span>
@@ -2316,7 +2402,7 @@ export default function AdminPlayerMarketPage() {
               {/* The reporter's written details (read-only context). */}
               {resolveTarget.details && (
                 <div className="space-y-1">
-                  <Label>What the reporter said</Label>
+                  <Label>{t("resolveDialog.reporterSaid")}</Label>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap rounded-md border border-l-2 border-l-primary bg-muted/30 p-3">
                     {resolveTarget.details}
                   </p>
@@ -2329,7 +2415,11 @@ export default function AdminPlayerMarketPage() {
                   that only have the single legacy `evidence` image we fall back to it. */}
               {(resolveTarget.evidence_files?.length ?? 0) > 0 ? (
                 <div className="space-y-2">
-                  <Label>Evidence ({resolveTarget.evidence_files.length})</Label>
+                  <Label>
+                    {t("resolveDialog.evidenceCount", {
+                      count: resolveTarget.evidence_files.length,
+                    })}
+                  </Label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {resolveTarget.evidence_files.map((ev, i) =>
                       ev.media_type === "video" ? (
@@ -2351,7 +2441,7 @@ export default function AdminPlayerMarketPage() {
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={ev.url}
-                            alt={`Report evidence ${i + 1}`}
+                            alt={t("resolveDialog.evidenceAlt", { index: i + 1 })}
                             className="size-full object-contain"
                           />
                         </a>
@@ -2362,12 +2452,12 @@ export default function AdminPlayerMarketPage() {
               ) : (
                 resolveTarget.evidence && (
                   <div className="space-y-2">
-                    <Label>Evidence</Label>
+                    <Label>{t("resolveDialog.evidence")}</Label>
                     <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={resolveTarget.evidence}
-                        alt="Report evidence"
+                        alt={t("resolveDialog.evidenceAltSingle")}
                         className="size-full object-contain"
                       />
                     </div>
@@ -2377,19 +2467,20 @@ export default function AdminPlayerMarketPage() {
 
               {/* Status. */}
               <div className="space-y-2">
-                <Label htmlFor="resolve-status">Status</Label>
+                <Label htmlFor="resolve-status">{t("resolveDialog.status")}</Label>
                 <Select
                   value={resolveStatus}
                   onValueChange={setResolveStatus}
                 >
                   <SelectTrigger id="resolve-status" className="w-full">
-                    <SelectValue placeholder="Select status" />
+                    <SelectValue placeholder={t("resolveDialog.status")} />
                   </SelectTrigger>
+                  {/* Values are the backend status codes PATCHed back on save. */}
                   <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="reviewing">Reviewing</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="dismissed">Dismissed</SelectItem>
+                    <SelectItem value="open">{t("reportStatus.open")}</SelectItem>
+                    <SelectItem value="reviewing">{t("reportStatus.reviewing")}</SelectItem>
+                    <SelectItem value="resolved">{t("reportStatus.resolved")}</SelectItem>
+                    <SelectItem value="dismissed">{t("reportStatus.dismissed")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -2397,14 +2488,16 @@ export default function AdminPlayerMarketPage() {
               {/* Resolution notes. */}
               <div className="space-y-2">
                 <Label htmlFor="resolve-notes">
-                  Resolution notes{" "}
-                  <span className="text-muted-foreground">(optional)</span>
+                  {t("resolveDialog.notes")}{" "}
+                  <span className="text-muted-foreground">
+                    {t("resolveDialog.notesOptional")}
+                  </span>
                 </Label>
                 <Textarea
                   id="resolve-notes"
                   value={resolveNotes}
                   onChange={(e) => setResolveNotes(e.target.value)}
-                  placeholder="What was found, and what action was taken..."
+                  placeholder={t("resolveDialog.notesPlaceholder")}
                   rows={4}
                 />
               </div>
@@ -2417,10 +2510,10 @@ export default function AdminPlayerMarketPage() {
               onClick={() => setResolveTarget(null)}
               disabled={resolveSaving}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button disabled={resolveSaving} onClick={saveResolve}>
-              {resolveSaving ? "Saving..." : "Save changes"}
+              {resolveSaving ? t("resolveDialog.saving") : t("resolveDialog.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2448,25 +2541,27 @@ export default function AdminPlayerMarketPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <IconFlag className="h-5 w-5 text-red-500" />
-              Ban reporter (false report)
+              {t("banReporterDialog.title")}
             </DialogTitle>
             <DialogDescription>
-              Bans{" "}
-              <span className="font-medium text-foreground">
-                {banReporterTarget?.reporter_username ?? "this reporter"}
-              </span>{" "}
-              from the Player Market for filing a false or abusive report. They
-              will no longer be able to create posts, apply, or invite. This
-              report is closed as dismissed.
+              {/* t.rich keeps the reporter's name bold inside one translatable sentence. */}
+              {t.rich("banReporterDialog.description", {
+                reporter:
+                  banReporterTarget?.reporter_username ??
+                  t("banReporterDialog.thisReporter"),
+                strong: (chunks) => (
+                  <span className="font-medium text-foreground">{chunks}</span>
+                ),
+              })}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 py-1">
             <div className="space-y-2">
               <Label htmlFor="ban-reporter-reason">
-                Reason <span className="text-red-500">*</span>{" "}
+                {t("banReporterDialog.reason")} <span className="text-red-500">*</span>{" "}
                 <span className="text-muted-foreground">
-                  (shown to the banned reporter)
+                  {t("banReporterDialog.reasonHint")}
                 </span>
               </Label>
               <Textarea
@@ -2474,12 +2569,11 @@ export default function AdminPlayerMarketPage() {
                 value={banReporterReason}
                 onChange={(e) => setBanReporterReason(e.target.value)}
                 rows={3}
-                placeholder="Explain why this reporter is being banned. Reference that the report was false or abusive."
+                placeholder={t("banReporterDialog.reasonPlaceholder")}
               />
             </div>
             <p className="rounded-md border border-red-500/30 bg-red-500/5 p-3 text-sm text-muted-foreground">
-              This is a permanent market ban on the reporter. Use it only when a
-              report is clearly false, fabricated, or abusive.
+              {t("banReporterDialog.warning")}
             </p>
           </div>
 
@@ -2489,7 +2583,7 @@ export default function AdminPlayerMarketPage() {
               onClick={() => setBanReporterTarget(null)}
               disabled={banReporterSaving}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -2497,7 +2591,9 @@ export default function AdminPlayerMarketPage() {
               disabled={banReporterSaving || !banReporterReason.trim()}
             >
               <IconFlag className="h-4 w-4 mr-1" />
-              {banReporterSaving ? "Banning..." : "Ban reporter"}
+              {banReporterSaving
+                ? t("banReporterDialog.banning")
+                : t("banReporterDialog.submit")}
             </Button>
           </DialogFooter>
         </DialogContent>

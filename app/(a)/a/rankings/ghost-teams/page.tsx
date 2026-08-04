@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { FullLoader } from "@/components/Loader";
+// GhostTeam.created_at is a Django DateTimeField (a UTC instant), so it renders through the
+// hydration-safe <LocalTime/> wrapper in the viewer's own timezone + language. It used to be
+// sliced to the first 10 characters of the raw UTC ISO string and printed as-is, which is
+// neither localized nor the viewer's calendar day.
+import { LocalTime } from "@/components/LocalTime";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import {
   IconGhost2, IconPlus, IconSearch, IconAlertTriangle, IconUsersGroup,
@@ -62,7 +68,8 @@ function toRow(g: any): GhostTeam {
     claim_requested_by: g.claim_requested_by ?? null,
     claimed_by: g.claimed_by ?? null,
     created_by: g.created_by ?? null,
-    created_at: g.created_at ? String(g.created_at).slice(0, 10) : "",
+    // Keep the FULL instant - <LocalTime/> converts it to the viewer's day at render time.
+    created_at: g.created_at ? String(g.created_at) : "",
     players: Array.isArray(g.players)
       ? g.players.map((p: any) => ({ id: p.id, ign: p.ign, slot: p.slot }))
       : [],
@@ -73,24 +80,33 @@ function toRow(g: any): GhostTeam {
 const emptyRoster = (): GhostPlayer[] =>
   Array.from({ length: 4 }, (_, i) => ({ id: i + 1, ign: "" }));
 
+// NOT translated on purpose: this exact string is POSTed to the backend as `country`
+// (createGhost / updateGhost), and GhostTeam.country stores it verbatim, so it is an API
+// argument, not display copy. The rest of the site (team profile, roster cards) also renders
+// country names raw in English.
 const COUNTRIES = [
   "Nigeria", "Ghana", "Kenya", "South Africa", "Egypt", "Morocco",
   "Tanzania", "Uganda", "Algeria", "Senegal", "Cameroon", "Côte d'Ivoire",
   "Ethiopia", "Tunisia", "Zambia", "Rwanda",
 ];
 
-const statusMeta: Record<ClaimStatus, { label: string; cls: string }> = {
-  unclaimed: { label: "Unclaimed", cls: "border-muted-foreground/30 text-muted-foreground" },
-  pending: { label: "Pending claim", cls: "border-orange-500/40 text-orange-400" },
-  claimed: { label: "Claimed", cls: "border-green-600/50 text-green-400" },
-  revoked: { label: "Unclaimed", cls: "border-muted-foreground/30 text-muted-foreground" },
+// Only the colour class is static here; the visible label is a translation key resolved per
+// render (a module-level const cannot call a hook). `revoked` is reset to `unclaimed` server
+// side, so the two share one label.
+const statusMeta: Record<ClaimStatus, { labelKey: string; cls: string }> = {
+  unclaimed: { labelKey: "status.unclaimed", cls: "border-muted-foreground/30 text-muted-foreground" },
+  pending: { labelKey: "status.pending", cls: "border-orange-500/40 text-orange-400" },
+  claimed: { labelKey: "status.claimed", cls: "border-green-600/50 text-green-400" },
+  revoked: { labelKey: "status.unclaimed", cls: "border-muted-foreground/30 text-muted-foreground" },
 };
 
 function StatusBadge({ status }: { status: ClaimStatus }) {
+  const t = useTranslations("rankings.admin.ghostTeams");
   const m = statusMeta[status] ?? statusMeta.unclaimed;
   return (
     <Badge variant="outline" className={cn("rounded-full font-semibold", m.cls)}>
-      {m.label}
+      {/* `as never` matches the house idiom for a dynamically-built key (see admin rankings page). */}
+      {t(m.labelKey as never)}
     </Badge>
   );
 }
@@ -125,6 +141,9 @@ function ReasonDialog({
   confirmVariant?: "default" | "destructive";
   onConfirm: (reason: string) => void;
 }) {
+  // title / description / warning / confirmLabel arrive already translated from the caller,
+  // which holds the per-action copy; only this dialog's own chrome is translated here.
+  const t = useTranslations("rankings.admin.ghostTeams");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const valid = reason.trim().length >= MIN_REASON;
@@ -151,22 +170,22 @@ function ReasonDialog({
 
         <div className="space-y-2">
           <Label htmlFor="reason">
-            Reason <span className="text-orange-400">(required, logged)</span>
+            {t("common.reasonLabel")} <span className="text-orange-400">{t("common.reasonRequired")}</span>
           </Label>
           <Textarea
             id="reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Explain why, at least 10 characters. This is written to the audit log."
+            placeholder={t("common.reasonPlaceholder")}
             className="min-h-24"
           />
           <p className="text-[11px] text-muted-foreground">
-            {reason.trim().length}/{MIN_REASON} characters minimum
+            {t("common.minChars", { count: reason.trim().length, min: MIN_REASON })}
           </p>
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>Go back</Button>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>{t("common.goBack")}</Button>
           <Button
             variant={confirmVariant ?? "default"}
             disabled={!valid || submitting}
@@ -191,6 +210,7 @@ function RosterEditor({
   players: GhostPlayer[];
   onChange: (next: GhostPlayer[]) => void;
 }) {
+  const t = useTranslations("rankings.admin.ghostTeams");
   const setIgn = (id: number, ign: string) =>
     onChange(players.map((p) => (p.id === id ? { ...p, ign } : p)));
   const add = () =>
@@ -202,15 +222,14 @@ function RosterEditor({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <Label>
-          Ghost players <span className="text-orange-400">(at least one)</span>
+          {t("roster.label")} <span className="text-orange-400">{t("roster.atLeastOne")}</span>
         </Label>
         <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={add}>
-          <IconPlus className="mr-1 size-3.5" /> Add player
+          <IconPlus className="mr-1 size-3.5" /> {t("roster.addPlayer")}
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        In-game names for the provisional roster. Match results attribute to these slots
-        until a real team claims the ghost.
+        {t("roster.hint")}
       </p>
       <div className="max-h-44 space-y-2 overflow-y-auto pr-1">
         {players.map((p, i) => (
@@ -218,7 +237,7 @@ function RosterEditor({
             <Input
               value={p.ign}
               onChange={(e) => setIgn(p.id, e.target.value)}
-              placeholder={`Player ${i + 1} in-game name`}
+              placeholder={t("roster.playerPlaceholder", { n: i + 1 })}
             />
             <Button
               type="button"
@@ -227,7 +246,7 @@ function RosterEditor({
               className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
               disabled={players.length <= 1}
               onClick={() => remove(p.id)}
-              aria-label={`Remove player ${i + 1}`}
+              aria-label={t("roster.removePlayer", { n: i + 1 })}
             >
               <IconX className="size-4" />
             </Button>
@@ -239,6 +258,7 @@ function RosterEditor({
 }
 
 export default function GhostTeamsAdminPage() {
+  const t = useTranslations("rankings.admin.ghostTeams");
   const [rows, setRows] = useState<GhostTeam[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"all" | "pending">("all");
@@ -268,7 +288,7 @@ export default function GhostTeamsAdminPage() {
     rankingsAdminApi.ghostList(params)
       .then((r: any) => setRows((r.results ?? []).map(toRow)))
       .catch((err: any) =>
-        toast.error(err?.response?.data?.message || "Failed to load ghost teams."))
+        toast.error(err?.response?.data?.message || t("loadFailed")))
       .finally(() => setLoading(false));
   }
 
@@ -298,15 +318,15 @@ export default function GhostTeamsAdminPage() {
   async function createGhost() {
     const named = form.players.map((p) => p.ign.trim()).filter(Boolean);
     if (!form.team_name.trim() || !form.country.trim()) {
-      toast.error("Team name and country are required.");
+      toast.error(t("form.nameCountryRequired"));
       return;
     }
     if (named.length === 0) {
-      toast.error("Add at least one ghost player.");
+      toast.error(t("form.addOnePlayer"));
       return;
     }
     if (form.reason.trim().length < MIN_REASON) {
-      toast.error(`Reason must be at least ${MIN_REASON} characters.`);
+      toast.error(t("form.reasonTooShort", { min: MIN_REASON }));
       return;
     }
     setCreating(true);
@@ -318,12 +338,13 @@ export default function GhostTeamsAdminPage() {
         players: named.map((ign) => ({ ign })),
         reason: form.reason.trim(),
       });
-      toast.success(`Ghost team "${form.team_name.trim()}" created with ${named.length} player${named.length > 1 ? "s" : ""}.`);
+      // ICU plural on the roster size - never a hand-built English "s".
+      toast.success(t("createDialog.success", { name: form.team_name.trim(), count: named.length }));
       setForm({ team_name: "", country: "", external_id: "", reason: "", players: emptyRoster() });
       setCreateOpen(false);
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to create ghost team.");
+      toast.error(err?.response?.data?.message || t("createDialog.failed"));
     } finally {
       setCreating(false);
     }
@@ -343,15 +364,15 @@ export default function GhostTeamsAdminPage() {
     if (!edit) return;
     const named = editForm.players.map((p) => p.ign.trim()).filter(Boolean);
     if (!editForm.team_name.trim() || !editForm.country.trim()) {
-      toast.error("Team name and country are required.");
+      toast.error(t("form.nameCountryRequired"));
       return;
     }
     if (named.length === 0) {
-      toast.error("A ghost team needs at least one player.");
+      toast.error(t("form.needsOnePlayer"));
       return;
     }
     if (editForm.reason.trim().length < MIN_REASON) {
-      toast.error(`Reason must be at least ${MIN_REASON} characters.`);
+      toast.error(t("form.reasonTooShort", { min: MIN_REASON }));
       return;
     }
     setSavingEdit(true);
@@ -363,11 +384,11 @@ export default function GhostTeamsAdminPage() {
         players: named.map((ign) => ({ ign })),
         reason: editForm.reason.trim(),
       });
-      toast.success(`"${editForm.team_name.trim()}" updated (${named.length} player${named.length > 1 ? "s" : ""}).`);
+      toast.success(t("editDialog.success", { name: editForm.team_name.trim(), count: named.length }));
       setEdit(null);
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to update ghost team.");
+      toast.error(err?.response?.data?.message || t("editDialog.failed"));
     } finally {
       setSavingEdit(false);
     }
@@ -377,44 +398,44 @@ export default function GhostTeamsAdminPage() {
     if (!approve) return;
     try {
       await rankingsAdminApi.approveClaim(approve.id, { reason });
-      toast.success(`Claim approved, "${approve.team_name}" transferred. Scores recalculating.`);
+      toast.success(t("approveDialog.success", { name: approve.team_name }));
       setApprove(null);
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to approve claim.");
+      toast.error(err?.response?.data?.message || t("approveDialog.failed"));
     }
   }
   async function doRevokePending(reason: string) {
     if (!revoke) return;
     try {
       await rankingsAdminApi.revokeClaim(revoke.id, { reason });
-      toast.success(`Claim request on "${revoke.team_name}" revoked.`);
+      toast.success(t("revokeRequestDialog.success", { name: revoke.team_name }));
       setRevoke(null);
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to revoke claim.");
+      toast.error(err?.response?.data?.message || t("revokeRequestDialog.failed"));
     }
   }
   async function doRevokeClaimed(reason: string) {
     if (!revokeClaimed) return;
     try {
       await rankingsAdminApi.revokeClaim(revokeClaimed.id, { reason });
-      toast.success(`Claim on "${revokeClaimed.team_name}" revoked and history detached.`);
+      toast.success(t("revokeClaimDialog.success", { name: revokeClaimed.team_name }));
       setRevokeClaimed(null);
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to revoke claim.");
+      toast.error(err?.response?.data?.message || t("revokeClaimDialog.failed"));
     }
   }
   async function doDelete(reason: string) {
     if (!del) return;
     try {
       await rankingsAdminApi.deleteGhost(del.id, { reason });
-      toast.success(`Ghost team "${del.team_name}" deleted.`);
+      toast.success(t("deleteDialog.success", { name: del.team_name }));
       setDel(null);
       load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to delete ghost team.");
+      toast.error(err?.response?.data?.message || t("deleteDialog.failed"));
     }
   }
 
@@ -427,18 +448,18 @@ export default function GhostTeamsAdminPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Team name</TableHead>
-                <TableHead>Country</TableHead>
-                <TableHead>Players</TableHead>
-                <TableHead>External ID</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Claimed by</TableHead>
-                <TableHead>Created by</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>{t("table.colName")}</TableHead>
+                <TableHead>{t("table.colCountry")}</TableHead>
+                <TableHead>{t("table.colPlayers")}</TableHead>
+                <TableHead>{t("table.colExternalId")}</TableHead>
+                <TableHead>{t("table.colStatus")}</TableHead>
+                <TableHead>{t("table.colClaimedBy")}</TableHead>
+                <TableHead>{t("table.colCreatedBy")}</TableHead>
+                <TableHead>{t("table.colCreated")}</TableHead>
                 {/* data-tour anchor: ghost-teams tour "Approve or revoke claims" step. The
                     Actions column header is the stable always-rendered target for the per-row
                     approve / revoke claim buttons. */}
-                <TableHead data-tour="ghost-teams-claim" className="text-right">Actions</TableHead>
+                <TableHead data-tour="ghost-teams-claim" className="text-right">{t("table.colActions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -446,8 +467,8 @@ export default function GhostTeamsAdminPage() {
                 <TableRow>
                   <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
                     {tab === "pending"
-                      ? "No claims awaiting review."
-                      : q ? `No ghost teams match “${q}”.` : "No ghost teams yet."}
+                      ? t("table.emptyPending")
+                      : q ? t("table.noMatch", { q }) : t("table.empty")}
                   </TableCell>
                 </TableRow>
               ) : visible.map((r) => (
@@ -458,12 +479,13 @@ export default function GhostTeamsAdminPage() {
                       {r.team_name}
                     </span>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{r.country ?? "None"}</TableCell>
+                  {/* country is API data (stored verbatim), so it renders raw; only the empty marker is translated. */}
+                  <TableCell className="text-muted-foreground">{r.country ?? t("table.none")}</TableCell>
                   <TableCell>
                     <Badge
                       variant="outline"
                       className="rounded-full tabular-nums"
-                      title={r.players.map((p) => p.ign).join(", ") || "No players"}
+                      title={r.players.map((p) => p.ign).join(", ") || t("table.noPlayers")}
                     >
                       <IconUsersGroup className="size-3" /> {r.players.length}
                     </Badge>
@@ -471,53 +493,56 @@ export default function GhostTeamsAdminPage() {
                   <TableCell>
                     {r.external_id
                       ? <code className="rounded bg-muted px-1.5 py-0.5 text-[11px]">{r.external_id}</code>
-                      : <span className="text-muted-foreground">None</span>}
+                      : <span className="text-muted-foreground">{t("table.none")}</span>}
                   </TableCell>
                   <TableCell><StatusBadge status={r.claim_status} /></TableCell>
                   <TableCell>
                     {r.claim_status === "pending" && r.claim_requested_by ? (
                       <span className="text-muted-foreground">
-                        User #{r.claim_requested_by}
-                        {r.claimed_by != null && <> → <span className="text-foreground">Team #{r.claimed_by}</span></>}
+                        {t("table.userId", { id: r.claim_requested_by })}
+                        {r.claimed_by != null && <> → <span className="text-foreground">{t("table.teamId", { id: r.claimed_by })}</span></>}
                       </span>
                     ) : r.claim_status === "claimed" && r.claimed_by != null ? (
-                      <span className="font-medium text-green-400">Team #{r.claimed_by}</span>
+                      <span className="font-medium text-green-400">{t("table.teamId", { id: r.claimed_by })}</span>
                     ) : (
-                      <span className="text-muted-foreground">None</span>
+                      <span className="text-muted-foreground">{t("table.none")}</span>
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {r.created_by != null ? `User #${r.created_by}` : "System"}
+                    {r.created_by != null ? t("table.userId", { id: r.created_by }) : t("table.system")}
                   </TableCell>
-                  <TableCell className="text-muted-foreground tabular-nums">{r.created_at}</TableCell>
+                  {/* UTC instant (DateTimeField) → viewer's timezone + language, date only. */}
+                  <TableCell className="text-muted-foreground tabular-nums">
+                    {r.created_at ? <LocalTime value={r.created_at} mode="date" /> : ""}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       {(r.claim_status === "unclaimed" || r.claim_status === "revoked") && (
                         <>
-                          <Button size="sm" variant="outline" onClick={() => openEdit(r)}>Edit</Button>
+                          <Button size="sm" variant="outline" onClick={() => openEdit(r)}>{t("actions.edit")}</Button>
                           <Button
                             size="sm"
                             variant="outline"
                             className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                             onClick={() => setDel(r)}
                           >
-                            Delete
+                            {t("actions.delete")}
                           </Button>
                         </>
                       )}
                       {r.claim_status === "pending" && (
                         <>
-                          <Button size="sm" onClick={() => setApprove(r)}>Approve claim</Button>
+                          <Button size="sm" onClick={() => setApprove(r)}>{t("actions.approveClaim")}</Button>
                           {/* ⓘ explains the irreversible history transfer (sibling of the action buttons). */}
                           <InfoTip id="rankings.ghost.approve_claim" />
-                          <Button size="sm" variant="outline" onClick={() => setRevoke(r)}>Revoke</Button>
+                          <Button size="sm" variant="outline" onClick={() => setRevoke(r)}>{t("actions.revoke")}</Button>
                           <InfoTip id="rankings.ghost.revoke_claim" />
                         </>
                       )}
                       {r.claim_status === "claimed" && (
                         <>
                           <Button size="sm" variant="outline" onClick={() => setRevokeClaimed(r)}>
-                            Revoke claim
+                            {t("actions.revokeClaim")}
                           </Button>
                           <InfoTip id="rankings.ghost.revoke_claim" />
                         </>
@@ -533,7 +558,7 @@ export default function GhostTeamsAdminPage() {
     );
   }
 
-  if (loading && rows.length === 0) return <FullLoader text="Loading ghost teams" />;
+  if (loading && rows.length === 0) return <FullLoader text={t("loading")} />;
 
   return (
     <div className="space-y-4">
@@ -543,17 +568,17 @@ export default function GhostTeamsAdminPage() {
         // data-tour anchor: ghost-teams tour "Ghost Teams creation" step.
         title={
           <span data-tour="ghost-teams-title" className="inline-flex items-center">
-            Ghost Teams
+            {t("title")}
             <InfoTip id="rankings.ghost._page" className="ml-1.5" />
           </span>
         }
-        description="Provisional off-platform teams used to record results before a real team registers and claims them."
+        description={t("description")}
         action={
           // ⓘ sits beside the create button (sibling, not nested).
           <div className="flex items-center gap-1">
             {/* data-tour anchor: ghost-teams tour "Create a new ghost" step. */}
             <Button data-tour="ghost-teams-create" onClick={() => setCreateOpen(true)}>
-              <IconPlus className="mr-1.5 size-4" /> Create ghost team
+              <IconPlus className="mr-1.5 size-4" /> {t("createCta")}
             </Button>
             <InfoTip id="rankings.ghost.create" />
           </div>
@@ -563,24 +588,24 @@ export default function GhostTeamsAdminPage() {
       {/* stat strip
           data-tour anchor: ghost-teams tour "Ghost team counts" step. */}
       <div data-tour="ghost-teams-stats" className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
-        <StatCard icon={<IconUsersGroup className="size-4" />} title="Active ghost teams"
-          value={counts.active} sub="Holding results off-platform" />
-        <StatCard icon={<IconClock className="size-4" />} title="Pending claims"
-          value={counts.pending} sub="Awaiting review"
+        <StatCard icon={<IconUsersGroup className="size-4" />} title={t("stats.active")}
+          value={counts.active} sub={t("stats.activeSub")} />
+        <StatCard icon={<IconClock className="size-4" />} title={t("stats.pending")}
+          value={counts.pending} sub={t("stats.pendingSub")}
           tone={counts.pending > 0 ? "text-orange-500" : undefined} />
-        <StatCard icon={<IconCircleCheck className="size-4" />} title="Claimed"
-          value={counts.claimed} sub="Transferred to real teams" tone="text-green-500" />
-        <StatCard icon={<IconGhost2 className="size-4" />} title="Total records"
-          value={counts.total} sub="Never deleted (audit)" />
+        <StatCard icon={<IconCircleCheck className="size-4" />} title={t("stats.claimed")}
+          value={counts.claimed} sub={t("stats.claimedSub")} tone="text-green-500" />
+        <StatCard icon={<IconGhost2 className="size-4" />} title={t("stats.total")}
+          value={counts.total} sub={t("stats.totalSub")} />
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as "all" | "pending")} className="gap-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           {/* data-tour anchor: ghost-teams tour "Filter by status" step. */}
           <TabsList data-tour="ghost-teams-tabs">
-            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="all">{t("tabs.all")}</TabsTrigger>
             <TabsTrigger value="pending">
-              Pending claims
+              {t("tabs.pending")}
               {counts.pending > 0 && (
                 <Badge variant="outline" className="ml-1.5 rounded-full px-1.5 py-0 text-[10px] text-orange-400 border-orange-500/40">
                   {counts.pending}
@@ -590,7 +615,7 @@ export default function GhostTeamsAdminPage() {
           </TabsList>
           <div className="relative w-full sm:w-64">
             <IconSearch className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search teams" className="h-9 pl-8" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("search")} className="h-9 pl-8" />
           </div>
         </div>
 
@@ -602,38 +627,39 @@ export default function GhostTeamsAdminPage() {
       <Dialog open={createOpen} onOpenChange={(v) => { setCreateOpen(v); if (!v) setForm({ team_name: "", country: "", external_id: "", reason: "", players: emptyRoster() }); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create ghost team</DialogTitle>
+            <DialogTitle>{t("createDialog.title")}</DialogTitle>
             <DialogDescription>
-              A provisional placeholder that can hold off-platform results until a registered team claims it.
+              {t("createDialog.desc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="g-name">Team name <span className="text-orange-400">(required)</span></Label>
+              <Label htmlFor="g-name">{t("form.nameLabel")} <span className="text-orange-400">{t("common.required")}</span></Label>
               <Input id="g-name" value={form.team_name}
                 onChange={(e) => setForm((f) => ({ ...f, team_name: e.target.value }))}
-                placeholder="e.g. Accra Titans" />
+                placeholder={t("form.namePlaceholder")} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="g-country">Country <span className="text-orange-400">(required)</span></Label>
+              <Label htmlFor="g-country">{t("form.countryLabel")} <span className="text-orange-400">{t("common.required")}</span></Label>
               <Select value={form.country || undefined} onValueChange={(v) => setForm((f) => ({ ...f, country: v }))}>
-                <SelectTrigger id="g-country" className="w-full"><SelectValue placeholder="Select country" /></SelectTrigger>
+                <SelectTrigger id="g-country" className="w-full"><SelectValue placeholder={t("form.countryPlaceholder")} /></SelectTrigger>
                 <SelectContent>
+                  {/* option labels stay raw: the value IS what the backend stores (see COUNTRIES). */}
                   {COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="g-ext">
-                External ID <span className="text-muted-foreground normal-case">(optional)</span>
+                {t("form.externalIdLabel")} <span className="text-muted-foreground normal-case">{t("common.optional")}</span>
                 <InfoTip id="rankings.ghost.external_id" className="ml-1" />
               </Label>
               <div className="relative">
                 <IconExternalLink className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input id="g-ext" value={form.external_id}
                   onChange={(e) => setForm((f) => ({ ...f, external_id: e.target.value }))}
-                  placeholder="discord:team#0000 or bracket:XX-00" className="pl-8" />
+                  placeholder={t("form.externalIdPlaceholder")} className="pl-8" />
               </div>
             </div>
 
@@ -641,23 +667,23 @@ export default function GhostTeamsAdminPage() {
 
             <div className="space-y-2">
               <Label htmlFor="g-reason">
-                Reason <span className="text-orange-400">(required, logged)</span>
+                {t("common.reasonLabel")} <span className="text-orange-400">{t("common.reasonRequired")}</span>
               </Label>
               <Textarea
                 id="g-reason"
                 value={form.reason}
                 onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))}
-                placeholder="Explain why, at least 10 characters. This is written to the audit log."
+                placeholder={t("common.reasonPlaceholder")}
                 className="min-h-20"
               />
               <p className="text-[11px] text-muted-foreground">
-                {form.reason.trim().length}/{MIN_REASON} characters minimum
+                {t("common.minChars", { count: form.reason.trim().length, min: MIN_REASON })}
               </p>
             </div>
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>{t("common.cancel")}</Button>
             <Button
               onClick={createGhost}
               disabled={
@@ -668,7 +694,7 @@ export default function GhostTeamsAdminPage() {
                 form.reason.trim().length < MIN_REASON
               }
             >
-              Create ghost team
+              {t("createDialog.cta")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -678,26 +704,26 @@ export default function GhostTeamsAdminPage() {
       <Dialog open={!!edit} onOpenChange={(v) => { if (!v) setEdit(null); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit ghost team</DialogTitle>
-            <DialogDescription>Update the placeholder details. Only available while unclaimed.</DialogDescription>
+            <DialogTitle>{t("editDialog.title")}</DialogTitle>
+            <DialogDescription>{t("editDialog.desc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="e-name">Team name</Label>
+              <Label htmlFor="e-name">{t("form.nameLabel")}</Label>
               <Input id="e-name" value={editForm.team_name}
                 onChange={(e) => setEditForm((f) => ({ ...f, team_name: e.target.value }))} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="e-country">Country</Label>
+              <Label htmlFor="e-country">{t("form.countryLabel")}</Label>
               <Select value={editForm.country || undefined} onValueChange={(v) => setEditForm((f) => ({ ...f, country: v }))}>
-                <SelectTrigger id="e-country" className="w-full"><SelectValue placeholder="Select country" /></SelectTrigger>
+                <SelectTrigger id="e-country" className="w-full"><SelectValue placeholder={t("form.countryPlaceholder")} /></SelectTrigger>
                 <SelectContent>
                   {COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="e-ext">External ID <span className="text-muted-foreground normal-case">(optional)</span></Label>
+              <Label htmlFor="e-ext">{t("form.externalIdLabel")} <span className="text-muted-foreground normal-case">{t("common.optional")}</span></Label>
               <Input id="e-ext" value={editForm.external_id}
                 onChange={(e) => setEditForm((f) => ({ ...f, external_id: e.target.value }))} />
             </div>
@@ -706,22 +732,22 @@ export default function GhostTeamsAdminPage() {
 
             <div className="space-y-2">
               <Label htmlFor="e-reason">
-                Reason <span className="text-orange-400">(required, logged)</span>
+                {t("common.reasonLabel")} <span className="text-orange-400">{t("common.reasonRequired")}</span>
               </Label>
               <Textarea
                 id="e-reason"
                 value={editForm.reason}
                 onChange={(e) => setEditForm((f) => ({ ...f, reason: e.target.value }))}
-                placeholder="Explain why, at least 10 characters. This is written to the audit log."
+                placeholder={t("common.reasonPlaceholder")}
                 className="min-h-20"
               />
               <p className="text-[11px] text-muted-foreground">
-                {editForm.reason.trim().length}/{MIN_REASON} characters minimum
+                {t("common.minChars", { count: editForm.reason.trim().length, min: MIN_REASON })}
               </p>
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setEdit(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setEdit(null)}>{t("common.cancel")}</Button>
             <Button
               onClick={saveEdit}
               disabled={
@@ -732,7 +758,7 @@ export default function GhostTeamsAdminPage() {
                 editForm.reason.trim().length < MIN_REASON
               }
             >
-              Save changes
+              {t("editDialog.cta")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -742,10 +768,23 @@ export default function GhostTeamsAdminPage() {
       <ReasonDialog
         open={!!approve}
         onOpenChange={(v) => { if (!v) setApprove(null); }}
-        title={`Approve claim, ${approve?.team_name ?? ""}`}
-        description={approve ? `${approve.claim_requested_by ? `User #${approve.claim_requested_by}` : "A captain"} is claiming this ghost team${approve.claimed_by ? ` for Team #${approve.claimed_by}` : ""}.` : undefined}
-        warning="Approving transfers ALL historical results, stats and prize money to the claiming team and retroactively recalculates the current-quarter scores. This can only be undone with a head-admin revoke."
-        confirmLabel="Approve & transfer"
+        title={t("approveDialog.title", { name: approve?.team_name ?? "" })}
+        // One FULL sentence per combination (known requester / anonymous captain x target team
+        // present or not) rather than gluing fragments: the clause order and the article both
+        // move in French and Portuguese, so a concatenated sentence cannot be translated.
+        description={
+          approve
+            ? approve.claim_requested_by
+              ? approve.claimed_by
+                ? t("approveDialog.descUserForTeam", { user: approve.claim_requested_by, team: approve.claimed_by })
+                : t("approveDialog.descUser", { user: approve.claim_requested_by })
+              : approve.claimed_by
+                ? t("approveDialog.descCaptainForTeam", { team: approve.claimed_by })
+                : t("approveDialog.descCaptain")
+            : undefined
+        }
+        warning={t("approveDialog.warning")}
+        confirmLabel={t("approveDialog.cta")}
         onConfirm={doApprove}
       />
 
@@ -753,9 +792,15 @@ export default function GhostTeamsAdminPage() {
       <ReasonDialog
         open={!!revoke}
         onOpenChange={(v) => { if (!v) setRevoke(null); }}
-        title={`Revoke claim request, ${revoke?.team_name ?? ""}`}
-        description={revoke ? `Reject the pending request${revoke.claim_requested_by ? ` from User #${revoke.claim_requested_by}` : ""}. The ghost team returns to unclaimed.` : undefined}
-        confirmLabel="Revoke request"
+        title={t("revokeRequestDialog.title", { name: revoke?.team_name ?? "" })}
+        description={
+          revoke
+            ? revoke.claim_requested_by
+              ? t("revokeRequestDialog.descFromUser", { user: revoke.claim_requested_by })
+              : t("revokeRequestDialog.desc")
+            : undefined
+        }
+        confirmLabel={t("revokeRequestDialog.cta")}
         confirmVariant="destructive"
         onConfirm={doRevokePending}
       />
@@ -764,10 +809,16 @@ export default function GhostTeamsAdminPage() {
       <ReasonDialog
         open={!!revokeClaimed}
         onOpenChange={(v) => { if (!v) setRevokeClaimed(null); }}
-        title={`Revoke claim, ${revokeClaimed?.team_name ?? ""}`}
-        description={revokeClaimed ? `Detach this ghost team${revokeClaimed.claimed_by ? ` from Team #${revokeClaimed.claimed_by}` : ""}. Head Admin only.` : undefined}
-        warning="This removes the previously transferred history and prize money from the team and recalculates scores. Head-admin action, logged permanently."
-        confirmLabel="Revoke claim"
+        title={t("revokeClaimDialog.title", { name: revokeClaimed?.team_name ?? "" })}
+        description={
+          revokeClaimed
+            ? revokeClaimed.claimed_by
+              ? t("revokeClaimDialog.descFromTeam", { team: revokeClaimed.claimed_by })
+              : t("revokeClaimDialog.desc")
+            : undefined
+        }
+        warning={t("revokeClaimDialog.warning")}
+        confirmLabel={t("revokeClaimDialog.cta")}
         confirmVariant="destructive"
         onConfirm={doRevokeClaimed}
       />
@@ -776,10 +827,10 @@ export default function GhostTeamsAdminPage() {
       <ReasonDialog
         open={!!del}
         onOpenChange={(v) => { if (!v) setDel(null); }}
-        title={`Delete ghost team, ${del?.team_name ?? ""}`}
-        description="Permanently remove this provisional placeholder and its roster. Only available while unclaimed."
-        warning="This deletes the ghost team and all of its ghost players. A claimed ghost team cannot be deleted, revoke its claim first."
-        confirmLabel="Delete ghost team"
+        title={t("deleteDialog.title", { name: del?.team_name ?? "" })}
+        description={t("deleteDialog.desc")}
+        warning={t("deleteDialog.warning")}
+        confirmLabel={t("deleteDialog.cta")}
         confirmVariant="destructive"
         onConfirm={doDelete}
       />
