@@ -12,6 +12,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+// Check-in timestamps are absolute instants, so they render in the VIEWER's timezone.
+import { LocalTime } from "@/components/LocalTime";
 import axios from "axios";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
@@ -39,6 +41,14 @@ function localInputToIso(v: string): string | null {
   return isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+/** One rostered player and whether they have checked in. `checked_in_at` is ISO UTC and is
+ *  rendered through LocalTime, so an organizer reads it in their OWN timezone. */
+interface PlayerStat {
+  user_id: number;
+  username: string;
+  checked_in: boolean;
+  checked_in_at: string | null;
+}
 interface TeamStat {
   tournament_team_id: number;
   team_name: string;
@@ -46,12 +56,16 @@ interface TeamStat {
   roster_total: number;
   roster_checked_in: number;
   eligible: boolean;
+  /** Owner 2026-08-04: a count of 3 of 4 says a problem exists and nothing about WHO to chase. */
+  players?: PlayerStat[];
 }
 interface SoloStat {
   user_id: number;
   username: string;
   is_waitlisted: boolean;
   checked_in: boolean;
+  /** Same field the team rows carry, so a solo event tells the organizer as much as a team one. */
+  checked_in_at: string | null;
 }
 
 export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
@@ -191,14 +205,40 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
         {enabled && (teams.length > 0 || solos.length > 0) && (
           <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border p-2">
             {teams.map((tm) => (
-              <div key={tm.tournament_team_id} className="flex items-center justify-between text-xs">
-                <span className="truncate font-medium">
-                  {tm.team_name}
-                  {tm.is_waitlisted ? <span className="text-amber-500"> · {t("checkin.waitlistedSuffix")}</span> : null}
-                </span>
-                <span className={tm.eligible ? "text-green-500" : "text-muted-foreground"}>
-                  {tm.roster_checked_in}/{tm.roster_total}
-                </span>
+              <div key={tm.tournament_team_id} className="space-y-0.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="truncate font-medium">
+                    {tm.team_name}
+                    {tm.is_waitlisted ? <span className="text-amber-500"> · {t("checkin.waitlistedSuffix")}</span> : null}
+                  </span>
+                  <span className={tm.eligible ? "text-green-500" : "text-muted-foreground"}>
+                    {tm.roster_checked_in}/{tm.roster_total}
+                  </span>
+                </div>
+                {/* NAMED, per player. The whole point is that an organizer chasing a squad that
+                    is one short can see WHO to message, so the missing players are listed just as
+                    plainly as the present ones rather than being left as a subtraction. */}
+                {(tm.players?.length ?? 0) > 0 && (
+                  <ul className="ml-3 space-y-0.5 border-l pl-2">
+                    {tm.players!.map((p) => (
+                      <li key={p.user_id} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="truncate text-muted-foreground">{p.username}</span>
+                        {p.checked_in ? (
+                          <span className="shrink-0 text-green-500">
+                            {t("checkin.statusIn")}
+                            {/* mode="time" on purpose: the window can only sit between registration
+                                closing and the event starting, so the DATE tells the organizer
+                                nothing they do not already know, while a full datetime wraps this
+                                row on a phone. */}
+                            {p.checked_in_at ? <> · <LocalTime value={p.checked_in_at} mode="time" /></> : null}
+                          </span>
+                        ) : (
+                          <span className="shrink-0 text-amber-500">{t("checkin.statusNotYet")}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             ))}
             {solos.map((s) => (
@@ -207,8 +247,18 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
                   {s.username}
                   {s.is_waitlisted ? <span className="text-amber-500"> · {t("checkin.waitlistedSuffix")}</span> : null}
                 </span>
-                <span className={s.checked_in ? "text-green-500" : "text-muted-foreground"}>
-                  {s.checked_in ? t("checkin.statusIn") : t("checkin.statusNotYet")}
+                {/* A solo competitor IS the whole entry, so their own timestamp goes on this row
+                    rather than in a nested list. Same wording and same colours as a team's
+                    players, so one card does not read two different ways. */}
+                <span className={s.checked_in ? "shrink-0 text-green-500" : "shrink-0 text-amber-500"}>
+                  {s.checked_in ? (
+                    <>
+                      {t("checkin.statusIn")}
+                      {s.checked_in_at ? <> · <LocalTime value={s.checked_in_at} mode="time" /></> : null}
+                    </>
+                  ) : (
+                    t("checkin.statusNotYet")
+                  )}
                 </span>
               </div>
             ))}
