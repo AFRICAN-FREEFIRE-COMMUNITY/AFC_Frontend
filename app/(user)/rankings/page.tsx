@@ -23,7 +23,9 @@ import {
 } from "@/components/ui/select";
 import { FullLoader } from "@/components/Loader";
 import { TierBadge, tierMeta } from "@/components/rankings/TierBadge";
-import { rankingsApi, TeamRow, PlayerRow, PlayerRoleOption, Season } from "@/lib/rankings";
+import {
+  rankingsApi, TeamRow, PlayerRow, PlayerRoleOption, PlayerRoleCoverage, Season,
+} from "@/lib/rankings";
 import {
   IconHash, IconUsers, IconTrophy, IconChevronDown, IconChevronRight, IconMoodEmpty,
   IconInfoCircle, IconCrown, IconChartBar, IconStairsUp, IconSearch,
@@ -181,6 +183,31 @@ function RoleEmpty({ role }: { role: string }) {
   );
 }
 
+// The honesty notice for a period that carries NO stored in-game role at all (owner 2026-08-04).
+//
+// The role a player is filed under is now recorded when the points are earned and stored on the
+// period's score row, so an old month keeps the roles it was actually played under. Months recorded
+// BEFORE that stamping existed have nothing stored, and this database holds no evidence of what
+// anyone's role was back then, so the backfill deliberately leaves them empty rather than stamping
+// today's role onto them. Without this notice those months would render four role tabs reading 0,
+// which looks like "nobody played these roles" instead of "this was not recorded".
+//
+// Driven by role_coverage.has_role_data from GET /rankings/players/by-role/ (backend
+// afc_rankings/player_roles.py _role_coverage). Never shown for a gated period: the backend zeroes
+// the whole coverage block there so it cannot leak what a hidden season holds.
+function RoleDataNotice() {
+  const t = useTranslations("teamsplayers");
+  return (
+    <div className="mb-4 flex items-start gap-2.5 rounded-md border bg-muted/40 p-3">
+      <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+      <div className="space-y-0.5">
+        <p className="text-sm font-semibold">{t("rankings.roleNoDataTitle")}</p>
+        <p className="text-xs text-muted-foreground">{t("rankings.roleNoDataBody")}</p>
+      </div>
+    </div>
+  );
+}
+
 function NoMatch({ q }: { q: string }) {
   const t = useTranslations("teamsplayers");
   return (
@@ -228,6 +255,10 @@ function RankingsView() {
   // bar itself, served on the same response so the counts can never disagree with the rows.
   const [roleFilter, setRoleFilter] = useState<string>(ROLE_ALL);
   const [roleOptions, setRoleOptions] = useState<PlayerRoleOption[]>([]);
+  // How much of this period actually HAS a stored role. Drives <RoleDataNotice/>: a month recorded
+  // before roles were stamped has none, and the page has to say so rather than show empty role tabs
+  // as if nobody played those roles. Zeroed by the backend behind the publish gate.
+  const [roleCoverage, setRoleCoverage] = useState<PlayerRoleCoverage | null>(null);
   // Live refresh (owner 2026-07-02): shared tick re-runs the standings fetch below.
   const tick = useLiveTick();
 
@@ -253,6 +284,7 @@ function RankingsView() {
           if (!active) return;
           setPlayers(r.results); setMonth(r.month ?? ""); setSeason((r.season as SeasonFlags) ?? null);
           setRoleOptions(r.roles ?? []);
+          setRoleCoverage(r.role_coverage ?? null);
         }
       } finally { if (active) setLoading(false); }
     })();
@@ -425,6 +457,12 @@ function RankingsView() {
         </div>
       )}
 
+      {/* This period stores no in-game role for anybody, so say so. Only for a PUBLISHED period:
+          behind the gate the coverage block is zeroed by the backend and the NotPublished state
+          below is the right message, not this one. */}
+      {subject === "players" && season?.rankings_published !== false && !loading
+        && roleCoverage != null && !roleCoverage.has_role_data && <RoleDataNotice />}
+
       <Card>
         <CardContent>
           {loading ? (
@@ -527,7 +565,24 @@ function RankingsView() {
                           ) : subject === "teams" ? (
                             <TeamLink name={name} country={r.country} stopPropagation />
                           ) : (
-                            <PlayerLink name={name} stopPropagation />
+                            <span className="inline-flex items-center gap-1.5">
+                              <PlayerLink name={name} stopPropagation />
+                              {/* MIXED-ROLE disclosure. A player who played more than one role this
+                                  period is still listed exactly once, under the role they played
+                                  most, so the role tables stay a clean split of the ladder with
+                                  nobody counted twice. This pill is how that call is disclosed
+                                  rather than hidden; the expanded row shows the role-scoped
+                                  matches and kills behind it. */}
+                              {roleFilter !== ROLE_ALL && r.role_is_mixed && (
+                                <Badge
+                                  variant="outline"
+                                  className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground"
+                                  title={t("rankings.roleMixedHint")}
+                                >
+                                  {t("rankings.roleMixed")}
+                                </Badge>
+                              )}
+                            </span>
                           )}
                         </TableCell>
                         {subject === "teams" ? (
@@ -563,6 +618,31 @@ function RankingsView() {
                                       being lost. */}
                                   {roleFilter !== ROLE_ALL && r.overall_rank != null && (
                                     <StatTile label={t("rankings.overallRank")} value={`#${r.overall_rank}`} />
+                                  )}
+                                  {/* ── what they really did IN THIS ROLE ──
+                                      Role-scoped, so a player who split the month between two
+                                      roles sees their sniper games here, not the month total
+                                      sitting beside it. Matches and kills are the only per-player
+                                      facts the match pipeline records, so they are the whole of
+                                      what a role column can honestly show; the SCORE is the same
+                                      one the main ladder shows, never a role-specific one. */}
+                                  {roleFilter !== ROLE_ALL && (
+                                    <>
+                                      <StatTile label={t("rankings.roleMatches")} value={r.role_matches ?? 0} />
+                                      <StatTile label={t("rankings.roleKills")} value={r.role_kills ?? 0} />
+                                    </>
+                                  )}
+                                  {/* On the UNFILTERED ladder, name the role the period was played
+                                      in. "Not recorded" is a real answer (staff, ghosts, solo-only
+                                      months, anything from before roles were stamped) and is shown
+                                      as such rather than left blank, which would read as "none". */}
+                                  {roleFilter === ROLE_ALL && !r.is_ghost && (
+                                    <StatTile
+                                      label={t("rankings.roleLabel")}
+                                      value={r.role
+                                        ? (t.has(`rankings.roles.${r.role}`) ? t(`rankings.roles.${r.role}`) : r.role)
+                                        : t("rankings.roleNotRecorded")}
+                                    />
                                   )}
                                   <StatTile label={t("rankings.kills")} value={(r.kill_pts ?? 0).toFixed(1)} />
                                   <StatTile label={t("rankings.mvp")} value={(r.mvp_pts ?? 0).toFixed(1)} />
