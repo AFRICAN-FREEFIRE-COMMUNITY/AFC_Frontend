@@ -103,7 +103,11 @@ export type AudiencePreview = {
 };
 
 /** One filter value plus how many people it selects, so the dropdowns show real numbers. */
-export type AudienceOption = { value: string; count: number };
+// `label` is present on the COUNTRY options only. The same country is stored under
+// several spellings ('Nigeria' and 'NG'), so the backend folds them into one option:
+// `value` is the stable canonical key the filter sends back, `label` is the spelling
+// to show. Everything else has no such split and sends `value` alone, hence optional.
+export type AudienceOption = { value: string; count: number; label?: string };
 
 export type AudienceOptions = {
   /** The eligible population: what "Everyone on AFC" actually means today. */
