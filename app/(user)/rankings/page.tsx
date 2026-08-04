@@ -309,7 +309,12 @@ function RankingsView() {
     const d = new Date(s.start_date + "T00:00:00");
     const end = new Date(s.end_date + "T00:00:00");
     const nowKey = new Date().toISOString().slice(0, 7);
-    while (d <= end) {
+    // The end date is EXCLUSIVE, and reading it as inclusive made consecutive seasons overlap by a
+    // month. Real data: SEASON 2 runs 2026-04-01 to 2026-07-01 and SEASON 3 runs 2026-07-01 to
+    // 2026-10-01, so `d <= end` offered July 2026 under BOTH. Picking July under SEASON 2 then
+    // fetched a ladder the backend files under SEASON 3, and the empty state named SEASON 3 while
+    // the picker still read SEASON 2, which looked like the page had lost track of itself.
+    while (d < end) {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       if (key <= nowKey) out.push(key);
       d.setMonth(d.getMonth() + 1);
