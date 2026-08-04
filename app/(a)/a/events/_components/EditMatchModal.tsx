@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { EyeOffIcon, EyeIcon, Check, Loader2, Send } from "lucide-react";
 import { IconPencil } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
@@ -36,6 +37,7 @@ export const EditMatchModal = ({
   roomId,
   roomName,
   roomPassword,
+  roomIs3d,
   matchLabel,
 }: {
   matchId: string;
@@ -43,6 +45,9 @@ export const EditMatchModal = ({
   roomId: string | null;
   roomName: string | null;
   roomPassword: string | null;
+  /** Whether this map's room is a 3D custom room. When on, the player-facing surfaces print the
+   *  joining steps under the room id and password, because a 3D room is not joined the same way. */
+  roomIs3d?: boolean;
   // Optional map/match label for the dialog title (e.g. "Match 1 - Bermuda").
   matchLabel?: string;
 }) => {
@@ -57,14 +62,15 @@ export const EditMatchModal = ({
   const [rId, setRId] = useState("");
   const [rName, setRName] = useState("");
   const [rPass, setRPass] = useState("");
+  const [r3d, setR3d] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [broadcasting, setBroadcasting] = useState(false);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirty = useRef(false); // only auto-save after the user actually edits (not on the seed)
   // Always POST the latest values (avoids stale closure inside the debounce timer).
-  const latest = useRef({ rId: "", rName: "", rPass: "" });
-  latest.current = { rId, rName, rPass };
+  const latest = useRef({ rId: "", rName: "", rPass: "", r3d: false });
+  latest.current = { rId, rName, rPass, r3d };
 
   // Seed from the match's SAVED values when the modal opens (owner 2026-06-18: reopen shows what was
   // saved; blank when unset). Deliberately NOT keyed on the room props, so a refetch mid-typing can't
@@ -74,6 +80,7 @@ export const EditMatchModal = ({
       setRId(roomId || "");
       setRName(roomName || "");
       setRPass(roomPassword || "");
+      setR3d(!!roomIs3d);
       setSaveState("idle");
       dirty.current = false;
     }
@@ -82,10 +89,10 @@ export const EditMatchModal = ({
 
   // POST the current values to edit-match-details. Returns true on success.
   const persist = async () => {
-    const { rId, rName, rPass } = latest.current;
+    const { rId, rName, rPass, r3d } = latest.current;
     const res = await axios.post(
       `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-details/`,
-      { match_id: matchId, room_id: rId, room_name: rName, room_password: rPass },
+      { match_id: matchId, room_id: rId, room_name: rName, room_password: rPass, room_is_3d: r3d },
       { headers: { Authorization: `Bearer ${token}` } },
     );
     return res;
@@ -112,9 +119,12 @@ export const EditMatchModal = ({
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rId, rName, rPass]);
+  }, [rId, rName, rPass, r3d]);
 
-  const edit = (setter: (v: string) => void) => (v: string) => {
+  // Generic over the value type since the 3D switch sets a boolean while the three room fields set
+  // strings. Everything still goes through here so the auto-save only fires once the user has
+  // actually edited, rather than on the seed when the modal opens.
+  const edit = <T,>(setter: (v: T) => void) => (v: T) => {
     dirty.current = true;
     setter(v);
   };
@@ -280,6 +290,22 @@ export const EditMatchModal = ({
                 )}
               </Button>
             </div>
+          </div>
+
+          {/* 3D custom room (owner 2026-08-04). Sits with the credentials because it describes the
+              same room. When on, the joining steps are printed under the room id and password on
+              the event page and appended to the room-details broadcast, since a 3D room is not
+              joined the way an ordinary custom room is. Auto-saves with everything else here. */}
+          <div className="flex items-start justify-between gap-3 rounded-md border p-3">
+            <div className="space-y-0.5">
+              <Label htmlFor={`room-3d-${matchId}`}>{t("room3d.label")}</Label>
+              <p className="text-muted-foreground text-xs">{t("room3d.help")}</p>
+            </div>
+            <Switch
+              id={`room-3d-${matchId}`}
+              checked={r3d}
+              onCheckedChange={(v) => edit(setR3d)(v)}
+            />
           </div>
 
           {/* Auto-save hint + per-map broadcast. */}

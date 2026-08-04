@@ -182,5 +182,9 @@
     "channels": "{pushed} na app, {emailed} por e-mail, {whatsapped} no WhatsApp",
     "skippedNoNumber": ", {count} sem número de WhatsApp",
     "resentFallback": "Reenviado."
+  },
+  "room3d": {
+    "label": "Esta é uma sala 3D",
+    "help": "Ative esta opção e os jogadores veem como entrar numa sala 3D por baixo do ID da sala e da palavra-passe, na página do evento e nos detalhes da sala que lhes envia."
   }
 }

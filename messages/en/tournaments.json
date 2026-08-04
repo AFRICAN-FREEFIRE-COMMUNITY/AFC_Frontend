@@ -729,5 +729,16 @@
     "mode_fcfs_room": "If a team does not show up, all waitlist teams get the room ID and password. The first to join the room takes the open slot.",
     "mode_manual_admin": "If a team does not show up, the organizer chooses which waitlist team takes the open slot.",
     "position": "#{n}"
+  },
+  "roomJoin3d": {
+    "title": "How to join the 3D room",
+    "step1": "Log in and create a group.",
+    "step2": "Add all of your team members to the group. You must be a complete squad of 4. It is the same way you add your friends to a group when you want to play any mode.",
+    "step3": "Whoever is the group leader then goes to Customs.",
+    "step4": "Go to League.",
+    "step5": "Or you can search for the room ID.",
+    "step6": "Tap the join icon when you see the room.",
+    "step7": "Enter your team name, team tag and then the password.",
+    "step8": "Make sure you are using the correct account registered on the AFC website. If you are not, your results will not count and your team could be penalized or even banned."
   }
 }

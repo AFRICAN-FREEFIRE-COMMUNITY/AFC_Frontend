@@ -28,6 +28,7 @@ import { useTranslations } from "next-intl";
 // mode="date"/>; the group's playing TIME renders dual-tz (viewer + host) via <LocalEventTime/>,
 // since playing_time is a host wall-clock paired with the event's IANA timezone. (owner 2026-06-22)
 import { LocalTime } from "@/components/LocalTime";
+import { Room3dJoinHelp } from "@/components/Room3dJoinHelp";
 import { LocalEventTime } from "@/components/LocalEventTime";
 import { CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -696,6 +697,10 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                             </div>
                           ))}
                         </div>
+                        {/* Once under the whole group's maps, not once per map: repeating eight
+                            steps per map would bury the room ids they belong to. Same component
+                            the "your match" callout uses, so the two cannot drift apart. */}
+                        {withRoom.some((m: any) => m.room_is_3d) && <Room3dJoinHelp />}
                       </div>
                     );
                   })()}

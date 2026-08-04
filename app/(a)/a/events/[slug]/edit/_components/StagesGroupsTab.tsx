@@ -963,6 +963,7 @@ export default function StagesGroupsTab({
                                             roomId={match.room_id}
                                             roomPassword={match.room_password}
                                             roomName={match.room_name}
+                                            roomIs3d={match.room_is_3d}
                                             matchLabel={
                                               match.match_map
                                                 ? t("matchLabelWithMap", {

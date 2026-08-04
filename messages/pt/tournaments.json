@@ -729,5 +729,16 @@
     "mode_fcfs_room": "Se uma equipe não aparecer, todas as equipes da lista de espera recebem o ID e a senha da sala. A primeira a entrar na sala ocupa a vaga aberta.",
     "mode_manual_admin": "Se uma equipe não aparecer, o organizador escolhe qual equipe da lista de espera ocupa a vaga aberta.",
     "position": "#{n}"
+  },
+  "roomJoin3d": {
+    "title": "Como entrar na sala 3D",
+    "step1": "Inicie sessão e crie um grupo.",
+    "step2": "Adicione todos os membros da sua equipa ao grupo. Tem de ser uma equipa completa de 4 jogadores. É da mesma forma que adiciona os seus amigos a um grupo quando quer jogar qualquer modo.",
+    "step3": "Quem for o líder do grupo vai depois a Customs.",
+    "step4": "Vá a League.",
+    "step5": "Ou pode procurar o ID da sala.",
+    "step6": "Toque no ícone de entrar quando vir a sala.",
+    "step7": "Introduza o nome da equipa, a tag da equipa e depois a palavra-passe.",
+    "step8": "Certifique-se de que está a usar a conta correta, a que está registada no site da AFC. Caso contrário, os seus resultados não contam e a sua equipa pode ser penalizada ou mesmo banida."
   }
 }

@@ -729,5 +729,16 @@
     "mode_fcfs_room": "Si une équipe ne se présente pas, toutes les équipes de la liste d'attente reçoivent l'ID et le mot de passe de la salle. La première à rejoindre la salle prend la place vacante.",
     "mode_manual_admin": "Si une équipe ne se présente pas, l'organisateur choisit quelle équipe de la liste d'attente prend la place vacante.",
     "position": "#{n}"
+  },
+  "roomJoin3d": {
+    "title": "Comment rejoindre la salle 3D",
+    "step1": "Connectez-vous et créez un groupe.",
+    "step2": "Ajoutez tous les membres de votre équipe au groupe. Vous devez être une équipe complète de 4 joueurs. C'est la même manière que vous ajoutez vos amis à un groupe quand vous voulez jouer à n'importe quel mode.",
+    "step3": "Le chef du groupe se rend ensuite dans Customs.",
+    "step4": "Allez dans League.",
+    "step5": "Ou vous pouvez rechercher l'ID de la salle.",
+    "step6": "Appuyez sur l'icône rejoindre lorsque vous voyez la salle.",
+    "step7": "Saisissez le nom de votre équipe, le tag de l'équipe, puis le mot de passe.",
+    "step8": "Assurez-vous d'utiliser le bon compte, celui enregistré sur le site AFC. Sinon, vos résultats ne compteront pas et votre équipe pourrait être pénalisée, voire bannie."
   }
 }

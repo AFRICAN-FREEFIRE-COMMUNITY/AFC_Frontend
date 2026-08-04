@@ -182,5 +182,9 @@
     "channels": "{pushed} in-app, {emailed} email, {whatsapped} WhatsApp",
     "skippedNoNumber": ", {count} without a WhatsApp number",
     "resentFallback": "Resent."
+  },
+  "room3d": {
+    "label": "This is a 3D room",
+    "help": "Turn this on and players are shown how to join a 3D room underneath the room ID and password, on the event page and in the room details you send them."
   }
 }

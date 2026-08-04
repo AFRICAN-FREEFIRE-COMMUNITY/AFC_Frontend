@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LocalTime } from "@/components/LocalTime";
 import { LocalEventTime } from "@/components/LocalEventTime";
+import { Room3dJoinHelp } from "@/components/Room3dJoinHelp";
 
 interface MatchRow {
   match_id: number;
@@ -32,6 +33,9 @@ interface MatchRow {
   room_id?: string | null;
   room_name?: string | null;
   room_password?: string | null;
+  /** Is this map a 3D custom room? Not a credential, so the backend sends it whether or not the
+   *  room details have been released. */
+  room_is_3d?: boolean;
   // True when the organizer has posted a room for this match but the creds aren't visible yet
   // (e.g. pre-release for non-members); for the viewer's own group it accompanies the creds.
   room_details_released?: boolean;
@@ -192,6 +196,10 @@ export function YourMatchCallout({ stages, isRegistered, timezone }: Props) {
                       </div>
                     ))}
                   </div>
+                  {/* The 3D joining steps, once under the whole list rather than once per map: a
+                      group can have several maps and repeating eight steps would bury the room ids
+                      they belong to. Shown when ANY map here is a 3D room. */}
+                  {withCreds.some((m) => m.room_is_3d) && <Room3dJoinHelp />}
                 </div>
               ) : roomComingSoon ? (
                 <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">
