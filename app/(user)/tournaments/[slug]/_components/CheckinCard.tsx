@@ -76,10 +76,19 @@ export function CheckinCard({ eventId }: { eventId: number }) {
     }
   };
 
-  // Only render for a registered user of a check-in-enabled event.
-  if (loading || !enabled || !me?.registered) return null;
+  // ── who sees this card ──
+  // Anyone, once check-in is enabled (owner 2026-08-04: "if check-in is enabled for an event let
+  // it show on the event page, check-in date and time etc"). It used to render ONLY for a
+  // registered user, which meant the one group who most needed the information, people deciding
+  // whether to enter, could not see that this event demands a check-in at all. A competitor who
+  // registers without noticing is exactly who ends up relegated to the waitlist for missing it.
+  //
+  // What differs by viewer is the ACTION, not the information: the window and the explanation are
+  // public, while the button, the squad progress and the personal status need a registration.
+  if (loading || !enabled) return null;
 
-  const checkedIn = me.checked_in;
+  const registered = !!me?.registered;
+  const checkedIn = !!me?.checked_in;
   const notOpenYet = !windowOpen && !!start && new Date(start).getTime() > Date.now();
   const closed = !windowOpen && !!end && new Date(end).getTime() < Date.now();
 
@@ -89,11 +98,11 @@ export function CheckinCard({ eventId }: { eventId: number }) {
         <div className="flex items-center gap-2">
           <IconUserCheck className="text-primary size-5" />
           <p className="font-semibold">{t("checkin.userTitle")}</p>
-          {checkedIn ? (
+          {registered && checkedIn ? (
             <Badge variant="outline" className="ml-auto border-green-600/60 text-green-500">
               <IconCircleCheck className="mr-1 size-3" /> {t("checkin.userDone")}
             </Badge>
-          ) : windowOpen ? (
+          ) : registered && windowOpen ? (
             <Badge variant="outline" className="ml-auto border-green-600/60 text-green-500">{t("checkin.userOpen")}</Badge>
           ) : null}
         </div>
@@ -111,7 +120,7 @@ export function CheckinCard({ eventId }: { eventId: number }) {
         )}
 
         {/* Squad progress. */}
-        {me.is_squad && typeof me.roster_total === "number" && (
+        {registered && me?.is_squad && typeof me.roster_total === "number" && (
           <p className="text-xs">
             {t("checkin.userSquadProgress", { done: me.roster_checked_in ?? 0, total: me.roster_total })}{" "}
             {me.team_eligible ? (
@@ -122,14 +131,14 @@ export function CheckinCard({ eventId }: { eventId: number }) {
           </p>
         )}
 
-        {!checkedIn && windowOpen && (
+        {registered && !checkedIn && windowOpen && (
           <Button size="sm" onClick={checkIn} disabled={busy}>
             {busy ? <IconLoader2 className="mr-1 size-4 animate-spin" /> : <IconUserCheck className="mr-1 size-4" />}
             {t("checkin.userButton")}
           </Button>
         )}
-        {!checkedIn && notOpenYet && <p className="text-muted-foreground text-xs">{t("checkin.userNotOpen")}</p>}
-        {!checkedIn && closed && <p className="text-amber-500 text-xs">{t("checkin.userClosed")}</p>}
+        {registered && !checkedIn && notOpenYet && <p className="text-muted-foreground text-xs">{t("checkin.userNotOpen")}</p>}
+        {registered && !checkedIn && closed && <p className="text-amber-500 text-xs">{t("checkin.userClosed")}</p>}
       </CardContent>
     </Card>
   );
