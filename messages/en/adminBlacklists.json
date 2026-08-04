@@ -1,0 +1,52 @@
+{
+  "title": "Blacklists",
+  "description": "Every organizer blacklist across all organizations: how many times, by whom, and why.",
+  "loadFailed": "Failed to load blacklists.",
+  "stats": {
+    "total": "Total blacklists",
+    "active": "Active now",
+    "activeSub": "Currently blocking registrations",
+    "topOrg": "Top organization",
+    "topOrgSub": "{count, plural, one {# blacklist issued} other {# blacklists issued}}",
+    "topTeam": "Most blacklisted team",
+    "topTeamSub": "{count, plural, one {# time} other {# times}}"
+  },
+  "filters": {
+    "search": "Search",
+    "searchPlaceholder": "Search by team or organization...",
+    "status": "Status",
+    "statusPlaceholder": "Filter by status",
+    "allStatuses": "All statuses",
+    "from": "From",
+    "to": "To"
+  },
+  "status": {
+    "active": "Active",
+    "expired": "Expired",
+    "lifted": "Lifted"
+  },
+  "empty": {
+    "noMatch": "No blacklists match these filters.",
+    "none": "No organizer blacklists yet."
+  },
+  "table": {
+    "organization": "Organization",
+    "target": "Target",
+    "reason": "Reason",
+    "status": "Status",
+    "start": "Start",
+    "end": "End",
+    "lifted": "Lifted",
+    "players": "Players"
+  },
+  "row": {
+    "playerBadge": "Player",
+    "unknownUser": "User #{id}",
+    "unknownTeam": "Team #{id}",
+    "liftedByOn": "{name} on {date}",
+    "liftedByOrganizer": "By organizer"
+  },
+  "pagination": {
+    "showing": "Showing {from}-{to} of {total}"
+  }
+}

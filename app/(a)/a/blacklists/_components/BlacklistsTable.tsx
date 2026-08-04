@@ -29,9 +29,11 @@
 // FullLoader on first load only. StatCard mirrors app/(a)/a/rankings/page.tsx.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 
 import { FullLoader } from "@/components/Loader";
+import { LocalTime } from "@/components/LocalTime";
 import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,7 +70,8 @@ import {
   IconUsersGroup,
 } from "@tabler/icons-react";
 import { ITEMS_PER_PAGE } from "@/constants";
-import { cn, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { organizersApi } from "@/lib/organizers";
 
 // ── Row + aggregate shapes (mirror admin_list_blacklists' serializer) ─────────
@@ -118,7 +121,10 @@ const STATUSES = ["active", "expired", "lifted"] as const;
 // ── Status badge (same visual language as the organizer Blacklists page) ──────
 // Outline rounded-full text-xs per AFC constants: green while the block is live,
 // muted once it is over (expired or lifted).
-function StatusBadge({ status }: { status: string }) {
+// `label` is resolved by the caller, which holds the translator: the backend sends
+// the raw enum ("active"/"expired"/"lifted") and a status the catalog does not know
+// falls back to the raw value rather than rendering an empty badge.
+function StatusBadge({ status, label }: { status: string; label: string }) {
   const isActive = status === "active";
   return (
     <Badge
@@ -130,7 +136,7 @@ function StatusBadge({ status }: { status: string }) {
           : "border-muted-foreground/40 text-muted-foreground",
       )}
     >
-      {status}
+      {label}
     </Badge>
   );
 }
@@ -164,6 +170,19 @@ function StatCard({
 }
 
 export function BlacklistsTable() {
+  const t = useTranslations("adminBlacklists");
+  // The active UI language, passed explicitly to formatLocalTime so the lift date
+  // inside the "{name} on {date}" sentence follows the same locale as the label.
+  const locale = useLocale();
+  // Status labels live in the catalog under status.<enum>; anything the backend
+  // adds later that we have no key for falls through to the raw enum value.
+  const statusLabel = useCallback(
+    (status: string) =>
+      (STATUSES as readonly string[]).includes(status)
+        ? t(`status.${status}` as "status.active" | "status.expired" | "status.lifted")
+        : status,
+    [t],
+  );
   const [rows, setRows] = useState<BlacklistRow[]>([]);
   const [aggregates, setAggregates] = useState<Aggregates | null>(null);
   const [totalCount, setTotalCount] = useState(0);
@@ -203,11 +222,11 @@ export function BlacklistsTable() {
       setTotalCount(res?.total_count ?? 0);
       setAggregates(res?.aggregates ?? null);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to load blacklists.");
+      toast.error(err?.response?.data?.message || t("loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, statusFilter, startDate, endDate, page]);
+  }, [debouncedSearch, statusFilter, startDate, endDate, page, t]);
 
   useEffect(() => {
     fetchBlacklists();
@@ -243,60 +262,62 @@ export function BlacklistsTable() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Blacklists"
-        description="Every organizer blacklist across all organizations: how many times, by whom, and why."
-      />
+      <PageHeader title={t("title")} description={t("description")} />
 
       {/* ── Stat cards (follow the active filters; aggregates are filtered server-side). ── */}
+      {/* The two "leader" subtitles are ICU plurals rather than a hand-built "s", so
+          French and Portuguese pick their own plural forms ("1 fois" / "3 fois",
+          "1 vez" / "3 vezes"). */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={<IconBan className="size-4" />}
-          title="Total blacklists"
+          title={t("stats.total")}
           value={aggregates?.total ?? 0}
         />
         <StatCard
           icon={<IconFlag className="size-4" />}
-          title="Active now"
+          title={t("stats.active")}
           value={aggregates?.active ?? 0}
-          sub="Currently blocking registrations"
+          sub={t("stats.activeSub")}
         />
         <StatCard
           icon={<IconBuilding className="size-4" />}
-          title="Top organization"
+          title={t("stats.topOrg")}
           value={topOrg?.organization_name ?? "-"}
-          sub={topOrg ? `${topOrg.count} blacklist${topOrg.count === 1 ? "" : "s"} issued` : undefined}
+          sub={topOrg ? t("stats.topOrgSub", { count: topOrg.count }) : undefined}
         />
         <StatCard
           icon={<IconUsersGroup className="size-4" />}
-          title="Most blacklisted team"
+          title={t("stats.topTeam")}
           value={topTeam?.team_name ?? "-"}
-          sub={topTeam ? `${topTeam.count} time${topTeam.count === 1 ? "" : "s"}` : undefined}
+          sub={topTeam ? t("stats.topTeamSub", { count: topTeam.count }) : undefined}
         />
       </div>
 
       {/* ── Filter toolbar: search + status + date window. ── */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
         <div className="flex flex-1 flex-col gap-2">
-          <Label htmlFor="bl-search">Search</Label>
+          <Label htmlFor="bl-search">{t("filters.search")}</Label>
           <Input
             id="bl-search"
-            placeholder="Search by team or organization..."
+            placeholder={t("filters.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label>Status</Label>
+          <Label>{t("filters.status")}</Label>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full lg:w-40">
-              <SelectValue placeholder="Filter by status" />
+              <SelectValue placeholder={t("filters.statusPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="all">{t("filters.allStatuses")}</SelectItem>
+              {/* The option value stays the raw enum the endpoint filters on; only
+                  the visible label is translated. */}
               {STATUSES.map((s) => (
-                <SelectItem key={s} value={s} className="capitalize">
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                <SelectItem key={s} value={s}>
+                  {statusLabel(s)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -304,7 +325,7 @@ export function BlacklistsTable() {
         </div>
         {/* Date window on each blacklist's START date; either side optional. */}
         <div className="flex flex-col gap-2">
-          <Label htmlFor="bl-from">From</Label>
+          <Label htmlFor="bl-from">{t("filters.from")}</Label>
           <Input
             id="bl-from"
             type="date"
@@ -313,7 +334,7 @@ export function BlacklistsTable() {
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="bl-to">To</Label>
+          <Label htmlFor="bl-to">{t("filters.to")}</Label>
           <Input
             id="bl-to"
             type="date"
@@ -328,8 +349,8 @@ export function BlacklistsTable() {
         <Card>
           <CardContent className="py-16 text-center text-muted-foreground">
             {debouncedSearch || statusFilter !== "all" || startDate || endDate
-              ? "No blacklists match these filters."
-              : "No organizer blacklists yet."}
+              ? t("empty.noMatch")
+              : t("empty.none")}
           </CardContent>
         </Card>
       ) : (
@@ -339,14 +360,14 @@ export function BlacklistsTable() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-foreground">Organization</TableHead>
-                    <TableHead className="text-foreground">Target</TableHead>
-                    <TableHead className="text-foreground">Reason</TableHead>
-                    <TableHead className="text-foreground">Status</TableHead>
-                    <TableHead className="text-foreground">Start</TableHead>
-                    <TableHead className="text-foreground">End</TableHead>
-                    <TableHead className="text-foreground">Lifted</TableHead>
-                    <TableHead className="text-right text-foreground">Players</TableHead>
+                    <TableHead className="text-foreground">{t("table.organization")}</TableHead>
+                    <TableHead className="text-foreground">{t("table.target")}</TableHead>
+                    <TableHead className="text-foreground">{t("table.reason")}</TableHead>
+                    <TableHead className="text-foreground">{t("table.status")}</TableHead>
+                    <TableHead className="text-foreground">{t("table.start")}</TableHead>
+                    <TableHead className="text-foreground">{t("table.end")}</TableHead>
+                    <TableHead className="text-foreground">{t("table.lifted")}</TableHead>
+                    <TableHead className="text-right text-foreground">{t("table.players")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -361,16 +382,17 @@ export function BlacklistsTable() {
                       <TableCell className="text-xs">
                         {row.target_type === "player" ? (
                           <span className="flex items-center gap-1.5">
-                            {row.target_username ?? `User #${row.target_user_id ?? "?"}`}
+                            {row.target_username ??
+                              t("row.unknownUser", { id: row.target_user_id ?? "?" })}
                             <Badge
                               variant="outline"
                               className="rounded-full px-2 py-0.5 text-[10px]"
                             >
-                              Player
+                              {t("row.playerBadge")}
                             </Badge>
                           </span>
                         ) : (
-                          (row.team_name ?? `Team #${row.team_id}`)
+                          (row.team_name ?? t("row.unknownTeam", { id: row.team_id ?? "?" }))
                         )}
                       </TableCell>
                       {/* The "why" - admins see it in full (organizers never do). */}
@@ -378,21 +400,34 @@ export function BlacklistsTable() {
                         <span className="line-clamp-2">{row.reason || "-"}</span>
                       </TableCell>
                       <TableCell>
-                        <StatusBadge status={row.status} />
+                        <StatusBadge status={row.status} label={statusLabel(row.status)} />
+                      </TableCell>
+                      {/* start_date / end_date are DateTimeFields on OrganizerBlacklist
+                          (real UTC instants, end_date stored end-of-day), so they render
+                          through <LocalTime> in the viewer's zone and language. They are
+                          NOT bare calendar dates, so formatLocalDateOnly is not the right
+                          helper here. */}
+                      <TableCell className="text-xs text-muted-foreground">
+                        {row.start_date ? <LocalTime value={row.start_date} mode="date" /> : "-"}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {row.start_date ? formatDate(row.start_date) : "-"}
-                      </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {row.end_date ? formatDate(row.end_date) : "-"}
+                        {row.end_date ? <LocalTime value={row.end_date} mode="date" /> : "-"}
                       </TableCell>
                       {/* Lift provenance: who approved the lift + when, when a lift
-                          request exists; a direct organizer lift shows just the pill. */}
+                          request exists; a direct organizer lift shows just the pill.
+                          The date is woven into a translated sentence, so it uses the
+                          STRING helper (formatLocalTime) rather than the <LocalTime>
+                          element: the joining word differs per language ("on" / "le" / "a"). */}
                       <TableCell className="text-xs text-muted-foreground">
                         {row.status === "lifted"
                           ? row.lifted_by_username
-                            ? `${row.lifted_by_username}${row.lifted_at ? ` on ${formatDate(row.lifted_at)}` : ""}`
-                            : "By organizer"
+                            ? row.lifted_at
+                              ? t("row.liftedByOn", {
+                                  name: row.lifted_by_username,
+                                  date: formatLocalTime(row.lifted_at, "date", locale),
+                                })
+                              : row.lifted_by_username
+                            : t("row.liftedByOrganizer")
                           : "-"}
                       </TableCell>
                       {/* Snapshot size: how many players this blacklist binds. */}
@@ -408,8 +443,11 @@ export function BlacklistsTable() {
             {totalPages > 1 && (
               <div className="flex flex-col items-center justify-between gap-3 border-t px-4 py-3 sm:flex-row">
                 <p className="text-xs text-muted-foreground">
-                  Showing {(page - 1) * ITEMS_PER_PAGE + 1}-
-                  {Math.min(page * ITEMS_PER_PAGE, totalCount)} of {totalCount}
+                  {t("pagination.showing", {
+                    from: (page - 1) * ITEMS_PER_PAGE + 1,
+                    to: Math.min(page * ITEMS_PER_PAGE, totalCount),
+                    total: totalCount,
+                  })}
                 </p>
                 <Pagination>
                   <PaginationContent>

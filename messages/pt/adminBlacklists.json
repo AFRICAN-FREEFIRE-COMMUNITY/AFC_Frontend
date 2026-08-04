@@ -1,0 +1,52 @@
+{
+  "title": "Listas negras",
+  "description": "Todas as listas negras dos organizadores, em todas as organizações: quantas vezes, por quem e porquê.",
+  "loadFailed": "Não foi possível carregar as listas negras.",
+  "stats": {
+    "total": "Total de listas negras",
+    "active": "Ativas agora",
+    "activeSub": "Bloqueiam atualmente as inscrições",
+    "topOrg": "Organização no topo",
+    "topOrgSub": "{count, plural, one {# lista negra aplicada} other {# listas negras aplicadas}}",
+    "topTeam": "Equipa mais bloqueada",
+    "topTeamSub": "{count, plural, one {# vez} other {# vezes}}"
+  },
+  "filters": {
+    "search": "Pesquisar",
+    "searchPlaceholder": "Pesquisar por equipa ou organização...",
+    "status": "Estado",
+    "statusPlaceholder": "Filtrar por estado",
+    "allStatuses": "Todos os estados",
+    "from": "De",
+    "to": "Até"
+  },
+  "status": {
+    "active": "Ativa",
+    "expired": "Expirada",
+    "lifted": "Levantada"
+  },
+  "empty": {
+    "noMatch": "Nenhuma lista negra corresponde a estes filtros.",
+    "none": "Ainda não há listas negras de organizadores."
+  },
+  "table": {
+    "organization": "Organização",
+    "target": "Alvo",
+    "reason": "Motivo",
+    "status": "Estado",
+    "start": "Início",
+    "end": "Fim",
+    "lifted": "Levantada",
+    "players": "Jogadores"
+  },
+  "row": {
+    "playerBadge": "Jogador",
+    "unknownUser": "Utilizador #{id}",
+    "unknownTeam": "Equipa #{id}",
+    "liftedByOn": "{name} a {date}",
+    "liftedByOrganizer": "Pelo organizador"
+  },
+  "pagination": {
+    "showing": "A mostrar {from}-{to} de {total}"
+  }
+}
