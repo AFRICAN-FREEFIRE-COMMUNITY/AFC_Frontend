@@ -58,7 +58,8 @@
     "whatsappNobody": "Ninguem neste publico adicionou um numero de WhatsApp.",
     "whatsappBlocked": "Pessoas a mais para um unico envio de WhatsApp. O limite e de {max} por difusao.",
     "plusWhatsapp": ", mais WhatsApp para {count}",
-    "whatsappHeadAdminOnly": "Apenas um administrador principal pode enviar por WhatsApp. Cada mensagem de WhatsApp e cobrada, por isso este canal e restrito."
+    "whatsappHeadAdminOnly": "Apenas um administrador principal pode enviar por WhatsApp. Cada mensagem de WhatsApp e cobrada, por isso este canal e restrito.",
+    "whatsappComingSoon": "O WhatsApp ainda nao esta disponivel. Chega em breve."
   },
   "send": {
     "button": "Enviar",

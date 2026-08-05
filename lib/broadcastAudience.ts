@@ -118,6 +118,12 @@ export type AudiencePreview = {
    *  permission. Reported by the preview so the composer can grey the option out with a reason
    *  instead of letting somebody write a broadcast and be refused at the send. */
   whatsapp_allowed?: boolean;
+  /** Whether the WhatsApp channel is switched on at all on this deployment. False until
+   *  WHATSAPP_BROADCAST_TEMPLATE is set on the server, which is deliberately empty by default so
+   *  a deploy could never start messaging players before somebody chose to. The composer shows a
+   *  "not available yet" notice on false; because it is derived from the real setting rather than
+   *  hardcoded, the notice disappears by itself once the value lands. */
+  whatsapp_configured?: boolean;
   /** The channel the composer should default to for this size ("push" for large audiences). */
   recommended_delivery: "push" | "both";
   sample: AudienceRecipient[];

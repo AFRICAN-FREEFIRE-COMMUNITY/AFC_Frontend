@@ -58,7 +58,8 @@
     "whatsappNobody": "Nobody in this audience has added a WhatsApp number.",
     "whatsappBlocked": "Too many people for one WhatsApp send. The limit is {max} per broadcast.",
     "plusWhatsapp": ", plus WhatsApp to {count}",
-    "whatsappHeadAdminOnly": "Only a head admin can send on WhatsApp. Each WhatsApp message is charged, so this channel is restricted."
+    "whatsappHeadAdminOnly": "Only a head admin can send on WhatsApp. Each WhatsApp message is charged, so this channel is restricted.",
+    "whatsappComingSoon": "WhatsApp is not available yet. It is coming soon."
   },
   "send": {
     "button": "Send",
