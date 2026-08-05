@@ -192,5 +192,13 @@
     "to": "to",
     "yourTime": "(your time)",
     "host": "(host)"
+  },
+  "teamRoles": {
+    "team_captain": "Team Captain",
+    "vice_captain": "Vice Captain",
+    "member": "Player",
+    "coach": "Coach",
+    "manager": "Manager",
+    "analyst": "Analyst"
   }
 }

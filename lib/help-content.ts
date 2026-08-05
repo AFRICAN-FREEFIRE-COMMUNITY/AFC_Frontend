@@ -821,9 +821,9 @@ export const HELP = {
   "teams.roster._page":
     "Manage your team's roster: set each member's in-game and management role, or remove them. Only the team owner and coaches can manage the roster - captains cannot.",
   "teams.roster.in_game_role":
-    "The competitive position a player holds (Rusher, Sniper, Support, Grenader). Only PLAYERS - Captain, Vice Captain or Member - can have an in-game role, and a team can field at most 6.",
+    "The competitive position a player holds (Rusher, Sniper, Support, Grenader). Only PLAYERS - Captain, Vice Captain or Player - can have an in-game role, and a team can field at most 6.",
   "teams.roster.management_role":
-    "A member's role on the team. PLAYERS (Captain, Vice Captain, Member) compete and can hold an in-game role. STAFF (Coach, Manager, Analyst) are support-only, are never fielded as players, and a team can have at most one of each. Moving a member between player and staff is only allowed while the transfer window is open.",
+    "A member's role on the team. PLAYERS (Captain, Vice Captain, Player) compete, count toward the 6-player limit, and are the only members offered when you register a roster for an event. STAFF (Coach, Manager, Analyst) are support-only, are never fielded, and a team can have at most one of each. That is why a team holds up to 9 people but fields only 6. Moving a member between player and staff is only allowed while the transfer window is open.",
 
   // ── User › Tournament registration (multi-step) ────────────────────────────
   "tournaments.register.type._section":

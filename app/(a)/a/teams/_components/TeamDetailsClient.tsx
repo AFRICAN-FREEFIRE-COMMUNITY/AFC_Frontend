@@ -64,8 +64,13 @@ import {
 
 const API = env.NEXT_PUBLIC_BACKEND_API_URL;
 
+// Total headcount a team may hold, mirroring afc_team/views.py MAX_MEMBERS: 6 players plus one
+// coach, one manager and one analyst. Admins can still seat somebody past it via override_limit,
+// which is why this only decides when to ASK rather than blocking outright.
+const MAX_TEAM_MEMBERS = 9;
+
 const MANAGEMENT_ROLES = [
-  { value: "member", label: "Member" },
+  { value: "member", label: "Player" },   // stored value stays "member"; displayed as "Player"
   { value: "vice_captain", label: "Vice Captain" },
   { value: "team_captain", label: "Team Captain" },
   { value: "coach", label: "Coach" },
@@ -231,7 +236,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
         management_role: selectedRole,
       };
       if (selectedPlayer.current_team) body.force_move = true;
-      if (memberCount >= 8) body.override_limit = true;
+      if (memberCount >= MAX_TEAM_MEMBERS) body.override_limit = true;
       const res = await fetch(`${API}/team/admin-add-member/`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader },
@@ -321,7 +326,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
   }
 
   const memberCount = teamDetails.total_members ?? teamDetails.members?.length ?? 0;
-  const isTeamFull = memberCount >= 8;
+  const isTeamFull = memberCount >= MAX_TEAM_MEMBERS;
   const nonOwnerMembers = (teamDetails.members ?? []).filter(
     (m: any) => m.username !== teamDetails.team_owner,
   );
@@ -511,8 +516,12 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="capitalize text-xs">
-                          {member.management_role?.replace("_", " ") || "Member"}
+                        <TableCell className="text-xs">
+                          {/* Label from MANAGEMENT_ROLES, not the raw stored value: 'member'
+                              must read as "Player" (owner 2026-08-04, backlog item 33). */}
+                          {MANAGEMENT_ROLES.find(
+                            (r) => r.value === member.management_role,
+                          )?.label ?? "Player"}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground">
                           {member.discord_id ? (
@@ -901,7 +910,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
               <div className="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
                 <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
                 <span>
-                  Team has <strong>{memberCount} members</strong>, exceeding the 8-member limit. Adding will override this cap.
+                  Team has <strong>{memberCount} members</strong>, at or above the {MAX_TEAM_MEMBERS}-member limit. Adding will override this cap.
                 </span>
               </div>
             )}

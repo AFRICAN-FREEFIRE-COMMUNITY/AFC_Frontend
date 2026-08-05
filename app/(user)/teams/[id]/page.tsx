@@ -132,6 +132,23 @@ const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
 });
 
+// ── Roster capacity (owner 2026-08-04, backlog item 33) ─────────────────────────
+// Mirrors afc_team/views.py MAX_MEMBERS / MAX_PLAYERS / PLAYER_ROLES. A team holds at most
+// MAX_TEAM_MEMBERS people, of whom at most MAX_TEAM_PLAYERS may be PLAYERS; the remaining seats
+// are staff, capped at one coach, one manager and one analyst (which is exactly why the total is
+// 9). These numbers only shape the UI - the backend enforces the same caps on every join path, so
+// a stale page can never seat somebody it shouldn't.
+const MAX_TEAM_MEMBERS = 9;
+const MAX_TEAM_PLAYERS = 6;
+// The PLAYING roles, i.e. the ones that consume one of the 6 player slots. 'member' is the stored
+// value that now DISPLAYS as "Player" (see the common.teamRoles catalog); the value itself is
+// unchanged because a live data rename cannot ship from this repo.
+const PLAYER_ROLES = ["team_captain", "vice_captain", "member"];
+// Roles somebody can be invited INTO. Captain / vice captain are promotions handed out on the
+// Manage Roster page, never by an invite, so they are absent here. Matches the backend's
+// _INVITABLE_ROLES whitelist used by invite-member and generate-invite-link.
+const INVITABLE_ROLES = ["member", "coach", "analyst", "manager"] as const;
+
 type Params = Promise<{
   id: string;
 }>;
@@ -145,6 +162,15 @@ const Page = ({ params }: { params: Params }) => {
   // Team-feature copy (messages/en/team.json -> "letterAvatars"): the read-only letter-avatar chips
   // shown in the Overview tab. Same namespace the team-edit manager panel uses.
   const tTeam = useTranslations("team");
+  // Shared management-role labels (messages/en/common.json -> "teamRoles"), keyed by the STORED
+  // role value. One catalog so the roster table, the invite form and the invite-link picker all
+  // name a role the same way - notably 'member', which stores as "member" but reads as "Player"
+  // (owner 2026-08-04, backlog item 33).
+  const tc = useTranslations("common");
+  // Label for a stored management_role. Falls back to the raw value for anything unrecognised, so
+  // an unexpected role from the API still renders instead of blanking the cell.
+  const roleLabel = (role?: string | null) =>
+    role ? (tc.has(`teamRoles.${role}`) ? tc(`teamRoles.${role}`) : formatWord(role)) : "";
   const router = useRouter();
   const { openAuthModal } = useAuthModal();
   const [inviteLink, setInviteLink] = useState("");
@@ -152,6 +178,11 @@ const Page = ({ params }: { params: Params }) => {
   const [hasFullAccess, setHasFullAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [newMemberSearch, setNewMemberSearch] = useState("");
+  // Seat the invitee will take when they accept (owner 2026-08-04, item 33). Defaults to the
+  // PLAYING role, which is what the form always sent implicitly before; the picker lets a captain
+  // choose a staff seat instead so the team can reach 9 without demoting anyone.
+  const [newMemberRole, setNewMemberRole] =
+    useState<(typeof INVITABLE_ROLES)[number]>("member");
   const [successRequest, setSuccessRequest] = useState(false);
 
   const [pending, startTransition] = useTransition();
@@ -290,6 +321,22 @@ const Page = ({ params }: { params: Params }) => {
     });
   };
 
+  // How many of the 6 PLAYER slots are taken, counting only PLAYING roles (staff never occupy
+  // one). Same basis as the backend's _playing_member_count. Drives the invite form's role picker:
+  // at the cap the PLAYING option is disabled and the captain is pointed at a staff seat instead.
+  const playerSlotsFull =
+    (teamDetails?.members ?? []).filter((m: any) =>
+      PLAYER_ROLES.includes(m?.management_role ?? "member"),
+    ).length >= MAX_TEAM_PLAYERS;
+
+  // Keep the invite form off an option it cannot use: once every player slot is taken, move the
+  // selection to the first staff role so the picker never sits on a disabled value.
+  useEffect(() => {
+    if (playerSlotsFull && PLAYER_ROLES.includes(newMemberRole)) {
+      setNewMemberRole("coach");
+    }
+  }, [playerSlotsFull, newMemberRole]);
+
   const [pendingGenerateLink, startGenerateLinkTransition] = useTransition();
   const [rolePickerOpen, setRolePickerOpen] = useState(false);
   const [inviteRole, setInviteRole] = useState<string>("");
@@ -373,8 +420,12 @@ const Page = ({ params }: { params: Params }) => {
   const handleAddNewMember = () => {
     if (!newMemberSearch)
       return toast.error(t("teamDetail.enterUidIgnEmail"));
-    if (teamDetails.members.length >= 6) {
-      toast.error(t("teamDetail.teamFullToast"));
+    // Guard the TOTAL headcount (owner 2026-08-04, item 33). Two bugs here: the number was 6,
+    // the PLAYER cap rather than the team size, so the form refused seats a team legitimately
+    // has; and the toast was not returned, so the invite was sent anyway and the warning was
+    // pure noise. Player-slot pressure is handled by the role picker below, not by blocking.
+    if (teamDetails.members.length >= MAX_TEAM_MEMBERS) {
+      return toast.error(t("teamDetail.teamFullToast"));
     }
 
     startInviteTransition(async () => {
@@ -384,6 +435,10 @@ const Page = ({ params }: { params: Params }) => {
           {
             team_id: teamDetails.team_id,
             invitee_email_or_ign: newMemberSearch,
+            // The seat the invitee takes on acceptance. Sending it is what lets a captain fill
+            // places 7 to 9 with staff while all 6 player slots are occupied, instead of having
+            // to demote somebody already on the roster first (the "caps at 7" bug).
+            role: newMemberRole,
           },
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -1005,7 +1060,9 @@ const Page = ({ params }: { params: Params }) => {
                                 )}
                               </TableCell>
                               <TableCell>
-                                {formatWord(member.management_role)}
+                                {/* Translated role label, not formatWord: the stored value
+                                    'member' must read as "Player" (owner 2026-08-04, item 33). */}
+                                {roleLabel(member.management_role)}
                               </TableCell>
                               <TableCell>
                                 <Button size="sm" variant="outline" asChild>
@@ -1115,14 +1172,21 @@ const Page = ({ params }: { params: Params }) => {
                     )}
                     {/*
                       Roster rule: a team fields at most 6 PLAYERS but can hold up to
-                      8 MEMBERS total - the extra slots are for staff (coach / manager
-                      / analyst), who never take a player slot. The invite form used to
-                      vanish silently at 6 members, which both hid the staff path and
-                      gave no explanation. Now it stays open until 8 with the rule spelt
-                      out, and shows a clear "team full" note once 8 is reached.
+                      MAX_TEAM_MEMBERS (9) people in total - the extra seats are for staff
+                      (one coach / one manager / one analyst), who never take a player slot.
+                      The invite form used to vanish silently at 6 members, which both hid the
+                      staff path and gave no explanation. It now stays open until the team is
+                      genuinely full, spells the rule out, and shows a "team full" note after.
+
+                      The ROLE PICKER beside the search box is what makes seats 7 to 9 reachable
+                      (owner 2026-08-04, item 33). Previously this form sent no role at all, so
+                      every invitee arrived as a PLAYER and was bounced by the 6-player cap once
+                      the team was at strength; the captain's only way forward was to demote
+                      somebody already on the roster. Picking "Coach" / "Manager" / "Analyst"
+                      here seats them without touching anyone else's role.
                     */}
                     {hasFullAccess &&
-                      (teamDetails?.members?.length ?? 0) < 8 && (
+                      (teamDetails?.members?.length ?? 0) < MAX_TEAM_MEMBERS && (
                         <div className="mt-4">
                           <h4 className="text-lg font-semibold mb-2">
                             {t("teamDetail.addNewMember")}
@@ -1137,7 +1201,9 @@ const Page = ({ params }: { params: Params }) => {
                               ),
                             })}
                           </p>
-                          <div className="flex items-start space-x-2">
+                          {/* Stacks on mobile so the picker and the search box each keep a usable
+                              tap target; side by side from sm up. */}
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
                             {/* Search-as-you-type user picker (replaces the raw email input).
                                 Yields the selected player's username into newMemberSearch, which
                                 handleAddNewMember posts as invitee_email_or_ign. */}
@@ -1148,6 +1214,34 @@ const Page = ({ params }: { params: Params }) => {
                                 placeholder={t("teamDetail.searchPlayerInvite")}
                               />
                             </div>
+                            {/* Seat picker -> posted as `role` to /team/invite-member/. */}
+                            <Select
+                              value={newMemberRole}
+                              onValueChange={(v) =>
+                                setNewMemberRole(v as (typeof INVITABLE_ROLES)[number])
+                              }
+                            >
+                              <SelectTrigger
+                                className="sm:w-44"
+                                aria-label={t("teamDetail.inviteAs")}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {INVITABLE_ROLES.map((role) => (
+                                  <SelectItem
+                                    key={role}
+                                    value={role}
+                                    // The PLAYING option is unselectable once all 6 player slots
+                                    // are taken, mirroring the backend cap, so the captain is
+                                    // steered to a staff seat instead of hitting a 400.
+                                    disabled={playerSlotsFull && PLAYER_ROLES.includes(role)}
+                                  >
+                                    {roleLabel(role)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <Button
                               onClick={() => requireAuth(handleAddNewMember)}
                             >
@@ -1161,10 +1255,17 @@ const Page = ({ params }: { params: Params }) => {
                               )}
                             </Button>
                           </div>
+                          {/* Explains WHY the player option went grey, rather than leaving a
+                              silently disabled item. */}
+                          {playerSlotsFull && (
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              {t("teamDetail.playersFullHint")}
+                            </p>
+                          )}
                         </div>
                       )}
                     {hasFullAccess &&
-                      (teamDetails?.members?.length ?? 0) >= 8 && (
+                      (teamDetails?.members?.length ?? 0) >= MAX_TEAM_MEMBERS && (
                         <div className="mt-4 rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
                           {t("teamDetail.teamFull")}
                         </div>
@@ -1792,14 +1893,18 @@ const Page = ({ params }: { params: Params }) => {
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-2 py-2">
-            {(["member", "coach", "analyst", "manager"] as const).map((role) => (
+            {INVITABLE_ROLES.map((role) => (
               <Button
                 key={role}
                 variant={inviteRole === role ? "default" : "outline"}
-                className="capitalize"
                 onClick={() => setInviteRole(role)}
+                // Same rule as the invite form: a link into a PLAYING seat is pointless once
+                // all 6 are taken, so it is offered only while a slot is free.
+                disabled={playerSlotsFull && PLAYER_ROLES.includes(role)}
               >
-                {role}
+                {/* Was the raw stored value with a `capitalize` class, which rendered "Member".
+                    The shared catalog gives the real label ("Player"). */}
+                {roleLabel(role)}
               </Button>
             ))}
           </div>

@@ -216,6 +216,10 @@ const DISCORD_REQUIRED = false;
 // not even offer them. We keep the same canonical sets the backend uses
 // (afc_team/views.py PLAYER_ROLES / STAFF_ROLES). isPlayingMember() is the predicate
 // both registration pickers below filter the team roster through.
+// 'member' is the STORED value for the role now DISPLAYED as "Player" (owner 2026-08-04, backlog
+// item 33: "only players appear in the event registration picker"). The value was deliberately
+// left alone - only its label changed - so this filter is unaffected by the rename and keeps
+// matching the backend's PLAYER_ROLES.
 const PLAYER_ROLES = ["team_captain", "vice_captain", "member"] as const;
 // A member is selectable when their management_role is a PLAYING role. We default a
 // missing/unknown role to "member" (a PLAYING role) so older data without the field

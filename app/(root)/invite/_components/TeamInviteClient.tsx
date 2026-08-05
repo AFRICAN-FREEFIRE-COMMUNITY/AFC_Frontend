@@ -35,6 +35,13 @@ export function TeamInviteClient({
   // The team data itself (name, tag, members) comes from the backend endpoint
   // /team/get-team-details-based-on-invite/<inviteId> and is not localized.
   const t = useTranslations("root");
+  // Shared management-role labels (messages/en/common.json -> "teamRoles"), keyed by the STORED
+  // role value. Used for the roster preview below, which used to print the raw database value.
+  // Matters most for 'member', which stores as "member" but reads as "Player" (owner 2026-08-04,
+  // backlog item 33). Same catalog the team page and Manage Roster read from.
+  const tc = useTranslations("common");
+  const roleLabel = (role?: string | null) =>
+    role ? (tc.has(`teamRoles.${role}`) ? tc(`teamRoles.${role}`) : role) : "";
 
   const [teamDetails, setTeamDetails] = useState(initialData || null);
   const [loading, setLoading] = useState(!initialData);
@@ -305,8 +312,10 @@ export function TeamInviteClient({
                             {member.username}
                           </p>
                           {member.management_role && (
-                            <p className="text-xs text-muted-foreground capitalize">
-                              {member.management_role}
+                            <p className="text-xs text-muted-foreground">
+                              {/* Was the raw stored value under a `capitalize` class, so a
+                                  player showed as "Member" and a captain as "Team_captain". */}
+                              {roleLabel(member.management_role)}
                             </p>
                           )}
                         </div>

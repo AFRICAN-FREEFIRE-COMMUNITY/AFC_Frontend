@@ -192,5 +192,13 @@
     "to": "para",
     "yourTime": "(hora local)",
     "host": "(apresentador)"
+  },
+  "teamRoles": {
+    "team_captain": "Capitão da Equipe",
+    "vice_captain": "Vice-Capitão",
+    "member": "Jogador",
+    "coach": "Treinador",
+    "manager": "Gerente",
+    "analyst": "Analista"
   }
 }

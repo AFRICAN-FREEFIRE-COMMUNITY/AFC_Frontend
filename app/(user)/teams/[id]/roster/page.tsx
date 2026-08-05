@@ -53,6 +53,9 @@ interface MemberUpdate {
 // (management) roles never play and are locked across the season. The UI forces extras into a STAFF
 // role (the playing options disable once 6 are filled) and warns before any move INTO a STAFF role; the
 // backend enforces the same rules regardless, so the UI is guidance, not the only guard.
+// NOTE (owner 2026-08-04, backlog item 33): 'member' is the STORED value and stays that way; it is
+// DISPLAYED as "Player" via the roster.member message key. Do not rename the value here without a
+// data migration, which this repo cannot ship (migrations are generated on the server).
 const PLAYER_ROLES = new Set(["team_captain", "vice_captain", "member"]);
 const STAFF_ROLES = new Set(["coach", "manager", "analyst"]);
 const MAX_PLAYERS = 6;

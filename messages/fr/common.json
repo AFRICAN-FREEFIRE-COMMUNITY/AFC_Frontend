@@ -192,5 +192,13 @@
     "to": "à",
     "yourTime": "(heure locale)",
     "host": "(heure de l'organisateur)"
+  },
+  "teamRoles": {
+    "team_captain": "Capitaine d'équipe",
+    "vice_captain": "Vice-capitaine",
+    "member": "Joueur",
+    "coach": "Coach",
+    "manager": "Manager",
+    "analyst": "Analyste"
   }
 }
