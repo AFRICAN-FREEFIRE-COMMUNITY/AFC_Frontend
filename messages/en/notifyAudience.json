@@ -51,7 +51,13 @@
     "deliveryPush": "In-app notification",
     "deliveryEmail": "Email",
     "deliveryBoth": "In-app notification and email",
-    "emailUnavailable": "Email is unavailable for an audience this large. Send in-app instead, or narrow the audience."
+    "emailUnavailable": "Email is unavailable for an audience this large. Send in-app instead, or narrow the audience.",
+    "alsoWhatsapp": "Also send on WhatsApp",
+    "whatsappNeedsPreview": "Choose an audience first to see how many can be reached on WhatsApp.",
+    "whatsappReach": "{count} of these {total} people have a WhatsApp number. The rest still get the other channels.",
+    "whatsappNobody": "Nobody in this audience has added a WhatsApp number.",
+    "whatsappBlocked": "Too many people for one WhatsApp send. The limit is {max} per broadcast.",
+    "plusWhatsapp": ", plus WhatsApp to {count}"
   },
   "send": {
     "button": "Send",

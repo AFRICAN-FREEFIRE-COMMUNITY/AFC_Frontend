@@ -151,6 +151,15 @@ export function AudienceBuilder() {
   const [message, setMessage] = useState("");
   // In-app is the default channel: it is the one that always delivers, at any audience size.
   const [delivery, setDelivery] = useState<"push" | "email" | "both">("push");
+  // WhatsApp is ADDITIVE, not a fourth mutually-exclusive option (owner 2026-08-05). The backend
+  // has accepted comma-joined channels since the broadcast WhatsApp work landed - "both,whatsapp"
+  // means all three - and the delivery engine was fully built and tested. Only this picker was
+  // missing, so the channel existed and could not be chosen.
+  //
+  // A checkbox rather than expanding the select into seven combinations: WhatsApp reaches far
+  // fewer people than the other two and every message COSTS money, so it deserves a deliberate
+  // extra tick rather than hiding inside "all channels".
+  const [alsoWhatsapp, setAlsoWhatsapp] = useState(false);
   const [confirmLargeEmail, setConfirmLargeEmail] = useState(false);
   const [target, setTarget] = useState<NotificationTarget>(EMPTY_TARGET);
   const [targetEvents, setTargetEvents] = useState<EventOption[]>([]);
@@ -245,6 +254,26 @@ export function AudienceBuilder() {
   const emailNeedsConfirm = !!preview?.email_volume.requires_confirmation;
   const wantsEmail = delivery === "email" || delivery === "both";
 
+  // ── WhatsApp reach, straight from the preview the backend already returns ──────────────────
+  // whatsapp_recipient_count is how many of THIS audience have a number AND have not opted out;
+  // whatsapp_volume carries the same blocked/ok verdict shape as email. Both have been in the
+  // preview response all along and were simply never read.
+  const whatsappCount = preview?.whatsapp_recipient_count ?? 0;
+  const whatsappBlocked = !!preview?.whatsapp_volume?.blocked;
+  const whatsappMax = preview?.whatsapp_volume?.max_recipients;
+
+  // Never leave the box ticked on an audience WhatsApp cannot serve: a blocked verdict (over the
+  // per-send cap) or nobody in the audience with a number would otherwise send a broadcast whose
+  // WhatsApp half silently reaches no one.
+  useEffect(() => {
+    if (alsoWhatsapp && (whatsappBlocked || whatsappCount === 0)) setAlsoWhatsapp(false);
+  }, [alsoWhatsapp, whatsappBlocked, whatsappCount]);
+
+  // What actually travels to the backend: "push" / "email" / "both", with ",whatsapp" appended.
+  // parse_delivery understands the comma form and delivery_token round-trips it, so the value
+  // stored on SentBroadcast and shown in history stays canonical.
+  const deliveryValue = alsoWhatsapp ? `${delivery},whatsapp` : delivery;
+
   // Send is allowed only with: a message, a live preview for the CURRENT selection, and the
   // email confirmation when the volume verdict asks for one.
   const canSend =
@@ -283,7 +312,7 @@ export function AudienceBuilder() {
         audience: spec,
         title: title.trim() || undefined,
         message: message.trim(),
-        delivery,
+        delivery: deliveryValue,
         // The number the admin just read on screen. A mismatch is a 409, handled below.
         confirmed_count: preview.recipient_count,
         confirm_large_email: confirmLargeEmail || undefined,
@@ -307,7 +336,7 @@ export function AudienceBuilder() {
     } finally {
       setSending(false);
     }
-  }, [token, preview, spec, title, message, delivery, confirmLargeEmail, target, targetEvents, t]);
+  }, [token, preview, spec, title, message, deliveryValue, confirmLargeEmail, target, targetEvents, t]);
 
   // ── Chip row for one category filter ──
   // Click-to-toggle outline badges, because an admin routinely picks several countries at once
@@ -619,6 +648,38 @@ export function AudienceBuilder() {
                 {t("compose.emailUnavailable")}
               </p>
             )}
+
+            {/* ── WhatsApp, added ON TOP of the choice above (owner 2026-08-05) ──────────────
+                Deliberately NOT a fourth option in the select. It reaches a different, much
+                smaller set of people (about 2% of AFC have a number), and unlike in-app and email
+                every message costs money, so it is an explicit extra tick rather than something
+                an admin lands on by picking "all channels".
+                The count beside it is the REAL reach for THIS audience, from the preview, so
+                nobody sends to 6,000 people believing WhatsApp went to all of them. */}
+            <label className="mt-1 flex items-start gap-2.5">
+              <Checkbox
+                checked={alsoWhatsapp}
+                onCheckedChange={(v) => setAlsoWhatsapp(v === true)}
+                disabled={!preview || whatsappBlocked || whatsappCount === 0}
+                className="mt-0.5"
+              />
+              <span className="text-sm leading-snug">
+                <span className="font-medium">{t("compose.alsoWhatsapp")}</span>
+                <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                  {!preview
+                    ? t("compose.whatsappNeedsPreview")
+                    : whatsappBlocked
+                      ? preview?.whatsapp_volume?.message ||
+                        t("compose.whatsappBlocked", { max: whatsappMax ?? 0 })
+                      : whatsappCount === 0
+                        ? t("compose.whatsappNobody")
+                        : t("compose.whatsappReach", {
+                            count: whatsappCount,
+                            total: preview.recipient_count,
+                          })}
+                </span>
+              </span>
+            </label>
           </div>
 
           {/* Optional deep link, same control as the other admin composers. */}
@@ -658,12 +719,18 @@ export function AudienceBuilder() {
               <AlertDialogDescription>
                 {t("send.confirmBody", {
                   count: preview?.recipient_count ?? 0,
+                  // The confirm dialog is the last thing read before an irreversible send, so it
+                  // must name WhatsApp when WhatsApp is going out - and its own, smaller reach,
+                  // because the big number beside it is the in-app one.
                   channel:
-                    delivery === "push"
+                    (delivery === "push"
                       ? t("compose.deliveryPush")
                       : delivery === "email"
                         ? t("compose.deliveryEmail")
-                        : t("compose.deliveryBoth"),
+                        : t("compose.deliveryBoth")) +
+                    (alsoWhatsapp
+                      ? t("compose.plusWhatsapp", { count: whatsappCount })
+                      : ""),
                 })}
                 {wantsEmail && preview && preview.email_volume.level !== "ok" && (
                   <span className="mt-2 block text-amber-600">

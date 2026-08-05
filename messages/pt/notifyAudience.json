@@ -51,7 +51,13 @@
     "deliveryPush": "Notificação na aplicação",
     "deliveryEmail": "E-mail",
     "deliveryBoth": "Notificação na aplicação e e-mail",
-    "emailUnavailable": "O e-mail não está disponível para uma audiência desta dimensão. Envia uma notificação na aplicação, ou reduz a audiência."
+    "emailUnavailable": "O e-mail não está disponível para uma audiência desta dimensão. Envia uma notificação na aplicação, ou reduz a audiência.",
+    "alsoWhatsapp": "Enviar tambem por WhatsApp",
+    "whatsappNeedsPreview": "Escolha primeiro um publico para ver quantas pessoas podem ser alcancadas no WhatsApp.",
+    "whatsappReach": "{count} destas {total} pessoas tem numero de WhatsApp. As restantes continuam a receber os outros canais.",
+    "whatsappNobody": "Ninguem neste publico adicionou um numero de WhatsApp.",
+    "whatsappBlocked": "Pessoas a mais para um unico envio de WhatsApp. O limite e de {max} por difusao.",
+    "plusWhatsapp": ", mais WhatsApp para {count}"
   },
   "send": {
     "button": "Enviar",

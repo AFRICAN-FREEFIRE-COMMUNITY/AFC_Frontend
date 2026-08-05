@@ -88,6 +88,19 @@ export type AudienceRecipient = {
   language: string;
 };
 
+/** WhatsApp verdict (afc_auth/broadcast_whatsapp.py :: whatsapp_volume_assessment).
+ *
+ *  Shaped like EmailVolume but judged on a different rule: WhatsApp is capped per SEND
+ *  (WHATSAPP_BROADCAST_MAX_RECIPIENTS, 500 by default) rather than throttled per minute, because
+ *  every template message costs money and Meta rates a number on how people react to it. */
+export type WhatsappVolume = {
+  level: "ok" | "blocked";
+  max_recipients: number;
+  blocked: boolean;
+  /** Ready-to-render sentence, shown verbatim so the warning cannot drift from the rule. */
+  message: string;
+};
+
 export type AudiencePreview = {
   /** In-app reach. THIS is the number the admin confirms. */
   recipient_count: number;
@@ -95,6 +108,11 @@ export type AudiencePreview = {
   email_recipient_count: number;
   push_recipient_count: number;
   email_volume: EmailVolume;
+  /** Of the audience, how many have a WhatsApp number AND have not opted out. Usually far
+   *  smaller than recipient_count - about 2% of AFC had a number in August 2026 - which is why
+   *  the composer shows this next to the checkbox rather than letting an admin assume parity. */
+  whatsapp_recipient_count?: number;
+  whatsapp_volume?: WhatsappVolume;
   /** The channel the composer should default to for this size ("push" for large audiences). */
   recommended_delivery: "push" | "both";
   sample: AudienceRecipient[];
