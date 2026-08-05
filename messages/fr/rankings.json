@@ -782,6 +782,12 @@
         "defaultTier": "Niveau par défaut",
         "defaultTierSub": "Quand aucune règle ne correspond"
       },
+      "issues": {
+        "title": "Certaines règles méritent un second regard",
+        "summary": "{count, plural, one {# avertissement} other {# avertissements}}. Rien n'est bloqué et vos règles s'enregistrent quand même. La cause habituelle est une règle qui ne peut jamais se déclencher, parce qu'une règle placée au-dessus correspond déjà à tous les événements qu'elle aurait sélectionnés.",
+        "savedNote": "Ces avertissements décrivent les règles telles qu'elles ont été enregistrées. Enregistrez pour vérifier les modifications affichées à l'écran.",
+        "warningCount": "{count, plural, one {# avertissement} other {# avertissements}}"
+      },
       "test": {
         "title": "Tester un tournoi",
         "blurb": "Saisissez les détails d'un événement type pour voir quelle règle se déclenche et le niveau obtenu.",

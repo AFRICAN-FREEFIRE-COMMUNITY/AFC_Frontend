@@ -38,13 +38,20 @@ import {
 } from "@/components/ui/dialog";
 import {
   IconStack2, IconGripVertical, IconPlus, IconX, IconTrash, IconArrowRight,
-  IconDeviceFloppy, IconInfoCircle, IconFlask, IconRestore,
+  IconDeviceFloppy, IconInfoCircle, IconFlask, IconRestore, IconAlertTriangle,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { FullLoader } from "@/components/Loader";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { InfoTip } from "@/components/ui/info-tip";
+// Backend-reported problems are rendered with the SAME primitives the Scoring Config editor
+// uses (orange pill in the header, orange message row under it). Both pages report the output
+// of the same checker - afc_rankings/scoring/validation.py - so they must not grow two
+// different ways of saying "the server thinks this config does not do what it looks like".
+import {
+  IssueCount, IssueList, issuesAt, issuesUnder, toIssues, type Issue,
+} from "../scoring-config/_components/editor-primitives";
 
 /**
  * Tournament Tiers - wired to the Phase-2 admin API (afc_rankings/admin_tournament_tiers.py).
@@ -62,6 +69,10 @@ import { InfoTip } from "@/components/ui/info-tip";
  * Server rule.id is an integer; we keep a local string id for DnD/React keys and carry the
  * server id alongside (serverId). Conditions come back as {field, op, value} with no id - we
  * mint a local numeric id per condition for stable React keys / edit targeting.
+ *
+ * Contradictions: the list response AND every write response carry a `contradictions` array
+ * (see the CONTRADICTIONS note in admin_tournament_tiers.py). They are advisory - the backend
+ * saves either way - so they surface as a banner plus a per-rule marker, never as a blocker.
  */
 
 type Tier = 1 | 2 | 3;
@@ -105,6 +116,14 @@ const FORMAT_OPS: { value: Op; labelKey: string }[] = [
 ];
 const isNumeric = (f: Field) => f !== "format";
 const ngn = (n: number) => "₦" + n.toLocaleString();
+
+// Where the backend hangs a tier-rule contradiction. afc_rankings/scoring/validation.py
+// addresses a problem either at the whole list ("event_tier_rules", used for a prize range no
+// rule covers) or at ONE rule ("event_tier_rules[<EventTierRule.id>]", used for a rule that can
+// never fire and for a rule still awarding a retired tier). Those two strings are the contract
+// this page reads, so they are written once here rather than inline at each render site.
+const ISSUES_ROOT = "event_tier_rules";
+const rulePath = (serverId: number) => `${ISSUES_ROOT}[${serverId}]`;
 
 let CID = 100;
 const cid = () => ++CID;
@@ -199,9 +218,12 @@ function StatCard({ icon, title, value, sub, tone, anchor }: {
 
 /* ----------------------------------------------------- one sortable rule card */
 function SortableRule({
-  rule, index, matchedInTest, onChange, onDelete,
+  rule, index, matchedInTest, issues, onChange, onDelete,
 }: {
   rule: Rule; index: number; matchedInTest: boolean;
+  // The backend's warnings about THIS rule. Passed down already filtered so the card does not
+  // need to know how a contradiction path is spelled.
+  issues: Issue[];
   onChange: (next: Rule) => void; onDelete: () => void;
 }) {
   const t = useTranslations("rankings.admin.tournamentTiers");
@@ -232,6 +254,9 @@ function SortableRule({
         "rounded-md border bg-card",
         isDragging && "z-10 opacity-80 shadow-lg",
         matchedInTest && "ring-1 ring-primary/60",
+        // The whole card is tinted, not just the pill: a flagged rule has to be findable while
+        // scrolling a long list, which is the part a banner alone cannot do.
+        issues.length > 0 && "border-orange-500/40",
         !rule.enabled && "opacity-60",
       )}
     >
@@ -272,6 +297,15 @@ function SortableRule({
           </Badge>
         )}
 
+        {/* Warning pill, identical to the Scoring Config group headers. `errorLabel` is empty
+            because no error can reach this page: the tier endpoints only ever return
+            contradictions, so IssueCount's error branch never renders here. */}
+        <IssueCount
+          issues={issues}
+          errorLabel=""
+          warningLabel={t("issues.warningCount", { count: issues.length })}
+        />
+
         <div className="ml-auto flex items-center gap-2">
           <Switch checked={rule.enabled} onCheckedChange={(v) => onChange({ ...rule, enabled: v })} aria-label={t("a11y.ruleEnabled")} />
           <Button
@@ -286,6 +320,11 @@ function SortableRule({
 
       {/* conditions + result */}
       <div className="space-y-2 px-3 py-3">
+        {/* The backend's own sentence, verbatim - it already names the rule that shadows this
+            one, which is the only thing the admin needs in order to act. Renders nothing when
+            the rule is clean. */}
+        <IssueList issues={issues} />
+
         {rule.conditions.map((c, ci) => (
           <div key={c.id} className="flex flex-wrap items-center gap-2">
             <span className="w-10 text-[11px] uppercase text-muted-foreground">
@@ -362,6 +401,9 @@ export default function TournamentTiersPage() {
   const [dirty, setDirty] = useState(false);
   const [saveOpen, setSaveOpen] = useState(false);
   const [reason, setReason] = useState("");
+  // Contradictions the backend computed for the SAVED rule set. Always warning severity here:
+  // the tier endpoints report, they never refuse (admin_tournament_tiers.py, CONTRADICTIONS).
+  const [issues, setIssues] = useState<Issue[]>([]);
 
   // The last server snapshot - used to diff on save (what to create/update/delete/reorder)
   // and to revert on Reset. Holds the priority-ordered server rules + the server default tier.
@@ -385,6 +427,8 @@ export default function TournamentTiersPage() {
       const dt = ([1, 2, 3].includes(res?.default_tier) ? res.default_tier : 3) as Tier;
       setRules(loaded);
       setDefaultTier(dt);
+      // Set from the response rather than merged, so a fixed rule clears its warning.
+      setIssues(toIssues([], res?.contradictions));
       // deep-clone for the diff/revert baseline so later edits don't mutate the snapshot
       snapshotRef.current = {
         rules: loaded.map((r) => ({ ...r, conditions: r.conditions.map((c) => ({ ...c })) })),
@@ -400,6 +444,18 @@ export default function TournamentTiersPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  /**
+   * Refresh the warnings from any response that carries them.
+   *
+   * Every tier-rule write (create / update / retire / reorder / default tier) returns the
+   * freshly recomputed `contradictions`, so the banner follows each write as it lands instead
+   * of waiting for the next page load. A response without the key leaves the banner alone: a
+   * failure mid-batch must not read as "all clear".
+   */
+  const absorbContradictions = (res: any) => {
+    if (Array.isArray(res?.contradictions)) setIssues(toIssues([], res.contradictions));
+  };
 
   // ── live classifier (server dry-run, debounced) ───────────────────────────
   useEffect(() => {
@@ -458,33 +514,36 @@ export default function TournamentTiersPage() {
       const snapById = new Map(snap.rules.filter((r) => r.serverId != null).map((r) => [r.serverId as number, r]));
       const liveServerIds = new Set(rules.filter((r) => r.serverId != null).map((r) => r.serverId as number));
 
+      // Each write echoes the recomputed contradictions; absorbing them keeps the warnings
+      // current step by step, so a batch that fails halfway still leaves an honest banner.
       // 1) DELETE - rules that existed on the server but were removed locally
       for (const old of snap.rules) {
         if (old.serverId != null && !liveServerIds.has(old.serverId)) {
-          await rankingsAdminApi.deleteTierRule(old.serverId, { reason: auditReason });
+          absorbContradictions(await rankingsAdminApi.deleteTierRule(old.serverId, { reason: auditReason }));
         }
       }
 
       // 2) UPDATE existing rules whose content changed; CREATE new (unsaved) rules.
       for (const r of rules) {
         if (r.serverId == null) {
-          await rankingsAdminApi.createTierRule({ ...toWritePayload(r), reason: auditReason });
+          absorbContradictions(await rankingsAdminApi.createTierRule({ ...toWritePayload(r), reason: auditReason }));
         } else {
           const prev = snapById.get(r.serverId);
           if (!prev || ruleSignature(prev) !== ruleSignature(r)) {
-            await rankingsAdminApi.updateTierRule(r.serverId, { ...toWritePayload(r), reason: auditReason });
+            absorbContradictions(await rankingsAdminApi.updateTierRule(r.serverId, { ...toWritePayload(r), reason: auditReason }));
           }
         }
       }
 
       // 3) DEFAULT TIER - only if changed.
       if (defaultTier !== snap.defaultTier) {
-        await rankingsAdminApi.updateTierConfig({ default_tier: defaultTier, reason: auditReason });
+        absorbContradictions(await rankingsAdminApi.updateTierConfig({ default_tier: defaultTier, reason: auditReason }));
       }
 
       // 4) REORDER - re-fetch first to learn the ids of any rules we just created, then send
       //    the full priority order matching the current on-screen sequence.
       const fresh = await rankingsAdminApi.tierRules();
+      absorbContradictions(fresh);
       const freshRules: Rule[] = (fresh?.results ?? []).map(fromServerRule);
       if (freshRules.length > 1) {
         // Build the desired order from the on-screen list, matching freshly-created rules by
@@ -516,7 +575,9 @@ export default function TournamentTiersPage() {
         const orderChanged = desiredOrder.length === currentOrder.length
           && desiredOrder.some((v, i) => v !== currentOrder[i]);
         if (orderChanged) {
-          await rankingsAdminApi.reorderTierRules({ order: desiredOrder, reason: auditReason });
+          // Reordering is the write most likely to CREATE or CLEAR an unreachable rule, since
+          // shadowing depends entirely on which rule is checked first.
+          absorbContradictions(await rankingsAdminApi.reorderTierRules({ order: desiredOrder, reason: auditReason }));
         }
       }
 
@@ -593,6 +654,25 @@ export default function TournamentTiersPage() {
         </span>
       </div>
 
+      {/* Contradiction banner. WARNING ONLY, never a blocker: the backend saves either way, and
+          an admin mid-edit can legitimately have two overlapping rules on screen for a moment.
+          It summarises, then defers - a problem belonging to one rule is printed on that rule's
+          card instead of here, so nobody has to count rows to find it. */}
+      {issues.length > 0 && (
+        <div className="flex items-start gap-2 rounded-md border border-orange-500/40 bg-orange-500/5 p-3">
+          <IconAlertTriangle className="mt-0.5 size-4 shrink-0 text-orange-400" />
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="text-sm font-semibold text-orange-300">{t("issues.title")}</p>
+            <p className="text-xs text-muted-foreground">{t("issues.summary", { count: issues.length })}</p>
+            {/* The warnings describe what is SAVED. Say so while there are unsaved edits, or a
+                stale banner reads as a verdict on what is currently on screen. */}
+            {dirty && <p className="text-xs text-muted-foreground">{t("issues.savedNote")}</p>}
+            {/* List-level problems only (a prize range no rule covers); these belong to no row. */}
+            <IssueList className="pt-1" issues={issuesAt(issues, ISSUES_ROOT)} />
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* rules list
             data-tour anchor: tournament-tiers tour "Tier rules" step. Anchors the stable
@@ -619,6 +699,9 @@ export default function TournamentTiersPage() {
                       rule={r}
                       index={i}
                       matchedInTest={result.ruleId === r.id}
+                      // Warnings are addressed by SERVER id, so a rule added on screen and not
+                      // yet saved has none: the backend has not seen it to judge it.
+                      issues={r.serverId == null ? [] : issuesUnder(issues, rulePath(r.serverId))}
                       onChange={(next) => mutate(rules.map((x) => (x.id === r.id ? next : x)))}
                       onDelete={() => mutate(rules.filter((x) => x.id !== r.id))}
                     />

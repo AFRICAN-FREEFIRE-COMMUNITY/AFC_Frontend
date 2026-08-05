@@ -782,6 +782,12 @@
         "defaultTier": "Nível predefinido",
         "defaultTierSub": "Quando nenhuma regra corresponde"
       },
+      "issues": {
+        "title": "Algumas regras merecem uma segunda análise",
+        "summary": "{count, plural, one {# aviso} other {# avisos}}. Nada fica bloqueado e as suas regras continuam a ser guardadas. A causa habitual é uma regra que nunca pode ser acionada, porque uma regra acima dela já corresponde a todos os eventos que ela teria selecionado.",
+        "savedNote": "Estes avisos descrevem as regras tal como foram guardadas. Guarde para verificar as alterações que tem no ecrã.",
+        "warningCount": "{count, plural, one {# aviso} other {# avisos}}"
+      },
       "test": {
         "title": "Testar um torneio",
         "blurb": "Introduza os dados de um evento de exemplo para ver que regra é acionada e o nível que receberia.",

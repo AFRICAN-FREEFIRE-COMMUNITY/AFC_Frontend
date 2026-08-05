@@ -782,6 +782,12 @@
         "defaultTier": "Default tier",
         "defaultTierSub": "When no rule matches"
       },
+      "issues": {
+        "title": "Some rules need a second look",
+        "summary": "{count, plural, one {# warning} other {# warnings}}. Nothing is blocked and your rules still save. The usual cause is a rule that can never fire, because a rule above it already matches every event it would have matched.",
+        "savedNote": "These warnings describe the rules as last saved. Save to check the edits you have on screen.",
+        "warningCount": "{count, plural, one {# warning} other {# warnings}}"
+      },
       "test": {
         "title": "Test a tournament",
         "blurb": "Enter sample event details to see which rule fires and the tier it would get.",
