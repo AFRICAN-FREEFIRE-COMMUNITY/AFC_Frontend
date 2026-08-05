@@ -18,6 +18,9 @@ import { Loader } from "@/components/Loader";
 import { Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IconUserMinus } from "@tabler/icons-react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useTranslations } from "next-intl";
 
 export const DisqualifyModal = ({
   competitor_id,
@@ -40,7 +43,11 @@ export const DisqualifyModal = ({
   isTeam?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
   const [pending, startTransition] = useTransition();
+  // Shared admin + organizer surface, so the copy lives in the events namespace beside the rest
+  // of the event-management strings.
+  const t = useTranslations("evEditTabs");
   const { token } = useAuth();
   const router = useRouter();
 
@@ -51,9 +58,15 @@ export const DisqualifyModal = ({
           isTeam
             ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/disqualify-team/`
             : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/disqualify-registered-competitor/`,
+          // The reason goes to BOTH endpoints. It is shown to the disqualified competitor, and
+          // the backend refuses a blank one, so this is not decoration.
           isTeam
-            ? { event_id: event_id, team_id: competitor_id }
-            : { competitor_id: competitor_id, event_id: event_id },
+            ? { event_id: event_id, team_id: competitor_id, reason: reason.trim() }
+            : {
+                competitor_id: competitor_id,
+                event_id: event_id,
+                reason: reason.trim(),
+              },
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -61,8 +74,9 @@ export const DisqualifyModal = ({
           },
         );
 
-        toast.success(res.data.message || "Disqualified successfully");
+        toast.success(res.data.message || t("disqualify.toastDone"));
         setOpen(false);
+        setReason("");
 
         if (redirectTo) {
           router.push(redirectTo);
@@ -70,7 +84,7 @@ export const DisqualifyModal = ({
           onSuccess?.();
         }
       } catch (e: any) {
-        toast.error(e.response?.data?.message || "Failed to disqualify");
+        toast.error(e.response?.data?.message || t("disqualify.toastFailed"));
       }
     });
   };
@@ -81,7 +95,7 @@ export const DisqualifyModal = ({
         <Button variant="destructive" size="sm">
           <IconUserMinus />
 
-          {showLabel && <span>Disqualify</span>}
+          {showLabel && <span>{t("disqualify.trigger")}</span>}
         </Button>
       </DialogTrigger>
 
@@ -91,10 +105,33 @@ export const DisqualifyModal = ({
             <AlertTriangle className="h-7 w-7 text-red-600" />
           </div>
 
-          <DialogTitle className="text-xl">Disqualify competitor</DialogTitle>
+          <DialogTitle className="text-xl">{t("disqualify.title")}</DialogTitle>
           <DialogDescription className="mt-2 text-base">
-            Are you sure you want to disqualify <b>"{name}"</b>?
+            {t.rich("disqualify.confirm", {
+              name: () => <b>{name}</b>,
+            })}
           </DialogDescription>
+
+          {/* REQUIRED (owner backlog item 35). The competitor is shown this sentence, so it is
+              the difference between "you are out" and "you are out, and here is why". Left
+              aligned inside a centred dialog because it is prose being typed, not a heading. */}
+          <div className="mt-5 flex flex-col gap-2 text-left">
+            <Label htmlFor="dq-reason">
+              {t("disqualify.reasonLabel")}{" "}
+              <span className="text-destructive">*</span>
+            </Label>
+            <Textarea
+              id="dq-reason"
+              rows={3}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder={t("disqualify.reasonPlaceholder")}
+            />
+            <p className="text-muted-foreground text-xs">
+              {t("disqualify.reasonHint")}
+            </p>
+          </div>
+
           <div className="flex gap-3 mt-6">
             <Button
               variant="outline"
@@ -102,19 +139,21 @@ export const DisqualifyModal = ({
               disabled={pending}
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("disqualify.cancel")}
             </Button>
             <Button
               variant="destructive"
               className="flex-1"
               onClick={handleDelete}
-              disabled={pending}
+              // Blocked until a reason is typed. The backend refuses a blank one anyway; stopping
+              // it here means the organizer is not told off after the fact.
+              disabled={pending || !reason.trim()}
             >
               {pending ? (
-                <Loader text="Disqualifying..." />
+                <Loader text={t("disqualify.pending")} />
               ) : (
                 <>
-                  <Trash2 className="h-4 w-4 mr-2" /> Disqalify
+                  <Trash2 className="h-4 w-4 mr-2" /> {t("disqualify.confirmButton")}
                 </>
               )}
             </Button>

@@ -538,5 +538,18 @@
     "moveTitle": "Move {name}",
     "moveChooseGroup": "Choose the group to move this team into.",
     "cancel": "Cancel"
+  },
+  "disqualify": {
+    "trigger": "Disqualify",
+    "title": "Disqualify competitor",
+    "confirm": "Are you sure you want to disqualify <name></name>?",
+    "reasonLabel": "Reason",
+    "reasonPlaceholder": "For example: played with an account not registered on AFC.",
+    "reasonHint": "The competitor is shown this, so say enough that they understand the decision.",
+    "cancel": "Cancel",
+    "confirmButton": "Disqualify",
+    "pending": "Disqualifying...",
+    "toastDone": "Disqualified.",
+    "toastFailed": "Could not disqualify."
   }
 }

@@ -538,5 +538,18 @@
     "moveTitle": "Mover {name}",
     "moveChooseGroup": "Escolha o grupo para o qual pretende transferir esta equipa.",
     "cancel": "Cancelar"
+  },
+  "disqualify": {
+    "trigger": "Desqualificar",
+    "title": "Desqualificar concorrente",
+    "confirm": "Tem a certeza de que quer desqualificar <name></name>?",
+    "reasonLabel": "Motivo",
+    "reasonPlaceholder": "Por exemplo: jogou com uma conta não registada na AFC.",
+    "reasonHint": "O concorrente vê este texto, por isso escreva o suficiente para que perceba a decisão.",
+    "cancel": "Cancelar",
+    "confirmButton": "Desqualificar",
+    "pending": "A desqualificar...",
+    "toastDone": "Desqualificado.",
+    "toastFailed": "Não foi possível desqualificar."
   }
 }

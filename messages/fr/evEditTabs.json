@@ -538,5 +538,18 @@
     "moveTitle": "Déplacer {name}",
     "moveChooseGroup": "Sélectionnez le groupe dans lequel vous souhaitez déplacer cette équipe.",
     "cancel": "Annuler"
+  },
+  "disqualify": {
+    "trigger": "Disqualifier",
+    "title": "Disqualifier le concurrent",
+    "confirm": "Voulez-vous vraiment disqualifier <name></name> ?",
+    "reasonLabel": "Motif",
+    "reasonPlaceholder": "Par exemple : a joué avec un compte non enregistré sur AFC.",
+    "reasonHint": "Le concurrent voit ce texte, soyez donc assez clair pour qu'il comprenne la décision.",
+    "cancel": "Annuler",
+    "confirmButton": "Disqualifier",
+    "pending": "Disqualification...",
+    "toastDone": "Disqualifié.",
+    "toastFailed": "Impossible de disqualifier."
   }
 }
