@@ -493,7 +493,18 @@
     "seedNow": "Répartir les équipes disponibles maintenant",
     "seedNowHelp": "Lance immédiatement la même répartition (uniquement si la phase d'entrée n'a pas déjà été répartie).",
     "toastSeeded": "Les équipes ont été réparties dans les groupes.",
-    "toastSeedFailed": "Impossible d'effectuer la répartition automatique."
+    "toastSeedFailed": "Impossible d'effectuer la répartition automatique.",
+    "triggerLabel": "Quand le tirage a lieu",
+    "trigger": {
+      "event_start": "Au début de l'événement",
+      "registration_close": "À la fermeture des inscriptions",
+      "checkin_close": "À la fermeture du pointage"
+    },
+    "triggerHelp": {
+      "event_start": "Les équipes sont réparties dans les groupes dès que votre heure de début est passée.",
+      "registration_close": "Réparties dès la fermeture des inscriptions, ce qui vous laisse le temps de regarder les groupes avant le début.",
+      "checkin_close": "Réparties après la fin du pointage, donc les équipes absentes sont déjà écartées. Revient à l'heure de début si le pointage est désactivé."
+    }
   },
   "checkin": {
     "title": "Enregistrement",

@@ -18,35 +18,67 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { IconLoader2, IconWand } from "@tabler/icons-react";
+
+// The three moments an organizer can pick. Kept in the SAME order the backend declares them
+// (Event.AUTO_SEED_TRIGGER_CHOICES) so the two lists cannot drift into disagreeing about what is
+// offered. The value strings ARE the stored values; the labels come from the message catalog.
+const TRIGGERS = ["event_start", "registration_close", "checkin_close"] as const;
 
 export default function AutoSeedCard({
   eventId,
   initialEnabled,
+  initialTrigger,
 }: {
   eventId?: number;
   initialEnabled?: boolean;
+  /** Event.auto_seed_trigger. Absent means the backend default, which is the event start and is
+   *  what this feature did before the choice existed. */
+  initialTrigger?: string;
 }) {
   // Shared admin + organizer edit-flow card -> keys live in evEditTabs.autoSeed (en/fr/pt).
   const t = useTranslations("evEditTabs");
   const [enabled, setEnabled] = useState(!!initialEnabled);
+  const [trigger, setTrigger] = useState(initialTrigger || "event_start");
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const authHeaders = () => ({ Authorization: `Bearer ${Cookies.get("auth_token")}` });
   const base = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events`;
 
-  const save = async (next: boolean) => {
+  // One saver for both controls, because they are one setting: the switch says whether the draw
+  // happens and the picker says when. Each caller passes only what IT changed, and the other value
+  // comes from state, so flipping the switch cannot silently reset the trigger.
+  const save = async ({ nextEnabled, nextTrigger }: {
+    nextEnabled?: boolean;
+    nextTrigger?: string;
+  }) => {
     if (!eventId) return;
-    setEnabled(next);
+    const wasEnabled = enabled;
+    const wasTrigger = trigger;
+    const enabledValue = nextEnabled ?? enabled;
+    const triggerValue = nextTrigger ?? trigger;
+    setEnabled(enabledValue);
+    setTrigger(triggerValue);
     setSaving(true);
     try {
       const fd = new FormData();
       fd.append("event_id", String(eventId));
-      fd.append("auto_seed_on_start", next ? "True" : "False");
+      fd.append("auto_seed_on_start", enabledValue ? "True" : "False");
+      fd.append("auto_seed_trigger", triggerValue);
       await axios.post(`${base}/edit-event/`, fd, { headers: authHeaders() });
-      toast.success(next ? t("autoSeed.toastOn") : t("autoSeed.toastOff"));
+      toast.success(enabledValue ? t("autoSeed.toastOn") : t("autoSeed.toastOff"));
     } catch (err: any) {
-      setEnabled(!next); // revert on failure
+      // Put BOTH back, not just the one that was clicked: the request carried both values, so on
+      // failure neither of them landed.
+      setEnabled(wasEnabled);
+      setTrigger(wasTrigger);
       toast.error(err?.response?.data?.message || t("autoSeed.toastSaveFailed"));
     } finally {
       setSaving(false);
@@ -79,8 +111,42 @@ export default function AutoSeedCard({
         </p>
         <div className="flex items-center justify-between rounded-md border p-3">
           <Label htmlFor="auto-seed" className="text-sm">{t("autoSeed.toggleLabel")}</Label>
-          <Switch id="auto-seed" checked={enabled} onCheckedChange={save} disabled={saving} />
+          <Switch
+            id="auto-seed"
+            checked={enabled}
+            onCheckedChange={(v) => save({ nextEnabled: v })}
+            disabled={saving}
+          />
         </div>
+
+        {/* WHEN it fires. Shown only while the draw is on, because a moment for something that
+            does not happen is a question with no consequence. */}
+        {enabled && (
+          <div className="flex flex-col gap-2 rounded-md border p-3">
+            <Label htmlFor="auto-seed-trigger" className="text-sm">
+              {t("autoSeed.triggerLabel")}
+            </Label>
+            <Select
+              value={trigger}
+              onValueChange={(v) => save({ nextTrigger: v })}
+              disabled={saving}
+            >
+              <SelectTrigger id="auto-seed-trigger" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TRIGGERS.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {t(`autoSeed.trigger.${value}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">
+              {t(`autoSeed.triggerHelp.${trigger}`)}
+            </p>
+          </div>
+        )}
         <div>
           <Button size="sm" variant="outline" onClick={seedNow} disabled={seeding}>
             {seeding ? <IconLoader2 className="mr-1 size-4 animate-spin" /> : <IconWand className="mr-1 size-4" />}

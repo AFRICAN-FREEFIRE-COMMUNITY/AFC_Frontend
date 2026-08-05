@@ -493,7 +493,18 @@
     "seedNow": "Equipas classificadas disponíveis agora",
     "seedNowHelp": "Executa imediatamente a mesma semente (apenas se a fase de entrada ainda não tiver sido inicializada).",
     "toastSeeded": "As equipas foram distribuídas pelos grupos.",
-    "toastSeedFailed": "Não foi possível efetuar a sementeira automática."
+    "toastSeedFailed": "Não foi possível efetuar a sementeira automática.",
+    "triggerLabel": "Quando acontece o sorteio",
+    "trigger": {
+      "event_start": "Quando o evento começa",
+      "registration_close": "Quando as inscrições fecham",
+      "checkin_close": "Quando o check-in fecha"
+    },
+    "triggerHelp": {
+      "event_start": "As equipas são distribuídas pelos grupos assim que passar a hora de início.",
+      "registration_close": "Distribuídas assim que as inscrições fecham, para poder ver os grupos antes de o evento começar.",
+      "checkin_close": "Distribuídas depois de o check-in terminar, por isso as equipas que não apareceram já ficam de fora. Usa a hora de início se o check-in estiver desativado."
+    }
   },
   "checkin": {
     "title": "Check-in",

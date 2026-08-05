@@ -493,7 +493,18 @@
     "seedNow": "Seed available teams now",
     "seedNowHelp": "Runs the same seed immediately (only if the entry stage isn't already seeded).",
     "toastSeeded": "Teams seeded into groups.",
-    "toastSeedFailed": "Could not auto-seed."
+    "toastSeedFailed": "Could not auto-seed.",
+    "triggerLabel": "When the draw happens",
+    "trigger": {
+      "event_start": "When the event starts",
+      "registration_close": "When registration closes",
+      "checkin_close": "When check-in closes"
+    },
+    "triggerHelp": {
+      "event_start": "The teams are drawn into groups the moment your start time passes.",
+      "registration_close": "Drawn as soon as registration shuts, so you can look over the groups before the event begins.",
+      "checkin_close": "Drawn after check-in ends, so teams that never turned up are already out. Falls back to the start time if check-in is off."
+    }
   },
   "checkin": {
     "title": "Check-in",

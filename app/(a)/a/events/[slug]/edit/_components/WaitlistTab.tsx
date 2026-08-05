@@ -393,7 +393,11 @@ export default function WaitlistTab({
       <CheckinSettingsCard eventId={eventId} />
 
       {/* Fully-automatic event (owner 2026-07-04): auto-seed available teams into groups at start. */}
-      <AutoSeedCard eventId={eventId} initialEnabled={(eventDetails as any)?.auto_seed_on_start} />
+      <AutoSeedCard
+        eventId={eventId}
+        initialEnabled={(eventDetails as any)?.auto_seed_on_start}
+        initialTrigger={(eventDetails as any)?.auto_seed_trigger}
+      />
     </div>
   );
 }
