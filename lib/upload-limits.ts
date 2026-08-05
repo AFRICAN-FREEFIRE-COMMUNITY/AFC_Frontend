@@ -30,15 +30,42 @@
 // (too large / offline / server fault) instead of one catch-all.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Keep IN SYNC with nginx's `client_max_body_size` on the API host. The server value must
-// stay comfortably ABOVE this one, because the multipart body is the file PLUS every other
-// form field - a limit set exactly equal to the server's would let a 10MB banner fail on
-// the few KB of event fields travelling with it.
-export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB per file
+// Keep IN SYNC with nginx's `client_max_body_size` on the API host
+// (/etc/nginx/sites-available/django_app line 11). The server value must stay comfortably
+// ABOVE this one, because the multipart body is the file PLUS every other form field - a
+// limit set exactly equal to the server's would let a max-size banner fail on the few KB of
+// event fields travelling with it.
+//
+// 2026-08-05: nginx raised 10M -> 25M so organizers could upload bigger banners and logos,
+// and this per-FILE limit raised to 20MB to match (owner's call). Verified against
+// production after the reload: 11/15/20MB now reach Django, 30/40MB are still refused, so
+// the ceiling moved without disappearing. Note nginx's "25M" is 25 MiB = 26,214,400 bytes,
+// which leaves ~6MB of headroom above this limit for the rest of the form.
+//
+// RAISING THIS ALONE IS NOT ENOUGH - nginx has to be raised first, or the browser gets a
+// CORS-less 413 it cannot read and the user is back to an unexplainable failure.
+export const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20 MB per file
 
-export function formatBytes(bytes: number): string {
-  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+export function formatBytes(bytes: number, decimals = 1): string {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(decimals)} MB`;
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+/**
+ * Format a size against the limit so the two never PRINT as the same number.
+ *
+ * A file of 21,000,000 bytes is 20.03MB, which at one decimal renders as "20.0 MB" - the
+ * same string as the 20MB limit, giving "is 20.0 MB, which is over the 20.0 MB limit". That
+ * reads as a bug to whoever hits it, and this module exists precisely to stop confusing
+ * upload messages. Add decimals until the two differ, capped so we never print a wall of
+ * digits at somebody.
+ */
+function formatAgainstLimit(bytes: number): string {
+  for (let decimals = 1; decimals <= 3; decimals++) {
+    const size = formatBytes(bytes, decimals);
+    if (size !== formatBytes(MAX_UPLOAD_BYTES, decimals)) return size;
+  }
+  return formatBytes(bytes, 3);
 }
 
 /**
@@ -51,7 +78,7 @@ export function formatBytes(bytes: number): string {
 export function checkUploadSize(file: File | null | undefined, label: string): string | null {
   if (!file) return null;
   if (file.size <= MAX_UPLOAD_BYTES) return null;
-  return `${label} is ${formatBytes(file.size)}, which is over the ${formatBytes(
+  return `${label} is ${formatAgainstLimit(file.size)}, which is over the ${formatBytes(
     MAX_UPLOAD_BYTES,
   )} limit. Please compress it or pick a smaller file and try again.`;
 }
@@ -76,7 +103,7 @@ export function describeSubmitFailure(files: Array<File | null | undefined> = []
     return "You appear to be offline. Check your connection and try again - nothing was saved.";
   }
   if (biggest && biggest.size > MAX_UPLOAD_BYTES) {
-    return `The upload was rejected because ${biggest.name || "a file"} is ${formatBytes(
+    return `The upload was rejected because ${biggest.name || "a file"} is ${formatAgainstLimit(
       biggest.size,
     )}, over the ${formatBytes(MAX_UPLOAD_BYTES)} limit. Pick a smaller file and try again.`;
   }
