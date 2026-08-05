@@ -261,13 +261,21 @@ export function AudienceBuilder() {
   const whatsappCount = preview?.whatsapp_recipient_count ?? 0;
   const whatsappBlocked = !!preview?.whatsapp_volume?.blocked;
   const whatsappMax = preview?.whatsapp_volume?.max_recipients;
+  // Head admins only (owner 2026-08-05). WhatsApp is charged per message - a marketing template
+  // to a Nigerian number is about 8x the price of a utility one - so the channel is a spending
+  // decision. The backend refuses it outright; this only decides whether the box is offered, and
+  // an older backend that does not send the flag is treated as allowed so the UI never hides a
+  // channel the server would have accepted.
+  const whatsappAllowed = preview?.whatsapp_allowed !== false;
 
   // Never leave the box ticked on an audience WhatsApp cannot serve: a blocked verdict (over the
   // per-send cap) or nobody in the audience with a number would otherwise send a broadcast whose
   // WhatsApp half silently reaches no one.
   useEffect(() => {
-    if (alsoWhatsapp && (whatsappBlocked || whatsappCount === 0)) setAlsoWhatsapp(false);
-  }, [alsoWhatsapp, whatsappBlocked, whatsappCount]);
+    if (alsoWhatsapp && (whatsappBlocked || whatsappCount === 0 || !whatsappAllowed)) {
+      setAlsoWhatsapp(false);
+    }
+  }, [alsoWhatsapp, whatsappBlocked, whatsappCount, whatsappAllowed]);
 
   // What actually travels to the backend: "push" / "email" / "both", with ",whatsapp" appended.
   // parse_delivery understands the comma form and delivery_token round-trips it, so the value
@@ -660,13 +668,17 @@ export function AudienceBuilder() {
               <Checkbox
                 checked={alsoWhatsapp}
                 onCheckedChange={(v) => setAlsoWhatsapp(v === true)}
-                disabled={!preview || whatsappBlocked || whatsappCount === 0}
+                disabled={
+                  !preview || !whatsappAllowed || whatsappBlocked || whatsappCount === 0
+                }
                 className="mt-0.5"
               />
               <span className="text-sm leading-snug">
                 <span className="font-medium">{t("compose.alsoWhatsapp")}</span>
                 <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                  {!preview
+                  {!whatsappAllowed
+                    ? t("compose.whatsappHeadAdminOnly")
+                    : !preview
                     ? t("compose.whatsappNeedsPreview")
                     : whatsappBlocked
                       ? preview?.whatsapp_volume?.message ||

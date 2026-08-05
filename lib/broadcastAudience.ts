@@ -113,6 +113,11 @@ export type AudiencePreview = {
    *  the composer shows this next to the checkbox rather than letting an admin assume parity. */
   whatsapp_recipient_count?: number;
   whatsapp_volume?: WhatsappVolume;
+  /** Whether THIS admin may use the WhatsApp channel. Head admins only (owner 2026-08-05):
+   *  WhatsApp is billed per message, so it is a spending control rather than an ordinary
+   *  permission. Reported by the preview so the composer can grey the option out with a reason
+   *  instead of letting somebody write a broadcast and be refused at the send. */
+  whatsapp_allowed?: boolean;
   /** The channel the composer should default to for this size ("push" for large audiences). */
   recommended_delivery: "push" | "both";
   sample: AudienceRecipient[];
