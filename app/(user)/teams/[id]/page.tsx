@@ -174,6 +174,16 @@ const Page = ({ params }: { params: Params }) => {
   const router = useRouter();
   const { openAuthModal } = useAuthModal();
   const [inviteLink, setInviteLink] = useState("");
+  // Shared invite links (owner 2026-08-05): how many people the NEXT generated link may seat, and
+  // how many the CURRENT one was minted for. 1 = the original single-use link.
+  //
+  // Declared HERE, beside the other invite state, and NOT next to rolePickerOpen further down:
+  // `freeSeats` and its useEffect read inviteMaxUses, and they sit above that point in the
+  // component. Declaring it later put the read inside the temporal dead zone and the whole team
+  // page died with "Cannot access 'inviteMaxUses' before initialization" - which the production
+  // build did NOT catch, only opening the page did.
+  const [inviteMaxUses, setInviteMaxUses] = useState(1);
+  const [inviteLinkUses, setInviteLinkUses] = useState(1);
   const [isTeamCreator, setIsTeamCreator] = useState(false);
   const [hasFullAccess, setHasFullAccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -329,6 +339,20 @@ const Page = ({ params }: { params: Params }) => {
       PLAYER_ROLES.includes(m?.management_role ?? "member"),
     ).length >= MAX_TEAM_PLAYERS;
 
+  // Seats still open on this team. Caps how many uses a shared invite link may be minted for:
+  // offering "6 uses" to a team with two places left would produce a link that stops working
+  // part way down whatever group chat it was pasted into, and read as a bug.
+  const freeSeats = Math.max(
+    0,
+    MAX_TEAM_MEMBERS - (teamDetails?.members?.length ?? 0),
+  );
+
+  // Never leave the uses picker on a number the team can no longer seat (a member can join
+  // between opening this page and opening the dialog).
+  useEffect(() => {
+    if (inviteMaxUses > freeSeats) setInviteMaxUses(Math.max(1, freeSeats));
+  }, [freeSeats, inviteMaxUses]);
+
   // Keep the invite form off an option it cannot use: once every player slot is taken, move the
   // selection to the first staff role so the picker never sits on a disabled value.
   useEffect(() => {
@@ -347,12 +371,21 @@ const Page = ({ params }: { params: Params }) => {
       try {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/generate-invite-link/`,
-          { team_id: teamDetails.team_id, role },
+          // max_uses only travels when the captain asked for a SHARED link. Sending 1 is the same
+          // as sending nothing (the backend treats both as single-use), but omitting it keeps the
+          // request identical to what this page has always sent.
+          {
+            team_id: teamDetails.team_id,
+            role,
+            ...(inviteMaxUses > 1 ? { max_uses: inviteMaxUses } : {}),
+          },
           {
             headers: { Authorization: `Bearer ${token}` },
           },
         );
         setInviteLink(response.data.invite_link);
+        // Remember what was minted so the copy row can say how many people may use it.
+        setInviteLinkUses(response.data.max_uses ?? 1);
         toast.success(t("teamDetail.inviteLinkGenerated"));
       } catch (error: any) {
         toast.error(
@@ -1722,11 +1755,20 @@ const Page = ({ params }: { params: Params }) => {
                       )}
                     </Button>
                     {inviteLink && (
-                      <div className="flex items-center space-x-2">
-                        <Input value={inviteLink} readOnly />
-                        <Button size="icon-lg" onClick={handleCopyInviteLink}>
-                          <IconCopy />
-                        </Button>
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <Input value={inviteLink} readOnly />
+                          <Button size="icon-lg" onClick={handleCopyInviteLink}>
+                            <IconCopy />
+                          </Button>
+                        </div>
+                        {/* Say what was minted. A captain who picked "4 people" needs to know
+                            this is the ONE link to share, not the first of four. */}
+                        <p className="text-xs text-muted-foreground">
+                          {inviteLinkUses > 1
+                            ? t("teamDetail.inviteLinkSharedNote", { count: inviteLinkUses })
+                            : t("teamDetail.inviteLinkSingleNote")}
+                        </p>
                       </div>
                     )}
                     <div className="flex items-center justify-center gap-2">
@@ -1908,6 +1950,41 @@ const Page = ({ params }: { params: Params }) => {
               </Button>
             ))}
           </div>
+
+          {/* ── How many people this one link may seat (owner 2026-08-05) ──────────────────
+              "a way for teams to generate links that multiple team members can use to join the
+              team and not just separate links option." Defaults to 1, which sends no max_uses
+              and mints exactly the single-use link this dialog produced before, so a captain who
+              ignores this control sees no change at all.
+              The ceiling is how many free seats the team actually has: offering "6 uses" to a
+              team with two seats left would mint a link that stops working part way through and
+              look like a bug to whoever it was shared with. */}
+          <div className="space-y-2 border-t pt-3">
+            <Label htmlFor="invite-uses">{t("teamDetail.inviteUsesLabel")}</Label>
+            <Select
+              value={String(inviteMaxUses)}
+              onValueChange={(v) => setInviteMaxUses(Number(v))}
+            >
+              <SelectTrigger id="invite-uses">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: Math.max(1, freeSeats) }, (_, i) => i + 1).map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n === 1
+                      ? t("teamDetail.inviteUsesOne")
+                      : t("teamDetail.inviteUsesMany", { count: n })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {inviteMaxUses > 1
+                ? t("teamDetail.inviteUsesHintShared", { count: inviteMaxUses })
+                : t("teamDetail.inviteUsesHintSingle")}
+            </p>
+          </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setRolePickerOpen(false)}>
               {t("teamDetail.cancel")}

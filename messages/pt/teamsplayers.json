@@ -237,7 +237,14 @@
     "loadApplicationsFailed": "Falha ao carregar aplicações do mercado de jogadores.",
     "esportImage": "Imagem de desporto eletrónico",
     "inviteAs": "Convidar como",
-    "playersFullHint": "As 6 vagas de jogador estão ocupadas. Convide esta pessoa como equipe técnica (treinador, gerente ou analista); a equipe técnica não ocupa uma vaga de jogador."
+    "playersFullHint": "As 6 vagas de jogador estão ocupadas. Convide esta pessoa como equipe técnica (treinador, gerente ou analista); a equipe técnica não ocupa uma vaga de jogador.",
+    "inviteUsesLabel": "Quantas pessoas podem usar este link",
+    "inviteUsesOne": "1 pessoa",
+    "inviteUsesMany": "{count} pessoas",
+    "inviteUsesHintSingle": "O link deixa de funcionar depois que uma pessoa entrar.",
+    "inviteUsesHintShared": "Um unico link que as proximas {count} pessoas podem usar para entrar.",
+    "inviteLinkSingleNote": "Este link funciona uma vez. Envie para uma pessoa.",
+    "inviteLinkSharedNote": "Partilhe este unico link. Ate {count} pessoas podem entrar com ele."
   },
   "roster": {
     "pageTitle": "Gerenciar Elenco: {team}",

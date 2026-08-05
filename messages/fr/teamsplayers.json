@@ -237,7 +237,14 @@
     "loadApplicationsFailed": "Échec du chargement des candidatures du marché des joueurs.",
     "esportImage": "Image liée à l'e-sport",
     "inviteAs": "Inviter comme",
-    "playersFullHint": "Les 6 places de joueur sont prises. Invitez plutôt cette personne comme membre du personnel (entraîneur, manager ou analyste) ; le personnel n'occupe pas de place de joueur."
+    "playersFullHint": "Les 6 places de joueur sont prises. Invitez plutôt cette personne comme membre du personnel (entraîneur, manager ou analyste) ; le personnel n'occupe pas de place de joueur.",
+    "inviteUsesLabel": "Combien de personnes peuvent utiliser ce lien",
+    "inviteUsesOne": "1 personne",
+    "inviteUsesMany": "{count} personnes",
+    "inviteUsesHintSingle": "Le lien cesse de fonctionner des qu'une personne rejoint l'equipe.",
+    "inviteUsesHintShared": "Un seul lien que les {count} prochaines personnes peuvent utiliser pour rejoindre l'equipe.",
+    "inviteLinkSingleNote": "Ce lien fonctionne une seule fois. Envoyez-le a une seule personne.",
+    "inviteLinkSharedNote": "Partagez ce lien unique. Jusqu'a {count} personnes peuvent rejoindre l'equipe avec."
   },
   "roster": {
     "pageTitle": "Gérer l'effectif : {team}",

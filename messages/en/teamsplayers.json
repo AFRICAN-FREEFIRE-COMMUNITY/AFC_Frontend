@@ -237,7 +237,14 @@
     "loadApplicationsFailed": "Failed to load player market applications.",
     "esportImage": "Esport image",
     "inviteAs": "Invite as",
-    "playersFullHint": "All 6 player slots are taken. Invite this person as staff (coach, manager or analyst) instead; staff do not take a player slot."
+    "playersFullHint": "All 6 player slots are taken. Invite this person as staff (coach, manager or analyst) instead; staff do not take a player slot.",
+    "inviteUsesLabel": "How many people can use this link",
+    "inviteUsesOne": "1 person",
+    "inviteUsesMany": "{count} people",
+    "inviteUsesHintSingle": "The link stops working after one person joins.",
+    "inviteUsesHintShared": "One link that the next {count} people can each use to join.",
+    "inviteLinkSingleNote": "This link works once. Send it to one person.",
+    "inviteLinkSharedNote": "Share this one link. Up to {count} people can join with it."
   },
   "roster": {
     "pageTitle": "Manage Roster: {team}",
