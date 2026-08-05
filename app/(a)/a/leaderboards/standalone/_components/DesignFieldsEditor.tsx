@@ -99,6 +99,15 @@ import {
   IconRefresh,
   IconFile, // page tab icon (multi-page support)
 } from "@tabler/icons-react";
+// Board chrome (owner 2026-08-05, backlog #2): the column-header row, the row/column grid rules and
+// the event-name header. SHARED with the live overlay board (DesignBoard.tsx) and a port of the PNG
+// renderer's geometry, so what is placed here is what downloads.
+import {
+  BoardColumnHeaders,
+  BoardGrid,
+  BoardHeaderText,
+} from "@/components/leaderboards/BoardChrome";
+import type { ChromeGroup } from "@/components/leaderboards/BoardChrome";
 import {
   leaderboardDesignsApi,
   leaderboardFontsApi,
@@ -389,6 +398,13 @@ export function DesignFieldsEditor({
   const [dsMaxRows, setDsMaxRows] = useState(16);
   const [dsDefault, setDsDefault] = useState(false);
   const [dsTransparent, setDsTransparent] = useState(false);
+  // Board chrome (owner 2026-08-05, backlog #2): the column-header row, the row/column grid rules
+  // and the event-name header. All three default OFF so an existing design is unchanged; the AFC
+  // default generator creates its designs with them ON. Each drives the preview canvas below AND the
+  // exported PNG (afc_leaderboard.graphic) AND the live overlay (DesignBoard.tsx).
+  const [dsColumnHeaders, setDsColumnHeaders] = useState(false);
+  const [dsGrid, setDsGrid] = useState(false);
+  const [dsBoardHeader, setDsBoardHeader] = useState(false);
   const [dsType, setDsType] = useState("leaderboard");
   const dsTypeIsVersus = dsType === "versus";
 
@@ -711,6 +727,9 @@ export function DesignFieldsEditor({
     setDsMaxRows(design.max_rows ?? 16);
     setDsDefault(!!design.is_default);
     setDsTransparent(!!design.transparent_background);
+    setDsColumnHeaders(!!design.show_column_headers);
+    setDsGrid(!!design.show_grid);
+    setDsBoardHeader(!!design.show_board_header);
     setDsType(((design as any).design_type as string) || "leaderboard");
     setCurrentPageId(initialPageId);
 
@@ -1513,6 +1532,26 @@ export function DesignFieldsEditor({
     return f ? `"${f.name}", DM Sans, sans-serif` : "DM Sans, sans-serif";
   };
 
+  // ── Board chrome input (owner 2026-08-05, backlog #2) ──
+  // One entry per column group carrying its row tiling + the columns actually drawn in it (x already
+  // resolved for the size being edited, fields hidden for this size dropped, exactly like the canvas
+  // cells below). BoardGrid / BoardColumnHeaders derive their geometry from this the same way the PNG
+  // renderer derives it from the placed fields, so the preview and the download stay in step.
+  const chromeGroups: ChromeGroup[] = groups.map((grp, gi) => ({
+    group: grp,
+    columns: fields
+      .filter((f) => f.column_group === gi && shownForSize(f))
+      .map((f) => ({
+        key: f.draftId,
+        field_type: f.field_type,
+        x_pct: fieldX(f),
+        align: f.align,
+        font_size_pct: f.font_size_pct,
+        color: f.color || undefined,
+        fontFamily: fontName(f.font_id),
+      })),
+  }));
+
   // FONT PREVIEW (owner 2026-06-21): every font picker should show how a font actually LOOKS, not
   // just its name, so admins/organizers can choose the right typeface before applying. We render
   // each font picker's options AND its trigger (the selected value) in that font's own face. This
@@ -1760,6 +1799,40 @@ export function DesignFieldsEditor({
                   onCheckedChange={(v: boolean) => {
                     setDsTransparent(v);
                     saveDesignSettings({ transparent_background: String(v) });
+                  }}
+                />
+              </div>
+              {/* ── Board chrome (owner 2026-08-05, backlog #2) ──
+                  Leave these off for a design whose background art already draws its own header row
+                  and rules; turn them on for a plain backdrop. Each one shows up immediately on the
+                  preview canvas, the live overlay and the downloaded PNG. */}
+              <div className="col-span-2 flex items-center justify-between">
+                <Label className="text-[0.65rem]">Column headers (MP, BOOYAH, TOTAL POINTS ...)</Label>
+                <Switch
+                  checked={dsColumnHeaders}
+                  onCheckedChange={(v: boolean) => {
+                    setDsColumnHeaders(v);
+                    saveDesignSettings({ show_column_headers: String(v) });
+                  }}
+                />
+              </div>
+              <div className="col-span-2 flex items-center justify-between">
+                <Label className="text-[0.65rem]">Grid lines (rows and columns)</Label>
+                <Switch
+                  checked={dsGrid}
+                  onCheckedChange={(v: boolean) => {
+                    setDsGrid(v);
+                    saveDesignSettings({ show_grid: String(v) });
+                  }}
+                />
+              </div>
+              <div className="col-span-2 flex items-center justify-between">
+                <Label className="text-[0.65rem]">Event name header + stage sub-header</Label>
+                <Switch
+                  checked={dsBoardHeader}
+                  onCheckedChange={(v: boolean) => {
+                    setDsBoardHeader(v);
+                    saveDesignSettings({ show_board_header: String(v) });
                   }}
                 />
               </div>
@@ -2163,6 +2236,41 @@ export function DesignFieldsEditor({
                     No background uploaded
                   </div>
                 )}
+
+                {/* ── Board CHROME preview (owner 2026-08-05, backlog #2) ──
+                    Drawn from the SAME geometry the PNG renderer uses, so a column dragged here
+                    carries its header and its grid rule with it and the download matches. The grid
+                    goes down before the mock rows so the data sits on top of its own rules; the
+                    header labels and the event/stage header go on top afterwards. The header text is
+                    a placeholder here: the real strings are the event + stage names supplied at
+                    export time (or by the overlay feed), not stored on the design. */}
+                {dsGrid ? (
+                  <BoardGrid
+                    groups={chromeGroups}
+                    canvasH={canvasDims.h}
+                    color={design.text_color || "#ffffff"}
+                  />
+                ) : null}
+                {dsBoardHeader ? (
+                  <BoardHeaderText
+                    title="EVENT NAME"
+                    subtitle="STAGE NAME"
+                    canvasH={canvasDims.h}
+                    titleStyle={design.title_style}
+                    subtitleStyle={design.subtitle_style}
+                    textColor={design.text_color || "#ffffff"}
+                    accentColor={design.accent_color || "#34d27b"}
+                    fontFamilyFor={(id) => fontName(id ?? null)}
+                  />
+                ) : null}
+                {dsColumnHeaders ? (
+                  <BoardColumnHeaders
+                    groups={chromeGroups}
+                    canvasH={canvasDims.h}
+                    canvasW={canvasDims.w}
+                    color={design.accent_color || "#34d27b"}
+                  />
+                ) : null}
 
                 {/* ── Render each column group's rows + field handles ── */}
                 {groups.map((grp, gi) => {

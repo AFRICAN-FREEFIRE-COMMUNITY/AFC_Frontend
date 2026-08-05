@@ -41,6 +41,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { env } from "@/lib/env";
 import { countryToIso2 } from "@/lib/countryFlag";
+// Board chrome (owner 2026-08-05, backlog #2): the column-header row, the row/column grid rules and
+// the event-name header. Shared with the design editor's preview canvas so the overlay, the editor
+// and the downloaded PNG all show the same thing. See components/leaderboards/BoardChrome.tsx.
+import {
+  BoardColumnHeaders,
+  BoardGrid,
+  BoardHeaderText,
+} from "@/components/leaderboards/BoardChrome";
+import type { ChromeGroup } from "@/components/leaderboards/BoardChrome";
 import type {
   LeaderboardDesign,
   LeaderboardDesignField,
@@ -413,6 +422,31 @@ export function DesignBoard({
   }, [bgUrl]);
 
   const textColor = design.text_color || "#ffffff";
+  const accentColor = design.accent_color || "#34d27b";
+
+  // ── Board chrome input (owner 2026-08-05, backlog #2) ──
+  // One entry per column group carrying that group's row tiling + the columns drawn in it, with x
+  // already resolved for the active size. BoardGrid / BoardColumnHeaders derive their geometry from
+  // this exactly the way the PNG renderer derives it from the same field list, so the overlay, the
+  // editor preview and the download agree. Built even when the flags are off (cheap, memoised) so
+  // the JSX below stays a plain conditional render.
+  const chromeGroups: ChromeGroup[] = useMemo(
+    () =>
+      groups.map((grp, gi) => ({
+        group: grp,
+        columns: (fieldsByGroup.get(gi) ?? []).map((f) => ({
+          key: String(f.id),
+          field_type: f.field_type,
+          x_pct: fieldX(f),
+          align: f.align,
+          font_size_pct: f.font_size_pct,
+          color: f.color || undefined,
+          fontFamily: fontFamilyFor(f.font_id),
+        })),
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [groups, fieldsByGroup, yt],
+  );
 
   return (
     <div
@@ -458,6 +492,12 @@ export function DesignBoard({
           />
         ) : null}
 
+        {/* ── Grid rules (owner 2026-08-05, opt-in per design). Drawn first so the standings cells
+            always sit ON TOP of their own rules, matching the PNG render order. ── */}
+        {design.show_grid ? (
+          <BoardGrid groups={chromeGroups} canvasH={canvasH} color={textColor} />
+        ) : null}
+
         {/* ── Subtle "LIVE" badge (Tier-2 in-round snapshot only). ──
             Shown only when the feed reports live:true. Small, top-right, semi-transparent pill so it
             never obscures the design and stays transparency-safe (the OBS page is see-through). Sized
@@ -485,8 +525,34 @@ export function DesignBoard({
             </span>
           </div>
         ) : null}
-        {/* Title/subtitle headers REMOVED (owner 2026-07-02): freeform TEXT elements in the
-            design cover headers WYSIWYG, so the separate show_title/show_subtitle system is gone. */}
+        {/* Title/subtitle headers were REMOVED in 2026-07-02 (freeform TEXT elements covered headers
+            WYSIWYG) and came back in 2026-08-05 as an OPT-IN, because backlog #2 asks for the EVENT
+            NAME as the header and the STAGE NAME as the sub-header on the exported graphic - text a
+            static freeform element cannot carry, since it changes per event/stage. Only drawn when
+            the design sets show_board_header (default false), so designs that solved this with a
+            freeform text are untouched. The strings come from the feed's `board`, not the design. */}
+        {design.show_board_header ? (
+          <BoardHeaderText
+            title={design.show_title ? title : undefined}
+            subtitle={design.show_subtitle ? subtitle : undefined}
+            canvasH={canvasH}
+            titleStyle={design.title_style}
+            subtitleStyle={design.subtitle_style}
+            textColor={textColor}
+            accentColor={accentColor}
+            fontFamilyFor={fontFamilyFor}
+          />
+        ) : null}
+
+        {/* ── Column headers (owner 2026-08-05, opt-in per design). ── */}
+        {design.show_column_headers ? (
+          <BoardColumnHeaders
+            groups={chromeGroups}
+            canvasH={canvasH}
+            canvasW={box.w}
+            color={accentColor}
+          />
+        ) : null}
 
         {/* ── Positioned logos (drawn above the bg, below the data). ── */}
         {design.logos.map((logo) => {

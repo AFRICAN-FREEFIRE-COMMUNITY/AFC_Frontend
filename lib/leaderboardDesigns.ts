@@ -184,6 +184,16 @@ export interface LeaderboardDesign {
   subtitle_style?: HeaderStyle;
   show_title: boolean;
   show_subtitle: boolean;
+  // ── Board CHROME (owner 2026-08-05, backlog #2) ── three opt-in layers the exported PNG was
+  // missing. show_column_headers draws a label above each placed column (MP / BOOYAH / KILL POINTS
+  // ...); show_grid draws hairline rules between rows AND columns; show_board_header draws the event
+  // name as the header and the stage name as the sub-header. All default false so an existing design
+  // (which usually bakes headers into its background art) is unchanged; the AFC default generators
+  // turn them on. Toggled in DesignFieldsEditor's design-settings card, drawn by its preview canvas +
+  // DesignBoard (overlay) + afc_leaderboard.graphic (the PNG), so all three stay WYSIWYG.
+  show_column_headers?: boolean;
+  show_grid?: boolean;
+  show_board_header?: boolean;
   max_rows: number; // how many standings rows the render fits (1..50)
   is_default: boolean; // the library's auto-selected design
   column_groups: DesignColumnGroup[]; // row tiling per group (Instagram, canonical); [] = legacy table
@@ -199,6 +209,109 @@ export interface LeaderboardDesign {
 
 // The two export canvas sizes the renderer supports (afc_leaderboard.graphic.CANVAS).
 export type GraphicSize = "instagram" | "youtube";
+
+// ══ BOARD CHROME geometry (owner 2026-08-05, backlog #2) ═══════════════════════════════════════
+// A VERBATIM mirror of afc_leaderboard/graphic.py's chrome constants + _column_edges. It lives here,
+// not in a component, because BOTH surfaces that have to match the downloaded PNG import it:
+//   • DesignFieldsEditor.tsx  - the design editor's preview canvas
+//   • DesignBoard.tsx          - the live OBS overlay board
+// If the Python side changes, change this together with it - a drift here means the operator places
+// columns against a preview that does not match the file they download.
+
+// field_type -> the header label printed above that column (graphic.COLUMN_HEADER_LABELS).
+// Image columns map to "" so no label is stamped over the artwork. `matches` is labelled MP: the
+// owner asks for maps played to show as MP, and it is the same number the matches column carries.
+export const COLUMN_HEADER_LABELS: Partial<Record<FieldType, string>> = {
+  pos: "POS",
+  team_name: "TEAM",
+  team_logo: "",
+  team_flag: "",
+  esports_image: "",
+  matches: "MP",
+  booyah: "BOOYAH",
+  kill_points: "KILL POINTS",
+  placement_points: "PLACEMENT POINTS",
+  total_points: "TOTAL POINTS",
+  kills: "KILLS",
+  rush_points: "RUSH POINTS",
+  base_total: "BASE TOTAL",
+  bonus: "BONUS",
+  penalty: "PENALTY",
+  deaths: "DEATHS",
+  knockdowns: "KNOCKS",
+  headshots: "HEADSHOTS",
+  most_used_weapon: "WEAPON",
+  survival_time: "SURVIVAL",
+  revives_received: "REVIVES",
+  gloowall_used: "GLOO",
+  medkit_used: "MEDKITS",
+};
+
+export const HEADER_ROW_GAP = 1.15; // row-heights above row 1 (graphic.HEADER_ROW_GAP)
+export const HEADER_SIZE_SCALE = 0.85; // of the column's own font size
+export const GRID_LINE_ALPHA = 70 / 255; // graphic.GRID_ALPHA as a CSS opacity
+export const GRID_WIDTH_FRAC = 0.0015; // of canvas HEIGHT
+const LEFT_ALIGN_EDGE_PAD = 1.0; // percent of width in front of a LEFT-aligned column
+
+// Default board-header placement when the design sets no title_style / subtitle_style
+// (graphic.BOARD_TITLE_DEFAULTS / BOARD_SUBTITLE_DEFAULTS).
+export const BOARD_TITLE_DEFAULTS: Required<
+  Pick<HeaderStyle, "x_pct" | "y_pct" | "font_size_pct" | "align">
+> = { x_pct: 50, y_pct: 6.5, font_size_pct: 4.5, align: "center" };
+export const BOARD_SUBTITLE_DEFAULTS: Required<
+  Pick<HeaderStyle, "x_pct" | "y_pct" | "font_size_pct" | "align">
+> = { x_pct: 50, y_pct: 12, font_size_pct: 2.6, align: "center" };
+
+/**
+ * Turn a column group's placed columns into TABLE EDGES (percent of canvas width): the boundary in
+ * front of each column plus the closing edge after the last. Port of graphic._column_edges - see
+ * that docstring for WHY a plain midpoint is wrong (it would rule straight through left-aligned
+ * team names, which run into the wide gap before the first numeric column).
+ */
+export function columnEdges(
+  columns: Array<{ x_pct: number; align: TextAlign }>,
+): number[] {
+  if (!columns.length) return [];
+  const cols = [...columns].sort((a, b) => a.x_pct - b.x_pct);
+  const xs = cols.map((c) => c.x_pct);
+  if (cols.length === 1) return [xs[0] - 6, xs[0] + 6];
+  const gaps = xs.slice(1).map((x, i) => x - xs[i]);
+  // The width a column may claim in front of its anchor: the smaller of its two neighbouring gaps.
+  const cell = (i: number) =>
+    Math.min(i > 0 ? gaps[i - 1] : gaps[0], i < gaps.length ? gaps[i] : gaps[gaps.length - 1]);
+
+  const edges = cols.map((c, i) =>
+    c.align === "left"
+      ? c.x_pct - LEFT_ALIGN_EDGE_PAD
+      : c.align === "right"
+        ? c.x_pct - cell(i)
+        : c.x_pct - cell(i) / 2,
+  );
+  const last = cols[cols.length - 1];
+  const tail =
+    last.align === "right"
+      ? LEFT_ALIGN_EDGE_PAD
+      : last.align === "left"
+        ? cell(cols.length - 1)
+        : cell(cols.length - 1) / 2;
+  edges.push(last.x_pct + tail);
+  // Monotonic guard, so an odd hand-built layout can never produce a backwards rectangle.
+  for (let i = 1; i < edges.length; i++) edges[i] = Math.max(edges[i], edges[i - 1]);
+  return edges;
+}
+
+/** The [left, right] cell a column owns, in percent of canvas width (used to size its header). */
+export function columnCell(
+  edges: number[],
+  xPct: number,
+): { left: number; right: number } {
+  const lo = edges.filter((e) => e <= xPct);
+  const hi = edges.filter((e) => e >= xPct);
+  return {
+    left: lo.length ? Math.max(...lo) : xPct - 6,
+    right: hi.length ? Math.min(...hi) : xPct + 6,
+  };
+}
 
 // ── Design library CRUD (organizers/leaderboard-designs/) ───────────────────────
 // organizationId: a number scopes to that org's library; null/undefined targets the AFC-native
