@@ -15,17 +15,9 @@
     "alreadyPending": "Já tem uma candidatura em aberto connosco. Voltámos a enviar-lhe a ligação por e-mail.",
     "footnote": "A AFC nunca pede palavras-passe, e não precisa de uma conta AFC para se candidatar.",
     "errors": {
-      "chooseProduct": "Escolha pelo menos um produto antes de enviar.",
       "redirectRequired": "O Sign in with AFC precisa de pelo menos um URI de redirecionamento.",
-      "generic": "Não foi possível enviar a sua candidatura. Verifique o formulário e tente novamente."
-    },
-    "products": {
-      "title": "O que pretende utilizar",
-      "description": "Escolha um ou ambos. Isto apenas nos diz o que preparar, não é um pedido de acesso a dados específicos.",
-      "sso": "Sign in with AFC",
-      "ssoHint": "Permita que os jogadores da AFC iniciem sessão no seu site com a conta AFC.",
-      "dataApi": "A API de dados da AFC",
-      "dataApiHint": "Leia resultados de torneios publicados, classificações e planteis da AFC."
+      "generic": "Não foi possível enviar a sua candidatura. Verifique o formulário e tente novamente.",
+      "countryRequired": "Escolha o seu país."
     },
     "org": {
       "title": "A sua organização",
@@ -36,7 +28,8 @@
       "website": "Site",
       "country": "País",
       "logo": "Logótipo",
-      "logoHint": "Opcional. PNG, JPG ou WEBP, até 2 MB. Apresentado aos jogadores no momento da autorização."
+      "logoHint": "Opcional. PNG, JPG ou WEBP, até 10 MB. Apresentado aos jogadores no momento da autorização.",
+      "countryPlaceholder": "Escolha o seu país"
     },
     "contact": {
       "title": "Com quem falamos",
@@ -66,6 +59,11 @@
       "dataNeeded": "Do que precisam da AFC, e porquê",
       "dataNeededPlaceholder": "Por exemplo: o nome AFC de um jogador e a sua classificação atual, para os mostrarmos no perfil dele.",
       "dataNeededHint": "Descreva por palavras suas. A AFC decide a que campos isso corresponde e concede o mínimo necessário."
+    },
+    "intro": {
+      "title": "Sign in with AFC",
+      "description": "Permita que os jogadores da AFC iniciem sessão no seu site com a conta AFC. OpenID Connect padrão, por isso nunca lida com a palavra-passe de um jogador. Leia o guia antes de se candidatar se quiser ver exatamente o que está envolvido.",
+      "guideCta": "Ler o guia de integração (PDF)"
     }
   },
   "statusLabel": {

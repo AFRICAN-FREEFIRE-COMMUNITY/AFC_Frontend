@@ -86,7 +86,7 @@
   "logo": {
     "label": "Logo",
     "alt": "Logo du partenaire",
-    "hint": "Affiché aux joueurs sur l'écran de connexion. AFC héberge le fichier, le partenaire ne peut donc plus le modifier ensuite. PNG, JPG ou WEBP, jusqu'à 2 Mo. L'enregistrement est immédiat dès que vous choisissez un fichier.",
+    "hint": "Affiché aux joueurs sur l'écran de connexion. AFC héberge le fichier, le partenaire ne peut donc plus le modifier ensuite. PNG, JPG ou WEBP, jusqu'à 10 Mo. L'enregistrement est immédiat dès que vous choisissez un fichier.",
     "upload": "Importer un logo",
     "replace": "Remplacer le logo",
     "remove": "Supprimer",

@@ -86,7 +86,7 @@
   "logo": {
     "label": "Logótipo",
     "alt": "Logótipo do parceiro",
-    "hint": "Mostrado aos jogadores no ecrã de início de sessão. A AFC aloja o ficheiro, por isso o parceiro não o pode alterar depois. PNG, JPG ou WEBP, até 2 MB. Fica guardado assim que escolher um ficheiro.",
+    "hint": "Mostrado aos jogadores no ecrã de início de sessão. A AFC aloja o ficheiro, por isso o parceiro não o pode alterar depois. PNG, JPG ou WEBP, até 10 MB. Fica guardado assim que escolher um ficheiro.",
     "upload": "Carregar logótipo",
     "replace": "Substituir logótipo",
     "remove": "Remover",

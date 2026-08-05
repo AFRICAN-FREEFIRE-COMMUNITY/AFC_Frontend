@@ -36,8 +36,7 @@ import * as RPNInput from "react-phone-number-input";
 import {
   IconArrowRight,
   IconCircleCheck,
-  IconKey,
-  IconPlugConnected,
+  IconFileDownload,
   IconUpload,
 } from "@tabler/icons-react";
 
@@ -52,11 +51,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+// The SAME country list the profile screen writes User.country from, so a partner row and a
+// player row spell a country the same way.
+import { countries } from "@/constants";
 import { CountrySelect, FlagComponent, PhoneInput } from "@/components/PhoneNumberInput";
 import { Textarea } from "@/components/ui/textarea";
+// The guide download is a plain anchor to the API origin, so it needs the base URL. Every other
+// call on this page goes through lib/partnerApply.ts, which is why env was not imported before.
+import { env } from "@/lib/env";
 import { getErrorMessage } from "@/lib/http";
 import { submitApplication } from "@/lib/partnerApply";
 
@@ -74,6 +85,9 @@ interface FormState {
    *  refuses what it cannot read, so this being loose is fine; it is never a dial code plus a
    *  separate number, because the control emits one joined string. */
   contact_whatsapp: string;
+  /** Always true. The Data API option was removed from this form (owner 2026-08-05), so every
+   *  application is a Sign in with AFC application. Kept in the payload because the backend row
+   *  still carries it, and an admin can still grant Data API access at approval. */
   wants_sso: boolean;
   wants_data_api: boolean;
   redirect_uris: string;
@@ -92,9 +106,10 @@ const EMPTY: FormState = {
   contact_email: "",
   contact_role: "",
   contact_whatsapp: "",
-  // Both start off, so the applicant makes an active choice. The backend refuses a submission
-  // with neither, which is checked here first so they never spend a rate-limit slot on it.
-  wants_sso: false,
+  // No longer a choice: the picker card is gone and every application is Sign in with AFC. The
+  // backend forces the same two values rather than trusting these, so a caller cannot post
+  // wants_sso=false to skip the redirect URI rules.
+  wants_sso: true,
   wants_data_api: false,
   redirect_uris: "",
   post_logout_redirect_uris: "",
@@ -127,11 +142,12 @@ export default function PartnerApplyPage() {
     // Client-side checks are a courtesy only: every one of them is enforced again server-side,
     // because the client is a public web page. They exist so the applicant is not charged a
     // rate-limit slot for something we can see is incomplete.
-    if (!form.wants_sso && !form.wants_data_api) {
-      toast.error(t("form.errors.chooseProduct"));
+    if (!form.country.trim()) {
+      toast.error(t("form.errors.countryRequired"));
       return;
     }
-    if (form.wants_sso && !form.redirect_uris.trim()) {
+    // Unconditional now: there is only one product, so redirect URIs are always needed.
+    if (!form.redirect_uris.trim()) {
       toast.error(t("form.errors.redirectRequired"));
       return;
     }
@@ -198,48 +214,29 @@ export default function PartnerApplyPage() {
           </Card>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-6">
-            {/* ── 1. Which product ──────────────────────────────────────────────────────
-                First, because it decides whether the redirect URI block below is even shown.
-                This is routing, not a trust decision: what DATA a partner receives is decided
-                by AFC at review time, never requested here. */}
+            {/* ── 1. What this is, and the guide ────────────────────────────────────────
+                The product picker that used to sit here is gone (owner 2026-08-05): the Data API
+                option was removed, so every application is a Sign in with AFC application and
+                there is nothing left to choose. In its place, what they are applying for and the
+                document that describes it, because an organisation deciding whether to apply is
+                exactly who needs to read the guide. The download is public and ungated
+                (backend partner-apply/integration-guide/), so it works before they have any
+                account at all. */}
             <Card>
               <CardHeader>
-                <CardTitle>{t("form.products.title")}</CardTitle>
-                <CardDescription>{t("form.products.description")}</CardDescription>
+                <CardTitle>{t("form.intro.title")}</CardTitle>
+                <CardDescription>{t("form.intro.description")}</CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <label className="flex cursor-pointer items-start gap-3 rounded-md border p-4">
-                  <Checkbox
-                    checked={form.wants_sso}
-                    onCheckedChange={(v) => set("wants_sso", v === true)}
-                    className="mt-0.5"
-                  />
-                  <span>
-                    <span className="flex items-center gap-2 text-sm font-medium">
-                      <IconPlugConnected className="size-4 text-primary" />
-                      {t("form.products.sso")}
-                    </span>
-                    <span className="mt-1 block text-sm text-muted-foreground">
-                      {t("form.products.ssoHint")}
-                    </span>
-                  </span>
-                </label>
-                <label className="flex cursor-pointer items-start gap-3 rounded-md border p-4">
-                  <Checkbox
-                    checked={form.wants_data_api}
-                    onCheckedChange={(v) => set("wants_data_api", v === true)}
-                    className="mt-0.5"
-                  />
-                  <span>
-                    <span className="flex items-center gap-2 text-sm font-medium">
-                      <IconKey className="size-4 text-primary" />
-                      {t("form.products.dataApi")}
-                    </span>
-                    <span className="mt-1 block text-sm text-muted-foreground">
-                      {t("form.products.dataApiHint")}
-                    </span>
-                  </span>
-                </label>
+              <CardContent>
+                <a
+                  href={`${env.NEXT_PUBLIC_BACKEND_API_URL}/partner-apply/integration-guide/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:border-primary/50 inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+                >
+                  <IconFileDownload className="text-primary size-4" />
+                  {t("form.intro.guideCta")}
+                </a>
               </CardContent>
             </Card>
 
@@ -273,12 +270,33 @@ export default function PartnerApplyPage() {
                   value={form.homepage_url}
                   onChange={(v) => set("homepage_url", v)}
                 />
-                <Field
-                  id="country"
-                  label={t("form.org.country")}
-                  value={form.country}
-                  onChange={(v) => set("country", v)}
-                />
+                {/* Country is REQUIRED as of 2026-08-05 (owner), and a picked value rather than
+                    free text. Free text is how User.country ended up holding the same country
+                    under several spellings ("Nigeria" and "NG" both, thousands of rows each),
+                    which quietly halves any count or filter that groups by it. The list is the
+                    shared one the profile screen already uses, so a partner's country matches a
+                    player's. NOT the Field helper: that wraps a plain Input. */}
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="country">
+                    {t("form.org.country")}{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={form.country}
+                    onValueChange={(v) => set("country", v)}
+                  >
+                    <SelectTrigger id="country" className="w-full">
+                      <SelectValue placeholder={t("form.org.countryPlaceholder")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="flex flex-col gap-2 sm:col-span-2">
                   <Label htmlFor="logo">{t("form.org.logo")}</Label>
                   <Input
@@ -349,61 +367,60 @@ export default function PartnerApplyPage() {
               </CardContent>
             </Card>
 
-            {/* ── 4. The technical values, only when they apply ────────────────────────
-                Hidden entirely for a Data API only application: asking a broadcaster for a
-                redirect URI is how a form teaches people to type something meaningless. */}
-            {form.wants_sso && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t("form.technical.title")}</CardTitle>
-                  <CardDescription>{t("form.technical.description")}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="redirect_uris">
-                      {t("form.technical.redirectUris")}{" "}
-                      <span className="text-destructive">*</span>
-                    </Label>
-                    <Textarea
-                      id="redirect_uris"
-                      rows={3}
-                      placeholder="https://your-site.example/auth/afc/callback"
-                      value={form.redirect_uris}
-                      onChange={(e) => set("redirect_uris", e.target.value)}
-                    />
-                    {/* The rules, stated up front. The server enforces them and its refusal
-                        names the offending URI, but an applicant who reads this first never
-                        sees the refusal. */}
-                    <p className="text-xs text-muted-foreground">
-                      {t("form.technical.redirectHint")}
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="post_logout_redirect_uris">
-                      {t("form.technical.postLogout")}
-                    </Label>
-                    <Textarea
-                      id="post_logout_redirect_uris"
-                      rows={2}
-                      value={form.post_logout_redirect_uris}
-                      onChange={(e) => set("post_logout_redirect_uris", e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      {t("form.technical.postLogoutHint")}
-                    </p>
-                  </div>
-                  <Field
-                    id="deletion_webhook_url"
-                    label={t("form.technical.webhook")}
-                    type="url"
-                    placeholder="https://"
-                    hint={t("form.technical.webhookHint")}
-                    value={form.deletion_webhook_url}
-                    onChange={(v) => set("deletion_webhook_url", v)}
+            {/* ── 4. The technical values ───────────────────────────────────────────────
+                Always shown now. This used to be hidden for a Data API only application, on the
+                reasoning that asking a broadcaster for a redirect URI teaches people to type
+                something meaningless. With the Data API option gone, every applicant needs it. */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("form.technical.title")}</CardTitle>
+                <CardDescription>{t("form.technical.description")}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="redirect_uris">
+                    {t("form.technical.redirectUris")}{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    id="redirect_uris"
+                    rows={3}
+                    placeholder="https://your-site.example/auth/afc/callback"
+                    value={form.redirect_uris}
+                    onChange={(e) => set("redirect_uris", e.target.value)}
                   />
-                </CardContent>
-              </Card>
-            )}
+                  {/* The rules, stated up front. The server enforces them and its refusal
+                      names the offending URI, but an applicant who reads this first never
+                      sees the refusal. */}
+                  <p className="text-xs text-muted-foreground">
+                    {t("form.technical.redirectHint")}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="post_logout_redirect_uris">
+                    {t("form.technical.postLogout")}
+                  </Label>
+                  <Textarea
+                    id="post_logout_redirect_uris"
+                    rows={2}
+                    value={form.post_logout_redirect_uris}
+                    onChange={(e) => set("post_logout_redirect_uris", e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t("form.technical.postLogoutHint")}
+                  </p>
+                </div>
+                <Field
+                  id="deletion_webhook_url"
+                  label={t("form.technical.webhook")}
+                  type="url"
+                  placeholder="https://"
+                  hint={t("form.technical.webhookHint")}
+                  value={form.deletion_webhook_url}
+                  onChange={(v) => set("deletion_webhook_url", v)}
+                />
+            </CardContent>
+            </Card>
 
             {/* ── 5. The two questions the decision turns on ───────────────────────────
                 This is where the scope checklist would have been, and is not. See the header. */}

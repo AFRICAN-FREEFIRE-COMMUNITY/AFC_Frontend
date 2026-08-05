@@ -15,17 +15,9 @@
     "alreadyPending": "You already have an application open with us. We have emailed you the link again.",
     "footnote": "AFC never asks for a password, and you do not need an AFC account to apply.",
     "errors": {
-      "chooseProduct": "Choose at least one product before sending.",
       "redirectRequired": "Sign in with AFC needs at least one redirect URI.",
-      "generic": "Your application could not be sent. Please check the form and try again."
-    },
-    "products": {
-      "title": "What do you want to use",
-      "description": "Pick one or both. This only tells us what to set up, it is not a request for any particular data.",
-      "sso": "Sign in with AFC",
-      "ssoHint": "Let AFC players sign in to your site with their AFC account.",
-      "dataApi": "The AFC Data API",
-      "dataApiHint": "Read published tournament results, standings and rosters from AFC."
+      "generic": "Your application could not be sent. Please check the form and try again.",
+      "countryRequired": "Please choose your country."
     },
     "org": {
       "title": "Your organisation",
@@ -36,7 +28,8 @@
       "website": "Website",
       "country": "Country",
       "logo": "Logo",
-      "logoHint": "Optional. PNG, JPG or WEBP, up to 2 MB. Shown to players when they approve you."
+      "logoHint": "Optional. PNG, JPG or WEBP, up to 10 MB. Shown to players when they approve you.",
+      "countryPlaceholder": "Select your country"
     },
     "contact": {
       "title": "Who we talk to",
@@ -66,6 +59,11 @@
       "dataNeeded": "What do you need from AFC, and why",
       "dataNeededPlaceholder": "For example: a player's AFC name and their current rank, so we can show it on their profile.",
       "dataNeededHint": "Describe it in your own words. AFC decides which fields that works out to, and grants the minimum that does the job."
+    },
+    "intro": {
+      "title": "Sign in with AFC",
+      "description": "Let AFC players sign in to your site with their AFC account. Standard OpenID Connect, so you never handle a player's password. Read the guide before you apply if you want to see exactly what is involved.",
+      "guideCta": "Read the integration guide (PDF)"
     }
   },
   "statusLabel": {
