@@ -35,6 +35,8 @@ import { StepSponsorRequirement } from "./_components/StepSponsorRequirement";
 import { StepWaitlist } from "./_components/StepWaitlist";
 import { StageModal, StageModalData } from "./_components/StageModal";
 import { DEFAULT_ROUND_ROBIN_CONFIG } from "../_components/RoundRobinPanel";
+// Upload size gate + honest failure messages (owner-reported 2026-08-05).
+import { checkUploadSize, describeSubmitFailure } from "@/lib/upload-limits";
 // ── Sponsor-system P2: post-create sponsor attach loop. ──
 // StepSponsorRequirement's builder holds SponsorshipDraft rows in the `sponsorships`
 // form field; after create-event returns the new event_id, onSubmit below attaches +
@@ -956,6 +958,17 @@ export default function CreateEventPage() {
     }
     startTransition(async () => {
       try {
+        // Size gate before the request is built - same reason as the organizer create page:
+        // nginx 413s an over-sized body with no CORS headers, which surfaces as an
+        // unreadable fetch rejection. See lib/upload-limits.ts.
+        const tooBig =
+          checkUploadSize(selectedFile, "The event banner") ??
+          checkUploadSize(selectedRuleFile, "The rules file");
+        if (tooBig) {
+          toast.error(tooBig);
+          return;
+        }
+
         const formData = new FormData();
 
         if (selectedFile) formData.append("event_banner", selectedFile);
@@ -1217,7 +1230,9 @@ export default function CreateEventPage() {
           );
         }
       } catch {
-        toast.error(t("toast.unexpectedError"));
+        // See the organizer create page: a thrown fetch carries no status, so name the
+        // likely cause from the attached files rather than showing a blanket apology.
+        toast.error(describeSubmitFailure([selectedFile, selectedRuleFile]));
       }
     });
   };

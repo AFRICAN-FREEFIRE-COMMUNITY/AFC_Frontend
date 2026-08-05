@@ -113,6 +113,8 @@ import {
 // One-time paid-event terms gate. Organizer-only: shown before submitting a PAID org
 // event, and re-opened if the backend returns 400 {code:"paid_terms_required"}.
 import { PaidEventTermsModal } from "@/app/(a)/a/events/_components/PaidEventTermsModal";
+// Upload size gate + honest failure messages (owner-reported 2026-08-05).
+import { checkUploadSize, describeSubmitFailure } from "@/lib/upload-limits";
 
 // Fresh stage-modal seed (mirrors the admin page's DEFAULT_STAGE_MODAL_DATA). Discord
 // role ids start empty and stay empty - the organizer UI never exposes them, but they
@@ -741,6 +743,20 @@ export default function OrganizerCreateEventPage() {
     }
     startTransition(async () => {
       try {
+        // ── Size gate BEFORE the request is built (owner-reported 2026-08-05) ──
+        // nginx rejects an over-sized body itself, with a 413 that carries no CORS headers,
+        // which makes fetch reject with an unreadable error - that is where "An unexpected
+        // error occurred during submission" came from. Catch it here so the organizer is
+        // told the real size and the real limit while they can still swap the file.
+        // See lib/upload-limits.ts for the measurements behind this.
+        const tooBig =
+          checkUploadSize(selectedFile, "The event banner") ??
+          checkUploadSize(selectedRuleFile, "The rules file");
+        if (tooBig) {
+          toast.error(tooBig);
+          return;
+        }
+
         const formData = new FormData();
 
         if (selectedFile) formData.append("event_banner", selectedFile);
@@ -1029,7 +1045,12 @@ export default function OrganizerCreateEventPage() {
           );
         }
       } catch {
-        toast.error(t("toast.unexpectedError"));
+        // A thrown fetch means the response was never readable: an nginx 413 with no CORS
+        // headers, a dropped connection, or the browser being offline. None of those carry
+        // a status we can inspect, so describeSubmitFailure names the most likely cause
+        // from what we do know (the attached files and navigator.onLine) instead of the old
+        // blanket "unexpected error", which told the organizer nothing they could act on.
+        toast.error(describeSubmitFailure([selectedFile, selectedRuleFile]));
       }
     });
   };
