@@ -26,7 +26,14 @@ export function PageHeader({
 
   return (
     <div className="mb-4" data-tour={dataTour}>
-      <div className="flex items-start justify-start gap-2">
+      {/* flex-wrap and min-w-0 (2026-08-05): this row could not wrap, and the action block below
+          is w-full on mobile, so a header with buttons pushed the PAGE wider than the viewport and
+          the whole admin screen scrolled sideways. Measured on /a/rankings/tournament-tiers at a
+          390px viewport: 517px of content in a 390px window, from the Reset and Save rules pair.
+          This is the SHARED header, so the same thing happened on every admin page with an action.
+          Wrapping lets the action drop onto its own line on a phone, which is what w-full was
+          always asking for, and min-w-0 lets the title column shrink instead of refusing to. */}
+      <div className="flex flex-wrap items-start justify-start gap-2">
         {back && (
           <Button
             onClick={() => router.back()}
@@ -36,9 +43,11 @@ export function PageHeader({
             <IconArrowLeft />
           </Button>
         )}
-        <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-0 md:items-center">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-primary">
+        <div className="flex min-w-0 flex-1 flex-col md:flex-row justify-between items-start gap-4 md:gap-0 md:items-center">
+          <div className="min-w-0">
+            {/* break-words: a long event or organisation name in a heading this size is otherwise
+                a single unbreakable run that widens the page on a phone. */}
+            <h1 className="text-3xl md:text-4xl font-bold text-primary break-words">
               {title}
             </h1>
             {description && (

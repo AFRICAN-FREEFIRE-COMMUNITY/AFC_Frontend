@@ -229,7 +229,7 @@ export const EventsAdminContent = () => {
     <div>
       <div className="flex items-start md:items-center justify-between flex-col md:flex-row gap-2">
         <PageHeader back title={"Events Management"} />
-        <div className="flex w-full md:w-auto items-center gap-2">
+        <div className="flex w-full md:w-auto flex-wrap items-center gap-2">
           {/* Escrow dashboard for paid-event registration fees (Stripe). Lists held
               payments and lets staff release/refund them. See app/(a)/a/events/payments. */}
           {/* data-tour anchors: events tour "Event payments" + "Create event" steps. */}

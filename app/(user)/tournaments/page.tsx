@@ -763,7 +763,7 @@ const OrganizerDirectory: React.FC<{
             className="bg-background/50 backdrop-blur-sm pl-10"
           />
         </div>
-        <div className="flex w-full md:w-auto items-center gap-2">
+        <div className="flex w-full md:w-auto flex-wrap items-center gap-2">
           <Select
             value={orgVerFilter}
             onValueChange={(v) => setOrgVerFilter(v as OrgVerFilter)}
@@ -979,7 +979,7 @@ const EventsPage = () => {
             className="bg-background/50 backdrop-blur-sm pl-10"
           />
         </div>
-        <div className="flex w-full md:w-auto items-center gap-2 justify-center">
+        <div className="flex w-full md:w-auto flex-wrap items-center gap-2 justify-center">
           {/* ── Organizer filter ──
               Built from the distinct organization_name values in the fetched
               events. "All organizers" is the default; "AFC (official)" matches
