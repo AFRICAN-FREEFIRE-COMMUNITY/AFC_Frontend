@@ -8,7 +8,6 @@ import {
   IconHome,
   IconInfoCircle,
   IconMessage,
-  IconMessage2,
   IconNews,
   IconPlugConnected,
   IconScan,
@@ -225,17 +224,27 @@ export const adminNavLinks: AdminNavLink[] = [
   // old links redirect (next.config.ts). BlacklistsTable + WatchlistAdminContent live on under
   // app/(a)/a/blacklists/_components and app/(a)/a/watchlist/_components.
   {
-    // Data-API partner management (afc_partner_api admin surface). Gated on
-    // head_admin / partner_admin to match the backend's _is_partner_admin check
-    // (role__role_name__in=["head_admin","partner_admin"]) - same team that runs
-    // the partner program. IconPlugConnected reads as an external integration/API.
+    // Data-API partner management (afc_partner_api admin surface), plus the "Sign in with AFC"
+    // and partner-application tabs. IconPlugConnected reads as an external integration/API.
     // Sidebar label is "API Keys" (owner request 2026-06-09); the route stays /a/partners
     // (the afc_partner_api admin surface for issuing/managing partner API keys).
+    //
+    // Site Feedback was folded in as a fourth tab (owner 2026-08-05: "site feedback should go
+    // under api keys"), so its standalone entry below this one was removed and /a/feedback now
+    // redirects to /a/partners?tab=feedback (next.config.ts).
+    //
+    // allowedRoles is therefore the UNION of the two audiences, the same trick "Teams & Players"
+    // uses for its folded-in tabs: head_admin / partner_admin ran the partner program (matching
+    // the backend's _is_partner_admin check), and the coarse admin / moderator / support roles
+    // ran the feedback queue (matching afc_feedback.views.is_feedback_admin). The union is
+    // required, not cosmetic: ProtectedRoute gates the ROUTE off this same list. Nobody gains a
+    // surface, because the page renders only the tabs a viewer's roles cover (TAB_DEFS in
+    // app/(a)/a/partners/page.tsx).
     label: "API Keys",
     navKey: "apiKeys",
     slug: "/a/partners",
     icon: IconPlugConnected,
-    allowedRoles: ["head_admin", "partner_admin"],
+    allowedRoles: ["head_admin", "partner_admin", "admin", "moderator", "support"],
   },
   {
     // Broadcasts audit (owner 2026-06-27): the cross-event admin view of EVERY broadcast organizers +
@@ -250,26 +259,12 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconMessage,
     allowedRoles: ["head_admin", "event_admin", "organizer_admin", "metrics_admin"],
   },
-  {
-    // Site Feedback (owner backlog item 29, 2026-08-03): the INBOUND counterpart to Broadcasts
-    // above, hence its position. Page app/(a)/a/feedback/page.tsx -> GET /feedback/admin/submissions/
-    // (afc_feedback). It reads what visitors sent through the always-on form in the site footer.
-    //
-    // A standalone entry rather than a tab on an existing page (the repo's usual habit for triage
-    // queues) because site feedback is not SCOPED to any one subject: a submission can be about the
-    // shop, an event, the rankings or signing up, so no existing page owns it.
-    //
-    // allowedRoles mirrors afc_feedback.views.is_feedback_admin exactly: the granular head_admin
-    // (super_admin and head_admin always pass in canAccess anyway) plus the COARSE admin / moderator
-    // / support roles, which the backend also lets in and which canAccess matches from user.role.
-    // Area admins (shop_admin, news_admin, ...) are deliberately excluded: platform-wide feedback is
-    // not an area admin's queue.
-    label: "Site Feedback",
-    navKey: "siteFeedback",
-    slug: "/a/feedback",
-    icon: IconMessage2,
-    allowedRoles: ["head_admin", "admin", "moderator", "support"],
-  },
+  // Site Feedback (owner backlog item 29, 2026-08-03) had its own entry here, next to Broadcasts:
+  // outbound messages there, inbound ones here. Owner 2026-08-05 moved it UNDER the API Keys page
+  // as a tab ("site feedback should go under api keys"), so the entry was removed, the feedback
+  // roles were merged into that page's allowedRoles above, and /a/feedback redirects to
+  // /a/partners?tab=feedback (next.config.ts). The queue itself lives on in
+  // app/(a)/a/partners/_components/SiteFeedbackPanel.tsx.
   {
     // OBS Overlays (owner 2026-07-01): the cross-event manager for the live-leaderboard browser
     // sources. Page app/(a)/a/overlays/page.tsx lists every event -> Copy OBS link (reused

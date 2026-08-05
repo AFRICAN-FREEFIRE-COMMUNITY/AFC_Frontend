@@ -23,6 +23,58 @@
     "errorGeneric": "Your feedback could not be sent. Please try again.",
     "errorEmpty": "Please write something before sending."
   },
+  "admin": {
+    "tab": "Site Feedback",
+    "intro": "What visitors sent through the feedback form in the site footer. Anonymous submissions are expected and are not a bug.",
+    "stats": {
+      "inView": "Submissions in this view",
+      "open": "Still open",
+      "forms": "Forms"
+    },
+    "filters": {
+      "allForms": "All forms",
+      "formOption": "{title} ({count} open)",
+      "allStatuses": "All statuses",
+      "open": "Open",
+      "handled": "Handled",
+      "searchPlaceholder": "Search the text, the page, or a username"
+    },
+    "table": {
+      "from": "From",
+      "feedback": "Feedback",
+      "page": "Page",
+      "sent": "Sent",
+      "status": "Status",
+      "action": "Action",
+      "anonymous": "Anonymous",
+      "noAnswer": "(no answer)",
+      "openButton": "Open"
+    },
+    "status": {
+      "open": "Open",
+      "handled": "Handled"
+    },
+    "empty": "No feedback matches these filters.",
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "{from} to {to} of {total}",
+    "detail": {
+      "sentFrom": "{who} sent this from {page}.",
+      "sentFromWithLocale": "{who} sent this from {page} while reading the site in {locale}.",
+      "unknownPage": "an unknown page",
+      "rating": "{value} / 5",
+      "noteLabel": "Internal note",
+      "notePlaceholder": "What was done about this. Never shown to the submitter.",
+      "handledBy": "Handled by {name}.",
+      "handledByOn": "Handled by {name} on {time}.",
+      "saveNote": "Save note",
+      "reopen": "Reopen",
+      "markHandled": "Mark handled"
+    },
+    "loadFailed": "Could not load feedback.",
+    "updated": "Feedback updated.",
+    "updateFailed": "Could not update the feedback."
+  },
   "forms": {
     "site_feedback": {
       "title": "Send us feedback",

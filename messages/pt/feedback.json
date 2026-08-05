@@ -23,6 +23,58 @@
     "errorGeneric": "Não foi possível enviar os seus comentários. Tente novamente.",
     "errorEmpty": "Escreva alguma coisa antes de enviar."
   },
+  "admin": {
+    "tab": "Comentários do site",
+    "intro": "O que os visitantes enviaram através do formulário de comentários no rodapé do site. Os envios anónimos são normais e não são um erro.",
+    "stats": {
+      "inView": "Comentários nesta vista",
+      "open": "Ainda em aberto",
+      "forms": "Formulários"
+    },
+    "filters": {
+      "allForms": "Todos os formulários",
+      "formOption": "{title} ({count} em aberto)",
+      "allStatuses": "Todos os estados",
+      "open": "Em aberto",
+      "handled": "Tratado",
+      "searchPlaceholder": "Pesquisar no texto, na página ou por nome de utilizador"
+    },
+    "table": {
+      "from": "De",
+      "feedback": "Comentário",
+      "page": "Página",
+      "sent": "Enviado",
+      "status": "Estado",
+      "action": "Acção",
+      "anonymous": "Anónimo",
+      "noAnswer": "(sem resposta)",
+      "openButton": "Abrir"
+    },
+    "status": {
+      "open": "Em aberto",
+      "handled": "Tratado"
+    },
+    "empty": "Nenhum comentário corresponde a estes filtros.",
+    "previous": "Anterior",
+    "next": "Seguinte",
+    "showing": "{from} a {to} de {total}",
+    "detail": {
+      "sentFrom": "{who} enviou isto a partir de {page}.",
+      "sentFromWithLocale": "{who} enviou isto a partir de {page}, enquanto lia o site em {locale}.",
+      "unknownPage": "uma página desconhecida",
+      "rating": "{value} / 5",
+      "noteLabel": "Nota interna",
+      "notePlaceholder": "O que foi feito sobre isto. Nunca é mostrado a quem enviou.",
+      "handledBy": "Tratado por {name}.",
+      "handledByOn": "Tratado por {name} em {time}.",
+      "saveNote": "Guardar nota",
+      "reopen": "Reabrir",
+      "markHandled": "Marcar como tratado"
+    },
+    "loadFailed": "Não foi possível carregar os comentários.",
+    "updated": "Comentário actualizado.",
+    "updateFailed": "Não foi possível actualizar o comentário."
+  },
   "forms": {
     "site_feedback": {
       "title": "Envie-nos os seus comentários",

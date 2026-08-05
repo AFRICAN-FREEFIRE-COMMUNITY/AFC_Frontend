@@ -52,6 +52,16 @@ const nextConfig: NextConfig = {
         destination: "/a/teams?tab=watchlist",
         permanent: false,
       },
+      // Site Feedback was folded UNDER the API Keys page at /a/partners as its last tab
+      // (owner request 2026-08-05: "site feedback should go under api keys"). Its standalone
+      // sidebar entry was removed (constants/nav-links.ts) and its page deleted, so this
+      // exact-path redirect is what keeps existing /a/feedback bookmarks and links off a 404.
+      // Same shape as the two above: it matches ONLY /a/feedback, so no sub-route is caught.
+      {
+        source: "/a/feedback",
+        destination: "/a/partners?tab=feedback",
+        permanent: false,
+      },
       // ── SEO: retire dead legacy URLs Google still has indexed (audit 2026-06-14) ──
       // News used to be served by numeric DB id (/news/19); it now lives at a text
       // slug (/news/[slug]). Google still crawls ~12 old id URLs (/news/9,11,14-24)

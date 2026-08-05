@@ -1,34 +1,45 @@
 "use client";
 
 /**
- * /a/feedback - the site feedback triage queue (owner backlog item 29).
- * ─────────────────────────────────────────────────────────────────────
+ * SiteFeedbackPanel - the site feedback triage queue (owner backlog item 29).
+ * ─────────────────────────────────────────────────────────────────────────
  * Reads what visitors sent through the always-on footer form, filters by form and status, and marks
  * a submission handled.
  *
- * WHY A STANDALONE PAGE AND NOT A TAB
- *   The repo's habit is to fold a triage queue into an existing page as a tab (player reports live
- *   under Teams & Players, blacklists and watchlist likewise). That works when the queue is SCOPED to
- *   that page's subject. Site feedback is not: a submission can be about the shop, an event, the
- *   rankings or signing up, and its permission set is platform-wide rather than an area admin's. So
- *   it gets its own entry, placed next to Broadcasts in the sidebar: outbound messages there,
- *   inbound ones here.
+ * WHY IT LIVES ON THE API KEYS PAGE: it used to be its own sidebar entry at /a/feedback, on the
+ * reasoning that site feedback is not scoped to any one subject so no existing page owned it. Owner
+ * 2026-08-05 decided otherwise ("site feedback should go under api keys"), so it is now the last tab
+ * of app/(a)/a/partners/page.tsx, beside Data API, Sign in with AFC and Applications. /a/feedback
+ * redirects to /a/partners?tab=feedback (next.config.ts) so old bookmarks still land here, and the
+ * standalone sidebar entry was removed (constants/nav-links.ts).
+ *
+ * WHO CAN OPEN IT: the API Keys sidebar gate is the UNION of the partner roles and the feedback
+ * roles, and the page hides the tabs a viewer's roles do not cover (TAB_DEFS in page.tsx). This tab
+ * is for head_admin plus the coarse admin / moderator / support roles, mirroring
+ * afc_feedback.views.is_feedback_admin exactly. An area admin (shop_admin, news_admin, ...) is
+ * deliberately excluded: platform-wide feedback is not an area admin's queue.
  *
  * ENDPOINTS (backend afc_feedback/views.py)
  *   GET   /feedback/admin/forms/                  the form filter + open counts
  *   GET   /feedback/admin/submissions/            the table (form, status, search, limit, offset)
  *   PATCH /feedback/admin/submissions/<id>/       mark handled / reopen, plus an internal note
  *
- * NOT INTERNATIONALIZED, deliberately: admin pages under (a)/ are operated in English per the repo's
- * i18n exemption. The player-facing widget IS translated (messages/{en,fr,pt}/feedback.json).
+ * CONVENTION: mirrors the sibling tabs (SsoAppsPanel.tsx, PartnerApplicationsPanel.tsx): no
+ * PageHeader of its own (the page owns that), shadcn Card + Table + Dialog, LocalTime for every
+ * timestamp, a toast on every mutation.
+ *
+ * i18n: every user-facing string comes from the `feedback` namespace, `admin.*` subtree
+ * (messages/{en,fr,pt}/feedback.json), which the player-facing footer widget already shares. Admin
+ * is in scope for i18n (owner override 2026-07-13); this surface was authored in English only when
+ * it was a standalone page and was translated on the way in here.
  */
 
 import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
-import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +71,7 @@ import {
 } from "@/components/ui/dialog";
 import { FullLoader } from "@/components/Loader";
 import { LocalTime } from "@/components/LocalTime";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { IconMessage2, IconUser, IconUserOff, IconStarFilled } from "@tabler/icons-react";
 
 const PAGE_SIZE = 25;
@@ -96,7 +108,14 @@ const STATUS_BADGE: Record<string, string> = {
   handled: "border-green-600/60 text-green-600 dark:text-green-400",
 };
 
-export default function AdminFeedbackPage() {
+export default function SiteFeedbackPanel() {
+  // messages/{en,fr,pt}/feedback.json. The player-facing widget owns the top level of this
+  // namespace; everything staff-facing hangs off `admin.`, so one file describes the whole feature.
+  const t = useTranslations("feedback");
+  // The active UI locale, passed to formatLocalTime for the one timestamp that sits INSIDE a
+  // translated sentence (see the handled-by line at the bottom of the detail dialog).
+  const locale = useLocale();
+
   const [submissions, setSubmissions] = useState<FeedbackSubmission[]>([]);
   const [forms, setForms] = useState<FeedbackFormSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,6 +134,14 @@ export default function AdminFeedbackPage() {
   const [saving, setSaving] = useState(false);
 
   const authHeader = () => ({ Authorization: `Bearer ${Cookies.get("auth_token")}` });
+
+  // Only two statuses exist backend-side. Anything else prints raw rather than raising a
+  // missing-translation error for a state this UI has never heard of.
+  const statusLabel = (status: string) => {
+    if (status === "open") return t("admin.status.open");
+    if (status === "handled") return t("admin.status.handled");
+    return status;
+  };
 
   // Debounce the search box so typing does not fire a request per keystroke (same 300ms the
   // broadcasts page uses).
@@ -140,7 +167,7 @@ export default function AdminFeedbackPage() {
       setOpenCount(res.data?.open_count ?? 0);
       setHasMore(!!res.data?.has_more);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Could not load feedback.");
+      toast.error(err?.response?.data?.message || t("admin.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -155,7 +182,7 @@ export default function AdminFeedbackPage() {
       setForms(res.data?.forms ?? []);
     } catch {
       // Non-fatal: the filter simply falls back to "All forms". The table is the real content, and
-      // failing the whole page because a dropdown could not load would be worse.
+      // failing the whole tab because a dropdown could not load would be worse.
     }
   }, []);
 
@@ -197,7 +224,7 @@ export default function AdminFeedbackPage() {
         { headers: authHeader() },
       );
       const updated: FeedbackSubmission = res.data?.submission;
-      toast.success(res.data?.message || "Feedback updated.");
+      toast.success(res.data?.message || t("admin.updated"));
 
       // Patch the row in place from the response rather than refetching (house idiom), but refresh
       // the counts, which the response cannot know.
@@ -211,7 +238,7 @@ export default function AdminFeedbackPage() {
       setActive(null);
       fetchForms();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Could not update the feedback.");
+      toast.error(err?.response?.data?.message || t("admin.updateFailed"));
     } finally {
       setSaving(false);
     }
@@ -227,7 +254,7 @@ export default function AdminFeedbackPage() {
       (f) => f.field_type === "textarea" && submission.answers?.[f.key],
     );
     const chosen = longText ?? snapshot.find((f) => submission.answers?.[f.key]);
-    return chosen ? String(submission.answers[chosen.key]) : "(no answer)";
+    return chosen ? String(submission.answers[chosen.key]) : t("admin.table.noAnswer");
   };
 
   /** The rating answer, if this form has one. Rendered as a compact star count in the table. */
@@ -239,11 +266,10 @@ export default function AdminFeedbackPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Site Feedback"
-        description="What visitors sent through the feedback form in the site footer. Anonymous submissions are expected and are not a bug."
-      />
+    <div className="flex flex-col gap-6">
+      {/* No PageHeader here: the page above owns the title, exactly like the sibling tabs. This one
+          line is what the retired standalone page said under its heading. */}
+      <p className="text-muted-foreground text-sm">{t("admin.intro")}</p>
 
       {/* Counts strip. open_count reflects the CURRENT filter, so the number always matches the
           table underneath it. */}
@@ -253,7 +279,7 @@ export default function AdminFeedbackPage() {
             <IconMessage2 className="size-5 text-primary" />
             <div>
               <p className="text-2xl font-bold">{totalCount}</p>
-              <p className="text-muted-foreground text-xs">Submissions in this view</p>
+              <p className="text-muted-foreground text-xs">{t("admin.stats.inView")}</p>
             </div>
           </CardContent>
         </Card>
@@ -262,7 +288,7 @@ export default function AdminFeedbackPage() {
             <IconMessage2 className="size-5 text-primary" />
             <div>
               <p className="text-2xl font-bold">{openCount}</p>
-              <p className="text-muted-foreground text-xs">Still open</p>
+              <p className="text-muted-foreground text-xs">{t("admin.stats.open")}</p>
             </div>
           </CardContent>
         </Card>
@@ -271,7 +297,7 @@ export default function AdminFeedbackPage() {
             <IconMessage2 className="size-5 text-primary" />
             <div>
               <p className="text-2xl font-bold">{forms.length}</p>
-              <p className="text-muted-foreground text-xs">Forms</p>
+              <p className="text-muted-foreground text-xs">{t("admin.stats.forms")}</p>
             </div>
           </CardContent>
         </Card>
@@ -282,13 +308,16 @@ export default function AdminFeedbackPage() {
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Select value={formFilter} onValueChange={setFormFilter}>
             <SelectTrigger className="w-full sm:w-64">
-              <SelectValue placeholder="All forms" />
+              <SelectValue placeholder={t("admin.filters.allForms")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All forms</SelectItem>
+              <SelectItem value="all">{t("admin.filters.allForms")}</SelectItem>
               {forms.map((form) => (
                 <SelectItem key={form.key} value={form.key}>
-                  {form.title} ({form.open_count} open)
+                  {t("admin.filters.formOption", {
+                    title: form.title,
+                    count: form.open_count,
+                  })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -296,19 +325,19 @@ export default function AdminFeedbackPage() {
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="All statuses" />
+              <SelectValue placeholder={t("admin.filters.allStatuses")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="handled">Handled</SelectItem>
+              <SelectItem value="all">{t("admin.filters.allStatuses")}</SelectItem>
+              <SelectItem value="open">{t("admin.filters.open")}</SelectItem>
+              <SelectItem value="handled">{t("admin.filters.handled")}</SelectItem>
             </SelectContent>
           </Select>
 
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search the text, the page, or a username"
+            placeholder={t("admin.filters.searchPlaceholder")}
             className="w-full sm:flex-1"
           />
         </CardContent>
@@ -322,7 +351,7 @@ export default function AdminFeedbackPage() {
             </div>
           ) : submissions.length === 0 ? (
             <p className="text-muted-foreground py-12 text-center text-sm">
-              No feedback matches these filters.
+              {t("admin.empty")}
             </p>
           ) : (
             // Horizontal scroll on the CONTAINER, not the page: a phone must never scroll the whole
@@ -331,12 +360,14 @@ export default function AdminFeedbackPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="h-10">
-                    <TableHead className="text-foreground">From</TableHead>
-                    <TableHead className="text-foreground">Feedback</TableHead>
-                    <TableHead className="text-foreground">Page</TableHead>
-                    <TableHead className="text-foreground">Sent</TableHead>
-                    <TableHead className="text-foreground">Status</TableHead>
-                    <TableHead className="text-foreground text-right">Action</TableHead>
+                    <TableHead className="text-foreground">{t("admin.table.from")}</TableHead>
+                    <TableHead className="text-foreground">{t("admin.table.feedback")}</TableHead>
+                    <TableHead className="text-foreground">{t("admin.table.page")}</TableHead>
+                    <TableHead className="text-foreground">{t("admin.table.sent")}</TableHead>
+                    <TableHead className="text-foreground">{t("admin.table.status")}</TableHead>
+                    <TableHead className="text-foreground text-right">
+                      {t("admin.table.action")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -349,7 +380,9 @@ export default function AdminFeedbackPage() {
                             {submission.is_anonymous ? (
                               <>
                                 <IconUserOff className="size-3.5 text-muted-foreground" />
-                                <span className="text-muted-foreground">Anonymous</span>
+                                <span className="text-muted-foreground">
+                                  {t("admin.table.anonymous")}
+                                </span>
                               </>
                             ) : (
                               <>
@@ -383,12 +416,12 @@ export default function AdminFeedbackPage() {
                               STATUS_BADGE[submission.status] ?? ""
                             }`}
                           >
-                            {submission.status}
+                            {statusLabel(submission.status)}
                           </Badge>
                         </TableCell>
                         <TableCell className="p-2 text-right">
                           <Button size="sm" variant="outline" onClick={() => openDetail(submission)}>
-                            Open
+                            {t("admin.table.openButton")}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -407,10 +440,14 @@ export default function AdminFeedbackPage() {
                 disabled={offset === 0}
                 onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
               >
-                Previous
+                {t("admin.previous")}
               </Button>
               <span className="text-muted-foreground text-xs">
-                {offset + 1} to {Math.min(offset + PAGE_SIZE, totalCount)} of {totalCount}
+                {t("admin.showing", {
+                  from: offset + 1,
+                  to: Math.min(offset + PAGE_SIZE, totalCount),
+                  total: totalCount,
+                })}
               </span>
               <Button
                 size="sm"
@@ -418,7 +455,7 @@ export default function AdminFeedbackPage() {
                 disabled={!hasMore}
                 onClick={() => setOffset(offset + PAGE_SIZE)}
               >
-                Next
+                {t("admin.next")}
               </Button>
             </div>
           )}
@@ -432,10 +469,24 @@ export default function AdminFeedbackPage() {
             <>
               <DialogHeader>
                 <DialogTitle>{active.form_title}</DialogTitle>
+                {/* Two whole sentences rather than glued fragments: a submission carries the reading
+                    language only sometimes, and a translator needs to move "while reading the site
+                    in X" wherever their grammar wants it. */}
                 <DialogDescription>
-                  {active.is_anonymous ? "Anonymous" : active.username} sent this from{" "}
-                  {active.page_path || "an unknown page"}
-                  {active.locale ? ` while reading the site in ${active.locale}` : ""}.
+                  {active.locale
+                    ? t("admin.detail.sentFromWithLocale", {
+                        who: active.is_anonymous
+                          ? t("admin.table.anonymous")
+                          : active.username ?? "",
+                        page: active.page_path || t("admin.detail.unknownPage"),
+                        locale: active.locale,
+                      })
+                    : t("admin.detail.sentFrom", {
+                        who: active.is_anonymous
+                          ? t("admin.table.anonymous")
+                          : active.username ?? "",
+                        page: active.page_path || t("admin.detail.unknownPage"),
+                      })}
                 </DialogDescription>
               </DialogHeader>
 
@@ -449,33 +500,37 @@ export default function AdminFeedbackPage() {
                     <div key={field.key}>
                       <p className="text-muted-foreground text-xs">{field.label}</p>
                       <p className="text-sm whitespace-pre-wrap">
-                        {field.field_type === "rating" ? `${answer} / 5` : String(answer)}
+                        {field.field_type === "rating"
+                          ? t("admin.detail.rating", { value: String(answer) })
+                          : String(answer)}
                       </p>
                     </div>
                   );
                 })}
 
                 <div className="space-y-2 border-t pt-4">
-                  <Label htmlFor="feedback-note">Internal note</Label>
+                  <Label htmlFor="feedback-note">{t("admin.detail.noteLabel")}</Label>
                   <Textarea
                     id="feedback-note"
                     value={draftNote}
                     onChange={(e) => setDraftNote(e.target.value)}
-                    placeholder="What was done about this. Never shown to the submitter."
+                    placeholder={t("admin.detail.notePlaceholder")}
                     rows={3}
                   />
                 </div>
 
                 {active.handled_by && (
+                  // formatLocalTime (the string form) rather than the <LocalTime> component, because
+                  // the timestamp sits inside ONE translated sentence and splitting that sentence
+                  // around a React node would leave translators with fragments. Safe here: this
+                  // dialog only ever renders after a click, so there is no server render to mismatch.
                   <p className="text-muted-foreground text-xs">
-                    Handled by {active.handled_by}
-                    {active.handled_at ? (
-                      <>
-                        {" "}
-                        on <LocalTime value={active.handled_at} />
-                      </>
-                    ) : null}
-                    .
+                    {active.handled_at
+                      ? t("admin.detail.handledByOn", {
+                          name: active.handled_by,
+                          time: formatLocalTime(active.handled_at, "datetime", locale),
+                        })
+                      : t("admin.detail.handledBy", { name: active.handled_by })}
                   </p>
                 )}
               </div>
@@ -487,7 +542,7 @@ export default function AdminFeedbackPage() {
                   disabled={saving}
                   className="w-full sm:w-auto"
                 >
-                  Save note
+                  {t("admin.detail.saveNote")}
                 </Button>
                 {active.status === "handled" ? (
                   <Button
@@ -496,7 +551,7 @@ export default function AdminFeedbackPage() {
                     disabled={saving}
                     className="w-full sm:w-auto"
                   >
-                    Reopen
+                    {t("admin.detail.reopen")}
                   </Button>
                 ) : (
                   <Button
@@ -504,7 +559,7 @@ export default function AdminFeedbackPage() {
                     disabled={saving}
                     className="w-full sm:w-auto"
                   >
-                    Mark handled
+                    {t("admin.detail.markHandled")}
                   </Button>
                 )}
               </DialogFooter>

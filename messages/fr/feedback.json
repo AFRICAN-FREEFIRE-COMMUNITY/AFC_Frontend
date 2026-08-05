@@ -23,6 +23,58 @@
     "errorGeneric": "Votre avis n'a pas pu être envoyé. Veuillez réessayer.",
     "errorEmpty": "Veuillez écrire quelque chose avant d'envoyer."
   },
+  "admin": {
+    "tab": "Avis du site",
+    "intro": "Ce que les visiteurs ont envoyé via le formulaire d'avis en bas du site. Les envois anonymes sont normaux, ce n'est pas un bug.",
+    "stats": {
+      "inView": "Avis dans cette vue",
+      "open": "Toujours ouverts",
+      "forms": "Formulaires"
+    },
+    "filters": {
+      "allForms": "Tous les formulaires",
+      "formOption": "{title} ({count} ouverts)",
+      "allStatuses": "Tous les statuts",
+      "open": "Ouvert",
+      "handled": "Traité",
+      "searchPlaceholder": "Rechercher dans le texte, la page ou un nom d'utilisateur"
+    },
+    "table": {
+      "from": "De",
+      "feedback": "Avis",
+      "page": "Page",
+      "sent": "Envoyé",
+      "status": "Statut",
+      "action": "Action",
+      "anonymous": "Anonyme",
+      "noAnswer": "(aucune réponse)",
+      "openButton": "Ouvrir"
+    },
+    "status": {
+      "open": "Ouvert",
+      "handled": "Traité"
+    },
+    "empty": "Aucun avis ne correspond à ces filtres.",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "showing": "{from} à {to} sur {total}",
+    "detail": {
+      "sentFrom": "{who} a envoyé ceci depuis {page}.",
+      "sentFromWithLocale": "{who} a envoyé ceci depuis {page}, en consultant le site en {locale}.",
+      "unknownPage": "une page inconnue",
+      "rating": "{value} / 5",
+      "noteLabel": "Note interne",
+      "notePlaceholder": "Ce qui a été fait à ce sujet. Jamais montré à la personne qui a écrit.",
+      "handledBy": "Traité par {name}.",
+      "handledByOn": "Traité par {name} le {time}.",
+      "saveNote": "Enregistrer la note",
+      "reopen": "Rouvrir",
+      "markHandled": "Marquer comme traité"
+    },
+    "loadFailed": "Impossible de charger les avis.",
+    "updated": "Avis mis à jour.",
+    "updateFailed": "Impossible de mettre à jour cet avis."
+  },
   "forms": {
     "site_feedback": {
       "title": "Donnez-nous votre avis",

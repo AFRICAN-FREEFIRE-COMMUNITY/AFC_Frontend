@@ -15,6 +15,11 @@
 // They sit together because they are the same idea for different products, and staff
 // approve both through the same process.
 //
+// Owner 2026-08-05 ("site feedback should go under api keys") added a FOURTH tab that is
+// not a partner program at all: the site feedback triage queue, moved here from its own
+// sidebar entry at /a/feedback (which now redirects to ?tab=feedback, see next.config.ts).
+// Rendered by _components/SiteFeedbackPanel.tsx.
+//
 // The Data API tab below mirrors the admin Organizations list idiom
 // (app/(a)/a/organizations/page.tsx): search box + shadcn Table + the shared
 // Pagination component, plus a "Create partner" dialog. It paginates SERVER-side via
@@ -24,9 +29,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+
+import { useAuth } from "@/contexts/AuthContext";
 
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -69,6 +76,26 @@ import SsoAppsPanel from "./_components/SsoAppsPanel";
 // The queue of organisations that applied at the public /partners/apply form. Approving one
 // provisions a partner for either product, so it belongs on this page rather than its own.
 import PartnerApplicationsPanel from "./_components/PartnerApplicationsPanel";
+// The site feedback triage queue, folded in from the retired /a/feedback page (owner 2026-08-05).
+import SiteFeedbackPanel from "./_components/SiteFeedbackPanel";
+
+// ── Per-tab role gating ──────────────────────────────────────────────────────
+// The sidebar entry for this page is now the UNION of two different audiences (the partner
+// team and the feedback team), so a viewer must not be shown a tab their roles never covered.
+// Each tab declares the roles that owned its surface BEFORE it was folded in; head_admin and
+// super_admin always pass (mirrors the canAccess logic in components/nav-main.tsx, same shape
+// as TAB_DEFS in app/(a)/a/teams/page.tsx). The union of these IS the nav gate in
+// constants/nav-links.ts, and ProtectedRoute reads that same list to guard the route.
+const TAB_DEFS = [
+  // The three partner surfaces: head_admin / partner_admin, matching the backend's
+  // _is_partner_admin check.
+  { value: "data", roles: ["partner_admin"] },
+  { value: "sso", roles: ["partner_admin"] },
+  { value: "applications", roles: ["partner_admin"] },
+  // Site feedback: the COARSE admin / moderator / support roles, mirroring
+  // afc_feedback.views.is_feedback_admin. Area admins are deliberately excluded there too.
+  { value: "feedback", roles: ["admin", "moderator", "support"] },
+] as const;
 
 // Shared status pill - outline badge whose border/text colour tracks the partner
 // status (active = green, suspended = orange, anything else = neutral). Same idiom
@@ -102,9 +129,14 @@ export default function PartnersAdminPage() {
   // straight to its detail page (where the Connection details + Issue key + Scope &
   // Toggles controls live). See handleCreate below.
   const router = useRouter();
+  // searchParams + pathname drive the ?tab= deep link (see the tab block below).
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const { user } = useAuth();
 
-  // TWO translators on purpose:
-  //   t  - the `ssoAdmin` namespace, which owns the two TAB labels. They were authored
+  // Several translators on purpose, one per namespace this page borrows from. Each tab's label
+  // stays in the namespace its own panel uses, so a tab's copy never lives in two files:
+  //   t  - the `ssoAdmin` namespace, which owns the first two TAB labels. They were authored
   //        there with the Sign-in-with-AFC panel and are left where they are so the
   //        SsoAppsPanel keys stay in one place.
   //   tp - the `partners` namespace (messages/{en,fr,pt}/partners.json), which owns every
@@ -119,11 +151,47 @@ export default function PartnersAdminPage() {
   // shares the namespace with the PUBLIC application form so the owner's wording and the
   // applicant's cannot drift ("they were told the link works once").
   const ta = useTranslations("partnerApply");
+  // feedback namespace: the fourth tab's label. Its panel owns the rest of that copy, and shares
+  // the namespace with the PUBLIC footer widget so one file describes the whole feature.
+  const tf = useTranslations("feedback");
 
-  // Which partner program is on screen. Controlled state (not defaultValue) so the
-  // header description can follow the active tab. "data" first: it is the older,
-  // busier program and the anchors the admin tour walks live in it.
-  const [tab, setTab] = useState("data");
+  // ── Who sees which tab ───────────────────────────────────────────────────
+  // Same normalisation nav-main.tsx uses, so a viewer sees exactly the tabs the sidebar
+  // would have let them reach when these surfaces were separate pages. `user` is always
+  // populated here: the admin layout's ProtectedRoute holds the whole page behind a loader
+  // until auth resolves, so this runs once with real roles rather than on an empty session.
+  const normalizeRole = (role: string) => role.toLowerCase().replace(/\s+/g, "_");
+  const userRoles = [
+    ...(Array.isArray(user?.roles) ? user!.roles.map(normalizeRole) : []),
+    normalizeRole(user?.role || ""),
+  ].filter(Boolean);
+  const isSuper = userRoles.includes("super_admin") || userRoles.includes("head_admin");
+  const canSeeTab = (roles: readonly string[]) =>
+    isSuper || userRoles.some((r) => roles.includes(r));
+  const visibleTabs: string[] = TAB_DEFS.filter((td) => canSeeTab(td.roles)).map(
+    (td) => td.value,
+  );
+  // Pulled out as a primitive because fetchPartners depends on it: a fresh array in a dependency
+  // list would refetch on every render.
+  const canSeeDataTab = visibleTabs.includes("data");
+
+  // Which tab is on screen. Controlled state (not defaultValue) so the header description
+  // can follow the active tab, seeded from ?tab= so /a/feedback can redirect straight to the
+  // feedback queue and any deep link survives a reload. Falls back to the FIRST tab this
+  // viewer can see (for a head_admin that is still "data", the older and busier program that
+  // the admin tour's anchors live in) so nobody lands on a tab that is not rendered.
+  const tabParam = searchParams.get("tab");
+  const [tab, setTab] = useState(
+    tabParam && visibleTabs.includes(tabParam) ? tabParam : (visibleTabs[0] ?? "data"),
+  );
+
+  // Keep the active tab in the URL so a RELOAD restores it (router.replace so back isn't spammed).
+  const onTabChange = (value: string) => {
+    setTab(value);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", value);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   const [partners, setPartners] = useState<PartnerSummary[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -146,6 +214,13 @@ export default function PartnersAdminPage() {
   // page is 1-indexed; offset = (page - 1) * ITEMS_PER_PAGE. The endpoint hands
   // back { results, total_count, has_more } so we drive paging off total_count.
   const fetchPartners = useCallback(async () => {
+    // A viewer who is only here for the feedback tab (support / moderator) has no rights on the
+    // partner endpoint, so asking would just hand them a 403 toast on arrival. Skip the call and
+    // drop out of the loading state so the page renders straight to their tab.
+    if (!canSeeDataTab) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const res = await partnersApi.listPartners({
@@ -160,7 +235,7 @@ export default function PartnersAdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, page]);
+  }, [search, page, canSeeDataTab]);
 
   useEffect(() => {
     fetchPartners();
@@ -222,8 +297,10 @@ export default function PartnersAdminPage() {
     [totalPages, page],
   );
 
-  // first load only - keep the table on-screen during search/page refetches
-  if (loading && partners.length === 0) return <FullLoader />;
+  // first load only - keep the table on-screen during search/page refetches. Guarded on the
+  // Data API tab being visible: a feedback-only viewer never fetches partners, so without this
+  // they would watch a loader for a table they are not allowed to see.
+  if (canSeeDataTab && loading && partners.length === 0) return <FullLoader />;
 
   return (
     <div className="flex flex-col gap-6">
@@ -245,23 +322,37 @@ export default function PartnersAdminPage() {
         }
       />
 
-      {/* Two programs and the queue that feeds both, on one page. Controlled value so the
-          header description above can follow the tab; shadcn pill/segment style, per the
-          AFC design constants. */}
-      <Tabs value={tab} onValueChange={setTab}>
+      {/* Two programs, the queue that feeds both, and the site feedback inbox, on one page.
+          Controlled value so the header description above can follow the tab; shadcn
+          pill/segment style, per the AFC design constants. Each trigger is rendered only for a
+          viewer whose roles cover it (visibleTabs), so a support user sees a one-tab page. */}
+      <Tabs value={tab} onValueChange={onTabChange}>
         <TabsList className="w-full">
-          <TabsTrigger value="data" className="w-full">
-            {t("tabs.dataApi")}
-          </TabsTrigger>
-          <TabsTrigger value="sso" className="w-full">
-            {t("tabs.sso")}
-          </TabsTrigger>
-          {/* Applications sits LAST because it is where a partner starts and the other two
-              tabs are where one ends up: the owner reads this page left to right as the two
+          {visibleTabs.includes("data") && (
+            <TabsTrigger value="data" className="w-full">
+              {t("tabs.dataApi")}
+            </TabsTrigger>
+          )}
+          {visibleTabs.includes("sso") && (
+            <TabsTrigger value="sso" className="w-full">
+              {t("tabs.sso")}
+            </TabsTrigger>
+          )}
+          {/* Applications sits after the two products because it is where a partner starts and
+              they are where one ends up: the owner reads this page left to right as the two
               products, then the inbox that provisions into them. */}
-          <TabsTrigger value="applications" className="w-full">
-            {ta("admin.tab")}
-          </TabsTrigger>
+          {visibleTabs.includes("applications") && (
+            <TabsTrigger value="applications" className="w-full">
+              {ta("admin.tab")}
+            </TabsTrigger>
+          )}
+          {/* Site Feedback is LAST (owner 2026-08-05): it is the one tab that is not about
+              partners at all, so it does not interrupt the partner story told by the first three. */}
+          {visibleTabs.includes("feedback") && (
+            <TabsTrigger value="feedback" className="w-full">
+              {tf("admin.tab")}
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* ── Data API tab: the existing partner list, unchanged apart from being
@@ -432,6 +523,14 @@ export default function PartnersAdminPage() {
             kind of row. Whole surface lives in its own component. ── */}
         <TabsContent value="applications" className="mt-4">
           <PartnerApplicationsPanel />
+        </TabsContent>
+
+        {/* ── Site Feedback tab: what visitors sent through the always-on footer form
+            (afc_feedback). Moved here from the standalone /a/feedback page (owner 2026-08-05);
+            that route now redirects to ?tab=feedback. Whole surface lives in its own
+            component, like the two tabs above. ── */}
+        <TabsContent value="feedback" className="mt-4">
+          <SiteFeedbackPanel />
         </TabsContent>
       </Tabs>
 
