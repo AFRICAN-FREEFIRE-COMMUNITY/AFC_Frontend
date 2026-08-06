@@ -119,7 +119,7 @@
   },
   "cart": {
     "title": "Seu Carrinho",
-    "itemCount": "{count, plural,  one { # item }  other { # itens } }",
+    "itemCount": "{count, plural, =0 {# itens} one {# item} other {# itens}}",
     "clearAll": "Limpar Tudo",
     "empty": "Seu carrinho está um pouco vazio!",
     "goToShop": "Ir para a Loja",

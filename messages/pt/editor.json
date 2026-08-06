@@ -26,6 +26,6 @@
   "horizontalRule": "Linha horizontal",
   "undo": "Desfazer (Ctrl+Z)",
   "redo": "Refazer (Ctrl+Y)",
-  "wordCount": "{count, plural,  one { # palavra }  other { # palavras } }",
+  "wordCount": "{count, plural, =0 {# palavras} one {# palavra} other {# palavras}}",
   "contentError": "Não foi possível apresentar o conteúdo"
 }

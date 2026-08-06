@@ -22,9 +22,9 @@
     "activePlayerListings": "Anúncios de jogadores ativos",
     "activeTrials": "Testes a decorrer",
     "pendingReports": "Denúncias pendentes",
-    "flagged": "{count, plural, one {# anúncio sinalizado} other {# anúncios sinalizados}}",
+    "flagged": "{count, plural, =0 {# anúncios sinalizados} one {# anúncio sinalizado} other {# anúncios sinalizados}}",
     "totalTrials": "{count} no total",
-    "totalReports": "{count, plural, one {# denúncia no total} other {# denúncias no total}}",
+    "totalReports": "{count, plural, =0 {# denúncias no total} one {# denúncia no total} other {# denúncias no total}}",
     "health": {
       "title": "Estado do sistema e conformidade",
       "transferWindow": "Estado da janela de transferências",
@@ -163,7 +163,7 @@
     "banTitle": "Banir a equipa ou o jogador denunciado",
     "banReporter": "Banir o autor",
     "banReporterTitle": "Banir o autor por uma denúncia falsa ou abusiva",
-    "footer": "{shown, plural, one {# denúncia apresentada} other {# denúncias apresentadas}}. {open} em aberto e a aguardar análise. Mais recentes primeiro."
+    "footer": "{shown, plural, =0 {# denúncias apresentadas} one {# denúncia apresentada} other {# denúncias apresentadas}}. {open} em aberto e a aguardar análise. Mais recentes primeiro."
   },
   "reportCategory": {
     "bad_tryout": "Teste negativo",

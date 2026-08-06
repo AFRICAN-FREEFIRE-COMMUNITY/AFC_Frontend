@@ -1,0 +1,23 @@
+{
+  "title": "Connected apps",
+  "subtitle": "Other sites you have signed into with your AFC account",
+  "profileCardTitle": "Connected apps",
+  "profileCardDescription": "See which other sites can use your AFC account, and cut any of them off.",
+  "manage": "Manage",
+  "loadError": "We could not load your connected apps. Please try again.",
+  "retry": "Try again",
+  "empty.title": "No connected apps",
+  "empty.description": "You have not used your AFC account to sign in anywhere else. When you do, the site will appear here and you can remove it at any time.",
+  "card.canSee": "This app can see:",
+  "card.connectedOn": "Connected",
+  "card.lastUsed": "Last used",
+  "card.neverUsed": "Not used yet",
+  "card.visitSite": "Visit site",
+  "card.disconnect": "Disconnect",
+  "confirm.title": "Disconnect {name}?",
+  "confirm.description": "{name} will immediately lose access to your AFC information. Anyone signed into {name} with your AFC account will be signed out. You can connect again at any time.",
+  "confirm.cancel": "Cancel",
+  "confirm.confirm": "Disconnect",
+  "toast.revoked": "{name} has been disconnected.",
+  "toast.revokeFailed": "We could not disconnect {name}. Please try again."
+}

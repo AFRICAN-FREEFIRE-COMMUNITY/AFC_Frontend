@@ -164,5 +164,11 @@
   "phoneInput.selectCountryPlaceholder": "Select a country",
   "eventTime.to": "to",
   "eventTime.yourTime": "(your time)",
-  "eventTime.host": "(host)"
+  "eventTime.host": "(host)",
+  "teamRoles.team_captain": "Team Captain",
+  "teamRoles.vice_captain": "Vice Captain",
+  "teamRoles.member": "Player",
+  "teamRoles.coach": "Coach",
+  "teamRoles.manager": "Manager",
+  "teamRoles.analyst": "Analyst"
 }

@@ -2,10 +2,10 @@
   "title": "Configuração do Round-Robin",
   "baseGroups": "Grupos de base",
   "baseGroupsDesc": "As equipas estão distribuídas por estes grupos. Cada par de grupos enfrenta-se uma vez.",
-  "autoDistribute": "{count, plural,  one { Distribuir automaticamente # equipas de forma equilibrada }  other { Distribuir automaticamente # equipas de forma equilibrada } }",
+  "autoDistribute": "{count, plural, =0 {Distribuir automaticamente # equipas de forma equilibrada} one {Distribuir automaticamente # equipa de forma equilibrada} other {Distribuir automaticamente # equipas de forma equilibrada}}",
   "clear": "Limpar",
   "group": "Grupo",
-  "teamCount": "{count, plural,  one { # equipa }  other { # equipas } }",
+  "teamCount": "{count, plural, =0 {# equipas} one {# equipa} other {# equipas}}",
   "teamsInGroup": "Equipas deste grupo",
   "assignLater": "Atribua equipas a este grupo a partir do ecrã de edição assim que o evento tiver inscrições.",
   "addBaseGroup": "Adicionar grupo base",
@@ -25,7 +25,7 @@
   "date": "Data",
   "time": "Hora",
   "matchesInMeeting": "Jogos desta jornada",
-  "matchCountDerived": "{count, plural,  one { # correspondência (uma por cada mapa selecionado abaixo). }  other { # correspondências (uma por cada mapa selecionado abaixo). } }",
+  "matchCountDerived": "{count, plural, =0 {# partidas (uma por cada mapa selecionado abaixo).} one {# partida (uma por cada mapa selecionado abaixo).} other {# partidas (uma por cada mapa selecionado abaixo).}}",
   "maps": "Mapas",
   "addGameDay": "Adicionar Dia do Jogo"
 }

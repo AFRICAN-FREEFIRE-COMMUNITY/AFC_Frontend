@@ -17,6 +17,8 @@
   "detail.titleSuffix": "{title} Details",
   "detail.registerForTournament": "Register for Tournament",
   "detail.wasThisHelpful": "Was this helpful?",
+  "relatedEvents.heading": "Related events",
+  "relatedEvents.viewEvent": "View {name}",
   "toast.loadFailed": "Failed to load news",
   "toast.syncFailed": "Failed to sync news data",
   "toast.loginToVote": "Please login to vote",

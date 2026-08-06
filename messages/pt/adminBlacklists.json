@@ -7,9 +7,9 @@
     "active": "Ativas agora",
     "activeSub": "Bloqueiam atualmente as inscrições",
     "topOrg": "Organização no topo",
-    "topOrgSub": "{count, plural, one {# lista negra aplicada} other {# listas negras aplicadas}}",
+    "topOrgSub": "{count, plural, =0 {# listas negras aplicadas} one {# lista negra aplicada} other {# listas negras aplicadas}}",
     "topTeam": "Equipa mais bloqueada",
-    "topTeamSub": "{count, plural, one {# vez} other {# vezes}}"
+    "topTeamSub": "{count, plural, =0 {# vezes} one {# vez} other {# vezes}}"
   },
   "filters": {
     "search": "Pesquisar",

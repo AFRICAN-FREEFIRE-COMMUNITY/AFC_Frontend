@@ -4,7 +4,7 @@
   "statusPending": "Em espera",
   "statusActive": "Ativo",
   "statusRejected": "Rejeitado",
-  "summary": "{all, plural,  one { # registante }  other { # registantes } } · {pending} pendente · {active} ativo · {rejected} rejeitado",
+  "summary": "{all, plural, =0 {# registantes} one {# registante} other {# registantes}} · {pending} pendente · {active} ativo · {rejected} rejeitado",
   "searchPlaceholder": "Pesquisar por nome de utilizador, evento, equipa ou ID do patrocinador…",
   "filterByStatus": "Filtrar por estado",
   "filterAll": "Todos ({count})",

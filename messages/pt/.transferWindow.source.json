@@ -5,5 +5,7 @@
   "openBodyWithDate": "Roster moves are allowed, the window closes {date}.",
   "closedBody": "Roster moves are locked, players cannot leave, be removed from, or disband teams until the window reopens.",
   "openBadge": "OPEN",
-  "closedBadge": "CLOSED"
+  "closedBadge": "CLOSED",
+  "closedBodyWithOpenDate": "Roster moves are locked, players cannot leave, be removed from, or disband teams. The window opens on {date}.",
+  "closedBodyAfterClose": "Roster moves are locked, players cannot leave, be removed from, or disband teams. The window closed on {date} and reopens next season."
 }

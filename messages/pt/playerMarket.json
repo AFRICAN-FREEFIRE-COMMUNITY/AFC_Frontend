@@ -79,9 +79,9 @@
     "expires": "Vence-se em {date}",
     "applied": "{date} Aplicada",
     "contactUnlocked": "Contacto desbloqueado",
-    "wins": "{count, plural,  one { # vitórias }  other { # vitórias } }",
-    "kills": "{count, plural,  one { # encerrar }  other { # encerra } }",
-    "finals": "{count, plural,  one { # final }  other { # finais } }"
+    "wins": "{count, plural, =0 {# vitórias} one {# vitória} other {# vitórias}}",
+    "kills": "{count, plural, =0 {# abates} one {# abate} other {# abates}}",
+    "finals": "{count, plural, =0 {# finais} one {# final} other {# finais}}"
   },
   "header": {
     "title": "Mercado de jogadores",
@@ -155,7 +155,7 @@
   "myTeamTab": {
     "tier": "Nível {tier}",
     "banned": "Banido",
-    "members": "{count, plural,  one { # membro }  other { # membros } }",
+    "members": "{count, plural, =0 {# membros} one {# membro} other {# membros}}",
     "founded": "Fundada em {date}",
     "yourRole": "A sua função",
     "member": "Membro",

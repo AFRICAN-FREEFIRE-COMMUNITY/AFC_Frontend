@@ -94,7 +94,7 @@
   "playingTime": "Tempo de jogo",
   "teamsQualifyingGroup": "Equipas que se qualificam deste grupo",
   "matchCount": "Número de jogos",
-  "matchCountNote": "{count, plural,  one { # corresponde a }  other { # corresponde a } } (um por cada mapa selecionado abaixo). Adicione ou remova mapas para alterar isto.",
+  "matchCountNote": "{count, plural, =0 {# partidas} one {# partida} other {# partidas}} (uma por cada mapa selecionado abaixo). Adicione ou remova mapas para alterar isto.",
   "discordRoleId": "ID da função no Discord",
   "mapsToPlay": "Mapas a jogar",
   "selectAtLeastOneMap": "Por favor, selecione pelo menos um mapa",

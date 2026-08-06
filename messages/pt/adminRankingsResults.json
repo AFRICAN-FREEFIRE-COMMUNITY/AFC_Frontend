@@ -33,7 +33,7 @@
     "disabled": "Desativados"
   },
   "bulk": {
-    "selected": "{count, plural, one {# torneio selecionado} other {# torneios selecionados}}",
+    "selected": "{count, plural, =0 {# torneios selecionados} one {# torneio selecionado} other {# torneios selecionados}}",
     "enable": "Ativar a contagem",
     "disable": "Desativar a contagem",
     "clear": "Limpar a seleção"
@@ -122,11 +122,11 @@
     "reenableMarkersFailed": "Não foi possível reativar os marcadores",
     "excluded": "{name} excluído da contagem em {tournament}",
     "addExclusionFailed": "Não foi possível adicionar a exclusão",
-    "bulkEnabled": "{count, plural, one {Contagem reativada em # torneio} other {Contagem reativada em # torneios}}",
+    "bulkEnabled": "{count, plural, =0 {Contagem reativada em # torneios} one {Contagem reativada em # torneio} other {Contagem reativada em # torneios}}",
     "bulkEnableFailed": "Não foi possível reativar a contagem",
     "flagDisabled": "{flag} desativado em {tournament}",
     "allMarkersDisabled": "Todos os marcadores foram desativados em {tournament}",
-    "bulkDisabled": "{count, plural, one {Contagem desativada em # torneio} other {Contagem desativada em # torneios}}",
+    "bulkDisabled": "{count, plural, =0 {Contagem desativada em # torneios} one {Contagem desativada em # torneio} other {Contagem desativada em # torneios}}",
     "reincluded": "{name} volta a contar em {tournament}",
     "actionFailed": "A ação falhou"
   }

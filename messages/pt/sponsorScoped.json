@@ -9,7 +9,7 @@
   "noEventsAttachedSponsors": "Ainda não há eventos associados aos seus patrocinadores.",
   "noEventsAttachedOne": "Ainda não há eventos associados a «{name}».",
   "noEventsForSponsor": "Ainda não há eventos para este patrocinador.",
-  "registrantsCount": "{count, plural,  one { # registante }  other { # registantes } }",
+  "registrantsCount": "{count, plural, =0 {# registantes} one {# registante} other {# registantes}}",
   "backToEvents": "Voltar aos teus eventos",
   "exportCsv": "Exportar CSV",
   "loadingSubmissions": "A carregar envios...",

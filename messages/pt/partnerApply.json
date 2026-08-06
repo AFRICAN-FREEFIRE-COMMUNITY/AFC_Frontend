@@ -130,7 +130,7 @@
     "decideFailed": "Não foi possível guardar essa decisão.",
     "empty": "Não há candidaturas aqui.",
     "searchPlaceholder": "Organização, e-mail ou referência",
-    "count": "{count, plural, one {# candidatura} other {# candidaturas}}",
+    "count": "{count, plural, =0 {# candidaturas} one {# candidatura} other {# candidaturas}}",
     "previous": "Anterior",
     "next": "Seguinte",
     "review": "Analisar",
@@ -150,7 +150,7 @@
       "sso": "Início de sessão",
       "dataApi": "API de dados"
     },
-    "earlier": "{count, plural, one {# candidatura anterior} other {# candidaturas anteriores}} deste endereço de e-mail.",
+    "earlier": "{count, plural, =0 {# candidaturas anteriores} one {# candidatura anterior} other {# candidaturas anteriores}} deste endereço de e-mail.",
     "whatTheySaid": "O que nos disseram",
     "whatWillBeCreated": "O que a aprovação vai criar",
     "editableHint": "Pré-preenchido a partir da candidatura e editável. O que aprovar aqui é o que fica ativo, incluindo o nome que os jogadores veem no ecrã de autorização.",

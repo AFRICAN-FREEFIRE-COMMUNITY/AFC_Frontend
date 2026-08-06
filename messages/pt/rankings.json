@@ -87,8 +87,8 @@
       "statProblems": "Problemas encontrados",
       "statProblemsSub": "{errors} impediriam a gravação, {warnings} a rever",
       "explainer": "As edições ficam apenas no seu navegador. Guardar cria uma nova versão, fixa cada uma das outras épocas nas regras com que já foi calculada, e recalcula as épocas que selecionar. Nada muda para ninguém enquanto não guardar.",
-      "errorCount": "{count, plural, one {# erro} other {# erros}}",
-      "warningCount": "{count, plural, one {# aviso} other {# avisos}}",
+      "errorCount": "{count, plural, =0 {# erros} one {# erro} other {# erros}}",
+      "warningCount": "{count, plural, =0 {# avisos} one {# aviso} other {# avisos}}",
       "measuredIn": "Medido em: {unit}",
       "changedDot": "alterado",
       "rowUp": "Subir",
@@ -149,7 +149,7 @@
       "badgeActive": "ativa",
       "seasonsBound": "{count, plural, =0 {nenhuma} one {# época} other {# épocas}}",
       "loadVersion": "Carregar",
-      "dirtyFooter": "{count, plural, one {# valor alterado} other {# valores alterados}} face às regras guardadas {version}.",
+      "dirtyFooter": "{count, plural, =0 {# valores alterados} one {# valor alterado} other {# valores alterados}} face às regras guardadas {version}.",
       "meta": {
         "tiers": {
           "label": "Níveis de torneio",
@@ -385,7 +385,7 @@
         "running": "A executar...",
         "previewFailed": "Não foi possível pré-visualizar a avaliação",
         "runFailed": "Não foi possível executar a avaliação",
-        "success": "A avaliação bloqueou {teams, plural, one {# equipa} other {# equipas}} e {players, plural, one {# jogador} other {# jogadores}} em {season}."
+        "success": "A avaliação bloqueou {teams, plural, =0 {# equipas} one {# equipa} other {# equipas}} e {players, plural, =0 {# jogadores} one {# jogador} other {# jogadores}} em {season}."
       },
       "recalcDialog": {
         "title": "Recalcular uma equipa / um jogador",
@@ -619,7 +619,7 @@
         "tierOverridesSub": "Equipas com um nível manual",
         "deductions": "Deduções de pontos",
         "deductionsSub": "Equipas com uma sanção parcial",
-        "deductionsRemoved": "{count, plural, one {# pt retirado neste trimestre} other {# pts retirados neste trimestre}}",
+        "deductionsRemoved": "{count, plural, =0 {# pts retirados neste trimestre} one {# pt retirado neste trimestre} other {# pts retirados neste trimestre}}",
         "zeroedTeams": "Equipas a zero",
         "zeroedPlayers": "Jogadores a zero",
         "bannedThisQuarter": "Banidos neste trimestre"
@@ -638,7 +638,7 @@
         "noMatch": "Nenhuma equipa corresponde a \"{q}\".",
         "zeroed": "A zero",
         "overridden": "Ajustado",
-        "deducted": "−{count, plural, one {# pt} other {# pts}}",
+        "deducted": "−{count, plural, =0 {# pts} one {# pt} other {# pts}}",
         "overrideTier": "Ajustar o nível",
         "deduct": "Deduzir",
         "reset": "Repor",
@@ -708,7 +708,7 @@
         "overrideCleared": "Ajuste anulado para {name}",
         "tierOverridden": "Nível de {name} forçado para {tier}",
         "overrideFailed": "Não foi possível ajustar o nível",
-        "deducted": "{count, plural, one {# pt retirado a {name}} other {# pts retirados a {name}}}",
+        "deducted": "{count, plural, =0 {# pts retirados a {name}} one {# pt retirado a {name}} other {# pts retirados a {name}}}",
         "deductFailed": "Não foi possível deduzir os pontos",
         "deductionsCleared": "Deduções limpas para {name}",
         "clearFailed": "Não foi possível limpar as deduções",
@@ -784,9 +784,9 @@
       },
       "issues": {
         "title": "Algumas regras merecem uma segunda análise",
-        "summary": "{count, plural, one {# aviso} other {# avisos}}. Nada fica bloqueado e as suas regras continuam a ser guardadas. A causa habitual é uma regra que nunca pode ser acionada, porque uma regra acima dela já corresponde a todos os eventos que ela teria selecionado.",
+        "summary": "{count, plural, =0 {# avisos} one {# aviso} other {# avisos}}. Nada fica bloqueado e as suas regras continuam a ser guardadas. A causa habitual é uma regra que nunca pode ser acionada, porque uma regra acima dela já corresponde a todos os eventos que ela teria selecionado.",
         "savedNote": "Estes avisos descrevem as regras tal como foram guardadas. Guarde para verificar as alterações que tem no ecrã.",
-        "warningCount": "{count, plural, one {# aviso} other {# avisos}}"
+        "warningCount": "{count, plural, =0 {# avisos} one {# aviso} other {# avisos}}"
       },
       "test": {
         "title": "Testar um torneio",
