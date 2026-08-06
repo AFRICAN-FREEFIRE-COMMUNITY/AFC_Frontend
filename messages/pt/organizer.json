@@ -254,6 +254,24 @@
         "title": "Controlo de transmissões e meios de comunicação social",
         "description": "As sobreposições definidas para «Seguir a seleção da transmissão» mostram o que escolher aqui - pode alternar entre o palco ao vivo ou o grupo sem precisar de tocar no seu software de streaming. Ao lado, o painel de meios de transmissão mostra quais as equipas e jogadores que não têm logótipos ou imagens de e-sports, permite-lhe sinalizar imagens inadequadas (o proprietário é notificado) e ocultar um logótipo ou imagem apenas para este evento."
       }
+    },
+    "help": {
+      "header": {
+        "title": "A referência escrita",
+        "description": "Todas as visitas guiadas, incluindo esta, apontam para controlos num ecrã real. Esta página é a versão que pode ler longe do ecrã e, ao contrário de uma visita guiada, pode ser pesquisada."
+      },
+      "search": {
+        "title": "Pesquisar tudo de uma vez",
+        "description": "A pesquisa abrange as duas vistas: os guias e todos os controlos documentados. Escreva o nome que viu num botão, por exemplo Desqualificar ou Iniciar o torneio, em vez de uma pergunta inteira."
+      },
+      "views": {
+        "title": "Guias ou a lista completa de controlos",
+        "description": "Os guias percorrem um processo do princípio ao fim, como gerir um torneio no próprio dia. Todos os controlos é o dicionário: o que faz um botão específico, quem o pode usar, e se altera dados."
+      },
+      "guides": {
+        "title": "Cada guia abre o ecrã a que se refere",
+        "description": "Começar aqui abre o ecrã onde o processo começa, e cada guia tem um espaço reservado para um vídeo de demonstração a acrescentar mais tarde."
+      }
     }
   },
   "nav": {
@@ -282,7 +300,8 @@
     "selectOrgPlaceholder": "Selecionar organização",
     "back": "Voltar",
     "logout": "Sair",
-    "overlays": "Sobreposições em tempo real"
+    "overlays": "Sobreposições em tempo real",
+    "help": "Centro de ajuda"
   },
   "overview": {
     "title": "Visão geral",

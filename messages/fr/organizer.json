@@ -254,6 +254,24 @@
         "title": "Contrôle de la diffusion et médias",
         "description": "Les superpositions configurées sur « Suivre la sélection de diffusion » affichent ce que vous choisissez ici : vous pouvez ainsi changer de phase ou de groupe en direct sans avoir à intervenir dans votre logiciel de streaming. À côté, le panneau des médias de diffusion indique les équipes et les joueurs dont les logos ou les images e-sport manquent, vous permet de signaler un visuel non conforme (le propriétaire en est informé) et de masquer un logo ou une image pour cet événement uniquement."
       }
+    },
+    "help": {
+      "header": {
+        "title": "La référence écrite",
+        "description": "Chaque visite guidée, celle-ci comprise, pointe vers des contrôles sur un écran réel. Cette page est la version que vous pouvez lire loin de l'écran, et contrairement à une visite guidée, elle se cherche."
+      },
+      "search": {
+        "title": "Tout chercher d'un coup",
+        "description": "La recherche couvre les deux vues : les guides et tous les contrôles documentés. Tapez le libellé vu sur un bouton, par exemple Disqualifier ou Lancer le tournoi, plutôt qu'une question entière."
+      },
+      "views": {
+        "title": "Les guides ou la liste complète des contrôles",
+        "description": "Les guides déroulent un processus entier, par exemple faire tourner un tournoi le jour J. Tous les contrôles est le dictionnaire : ce que fait un bouton précis, qui peut l'utiliser, et s'il modifie des donnees."
+      },
+      "guides": {
+        "title": "Chaque guide ouvre l'écran concerné",
+        "description": "Commencer ici ouvre l'écran sur lequel le processus démarre, et chaque guide réserve une place pour une vidéo de démonstration à ajouter plus tard."
+      }
     }
   },
   "nav": {
@@ -282,7 +300,8 @@
     "selectOrgPlaceholder": "Sélectionner une organisation",
     "back": "Retour",
     "logout": "Se déconnecter",
-    "overlays": "Superpositions en direct"
+    "overlays": "Superpositions en direct",
+    "help": "Centre d'aide"
   },
   "overview": {
     "title": "Présentation générale",
