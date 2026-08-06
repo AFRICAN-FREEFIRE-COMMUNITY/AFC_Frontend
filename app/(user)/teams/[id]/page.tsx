@@ -116,6 +116,10 @@ import TeamStatisticsTab from "./_components/TeamStatisticsTab";
 // request) and lights up lifetime ladders from real derived team stats. The
 // points->rankings/tiers boost is an explicit FUTURE feature and is NOT applied here.
 import TeamAchievementsTab from "./_components/TeamAchievementsTab";
+// Event invitations the team has been sent (owner backlog item 34): accept (which registers the
+// team through the ordinary registration path) or decline with a reason. Owns its own fetch of
+// /events/team-invitations/mine/ and renders nothing when there are no invitations.
+import { EventInvitationsCard } from "./_components/EventInvitationsCard";
 // Subtle clickable player name -> public player profile (roster / applications / requests).
 import { PlayerLink } from "@/components/ui/entity-link";
 import { CountryFlag } from "@/lib/countryFlag";
@@ -821,6 +825,21 @@ const Page = ({ params }: { params: Params }) => {
                 </AlertDescription>
               </Alert>
             )}
+
+            {/* ── Event invitations (owner backlog item 34) ─────────────────────────────
+                An organizer can now ASK a team into an event instead of force-adding it, and
+                somebody has to answer. It sits ABOVE the tabs on purpose: an unanswered
+                invitation is time-sensitive, so it must not be buried in a tab nobody opens.
+                The component renders NOTHING when the team has no invitations, so an uninvited
+                team's page is unchanged. It is also where the invitation notification's "Take me
+                there" lands (the backend sets target_type "team" -> /teams/<id>).
+                Members are passed down from the already-fetched teamDetails so the accept
+                dialog's roster picker costs no extra request. */}
+            <EventInvitationsCard
+              teamId={teamDetails?.team_id}
+              members={teamDetails?.members}
+              teamName={teamDetails?.team_name}
+            />
 
             <Tabs defaultValue="overview">
               <ScrollableTabsList className="w-full">

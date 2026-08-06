@@ -60,6 +60,10 @@ import { DisqualifyModal } from "../../../_components/DisqualifyModal";
 import { RemoveTeamModal } from "../../../_components/RemoveTeamModal";
 import { ReactivateModal } from "../../../_components/ReactivateModal";
 import { AddTeamsModal } from "../../../_components/AddTeamsModal";
+// Invite teams to the event instead of force-adding them (owner backlog item 34). The card owns
+// its own fetches (/events/team-invitations/...) and renders below the registered roster on BOTH
+// the admin and organizer event-edit pages, since they share this tab.
+import { EventTeamInvitesCard } from "../../../_components/EventTeamInvitesCard";
 // Admin roster corrector: lets staff fix a registered team's event lineup (even after
 // registration closes) by POSTing /events/edit-roster/. Reopens the team for sponsor
 // re-approval when the roster changes. See EditRosterModal.tsx for the full contract.
@@ -525,6 +529,7 @@ export default function RegisteredTeamsTab({
           .length ?? 0;
 
   return (
+    <div className="flex flex-col gap-4">
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
@@ -1078,5 +1083,19 @@ export default function RegisteredTeamsTab({
         </AlertDialogContent>
       </AlertDialog>
     </Card>
+
+    {/* ── Team invitations (owner backlog item 34) ──────────────────────────────────────
+        The ASK-first sibling of the Add-Teams button above: instead of force-registering a
+        team, invite it and let it accept or decline. Team events only (a solo event has no
+        teams to invite, and the backend refuses that case). Sits in THIS shared tab so the
+        admin event-edit page and the organizer one both get it from one component. */}
+    {isTeamEvent && (
+      <EventTeamInvitesCard
+        eventId={eventDetails.event_id}
+        eventName={eventDetails.event_name}
+        registeredTeamIds={eventDetails.tournament_teams.map((t: any) => t.team_id)}
+      />
+    )}
+    </div>
   );
 }
