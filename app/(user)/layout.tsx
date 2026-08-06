@@ -13,6 +13,10 @@ import { WelcomeTour } from "./_components/WelcomeTour";
 import { PageGuide } from "./_components/PageGuide";
 // Gentle, dismissible nudge for players with no esports image / team owners with no logo (owner 2026-06-20).
 import { CompletionReminder } from "./_components/CompletionReminder";
+// Quiet, dismissible nudge asking ADMINS and ORGANIZERS to turn on two-step sign-in (owner
+// 2026-08-06). Renders nothing for ordinary players, for anyone who already has it on, or once
+// dismissed. See app/(user)/_components/TwoFactorPrompt.tsx.
+import { TwoFactorPrompt } from "./_components/TwoFactorPrompt";
 // First-login onboarding redirect (owner 2026-06-20): sends a brand-new user to the
 // skippable /onboarding flow once (has_completed_onboarding === false).
 import { OnboardingGate } from "./_components/OnboardingGate";
@@ -42,6 +46,8 @@ const layout = ({ children }: { children: ReactNode }) => {
           <OnboardingGate />
           {/* Quiet, dismissible profile-completion nudge (esports image / team logo). Non-blocking. */}
           <CompletionReminder />
+          {/* Admin/organizer two-step sign-in nudge. Renders nothing for everyone else. */}
+          <TwoFactorPrompt />
           <div className="py-10 container min-h-[60vh]">{children}</div>
           <div className="print:hidden">
             <Footer />

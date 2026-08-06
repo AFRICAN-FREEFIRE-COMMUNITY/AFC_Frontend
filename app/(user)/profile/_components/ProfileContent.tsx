@@ -116,6 +116,10 @@ export const ProfileContent = () => {
   // Copy for the "Connected apps" quick link at the bottom of this page. Its own
   // namespace because the page it points at (ConnectedApps.tsx) owns the rest of it.
   const tConnected = useTranslations("connectedApps");
+  // Copy for the "Sign-in security" quick link (two-step sign-in). Its own namespace
+  // because the page it points at (TwoFactorSecurity.tsx) and the login second step
+  // (TwoFactorStep.tsx) share it.
+  const tTwoFactor = useTranslations("twoFactor");
   // Active UI locale, passed to formatLocalTime so the "Applied {date}" string
   // localizes month names to the chosen language (and skips the cookie read).
   const locale = useLocale();
@@ -893,6 +897,27 @@ export const ProfileContent = () => {
           </div>
           <Button variant="outline" className="w-full sm:w-auto" asChild>
             <Link href="/profile/connected-apps">{tConnected("manage")}</Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* ── Sign-in security quick link ──────────────────────────────────────────
+          Points to /profile/security (TwoFactorSecurity.tsx), where the player
+          turns two-step sign-in on or off and manages their recovery codes. It is
+          opt in, so this link is the only route to it for an ordinary player;
+          admins and organizers also get a nudge (components/TwoFactorPrompt.tsx). */}
+      <Card className="mt-4">
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-base font-semibold">
+              {tTwoFactor("profileCard.title")}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {tTwoFactor("profileCard.description")}
+            </p>
+          </div>
+          <Button variant="outline" className="w-full sm:w-auto" asChild>
+            <Link href="/profile/security">{tTwoFactor("profileCard.manage")}</Link>
           </Button>
         </CardContent>
       </Card>

@@ -27,6 +27,11 @@ import { useTranslations } from "next-intl";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 // "Continue with Discord" (owner 2026-06-21). Renders only when NEXT_PUBLIC_DISCORD_SSO_ENABLED=true.
 import { DiscordSignInButton } from "@/components/auth/DiscordSignInButton";
+// Two-step sign-in (owner 2026-08-06). For a user who opted in, /auth/login/ returns a CHALLENGE
+// instead of a session token; TwoFactorStep collects the emailed code and completes the sign-in.
+// Users without 2FA - everyone today - never reach this branch and see the flow they always had.
+import { TwoFactorStep } from "./TwoFactorStep";
+import { isTwoFactorChallenge, type TwoFactorChallenge } from "@/lib/twoFactor";
 
 function LoginFormContent() {
   const router = useRouter();
@@ -40,6 +45,9 @@ function LoginFormContent() {
   const [pending, startTransition] = useTransition();
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const toggleVisibility = () => setIsVisible((prevState) => !prevState);
+  // Non-null only for an account with two-step sign-in on, between the password step and the code
+  // step. Null for every other user, which is what keeps this form identical to what it always was.
+  const [challenge, setChallenge] = useState<TwoFactorChallenge | null>(null);
 
   const form = useForm<LoginFormSchemaType>({
     resolver: zodResolver(LoginFormSchema),
@@ -80,6 +88,13 @@ function LoginFormContent() {
           { ...data },
         );
 
+        // Two-step sign-in: the password was right, but this account also needs an emailed code.
+        // No session token comes back here, so nothing is signed in until TwoFactorStep succeeds.
+        if (isTwoFactorChallenge(response.data)) {
+          setChallenge(response.data);
+          return;
+        }
+
         if (response.statusText === "OK") {
           await login(response.data.session_token);
           toast.success(response.data.message);
@@ -108,6 +123,22 @@ function LoginFormContent() {
         }
       }
     });
+  }
+
+  // Second step. Replaces the password form rather than sitting beside it, so there is exactly one
+  // thing to do on screen. Success runs the SAME login(token) call the one-step path runs, so the
+  // redirect useEffect above fires identically.
+  if (challenge) {
+    return (
+      <TwoFactorStep
+        challenge={challenge}
+        onVerified={async (data) => {
+          await login(data.session_token);
+          toast.success(data.message);
+        }}
+        onCancel={() => setChallenge(null)}
+      />
+    );
   }
 
   return (

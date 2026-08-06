@@ -52,6 +52,11 @@ import { Progress } from "./ui/progress";
 // Each Client Component below (AuthModal, LoginTabContent, RegisterTabContent)
 // reads them via its own useTranslations() hook call.
 import { useTranslations } from "next-intl";
+// Two-step sign-in (owner 2026-08-06). The in-place modal has to handle the second step too, not
+// just the /login page: this is the form that pops when a session expires mid-work, so an admin
+// with 2FA on would otherwise be stuck here. Same shared component the login page renders.
+import { TwoFactorStep } from "@/app/(auth)/_components/TwoFactorStep";
+import { isTwoFactorChallenge, type TwoFactorChallenge } from "@/lib/twoFactor";
 
 interface AuthModalContextValue {
   openAuthModal: (options?: {
@@ -161,7 +166,11 @@ export function AuthModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      {/* overflow-x-hidden pairs with overflow-y-auto (owner 2026-08-06). Once the modal is tall
+          enough to scroll - which the two-step sign-in screen is on a short window - the vertical
+          scrollbar eats ~17px of client width and the browser answers with a HORIZONTAL scrollbar
+          across the bottom of the dialog, even though nothing actually overflows sideways. */}
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-center">
             {sessionExpired
@@ -211,6 +220,8 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
   const { login } = useAuth();
   const [pending, startTransition] = useTransition();
   const [isVisible, setIsVisible] = useState(false);
+  // Non-null only between the password step and the code step, for an account with 2FA on.
+  const [challenge, setChallenge] = useState<TwoFactorChallenge | null>(null);
 
   const form = useForm<LoginFormSchemaType>({
     resolver: zodResolver(LoginFormSchema),
@@ -224,6 +235,12 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login/`,
           { ...data },
         );
+
+        // Two-step sign-in: swap the password form for the code screen. Nothing is signed in yet.
+        if (isTwoFactorChallenge(response.data)) {
+          setChallenge(response.data);
+          return;
+        }
 
         if (response.statusText === "OK") {
           await login(response.data.session_token);
@@ -255,6 +272,22 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
         }
       }
     });
+  }
+
+  // Second step, in place. onSuccess still closes the modal and leaves the user exactly where they
+  // were, which is the whole point of this modal existing.
+  if (challenge) {
+    return (
+      <TwoFactorStep
+        challenge={challenge}
+        onVerified={async (data) => {
+          await login(data.session_token);
+          toast.success(data.message || t("auth.loginSuccess"));
+          onSuccess?.();
+        }}
+        onCancel={() => setChallenge(null)}
+      />
+    );
   }
 
   return (
