@@ -12,7 +12,8 @@
   "pnpm": {
     "//": "Security overrides mirror pnpm-workspace.yaml. pnpm honours both, but GitHub Dependabot only reads this package.json block, so duplicating them here makes Dependabot recognise the patched (already-installed) versions. Keep the two in sync. `pnpm audit` is the source of truth for the installed tree (0).",
     "overrides": {
-      "ajv@<6.14.0": ">=6.14.0",
+      "ajv@<6.14.0": "^6.14.0",
+      "@eslint/eslintrc>ajv": "^6.14.0",
       "brace-expansion@<1.1.13": ">=1.1.13",
       "brace-expansion@>=2.0.0 <2.0.3": ">=2.0.3",
       "flatted@<=3.4.1": ">=3.4.2",

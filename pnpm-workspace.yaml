@@ -4,7 +4,14 @@
 # override (that is why happy-dom / minimatch / lodash were not applying). Ranges stay within
 # a major so consumers needing an older API are not force-upgraded across a major.
 overrides:
-  ajv@<6.14.0: '>=6.14.0'
+  # ajv MUST stay on the 6.x line. '>=6.14.0' is an open range, so pnpm handed out ajv 8, and
+  # @eslint/eslintrc is written against ajv 6's API (ajv._opts.defaultMeta). The result was
+  # "TypeError: Cannot set properties of undefined (setting 'defaultMeta')" thrown before ESLint
+  # read a single file, so `pnpm lint` was dead repo-wide. '^6.14.0' keeps the security floor and
+  # obeys this file's own rule above about staying inside a major. The scoped entry below pins the
+  # one consumer that actually breaks, the same belt-and-braces shape used for eslint>minimatch.
+  ajv@<6.14.0: '^6.14.0'
+  '@eslint/eslintrc>ajv': '^6.14.0'
   brace-expansion@<1.1.13: '>=1.1.13'
   brace-expansion@>=2.0.0 <2.0.3: '>=2.0.3'
   flatted@<=3.4.1: '>=3.4.2'
