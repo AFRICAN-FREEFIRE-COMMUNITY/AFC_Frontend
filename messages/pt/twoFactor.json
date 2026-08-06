@@ -10,6 +10,7 @@
     "resend": "Enviar um novo código",
     "resending": "A enviar",
     "resendIn": "Pode pedir outro código dentro de {seconds} s",
+    "resendInMinutes": "Pode pedir outro código dentro de {minutes} min",
     "resendSent": "Enviámos outro código.",
     "resendAlreadySent": "Já está a caminho um código. Verifique a sua caixa de entrada.",
     "useBackupCode": "Usar antes um código de recuperação",

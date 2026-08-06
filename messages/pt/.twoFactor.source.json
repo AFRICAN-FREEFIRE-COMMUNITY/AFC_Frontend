@@ -9,6 +9,7 @@
   "step.resend": "Send a new code",
   "step.resending": "Sending",
   "step.resendIn": "You can request another code in {seconds}s",
+  "step.resendInMinutes": "You can request another code in {minutes}m",
   "step.resendSent": "We sent another code.",
   "step.resendAlreadySent": "A code is already on its way. Check your inbox.",
   "step.useBackupCode": "Use a recovery code instead",

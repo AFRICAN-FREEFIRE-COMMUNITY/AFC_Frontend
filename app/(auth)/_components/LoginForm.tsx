@@ -209,7 +209,11 @@ function LoginFormContent() {
           {pending ? <Loader text={t("login.loading")} /> : t("login.submit")}
         </Button>
       </form>
-      <GoogleSignInButton />
+      {/* Google goes through the same backend gate as password login, so it can hand back a
+          challenge instead of a session. It is routed into the SAME `challenge` state above, so
+          Google and password sign-in share one code screen. Discord is a full-page redirect, so
+          its challenge is handled on app/(auth)/discord/callback instead. */}
+      <GoogleSignInButton onChallenge={setChallenge} />
       <DiscordSignInButton />
     </Form>
   );

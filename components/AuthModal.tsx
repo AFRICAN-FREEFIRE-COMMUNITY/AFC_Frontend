@@ -7,6 +7,7 @@ import React, {
   useContext,
   useMemo,
   useEffect,
+  Suspense,
 } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,6 +58,13 @@ import { useTranslations } from "next-intl";
 // with 2FA on would otherwise be stuck here. Same shared component the login page renders.
 import { TwoFactorStep } from "@/app/(auth)/_components/TwoFactorStep";
 import { isTwoFactorChallenge, type TwoFactorChallenge } from "@/lib/twoFactor";
+// SSO on the in-place modal (owner 2026-08-06). Without these, a user who signed up with Google
+// or Discord and has no local password could not get back in from the session-expired modal at
+// all: they had to navigate to /login and lose their place, which is the exact thing this modal
+// exists to prevent. Google signs in WITHOUT navigating; Discord is a redirect by nature, but it
+// carries the current path as `next` so the user returns here.
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
+import { DiscordSignInButton } from "@/components/auth/DiscordSignInButton";
 
 interface AuthModalContextValue {
   openAuthModal: (options?: {
@@ -351,6 +359,21 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
           )}
         </Button>
       </form>
+
+      {/* Both buttons read useSearchParams, which suspends. This modal is mounted from the root
+          layout rather than inside a page, so it has no Suspense boundary of its own and would
+          bail out the whole tree without this one. */}
+      <Suspense fallback={null}>
+        {/* navigateOnSuccess={false}: the point of this modal is that the user does NOT move.
+            Google routes a challenge into the same `challenge` state the password form uses, so
+            there is one code screen here too. */}
+        <GoogleSignInButton
+          onChallenge={setChallenge}
+          navigateOnSuccess={false}
+          onSuccess={() => onSuccess?.()}
+        />
+        <DiscordSignInButton />
+      </Suspense>
     </Form>
   );
 }

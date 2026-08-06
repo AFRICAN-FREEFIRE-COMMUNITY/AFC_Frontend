@@ -19,6 +19,11 @@ import axios from "axios";
 import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+// Two-step sign-in (owner 2026-08-06). Google goes through the SAME backend gate as password
+// login, so this response can be a challenge instead of a session. The button does not render the
+// code screen itself: it hands the challenge up to whichever surface owns it (the login page or
+// the in-place auth modal), so there is one code screen rather than one per entry point.
+import { isTwoFactorChallenge, type TwoFactorChallenge } from "@/lib/twoFactor";
 
 const GIS_SRC = "https://accounts.google.com/gsi/client";
 
@@ -57,7 +62,27 @@ function GoogleG({ className = "" }: { className?: string }) {
   );
 }
 
-export function GoogleSignInButton() {
+interface GoogleSignInButtonProps {
+  /**
+   * Called when the account has two-step sign-in on, instead of signing in. The parent renders
+   * TwoFactorStep with this challenge. When omitted the button still works for every account
+   * WITHOUT 2FA (which is the whole existing userbase), so older call sites do not break.
+   */
+  onChallenge?: (challenge: TwoFactorChallenge) => void;
+  /**
+   * False inside the auth modal, where signing in must NOT navigate: the modal exists so a user
+   * whose session expired mid-work resumes exactly where they were.
+   */
+  navigateOnSuccess?: boolean;
+  /** Extra work after a successful sign-in, e.g. the modal closing itself. */
+  onSuccess?: () => void;
+}
+
+export function GoogleSignInButton({
+  onChallenge,
+  navigateOnSuccess = true,
+  onSuccess,
+}: GoogleSignInButtonProps = {}) {
   const clientId = env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const t = useTranslations("auth");
   const router = useRouter();
@@ -87,16 +112,31 @@ export function GoogleSignInButton() {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/google/`,
           { code },
         );
+
+        // Two-step sign-in: the password was never involved, but Google proved WHO they are and
+        // the second factor is still owed. No session token comes back here.
+        if (isTwoFactorChallenge(res.data)) {
+          if (onChallenge) {
+            onChallenge(res.data);
+          } else {
+            // No surface is holding the challenge (an older call site). Say so rather than
+            // silently doing nothing, which would look like a dead button.
+            toast.error(res.data.message || t("google.failed"));
+          }
+          return;
+        }
+
         await login(res.data.session_token);
         toast.success(res.data.message || t("google.success"));
-        router.push(resolveTarget());
+        onSuccess?.();
+        if (navigateOnSuccess) router.push(resolveTarget());
       } catch (error: any) {
         toast.error(error?.response?.data?.message || t("google.failed"));
       } finally {
         setBusy(false);
       }
     },
-    [login, router, resolveTarget, t],
+    [login, router, resolveTarget, t, onChallenge, navigateOnSuccess, onSuccess],
   );
 
   useEffect(() => {

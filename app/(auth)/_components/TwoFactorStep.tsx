@@ -239,11 +239,15 @@ export function TwoFactorStep({
             disabled={resending || cooldown > 0}
             onClick={resend}
           >
+            {/* Two units on purpose. The normal cooldown is 60 seconds, but hitting the hourly
+                send ceiling returns 3600, and "in 3597s" is not a number anyone can read. */}
             {resending
               ? t("step.resending")
-              : cooldown > 0
-                ? t("step.resendIn", { seconds: cooldown })
-                : t("step.resend")}
+              : cooldown >= 120
+                ? t("step.resendInMinutes", { minutes: Math.ceil(cooldown / 60) })
+                : cooldown > 0
+                  ? t("step.resendIn", { seconds: cooldown })
+                  : t("step.resend")}
           </Button>
         ) : (
           <span className="hidden sm:block" />
