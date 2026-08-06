@@ -254,6 +254,24 @@
         "title": "Broadcast control and media",
         "description": "Overlays set to 'Follow the broadcast selection' show whatever you pick here - switch the live stage or group without touching your streaming software. Next to it, the broadcast media panel shows which teams and players are missing logos or esport images, lets you flag bad art (the owner is notified) and hide a logo or image for this event only."
       }
+    },
+    "help": {
+      "header": {
+        "title": "The written reference",
+        "description": "Every tour, including this one, points at controls on a live screen. This page is the version you can read away from the screen, and unlike a tour you can search it."
+      },
+      "search": {
+        "title": "Search everything at once",
+        "description": "Searching covers both views: the guides and every documented control. Type the label you saw on a button, for example Reseed or Disqualify, rather than a whole question."
+      },
+      "views": {
+        "title": "Guides or the full control list",
+        "description": "Guides walk a whole process end to end, such as running a tournament on the day. Every control is the dictionary: what one specific button does, who can press it, and whether it changes data."
+      },
+      "guides": {
+        "title": "Each guide links to the real screen",
+        "description": "Start here on a guide opens the screen the process begins on, and each guide has a slot ready for a video walkthrough to be added later."
+      }
     }
   },
   "nav": {
@@ -270,6 +288,7 @@
     "reviews": "Reviews",
     "blacklists": "Blacklists",
     "watchlist": "Watchlist",
+    "help": "Help Center",
     "userDashboard": "User Dashboard",
     "adminDashboard": "Admin Dashboard",
     "portalTitle": "Organizer Portal",

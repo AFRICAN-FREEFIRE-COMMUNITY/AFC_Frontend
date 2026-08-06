@@ -131,7 +131,10 @@ export type AdminTourPageKey =
   | "settings-misc-admins"
   | "settings-misc-ocr-model"
   | "settings-misc-drafts"
-  | "settings-misc-votes";
+  | "settings-misc-votes"
+  // ── Help Center (backlog items 5 + 7): the searchable reference this tour
+  //    system now sits in front of. See app/(a)/a/help/page.tsx.
+  | "help-center";
 
 // ── Shared first step: the sidebar navigation ────────────────────────────────
 // Every page's tour opens by pointing at the admin sidebar so a new admin learns
@@ -2465,6 +2468,56 @@ export const ADMIN_TOUR_STEPS: Record<AdminTourPageKey, AdminTourStep[]> = {
       align: "start",
     },
   ],
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HELP CENTER (app/(a)/a/help/page.tsx -> components/help-center/HelpCenter.tsx)
+  //   The deeper reference behind every other tour in this file. This tour is
+  //   short on purpose: the page explains itself, so all it has to teach is how
+  //   the two views differ and that search covers both.
+  // ═══════════════════════════════════════════════════════════════════════════
+  "help-center": [
+    SIDEBAR_STEP,
+    {
+      element: '[data-tour="help-center-header"]',
+      title: "The written reference",
+      description:
+        "Every tour, including this one, points at controls on a live screen. This page is the version you can read away from the screen, and unlike a tour you can search it.",
+      side: "bottom",
+      align: "start",
+    },
+    {
+      element: '[data-tour="help-center-search"]',
+      title: "Search everything at once",
+      description:
+        "Searching covers both views: the guides and every documented control. Type the label you saw on a button, for example Unpublish or Reseed, rather than a whole question.",
+      side: "bottom",
+      align: "start",
+    },
+    {
+      element: '[data-tour="help-center-areas"]',
+      title: "Narrow it to one area",
+      description:
+        "Events, leaderboards, teams, players, rankings, broadcasts, overlays, shop, news, sponsors, organizations, market and settings. Pick one when you already know roughly where the thing lives.",
+      side: "bottom",
+      align: "start",
+    },
+    {
+      element: '[data-tour="help-center-views"]',
+      title: "Guides or the full control list",
+      description:
+        "Guides walk a whole process end to end, such as running a tournament on the day. Every control is the dictionary: what one specific button does, who can press it, and whether it changes data.",
+      side: "bottom",
+      align: "start",
+    },
+    {
+      element: '[data-tour="help-center-guides"]',
+      title: "Each guide links to the real screen",
+      description:
+        "Start here on a guide opens the screen the process begins on, and each guide has a slot ready for a video walkthrough to be added later.",
+      side: "top",
+      align: "center",
+    },
+  ],
 };
 
 // ── Route → pageKey map ──────────────────────────────────────────────────────
@@ -2579,6 +2632,9 @@ export function resolveAdminTourPageKey(
 
   // ── Player Markets (combined market page; sub-routes reuse the parent tour).
   if (path.startsWith("/a/player-markets")) return "player-markets";
+
+  // ── Help Center (the written reference behind all of the above).
+  if (path.startsWith("/a/help")) return "help-center";
 
   return null;
 }

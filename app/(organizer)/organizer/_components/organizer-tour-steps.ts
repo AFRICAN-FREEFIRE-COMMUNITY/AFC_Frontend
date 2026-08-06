@@ -90,7 +90,10 @@ export type OrganizerTourPageKey =
   | "reviews"
   | "design"
   | "blacklists"
-  | "watchlist";
+  | "watchlist"
+  // ── Help Center (backlog items 5 + 7): the searchable written reference this
+  //    tour system sits in front of. See app/(organizer)/organizer/help/page.tsx.
+  | "help";
 
 // ── Shared first step: the organizer sidebar navigation ──────────────────────
 // Every page's tour opens by pointing at the portal sidebar so a new organizer
@@ -528,6 +531,38 @@ export const ORGANIZER_TOUR_STEPS: Record<
       align: "center",
     },
   ],
+
+  // Help Center (app/(organizer)/organizer/help/page.tsx -> the shared
+  // components/help-center/HelpCenter.tsx with portal="organizer"). Short on
+  // purpose: the page explains itself, so the tour only has to teach that the two
+  // views differ and that search covers both. Copy: organizer.json tour.help.*.
+  help: [
+    ORG_SIDEBAR_STEP,
+    {
+      id: "header",
+      element: '[data-tour="help-center-header"]',
+      side: "bottom",
+      align: "start",
+    },
+    {
+      id: "search",
+      element: '[data-tour="help-center-search"]',
+      side: "bottom",
+      align: "start",
+    },
+    {
+      id: "views",
+      element: '[data-tour="help-center-views"]',
+      side: "bottom",
+      align: "start",
+    },
+    {
+      id: "guides",
+      element: '[data-tour="help-center-guides"]',
+      side: "top",
+      align: "center",
+    },
+  ],
 };
 
 // ── Route → pageKey map ──────────────────────────────────────────────────────
@@ -561,6 +596,7 @@ export function resolveOrganizerTourPageKey(
   if (path === "/organizer/design") return "design";
   if (path === "/organizer/blacklists") return "blacklists";
   if (path === "/organizer/watchlist") return "watchlist";
+  if (path === "/organizer/help") return "help";
 
   // ── Events: static helpers (create, drafts) and dynamic-segment children
   //    (edit, groups, leaderboard) BEFORE the bare [slug] detail and the list.

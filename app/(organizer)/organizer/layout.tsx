@@ -139,6 +139,14 @@ const NAV_ITEMS = [
   // app/(organizer)/organizer/watchlist/page.tsx. (Label kept literal to match the existing nav;
   // the PAGE body is internationalized via next-intl per the i18n rule.)
   { key: "watchlist", href: "/organizer/watchlist" },
+  // "Help Center" (backlog items 5 + 7) - the searchable reference for what every
+  // control in this portal does, plus the step-by-step guides for running an event.
+  // Page app/(organizer)/organizer/help/page.tsx -> components/help-center/HelpCenter.tsx
+  // (portal="organizer"), content in lib/help-center-data.ts + messages/*/helpCenter.json.
+  // Last in the list and deliberately NOT permission-gated: someone who cannot yet do
+  // a thing should still be able to read how it works. It complements the per-page
+  // "Take a tour" launcher in the header, which spotlights the same controls live.
+  { key: "help", href: "/organizer/help" },
 ];
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────

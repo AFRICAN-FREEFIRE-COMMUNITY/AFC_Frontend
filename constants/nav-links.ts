@@ -5,6 +5,7 @@ import {
   IconCalendar,
   IconChartBarPopular,
   IconFolder,
+  IconHelpCircle,
   IconHome,
   IconInfoCircle,
   IconMessage,
@@ -337,6 +338,20 @@ export const adminNavLinks: AdminNavLink[] = [
     slug: "/a/settings",
     icon: IconSettings,
     allowedRoles: ["head_admin"],
+  },
+  // Help Center (backlog items 5 + 7): the searchable reference for what every admin
+  // control does, plus the step-by-step guides for each process. Page
+  // app/(a)/a/help/page.tsx -> components/help-center/HelpCenter.tsx, content in
+  // lib/help-center-data.ts + messages/*/helpCenter.json. Deliberately has NO
+  // allowedRoles: it is documentation with no writes and no data fetching, and an
+  // admin of any area should be able to look something up. It sits alongside the
+  // per-page "Take a tour" launcher in the header, which spotlights the same
+  // controls on the real screen.
+  {
+    label: "Help Center",
+    navKey: "helpCenter",
+    slug: "/a/help",
+    icon: IconHelpCircle,
   },
   {
     label: "Admin Partner Verification",

@@ -1,0 +1,1621 @@
+{
+  "nav": {
+    "label": "Help Center"
+  },
+  "page": {
+    "title": "Help Center",
+    "descriptionAdmin": "What every control does, and step by step guides for the things you run. Search it, or pick an area.",
+    "descriptionOrganizer": "What every control in the organizer portal does, and step by step guides for running your events. Search it, or pick an area.",
+    "searchPlaceholder": "Search for a button, a screen or a task...",
+    "searchAriaLabel": "Search the help center",
+    "resultCount": "{count, plural, one {# result} other {# results}}"
+  },
+  "tabs": {
+    "guides": "Guides",
+    "controls": "Every control"
+  },
+  "labels": {
+    "allAreas": "All",
+    "where": "Where",
+    "who": "Who can use it",
+    "anyone": "Any admin who can open the screen",
+    "caution": "Changes or removes data",
+    "openScreen": "Open this screen",
+    "startHere": "Start here",
+    "steps": "{count, plural, one {# step} other {# steps}}",
+    "controlsIn": "{count, plural, one {# control} other {# controls}}",
+    "videoTitle": "Video walkthrough",
+    "videoPending": "A video for this guide has not been recorded yet. The written steps above are complete on their own.",
+    "tourHint": "Most screens also have a Take a tour button in the header that points at these controls on the real page.",
+    "backToTop": "Back to top"
+  },
+  "empty": {
+    "title": "Nothing matches that",
+    "body": "Try a shorter search, or clear the area filter. Searching for a button label usually works better than a whole sentence."
+  },
+  "kinds": {
+    "action": "Does something",
+    "navigation": "Goes somewhere",
+    "filter": "Narrows a list",
+    "field": "Something you set",
+    "toggle": "Flips a setting",
+    "view": "Read only"
+  },
+  "coverage": {
+    "title": "How complete is this?",
+    "body": "Every entry here was read out of the code that draws the screen, not guessed from a button name. It covers every area of the admin and organizer portals and goes control by control through the ones you operate daily. On the quieter screens it lists the main controls rather than every last field. If something is missing, it is missing rather than wrong."
+  },
+  "areas": {
+    "events": {
+      "title": "Events and tournaments",
+      "description": "Creating an event, running its stages, and everything on the event page."
+    },
+    "leaderboards": {
+      "title": "Leaderboards and results",
+      "description": "Turning match results into published standings, and fixing them when they are wrong."
+    },
+    "teams": {
+      "title": "Teams",
+      "description": "Registered squads, their tiers, bans and blacklists."
+    },
+    "players": {
+      "title": "Players",
+      "description": "Individual accounts, bans, reports and the watchlist."
+    },
+    "rankings": {
+      "title": "Rankings and tiers",
+      "description": "The season scoring machine: config, raw data, evaluation and publishing."
+    },
+    "broadcasts": {
+      "title": "Broadcasts and messages",
+      "description": "Sending announcements to players, and the audit of everything that was sent."
+    },
+    "overlays": {
+      "title": "Live overlays and capture",
+      "description": "The OBS browser sources that put a live leaderboard on stream."
+    },
+    "shop": {
+      "title": "Shop",
+      "description": "Products, stock, orders, coupons, vendors and payouts."
+    },
+    "news": {
+      "title": "News",
+      "description": "Writing, publishing and managing articles."
+    },
+    "sponsors": {
+      "title": "Sponsors",
+      "description": "Sponsor accounts, the events they are attached to, and their registration task."
+    },
+    "organizations": {
+      "title": "Organizations",
+      "description": "Third party organizers: their accounts, members, reports and payouts."
+    },
+    "market": {
+      "title": "Player market",
+      "description": "The transfer market: listings, trials and reports."
+    },
+    "settings": {
+      "title": "Admins and platform settings",
+      "description": "Admin accounts, roles, drafts, votes, API keys and the OCR model."
+    },
+    "orgPortal": {
+      "title": "Organizer portal",
+      "description": "The surfaces an organizer gets that admins do not: members, payouts, reviews and design."
+    }
+  },
+  "screens": {
+    "eventsList": "Events and Leaderboards, Events tab",
+    "eventCreate": "Create new event wizard",
+    "eventDetail": "Event page (open an event, then View)",
+    "eventEdit": "Event editor (open an event, then Edit)",
+    "eventActions": "Event editor, Actions tab",
+    "eventPayments": "Event Payments (paid event escrow)",
+    "eventSponsorsPg": "Event page, Sponsor Review",
+    "drafts": "Drafts",
+    "lbList": "Events and Leaderboards, Leaderboards tab",
+    "lbCreate": "Create leaderboard wizard",
+    "lbView": "Leaderboard view (open a leaderboard)",
+    "lbEdit": "Leaderboard editor",
+    "lbOcr": "Event page, OCR Results",
+    "lbStandalone": "Standalone leaderboard builder",
+    "teamsTab": "Teams and Players, Teams tab",
+    "playersTab": "Teams and Players, Players tab",
+    "blacklistsTab": "Teams and Players, Blacklists tab",
+    "reportsTab": "Teams and Players, Reports tab",
+    "watchlistTab": "Teams and Players, Watchlist tab",
+    "playerDetail": "Player page (open a player, then View)",
+    "rkOverview": "Rankings, Overview",
+    "rkScoring": "Rankings, Scoring Config",
+    "rkTiers": "Rankings, Tournament Tiers",
+    "rkResults": "Rankings, Result Markers",
+    "rkSeasons": "Rankings, Seasons",
+    "rkGhosts": "Rankings, Ghost Teams",
+    "rkSocial": "Rankings, Social",
+    "rkPrize": "Rankings, Prize",
+    "rkOverrides": "Rankings, Overrides",
+    "rkAudit": "Rankings, Audit Log",
+    "bcAudit": "Broadcasts audit",
+    "ovList": "Live Overlays list",
+    "ovStudio": "Overlay studio (open an event)",
+    "orgCapture": "Live Capture",
+    "shopDash": "Shop dashboard",
+    "shopInventory": "Shop, Inventory",
+    "shopOrders": "Shop, Orders",
+    "shopOrderDetail": "Shop, an order's page",
+    "shopCoupons": "Shop, Coupon Metrics",
+    "shopVendors": "Shop, Vendors",
+    "shopApprovals": "Shop, Product Approvals",
+    "shopPayouts": "Shop, Vendor Payouts",
+    "shopCustomers": "Shop, Customers",
+    "newsList": "News list",
+    "newsCreate": "Create news",
+    "sponsorsList": "Sponsors list",
+    "sponsorCreate": "Create sponsor account",
+    "orgsList": "Organizations list",
+    "orgDetail": "An organization's page",
+    "orgReports": "Organizations, Reports",
+    "orgPayoutsAdmin": "Organizations, Payouts",
+    "marketAdmin": "Player Markets",
+    "settings": "Settings",
+    "votes": "Votes",
+    "ocrModel": "OCR Model",
+    "apiKeys": "API Keys",
+    "adminDash": "Admin dashboard",
+    "orgOverview": "Organizer, Overview",
+    "orgEvents": "Organizer, Events",
+    "orgEventCreate": "Organizer, create event wizard",
+    "orgDrafts": "Organizer, Drafts",
+    "orgEventDetail": "Organizer, an event's page",
+    "orgGroups": "Organizer, Groups and Rosters",
+    "orgLbList": "Organizer, Leaderboards",
+    "orgProfile": "Organizer, Profile",
+    "orgMembers": "Organizer, Members",
+    "orgMetrics": "Organizer, Metrics",
+    "orgPayouts": "Organizer, Payouts",
+    "orgReviews": "Organizer, Reviews",
+    "orgDesign": "Organizer, Design",
+    "orgBlacklists": "Organizer, Blacklists",
+    "orgWatchlist": "Organizer, Watchlist"
+  },
+  "roles": {
+    "head_admin": "Head admin",
+    "event_admin": "Event admin",
+    "teams_admin": "Teams admin",
+    "news_admin": "News admin",
+    "shop_admin": "Shop admin",
+    "metrics_admin": "Metrics admin",
+    "organizer_admin": "Organizer admin",
+    "partner_admin": "Partner admin",
+    "sponsor_admin": "Sponsor admin",
+    "support": "Moderator or support",
+    "owner": "Organization owner",
+    "can_create_events": "Organizer: create events",
+    "can_edit_events": "Organizer: edit events",
+    "can_upload_results": "Organizer: upload results",
+    "can_manage_registrations": "Organizer: manage registrations",
+    "can_submit_designs": "Organizer: submit designs",
+    "can_view_metrics": "Organizer: view metrics",
+    "can_view_reviews": "Organizer: view reviews",
+    "can_manage_members": "Organizer: manage members"
+  },
+  "controls": {
+    "ev-create": {
+      "label": "Create new event",
+      "does": "Opens the event wizard. Nothing exists until you finish the wizard or park it as a draft, so you can back out at any step."
+    },
+    "ev-payments": {
+      "label": "Event Payments",
+      "does": "Opens the escrow list for paid events, where registration fees that are being held get released to the organizer or refunded to the player."
+    },
+    "ev-search": {
+      "label": "Search events by name, type, or status",
+      "does": "Filters the list below as you type. It ignores punctuation and accents, so typing ve still finds an event called V-E Cup."
+    },
+    "ev-stats": {
+      "label": "The count cards above the list",
+      "does": "Total events, tournaments, scrims, upcoming, ongoing, completed, average participants per event and your most used format. Read only."
+    },
+    "ev-rowView": {
+      "label": "View, on an event row",
+      "does": "Opens the event page: Overview, Details, Registrations, Waitlist, Stages, Group Rosters, Prizes, Engagement and Discord Tools."
+    },
+    "ev-rowEdit": {
+      "label": "Edit, on an event row",
+      "does": "Opens the event editor. This is where you change the setup and, on the Actions tab, actually run the tournament."
+    },
+    "ev-rowUnpublish": {
+      "label": "Unpublish, on an event row",
+      "does": "Turns the event back into a draft. It vanishes from every public list immediately and appears under Drafts, where you can publish it again."
+    },
+    "ev-rowDuplicate": {
+      "label": "Duplicate, on an event row",
+      "does": "Copies the settings and the stage and group structure into a brand new draft, then opens the copy for editing. Registrations, results and prizes paid are not copied."
+    },
+    "ev-rowDelete": {
+      "label": "The trash icon on an event row",
+      "does": "Deletes the event for good after a confirmation. There is no undo. If you only want it off the public site, use Unpublish instead."
+    },
+    "ev-rowLock": {
+      "label": "The padlock next to an event name",
+      "does": "Marks a private event. Private events are not listed publicly and are reached by a direct link or an invite link."
+    },
+    "ev-wizardNav": {
+      "label": "Previous and Next",
+      "does": "Move between the wizard steps: details, event mode, number of stages, stage setup, prizes, rules, sponsor task, waitlist and publishing. Your progress is kept if you leave and come back."
+    },
+    "ev-wizardResume": {
+      "label": "Resume or Start fresh",
+      "does": "Shown when you left a half finished event behind. Resume picks it back up. Re-attach the banner or rules file afterwards, files are not kept."
+    },
+    "ev-wizardCreate": {
+      "label": "Create Event",
+      "does": "Saves the event. If you ticked draft on the publishing step it stays hidden under Drafts, otherwise it goes live straight away."
+    },
+    "ev-detailTabs": {
+      "label": "Overview, Details, Registrations, Waitlist, Stages, Group Rosters, Prizes, Engagement, Discord Tools",
+      "does": "The nine tabs of the event page. Registrations and Group Rosters are the two you will use on match day."
+    },
+    "ev-detailOverview": {
+      "label": "Overview tab",
+      "does": "Total registered, days until start, time until registration closes, registration rate, conversion rate and the prize pool."
+    },
+    "ev-detailRegistrations": {
+      "label": "Registrations tab",
+      "does": "Every team or player that signed up, with their roster. Check this before you start the tournament."
+    },
+    "ev-detailRosters": {
+      "label": "Group Rosters tab",
+      "does": "Who ended up in which group after seeding. Use it to confirm the draw looks right before you send room details."
+    },
+    "ev-detailEngagement": {
+      "label": "Engagement tab",
+      "does": "Page views, unique visitors, social shares and average views per day for the public event page."
+    },
+    "ev-inviteSingle": {
+      "label": "Generate Single Invite",
+      "does": "Creates one single use invite link for a private event. Once someone registers with it, it stops working."
+    },
+    "ev-inviteBulk": {
+      "label": "Generate Bulk Invites",
+      "does": "Creates up to 100 single use invite links in one go, then offers them as a CSV or Excel download to send out."
+    },
+    "ev-inviteShared": {
+      "label": "Generate shared invite link (first come, first serve)",
+      "does": "One link that anyone can use until the event is full. Easier to share than single use links, but you cannot control who takes the spots."
+    },
+    "ev-sponsorRequirement": {
+      "label": "Configure Sponsor Requirement, on the Details tab",
+      "does": "Sets the sponsor task and the ID every player must submit to register (for example a Garena UUID). Each ID has to be unique across the event."
+    },
+    "ev-linkStage": {
+      "label": "Link a stage to an event, under Linked events",
+      "does": "Sends the top few finishers of one stage straight into another event. Set the stage, the target event, how many qualify, whether they are entered automatically, and whether their roster is copied or the captain re-picks it. It runs when the stage standings are final, or immediately with Fire now."
+    },
+    "ev-chainMap": {
+      "label": "Chain map",
+      "does": "Shows the whole qualification cascade around this event: which events feed into it and which it feeds. Useful when a multi stage circuit stops behaving and you need to see the shape of it."
+    },
+    "ev-importEvents": {
+      "label": "Import from events",
+      "does": "Enters every confirmed competitor from the events you choose into this one straight away. Teams already entered are skipped rather than doubled, and the source events have to use the same participant type."
+    },
+    "ev-linkDecide": {
+      "label": "Fire now, Promote next in line and Pick a specific team",
+      "does": "The manual controls on a qualification link. Fire now runs it before standings are final, Promote next in line fills a spot a team declined, and Pick a specific team overrides who goes through. Each can be undone."
+    },
+    "ev-setTier": {
+      "label": "Tournament tier",
+      "does": "Sets this tournament's tier, which decides how heavily its results count toward the public rankings. Tier 1 counts double, tier 3 counts once."
+    },
+    "ev-stageIds": {
+      "label": "Stage IDs and Group IDs, on Discord Tools",
+      "does": "Copies every Discord user ID in that stage or group to your clipboard, so you can paste them into a Discord bulk action."
+    },
+    "ev-deleteNotifs": {
+      "label": "Delete Notifs, on Discord Tools",
+      "does": "Deletes the notifications previously sent to everyone in that group. Use it when a group was messaged in error."
+    },
+    "ev-discordSync": {
+      "label": "Sync event registrations with Discord roles",
+      "does": "Re-runs Discord role assignment for everyone registered, so people who joined the server late get their role."
+    },
+    "ev-discordRetry": {
+      "label": "Retry failed Discord roles",
+      "does": "Retries only the assignments that failed the first time, instead of redoing everyone."
+    },
+    "ev-discordReconcile": {
+      "label": "Reconcile group roles",
+      "does": "Compares who should have each group role against who actually has it, and fixes the difference."
+    },
+    "ev-removeNonNigeria": {
+      "label": "Remove Non-Nigeria Registered Competitors",
+      "does": "Removes registrations from players whose last login was outside Nigeria. Always press Dry Run first: it lists exactly who would go without removing anyone. Only then does the red Remove button appear."
+    },
+    "ev-ocrLink": {
+      "label": "OCR Results",
+      "does": "Opens the screenshot reading screen for this event, where you upload result screenshots and review what was read off them."
+    },
+    "act-start": {
+      "label": "Start Tournament",
+      "does": "Seeds everyone who registered into Stage 1 and sets it running. After this the button turns into a Started marker with a Pause control next to it. It is locked once an event is completed or cancelled."
+    },
+    "act-pause": {
+      "label": "Pause and Resume",
+      "does": "Puts Stage 1 on hold or starts it again. Use it when a match is delayed and you do not want the stage to look live."
+    },
+    "act-cancel": {
+      "label": "Cancel Event",
+      "does": "Marks the event cancelled, freezes registration and notifies everyone who signed up. Confirm gated."
+    },
+    "act-complete": {
+      "label": "Mark as Complete",
+      "does": "Finalises the event and locks the results. Everyone registered is notified. If you got it wrong you can still Reopen."
+    },
+    "act-reopen": {
+      "label": "Reopen Event",
+      "does": "Only appears once an event is complete. Puts it back to active so you can fix or add results, then complete it again."
+    },
+    "act-seed": {
+      "label": "Seed Competitors to Groups",
+      "does": "Randomly spreads a stage's competitors across that stage's groups. Pick the stage first."
+    },
+    "act-advance": {
+      "label": "Advance to Next Stage",
+      "does": "Takes the top finishers of one group and puts them into the next stage. Pick the stage, then the group."
+    },
+    "act-branching": {
+      "label": "Branching Advancement",
+      "does": "For stages that have routing rules, splits the finishers into different later stages (for example top 4 to Finals, 5th to 8th to a repechage). Press Preview first: it shows exactly who goes where and writes nothing."
+    },
+    "act-undoSeed": {
+      "label": "Undo, under Seeding Management",
+      "does": "Clears a stage's group assignments. Competitors stay registered, they just have no group any more."
+    },
+    "act-reseed": {
+      "label": "Reseed",
+      "does": "Redistributes a stage's competitors into its groups. With Shuffle on you get a fresh random draw, with it off the existing order is kept."
+    },
+    "act-deleteGroup": {
+      "label": "Delete a group",
+      "does": "Removes a group and asks what happens to the people in it: auto reseed them into the remaining groups, leave them unassigned so you place them yourself, or remove them from the stage entirely."
+    },
+    "act-deleteStage": {
+      "label": "Delete a stage",
+      "does": "Removes a stage, and asks which stage to move its competitors into (or to delete them with it)."
+    },
+    "act-forceConfirm": {
+      "label": "Proceed anyway",
+      "does": "Appears when the group or stage you are changing already has results entered. Confirming re-runs the same action and overwrites what was there."
+    },
+    "act-broadcast": {
+      "label": "Broadcast",
+      "does": "Opens the announcement composer. Choose whole event, one stage or one group, write a title and message, pick app only, email only or both, and optionally attach a Take me there link."
+    },
+    "act-history": {
+      "label": "History, next to Broadcast",
+      "does": "Every announcement, stage or group message and room details push that has been sent for this event, with who sent it and when."
+    },
+    "act-syncDiscord": {
+      "label": "Sync Discord Roles",
+      "does": "Re-assigns missing Discord roles for one group. Admin only, it is hidden in the organizer portal because organizers do not run AFC's Discord."
+    },
+    "act-rosterWindow": {
+      "label": "Open window, Update window and Close now",
+      "does": "Lets team captains edit their roster again until a time you pick, even after registration has closed. It shuts itself when that time passes and cannot be set past the event end date."
+    },
+    "act-visibility": {
+      "label": "Make Public and Make Private",
+      "does": "Public events are listed for everyone. Private events are hidden from the lists and reached by a direct or invite link only."
+    },
+    "act-resultsVisibility": {
+      "label": "Publish Results and Hide Results",
+      "does": "Shows or hides the standings on the public event page. While hidden, players see a not published yet message but staff can still enter and check results. Use it to time a reveal on social."
+    },
+    "act-export": {
+      "label": "Export Participants, CSV or Excel",
+      "does": "Downloads every registered player or team as a spreadsheet."
+    },
+    "pay-filter": {
+      "label": "All events",
+      "does": "Narrows the table to one paid event, or shows the payments across all of them."
+    },
+    "pay-summary": {
+      "label": "Total Payments, Held in Escrow and Showing",
+      "does": "How many fees exist in total, how many are still being held and waiting on you, and how many the current filter is showing."
+    },
+    "pay-release": {
+      "label": "Release, on a payment row",
+      "does": "Hands the held registration fee to the organizer. Confirm gated, and the row's status becomes Released."
+    },
+    "pay-refund": {
+      "label": "Refund, on a payment row",
+      "does": "Sends the held fee back to the player instead. Confirm gated, and the row's status becomes Refunded."
+    },
+    "dr-tabs": {
+      "label": "My Drafts and All Drafts",
+      "does": "My Drafts is what you started. All Drafts is every unfinished event on the platform."
+    },
+    "dr-search": {
+      "label": "Search drafts by event name",
+      "does": "Filters the draft list as you type."
+    },
+    "dr-continue": {
+      "label": "Continue editing",
+      "does": "Reopens the wizard on that draft so you can finish it."
+    },
+    "dr-publish": {
+      "label": "Publish, on a draft row",
+      "does": "Makes the draft live. It leaves this list and appears on the public events page. Unpublish on the events list is the exact opposite."
+    },
+    "dr-delete": {
+      "label": "Delete, on a draft row",
+      "does": "Throws the unfinished event away for good."
+    },
+    "lb-search": {
+      "label": "Search events by name, type, or status",
+      "does": "Finds the event whose standings you want to work on. Every row in the table below is an event you can attach or update a leaderboard for."
+    },
+    "lb-stats": {
+      "label": "The leaderboard count cards",
+      "does": "Total leaderboards, split into tournament and scrim, plus how many were created this month and the most recent update."
+    },
+    "lb-rowView": {
+      "label": "View, on a leaderboard row",
+      "does": "Opens the published standings for that event, with a Team Leaderboard and a Player Leaderboard tab."
+    },
+    "lb-rowEdit": {
+      "label": "Edit, on a leaderboard row",
+      "does": "Opens the leaderboard editor, where results are entered, corrected and rescored."
+    },
+    "lb-create": {
+      "label": "The create leaderboard wizard",
+      "does": "Four steps: pick the event and stage, choose how results arrive, enter or upload them, then review and publish. You can save to drafts at the review step instead of publishing."
+    },
+    "lb-method": {
+      "label": "How results arrive for a match",
+      "does": "Either type placements and kills in by hand, upload the Free Fire result log file, or upload result screenshots and let the reader pull the numbers out."
+    },
+    "lb-fileUpload": {
+      "label": "Upload a result log file",
+      "does": "Reads the MatchResult log the Free Fire client writes and fills in placements and kills for the whole match. A multi map log fills in every map at once."
+    },
+    "lb-exclude": {
+      "label": "Exclude, on an uploaded row",
+      "does": "Drops one row out of the upload before it is saved, for example a team that was disqualified or a stand in who should not be scored."
+    },
+    "lb-publish": {
+      "label": "Publish Leaderboard",
+      "does": "Makes the standings visible on the public event page. Save to Drafts keeps them staff only until you come back."
+    },
+    "lb-editMatch": {
+      "label": "Edit a match's results",
+      "does": "Change any placement or kill count on a match, then save. Scores recompute for the whole leaderboard, so a fix at match 2 corrects the totals everywhere."
+    },
+    "lb-clearMap": {
+      "label": "Clear this map",
+      "does": "Wipes the results for one map so you can enter them again from scratch. The other maps are untouched."
+    },
+    "lb-addPlayer": {
+      "label": "Add player to roster",
+      "does": "Adds a player who played but was not on the registered roster, so their kills can be recorded instead of lost."
+    },
+    "lb-scoring": {
+      "label": "Scoring tab",
+      "does": "The points per placement and per kill for this event. Changing it and applying rescores the matches you select."
+    },
+    "lb-tiebreak": {
+      "label": "Tie breakers",
+      "does": "The ordered list of rules used when two teams finish on the same points, for example most kills first, then best single placement. Drag to reorder."
+    },
+    "lb-mvp": {
+      "label": "MVP tab",
+      "does": "The rule that decides the event MVP. Saving it recalculates who holds the award."
+    },
+    "lb-flagging": {
+      "label": "Flagging tab",
+      "does": "Rows the system is unsure about, for example a kill count that looks impossible or a player ID that changed mid event. Check these before publishing."
+    },
+    "lb-download": {
+      "label": "Download",
+      "does": "Exports the standings as an Excel sheet, or as a finished graphic built from one of your leaderboard designs."
+    },
+    "lb-ocrUpload": {
+      "label": "Upload screenshots",
+      "does": "Send end of match screenshots in and the reader pulls out team names, placements and kills. It creates a session you then review."
+    },
+    "lb-ocrReview": {
+      "label": "Review, on a session row",
+      "does": "Opens what was read off the screenshots so you can correct any name or number before it touches the leaderboard. Nothing is scored until you commit."
+    },
+    "lb-ocrCommit": {
+      "label": "Commit",
+      "does": "Writes the reviewed session into the leaderboard and rescores. This is the point of no return for that session."
+    },
+    "lb-standalone": {
+      "label": "Standalone leaderboard builder",
+      "does": "Builds a leaderboard for an event that was not run on AFC, so an outside tournament's results can still be shown and exported as a graphic."
+    },
+    "tm-rank": {
+      "label": "Rank Teams into Tiers",
+      "does": "Opens the rankings workspace, where the tiering pass that sorts teams into tier 1, 2 and 3 is run. The tiers themselves are locked by the quarterly evaluation, not here."
+    },
+    "tm-search": {
+      "label": "Search teams and Filter by tier",
+      "does": "Narrows the table by name or by tier. The search ignores punctuation, so a team written with symbols still comes up."
+    },
+    "tm-list": {
+      "label": "The teams table",
+      "does": "Every registered team with its tier, member count, total wins and earnings."
+    },
+    "tm-view": {
+      "label": "View, on a team row",
+      "does": "Opens that team's page: roster, history, achievements and the ban controls."
+    },
+    "tm-ban": {
+      "label": "Ban and Unban a team",
+      "does": "Blocks the team from the platform for a duration you pick, with a reason. Banning is logged and the team cannot register for anything while it holds."
+    },
+    "tm-ghostCreate": {
+      "label": "Create ghost team",
+      "does": "Makes a placeholder squad that holds results for a team that has no AFC account yet, so an event's standings are complete. A real team can claim it later. A reason is required and goes into the ranking audit trail."
+    },
+    "tm-ghostDelete": {
+      "label": "Delete, on a ghost team",
+      "does": "Removes the placeholder squad. A reason is required and is written to the ranking audit trail."
+    },
+    "bl-create": {
+      "label": "Blacklist a team",
+      "does": "Stops a team, and the players who were on it at that moment, from registering for events. The player list is a snapshot, so someone leaving the team afterwards is still covered."
+    },
+    "bl-requests": {
+      "label": "Lift requests",
+      "does": "The queue where a blacklisted party asks to be let back in. You approve or decline each one."
+    },
+    "pl-stats": {
+      "label": "The player count cards",
+      "does": "Total, active and banned players, average kills per player, and the current top MVP and top wins players."
+    },
+    "pl-search": {
+      "label": "Search players, Filter by team and Filter by status",
+      "does": "Narrows the table by name, by team (including No Team) and by active or banned."
+    },
+    "pl-view": {
+      "label": "View, on a player row",
+      "does": "Opens that player's page: profile, stats, login history and the account controls."
+    },
+    "pl-ban": {
+      "label": "Ban and Unban a player",
+      "does": "Blocks or restores platform access. The reason box needs at least ten characters and is written to the audit log."
+    },
+    "pl-ghostCreate": {
+      "label": "Create ghost player",
+      "does": "Parks an in game name as a placeholder player so results can be recorded for someone with no AFC account. They can be attached to a ghost team and claimed later."
+    },
+    "pl-setEmail": {
+      "label": "Change account email",
+      "does": "Overwrites the email on the account. Use it when a player is locked out of the address they signed up with. It changes where every future email and password reset goes."
+    },
+    "pl-loginHistory": {
+      "label": "Login history",
+      "does": "Where and when the account has signed in. Useful for checking a country claim or spotting a shared account."
+    },
+    "rp-stats": {
+      "label": "Report count cards",
+      "does": "How many reports have been filed, and how many subjects are repeat offenders, meaning three or more reports on the same player or team inside two weeks."
+    },
+    "rp-filters": {
+      "label": "The report filters",
+      "does": "Narrow the queue by subject (player or team), status, category, the reported or reporting name, or show only repeat offenders."
+    },
+    "rp-answer": {
+      "label": "Answer",
+      "does": "Opens the report with its proof image and lets you write a response. The reporter sees your answer on their profile, so write it for them, not for staff."
+    },
+    "wl-add": {
+      "label": "Add to watchlist",
+      "does": "Flags a player or team as one to keep an eye on across the whole platform. It is a warning shared with every admin and organizer, not a ban, and it does not stop anyone registering."
+    },
+    "rk-season": {
+      "label": "Season picker",
+      "does": "Everything on the page is scoped to one season. The team scores, the tier spread and the publish state all follow whichever season you pick."
+    },
+    "rk-status": {
+      "label": "Season status cards",
+      "does": "The current season, whether the transfer window is open, whether a recalculation is running, and when the last quarterly evaluation ran and who ran it."
+    },
+    "rk-evaluate": {
+      "label": "Run the quarterly evaluation",
+      "does": "Locks every team and player tier for the next quarter from the current scores. Preview it first, which is a dry run that writes nothing, then commit. Head admin or metrics admin only."
+    },
+    "rk-recalc": {
+      "label": "Queue a recalculation",
+      "does": "Recomputes the score for a single team or player without touching anyone else. Use it after fixing that one team's raw data."
+    },
+    "rk-distribution": {
+      "label": "Tier distribution",
+      "does": "How many teams sit in each tier this season, with a badge flagging teams below the activity floor."
+    },
+    "rk-publish": {
+      "label": "Publish to the public",
+      "does": "The public rankings and the tier badges stay hidden until you publish them, and the two are controlled separately. Each publish needs a reason, which is logged."
+    },
+    "rk-teams": {
+      "label": "The team score table",
+      "does": "Every team's rank, tier, tournaments played, kills and total score. It is the draft view, so you see computed scores before they are published."
+    },
+    "rk-scoringScales": {
+      "label": "Scoring brackets",
+      "does": "The bands that turn kills, placements, prize money and social following into points. The last row of each table is open ended. Changed fields are highlighted before you save."
+    },
+    "rk-scoringSave": {
+      "label": "Save changes",
+      "does": "Writes a new, permanent config version and queues a full recalculation for every ranked team and player. Old versions are kept, so a bad change can be traced."
+    },
+    "rk-scoringReset": {
+      "label": "Reset to spec defaults",
+      "does": "Loads the original values into the editor without saving them. Nothing changes until you press Save."
+    },
+    "rk-tierRules": {
+      "label": "Tier rules",
+      "does": "An ordered list of rules that classify a tournament. The first rule a tournament matches sets its tier, so order matters. Drag to reorder."
+    },
+    "rk-tierTest": {
+      "label": "Test a tournament",
+      "does": "Type in a prize, team count and player count and see which rule matches and what tier the tournament would get. It changes nothing."
+    },
+    "rk-markerFlags": {
+      "label": "Counting flags",
+      "does": "Turn off whether winners, placements or kills from a whole tournament count toward the rankings. Use it to stop provisional results feeding the table before the event is official."
+    },
+    "rk-markerExclusions": {
+      "label": "Team and player exclusions",
+      "does": "Excludes one team or player from counting in one event, for example after a rule breach. A reason is required and it is logged."
+    },
+    "rk-seasonCreate": {
+      "label": "Create a new season",
+      "does": "Starts a new quarter with its name, quarter, year and dates. It becomes the active season."
+    },
+    "rk-transferWindow": {
+      "label": "Transfer window",
+      "does": "Opens or closes the period when teams may swap players. It is independent of the season dates, and every open, close and extension is logged with a reason."
+    },
+    "rk-ghostClaims": {
+      "label": "Approve or revoke a ghost claim",
+      "does": "When a real team says a placeholder squad was them, approve to hand over its history or revoke if the claim is wrong. Both are reason logged."
+    },
+    "rk-socialVerify": {
+      "label": "Verify follower counts",
+      "does": "Confirms a team's combined Instagram and TikTok following and locks it in, which awards social points on a bracket scale capped at ten. Unverify to edit the numbers again."
+    },
+    "rk-prizeAdd": {
+      "label": "Record a payout",
+      "does": "Logs prize money paid to a team for a tournament. The season total feeds the prize bracket that builds part of the tier score. A reason is required."
+    },
+    "rk-overrideTier": {
+      "label": "Override tier",
+      "does": "Sets a team's tier by hand, overriding what the scores say. It sticks until you change it, so use it only when the computed tier is genuinely wrong."
+    },
+    "rk-deduct": {
+      "label": "Deduct points",
+      "does": "Takes a set number of points off as a partial penalty. The team stays ranked and visible, just lower."
+    },
+    "rk-banZero": {
+      "label": "Ban or zero out",
+      "does": "Removes a team or player from the rankings for the whole season by setting their score to zero. It is the heaviest action on this page and it shows in the audit log."
+    },
+    "rk-audit": {
+      "label": "Audit entries",
+      "does": "Every change made to the rankings system, filterable by type and date. Clicking an entry shows the before and after, so you can see exactly what a change did."
+    },
+    "rk-rawData": {
+      "label": "Raw data breakdown",
+      "does": "Pulls a team or player's score apart into its tournament, scrim, prize and social parts, so you can see why a number is what it is."
+    },
+    "bc-search": {
+      "label": "Search by title, message or sender",
+      "does": "Searches the full text of every broadcast ever sent, not just the titles."
+    },
+    "bc-scope": {
+      "label": "Filter by scope",
+      "does": "Narrows to whole event, stage, group, general or direct sends, so you can find the one message you are looking for."
+    },
+    "bc-sender": {
+      "label": "The sender chip on a row",
+      "does": "Clicking a sender's name filters the log down to everything that person has sent."
+    },
+    "bc-showMore": {
+      "label": "Show more, on a broadcast row",
+      "does": "Expands the row to the full message text, with who it went to, how many people it reached and which channel it used. This page is read only, nothing here re-sends."
+    },
+    "bc-audience": {
+      "label": "Send to an audience, on the Notifications tab",
+      "does": "The general broadcast composer. Pick an audience, see the recipient count before you send, and it goes through the same delivery path as every other broadcast so it lands in the audit log."
+    },
+    "bc-sentHistory": {
+      "label": "Sent broadcasts, on the Notifications tab",
+      "does": "Every general and direct broadcast sent from the settings dashboard. Event, stage and group sends live on the Broadcasts page instead."
+    },
+    "bc-rateLimit": {
+      "label": "The remaining broadcasts counter",
+      "does": "Organizers get five broadcasts an hour with a five minute gap between them, and the counter shows what is left. AFC admins are exempt and see nothing."
+    },
+    "ov-search": {
+      "label": "Search events",
+      "does": "Finds the event whose overlays you want. Each event opens its own overlay studio."
+    },
+    "ov-new": {
+      "label": "New overlay, from a design",
+      "does": "Creates an overlay from one of your leaderboard designs and gives it one permanent link. Add that link to OBS or vMix once as a Browser Source and it never has to change again."
+    },
+    "ov-copyLink": {
+      "label": "Copy link",
+      "does": "Copies the overlay's permanent link. Everything you change afterwards, the design, the stage, the group, the animation, updates through that same link live."
+    },
+    "ov-stageGroup": {
+      "label": "Stage, Group and Standings",
+      "does": "What the overlay shows. Single group or stage shows one board, Combine several merges any set of stages and groups into one cumulative board."
+    },
+    "ov-follow": {
+      "label": "Follow the broadcast selection",
+      "does": "Makes the overlay track whatever the broadcast control is currently pointed at, so you switch group once and every following overlay changes with it."
+    },
+    "ov-animation": {
+      "label": "Animation and Row reveal",
+      "does": "How the board arrives on screen: fade, slide, flash or none, and whether rows appear staggered or all at once."
+    },
+    "ov-timer": {
+      "label": "Add timer",
+      "does": "Creates a countdown overlay. Give it minutes and seconds or an end clock, an optional label like NEXT MATCH, then Trigger it. It stays transparent until triggered."
+    },
+    "ov-captureKey": {
+      "label": "Capture key",
+      "does": "The key that pairs the AFC Capture desktop client to this event, so results read off the Free Fire client flow straight into the leaderboard and the overlay."
+    },
+    "ov-captureDownload": {
+      "label": "Download AFC Capture",
+      "does": "The desktop client that watches the Free Fire client's result files and sends them to the event automatically, instead of uploading screenshots by hand."
+    },
+    "sh-ordersRange": {
+      "label": "Day, Week and Month",
+      "does": "Switches the recent orders table and the revenue figure between the last day, week and month."
+    },
+    "sh-stock": {
+      "label": "Current Stock Status",
+      "does": "Stock level per product variant with colour coded badges, so a variant about to run out is obvious. It links through to inventory."
+    },
+    "sh-addProduct": {
+      "label": "Add Product",
+      "does": "Creates a product with its name, type, category and description. You then add variants to it, since prices and stock live on the variant, not the product."
+    },
+    "sh-addVariant": {
+      "label": "Add Variant",
+      "does": "Adds a size, pack or denomination under a product, each with its own SKU, price and stock count. This is what a customer actually buys."
+    },
+    "sh-categories": {
+      "label": "Manage Categories",
+      "does": "Creates, renames and deletes the categories that group the catalogue. They show up as the browsing tabs a customer sees."
+    },
+    "sh-statusFilter": {
+      "label": "All, Active and Inactive",
+      "does": "Filters the product table by status. Inactive products stay in the system but are not offered for sale."
+    },
+    "sh-toggleProduct": {
+      "label": "Activate and Deactivate a product",
+      "does": "Takes a product off sale without deleting it, so its order history and coupons survive. Deleting is a separate, permanent action."
+    },
+    "sh-createCoupon": {
+      "label": "Create New Coupon",
+      "does": "Makes a discount code, either a percentage or a fixed amount, with a date range and a maximum number of uses."
+    },
+    "sh-couponMetrics": {
+      "label": "Coupon metrics",
+      "does": "Total coupons, redemptions, money saved and conversion rate, with tabs for performance, monthly trends and recent activity."
+    },
+    "sh-orderSearch": {
+      "label": "Search ID or Product",
+      "does": "Finds an order by its id, customer, product name or user id."
+    },
+    "sh-orderTabs": {
+      "label": "All, Pending and Paid",
+      "does": "Filters orders by payment state. Pending is the one to watch: those are orders that have not been paid for yet."
+    },
+    "sh-markPaid": {
+      "label": "Mark order as paid",
+      "does": "Records the order as paid when the money arrived outside the normal checkout. It moves the order out of Pending, so only use it when you have confirmed the payment."
+    },
+    "sh-delivery": {
+      "label": "Reveal delivery details",
+      "does": "Shows a customer's shipping address for fulfilment. Addresses are hidden by default and revealing one is a deliberate act, because it is personal data."
+    },
+    "sh-addVendor": {
+      "label": "Add a vendor",
+      "does": "Grants an existing user permission to sell on the marketplace, with their display name, contact email and WhatsApp number."
+    },
+    "sh-assignProduct": {
+      "label": "Assign a product to a vendor",
+      "does": "Moves a product to a different vendor, or clears it back to AFC's own stock."
+    },
+    "sh-vendorStatus": {
+      "label": "The vendor status toggle",
+      "does": "Suspends a vendor, which revokes their selling access at once, or reactivates them."
+    },
+    "sh-approve": {
+      "label": "Approve, in the approval queue",
+      "does": "Publishes a vendor's submitted product to the storefront so it can be bought."
+    },
+    "sh-reject": {
+      "label": "Reject, in the approval queue",
+      "does": "Sends the product back with a written reason the vendor can read and act on. Write something they can actually fix."
+    },
+    "sh-payouts": {
+      "label": "Release, on a vendor payout",
+      "does": "Pays a vendor their share of completed orders and records the transfer reference."
+    },
+    "nw-create": {
+      "label": "Create news",
+      "does": "Opens the article editor: title, author, category, cover image and the rich text body."
+    },
+    "nw-filters": {
+      "label": "Search, category, status and date filters",
+      "does": "Narrow the article list. Clear all filters resets them in one press."
+    },
+    "nw-copyLink": {
+      "label": "Copy link",
+      "does": "Copies the public link to the article so you can paste it into a post or a message."
+    },
+    "nw-edit": {
+      "label": "Edit, on an article",
+      "does": "Reopens the editor. Saving replaces what readers see immediately, there is no separate publish step for an edit."
+    },
+    "nw-delete": {
+      "label": "Delete, on an article",
+      "does": "Removes the article and its public page permanently. Existing links will stop working."
+    },
+    "sp-create": {
+      "label": "Create sponsor account",
+      "does": "Two steps: make the sponsor's login, then attach the events they are sponsoring. The sponsor uses that login for their own dashboard."
+    },
+    "sp-attachEvent": {
+      "label": "Attach an event to a sponsor",
+      "does": "Links a sponsor to an event, which is what makes their branding and their registration task appear on it."
+    },
+    "sp-addMember": {
+      "label": "Add a member to a sponsor",
+      "does": "Gives another AFC user access to that sponsor's dashboard. They see the pointer to it the next time they log in."
+    },
+    "sp-edit": {
+      "label": "Edit, on a sponsor",
+      "does": "Changes the sponsor's details, their attached events and, if needed, their password."
+    },
+    "sp-confirm": {
+      "label": "Confirm, in sponsor review",
+      "does": "Accepts a player's submitted sponsor ID, which completes their registration requirement."
+    },
+    "sp-reject": {
+      "label": "Reject, in sponsor review",
+      "does": "Turns down a submitted sponsor ID with a reason. The player can then submit a corrected one."
+    },
+    "sp-filterStatus": {
+      "label": "Pending, Confirmed and Rejected",
+      "does": "Filters the submissions. Pending is your work queue."
+    },
+    "og-create": {
+      "label": "Create organization",
+      "does": "Sets up a third party organizer: name, contact email, description and its owner, picked from existing AFC users. The owner then gets the organizer portal."
+    },
+    "og-search": {
+      "label": "Search by name or slug",
+      "does": "Finds an organization in the list."
+    },
+    "og-tabs": {
+      "label": "Profile, Members, Events and Reports",
+      "does": "The four tabs of an organization's page: its details, who is in it, what it has run, and what has been reported about it."
+    },
+    "og-addMember": {
+      "label": "Add member",
+      "does": "Adds someone to the organization with a role and a set of permissions. They get the organizer role immediately and can enter the portal without re-logging in."
+    },
+    "og-transferOwner": {
+      "label": "Make owner",
+      "does": "Hands ownership of the organization to another member. The previous owner drops to a sub organizer."
+    },
+    "og-suspend": {
+      "label": "Suspend or delete, in the danger zone",
+      "does": "Suspending blocks the organization from operating but keeps its data. Deleting is heavier, and a deleted organization can be restored from this same page."
+    },
+    "og-verifyEvent": {
+      "label": "Verify an event",
+      "does": "Marks an organizer's event as checked by AFC, which is what earns it the verified marker publicly."
+    },
+    "og-resolveReport": {
+      "label": "Resolve report",
+      "does": "Closes a report against an organization with a note on what was found and what was done. The note is the record, so write it properly."
+    },
+    "og-markPaid": {
+      "label": "Marked paid",
+      "does": "Records that an organization's share of paid event revenue has been transferred to them."
+    },
+    "pm-tabs": {
+      "label": "Overview, Team Listings, Player Listings, Trials and Applications, Reports and Flags",
+      "does": "The transfer market's admin tabs. Overview is the headline numbers, the rest are where you act on individual items."
+    },
+    "pm-overview": {
+      "label": "Market at a glance",
+      "does": "Active listings, ongoing trials and pending reports, so you can see whether anything needs attention before opening a tab."
+    },
+    "pm-ban": {
+      "label": "Ban from the market",
+      "does": "Blocks a user from posting or applying in the transfer market for a number of days. It does not touch their platform account."
+    },
+    "pm-trialChat": {
+      "label": "Trial messages",
+      "does": "The conversation between a team and a player on trial. Read it when a report says something went wrong in one."
+    },
+    "st-tabs": {
+      "label": "Admin Users, All Users, Roles and Permissions, Notifications, Login History, Admin Activities",
+      "does": "The six settings tabs, in the order they appear. Roles and Permissions is the one that decides what every other admin can reach."
+    },
+    "st-createAdmin": {
+      "label": "Create admin user",
+      "does": "Makes a new staff account and assigns its roles in one step. The roles decide which sidebar entries and pages they can open."
+    },
+    "st-editRoles": {
+      "label": "Edit user, roles",
+      "does": "Changes which roles someone holds. This immediately changes what they can see and do, so it is the most consequential control in the admin area."
+    },
+    "st-createRole": {
+      "label": "Create New Role",
+      "does": "Defines a new named role with a description. Existing roles cover the current areas, so most of the time you assign one rather than create one."
+    },
+    "st-deleteRole": {
+      "label": "Delete role",
+      "does": "Removes a role. Anyone holding it loses that access."
+    },
+    "st-suspendUser": {
+      "label": "Suspend or remove a user",
+      "does": "Suspending blocks sign in and keeps the account, removing deletes it. Removing is permanent."
+    },
+    "st-overlap": {
+      "label": "Account overlap",
+      "does": "Flags accounts that share a device or address, which is the usual sign of one person running several accounts."
+    },
+    "st-loginHistory": {
+      "label": "Login History tab",
+      "does": "Every sign in across the platform with country and device, and an Excel export."
+    },
+    "st-activities": {
+      "label": "Admin Activities tab",
+      "does": "A running log of what each admin has done, so the team can see who changed what."
+    },
+    "vt-sections": {
+      "label": "Sections, categories and nominees",
+      "does": "Awards voting is built in three layers: a section holds categories, a category holds nominees. Create the section first, then the categories, then attach nominees to them."
+    },
+    "vt-results": {
+      "label": "Votes per category and the voting timeline",
+      "does": "Live tallies per nominee and per category, plus how voting has moved over time."
+    },
+    "oc-dataset": {
+      "label": "Download dataset",
+      "does": "Downloads the training set of reviewed screenshots that the self hosted screenshot reader learns from."
+    },
+    "oc-promote": {
+      "label": "Promote a model version",
+      "does": "Makes a trained version the live reader for every event. Test on the performance tab before promoting."
+    },
+    "oc-rollback": {
+      "label": "Rollback",
+      "does": "Puts the previous model version back if a promoted one reads worse than the old one."
+    },
+    "ak-tabs": {
+      "label": "Data partners, Sign in with AFC, Applications and Site Feedback",
+      "does": "Four separate programmes on one page. You only see the tabs your roles cover."
+    },
+    "ak-createPartner": {
+      "label": "Create partner",
+      "does": "Registers an outside site that wants AFC data, then you issue it a key and choose which events it may read."
+    },
+    "ak-issueKey": {
+      "label": "Issue key",
+      "does": "Generates an API key for a partner. Copy it when it is shown, it is not shown again, and treat it like a password."
+    },
+    "ak-scope": {
+      "label": "Allowed events",
+      "does": "Limits a partner key to specific events. Without this a key can read every event, so set it deliberately."
+    },
+    "ak-feedback": {
+      "label": "Site Feedback queue",
+      "does": "What users have submitted through the feedback form, and where you respond to it."
+    },
+    "ad-metrics": {
+      "label": "The dashboard metric cards",
+      "does": "Members, teams, tournaments, scrims, news and revenue at a glance, each linking through to the section that manages it."
+    },
+    "ad-activity": {
+      "label": "Recent admin activity",
+      "does": "What other admins have done lately, so you can spot a change before you wonder about it."
+    },
+    "op-switcher": {
+      "label": "The organization switcher",
+      "does": "Only appears when you belong to more than one organization. Everything in the portal follows whichever one is selected, and the choice is remembered."
+    },
+    "op-events": {
+      "label": "Your events",
+      "does": "Every event your organization has run or is running, with its status and registration count. Draft events carry a Draft badge."
+    },
+    "op-createEvent": {
+      "label": "Create event",
+      "does": "The same wizard AFC admins use. Your organization is set as the organizer automatically."
+    },
+    "op-groups": {
+      "label": "Groups and Rosters",
+      "does": "Who is in each group of each stage, with the controls to remove a player from a group or from the stage entirely."
+    },
+    "op-leaderboards": {
+      "label": "Leaderboards",
+      "does": "Lists your events so you can create or manage each one's standings. Gated on the upload results permission."
+    },
+    "op-profile": {
+      "label": "Organization profile",
+      "does": "Your logo, banner, name, contact email, description and social links. This is what the public sees on your events."
+    },
+    "op-addMember": {
+      "label": "Add sub organizer",
+      "does": "Brings someone into your organization and ticks exactly which of the eight permissions they get. They can enter the portal straight away."
+    },
+    "op-removeMember": {
+      "label": "Remove, on a member",
+      "does": "Takes someone out of the organization. They lose access to the portal for it immediately."
+    },
+    "op-bank": {
+      "label": "Bank details",
+      "does": "The bank code, account number and account name your share of paid event revenue is sent to. Owner only."
+    },
+    "op-earnings": {
+      "label": "Earnings",
+      "does": "What you are owed and what has already been paid, per event."
+    },
+    "op-metrics": {
+      "label": "Metrics",
+      "does": "Your organization's totals for events, teams, players, kills and rating, over a timeframe you choose."
+    },
+    "op-reviews": {
+      "label": "Reviews",
+      "does": "Per event ratings and comments from players. Comments are anonymous by design, so do not expect to know who wrote one."
+    },
+    "op-design": {
+      "label": "Design",
+      "does": "Where you request a leaderboard design and see the history of what you have asked for."
+    },
+    "op-blacklist": {
+      "label": "Blacklist a team",
+      "does": "Blocks a team, and the players on it at that moment, from registering for your organization's events. It only affects your events, not the whole platform."
+    },
+    "op-watchlist": {
+      "label": "Watchlist",
+      "does": "The shared, AFC wide advisory list of players and teams to watch. It is a warning, not a ban, and every organizer can see it."
+    },
+    "op-mediaAudit": {
+      "label": "Broadcast media check",
+      "does": "Shows which teams are missing a logo and which players are missing an esport image, so you can chase them before the stream instead of during it."
+    },
+    "ee-tabs": {
+      "label": "Basic Info, Stages and Groups, Registered Teams, Waitlist, Prizes and Rules, Sponsor, Co-organizers, Actions",
+      "does": "The editor's tabs. Basic Info is the setup, Stages and Groups is the structure, Registered Teams is the entry list, and Actions is where you actually run the tournament."
+    },
+    "ee-save": {
+      "label": "Save changes",
+      "does": "Writes your edits to the event. If the change affects people who already registered you get a warning first, because it changes the deal they signed up to."
+    },
+    "sg-dragStage": {
+      "label": "Drag a stage or a group",
+      "does": "Reorders stages, or groups within a stage. The order is saved as soon as you drop it."
+    },
+    "sg-configureStage": {
+      "label": "Configure a stage",
+      "does": "Two steps: the stage itself (name, dates, format, scoring mode, number of groups, prize) then its groups (name, playing date and time, how many qualify, how many matches, maps and the room details)."
+    },
+    "sg-scoringMode": {
+      "label": "Scoring mode: Champion Point or Point Rush",
+      "does": "Champion Point ends the stage when a team passes a points threshold. Point Rush hands out bonus points for finishing positions. Pick the one the format actually uses, it changes how standings are computed."
+    },
+    "sg-routing": {
+      "label": "Advancement routing rules",
+      "does": "Sends different finishing positions to different later stages, for example first to fourth into the Final and fifth to eighth into a second chance stage. Stages with rules use Branching Advancement on the Actions tab."
+    },
+    "sg-roomDetails": {
+      "label": "Room ID, room name and room password",
+      "does": "The in game lobby details for a group. Set them here, then send them to the players from the match row."
+    },
+    "sg-seedToGroup": {
+      "label": "Seed to groups, on a stage",
+      "does": "Distributes that stage's competitors into its groups, with options to shuffle and to clear any existing seeding first."
+    },
+    "sg-advanceStage": {
+      "label": "Advance to next stage, on a stage",
+      "does": "Moves the qualifying teams into the following stage. It is disabled until the stage is saved and a following stage exists, and it tells you which of the two is missing."
+    },
+    "sg-removeStage": {
+      "label": "Remove this stage",
+      "does": "Deletes the stage with its groups, its match data and its place in the order. This cannot be undone, and the last remaining stage cannot be removed."
+    },
+    "sg-editMatch": {
+      "label": "Edit a match",
+      "does": "Sets that match's room ID, name and password, sends the room details to the players in it, and shows the WhatsApp delivery status afterwards."
+    },
+    "sg-releaseWaitlist": {
+      "label": "Release the room to the waitlist",
+      "does": "When a registered team does not show, this hands that match's room details to waitlisted teams following the event's waitlist mode, so the slot is not wasted."
+    },
+    "sg-waDelivery": {
+      "label": "Check WhatsApp delivery",
+      "does": "How many players actually received the room details, how many failed and how many have no WhatsApp number on file, with a Resend for the failures. Delivered is the signal to trust, Read only appears for players who have read receipts on."
+    },
+    "rt-list": {
+      "label": "Registered Teams or Registered Players",
+      "does": "The entry list with each team's players, status and assigned letter. A watchlist tag on a row means that team or player is on the advisory watchlist."
+    },
+    "rt-letters": {
+      "label": "Assign and Unassign a letter",
+      "does": "Gives a team its broadcast letter (A, B, C and so on). The team is notified, and a letter already taken is marked so you cannot double assign it."
+    },
+    "rt-checkNoShows": {
+      "label": "Check for no-shows",
+      "does": "Lists every registered competitor with no results entered, which is the usual sign they did not turn up. It only suggests, you still mark each one yourself."
+    },
+    "rt-noShow": {
+      "label": "No-show, on a team row",
+      "does": "Marks that a team did not turn up, and press again to clear it. Repeat offenders show a count of no-shows in the last seven days."
+    },
+    "rt-allowRosterEdit": {
+      "label": "Allow roster edit, on a team row",
+      "does": "Lets one team edit its roster until the event ends, without opening the window for everyone. The Actions tab control is the all-teams version."
+    },
+    "rt-editRoster": {
+      "label": "Edit roster, on a team row",
+      "does": "Changes which players a team is fielding. On a sponsored event it also collects each player's sponsor ID, which may need re-approval afterwards."
+    },
+    "rt-disqualify": {
+      "label": "Disqualify",
+      "does": "Removes a competitor from the standings. The reason you type is shown to the competitor, so write enough that they understand the decision."
+    },
+    "rt-reactivate": {
+      "label": "Reactivate",
+      "does": "Undoes a disqualification and puts the competitor back into the event."
+    },
+    "rt-removeTeam": {
+      "label": "Remove team from event",
+      "does": "Takes the team out of the event completely, which is heavier than disqualifying: they leave the entry list, not just the standings."
+    },
+    "rt-addTeams": {
+      "label": "Add teams or Add solo players",
+      "does": "Puts a team or player into the event by hand, for a late entry or a replacement for a no-show."
+    },
+    "wt-promote": {
+      "label": "Promote from waitlist",
+      "does": "Moves a waitlisted team or player into the event when a spot opens. Promote next takes whoever is at the front of the queue."
+    }
+  },
+  "walkthroughs": {
+    "createEvent": {
+      "steps": {
+        "open": {
+          "title": "Open the wizard",
+          "body": "Admins: Events and Leaderboards, then Create new event. Organizers: Events, then Create event. Nothing is saved yet, so you can back out."
+        },
+        "details": {
+          "title": "Fill in the basics",
+          "body": "Tournament or scrim, solo, duo or squad, how many can enter, and the two date ranges: when registration is open, and when the event runs. The event has to start after registration closes."
+        },
+        "requirements": {
+          "title": "Decide what players must have",
+          "body": "Optional gates that block registration until a competitor has what you need: a team logo, an esport image, a profile picture, a Free Fire UID, a linked Discord or a WhatsApp number. Only tick what you genuinely need on the day, every gate loses you entries."
+        },
+        "mode": {
+          "title": "Say where it is played",
+          "body": "Virtual, physical LAN or hybrid. This is information for players, it does not change the bracket."
+        },
+        "stages": {
+          "title": "Add the stages",
+          "body": "Say how many rounds the event has and name them, for example Group Stage then Finals. Then configure each one: format, dates, how many groups, how many qualify, how many matches and which maps."
+        },
+        "prizes": {
+          "title": "Set the prize pool",
+          "body": "Enter the total, pick the currency, then split it by finishing position. The split has to add up to the total or the wizard will not let you past."
+        },
+        "rules": {
+          "title": "Add the rules",
+          "body": "Either type them in or upload a document. Only one of the two is used, so pick the one you will keep updated."
+        },
+        "sponsor": {
+          "title": "Add a sponsor task if there is one",
+          "body": "If a sponsor is gating entry, name the task and the ID each player must submit. Every ID has to be unique across the event."
+        },
+        "publish": {
+          "title": "Publish or save as a draft",
+          "body": "Draft keeps it hidden under Drafts so you can finish later. Publishing puts it on the public events page straight away. Public or private decides whether it is listed or invite only."
+        }
+      },
+      "title": "Create an event",
+      "summary": "From an empty wizard to a published tournament."
+    },
+    "runStage": {
+      "steps": {
+        "check": {
+          "title": "Check the entry list first",
+          "body": "Open the event, then Registrations (admin) or the event page (organizer). Confirm rosters look right and nobody is missing a UID. Fixing this after you start is much harder."
+        },
+        "start": {
+          "title": "Start the tournament",
+          "body": "Event editor, Actions tab, Start. That seeds everyone into Stage 1 and sets it running. The button then becomes a Started marker with Pause next to it."
+        },
+        "seed": {
+          "title": "Seed the stage into groups",
+          "body": "Still on Actions: Seed Competitors to Groups, pick the stage, press Seed. Check the draw on the Group Rosters tab before you tell anyone."
+        },
+        "rooms": {
+          "title": "Send the room details",
+          "body": "Stages and Groups tab, open the match, fill in room ID, name and password, and send. Check WhatsApp delivery afterwards and resend to the failures."
+        },
+        "noshows": {
+          "title": "Deal with no-shows",
+          "body": "Registered Teams tab, Check for no-shows lists everyone with no results. Mark the ones that did not turn up, then use Release the room to the waitlist so the slot is not wasted."
+        },
+        "results": {
+          "title": "Enter the results",
+          "body": "Upload the result log or screenshots per map, or type them in. See the uploading results guide for the detail."
+        },
+        "advance": {
+          "title": "Advance to the next stage",
+          "body": "Actions tab, Advance to Next Stage, pick the stage and the group. If the stage has routing rules use Branching Advancement instead, and always press Preview first."
+        },
+        "complete": {
+          "title": "Complete the event",
+          "body": "Actions tab, Mark as Complete. Results lock and everyone registered is notified. If you spot a mistake afterwards you can still Reopen."
+        }
+      },
+      "title": "Run a tournament on the day",
+      "summary": "Start it, seed it, send rooms, handle no-shows, advance, finish."
+    },
+    "uploadResults": {
+      "steps": {
+        "find": {
+          "title": "Find the event",
+          "body": "Admins: Events and Leaderboards, Leaderboards tab. Organizers: Leaderboards. Search for the event and press Manage or Edit."
+        },
+        "pick": {
+          "title": "Pick the stage, group and match",
+          "body": "Results are always attached to one match of one group of one stage. Getting this wrong is the most common cause of numbers landing in the wrong table."
+        },
+        "method": {
+          "title": "Choose how the results arrive",
+          "body": "Three ways: upload the result log file the Free Fire client writes, upload end of match screenshots and let the reader pull the numbers out, or type placements and kills in by hand."
+        },
+        "log": {
+          "title": "If you have the log file",
+          "body": "Upload it and every placement and kill fills in at once. A multi map log fills every map in one go. Use Exclude on any row that should not be scored, for example a disqualified team."
+        },
+        "ocr": {
+          "title": "If you have screenshots",
+          "body": "Upload them from the event's OCR Results screen. That creates a session you review: correct any name or number that was read wrong, then Commit. Nothing touches the leaderboard until you commit."
+        },
+        "scoring": {
+          "title": "Check the scoring and tie breakers",
+          "body": "The Scoring tab holds points per placement and per kill. Tie breakers decide who wins on equal points. Set both before you publish, not after."
+        },
+        "flags": {
+          "title": "Look at the flagged rows",
+          "body": "The Flagging tab lists anything the system is unsure about, such as an impossible kill count or a player ID that changed mid event. Clear these before publishing."
+        },
+        "publish": {
+          "title": "Publish",
+          "body": "Publish Leaderboard makes the standings public. Save to Drafts keeps them staff only if you want to reveal them later."
+        }
+      },
+      "title": "Upload match results",
+      "summary": "The three ways results get in, and which to use."
+    },
+    "fixResult": {
+      "steps": {
+        "open": {
+          "title": "Open the leaderboard editor",
+          "body": "Find the event's leaderboard and press Edit. You do not need to unpublish anything first."
+        },
+        "locate": {
+          "title": "Find the wrong match",
+          "body": "Pick the stage, the group and the match the wrong number is in. The Matches tab lists them with their status."
+        },
+        "small": {
+          "title": "For a small mistake, edit in place",
+          "body": "Change the placement or the kill count and save. Every total that depends on it recomputes, so a fix at match two corrects the standings all the way down."
+        },
+        "big": {
+          "title": "For a badly wrong map, clear it",
+          "body": "Clear this map wipes just that map so you can enter it again from scratch. The other maps are not touched."
+        },
+        "missing": {
+          "title": "For a player who is missing",
+          "body": "Add player to roster puts a player who actually played but was not registered onto the roster, so their kills count instead of disappearing."
+        },
+        "rescore": {
+          "title": "Rescore if the points changed",
+          "body": "If you changed the scoring, apply it to the affected matches so the totals reflect the new rules."
+        },
+        "verify": {
+          "title": "Check the public page",
+          "body": "Open the event's public standings and confirm the corrected numbers are there. If results are hidden, publish them from the Actions tab."
+        }
+      },
+      "title": "Fix a wrong result",
+      "summary": "Correcting a number after it is already on the board."
+    },
+    "publishLeaderboard": {
+      "steps": {
+        "complete": {
+          "title": "Make sure every match has results",
+          "body": "The Matches tab shows resulted and pending per match. A pending match means the standings are incomplete."
+        },
+        "tiebreak": {
+          "title": "Confirm the tie breakers",
+          "body": "Check the order of the rules that separate teams on equal points, because that is what people argue about afterwards."
+        },
+        "mvp": {
+          "title": "Set the MVP rule",
+          "body": "The MVP tab decides who takes the award. Saving it recalculates the holder."
+        },
+        "publish": {
+          "title": "Publish the leaderboard",
+          "body": "From the leaderboard wizard's review step, or Publish Results on the event's Actions tab. Both make the standings visible on the public event page."
+        },
+        "timing": {
+          "title": "Or hold it for a reveal",
+          "body": "Hide Results on the Actions tab keeps the standings staff only while you post them on social first. Staff can still enter and check results while they are hidden."
+        },
+        "graphic": {
+          "title": "Export the graphic",
+          "body": "Download gives you an Excel sheet or a finished image built from one of your leaderboard designs, ready to post."
+        }
+      },
+      "title": "Publish a leaderboard",
+      "summary": "Getting standings onto the public page, and timing the reveal."
+    },
+    "manageTeams": {
+      "steps": {
+        "find": {
+          "title": "Find the team",
+          "body": "Teams and Players, Teams tab. Search by name or filter by tier. The search ignores punctuation, so a stylised team name still comes up."
+        },
+        "inspect": {
+          "title": "Open the team",
+          "body": "View shows its roster, history, achievements and tier."
+        },
+        "invite": {
+          "title": "Getting teams into an event",
+          "body": "Public events are open to anyone. For a private one, use the event page: Generate Single Invite for one team, Generate Bulk Invites for up to a hundred links with a CSV to send out, or the shared first come first serve link when you do not need to control who takes the spots."
+        },
+        "addLate": {
+          "title": "Add a team by hand",
+          "body": "Event editor, Registered Teams tab, Add teams. Use it for a late entry or a replacement after a no-show."
+        },
+        "roster": {
+          "title": "Let a team fix its roster",
+          "body": "Allow roster edit on that team's row opens it for that team only. The Actions tab version opens it for every team until a time you set."
+        },
+        "ban": {
+          "title": "Ban or blacklist",
+          "body": "A ban blocks the team across the whole platform for a set duration. A blacklist only blocks it from a particular organizer's events, and it snapshots the players who were on the team so leaving does not dodge it."
+        }
+      },
+      "title": "Invite and manage teams",
+      "summary": "Getting the right teams in, and dealing with the wrong ones."
+    },
+    "disputes": {
+      "steps": {
+        "report": {
+          "title": "Read the report",
+          "body": "Teams and Players, Reports tab. Filter by subject, status or category, and look for the repeat offender flag, which means three or more reports on the same subject inside two weeks."
+        },
+        "evidence": {
+          "title": "Look at the proof",
+          "body": "Answer opens the report with the image the reporter attached. The event's Evidence and match files are the other place to look."
+        },
+        "decide": {
+          "title": "Decide and write it down",
+          "body": "Your answer is shown to the reporter on their profile, so write it for them: what you found and what you did."
+        },
+        "dq": {
+          "title": "Disqualify if it is warranted",
+          "body": "Event editor, Registered Teams tab, Disqualify. The reason you type is shown to the competitor. It removes them from the standings but leaves them on the entry list."
+        },
+        "remove": {
+          "title": "Or remove them entirely",
+          "body": "Remove team from event is heavier: they leave the entry list altogether. Use it when they should never have been in the event."
+        },
+        "undo": {
+          "title": "Reactivate if you got it wrong",
+          "body": "Reactivate puts a disqualified competitor straight back in."
+        },
+        "watch": {
+          "title": "Flag them for next time",
+          "body": "Adding a player or team to the watchlist warns every admin and organizer without banning anyone. Use it for a pattern you are not ready to act on yet."
+        },
+        "rankings": {
+          "title": "Keep it out of the rankings",
+          "body": "Rankings, Result Markers lets you exclude one team or player from counting in one event, so a cheated result does not feed the public table."
+        }
+      },
+      "title": "Handle a dispute or a disqualification",
+      "summary": "From a report to a decision, and keeping it out of the rankings."
+    },
+    "broadcast": {
+      "steps": {
+        "open": {
+          "title": "Open the composer",
+          "body": "Event editor, Actions tab, Broadcast. For a message to everyone on the platform rather than one event, use Settings, Notifications instead."
+        },
+        "scope": {
+          "title": "Choose who gets it",
+          "body": "Whole event, one stage, or one group. Group scope is what you want for room details and match calls, whole event for schedule changes."
+        },
+        "write": {
+          "title": "Write it",
+          "body": "A title and a message. Keep the title short, it is what shows in the notification."
+        },
+        "channel": {
+          "title": "Pick the channel",
+          "body": "App only, email only, or both. Emails go out in the standard AFC branded design."
+        },
+        "link": {
+          "title": "Attach a link if it helps",
+          "body": "The Take me there button can point at an event, so people land on the right page instead of hunting for it."
+        },
+        "send": {
+          "title": "Send",
+          "body": "Organizers get five broadcasts an hour with a five minute gap, and the counter shows what is left. AFC admins are exempt."
+        },
+        "check": {
+          "title": "Check it went",
+          "body": "History next to the Broadcast button shows every message sent for this event with its recipient count. The Broadcasts page in the admin sidebar is the platform wide version."
+        }
+      },
+      "title": "Send a broadcast",
+      "summary": "Messaging an event, a stage or a single group."
+    },
+    "manageShop": {
+      "steps": {
+        "product": {
+          "title": "Create the product",
+          "body": "Shop, Inventory, Add Product: name, type, category and description. The product on its own cannot be bought yet."
+        },
+        "variant": {
+          "title": "Add its variants",
+          "body": "Add Variant is where price, SKU and stock actually live. A product with no variants has nothing to sell."
+        },
+        "category": {
+          "title": "Tidy the categories",
+          "body": "Manage Categories controls how the catalogue is grouped, and those groups are the tabs customers browse."
+        },
+        "coupon": {
+          "title": "Create a coupon if you want one",
+          "body": "Percentage or fixed amount, with a date range and a usage cap. Coupon Metrics shows what each one is actually doing."
+        },
+        "orders": {
+          "title": "Work the orders",
+          "body": "Shop, Orders. The Pending tab is the queue: those are orders that have not been paid. Mark order as paid only after you have confirmed the money arrived."
+        },
+        "fulfil": {
+          "title": "Fulfil it",
+          "body": "The customer's delivery details are hidden until you reveal them, because they are personal data. Reveal, ship, done."
+        },
+        "vendors": {
+          "title": "Handle vendors",
+          "body": "Add a vendor to grant selling access, Product Approvals to publish or reject what they submit, and Vendor Payouts to release their share."
+        }
+      },
+      "title": "Run the shop",
+      "summary": "Products, stock, orders and vendors."
+    },
+    "rankings": {
+      "steps": {
+        "season": {
+          "title": "Pick the season",
+          "body": "Everything on the Rankings pages is scoped to one season. Set it first or you will be looking at the wrong numbers."
+        },
+        "config": {
+          "title": "Check the scoring rules",
+          "body": "Scoring Config holds the bands that turn kills, placements, prize money and social following into points. Saving writes a new permanent version and queues a full recalculation, so do it before the data, not after."
+        },
+        "tiers": {
+          "title": "Check how tournaments are classified",
+          "body": "Tournament Tiers is a top down list of rules. The first rule a tournament matches sets its tier, and the tier decides how heavily its results count. Use Test a tournament to check a rule without saving."
+        },
+        "data": {
+          "title": "Get the raw data right",
+          "body": "Result Markers controls which events count at all and lets you exclude a specific team. Prize records payouts. Social verifies follower counts. Ghost Teams holds results for squads with no AFC account."
+        },
+        "check": {
+          "title": "Look at the draft table",
+          "body": "The Overview team table shows computed scores before anything is published, so you can spot a wrong number while it is still private."
+        },
+        "fix": {
+          "title": "Correct anything that is genuinely wrong",
+          "body": "Overrides can set a tier by hand, deduct points as a penalty, or zero a team for the season. All three need a reason and all three show up in the audit log."
+        },
+        "evaluate": {
+          "title": "Run the quarterly evaluation",
+          "body": "This locks every tier for the next quarter. Preview it first, which writes nothing, and only then commit."
+        },
+        "publish": {
+          "title": "Publish",
+          "body": "The public rankings and the tier badges are published separately, each with a reason. Until you publish, none of this is visible to players."
+        }
+      },
+      "title": "Manage rankings and tiers",
+      "summary": "The order the ranking machine has to be operated in."
+    },
+    "setupOrganizer": {
+      "steps": {
+        "create": {
+          "title": "Create the organization",
+          "body": "Organizations, Create organization. Name, contact email, description and the owner, picked from existing AFC users."
+        },
+        "owner": {
+          "title": "The owner gets the portal",
+          "body": "The person you named as owner now has the organizer role and can open the organizer portal. They do not need to log out and back in."
+        },
+        "members": {
+          "title": "They add their own people",
+          "body": "In the portal, Members, Add sub organizer. Each person gets exactly the permissions ticked: create events, edit events, upload results, manage registrations, submit designs, view metrics, view reviews, manage members."
+        },
+        "bank": {
+          "title": "Set the bank details",
+          "body": "Payouts in the portal, owner only. Without this you cannot pay them their share of paid event revenue."
+        },
+        "verify": {
+          "title": "Verify their events",
+          "body": "On the organization's Events tab in the admin area, verifying an event is what earns it the verified marker publicly."
+        },
+        "watch": {
+          "title": "Keep an eye on it",
+          "body": "Reports on the organization page is where complaints land, and resolving one means writing what was found and what was done. Suspend and delete are in the danger zone if it comes to that."
+        }
+      },
+      "title": "Set up an organizer",
+      "summary": "Creating an organization and handing it the keys."
+    },
+    "goLive": {
+      "steps": {
+        "design": {
+          "title": "Have a design ready",
+          "body": "An overlay is built from a leaderboard design, so make or pick one first."
+        },
+        "create": {
+          "title": "Create the overlay",
+          "body": "Open the event's overlay studio and press New overlay from a design. You get one permanent link."
+        },
+        "obs": {
+          "title": "Add the link to your streaming software once",
+          "body": "Paste it into OBS or vMix as a Browser Source. You never have to touch it again: changing the design, stage, group or animation updates through the same link live."
+        },
+        "scope": {
+          "title": "Point it at the right standings",
+          "body": "Pick a single stage or group, or Combine several to merge stages and groups into one cumulative board. Follow the broadcast selection makes it track whatever you switch to centrally."
+        },
+        "timer": {
+          "title": "Add a countdown if you want one",
+          "body": "Add timer, give it a duration or an end clock and a label like NEXT MATCH, then Trigger it. It stays invisible until triggered."
+        },
+        "capture": {
+          "title": "Automate the numbers",
+          "body": "The AFC Capture desktop client watches the Free Fire client's result files and feeds them straight into the leaderboard, so the overlay updates without anyone uploading anything. Pair it with the event's capture key."
+        },
+        "media": {
+          "title": "Check the art before you go live",
+          "body": "The broadcast media check lists teams with no logo and players with no esport image. Chase them before the stream, not during it."
+        }
+      },
+      "title": "Put a leaderboard on stream",
+      "summary": "Overlays, capture and the checks before you go live."
+    }
+  }
+}
