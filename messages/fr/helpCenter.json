@@ -1,0 +1,1621 @@
+{
+  "nav": {
+    "label": "Centre d'aide"
+  },
+  "page": {
+    "title": "Centre d'aide",
+    "descriptionAdmin": "Ce que fait chaque contrôle, et des guides pas à pas pour tout ce que vous gérez. Faites une recherche, ou choisissez un domaine.",
+    "descriptionOrganizer": "Ce que fait chaque contrôle du portail organisateur, et des guides pas à pas pour gérer vos événements. Faites une recherche, ou choisissez un domaine.",
+    "searchPlaceholder": "Rechercher un bouton, un écran ou une tâche...",
+    "searchAriaLabel": "Rechercher dans le centre d'aide",
+    "resultCount": "{count, plural, one {# résultat} other {# résultats}}"
+  },
+  "tabs": {
+    "guides": "Guides",
+    "controls": "Tous les contrôles"
+  },
+  "labels": {
+    "allAreas": "Tous",
+    "where": "Où",
+    "who": "Qui peut l'utiliser",
+    "anyone": "Tout administrateur capable d'ouvrir l'écran",
+    "caution": "Modifie ou supprime des données",
+    "openScreen": "Ouvrir cet écran",
+    "startHere": "Commencez ici",
+    "steps": "{count, plural, one {# étape} other {# étapes}}",
+    "controlsIn": "{count, plural, one {# contrôle} other {# contrôles}}",
+    "videoTitle": "Guide en vidéo",
+    "videoPending": "La vidéo de ce guide n'a pas encore été enregistrée. Les étapes écrites ci-dessus se suffisent à elles-mêmes.",
+    "tourHint": "La plupart des écrans ont aussi un bouton Faites une visite guidée dans l'en-tête, qui pointe vers ces contrôles sur la vraie page.",
+    "backToTop": "Retour en haut"
+  },
+  "empty": {
+    "title": "Rien ne correspond",
+    "body": "Essayez une recherche plus courte, ou enlevez le filtre par domaine. Chercher le libellé d'un bouton marche en général mieux qu'une phrase entière."
+  },
+  "kinds": {
+    "action": "Fait quelque chose",
+    "navigation": "Mène quelque part",
+    "filter": "Restreint une liste",
+    "field": "Quelque chose que vous réglez",
+    "toggle": "Bascule un réglage",
+    "view": "Lecture seule"
+  },
+  "coverage": {
+    "title": "Est-ce complet ?",
+    "body": "Chaque entrée présente ici a été relevée dans le code qui dessine l'écran, pas devinée à partir d'un nom de bouton. Elle couvre tous les domaines des portails administrateur et organisateur, et passe contrôle par contrôle sur ceux que vous utilisez tous les jours. Sur les écrans plus discrets, elle liste les principaux contrôles plutôt que le moindre champ. Si quelque chose manque, c'est qu'il manque, pas qu'il est faux."
+  },
+  "areas": {
+    "events": {
+      "title": "Événements et tournois",
+      "description": "Créer un événement, gérer ses phases, et tout ce qui se trouve sur la page de l'événement."
+    },
+    "leaderboards": {
+      "title": "Classements et résultats",
+      "description": "Transformer les résultats des matchs en classements publiés, et les corriger quand ils sont faux."
+    },
+    "teams": {
+      "title": "Équipes",
+      "description": "Les équipes inscrites, leurs niveaux, leurs bannissements et les listes noires."
+    },
+    "players": {
+      "title": "Joueurs",
+      "description": "Les comptes individuels, les bannissements, les signalements et la liste de surveillance."
+    },
+    "rankings": {
+      "title": "Classements et niveaux",
+      "description": "La machine à points de la saison : configuration, données brutes, évaluation et publication."
+    },
+    "broadcasts": {
+      "title": "Diffusions et messages",
+      "description": "Envoyer des annonces aux joueurs, et l'audit de tout ce qui a été envoyé."
+    },
+    "overlays": {
+      "title": "Superpositions en direct et capture",
+      "description": "Les sources navigateur OBS qui affichent un classement en direct sur le stream."
+    },
+    "shop": {
+      "title": "Boutique",
+      "description": "Produits, stock, commandes, codes promo, vendeurs et paiements."
+    },
+    "news": {
+      "title": "Actualités",
+      "description": "Rédiger, publier et gérer les articles."
+    },
+    "sponsors": {
+      "title": "Sponsors",
+      "description": "Les comptes sponsors, les événements auxquels ils sont rattachés, et leur tâche d'inscription."
+    },
+    "organizations": {
+      "title": "Organisations",
+      "description": "Les organisateurs tiers : leurs comptes, leurs membres, leurs signalements et leurs paiements."
+    },
+    "market": {
+      "title": "Marché des joueurs",
+      "description": "Le marché des transferts : annonces, essais et signalements."
+    },
+    "settings": {
+      "title": "Administrateurs et paramètres de la plateforme",
+      "description": "Comptes administrateurs, rôles, brouillons, votes, clés API et le modèle OCR."
+    },
+    "orgPortal": {
+      "title": "Portail organisateur",
+      "description": "Les écrans dont dispose un organisateur et pas un administrateur : membres, paiements, avis et design."
+    }
+  },
+  "screens": {
+    "eventsList": "Événements et classements, onglet Événements",
+    "eventCreate": "Assistant de création d'un nouvel événement",
+    "eventDetail": "Page de l'événement (ouvrez un événement, puis Voir)",
+    "eventEdit": "Éditeur d'événement (ouvrez un événement, puis Modifier)",
+    "eventActions": "Éditeur d'événement, onglet Actions",
+    "eventPayments": "Paiements de l'événement (séquestre des événements payants)",
+    "eventSponsorsPg": "Page de l'événement, Vérification sponsor",
+    "drafts": "Brouillons",
+    "lbList": "Événements et classements, onglet Classements",
+    "lbCreate": "Assistant de création de classement",
+    "lbView": "Vue du classement (ouvrez un classement)",
+    "lbEdit": "Éditeur de classement",
+    "lbOcr": "Page de l'événement, Résultats OCR",
+    "lbStandalone": "Générateur de classement indépendant",
+    "teamsTab": "Équipes et joueurs, onglet Équipes",
+    "playersTab": "Équipes et joueurs, onglet Joueurs",
+    "blacklistsTab": "Équipes et joueurs, onglet Listes noires",
+    "reportsTab": "Équipes et joueurs, onglet Signalements",
+    "watchlistTab": "Équipes et joueurs, onglet Liste de surveillance",
+    "playerDetail": "Page du joueur (ouvrez un joueur, puis Voir)",
+    "rkOverview": "Classements, Vue d'ensemble",
+    "rkScoring": "Classements, Configuration des points",
+    "rkTiers": "Classements, Niveaux de tournoi",
+    "rkResults": "Classements, Marqueurs de résultats",
+    "rkSeasons": "Classements, Saisons",
+    "rkGhosts": "Classements, Équipes fantômes",
+    "rkSocial": "Classements, Réseaux sociaux",
+    "rkPrize": "Classements, Dotations",
+    "rkOverrides": "Classements, Ajustements manuels",
+    "rkAudit": "Classements, Journal d'audit",
+    "bcAudit": "Audit des diffusions",
+    "ovList": "Liste des superpositions en direct",
+    "ovStudio": "Studio de superposition (ouvrez un événement)",
+    "orgCapture": "Capture en direct",
+    "shopDash": "Tableau de bord de la boutique",
+    "shopInventory": "Boutique, Inventaire",
+    "shopOrders": "Boutique, Commandes",
+    "shopOrderDetail": "Boutique, la page d'une commande",
+    "shopCoupons": "Boutique, Statistiques des codes promo",
+    "shopVendors": "Boutique, Vendeurs",
+    "shopApprovals": "Boutique, Validation des produits",
+    "shopPayouts": "Boutique, Paiements des vendeurs",
+    "shopCustomers": "Boutique, Clients",
+    "newsList": "Liste des actualités",
+    "newsCreate": "Créer une actualité",
+    "sponsorsList": "Liste des sponsors",
+    "sponsorCreate": "Créer un compte sponsor",
+    "orgsList": "Liste des organisations",
+    "orgDetail": "La page d'une organisation",
+    "orgReports": "Organisations, Signalements",
+    "orgPayoutsAdmin": "Organisations, Paiements",
+    "marketAdmin": "Marchés des joueurs",
+    "settings": "Paramètres",
+    "votes": "Votes",
+    "ocrModel": "Modèle OCR",
+    "apiKeys": "Clés API",
+    "adminDash": "Tableau de bord administrateur",
+    "orgOverview": "Organisateur, Vue d'ensemble",
+    "orgEvents": "Organisateur, Événements",
+    "orgEventCreate": "Organisateur, assistant de création d'événement",
+    "orgDrafts": "Organisateur, Brouillons",
+    "orgEventDetail": "Organisateur, la page d'un événement",
+    "orgGroups": "Organisateur, Groupes et effectifs",
+    "orgLbList": "Organisateur, Classements",
+    "orgProfile": "Organisateur, Profil",
+    "orgMembers": "Organisateur, Membres",
+    "orgMetrics": "Organisateur, Indicateurs",
+    "orgPayouts": "Organisateur, Paiements",
+    "orgReviews": "Organisateur, Avis",
+    "orgDesign": "Organisateur, Design",
+    "orgBlacklists": "Organisateur, Listes noires",
+    "orgWatchlist": "Organisateur, Liste de surveillance"
+  },
+  "roles": {
+    "head_admin": "Administrateur principal",
+    "event_admin": "Administrateur des événements",
+    "teams_admin": "Administrateur des équipes",
+    "news_admin": "Administrateur des actualités",
+    "shop_admin": "Administrateur de la boutique",
+    "metrics_admin": "Administrateur des indicateurs",
+    "organizer_admin": "Administrateur des organisateurs",
+    "partner_admin": "Administrateur des partenaires",
+    "sponsor_admin": "Administrateur des sponsors",
+    "support": "Modérateur ou support",
+    "owner": "Propriétaire de l'organisation",
+    "can_create_events": "Organisateur : créer des événements",
+    "can_edit_events": "Organisateur : modifier des événements",
+    "can_upload_results": "Organisateur : importer des résultats",
+    "can_manage_registrations": "Organisateur : gérer les inscriptions",
+    "can_submit_designs": "Organisateur : soumettre des designs",
+    "can_view_metrics": "Organisateur : voir les indicateurs",
+    "can_view_reviews": "Organisateur : voir les avis",
+    "can_manage_members": "Organisateur : gérer les membres"
+  },
+  "controls": {
+    "ev-create": {
+      "label": "Créer un nouvel événement",
+      "does": "Ouvre l'assistant d'événement. Rien n'existe tant que vous n'avez pas terminé l'assistant ou mis l'événement de côté en brouillon, vous pouvez donc faire marche arrière à n'importe quelle étape."
+    },
+    "ev-payments": {
+      "label": "Paiements de l'événement",
+      "does": "Ouvre la liste des sommes sous séquestre pour les événements payants, où les frais d'inscription retenus sont soit versés à l'organisateur, soit remboursés au joueur."
+    },
+    "ev-search": {
+      "label": "Rechercher des événements par nom, type ou statut",
+      "does": "Filtre la liste ci-dessous à mesure que vous tapez. La recherche ignore la ponctuation et les accents : taper ve retrouve quand même un événement appelé V-E Cup."
+    },
+    "ev-stats": {
+      "label": "Les cartes de comptage au-dessus de la liste",
+      "does": "Total des événements, tournois, scrims, à venir, en cours, terminés, nombre moyen de participants par événement et votre format le plus utilisé. Lecture seule."
+    },
+    "ev-rowView": {
+      "label": "Voir, sur la ligne d'un événement",
+      "does": "Ouvre la page de l'événement : Vue d'ensemble, Détails, Inscriptions, Liste d'attente, Phases, Effectifs des groupes, Dotations, Engagement et Outils Discord."
+    },
+    "ev-rowEdit": {
+      "label": "Modifier, sur la ligne d'un événement",
+      "does": "Ouvre l'éditeur d'événement. C'est là que vous changez la configuration et, dans l'onglet Actions, que vous faites réellement tourner le tournoi."
+    },
+    "ev-rowUnpublish": {
+      "label": "Dépublier, sur la ligne d'un événement",
+      "does": "Remet l'événement à l'état de brouillon. Il disparaît immédiatement de toutes les listes publiques et réapparaît sous Brouillons, où vous pouvez le publier à nouveau."
+    },
+    "ev-rowDuplicate": {
+      "label": "Dupliquer, sur la ligne d'un événement",
+      "does": "Copie les réglages ainsi que la structure des phases et des groupes dans un tout nouveau brouillon, puis ouvre la copie pour modification. Les inscriptions, les résultats et les dotations versées ne sont pas copiés."
+    },
+    "ev-rowDelete": {
+      "label": "L'icône corbeille sur la ligne d'un événement",
+      "does": "Supprime définitivement l'événement après confirmation. Il n'y a pas de retour en arrière. Si vous voulez seulement le retirer du site public, utilisez plutôt Dépublier."
+    },
+    "ev-rowLock": {
+      "label": "Le cadenas à côté du nom d'un événement",
+      "does": "Signale un événement privé. Les événements privés ne sont pas listés publiquement et s'atteignent par un lien direct ou un lien d'invitation."
+    },
+    "ev-wizardNav": {
+      "label": "Précédent et Suivant",
+      "does": "Naviguez entre les étapes de l'assistant : détails, mode de l'événement, nombre de phases, configuration des phases, dotations, règlement, tâche sponsor, liste d'attente et publication. Votre progression est conservée si vous partez et revenez."
+    },
+    "ev-wizardResume": {
+      "label": "Reprendre ou Repartir de zéro",
+      "does": "S'affiche quand vous avez laissé un événement à moitié fini. Reprendre le récupère là où il en était. Rattachez ensuite la bannière ou le fichier de règlement, les fichiers ne sont pas conservés."
+    },
+    "ev-wizardCreate": {
+      "label": "Créer un événement",
+      "does": "Enregistre l'événement. Si vous avez coché brouillon à l'étape de publication, il reste caché sous Brouillons, sinon il est mis en ligne immédiatement."
+    },
+    "ev-detailTabs": {
+      "label": "Vue d'ensemble, Détails, Inscriptions, Liste d'attente, Phases, Effectifs des groupes, Dotations, Engagement, Outils Discord",
+      "does": "Les neuf onglets de la page de l'événement. Inscriptions et Effectifs des groupes sont les deux que vous utiliserez le jour des matchs."
+    },
+    "ev-detailOverview": {
+      "label": "Onglet Vue d'ensemble",
+      "does": "Total des inscrits, jours avant le début, temps restant avant la clôture des inscriptions, taux d'inscription, taux de conversion et le montant des dotations."
+    },
+    "ev-detailRegistrations": {
+      "label": "Onglet Inscriptions",
+      "does": "Toutes les équipes ou tous les joueurs inscrits, avec leur effectif. Vérifiez cet onglet avant de lancer le tournoi."
+    },
+    "ev-detailRosters": {
+      "label": "Onglet Effectifs des groupes",
+      "does": "Qui s'est retrouvé dans quel groupe après la répartition. Servez-vous-en pour confirmer que le tirage est correct avant d'envoyer les détails de salon."
+    },
+    "ev-detailEngagement": {
+      "label": "Onglet Engagement",
+      "does": "Pages vues, visiteurs uniques, partages sur les réseaux sociaux et nombre moyen de vues par jour pour la page publique de l'événement."
+    },
+    "ev-inviteSingle": {
+      "label": "Générer une invitation unique",
+      "does": "Crée un lien d'invitation à usage unique pour un événement privé. Dès que quelqu'un s'inscrit avec, il cesse de fonctionner."
+    },
+    "ev-inviteBulk": {
+      "label": "Générer des invitations en masse",
+      "does": "Crée jusqu'à 100 liens d'invitation à usage unique d'un coup, puis les propose en téléchargement CSV ou Excel pour que vous les distribuiez."
+    },
+    "ev-inviteShared": {
+      "label": "Générer un lien d'invitation partagé (premier arrivé, premier servi)",
+      "does": "Un seul lien que tout le monde peut utiliser jusqu'à ce que l'événement soit complet. Plus simple à partager que des liens à usage unique, mais vous ne maîtrisez pas qui prend les places."
+    },
+    "ev-sponsorRequirement": {
+      "label": "Configurer l'exigence sponsor, dans l'onglet Détails",
+      "does": "Définit la tâche sponsor et l'identifiant que chaque joueur doit fournir pour s'inscrire (par exemple un UUID Garena). Chaque identifiant doit être unique sur l'ensemble de l'événement."
+    },
+    "ev-linkStage": {
+      "label": "Relier une phase à un événement, sous Événements liés",
+      "does": "Envoie les premiers d'une phase directement dans un autre événement. Réglez la phase, l'événement cible, combien se qualifient, s'ils sont inscrits automatiquement, et si leur effectif est copié ou si le capitaine le rechoisit. Cela se déclenche quand le classement de la phase est définitif, ou tout de suite avec Déclencher maintenant."
+    },
+    "ev-chainMap": {
+      "label": "Carte de la chaîne",
+      "does": "Montre toute la cascade de qualification autour de cet événement : quels événements y mènent et lesquels il alimente. Utile quand un circuit à plusieurs phases se comporte mal et que vous devez en voir la forme."
+    },
+    "ev-importEvents": {
+      "label": "Importer depuis des événements",
+      "does": "Inscrit immédiatement dans celui-ci tous les concurrents confirmés des événements que vous choisissez. Les équipes déjà inscrites sont ignorées plutôt que dupliquées, et les événements source doivent utiliser le même type de participant."
+    },
+    "ev-linkDecide": {
+      "label": "Déclencher maintenant, Promouvoir le suivant et Choisir une équipe précise",
+      "does": "Les commandes manuelles d'un lien de qualification. Déclencher maintenant l'exécute avant que le classement soit définitif, Promouvoir le suivant comble une place qu'une équipe a refusée, et Choisir une équipe précise décide à la place du système qui passe. Chacune peut être annulée."
+    },
+    "ev-setTier": {
+      "label": "Niveau du tournoi",
+      "does": "Définit le niveau de ce tournoi, qui décide du poids de ses résultats dans les classements publics. Le niveau 1 compte double, le niveau 3 compte une fois."
+    },
+    "ev-stageIds": {
+      "label": "ID de phase et ID de groupe, dans Outils Discord",
+      "does": "Copie dans votre presse-papiers tous les identifiants Discord de cette phase ou de ce groupe, pour que vous puissiez les coller dans une action Discord de masse."
+    },
+    "ev-deleteNotifs": {
+      "label": "Supprimer les notifications, dans Outils Discord",
+      "does": "Supprime les notifications envoyées précédemment à tout le monde dans ce groupe. Utilisez-le quand un groupe a été contacté par erreur."
+    },
+    "ev-discordSync": {
+      "label": "Synchroniser les inscriptions à l'événement avec les rôles Discord",
+      "does": "Relance l'attribution des rôles Discord pour toutes les personnes inscrites, afin que celles qui ont rejoint le serveur tardivement reçoivent leur rôle."
+    },
+    "ev-discordRetry": {
+      "label": "Réessayer les rôles Discord en échec",
+      "does": "Ne réessaie que les attributions qui ont échoué la première fois, au lieu de tout refaire."
+    },
+    "ev-discordReconcile": {
+      "label": "Réconcilier les rôles de groupe",
+      "does": "Compare qui devrait avoir chaque rôle de groupe avec qui l'a réellement, et corrige la différence."
+    },
+    "ev-removeNonNigeria": {
+      "label": "Retirer les concurrents inscrits hors Nigeria",
+      "does": "Retire les inscriptions des joueurs dont la dernière connexion a eu lieu hors du Nigeria. Appuyez toujours d'abord sur Simulation : elle liste exactement qui partirait, sans retirer personne. C'est seulement ensuite que le bouton rouge Retirer apparaît."
+    },
+    "ev-ocrLink": {
+      "label": "Résultats OCR",
+      "does": "Ouvre l'écran de lecture des captures d'écran pour cet événement, où vous importez les captures de résultats et vérifiez ce qui y a été lu."
+    },
+    "act-start": {
+      "label": "Lancer le tournoi",
+      "does": "Répartit toutes les personnes inscrites dans la phase 1 et la met en route. Ensuite, le bouton devient un marqueur Lancé avec une commande Pause à côté. Il est verrouillé dès qu'un événement est terminé ou annulé."
+    },
+    "act-pause": {
+      "label": "Pause et Reprendre",
+      "does": "Met la phase 1 en attente ou la relance. Utilisez-le quand un match est retardé et que vous ne voulez pas que la phase paraisse en cours."
+    },
+    "act-cancel": {
+      "label": "Annuler l'événement",
+      "does": "Marque l'événement comme annulé, gèle les inscriptions et prévient tous les inscrits. Protégé par une confirmation."
+    },
+    "act-complete": {
+      "label": "Marquer comme terminé",
+      "does": "Clôture l'événement et verrouille les résultats. Tous les inscrits sont prévenus. Si vous vous êtes trompé, vous pouvez encore utiliser Rouvrir."
+    },
+    "act-reopen": {
+      "label": "Rouvrir l'événement",
+      "does": "N'apparaît qu'une fois l'événement terminé. Le remet en actif pour que vous puissiez corriger ou ajouter des résultats, puis le terminer à nouveau."
+    },
+    "act-seed": {
+      "label": "Répartir les concurrents dans les groupes",
+      "does": "Répartit au hasard les concurrents d'une phase dans les groupes de cette phase. Choisissez d'abord la phase."
+    },
+    "act-advance": {
+      "label": "Passer à la phase suivante",
+      "does": "Prend les mieux classés d'un groupe et les place dans la phase suivante. Choisissez la phase, puis le groupe."
+    },
+    "act-branching": {
+      "label": "Qualification par branches",
+      "does": "Pour les phases qui ont des règles d'aiguillage, répartit les qualifiés vers différentes phases ultérieures (par exemple les 4 premiers vers la finale, du 5e au 8e vers un repêchage). Appuyez d'abord sur Aperçu : il montre exactement qui va où et n'écrit rien."
+    },
+    "act-undoSeed": {
+      "label": "Annuler, sous Gestion de la répartition",
+      "does": "Efface les affectations de groupe d'une phase. Les concurrents restent inscrits, ils n'ont simplement plus de groupe."
+    },
+    "act-reseed": {
+      "label": "Répartir à nouveau",
+      "does": "Redistribue les concurrents d'une phase dans ses groupes. Avec Mélanger activé vous obtenez un nouveau tirage au sort, désactivé l'ordre existant est conservé."
+    },
+    "act-deleteGroup": {
+      "label": "Supprimer un groupe",
+      "does": "Retire un groupe et demande ce qu'il advient des personnes qui s'y trouvent : les répartir automatiquement dans les groupes restants, les laisser sans groupe pour les placer vous-même, ou les retirer complètement de la phase."
+    },
+    "act-deleteStage": {
+      "label": "Supprimer une phase",
+      "does": "Retire une phase, et demande dans quelle phase déplacer ses concurrents (ou de les supprimer avec elle)."
+    },
+    "act-forceConfirm": {
+      "label": "Continuer quand même",
+      "does": "Apparaît quand le groupe ou la phase que vous modifiez contient déjà des résultats saisis. Confirmer relance la même action et écrase ce qui s'y trouvait."
+    },
+    "act-broadcast": {
+      "label": "Diffusion",
+      "does": "Ouvre le compositeur d'annonce. Choisissez l'événement entier, une phase ou un groupe, écrivez un titre et un message, choisissez application seule, e-mail seul ou les deux, et joignez si vous voulez un lien Emmène-moi là."
+    },
+    "act-history": {
+      "label": "Historique, à côté de Diffusion",
+      "does": "Toutes les annonces, tous les messages de phase ou de groupe et tous les envois de détails de salon effectués pour cet événement, avec qui les a envoyés et quand."
+    },
+    "act-syncDiscord": {
+      "label": "Synchroniser les rôles Discord",
+      "does": "Réattribue les rôles Discord manquants pour un groupe. Réservé aux administrateurs, il est masqué dans le portail organisateur parce que les organisateurs ne gèrent pas le Discord d'AFC."
+    },
+    "act-rosterWindow": {
+      "label": "Ouvrir la fenêtre, Mettre à jour la fenêtre et Fermer maintenant",
+      "does": "Permet aux capitaines de modifier à nouveau leur effectif jusqu'à une heure que vous choisissez, même après la clôture des inscriptions. La fenêtre se ferme d'elle-même à cette heure et ne peut pas être fixée au-delà de la date de fin de l'événement."
+    },
+    "act-visibility": {
+      "label": "Rendre public et Rendre privé",
+      "does": "Les événements publics sont listés pour tout le monde. Les événements privés sont masqués des listes et s'atteignent uniquement par un lien direct ou un lien d'invitation."
+    },
+    "act-resultsVisibility": {
+      "label": "Publier les résultats et Masquer les résultats",
+      "does": "Affiche ou masque le classement sur la page publique de l'événement. Tant qu'ils sont masqués, les joueurs voient un message indiquant qu'ils ne sont pas encore publiés, mais le staff peut toujours saisir et vérifier les résultats. Servez-vous-en pour caler une révélation sur les réseaux sociaux."
+    },
+    "act-export": {
+      "label": "Exporter les participants, CSV ou Excel",
+      "does": "Télécharge tous les joueurs ou toutes les équipes inscrites sous forme de tableur."
+    },
+    "pay-filter": {
+      "label": "Tous les événements",
+      "does": "Restreint le tableau à un seul événement payant, ou affiche les paiements de tous."
+    },
+    "pay-summary": {
+      "label": "Total des paiements, Sous séquestre et Affichés",
+      "does": "Combien de frais existent au total, combien sont encore retenus et vous attendent, et combien le filtre en cours affiche."
+    },
+    "pay-release": {
+      "label": "Verser, sur la ligne d'un paiement",
+      "does": "Remet à l'organisateur les frais d'inscription retenus. Protégé par une confirmation, et le statut de la ligne passe à Versé."
+    },
+    "pay-refund": {
+      "label": "Rembourser, sur la ligne d'un paiement",
+      "does": "Renvoie plutôt les frais retenus au joueur. Protégé par une confirmation, et le statut de la ligne passe à Remboursé."
+    },
+    "dr-tabs": {
+      "label": "Mes brouillons et Tous les brouillons",
+      "does": "Mes brouillons, c'est ce que vous avez commencé. Tous les brouillons, c'est tous les événements inachevés de la plateforme."
+    },
+    "dr-search": {
+      "label": "Rechercher des brouillons par nom d'événement",
+      "does": "Filtre la liste des brouillons à mesure que vous tapez."
+    },
+    "dr-continue": {
+      "label": "Continuer la modification",
+      "does": "Rouvre l'assistant sur ce brouillon pour que vous puissiez le terminer."
+    },
+    "dr-publish": {
+      "label": "Publier, sur la ligne d'un brouillon",
+      "does": "Met le brouillon en ligne. Il quitte cette liste et apparaît sur la page publique des événements. Dépublier, dans la liste des événements, fait exactement l'inverse."
+    },
+    "dr-delete": {
+      "label": "Supprimer, sur la ligne d'un brouillon",
+      "does": "Jette définitivement l'événement inachevé."
+    },
+    "lb-search": {
+      "label": "Rechercher des événements par nom, type ou statut",
+      "does": "Trouve l'événement dont vous voulez traiter le classement. Chaque ligne du tableau ci-dessous est un événement auquel vous pouvez rattacher ou mettre à jour un classement."
+    },
+    "lb-stats": {
+      "label": "Les cartes de comptage des classements",
+      "does": "Total des classements, réparti entre tournois et scrims, plus combien ont été créés ce mois-ci et la mise à jour la plus récente."
+    },
+    "lb-rowView": {
+      "label": "Voir, sur la ligne d'un classement",
+      "does": "Ouvre le classement publié de cet événement, avec un onglet Classement des équipes et un onglet Classement des joueurs."
+    },
+    "lb-rowEdit": {
+      "label": "Modifier, sur la ligne d'un classement",
+      "does": "Ouvre l'éditeur de classement, où les résultats sont saisis, corrigés et recalculés."
+    },
+    "lb-create": {
+      "label": "L'assistant de création de classement",
+      "does": "Quatre étapes : choisir l'événement et la phase, choisir comment les résultats arrivent, les saisir ou les importer, puis relire et publier. À l'étape de relecture, vous pouvez enregistrer en brouillon au lieu de publier."
+    },
+    "lb-method": {
+      "label": "Comment les résultats d'un match arrivent",
+      "does": "Soit vous tapez les placements et les éliminations à la main, soit vous importez le fichier journal de résultats de Free Fire, soit vous importez des captures d'écran de résultats et laissez le lecteur en extraire les chiffres."
+    },
+    "lb-fileUpload": {
+      "label": "Importer un fichier journal de résultats",
+      "does": "Lit le journal MatchResult écrit par le client Free Fire et remplit les placements et les éliminations pour tout le match. Un journal multi-cartes remplit toutes les cartes d'un coup."
+    },
+    "lb-exclude": {
+      "label": "Exclure, sur une ligne importée",
+      "does": "Retire une ligne de l'import avant son enregistrement, par exemple une équipe disqualifiée ou un remplaçant qui ne doit pas être compté."
+    },
+    "lb-publish": {
+      "label": "Publier le classement",
+      "does": "Rend le classement visible sur la page publique de l'événement. Enregistrer en brouillon le réserve au staff jusqu'à votre retour."
+    },
+    "lb-editMatch": {
+      "label": "Modifier les résultats d'un match",
+      "does": "Changez n'importe quel placement ou nombre d'éliminations sur un match, puis enregistrez. Les scores sont recalculés pour tout le classement, une correction au match 2 corrige donc les totaux partout."
+    },
+    "lb-clearMap": {
+      "label": "Effacer cette carte",
+      "does": "Efface les résultats d'une seule carte pour que vous puissiez les ressaisir de zéro. Les autres cartes ne sont pas touchées."
+    },
+    "lb-addPlayer": {
+      "label": "Ajouter un joueur à l'effectif",
+      "does": "Ajoute un joueur qui a joué mais ne figurait pas dans l'effectif inscrit, afin que ses éliminations soient enregistrées au lieu d'être perdues."
+    },
+    "lb-scoring": {
+      "label": "Onglet Points",
+      "does": "Les points par placement et par élimination pour cet événement. Le modifier et l'appliquer recalcule les matchs que vous sélectionnez."
+    },
+    "lb-tiebreak": {
+      "label": "Départages",
+      "does": "La liste ordonnée des règles utilisées quand deux équipes terminent à égalité de points, par exemple le plus d'éliminations d'abord, puis le meilleur placement isolé. Glissez pour réordonner."
+    },
+    "lb-mvp": {
+      "label": "Onglet MVP",
+      "does": "La règle qui décide du MVP de l'événement. L'enregistrer recalcule qui détient la récompense."
+    },
+    "lb-flagging": {
+      "label": "Onglet Signalements",
+      "does": "Les lignes dont le système n'est pas sûr, par exemple un nombre d'éliminations qui paraît impossible ou un identifiant de joueur qui a changé en cours d'événement. Vérifiez-les avant de publier."
+    },
+    "lb-download": {
+      "label": "Télécharger",
+      "does": "Exporte le classement sous forme de feuille Excel, ou de visuel fini construit à partir d'un de vos designs de classement."
+    },
+    "lb-ocrUpload": {
+      "label": "Importer des captures d'écran",
+      "does": "Envoyez les captures d'écran de fin de match et le lecteur en extrait les noms d'équipes, les placements et les éliminations. Cela crée une session que vous vérifiez ensuite."
+    },
+    "lb-ocrReview": {
+      "label": "Vérifier, sur la ligne d'une session",
+      "does": "Ouvre ce qui a été lu sur les captures d'écran pour que vous corrigiez le moindre nom ou chiffre avant que cela touche le classement. Rien n'est compté tant que vous n'avez pas validé."
+    },
+    "lb-ocrCommit": {
+      "label": "Valider",
+      "does": "Écrit la session vérifiée dans le classement et recalcule les scores. C'est le point de non-retour pour cette session."
+    },
+    "lb-standalone": {
+      "label": "Générateur de classement indépendant",
+      "does": "Construit un classement pour un événement qui n'a pas été organisé sur AFC, afin que les résultats d'un tournoi extérieur puissent quand même être affichés et exportés en visuel."
+    },
+    "tm-rank": {
+      "label": "Répartir les équipes en niveaux",
+      "does": "Ouvre l'espace de travail des classements, où l'on lance la passe de répartition qui trie les équipes en niveaux 1, 2 et 3. Les niveaux eux-mêmes sont verrouillés par l'évaluation trimestrielle, pas ici."
+    },
+    "tm-search": {
+      "label": "Rechercher des équipes et Filtrer par niveau",
+      "does": "Restreint le tableau par nom ou par niveau. La recherche ignore la ponctuation, une équipe écrite avec des symboles ressort donc quand même."
+    },
+    "tm-list": {
+      "label": "Le tableau des équipes",
+      "does": "Toutes les équipes inscrites avec leur niveau, leur nombre de membres, leur total de victoires et leurs gains."
+    },
+    "tm-view": {
+      "label": "Voir, sur la ligne d'une équipe",
+      "does": "Ouvre la page de cette équipe : effectif, historique, trophées et les commandes de bannissement."
+    },
+    "tm-ban": {
+      "label": "Bannir et Débannir une équipe",
+      "does": "Bloque l'équipe sur la plateforme pour une durée que vous choisissez, avec un motif. Le bannissement est journalisé et l'équipe ne peut s'inscrire à rien tant qu'il court."
+    },
+    "tm-ghostCreate": {
+      "label": "Créer une équipe fantôme",
+      "does": "Crée une équipe fictive qui porte les résultats d'une équipe n'ayant pas encore de compte AFC, pour que le classement d'un événement soit complet. Une vraie équipe pourra la revendiquer plus tard. Un motif est obligatoire et part dans le journal d'audit des classements."
+    },
+    "tm-ghostDelete": {
+      "label": "Supprimer, sur une équipe fantôme",
+      "does": "Retire l'équipe fictive. Un motif est obligatoire et est inscrit dans le journal d'audit des classements."
+    },
+    "bl-create": {
+      "label": "Mettre une équipe sur liste noire",
+      "does": "Empêche une équipe, et les joueurs qui en faisaient partie à ce moment-là, de s'inscrire aux événements. La liste des joueurs est un instantané : quelqu'un qui quitte l'équipe ensuite reste couvert."
+    },
+    "bl-requests": {
+      "label": "Demandes de levée",
+      "does": "La file d'attente où une partie mise sur liste noire demande à être réintégrée. Vous approuvez ou refusez chaque demande."
+    },
+    "pl-stats": {
+      "label": "Les cartes de comptage des joueurs",
+      "does": "Joueurs au total, actifs et bannis, moyenne d'éliminations par joueur, et les joueurs actuellement en tête au MVP et aux victoires."
+    },
+    "pl-search": {
+      "label": "Rechercher des joueurs, Filtrer par équipe et Filtrer par statut",
+      "does": "Restreint le tableau par nom, par équipe (y compris Sans équipe) et par actif ou banni."
+    },
+    "pl-view": {
+      "label": "Voir, sur la ligne d'un joueur",
+      "does": "Ouvre la page de ce joueur : profil, statistiques, historique de connexion et commandes du compte."
+    },
+    "pl-ban": {
+      "label": "Bannir et Débannir un joueur",
+      "does": "Bloque ou rétablit l'accès à la plateforme. Le champ motif exige au moins dix caractères et est inscrit dans le journal d'audit."
+    },
+    "pl-ghostCreate": {
+      "label": "Créer un joueur fantôme",
+      "does": "Réserve un pseudo en jeu comme joueur fictif afin d'enregistrer des résultats pour quelqu'un qui n'a pas de compte AFC. Il peut être rattaché à une équipe fantôme et revendiqué plus tard."
+    },
+    "pl-setEmail": {
+      "label": "Changer l'e-mail du compte",
+      "does": "Remplace l'e-mail du compte. Utilisez-le quand un joueur n'a plus accès à l'adresse avec laquelle il s'est inscrit. Cela change la destination de tous les futurs e-mails et réinitialisations de mot de passe."
+    },
+    "pl-loginHistory": {
+      "label": "Historique de connexion",
+      "does": "Où et quand le compte s'est connecté. Utile pour vérifier un pays déclaré ou repérer un compte partagé."
+    },
+    "rp-stats": {
+      "label": "Cartes de comptage des signalements",
+      "does": "Combien de signalements ont été déposés, et combien de personnes visées sont des récidivistes, c'est-à-dire trois signalements ou plus sur le même joueur ou la même équipe en deux semaines."
+    },
+    "rp-filters": {
+      "label": "Les filtres de signalements",
+      "does": "Restreignez la file par sujet (joueur ou équipe), statut, catégorie, nom signalé ou nom du signaleur, ou n'affichez que les récidivistes."
+    },
+    "rp-answer": {
+      "label": "Répondre",
+      "does": "Ouvre le signalement avec son image de preuve et vous permet d'écrire une réponse. Le signaleur voit votre réponse sur son profil, écrivez-la donc pour lui, pas pour le staff."
+    },
+    "wl-add": {
+      "label": "Ajouter à la liste de surveillance",
+      "does": "Signale un joueur ou une équipe à surveiller sur toute la plateforme. C'est un avertissement partagé avec tous les administrateurs et organisateurs, pas un bannissement, et cela n'empêche personne de s'inscrire."
+    },
+    "rk-season": {
+      "label": "Sélecteur de saison",
+      "does": "Tout sur la page est limité à une seule saison. Les scores des équipes, la répartition des niveaux et l'état de publication suivent tous la saison que vous choisissez."
+    },
+    "rk-status": {
+      "label": "Cartes de statut de la saison",
+      "does": "La saison en cours, si la fenêtre de transfert est ouverte, si un recalcul est en cours, et quand la dernière évaluation trimestrielle a eu lieu et qui l'a lancée."
+    },
+    "rk-evaluate": {
+      "label": "Lancer l'évaluation trimestrielle",
+      "does": "Verrouille le niveau de chaque équipe et de chaque joueur pour le trimestre suivant à partir des scores actuels. Faites-en d'abord un aperçu, qui est une simulation n'écrivant rien, puis validez. Réservé à l'administrateur principal ou à l'administrateur des indicateurs."
+    },
+    "rk-recalc": {
+      "label": "Mettre un recalcul en file",
+      "does": "Recalcule le score d'une seule équipe ou d'un seul joueur sans toucher aux autres. Utilisez-le après avoir corrigé les données brutes de cette équipe-là."
+    },
+    "rk-distribution": {
+      "label": "Répartition des niveaux",
+      "does": "Combien d'équipes se trouvent dans chaque niveau cette saison, avec un badge signalant les équipes sous le seuil d'activité."
+    },
+    "rk-publish": {
+      "label": "Publier pour le public",
+      "does": "Les classements publics et les badges de niveau restent masqués jusqu'à ce que vous les publiiez, et les deux se contrôlent séparément. Chaque publication exige un motif, qui est journalisé."
+    },
+    "rk-teams": {
+      "label": "Le tableau des scores d'équipe",
+      "does": "Le rang, le niveau, les tournois joués, les éliminations et le score total de chaque équipe. C'est la vue brouillon, vous voyez donc les scores calculés avant leur publication."
+    },
+    "rk-scoringScales": {
+      "label": "Barèmes de points",
+      "does": "Les tranches qui transforment les éliminations, les placements, les gains et l'audience sur les réseaux sociaux en points. La dernière ligne de chaque tableau est ouverte. Les champs modifiés sont mis en évidence avant l'enregistrement."
+    },
+    "rk-scoringSave": {
+      "label": "Enregistrer les modifications",
+      "does": "Écrit une nouvelle version permanente de la configuration et met en file un recalcul complet pour chaque équipe et chaque joueur classé. Les anciennes versions sont conservées, une mauvaise modification peut donc être retracée."
+    },
+    "rk-scoringReset": {
+      "label": "Rétablir les valeurs par défaut",
+      "does": "Charge les valeurs d'origine dans l'éditeur sans les enregistrer. Rien ne change tant que vous n'appuyez pas sur Enregistrer."
+    },
+    "rk-tierRules": {
+      "label": "Règles de niveau",
+      "does": "Une liste ordonnée de règles qui classent un tournoi. La première règle qu'un tournoi satisfait fixe son niveau, l'ordre compte donc. Glissez pour réordonner."
+    },
+    "rk-tierTest": {
+      "label": "Tester un tournoi",
+      "does": "Saisissez une dotation, un nombre d'équipes et un nombre de joueurs et voyez quelle règle correspond et quel niveau le tournoi obtiendrait. Cela ne change rien."
+    },
+    "rk-markerFlags": {
+      "label": "Indicateurs de comptage",
+      "does": "Désactivez la prise en compte des vainqueurs, des placements ou des éliminations de tout un tournoi dans les classements. Servez-vous-en pour empêcher des résultats provisoires d'alimenter le tableau avant que l'événement soit officiel."
+    },
+    "rk-markerExclusions": {
+      "label": "Exclusions d'équipes et de joueurs",
+      "does": "Exclut une équipe ou un joueur du comptage sur un événement, par exemple après une infraction au règlement. Un motif est obligatoire et l'opération est journalisée."
+    },
+    "rk-seasonCreate": {
+      "label": "Créer une nouvelle saison",
+      "does": "Démarre un nouveau trimestre avec son nom, son trimestre, son année et ses dates. Elle devient la saison active."
+    },
+    "rk-transferWindow": {
+      "label": "Fenêtre de transfert",
+      "does": "Ouvre ou ferme la période pendant laquelle les équipes peuvent échanger des joueurs. Elle est indépendante des dates de la saison, et chaque ouverture, fermeture et prolongation est journalisée avec un motif."
+    },
+    "rk-ghostClaims": {
+      "label": "Approuver ou révoquer une revendication de fantôme",
+      "does": "Quand une vraie équipe affirme qu'une équipe fictive était la sienne, approuvez pour lui remettre son historique ou révoquez si la revendication est fausse. Les deux exigent un motif journalisé."
+    },
+    "rk-socialVerify": {
+      "label": "Vérifier le nombre d'abonnés",
+      "does": "Confirme le total combiné d'abonnés Instagram et TikTok d'une équipe et le fige, ce qui accorde des points sociaux sur un barème plafonné à dix. Annulez la vérification pour modifier à nouveau les chiffres."
+    },
+    "rk-prizeAdd": {
+      "label": "Enregistrer un versement",
+      "does": "Consigne les gains versés à une équipe pour un tournoi. Le total de la saison alimente la tranche de dotations qui compose une partie du score de niveau. Un motif est obligatoire."
+    },
+    "rk-overrideTier": {
+      "label": "Forcer le niveau",
+      "does": "Fixe le niveau d'une équipe à la main, en passant outre ce que disent les scores. Cela tient jusqu'à ce que vous le changiez, ne l'utilisez donc que lorsque le niveau calculé est vraiment faux."
+    },
+    "rk-deduct": {
+      "label": "Retirer des points",
+      "does": "Enlève un nombre défini de points en guise de sanction partielle. L'équipe reste classée et visible, simplement plus bas."
+    },
+    "rk-banZero": {
+      "label": "Bannir ou remettre à zéro",
+      "does": "Retire une équipe ou un joueur des classements pour toute la saison en mettant son score à zéro. C'est l'action la plus lourde de cette page et elle apparaît dans le journal d'audit."
+    },
+    "rk-audit": {
+      "label": "Entrées d'audit",
+      "does": "Toutes les modifications apportées au système de classement, filtrables par type et par date. Cliquer sur une entrée montre l'avant et l'après, vous voyez donc exactement ce qu'une modification a fait."
+    },
+    "rk-rawData": {
+      "label": "Détail des données brutes",
+      "does": "Décompose le score d'une équipe ou d'un joueur en ses parts tournoi, scrim, dotations et réseaux sociaux, pour que vous voyiez pourquoi un chiffre est ce qu'il est."
+    },
+    "bc-search": {
+      "label": "Rechercher par titre, message ou expéditeur",
+      "does": "Cherche dans le texte complet de toutes les diffusions jamais envoyées, pas seulement dans les titres."
+    },
+    "bc-scope": {
+      "label": "Filtrer par portée",
+      "does": "Restreint aux envois par événement entier, phase, groupe, général ou direct, pour que vous retrouviez le message que vous cherchez."
+    },
+    "bc-sender": {
+      "label": "La pastille d'expéditeur sur une ligne",
+      "does": "Cliquer sur le nom d'un expéditeur filtre le journal sur tout ce que cette personne a envoyé."
+    },
+    "bc-showMore": {
+      "label": "Afficher plus, sur la ligne d'une diffusion",
+      "does": "Déplie la ligne pour montrer le message complet, avec ses destinataires, combien de personnes il a touchées et quel canal a été utilisé. Cette page est en lecture seule, rien ici ne renvoie un message."
+    },
+    "bc-audience": {
+      "label": "Envoyer à un public, dans l'onglet Notifications",
+      "does": "Le compositeur de diffusion générale. Choisissez un public, voyez le nombre de destinataires avant d'envoyer, et l'envoi passe par le même circuit que toutes les autres diffusions, il atterrit donc dans le journal d'audit."
+    },
+    "bc-sentHistory": {
+      "label": "Diffusions envoyées, dans l'onglet Notifications",
+      "does": "Toutes les diffusions générales et directes envoyées depuis le tableau de bord des paramètres. Les envois par événement, phase et groupe se trouvent plutôt sur la page Diffusions."
+    },
+    "bc-rateLimit": {
+      "label": "Le compteur de diffusions restantes",
+      "does": "Les organisateurs ont droit à cinq diffusions par heure avec cinq minutes d'écart entre elles, et le compteur montre ce qu'il reste. Les administrateurs AFC en sont exemptés et ne voient rien."
+    },
+    "ov-search": {
+      "label": "Rechercher des événements",
+      "does": "Trouve l'événement dont vous voulez les superpositions. Chaque événement ouvre son propre studio de superposition."
+    },
+    "ov-new": {
+      "label": "Nouvelle superposition, à partir d'un design",
+      "does": "Crée une superposition à partir d'un de vos designs de classement et lui donne un lien permanent unique. Ajoutez ce lien une seule fois dans OBS ou vMix comme source navigateur et il n'aura plus jamais à changer."
+    },
+    "ov-copyLink": {
+      "label": "Copier le lien",
+      "does": "Copie le lien permanent de la superposition. Tout ce que vous changez ensuite, le design, la phase, le groupe, l'animation, se met à jour en direct via ce même lien."
+    },
+    "ov-stageGroup": {
+      "label": "Phase, Groupe et Classement",
+      "does": "Ce que la superposition affiche. Un groupe ou une phase unique affiche un seul tableau, Combiner plusieurs fusionne n'importe quel ensemble de phases et de groupes en un tableau cumulé."
+    },
+    "ov-follow": {
+      "label": "Suivre la sélection de diffusion",
+      "does": "Fait suivre à la superposition ce sur quoi la commande de diffusion est pointée, vous changez donc de groupe une seule fois et toutes les superpositions qui suivent changent avec."
+    },
+    "ov-animation": {
+      "label": "Animation et Apparition des lignes",
+      "does": "Comment le tableau arrive à l'écran : fondu, glissement, flash ou rien, et si les lignes apparaissent en cascade ou toutes en même temps."
+    },
+    "ov-timer": {
+      "label": "Ajouter un minuteur",
+      "does": "Crée une superposition de compte à rebours. Donnez-lui des minutes et des secondes ou une heure de fin, un libellé facultatif comme PROCHAIN MATCH, puis déclenchez-le. Il reste transparent jusqu'au déclenchement."
+    },
+    "ov-captureKey": {
+      "label": "Clé de capture",
+      "does": "La clé qui associe le client de bureau AFC Capture à cet événement, pour que les résultats lus sur le client Free Fire arrivent directement dans le classement et dans la superposition."
+    },
+    "ov-captureDownload": {
+      "label": "Télécharger AFC Capture",
+      "does": "Le client de bureau qui surveille les fichiers de résultats du client Free Fire et les envoie automatiquement à l'événement, au lieu d'importer des captures d'écran à la main."
+    },
+    "sh-ordersRange": {
+      "label": "Jour, Semaine et Mois",
+      "does": "Bascule le tableau des commandes récentes et le chiffre d'affaires entre le dernier jour, la dernière semaine et le dernier mois."
+    },
+    "sh-stock": {
+      "label": "État actuel du stock",
+      "does": "Le niveau de stock par variante de produit avec des badges de couleur, pour qu'une variante sur le point d'être épuisée saute aux yeux. Cela renvoie vers l'inventaire."
+    },
+    "sh-addProduct": {
+      "label": "Ajouter un produit",
+      "does": "Crée un produit avec son nom, son type, sa catégorie et sa description. Vous lui ajoutez ensuite des variantes, puisque les prix et le stock vivent sur la variante, pas sur le produit."
+    },
+    "sh-addVariant": {
+      "label": "Ajouter une variante",
+      "does": "Ajoute une taille, un lot ou une valeur sous un produit, chacun avec son propre SKU, son prix et son stock. C'est ce que le client achète réellement."
+    },
+    "sh-categories": {
+      "label": "Gérer les catégories",
+      "does": "Crée, renomme et supprime les catégories qui regroupent le catalogue. Elles apparaissent comme les onglets de navigation que voit un client."
+    },
+    "sh-statusFilter": {
+      "label": "Tous, Actifs et Inactifs",
+      "does": "Filtre le tableau des produits par statut. Les produits inactifs restent dans le système mais ne sont pas proposés à la vente."
+    },
+    "sh-toggleProduct": {
+      "label": "Activer et Désactiver un produit",
+      "does": "Retire un produit de la vente sans le supprimer, son historique de commandes et ses codes promo survivent donc. La suppression est une action séparée et définitive."
+    },
+    "sh-createCoupon": {
+      "label": "Créer un nouveau code promo",
+      "does": "Crée un code de réduction, en pourcentage ou en montant fixe, avec une plage de dates et un nombre maximum d'utilisations."
+    },
+    "sh-couponMetrics": {
+      "label": "Statistiques des codes promo",
+      "does": "Total des codes promo, utilisations, argent économisé et taux de conversion, avec des onglets pour la performance, les tendances mensuelles et l'activité récente."
+    },
+    "sh-orderSearch": {
+      "label": "Rechercher un identifiant ou un produit",
+      "does": "Trouve une commande par son identifiant, son client, le nom du produit ou l'identifiant de l'utilisateur."
+    },
+    "sh-orderTabs": {
+      "label": "Toutes, En attente et Payées",
+      "does": "Filtre les commandes par état de paiement. En attente est celui à surveiller : ce sont les commandes qui n'ont pas encore été payées."
+    },
+    "sh-markPaid": {
+      "label": "Marquer une commande comme payée",
+      "does": "Enregistre la commande comme payée quand l'argent est arrivé en dehors du paiement habituel. Elle sort de En attente, ne l'utilisez donc que lorsque vous avez confirmé le paiement."
+    },
+    "sh-delivery": {
+      "label": "Afficher les détails de livraison",
+      "does": "Montre l'adresse de livraison d'un client pour l'expédition. Les adresses sont masquées par défaut et en afficher une est un acte délibéré, parce que ce sont des données personnelles."
+    },
+    "sh-addVendor": {
+      "label": "Ajouter un vendeur",
+      "does": "Autorise un utilisateur existant à vendre sur la place de marché, avec son nom affiché, son e-mail de contact et son numéro WhatsApp."
+    },
+    "sh-assignProduct": {
+      "label": "Attribuer un produit à un vendeur",
+      "does": "Déplace un produit vers un autre vendeur, ou le remet dans le stock propre d'AFC."
+    },
+    "sh-vendorStatus": {
+      "label": "Le bouton de statut du vendeur",
+      "does": "Suspend un vendeur, ce qui lui retire immédiatement son accès à la vente, ou le réactive."
+    },
+    "sh-approve": {
+      "label": "Approuver, dans la file de validation",
+      "does": "Publie le produit soumis par un vendeur sur la boutique pour qu'il puisse être acheté."
+    },
+    "sh-reject": {
+      "label": "Rejeter, dans la file de validation",
+      "does": "Renvoie le produit avec un motif écrit que le vendeur peut lire et corriger. Écrivez quelque chose sur lequel il peut réellement agir."
+    },
+    "sh-payouts": {
+      "label": "Verser, sur un paiement de vendeur",
+      "does": "Verse à un vendeur sa part des commandes terminées et enregistre la référence du virement."
+    },
+    "nw-create": {
+      "label": "Créer une actualité",
+      "does": "Ouvre l'éditeur d'article : titre, auteur, catégorie, image de couverture et le corps de texte enrichi."
+    },
+    "nw-filters": {
+      "label": "Filtres de recherche, catégorie, statut et date",
+      "does": "Restreignez la liste des articles. Effacer tous les filtres les réinitialise en une seule pression."
+    },
+    "nw-copyLink": {
+      "label": "Copier le lien",
+      "does": "Copie le lien public de l'article pour que vous puissiez le coller dans une publication ou un message."
+    },
+    "nw-edit": {
+      "label": "Modifier, sur un article",
+      "does": "Rouvre l'éditeur. L'enregistrement remplace immédiatement ce que voient les lecteurs, il n'y a pas d'étape de publication séparée pour une modification."
+    },
+    "nw-delete": {
+      "label": "Supprimer, sur un article",
+      "does": "Retire définitivement l'article et sa page publique. Les liens existants cesseront de fonctionner."
+    },
+    "sp-create": {
+      "label": "Créer un compte sponsor",
+      "does": "Deux étapes : créer l'identifiant de connexion du sponsor, puis rattacher les événements qu'il sponsorise. Le sponsor utilise cet identifiant pour son propre tableau de bord."
+    },
+    "sp-attachEvent": {
+      "label": "Rattacher un événement à un sponsor",
+      "does": "Relie un sponsor à un événement, ce qui fait apparaître dessus son image de marque et sa tâche d'inscription."
+    },
+    "sp-addMember": {
+      "label": "Ajouter un membre à un sponsor",
+      "does": "Donne à un autre utilisateur AFC l'accès au tableau de bord de ce sponsor. Il en verra le raccourci à sa prochaine connexion."
+    },
+    "sp-edit": {
+      "label": "Modifier, sur un sponsor",
+      "does": "Change les informations du sponsor, ses événements rattachés et, si besoin, son mot de passe."
+    },
+    "sp-confirm": {
+      "label": "Confirmer, dans la vérification sponsor",
+      "does": "Accepte l'identifiant sponsor soumis par un joueur, ce qui remplit son exigence d'inscription."
+    },
+    "sp-reject": {
+      "label": "Rejeter, dans la vérification sponsor",
+      "does": "Refuse un identifiant sponsor soumis, avec un motif. Le joueur peut alors en soumettre un corrigé."
+    },
+    "sp-filterStatus": {
+      "label": "En attente, Confirmés et Rejetés",
+      "does": "Filtre les soumissions. En attente est votre file de travail."
+    },
+    "og-create": {
+      "label": "Créer une organisation",
+      "does": "Met en place un organisateur tiers : nom, e-mail de contact, description et son propriétaire, choisi parmi les utilisateurs AFC existants. Le propriétaire obtient ensuite le portail organisateur."
+    },
+    "og-search": {
+      "label": "Rechercher par nom ou par identifiant court",
+      "does": "Trouve une organisation dans la liste."
+    },
+    "og-tabs": {
+      "label": "Profil, Membres, Événements et Signalements",
+      "does": "Les quatre onglets de la page d'une organisation : ses informations, qui en fait partie, ce qu'elle a organisé, et ce qui a été signalé à son sujet."
+    },
+    "og-addMember": {
+      "label": "Ajouter un membre",
+      "does": "Ajoute quelqu'un à l'organisation avec un rôle et un ensemble de permissions. Il obtient le rôle d'organisateur immédiatement et peut entrer dans le portail sans se reconnecter."
+    },
+    "og-transferOwner": {
+      "label": "Nommer propriétaire",
+      "does": "Confie la propriété de l'organisation à un autre membre. Le propriétaire précédent redevient sous-organisateur."
+    },
+    "og-suspend": {
+      "label": "Suspendre ou supprimer, dans la zone de danger",
+      "does": "La suspension empêche l'organisation d'opérer mais conserve ses données. La suppression est plus lourde, et une organisation supprimée peut être restaurée depuis cette même page."
+    },
+    "og-verifyEvent": {
+      "label": "Vérifier un événement",
+      "does": "Marque l'événement d'un organisateur comme contrôlé par AFC, ce qui lui vaut le marqueur vérifié en public."
+    },
+    "og-resolveReport": {
+      "label": "Clore un signalement",
+      "does": "Ferme un signalement visant une organisation avec une note sur ce qui a été constaté et ce qui a été fait. La note est la trace officielle, écrivez-la donc correctement."
+    },
+    "og-markPaid": {
+      "label": "Marqué comme payé",
+      "does": "Enregistre que la part des recettes d'événements payants revenant à une organisation lui a été virée."
+    },
+    "pm-tabs": {
+      "label": "Vue d'ensemble, Annonces d'équipes, Annonces de joueurs, Essais et candidatures, Signalements et alertes",
+      "does": "Les onglets d'administration du marché des transferts. Vue d'ensemble donne les grands chiffres, les autres sont là où vous agissez sur chaque élément."
+    },
+    "pm-overview": {
+      "label": "Le marché en un coup d'œil",
+      "does": "Annonces actives, essais en cours et signalements en attente, pour que vous voyiez si quelque chose demande votre attention avant d'ouvrir un onglet."
+    },
+    "pm-ban": {
+      "label": "Bannir du marché",
+      "does": "Empêche un utilisateur de publier ou de postuler sur le marché des transferts pendant un nombre de jours donné. Cela ne touche pas à son compte sur la plateforme."
+    },
+    "pm-trialChat": {
+      "label": "Messages d'essai",
+      "does": "La conversation entre une équipe et un joueur à l'essai. Lisez-la quand un signalement dit que quelque chose s'est mal passé dans un essai."
+    },
+    "st-tabs": {
+      "label": "Utilisateurs administrateurs, Tous les utilisateurs, Rôles et permissions, Notifications, Historique de connexion, Activités des administrateurs",
+      "does": "Les six onglets des paramètres, dans l'ordre où ils apparaissent. Rôles et permissions est celui qui décide de ce que chaque autre administrateur peut atteindre."
+    },
+    "st-createAdmin": {
+      "label": "Créer un utilisateur administrateur",
+      "does": "Crée un nouveau compte staff et lui attribue ses rôles en une seule étape. Les rôles décident des entrées du menu latéral et des pages qu'il peut ouvrir."
+    },
+    "st-editRoles": {
+      "label": "Modifier un utilisateur, rôles",
+      "does": "Change les rôles que quelqu'un détient. Cela change immédiatement ce qu'il peut voir et faire, c'est donc le contrôle le plus lourd de conséquences de l'espace administrateur."
+    },
+    "st-createRole": {
+      "label": "Créer un nouveau rôle",
+      "does": "Définit un nouveau rôle nommé avec une description. Les rôles existants couvrent les domaines actuels, la plupart du temps vous en attribuez un plutôt que d'en créer un."
+    },
+    "st-deleteRole": {
+      "label": "Supprimer un rôle",
+      "does": "Retire un rôle. Toute personne qui le détient perd cet accès."
+    },
+    "st-suspendUser": {
+      "label": "Suspendre ou retirer un utilisateur",
+      "does": "La suspension bloque la connexion et conserve le compte, le retrait le supprime. Le retrait est définitif."
+    },
+    "st-overlap": {
+      "label": "Chevauchement de comptes",
+      "does": "Signale les comptes qui partagent un appareil ou une adresse, ce qui est le signe habituel d'une seule personne gérant plusieurs comptes."
+    },
+    "st-loginHistory": {
+      "label": "Onglet Historique de connexion",
+      "does": "Toutes les connexions sur la plateforme avec le pays et l'appareil, plus un export Excel."
+    },
+    "st-activities": {
+      "label": "Onglet Activités des administrateurs",
+      "does": "Un journal continu de ce que chaque administrateur a fait, pour que l'équipe voie qui a changé quoi."
+    },
+    "vt-sections": {
+      "label": "Sections, catégories et nommés",
+      "does": "Le vote des trophées se construit en trois couches : une section contient des catégories, une catégorie contient des nommés. Créez d'abord la section, puis les catégories, puis rattachez-leur les nommés."
+    },
+    "vt-results": {
+      "label": "Votes par catégorie et chronologie du vote",
+      "does": "Les décomptes en direct par nommé et par catégorie, plus l'évolution du vote dans le temps."
+    },
+    "oc-dataset": {
+      "label": "Télécharger le jeu de données",
+      "does": "Télécharge le jeu d'entraînement de captures d'écran vérifiées dont apprend le lecteur de captures hébergé par AFC."
+    },
+    "oc-promote": {
+      "label": "Promouvoir une version du modèle",
+      "does": "Fait d'une version entraînée le lecteur en service pour tous les événements. Testez-la dans l'onglet performance avant de la promouvoir."
+    },
+    "oc-rollback": {
+      "label": "Revenir en arrière",
+      "does": "Remet la version précédente du modèle si celle qui a été promue lit moins bien que l'ancienne."
+    },
+    "ak-tabs": {
+      "label": "Partenaires de données, Se connecter avec AFC, Candidatures et Retours sur le site",
+      "does": "Quatre programmes distincts sur une même page. Vous ne voyez que les onglets couverts par vos rôles."
+    },
+    "ak-createPartner": {
+      "label": "Créer un partenaire",
+      "does": "Enregistre un site extérieur qui souhaite des données AFC, ensuite vous lui délivrez une clé et choisissez quels événements il peut lire."
+    },
+    "ak-issueKey": {
+      "label": "Délivrer une clé",
+      "does": "Génère une clé API pour un partenaire. Copiez-la au moment où elle s'affiche, elle ne sera plus jamais affichée, et traitez-la comme un mot de passe."
+    },
+    "ak-scope": {
+      "label": "Événements autorisés",
+      "does": "Limite la clé d'un partenaire à des événements précis. Sans cela, une clé peut lire tous les événements, réglez-la donc délibérément."
+    },
+    "ak-feedback": {
+      "label": "File des retours sur le site",
+      "does": "Ce que les utilisateurs ont envoyé via le formulaire de retour, et l'endroit où vous y répondez."
+    },
+    "ad-metrics": {
+      "label": "Les cartes d'indicateurs du tableau de bord",
+      "does": "Membres, équipes, tournois, scrims, actualités et chiffre d'affaires en un coup d'œil, chacune renvoyant vers la section qui la gère."
+    },
+    "ad-activity": {
+      "label": "Activité récente des administrateurs",
+      "does": "Ce que les autres administrateurs ont fait dernièrement, pour que vous repériez un changement avant de vous poser la question."
+    },
+    "op-switcher": {
+      "label": "Le sélecteur d'organisation",
+      "does": "N'apparaît que si vous appartenez à plus d'une organisation. Tout dans le portail suit celle qui est sélectionnée, et le choix est mémorisé."
+    },
+    "op-events": {
+      "label": "Vos événements",
+      "does": "Tous les événements que votre organisation a organisés ou organise, avec leur statut et leur nombre d'inscriptions. Les événements en brouillon portent un badge Brouillon."
+    },
+    "op-createEvent": {
+      "label": "Créer un événement",
+      "does": "Le même assistant que celui des administrateurs AFC. Votre organisation est automatiquement définie comme organisateur."
+    },
+    "op-groups": {
+      "label": "Groupes et effectifs",
+      "does": "Qui se trouve dans chaque groupe de chaque phase, avec les commandes pour retirer un joueur d'un groupe ou de la phase entière."
+    },
+    "op-leaderboards": {
+      "label": "Classements",
+      "does": "Liste vos événements pour que vous puissiez créer ou gérer le classement de chacun. Soumis à la permission d'importer des résultats."
+    },
+    "op-profile": {
+      "label": "Profil de l'organisation",
+      "does": "Votre logo, votre bannière, votre nom, votre e-mail de contact, votre description et vos liens sociaux. C'est ce que le public voit sur vos événements."
+    },
+    "op-addMember": {
+      "label": "Ajouter un sous-organisateur",
+      "does": "Fait entrer quelqu'un dans votre organisation et coche exactement lesquelles des huit permissions il obtient. Il peut entrer dans le portail tout de suite."
+    },
+    "op-removeMember": {
+      "label": "Retirer, sur un membre",
+      "does": "Sort quelqu'un de l'organisation. Il perd immédiatement l'accès au portail correspondant."
+    },
+    "op-bank": {
+      "label": "Coordonnées bancaires",
+      "does": "Le code banque, le numéro de compte et le nom du compte sur lesquels votre part des recettes d'événements payants est envoyée. Réservé au propriétaire."
+    },
+    "op-earnings": {
+      "label": "Gains",
+      "does": "Ce qui vous est dû et ce qui a déjà été payé, par événement."
+    },
+    "op-metrics": {
+      "label": "Indicateurs",
+      "does": "Les totaux de votre organisation pour les événements, les équipes, les joueurs, les éliminations et la note, sur une période que vous choisissez."
+    },
+    "op-reviews": {
+      "label": "Avis",
+      "does": "Les notes et commentaires des joueurs, par événement. Les commentaires sont anonymes par conception, ne vous attendez donc pas à savoir qui a écrit quoi."
+    },
+    "op-design": {
+      "label": "Design",
+      "does": "L'endroit où vous demandez un design de classement et où vous voyez l'historique de vos demandes."
+    },
+    "op-blacklist": {
+      "label": "Mettre une équipe sur liste noire",
+      "does": "Empêche une équipe, et les joueurs qui en font partie à ce moment-là, de s'inscrire aux événements de votre organisation. Cela ne concerne que vos événements, pas toute la plateforme."
+    },
+    "op-watchlist": {
+      "label": "Liste de surveillance",
+      "does": "La liste d'avertissement partagée à l'échelle d'AFC des joueurs et des équipes à surveiller. C'est un avertissement, pas un bannissement, et tous les organisateurs peuvent la voir."
+    },
+    "op-mediaAudit": {
+      "label": "Contrôle des médias de diffusion",
+      "does": "Montre quelles équipes n'ont pas de logo et quels joueurs n'ont pas d'image esport, pour que vous les relanciez avant le stream plutôt que pendant."
+    },
+    "ee-tabs": {
+      "label": "Informations générales, Phases et groupes, Équipes inscrites, Liste d'attente, Dotations et règlement, Sponsor, Co-organisateurs, Actions",
+      "does": "Les onglets de l'éditeur. Informations générales, c'est la configuration, Phases et groupes, c'est la structure, Équipes inscrites, c'est la liste des engagés, et Actions, c'est là que vous faites réellement tourner le tournoi."
+    },
+    "ee-save": {
+      "label": "Enregistrer les modifications",
+      "does": "Écrit vos modifications dans l'événement. Si le changement touche des personnes déjà inscrites, vous recevez d'abord un avertissement, parce qu'il change les conditions auxquelles elles se sont engagées."
+    },
+    "sg-dragStage": {
+      "label": "Faire glisser une phase ou un groupe",
+      "does": "Réordonne les phases, ou les groupes à l'intérieur d'une phase. L'ordre est enregistré dès que vous relâchez."
+    },
+    "sg-configureStage": {
+      "label": "Configurer une phase",
+      "does": "Deux étapes : la phase elle-même (nom, dates, format, mode de points, nombre de groupes, dotation) puis ses groupes (nom, date et heure de jeu, combien se qualifient, combien de matchs, cartes et les détails de salon)."
+    },
+    "sg-scoringMode": {
+      "label": "Mode de points : Champion Point ou Point Rush",
+      "does": "Champion Point termine la phase quand une équipe dépasse un seuil de points. Point Rush distribue des points bonus selon les positions d'arrivée. Choisissez celui que le format utilise vraiment, cela change la façon dont le classement est calculé."
+    },
+    "sg-routing": {
+      "label": "Règles d'aiguillage des qualifiés",
+      "does": "Envoie différentes positions d'arrivée vers différentes phases ultérieures, par exemple du 1er au 4e en finale et du 5e au 8e vers une phase de repêchage. Les phases dotées de règles utilisent Qualification par branches dans l'onglet Actions."
+    },
+    "sg-roomDetails": {
+      "label": "ID de salon, nom du salon et mot de passe du salon",
+      "does": "Les informations du salon en jeu pour un groupe. Réglez-les ici, puis envoyez-les aux joueurs depuis la ligne du match."
+    },
+    "sg-seedToGroup": {
+      "label": "Répartir dans les groupes, sur une phase",
+      "does": "Distribue les concurrents de cette phase dans ses groupes, avec des options pour mélanger et pour effacer d'abord toute répartition existante."
+    },
+    "sg-advanceStage": {
+      "label": "Passer à la phase suivante, sur une phase",
+      "does": "Déplace les équipes qualifiées vers la phase qui suit. C'est désactivé tant que la phase n'est pas enregistrée et qu'une phase suivante n'existe pas, et cela vous indique laquelle des deux manque."
+    },
+    "sg-removeStage": {
+      "label": "Supprimer cette phase",
+      "does": "Supprime la phase avec ses groupes, ses données de match et sa place dans l'ordre. C'est irréversible, et la dernière phase restante ne peut pas être supprimée."
+    },
+    "sg-editMatch": {
+      "label": "Modifier un match",
+      "does": "Définit l'ID, le nom et le mot de passe du salon de ce match, envoie les détails du salon aux joueurs concernés, et montre ensuite l'état de la distribution WhatsApp."
+    },
+    "sg-releaseWaitlist": {
+      "label": "Libérer le salon vers la liste d'attente",
+      "does": "Quand une équipe inscrite ne se présente pas, cela remet les détails de salon de ce match aux équipes en liste d'attente selon le mode de liste d'attente de l'événement, pour que la place ne soit pas perdue."
+    },
+    "sg-waDelivery": {
+      "label": "Vérifier la distribution WhatsApp",
+      "does": "Combien de joueurs ont réellement reçu les détails du salon, combien d'envois ont échoué et combien n'ont pas de numéro WhatsApp enregistré, avec un Renvoyer pour les échecs. Distribué est le signal auquel se fier, Lu n'apparaît que pour les joueurs qui ont activé les accusés de lecture."
+    },
+    "rt-list": {
+      "label": "Équipes inscrites ou Joueurs inscrits",
+      "does": "La liste des engagés avec les joueurs de chaque équipe, leur statut et la lettre qui leur est attribuée. Une étiquette liste de surveillance sur une ligne signifie que cette équipe ou ce joueur figure sur la liste de surveillance."
+    },
+    "rt-letters": {
+      "label": "Attribuer et Retirer une lettre",
+      "does": "Donne à une équipe sa lettre de diffusion (A, B, C et ainsi de suite). L'équipe est prévenue, et une lettre déjà prise est signalée pour que vous ne puissiez pas l'attribuer deux fois."
+    },
+    "rt-checkNoShows": {
+      "label": "Rechercher les absents",
+      "does": "Liste tous les concurrents inscrits sans résultat saisi, ce qui est le signe habituel qu'ils ne sont pas venus. Cela ne fait que suggérer, vous marquez encore chacun vous-même."
+    },
+    "rt-noShow": {
+      "label": "Absent, sur la ligne d'une équipe",
+      "does": "Marque qu'une équipe ne s'est pas présentée, et appuyez à nouveau pour l'annuler. Les récidivistes affichent un décompte des absences des sept derniers jours."
+    },
+    "rt-allowRosterEdit": {
+      "label": "Autoriser la modification de l'effectif, sur la ligne d'une équipe",
+      "does": "Permet à une seule équipe de modifier son effectif jusqu'à la fin de l'événement, sans ouvrir la fenêtre pour tout le monde. La commande de l'onglet Actions en est la version pour toutes les équipes."
+    },
+    "rt-editRoster": {
+      "label": "Modifier l'effectif, sur la ligne d'une équipe",
+      "does": "Change les joueurs qu'une équipe aligne. Sur un événement sponsorisé, cela recueille aussi l'identifiant sponsor de chaque joueur, qui peut nécessiter une nouvelle approbation ensuite."
+    },
+    "rt-disqualify": {
+      "label": "Disqualifier",
+      "does": "Retire un concurrent du classement. Le motif que vous saisissez lui est montré, écrivez-en donc assez pour qu'il comprenne la décision."
+    },
+    "rt-reactivate": {
+      "label": "Réactiver",
+      "does": "Annule une disqualification et remet le concurrent dans l'événement."
+    },
+    "rt-removeTeam": {
+      "label": "Retirer l'équipe de l'événement",
+      "does": "Sort complètement l'équipe de l'événement, ce qui est plus lourd qu'une disqualification : elle quitte la liste des engagés, pas seulement le classement."
+    },
+    "rt-addTeams": {
+      "label": "Ajouter des équipes ou Ajouter des joueurs solo",
+      "does": "Met une équipe ou un joueur dans l'événement à la main, pour une inscription tardive ou le remplacement d'un absent."
+    },
+    "wt-promote": {
+      "label": "Promouvoir depuis la liste d'attente",
+      "does": "Fait entrer une équipe ou un joueur en liste d'attente dans l'événement quand une place se libère. Promouvoir le suivant prend celui qui est en tête de file."
+    }
+  },
+  "walkthroughs": {
+    "createEvent": {
+      "steps": {
+        "open": {
+          "title": "Ouvrez l'assistant",
+          "body": "Administrateurs : Événements et classements, puis Créer un nouvel événement. Organisateurs : Événements, puis Créer un événement. Rien n'est encore enregistré, vous pouvez donc faire marche arrière."
+        },
+        "details": {
+          "title": "Remplissez les bases",
+          "body": "Tournoi ou scrim, solo, duo ou squad, combien de participants peuvent entrer, et les deux plages de dates : quand les inscriptions sont ouvertes, et quand l'événement se déroule. L'événement doit commencer après la clôture des inscriptions."
+        },
+        "requirements": {
+          "title": "Décidez ce que les joueurs doivent avoir",
+          "body": "Des conditions facultatives qui bloquent l'inscription tant qu'un concurrent n'a pas ce qu'il vous faut : un logo d'équipe, une image esport, une photo de profil, un UID Free Fire, un Discord relié ou un numéro WhatsApp. Ne cochez que ce dont vous avez vraiment besoin le jour J, chaque condition vous coûte des inscriptions."
+        },
+        "mode": {
+          "title": "Dites où cela se joue",
+          "body": "En ligne, LAN physique ou hybride. C'est une information pour les joueurs, cela ne change pas le tableau."
+        },
+        "stages": {
+          "title": "Ajoutez les phases",
+          "body": "Indiquez combien de tours comporte l'événement et nommez-les, par exemple Phase de groupes puis Finales. Configurez ensuite chacun : format, dates, combien de groupes, combien de qualifiés, combien de matchs et quelles cartes."
+        },
+        "prizes": {
+          "title": "Fixez la dotation",
+          "body": "Saisissez le total, choisissez la devise, puis répartissez-le par position d'arrivée. La répartition doit tomber juste sur le total, sinon l'assistant ne vous laissera pas passer."
+        },
+        "rules": {
+          "title": "Ajoutez le règlement",
+          "body": "Soit vous le saisissez, soit vous importez un document. Un seul des deux est utilisé, choisissez donc celui que vous tiendrez à jour."
+        },
+        "sponsor": {
+          "title": "Ajoutez une tâche sponsor s'il y en a une",
+          "body": "Si un sponsor conditionne l'entrée, nommez la tâche et l'identifiant que chaque joueur doit fournir. Chaque identifiant doit être unique sur l'ensemble de l'événement."
+        },
+        "publish": {
+          "title": "Publiez ou enregistrez en brouillon",
+          "body": "Brouillon le garde caché sous Brouillons pour que vous puissiez finir plus tard. Publier le met tout de suite sur la page publique des événements. Public ou privé décide s'il est listé ou uniquement sur invitation."
+        }
+      },
+      "title": "Créer un événement",
+      "summary": "D'un assistant vide à un tournoi publié."
+    },
+    "runStage": {
+      "steps": {
+        "check": {
+          "title": "Vérifiez d'abord la liste des engagés",
+          "body": "Ouvrez l'événement, puis Inscriptions (administrateur) ou la page de l'événement (organisateur). Confirmez que les effectifs sont corrects et que personne n'a d'UID manquant. Corriger cela après le lancement est beaucoup plus difficile."
+        },
+        "start": {
+          "title": "Lancez le tournoi",
+          "body": "Éditeur d'événement, onglet Actions, Lancer. Cela répartit tout le monde dans la phase 1 et la met en route. Le bouton devient ensuite un marqueur Lancé avec Pause à côté."
+        },
+        "seed": {
+          "title": "Répartissez la phase dans les groupes",
+          "body": "Toujours dans Actions : Répartir les concurrents dans les groupes, choisissez la phase, appuyez sur Répartir. Vérifiez le tirage dans l'onglet Effectifs des groupes avant d'en parler à qui que ce soit."
+        },
+        "rooms": {
+          "title": "Envoyez les détails de salon",
+          "body": "Onglet Phases et groupes, ouvrez le match, renseignez l'ID, le nom et le mot de passe du salon, et envoyez. Vérifiez ensuite la distribution WhatsApp et renvoyez aux échecs."
+        },
+        "noshows": {
+          "title": "Traitez les absents",
+          "body": "Onglet Équipes inscrites, Rechercher les absents liste tous ceux sans résultat. Marquez ceux qui ne sont pas venus, puis utilisez Libérer le salon vers la liste d'attente pour que la place ne soit pas perdue."
+        },
+        "results": {
+          "title": "Saisissez les résultats",
+          "body": "Importez le journal de résultats ou les captures d'écran carte par carte, ou saisissez-les à la main. Voyez le guide d'import des résultats pour le détail."
+        },
+        "advance": {
+          "title": "Passez à la phase suivante",
+          "body": "Onglet Actions, Passer à la phase suivante, choisissez la phase et le groupe. Si la phase a des règles d'aiguillage, utilisez plutôt Qualification par branches, et appuyez toujours d'abord sur Aperçu."
+        },
+        "complete": {
+          "title": "Terminez l'événement",
+          "body": "Onglet Actions, Marquer comme terminé. Les résultats se verrouillent et tous les inscrits sont prévenus. Si vous repérez une erreur ensuite, vous pouvez encore Rouvrir."
+        }
+      },
+      "title": "Faire tourner un tournoi le jour J",
+      "summary": "Le lancer, le répartir, envoyer les salons, gérer les absents, faire avancer, terminer."
+    },
+    "uploadResults": {
+      "steps": {
+        "find": {
+          "title": "Trouvez l'événement",
+          "body": "Administrateurs : Événements et classements, onglet Classements. Organisateurs : Classements. Cherchez l'événement et appuyez sur Gérer ou Modifier."
+        },
+        "pick": {
+          "title": "Choisissez la phase, le groupe et le match",
+          "body": "Les résultats sont toujours rattachés à un match d'un groupe d'une phase. Se tromper là-dessus est la cause la plus fréquente de chiffres qui atterrissent dans le mauvais tableau."
+        },
+        "method": {
+          "title": "Choisissez comment les résultats arrivent",
+          "body": "Trois façons : importer le fichier journal de résultats écrit par le client Free Fire, importer les captures d'écran de fin de match et laisser le lecteur en extraire les chiffres, ou saisir les placements et les éliminations à la main."
+        },
+        "log": {
+          "title": "Si vous avez le fichier journal",
+          "body": "Importez-le et tous les placements et toutes les éliminations se remplissent d'un coup. Un journal multi-cartes remplit toutes les cartes en une fois. Utilisez Exclure sur toute ligne qui ne doit pas être comptée, par exemple une équipe disqualifiée."
+        },
+        "ocr": {
+          "title": "Si vous avez des captures d'écran",
+          "body": "Importez-les depuis l'écran Résultats OCR de l'événement. Cela crée une session que vous vérifiez : corrigez le moindre nom ou chiffre mal lu, puis Validez. Rien ne touche le classement tant que vous n'avez pas validé."
+        },
+        "scoring": {
+          "title": "Vérifiez les points et les départages",
+          "body": "L'onglet Points contient les points par placement et par élimination. Les départages décident qui gagne à égalité de points. Réglez les deux avant de publier, pas après."
+        },
+        "flags": {
+          "title": "Regardez les lignes signalées",
+          "body": "L'onglet Signalements liste tout ce dont le système n'est pas sûr, comme un nombre d'éliminations impossible ou un identifiant de joueur qui a changé en cours d'événement. Traitez-les avant de publier."
+        },
+        "publish": {
+          "title": "Publiez",
+          "body": "Publier le classement rend le classement public. Enregistrer en brouillon le réserve au staff si vous voulez le révéler plus tard."
+        }
+      },
+      "title": "Importer les résultats des matchs",
+      "summary": "Les trois façons de faire entrer les résultats, et laquelle utiliser."
+    },
+    "fixResult": {
+      "steps": {
+        "open": {
+          "title": "Ouvrez l'éditeur de classement",
+          "body": "Trouvez le classement de l'événement et appuyez sur Modifier. Vous n'avez rien besoin de dépublier au préalable."
+        },
+        "locate": {
+          "title": "Trouvez le match erroné",
+          "body": "Choisissez la phase, le groupe et le match où se trouve le mauvais chiffre. L'onglet Matchs les liste avec leur statut."
+        },
+        "small": {
+          "title": "Pour une petite erreur, corrigez sur place",
+          "body": "Changez le placement ou le nombre d'éliminations et enregistrez. Tous les totaux qui en dépendent sont recalculés, une correction au match deux corrige donc le classement jusqu'en bas."
+        },
+        "big": {
+          "title": "Pour une carte franchement fausse, effacez-la",
+          "body": "Effacer cette carte n'efface que cette carte pour que vous puissiez la ressaisir de zéro. Les autres cartes ne sont pas touchées."
+        },
+        "missing": {
+          "title": "Pour un joueur qui manque",
+          "body": "Ajouter un joueur à l'effectif met dans l'effectif un joueur qui a réellement joué mais n'était pas inscrit, pour que ses éliminations comptent au lieu de disparaître."
+        },
+        "rescore": {
+          "title": "Recalculez si les points ont changé",
+          "body": "Si vous avez modifié le barème, appliquez-le aux matchs concernés pour que les totaux reflètent les nouvelles règles."
+        },
+        "verify": {
+          "title": "Vérifiez la page publique",
+          "body": "Ouvrez le classement public de l'événement et confirmez que les chiffres corrigés y sont. Si les résultats sont masqués, publiez-les depuis l'onglet Actions."
+        }
+      },
+      "title": "Corriger un résultat erroné",
+      "summary": "Corriger un chiffre une fois qu'il est déjà au tableau."
+    },
+    "publishLeaderboard": {
+      "steps": {
+        "complete": {
+          "title": "Assurez-vous que chaque match a des résultats",
+          "body": "L'onglet Matchs indique par match ce qui est résultaté et ce qui est en attente. Un match en attente signifie que le classement est incomplet."
+        },
+        "tiebreak": {
+          "title": "Confirmez les départages",
+          "body": "Vérifiez l'ordre des règles qui séparent les équipes à égalité de points, parce que c'est ce dont les gens débattent ensuite."
+        },
+        "mvp": {
+          "title": "Réglez la règle du MVP",
+          "body": "L'onglet MVP décide qui obtient la récompense. L'enregistrer recalcule le détenteur."
+        },
+        "publish": {
+          "title": "Publiez le classement",
+          "body": "Depuis l'étape de relecture de l'assistant de classement, ou Publier les résultats dans l'onglet Actions de l'événement. Les deux rendent le classement visible sur la page publique de l'événement."
+        },
+        "timing": {
+          "title": "Ou gardez-le pour une révélation",
+          "body": "Masquer les résultats dans l'onglet Actions réserve le classement au staff pendant que vous le publiez d'abord sur les réseaux sociaux. Le staff peut toujours saisir et vérifier les résultats pendant qu'ils sont masqués."
+        },
+        "graphic": {
+          "title": "Exportez le visuel",
+          "body": "Télécharger vous donne une feuille Excel ou une image finie construite à partir d'un de vos designs de classement, prête à publier."
+        }
+      },
+      "title": "Publier un classement",
+      "summary": "Amener le classement sur la page publique, et caler la révélation."
+    },
+    "manageTeams": {
+      "steps": {
+        "find": {
+          "title": "Trouvez l'équipe",
+          "body": "Équipes et joueurs, onglet Équipes. Cherchez par nom ou filtrez par niveau. La recherche ignore la ponctuation, un nom d'équipe stylisé ressort donc quand même."
+        },
+        "inspect": {
+          "title": "Ouvrez l'équipe",
+          "body": "Voir affiche son effectif, son historique, ses trophées et son niveau."
+        },
+        "invite": {
+          "title": "Faire entrer des équipes dans un événement",
+          "body": "Les événements publics sont ouverts à tous. Pour un événement privé, servez-vous de la page de l'événement : Générer une invitation unique pour une équipe, Générer des invitations en masse pour jusqu'à cent liens avec un CSV à distribuer, ou le lien partagé premier arrivé premier servi quand vous n'avez pas besoin de contrôler qui prend les places."
+        },
+        "addLate": {
+          "title": "Ajouter une équipe à la main",
+          "body": "Éditeur d'événement, onglet Équipes inscrites, Ajouter des équipes. Servez-vous-en pour une inscription tardive ou un remplacement après une absence."
+        },
+        "roster": {
+          "title": "Laisser une équipe corriger son effectif",
+          "body": "Autoriser la modification de l'effectif sur la ligne de cette équipe l'ouvre pour cette équipe uniquement. La version de l'onglet Actions l'ouvre pour toutes les équipes jusqu'à une heure que vous fixez."
+        },
+        "ban": {
+          "title": "Bannir ou mettre sur liste noire",
+          "body": "Un bannissement bloque l'équipe sur toute la plateforme pour une durée définie. Une liste noire ne la bloque que sur les événements d'un organisateur donné, et elle fige les joueurs qui étaient dans l'équipe, partir ne permet donc pas d'y échapper."
+        }
+      },
+      "title": "Inviter et gérer les équipes",
+      "summary": "Faire entrer les bonnes équipes, et traiter les mauvaises."
+    },
+    "disputes": {
+      "steps": {
+        "report": {
+          "title": "Lisez le signalement",
+          "body": "Équipes et joueurs, onglet Signalements. Filtrez par sujet, statut ou catégorie, et cherchez le marqueur récidiviste, qui signifie trois signalements ou plus sur le même sujet en deux semaines."
+        },
+        "evidence": {
+          "title": "Regardez la preuve",
+          "body": "Répondre ouvre le signalement avec l'image jointe par le signaleur. Les fichiers Preuves et match de l'événement sont l'autre endroit où regarder."
+        },
+        "decide": {
+          "title": "Décidez et écrivez-le",
+          "body": "Votre réponse est montrée au signaleur sur son profil, écrivez-la donc pour lui : ce que vous avez constaté et ce que vous avez fait."
+        },
+        "dq": {
+          "title": "Disqualifiez si c'est justifié",
+          "body": "Éditeur d'événement, onglet Équipes inscrites, Disqualifier. Le motif que vous saisissez est montré au concurrent. Cela le retire du classement mais le laisse sur la liste des engagés."
+        },
+        "remove": {
+          "title": "Ou retirez-le entièrement",
+          "body": "Retirer l'équipe de l'événement est plus lourd : elle quitte complètement la liste des engagés. Utilisez-le quand elle n'aurait jamais dû être dans l'événement."
+        },
+        "undo": {
+          "title": "Réactivez si vous vous êtes trompé",
+          "body": "Réactiver remet immédiatement un concurrent disqualifié dans l'événement."
+        },
+        "watch": {
+          "title": "Signalez-le pour la prochaine fois",
+          "body": "Ajouter un joueur ou une équipe à la liste de surveillance avertit tous les administrateurs et organisateurs sans bannir personne. Servez-vous-en pour un comportement répété sur lequel vous n'êtes pas encore prêt à agir."
+        },
+        "rankings": {
+          "title": "Gardez-le hors des classements",
+          "body": "Classements, Marqueurs de résultats vous permet d'exclure une équipe ou un joueur du comptage sur un événement, pour qu'un résultat obtenu par tricherie n'alimente pas le tableau public."
+        }
+      },
+      "title": "Traiter un litige ou une disqualification",
+      "summary": "Du signalement à la décision, et comment garder cela hors des classements."
+    },
+    "broadcast": {
+      "steps": {
+        "open": {
+          "title": "Ouvrez le compositeur",
+          "body": "Éditeur d'événement, onglet Actions, Diffusion. Pour un message à toute la plateforme plutôt qu'à un seul événement, passez plutôt par Paramètres, Notifications."
+        },
+        "scope": {
+          "title": "Choisissez qui le reçoit",
+          "body": "L'événement entier, une phase, ou un groupe. La portée groupe est celle qu'il vous faut pour les détails de salon et les appels aux matchs, l'événement entier pour les changements d'horaire."
+        },
+        "write": {
+          "title": "Écrivez-le",
+          "body": "Un titre et un message. Gardez le titre court, c'est lui qui s'affiche dans la notification."
+        },
+        "channel": {
+          "title": "Choisissez le canal",
+          "body": "Application seule, e-mail seul, ou les deux. Les e-mails partent dans le design AFC standard."
+        },
+        "link": {
+          "title": "Joignez un lien si cela aide",
+          "body": "Le bouton Emmène-moi là peut pointer vers un événement, pour que les gens atterrissent sur la bonne page au lieu de la chercher."
+        },
+        "send": {
+          "title": "Envoyez",
+          "body": "Les organisateurs ont droit à cinq diffusions par heure avec cinq minutes d'écart, et le compteur montre ce qu'il reste. Les administrateurs AFC en sont exemptés."
+        },
+        "check": {
+          "title": "Vérifiez que c'est parti",
+          "body": "Historique, à côté du bouton Diffusion, montre chaque message envoyé pour cet événement avec son nombre de destinataires. La page Diffusions du menu latéral administrateur en est la version pour toute la plateforme."
+        }
+      },
+      "title": "Envoyer une diffusion",
+      "summary": "Envoyer un message à un événement, une phase ou un seul groupe."
+    },
+    "manageShop": {
+      "steps": {
+        "product": {
+          "title": "Créez le produit",
+          "body": "Boutique, Inventaire, Ajouter un produit : nom, type, catégorie et description. Le produit seul ne peut pas encore être acheté."
+        },
+        "variant": {
+          "title": "Ajoutez ses variantes",
+          "body": "Ajouter une variante est l'endroit où vivent réellement le prix, le SKU et le stock. Un produit sans variante n'a rien à vendre."
+        },
+        "category": {
+          "title": "Rangez les catégories",
+          "body": "Gérer les catégories contrôle la façon dont le catalogue est regroupé, et ces groupes sont les onglets que parcourent les clients."
+        },
+        "coupon": {
+          "title": "Créez un code promo si vous en voulez un",
+          "body": "Pourcentage ou montant fixe, avec une plage de dates et un plafond d'utilisations. Statistiques des codes promo montre ce que chacun fait réellement."
+        },
+        "orders": {
+          "title": "Traitez les commandes",
+          "body": "Boutique, Commandes. L'onglet En attente est la file : ce sont les commandes qui n'ont pas été payées. Ne marquez une commande comme payée qu'après avoir confirmé l'arrivée de l'argent."
+        },
+        "fulfil": {
+          "title": "Expédiez",
+          "body": "Les détails de livraison du client sont masqués jusqu'à ce que vous les affichiez, parce que ce sont des données personnelles. Afficher, expédier, terminé."
+        },
+        "vendors": {
+          "title": "Gérez les vendeurs",
+          "body": "Ajouter un vendeur pour accorder l'accès à la vente, Validation des produits pour publier ou rejeter ce qu'ils soumettent, et Paiements des vendeurs pour verser leur part."
+        }
+      },
+      "title": "Gérer la boutique",
+      "summary": "Produits, stock, commandes et vendeurs."
+    },
+    "rankings": {
+      "steps": {
+        "season": {
+          "title": "Choisissez la saison",
+          "body": "Tout sur les pages Classements est limité à une seule saison. Réglez-la d'abord ou vous regarderez les mauvais chiffres."
+        },
+        "config": {
+          "title": "Vérifiez les règles de points",
+          "body": "Configuration des points contient les tranches qui transforment les éliminations, les placements, les gains et l'audience sur les réseaux sociaux en points. L'enregistrement écrit une nouvelle version permanente et met en file un recalcul complet, faites-le donc avant les données, pas après."
+        },
+        "tiers": {
+          "title": "Vérifiez comment les tournois sont classés",
+          "body": "Niveaux de tournoi est une liste de règles lue de haut en bas. La première règle qu'un tournoi satisfait fixe son niveau, et le niveau décide du poids de ses résultats. Utilisez Tester un tournoi pour vérifier une règle sans enregistrer."
+        },
+        "data": {
+          "title": "Assurez-vous que les données brutes sont bonnes",
+          "body": "Marqueurs de résultats contrôle quels événements comptent et vous permet d'exclure une équipe précise. Dotations enregistre les versements. Réseaux sociaux vérifie le nombre d'abonnés. Équipes fantômes porte les résultats des équipes sans compte AFC."
+        },
+        "check": {
+          "title": "Regardez le tableau brouillon",
+          "body": "Le tableau des équipes de la Vue d'ensemble montre les scores calculés avant toute publication, vous pouvez donc repérer un chiffre faux tant que c'est encore privé."
+        },
+        "fix": {
+          "title": "Corrigez ce qui est vraiment faux",
+          "body": "Les ajustements manuels permettent de fixer un niveau à la main, de retirer des points en sanction, ou de remettre une équipe à zéro pour la saison. Les trois exigent un motif et les trois apparaissent dans le journal d'audit."
+        },
+        "evaluate": {
+          "title": "Lancez l'évaluation trimestrielle",
+          "body": "Cela verrouille tous les niveaux pour le trimestre suivant. Faites-en d'abord un aperçu, qui n'écrit rien, et validez seulement ensuite."
+        },
+        "publish": {
+          "title": "Publiez",
+          "body": "Les classements publics et les badges de niveau se publient séparément, chacun avec un motif. Tant que vous ne publiez pas, rien de tout cela n'est visible pour les joueurs."
+        }
+      },
+      "title": "Gérer les classements et les niveaux",
+      "summary": "L'ordre dans lequel la machine à classements doit être utilisée."
+    },
+    "setupOrganizer": {
+      "steps": {
+        "create": {
+          "title": "Créez l'organisation",
+          "body": "Organisations, Créer une organisation. Nom, e-mail de contact, description et le propriétaire, choisi parmi les utilisateurs AFC existants."
+        },
+        "owner": {
+          "title": "Le propriétaire obtient le portail",
+          "body": "La personne que vous avez désignée comme propriétaire a désormais le rôle d'organisateur et peut ouvrir le portail organisateur. Elle n'a pas besoin de se déconnecter et de se reconnecter."
+        },
+        "members": {
+          "title": "Elle ajoute ses propres personnes",
+          "body": "Dans le portail, Membres, Ajouter un sous-organisateur. Chaque personne obtient exactement les permissions cochées : créer des événements, modifier des événements, importer des résultats, gérer les inscriptions, soumettre des designs, voir les indicateurs, voir les avis, gérer les membres."
+        },
+        "bank": {
+          "title": "Renseignez les coordonnées bancaires",
+          "body": "Paiements dans le portail, réservé au propriétaire. Sans cela, vous ne pouvez pas lui verser sa part des recettes des événements payants."
+        },
+        "verify": {
+          "title": "Vérifiez ses événements",
+          "body": "Dans l'onglet Événements de l'organisation, côté administration, vérifier un événement est ce qui lui vaut le marqueur vérifié en public."
+        },
+        "watch": {
+          "title": "Gardez un œil dessus",
+          "body": "Signalements, sur la page de l'organisation, est l'endroit où arrivent les plaintes, et en clore une veut dire écrire ce qui a été constaté et ce qui a été fait. Suspendre et supprimer sont dans la zone de danger si on en arrive là."
+        }
+      },
+      "title": "Mettre en place un organisateur",
+      "summary": "Créer une organisation et lui remettre les clés."
+    },
+    "goLive": {
+      "steps": {
+        "design": {
+          "title": "Ayez un design prêt",
+          "body": "Une superposition se construit à partir d'un design de classement, créez-en ou choisissez-en donc un d'abord."
+        },
+        "create": {
+          "title": "Créez la superposition",
+          "body": "Ouvrez le studio de superposition de l'événement et appuyez sur Nouvelle superposition à partir d'un design. Vous obtenez un lien permanent unique."
+        },
+        "obs": {
+          "title": "Ajoutez le lien une seule fois dans votre logiciel de stream",
+          "body": "Collez-le dans OBS ou vMix comme source navigateur. Vous n'aurez plus jamais à y toucher : changer le design, la phase, le groupe ou l'animation se met à jour en direct via ce même lien."
+        },
+        "scope": {
+          "title": "Pointez-la sur le bon classement",
+          "body": "Choisissez une phase ou un groupe unique, ou Combiner plusieurs pour fusionner des phases et des groupes en un tableau cumulé. Suivre la sélection de diffusion la fait suivre ce que vous basculez de façon centralisée."
+        },
+        "timer": {
+          "title": "Ajoutez un compte à rebours si vous en voulez un",
+          "body": "Ajouter un minuteur, donnez-lui une durée ou une heure de fin et un libellé comme PROCHAIN MATCH, puis déclenchez-le. Il reste invisible jusqu'au déclenchement."
+        },
+        "capture": {
+          "title": "Automatisez les chiffres",
+          "body": "Le client de bureau AFC Capture surveille les fichiers de résultats du client Free Fire et les envoie directement dans le classement, la superposition se met donc à jour sans que personne n'importe quoi que ce soit. Associez-le à la clé de capture de l'événement."
+        },
+        "media": {
+          "title": "Vérifiez les visuels avant de passer en direct",
+          "body": "Le contrôle des médias de diffusion liste les équipes sans logo et les joueurs sans image esport. Relancez-les avant le stream, pas pendant."
+        }
+      },
+      "title": "Mettre un classement sur le stream",
+      "summary": "Superpositions, capture et les vérifications avant de passer en direct."
+    }
+  }
+}
