@@ -459,28 +459,33 @@ export default function AdminRankingsPage() {
                 <TableRow><TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
                   {q ? t("teams.noMatch", { q }) : t("teams.empty")}
                 </TableCell></TableRow>
-              ) : filtered.map((t) => (
-                <TableRow key={t.team_id}>
+              ) : filtered.map((row) => (
+                // The row parameter is `row`, NOT `t`: `t` is the next-intl translator for this
+                // page, and naming the parameter `t` shadowed it inside this callback. The two
+                // t("...") calls below then ran against a team object and the page crashed with
+                // "t is not a function" for any admin whose team table had rows. Same reason the
+                // sibling rankings/results/page.tsx renames its translator. Do not rename back.
+                <TableRow key={row.team_id}>
                   <TableCell className="font-semibold text-muted-foreground">
-                    <span className="inline-flex items-center"><IconHash className="size-3" />{t.rank}</span>
+                    <span className="inline-flex items-center"><IconHash className="size-3" />{row.rank}</span>
                   </TableCell>
                   {/* Ghost teams have no profile. The admin table already shows the name as
                       plain text (no TeamLink), and the backend prefixes it "[Ghost] ...", so we
                       only ADD a small outline Ghost badge to mark the row (no double-prefix). */}
                   <TableCell className="font-medium">
                     <span className="inline-flex items-center gap-1.5">
-                      {t.team_name}
-                      {t.is_ghost && (
+                      {row.team_name}
+                      {row.is_ghost && (
                         <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-muted-foreground">
                           {t("teams.ghost")}
                         </Badge>
                       )}
                     </span>
                   </TableCell>
-                  <TableCell><TierBadge tier={t.tier ?? null} /></TableCell>
-                  <TableCell className="text-right tabular-nums">{t.tournaments_played ?? 0}</TableCell>
-                  <TableCell className="text-right tabular-nums">{t.kills ?? 0}</TableCell>
-                  <TableCell className="text-right font-semibold tabular-nums text-primary">{t.total_score.toFixed(0)}</TableCell>
+                  <TableCell><TierBadge tier={row.tier ?? null} /></TableCell>
+                  <TableCell className="text-right tabular-nums">{row.tournaments_played ?? 0}</TableCell>
+                  <TableCell className="text-right tabular-nums">{row.kills ?? 0}</TableCell>
+                  <TableCell className="text-right font-semibold tabular-nums text-primary">{row.total_score.toFixed(0)}</TableCell>
                   <TableCell className="text-right">
                     <Button size="sm" variant="outline" asChild>
                       <Link href="/a/rankings/results">{t("teams.editMarkers")}</Link>
