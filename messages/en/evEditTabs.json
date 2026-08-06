@@ -81,7 +81,10 @@
     "publishToTournaments": "Publish to Tournaments",
     "saveAsDraft": "Save as Draft",
     "saveChanges": "Save Changes",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "eventDescription": "About this tournament",
+    "eventDescriptionPlaceholder": "What is this tournament, who is it for, and what makes it worth entering?",
+    "eventDescriptionHelp": "Shown on the public event page. This is different from the rules: it is the story of the event, not what gets a team disqualified. Leave it blank and the section is hidden."
   },
   "prizeRules": {
     "cardTitle": "Prize Pool & Rules",
@@ -562,5 +565,27 @@
     "pending": "Disqualifying...",
     "toastDone": "Disqualified.",
     "toastFailed": "Could not disqualify."
+  },
+  "publicSponsors": {
+    "title": "Sponsor logos on the public page",
+    "description": "Logos every visitor sees on the event page. These ask nothing of players, unlike the sponsor requirements above.",
+    "name": "Sponsor name",
+    "namePlaceholder": "e.g. Legacy Gaming",
+    "link": "Link (optional)",
+    "logo": "Logo",
+    "chooseLogo": "Choose an image",
+    "noLogoChosen": "No image chosen",
+    "add": "Add sponsor",
+    "adding": "Adding",
+    "added": "Sponsor added.",
+    "addFailed": "Could not add that sponsor.",
+    "remove": "Remove",
+    "removed": "Sponsor removed.",
+    "removeFailed": "Could not remove that sponsor.",
+    "nameRequired": "Give the sponsor a name.",
+    "limitReached": "You can show up to {max} sponsors. Remove one to add another."
+  },
+  "changes": {
+    "eventDescription": "About this tournament"
   }
 }

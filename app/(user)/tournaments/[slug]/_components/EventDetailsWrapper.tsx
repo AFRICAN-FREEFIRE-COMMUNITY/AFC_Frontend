@@ -385,6 +385,8 @@ interface EventDetails {
   prizepool: string;
   prize_distribution: { [key: string]: number };
   event_rules: string;
+  event_description?: string | null;
+  public_sponsors?: { id: number; name: string; link: string | null; logo_url: string | null }[];
   tournament_teams: {
     team_name: string;
     team_id: number;
@@ -6272,6 +6274,81 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* ── About this tournament (owner 2026-08-05, item 26) ─────────────────────────────────
+          The organizer's own description of what the event IS. Deliberately ABOVE the rules and
+          full width, because it is the thing a player reads first to decide whether to enter,
+          while the rules answer a question they only ask afterwards.
+          Rendered only when written, so every event created before this field existed looks
+          exactly as it does today. The text arrives already translated for the viewer's locale
+          (the backend runs event_description through the translate-on-read layer beside
+          event_name and event_rules), so there is nothing to do here but display it.
+          whitespace-pre-line keeps the organizer's paragraph breaks without accepting HTML. */}
+      {eventDetails.event_description?.trim() ? (
+        <Card className="mt-8 gap-0">
+          <CardHeader>
+            <CardTitle className="text-xl mb-3">
+              {t("detail.aboutCard.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+              {eventDetails.event_description}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {/* ── Sponsor logos, shown to everybody (owner 2026-08-05, item 26) ────────────────────
+          Display only. These ask the visitor for nothing, which is what separates them from the
+          sponsorship gate on the registration flow. A logo links out when the organizer gave a
+          link, and the anchor carries rel="noopener noreferrer" because the URL is supplied by
+          whoever edited the event.
+          Laid out as a wrapping row of tiles rather than a grid, so two sponsors look deliberate
+          and eight still fit on a phone. */}
+      {Array.isArray(eventDetails.public_sponsors) &&
+      eventDetails.public_sponsors.length > 0 ? (
+        <Card className="mt-8 gap-0">
+          <CardHeader>
+            <CardTitle className="text-xl mb-3">
+              {t("detail.sponsorsCard.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3">
+              {eventDetails.public_sponsors.map((s: any) => {
+                const tile = (
+                  <span className="flex items-center gap-2.5 rounded-md border bg-background px-3 py-2">
+                    {s.logo_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={s.logo_url}
+                        alt={s.name}
+                        className="size-9 shrink-0 rounded object-contain"
+                        loading="lazy"
+                      />
+                    ) : null}
+                    <span className="text-sm font-medium">{s.name}</span>
+                  </span>
+                );
+                return s.link ? (
+                  <a
+                    key={s.id}
+                    href={s.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-opacity hover:opacity-80"
+                  >
+                    {tile}
+                  </a>
+                ) : (
+                  <span key={s.id}>{tile}</span>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-2">
         <Card className="gap-0">

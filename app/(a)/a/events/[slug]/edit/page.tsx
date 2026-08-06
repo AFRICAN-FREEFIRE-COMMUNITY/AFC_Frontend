@@ -379,6 +379,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     resolver: zodResolver(EventFormSchema),
     defaultValues: {
       event_name: "",
+      event_description: "",
       competition_type: "",
       participant_type: "",
       event_type: "",
@@ -536,6 +537,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         form.reset({
           banner: eventDetails.event_banner_url || "",
           event_name: eventDetails.event_name,
+          event_description: eventDetails.event_description ?? "",
           competition_type: eventDetails.competition_type,
           participant_type: eventDetails.participant_type,
           event_type: eventDetails.event_type,
@@ -1229,6 +1231,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           : (data.event_status ?? eventDetails.event_status ?? "upcoming"),
       );
       formData.append("event_name", data.event_name);
+      formData.append("event_description", data.event_description ?? "");
       formData.append("competition_type", data.competition_type);
       formData.append("participant_type", data.participant_type);
       formData.append("event_type", data.event_type);
@@ -1375,6 +1378,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           : (data.event_status ?? eventDetails.event_status ?? "upcoming"),
       );
       formData.append("event_name", data.event_name);
+      formData.append("event_description", data.event_description ?? "");
       formData.append("competition_type", data.competition_type);
       formData.append("participant_type", data.participant_type);
       formData.append("event_type", data.event_type);
@@ -1602,6 +1606,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     };
 
     check(t("changes.eventName"), eventDetails.event_name, data.event_name);
+    // The confirm dialog exists to show what is about to change, so every editable field has to
+    // be listed here or it reports "No changes detected" while quietly saving one. Caught in
+    // testing 2026-08-06: the description saved correctly and the dialog denied there was an edit.
+    check(
+      t("changes.eventDescription"),
+      eventDetails.event_description,
+      (data as any).event_description,
+    );
     check(
       t("changes.competitionType"),
       eventDetails.competition_type,
@@ -1788,6 +1800,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           formData.append("uploaded_rules", selectedRuleFile);
 
         formData.append("event_name", data.event_name);
+      formData.append("event_description", data.event_description ?? "");
         formData.append("competition_type", data.competition_type);
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
@@ -2198,6 +2211,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   The legacy free-text fields still save through saveSponsorRequirement. */}
               <SponsorTab
                 slug={slug}
+                // Display-only sponsor logos (owner 2026-08-05, item 26). Both public detail
+                // builders return them on the event payload, so there is nothing to fetch.
+                publicSponsors={(eventDetails as any)?.public_sponsors ?? []}
                 sponsorForm={sponsorForm}
                 setSponsorForm={setSponsorForm}
                 onSave={saveSponsorRequirement}

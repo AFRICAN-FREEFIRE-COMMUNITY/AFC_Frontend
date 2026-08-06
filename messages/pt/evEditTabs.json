@@ -81,7 +81,10 @@
     "publishToTournaments": "Publicar nos torneios",
     "saveAsDraft": "Guardar como rascunho",
     "saveChanges": "Guardar alterações",
-    "saving": "A guardar..."
+    "saving": "A guardar...",
+    "eventDescription": "Sobre este torneio",
+    "eventDescriptionPlaceholder": "O que e este torneio, para quem e, e porque vale a pena participar?",
+    "eventDescriptionHelp": "Mostrado na pagina publica do evento. Diferente das regras: e a historia do evento, nao o que desqualifica uma equipa. Deixe em branco e a seccao fica oculta."
   },
   "prizeRules": {
     "cardTitle": "Prémios e Regras",
@@ -562,5 +565,27 @@
     "pending": "A desqualificar...",
     "toastDone": "Desqualificado.",
     "toastFailed": "Não foi possível desqualificar."
+  },
+  "publicSponsors": {
+    "title": "Logotipos de patrocinadores na pagina publica",
+    "description": "Logotipos que todos os visitantes veem na pagina do evento. Nao pedem nada aos jogadores, ao contrario dos requisitos acima.",
+    "name": "Nome do patrocinador",
+    "namePlaceholder": "ex. Legacy Gaming",
+    "link": "Link (opcional)",
+    "logo": "Logotipo",
+    "chooseLogo": "Escolher uma imagem",
+    "noLogoChosen": "Nenhuma imagem escolhida",
+    "add": "Adicionar patrocinador",
+    "adding": "A adicionar",
+    "added": "Patrocinador adicionado.",
+    "addFailed": "Nao foi possivel adicionar esse patrocinador.",
+    "remove": "Remover",
+    "removed": "Patrocinador removido.",
+    "removeFailed": "Nao foi possivel remover esse patrocinador.",
+    "nameRequired": "De um nome ao patrocinador.",
+    "limitReached": "Pode mostrar ate {max} patrocinadores. Remova um para adicionar outro."
+  },
+  "changes": {
+    "eventDescription": "Sobre este torneio"
   }
 }

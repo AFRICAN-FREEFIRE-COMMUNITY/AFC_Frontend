@@ -2260,6 +2260,9 @@ export default function OrganizerEditEventPage({
                   (the configure endpoint allows the event's organizer too). */}
               <SponsorTab
                 slug={slug}
+                // Display-only sponsor logos (owner 2026-08-05, item 26). Both public detail
+                // builders return them on the event payload, so there is nothing to fetch.
+                publicSponsors={(eventDetails as any)?.public_sponsors ?? []}
                 sponsorForm={sponsorForm}
                 setSponsorForm={setSponsorForm}
                 onSave={saveSponsorRequirement}

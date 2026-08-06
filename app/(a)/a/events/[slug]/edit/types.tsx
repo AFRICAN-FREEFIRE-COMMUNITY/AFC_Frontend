@@ -121,6 +121,9 @@ export const StageSchema = z.object({
 export const EventFormSchema = z
   .object({
     event_name: z.string().min(1, "Event name required"),
+    // What the tournament IS, in the organizer's words (owner 2026-08-05, item 26). Optional, so
+    // every event that predates it stays valid and the public About block just does not render.
+    event_description: z.string().optional(),
     competition_type: z.string().min(1, "Competition type required"),
     participant_type: z.string().min(1, "Participant type required"),
     event_type: z.string().min(1, "Event type required"),
@@ -269,6 +272,7 @@ export interface EventDetails {
   discord_invite_link?: string | null;
   max_teams_or_players: number;
   event_name: string;
+  event_description?: string;
   event_mode: string;
   start_date: string;
   end_date: string;

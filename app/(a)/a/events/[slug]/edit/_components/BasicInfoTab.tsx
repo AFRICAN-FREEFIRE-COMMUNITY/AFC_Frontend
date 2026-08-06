@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 // Switch powers the per-event "Require Discord to register" toggle added below
 // (mirrors the create wizard's require_* toggles in Step1EventDetails).
@@ -213,6 +214,36 @@ export default function BasicInfoTab({
             <FormItem>
               <FormLabel>{t("basicInfo.eventName")}</FormLabel>
               <Input {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* ── What the tournament IS, in the organizer's words (owner 2026-08-05, item 26) ──────
+            Deliberately NOT event_rules, which answers a different question ("what gets you
+            disqualified") and is capped at 200 characters. Nothing on an event answered "what is
+            this, who is it for", so a player read a page of dates and numbers.
+            Optional and blank on every existing event, so the public About block simply does not
+            render until somebody writes one. Rendered by the public tournament page and run
+            through the translate-on-read layer, so a French or Portuguese visitor reads it in
+            their own language. */}
+        <FormField
+          control={form.control}
+          name={"event_description" as never}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("basicInfo.eventDescription")}</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  value={(field.value as string) ?? ""}
+                  rows={5}
+                  placeholder={t("basicInfo.eventDescriptionPlaceholder")}
+                />
+              </FormControl>
+              <p className="text-xs text-muted-foreground">
+                {t("basicInfo.eventDescriptionHelp")}
+              </p>
               <FormMessage />
             </FormItem>
           )}

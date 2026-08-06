@@ -22,6 +22,8 @@
 //    reviewSponsorsHref=/organizer/events/<slug>/sponsors + eventId)
 
 import { useEffect, useRef, useState } from "react";
+// Display-only sponsor logos, the opposite of the gating sponsorships above.
+import PublicSponsorsCard, { type PublicSponsor } from "./PublicSponsorsCard";
 // i18n: this Sponsor tab is shared by the admin + organizer event-edit wizards. All copy is
 // internationalized via the "evEditTabs" namespace (messages/{en,fr,pt}/evEditTabs.json).
 import { useTranslations } from "next-intl";
@@ -82,6 +84,9 @@ interface SponsorTabProps {
   // event_id, not slug). Both edit pages pass eventDetails.event_id. When absent
   // (shouldn't happen once the event has loaded) the builder section shows a loader.
   eventId?: number | null;
+  // Logos shown to every visitor (owner 2026-08-05, item 26). Hydrated by the parent
+  // from the event detail payload's `public_sponsors`.
+  publicSponsors?: PublicSponsor[];
 }
 
 export default function SponsorTab({
@@ -93,6 +98,7 @@ export default function SponsorTab({
   hideAdminReviewLink = false,
   reviewSponsorsHref,
   eventId = null,
+  publicSponsors = [],
 }: SponsorTabProps) {
   const { token } = useAuth();
   const t = useTranslations("evEditTabs");
@@ -416,6 +422,13 @@ export default function SponsorTab({
           </div>
         </div>
       </details>
+
+      {/* Display-only logos. Rendered last because it is the simplest thing on the tab and the
+          one an organizer reaches for most often; the gating sponsorship builder above needs a
+          Sponsor entity an AFC admin has already created. */}
+      {eventId ? (
+        <PublicSponsorsCard eventId={eventId} initial={publicSponsors} />
+      ) : null}
     </div>
   );
 }

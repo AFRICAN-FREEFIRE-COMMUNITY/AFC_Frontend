@@ -162,6 +162,9 @@
       "players": "Players",
       "slotLeft": "Slot left"
     },
+    "aboutCard": {
+      "title": "About this tournament"
+    },
     "rulesCard": {
       "title": "Rules",
       "downloadableDoc": "Official rules are provided as a downloadable document.",
@@ -193,6 +196,9 @@
     "loadingTeamData": "Loading team data...",
     "streams": {
       "title": "Watch live"
+    },
+    "sponsorsCard": {
+      "title": "Sponsors"
     }
   },
   "leaveModal": {

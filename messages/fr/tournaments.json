@@ -162,6 +162,9 @@
       "players": "Joueurs",
       "slotLeft": "Place restante"
     },
+    "aboutCard": {
+      "title": "A propos de ce tournoi"
+    },
     "rulesCard": {
       "title": "Règles",
       "downloadableDoc": "Les règles officielles sont fournies sous forme de document téléchargeable.",
@@ -193,6 +196,9 @@
     "loadingTeamData": "Chargement des données de l'équipe...",
     "streams": {
       "title": "Regarder en direct"
+    },
+    "sponsorsCard": {
+      "title": "Partenaires"
     }
   },
   "leaveModal": {

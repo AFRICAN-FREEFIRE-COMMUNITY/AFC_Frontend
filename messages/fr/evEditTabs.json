@@ -81,7 +81,10 @@
     "publishToTournaments": "Publier dans la rubrique « Tournois »",
     "saveAsDraft": "Enregistrer comme brouillon",
     "saveChanges": "Enregistrer les modifications",
-    "saving": "Enregistrement en cours..."
+    "saving": "Enregistrement en cours...",
+    "eventDescription": "A propos de ce tournoi",
+    "eventDescriptionPlaceholder": "Qu'est-ce que ce tournoi, a qui s'adresse-t-il, et pourquoi vaut-il la peine d'y participer ?",
+    "eventDescriptionHelp": "Affiche sur la page publique de l'evenement. Different du reglement : c'est l'histoire de l'evenement, pas ce qui fait disqualifier une equipe. Laissez vide et la section est masquee."
   },
   "prizeRules": {
     "cardTitle": "Cagnotte et règlement",
@@ -562,5 +565,27 @@
     "pending": "Disqualification...",
     "toastDone": "Disqualifié.",
     "toastFailed": "Impossible de disqualifier."
+  },
+  "publicSponsors": {
+    "title": "Logos des partenaires sur la page publique",
+    "description": "Logos que chaque visiteur voit sur la page de l'evenement. Ils ne demandent rien aux joueurs, contrairement aux exigences ci-dessus.",
+    "name": "Nom du partenaire",
+    "namePlaceholder": "ex. Legacy Gaming",
+    "link": "Lien (facultatif)",
+    "logo": "Logo",
+    "chooseLogo": "Choisir une image",
+    "noLogoChosen": "Aucune image choisie",
+    "add": "Ajouter un partenaire",
+    "adding": "Ajout",
+    "added": "Partenaire ajoute.",
+    "addFailed": "Impossible d'ajouter ce partenaire.",
+    "remove": "Retirer",
+    "removed": "Partenaire retire.",
+    "removeFailed": "Impossible de retirer ce partenaire.",
+    "nameRequired": "Donnez un nom au partenaire.",
+    "limitReached": "Vous pouvez afficher jusqu'a {max} partenaires. Retirez-en un pour en ajouter un autre."
+  },
+  "changes": {
+    "eventDescription": "A propos de ce tournoi"
   }
 }
