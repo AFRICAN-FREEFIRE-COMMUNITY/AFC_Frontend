@@ -735,17 +735,26 @@ const page = () => {
         total users, ${adminOnlyUsers.length} admins)`}
         />
         {/* ⓘ sits beside the export action (sibling, not nested in the button). */}
+        {/* min-w-0 + shrink (2026-08-06): the button is w-full on a phone, so button + gap +
+            the 14px InfoTip came to more than the row, and that single icon pushed the WHOLE
+            /a/settings page 11px wider than the viewport - the page scrolled sideways and the
+            scroll width was exactly this icon's right edge. A flex child defaults to
+            min-width:auto and refuses to shrink below its content, so w-full stayed 100% and the
+            icon was pushed out rather than the button giving way. min-w-0 lets it shrink; the
+            icon keeps its size because it is shrink-0. */}
         <div className="flex w-full md:w-auto items-center gap-1.5">
           <Button
             variant="outline"
             onClick={exportToExcel}
-            className="w-full md:w-auto"
+            className="min-w-0 flex-1 md:w-auto md:flex-none"
             data-tour="settings-misc-export-excel"
           >
             <IconDownload />
             Export to Excel
           </Button>
-          <InfoTip id="settings.export_excel" />
+          <span className="shrink-0">
+            <InfoTip id="settings.export_excel" />
+          </span>
         </div>
       </div>
       <Tabs defaultValue="admins" className="space-y-4">
