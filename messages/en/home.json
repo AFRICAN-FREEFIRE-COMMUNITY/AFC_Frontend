@@ -71,6 +71,7 @@
     },
     "loading": "Loading standings",
     "empty": "No teams ranked yet, check back once results are in.",
+    "loadFailed": "Couldn't load the standings right now. This section refreshes itself, so it should come back shortly.",
     "notPublished": "Rankings for {season} haven't been published yet, check back soon.",
     "tiersComingSoon": "Tiers coming soon, team grades for {season} haven't been published yet.",
     "thisSeason": "this season",
@@ -104,6 +105,7 @@
       "all": "All Categories",
       "general": "General News",
       "tournament": "Tournament Updates",
+      "education": "Education Updates",
       "bans": "Banned Player/Team Updates"
     },
     "toast": {

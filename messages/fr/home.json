@@ -71,6 +71,7 @@
     },
     "loading": "Chargement des classements",
     "empty": "Aucune équipe classée pour le moment, revenez une fois les résultats disponibles.",
+    "loadFailed": "Impossible de charger le classement pour le moment. Cette section s'actualise toute seule, il devrait réapparaître sous peu.",
     "notPublished": "Les classements pour {season} n'ont pas encore été publiés, revenez bientôt.",
     "tiersComingSoon": "Paliers à venir, les classements des équipes pour {season} n'ont pas encore été publiés.",
     "thisSeason": "cette saison",
@@ -104,6 +105,7 @@
       "all": "Toutes catégories",
       "general": "Actualités générales",
       "tournament": "Mises à jour des tournois",
+      "education": "Mises à jour éducatives",
       "bans": "Mises à jour des joueurs/équipes bannis"
     },
     "toast": {

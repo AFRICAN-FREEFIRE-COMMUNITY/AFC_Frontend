@@ -1,8 +1,8 @@
 {
   "ordinal": {
-    "st": "st",
-    "nd": "nd",
-    "rd": "rd",
+    "st": "er",
+    "nd": "e",
+    "rd": "e",
     "th": "e"
   },
   "common": {
@@ -453,6 +453,8 @@
     "pointsQuarterly": "Trimestriel seulement : prix en argent + suivi sur les réseaux sociaux (plafonné).",
     "notPublishedTitle": "Pas encore publié",
     "notPublishedBody": "{what} pour <highlight>{season}</highlight> n'ont pas encore été publiés, revenez bientôt.",
+    "showingPrevious": "Affichage de <highlight>{shown}</highlight>. {pending} n'est pas encore publié.",
+    "truncatedNote": "Cette période contient plus d'entrées qu'il n'est possible de charger en une fois, les derniers classés ne sont donc pas affichés ici.",
     "thisSeason": "cette saison",
     "noMatchesFor": "Aucun match pour \"{query}\"",
     "tryDifferentName": "Essayez un nom différent.",
@@ -508,6 +510,9 @@
     "periodQuarterly": "trimestriels",
     "rankingsLabel": "Classements",
     "loadFailed": "Échec du chargement des classements",
+    "loadErrorTitle": "Impossible de charger le classement",
+    "loadErrorBody": "Une erreur est survenue lors de la récupération du classement. Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer",
     "month": "Mois",
     "roleTabsLabel": "Filtrer le classement des joueurs par rôle en jeu",
     "roleAll": "Tous les rôles",

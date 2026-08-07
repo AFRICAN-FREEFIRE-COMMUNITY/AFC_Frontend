@@ -29,7 +29,7 @@
 // "Updates automatically" is useLiveTick(), the same site-wide heartbeat /rankings uses:
 // a background re-pull every 15s while the tab is visible, plus a catch-up on tab focus.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 // Live refresh (owner 2026-07-02): site-wide heartbeat, so the standings on the home page
@@ -52,7 +52,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Trophy, ArrowRight } from "lucide-react";
-import { IconClock } from "@tabler/icons-react";
+import { IconClock, IconAlertTriangle } from "@tabler/icons-react";
 // Shared tier pill (0-3 -> "Tier 1".."Tier 4" + colour), the single source of tier
 // presentation across /rankings, the team pages and the admin surfaces.
 import { TierBadge } from "@/components/rankings/TierBadge";
@@ -97,10 +97,15 @@ function monthLabel(iso: string | undefined, locale: string): string {
 // Shared "nothing to show yet" note. `reason` is already-localized copy from the caller,
 // so this stays a dumb presentational block (same visual language as the /rankings
 // NotPublished / tiersComingSoon states, just compact enough for a home card).
-function HomeNote({ reason }: { reason: string }) {
+//
+// `tone` picks the icon: "waiting" (a clock) for loading / not-yet-published, "error" (a warning
+// triangle) for a request that FAILED. The two must not look alike - a clock over a failed fetch
+// reads as "results are on their way", which is the opposite of what happened.
+function HomeNote({ reason, tone = "waiting" }: { reason: string; tone?: "waiting" | "error" }) {
+  const Icon = tone === "error" ? IconAlertTriangle : IconClock;
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-      <IconClock className="size-8 text-muted-foreground" />
+      <Icon className="size-8 text-muted-foreground" />
       <p className="max-w-sm text-sm text-muted-foreground">{reason}</p>
     </div>
   );
@@ -144,6 +149,22 @@ export function HomeRankingsTiers() {
   const [monthlyIsCurrent, setMonthlyIsCurrent] = useState(true);
   const [quarterlyIsCurrent, setQuarterlyIsCurrent] = useState(true);
   const [pendingSeason, setPendingSeason] = useState<string | null>(null);
+  // The fetch FAILED, as opposed to the API returning nothing. Without this the catch below fell
+  // through to the "No teams ranked yet" empty note, so a dead API told the viewer that nobody had
+  // been ranked. Different facts, different copy.
+  const [failed, setFailed] = useState(false);
+  // How many rows this card currently HAS on screen (either tab). A failure is judged against
+  // this rather than against `tick === 0`, for the same reason as app/(user)/rankings/page.tsx:
+  // "was this the first run?" is a guess about what triggered the fetch, and it guesses wrong
+  // whenever a focus tick lands before the first response, which would leave a dead API showing
+  // "No teams ranked yet". "Is there anything on screen worth protecting?" cannot guess wrong.
+  // A ref, and written from its own effect, so the fetch effect can read the current count
+  // without listing the rows as dependencies and re-fetching on every fetch.
+  const shownCount = useRef(0);
+
+  useEffect(() => {
+    shownCount.current = monthly.length + quarterly.length;
+  }, [monthly, quarterly]);
 
   useEffect(() => {
     let active = true;
@@ -163,9 +184,14 @@ export function HomeRankingsTiers() {
         setMonthlyIsCurrent(m.is_current_period !== false);
         setQuarterlyIsCurrent(q.is_current_period !== false);
         setPendingSeason(q.current_season?.name ?? m.current_season?.name ?? null);
+        setFailed(false);
       })
-      // A failed poll must not blank the card: keep whatever is already rendered.
-      .catch(() => undefined)
+      // A failed poll with rows already rendered must not blank the card: keep them and let the
+      // next tick recover. A failure with NOTHING on screen has nothing to keep, so it says
+      // plainly that it could not load rather than claiming there is nothing to show.
+      .catch(() => {
+        if (active && shownCount.current === 0) setFailed(true);
+      })
       .finally(() => {
         if (active) setLoading(false);
       });
@@ -215,6 +241,10 @@ export function HomeRankingsTiers() {
             </p>
             {loading ? (
               <HomeNote reason={t("rankingsTiers.loading")} />
+            ) : failed ? (
+              // Ahead of the gate + empty branches: a broken request is not an unpublished season
+              // and is not an empty ladder.
+              <HomeNote tone="error" reason={t("rankingsTiers.loadFailed")} />
             ) : rankingsGated ? (
               <HomeNote
                 reason={t("rankingsTiers.notPublished", {
@@ -293,6 +323,8 @@ export function HomeRankingsTiers() {
             </p>
             {loading ? (
               <HomeNote reason={t("rankingsTiers.loading")} />
+            ) : failed ? (
+              <HomeNote tone="error" reason={t("rankingsTiers.loadFailed")} />
             ) : quarterlyGated ? (
               <HomeNote
                 reason={t("rankingsTiers.notPublished", {

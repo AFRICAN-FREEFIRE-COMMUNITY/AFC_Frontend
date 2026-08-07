@@ -80,7 +80,7 @@
     "applied": "Candidature envoyée le {date}",
     "contactUnlocked": "Contact débloqué",
     "wins": "{count, plural, one {# victoire} other {# victoires}}",
-    "kills": "{count, plural, one {# kill} other {# kills}}",
+    "kills": "{count, plural, one {# élimination} other {# éliminations}}",
     "finals": "{count, plural, one {# finale} other {# finales}}"
   },
   "header": {

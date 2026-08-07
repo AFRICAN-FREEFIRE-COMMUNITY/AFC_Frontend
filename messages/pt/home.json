@@ -71,6 +71,7 @@
     },
     "loading": "Carregando classificações",
     "empty": "Nenhuma equipe classificada ainda, volte quando os resultados sairem.",
+    "loadFailed": "Não foi possível carregar a classificação neste momento. Esta secção atualiza-se sozinha, deverá reaparecer em breve.",
     "notPublished": "As classificações para {season} ainda não foram publicadas, volte em breve.",
     "tiersComingSoon": "Níveis em breve, as classificações das equipes para {season} ainda não foram publicadas.",
     "thisSeason": "esta temporada",
@@ -104,6 +105,7 @@
       "all": "Todas as Categorias",
       "general": "Notícias Gerais",
       "tournament": "Atualizações de Torneios",
+      "education": "Atualizações Educativas",
       "bans": "Atualizações de Jogadores/Equipes Banidos"
     },
     "toast": {

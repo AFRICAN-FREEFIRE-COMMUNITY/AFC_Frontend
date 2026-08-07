@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +29,7 @@ import {
 import {
   IconHash, IconUsers, IconTrophy, IconChevronDown, IconChevronRight, IconMoodEmpty,
   IconInfoCircle, IconCrown, IconChartBar, IconStairsUp, IconSearch,
-  IconClock,
+  IconClock, IconAlertTriangle, IconRefresh,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { matchesSearch } from "@/lib/search";
@@ -84,6 +84,70 @@ function NotPublished({ seasonName, what }: { seasonName?: string; what: string 
             seasonName ? <span className="text-foreground">{chunks}</span> : <>{chunks}</>,
         })}
       </p>
+    </div>
+  );
+}
+
+/**
+ * The request FAILED, which is not the same fact as "there is nothing to show".
+ *
+ * Both used to land on <Empty/> ("Standings appear once monthly results are recorded"), because
+ * neither ladder fetch had a catch: a network error or a 500 simply left the rows empty and the
+ * page told the viewer that no results had been recorded. That is a lie about the database. This
+ * state is checked BEFORE every empty state in both views so the two can never be confused.
+ *
+ * Retry idiom (message + outline retry button) matches components/h2h-bracket.tsx loadFailed.
+ */
+function LoadError({ onRetry }: { onRetry: () => void }) {
+  const t = useTranslations("teamsplayers");
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+      <IconAlertTriangle className="size-10 text-muted-foreground" />
+      <p className="font-semibold">{t("rankings.loadErrorTitle")}</p>
+      <p className="max-w-sm text-sm text-muted-foreground">{t("rankings.loadErrorBody")}</p>
+      <Button variant="outline" size="sm" className="mt-2" onClick={onRetry}>
+        <IconRefresh className="mr-1 size-4" /> {t("rankings.retry")}
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * The period held more rows than the client is willing to walk (lib/rankings.ts MAX_PAGES), so
+ * the tail of the ladder is genuinely missing. Rare by design, but it must be stated: a silently
+ * cut ladder presented as the whole one is the same lie as an empty one presented as "no results".
+ */
+function TruncatedNote() {
+  const t = useTranslations("teamsplayers");
+  return (
+    <div className="mb-4 flex items-start gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+      <IconInfoCircle className="mt-0.5 size-4 shrink-0" />
+      <span>{t("rankings.truncatedNote")}</span>
+    </div>
+  );
+}
+
+/**
+ * The rows on screen are the last PUBLISHED period, not the live one.
+ *
+ * The backend keeps serving the most recent published period when the live season is still
+ * pending (afc_rankings.views._resolve_month / _resolve_quarterly_season) and flags it with
+ * is_current_period=false on the envelope. Without this banner the viewer reads an old month as
+ * today's standings, which is the same class of bug as a hardcoded table. Same dashed-strip idiom
+ * as the "tiers coming soon" notice below, and as PreviousPeriodNote on the /home card.
+ */
+function PreviousPeriodNote({ shown, pending }: { shown: string; pending: string }) {
+  const t = useTranslations("teamsplayers");
+  return (
+    <div className="mb-4 flex items-start gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+      <IconClock className="mt-0.5 size-4 shrink-0" />
+      <span>
+        {t.rich("rankings.showingPrevious", {
+          shown,
+          pending,
+          highlight: (chunks) => <span className="font-medium text-foreground">{chunks}</span>,
+        })}
+      </span>
     </div>
   );
 }
@@ -241,10 +305,34 @@ function RankingsView() {
   const [countryFilter, setCountryFilter] = useState("");
   // Season + month picker (owner 2026-07-04: "when i click on ranking i cant change seasons").
   // Monthly rankings are per-MONTH, and a season spans up to 3 months, so a season pick drives a
-  // month list and the monthly endpoint is fetched for the chosen month. undefined month = current.
+  // month list and the monthly endpoint is fetched for the chosen month.
+  //
+  // BOTH PICKS START undefined ON PURPOSE, and undefined means "no pick, let the backend choose
+  // the period". The backend already resolves that to the most recent PUBLISHED month and reports
+  // which one it served on the envelope (afc_rankings.views._resolve_month), so the page lands on
+  // standings a visitor can actually read.
+  //
+  // Preselecting the ACTIVE season here instead is what broke this page (owner backlog #14,
+  // "public ranking page shows no PLAYER rankings"): the live season's rankings are not published
+  // yet, so snapping the picker to its newest month sent an explicit ?month=<live month>, the
+  // publish gate returned an empty set, and BOTH the Teams and Players ladders rendered
+  // "Not published yet" to everyone. The pickers still drive the request the moment the user
+  // actually picks something.
   const [seasons, setSeasons] = useState<Season[]>([]);
-  const [seasonId, setSeasonId] = useState<number | undefined>(undefined);
-  const [monthSel, setMonthSel] = useState<string | undefined>(undefined);
+  const [seasonPick, setSeasonPick] = useState<number | undefined>(undefined);
+  const [monthPick, setMonthPick] = useState<string | undefined>(undefined);
+  // Whether the served rows are the LIVE period. false = the backend fell back to the last
+  // published one and <PreviousPeriodNote/> must say so; pendingSeason names the season still
+  // awaiting publication. Both read off the envelope (owner 2026-08-03).
+  const [isCurrentPeriod, setIsCurrentPeriod] = useState(true);
+  const [pendingSeason, setPendingSeason] = useState<string | null>(null);
+  // The request FAILED, as opposed to returning nothing. Held apart from the row state so the
+  // empty states below can never be shown for a broken request (see <LoadError/>).
+  const [failed, setFailed] = useState(false);
+  // Bumped by the LoadError retry button to re-run the fetch effect.
+  const [retry, setRetry] = useState(0);
+  // The client stopped walking pages before the period ran out (see <TruncatedNote/>).
+  const [truncated, setTruncated] = useState(false);
   // The ghost the user is requesting to claim (null = dialog closed). Set by the per-row "Claim"
   // button; consumed by <ClaimGhostDialog/> at the bottom of this view.
   const [claimTarget, setClaimTarget] = useState<ClaimGhostTarget | null>(null);
@@ -261,49 +349,100 @@ function RankingsView() {
   const [roleCoverage, setRoleCoverage] = useState<PlayerRoleCoverage | null>(null);
   // Live refresh (owner 2026-07-02): shared tick re-runs the standings fetch below.
   const tick = useLiveTick();
+  // The query the last run of the fetch effect asked for ("teams|2026-06|all|0"). Used to tell a
+  // USER ACTION (subject / month / role / retry changed) from a live-tick re-pull, so only the
+  // former flashes a loader. A ref, not state, because writing it must not re-run the effect.
+  const lastQuery = useRef<string | null>(null);
+  // How many rows are currently ON SCREEN for the active subject.
+  //
+  // This is what a failed request is judged against, and it is deliberately a fact about the
+  // SCREEN rather than about what triggered the run. The obvious version of this ("a re-pull the
+  // tick fired is background, so swallow its errors") is wrong in a way that is easy to miss:
+  // React StrictMode mounts every component twice in dev, so the second mount-time run finds the
+  // query key already written by the first, calls itself a background poll, and throws its failure
+  // away - leaving a dead API rendering "Nothing here yet", the exact lie <LoadError/> exists to
+  // prevent. Asking "is there anything on screen to protect?" has no such blind spot.
+  //
+  // A ref, and updated from its own effect, because the fetch effect must read the CURRENT count
+  // without listing the rows as a dependency, which would re-run the fetch on every fetch.
+  const shownCount = useRef(0);
+
+  useEffect(() => {
+    shownCount.current = (subject === "teams" ? teams : players).length;
+  }, [subject, teams, players]);
 
   useEffect(() => {
     let active = true;
-    // Live refresh (owner 2026-07-02): tick > 0 = a background re-pull - keep the
-    // current rows on screen (no loader flash) and leave the expanded row open.
-    // Search / country filter / claim dialog live in separate state, untouched.
-    const background = tick > 0;
-    if (!background) { setLoading(true); setOpen(null); }
+    // Live refresh (owner 2026-07-02): a live-tick re-pull keeps the current rows on screen (no
+    // loader flash) and leaves the expanded row open. Search / country filter / claim dialog live
+    // in separate state and are untouched either way.
+    //
+    // The loader is driven off the QUERY, not off `tick > 0`: by the time a user switches to
+    // Players or picks another month the tick has long since advanced past 0, so `tick > 0` called
+    // their click a background poll and they got no loader at all.
+    const queryKey = `${subject}|${monthPick ?? ""}|${roleFilter}|${retry}`;
+    const queryChanged = queryKey !== lastQuery.current;
+    lastQuery.current = queryKey;
+    if (queryChanged) { setLoading(true); setOpen(null); }
     (async () => {
       try {
         if (subject === "teams") {
-          const r = await rankingsApi.teamsMonthly(monthSel); if (!active) return;
+          const r = await rankingsApi.teamsMonthly(monthPick); if (!active) return;
           setTeams(r.results); setMonth(r.month ?? ""); setSeason((r.season as SeasonFlags) ?? null);
+          setIsCurrentPeriod(r.is_current_period !== false);
+          setPendingSeason(r.current_season?.name ?? null);
+          setTruncated(r.truncated);
         } else {
           // The by-role endpoint serves the ladder AND the role tab bar in one call, and with
           // role=all it returns exactly what players/monthly/ returns, so this replaces the old
           // call rather than sitting beside it.
           const r = await rankingsApi.playersByRole({
-            role: roleFilter, period: "monthly", month: monthSel,
+            role: roleFilter, period: "monthly", month: monthPick,
           });
           if (!active) return;
           setPlayers(r.results); setMonth(r.month ?? ""); setSeason((r.season as SeasonFlags) ?? null);
           setRoleOptions(r.roles ?? []);
           setRoleCoverage(r.role_coverage ?? null);
+          setIsCurrentPeriod(r.is_current_period !== false);
+          setPendingSeason(r.current_season?.name ?? null);
+          setTruncated(r.truncated);
+        }
+        if (active) setFailed(false);
+      } catch {
+        // A failed request must NOT fall through to the empty state below: "we could not ask" and
+        // "no results were recorded" are different facts and the page has to say which one it is.
+        //
+        // The one case where a failure is swallowed instead is a live-tick re-pull over rows the
+        // viewer is already reading: blanking a ladder mid-read is worse than briefly showing one
+        // tick-old, and the next tick recovers it. That is the ONLY exemption, hence both
+        // conditions: rows for a query the user has since changed describe a different period, so
+        // they cannot be kept either, even though they are still on screen.
+        if (!active) return;
+        if (queryChanged || shownCount.current === 0) {
+          setTeams([]); setPlayers([]); setFailed(true);
         }
       } finally { if (active) setLoading(false); }
     })();
     return () => { active = false; };
-  }, [subject, tick, monthSel, roleFilter]);
+  }, [subject, tick, monthPick, roleFilter, retry]);
 
-  // Load the season list once (owner 2026-07-04 season picker), auto-selecting the active season.
+  // Load the season list (owner 2026-07-04 season picker). It populates the dropdown ONLY: it
+  // deliberately does not preselect a season, per the seasonPick comment above.
+  //
+  // Keyed on `retry` as well as mount, because "Try again" has to restore the WHOLE view. When the
+  // API is down at load time this list fails alongside the ladder, and retrying only the ladder
+  // brought the rows back under an empty, unusable season dropdown.
   useEffect(() => {
-    rankingsApi.seasons().then((r) => {
-      setSeasons(r.results);
-      const active = r.results.find((s) => s.is_active) ?? r.results[0];
-      setSeasonId((prev) => prev ?? active?.season_id);
-    }).catch(() => { /* season picker just stays empty if the list can't load */ });
-  }, []);
+    rankingsApi.seasons()
+      .then((r) => setSeasons(r.results))
+      .catch(() => { /* season picker just stays empty if the list can't load */ });
+  }, [retry]);
 
-  // ISO months ("2026-05") spanned by the selected season, newest first, capped at the current month
-  // so we never offer a future month with no data.
-  const seasonMonths = useMemo(() => {
-    const s = seasons.find((x) => x.season_id === seasonId);
+  // ISO months ("2026-05") spanned by a season, newest first, capped at the current month so we
+  // never offer a future month with no data. A plain callback rather than a memo over the current
+  // selection because the season dropdown also needs the months of the season it is switching TO.
+  const monthsForSeason = useCallback((id: number | undefined) => {
+    const s = seasons.find((x) => x.season_id === id);
     if (!s) return [] as string[];
     const out: string[] = [];
     const d = new Date(s.start_date + "T00:00:00");
@@ -320,13 +459,14 @@ function RankingsView() {
       d.setMonth(d.getMonth() + 1);
     }
     return out.reverse();
-  }, [seasons, seasonId]);
+  }, [seasons]);
 
-  // When the season changes, snap the month to that season's latest available month.
-  useEffect(() => {
-    if (seasonMonths.length) setMonthSel(seasonMonths[0]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seasonId]);
+  // What the two pickers DISPLAY: the user's own pick when they made one, otherwise the period the
+  // backend actually served. Deriving it (rather than storing a preselection) is what keeps the
+  // controls describing the rows on screen without the controls dictating which rows are fetched.
+  const shownSeasonId = seasonPick ?? season?.season_id;
+  const shownMonth = monthPick ?? (month ? month.slice(0, 7) : undefined);
+  const seasonMonths = useMemo(() => monthsForSeason(shownSeasonId), [monthsForSeason, shownSeasonId]);
 
   const all: any[] = subject === "teams" ? teams : players;
   // Distinct countries present in the current rows (for the filter dropdown), sorted.
@@ -349,16 +489,25 @@ function RankingsView() {
   const rows = countryScoped
     .map((r, i) => ({ ...r, _rank: countryFilter ? i + 1 : r.rank }))
     .filter((r) => matchesSearch(subject === "teams" ? r.team_name : r.username, q));
-  // Month label ("June 2026"): no <LocalTime> month-year mode exists, so format inline
-  // but in the VIEWER's locale (month names follow the language) + their timezone,
-  // instead of the old hardcoded "en-US" / UTC. Falls back to "This month" when unset.
-  const monthLabel = month
-    ? new Intl.DateTimeFormat(getActiveLocale(), {
-        month: "long",
-        year: "numeric",
-        timeZone: getBrowserTimeZone(),
-      }).format(new Date(month))
-    : t("rankings.thisMonth");
+  // Month label ("June 2026"): no <LocalTime> month-year mode exists, so format inline in the
+  // VIEWER's locale, so the month name follows the active language.
+  //
+  // The month is a CALENDAR MONTH, not an instant, so it must NOT be put through the viewer's
+  // timezone. `month` arrives as "2026-06-01", which new Date() reads as midnight UTC; rendering
+  // that in a negative-offset zone lands on 31 May and labelled the whole ladder "May 2026" for
+  // every viewer west of London. Build the date from the year/month parts and format it in UTC
+  // instead, matching monthLabel() in app/(user)/_components/HomeRankingsTiers.tsx. Falls back to
+  // "This month" when unset.
+  const monthLabel = useMemo(() => {
+    if (!month) return t("rankings.thisMonth");
+    const [y, m] = month.split("-").map(Number);
+    if (!y || !m) return t("rankings.thisMonth");
+    return new Intl.DateTimeFormat(getActiveLocale(), {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(Date.UTC(y, m - 1, 1)));
+  }, [month, t]);
 
   return (
     <div>
@@ -370,8 +519,28 @@ function RankingsView() {
           <SearchBar value={q} onChange={setQ} placeholder={subject === "teams" ? t("rankings.searchTeams") : t("rankings.searchPlayers")} />
           {/* Season + month picker (owner 2026-07-04): change which period's monthly rankings show. */}
           {seasons.length > 0 && (
-            <Select value={seasonId ? String(seasonId) : undefined} onValueChange={(v) => setSeasonId(Number(v))}>
-              <SelectTrigger className="h-9 w-full sm:w-40"><SelectValue placeholder={t("rankings.season")} /></SelectTrigger>
+            <Select
+              value={shownSeasonId ? String(shownSeasonId) : undefined}
+              onValueChange={(v) => {
+                // Picking a season is an explicit pick, so it also pins the month: jump to that
+                // season's newest available month. Done in the handler rather than in an effect
+                // keyed on the season, because that effect is exactly what used to overwrite the
+                // backend's published-period default on first load and empty the page.
+                const id = Number(v);
+                setSeasonPick(id);
+                setMonthPick(monthsForSeason(id)[0]);
+              }}
+            >
+              {/* The trigger is given EXPLICIT children so it shows the season NAME only.
+                  Radix otherwise clones the selected SelectItem's content into the trigger, which
+                  dragged the " · current" marker in with it; that does not fit w-40 and rendered as
+                  a dangling "SEASON 3 2026 ·". The marker belongs in the open list, where it tells
+                  the user which season is live, not in the closed control. */}
+              <SelectTrigger className="h-9 w-full sm:w-40">
+                <SelectValue placeholder={t("rankings.season")}>
+                  {seasons.find((s) => s.season_id === shownSeasonId)?.name}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 {seasons.map((s) => (
                   <SelectItem key={s.season_id} value={String(s.season_id)}>
@@ -382,7 +551,7 @@ function RankingsView() {
             </Select>
           )}
           {seasonMonths.length > 1 && (
-            <Select value={monthSel} onValueChange={setMonthSel}>
+            <Select value={shownMonth} onValueChange={setMonthPick}>
               <SelectTrigger className="h-9 w-full sm:w-36"><SelectValue placeholder={t("rankings.month")} /></SelectTrigger>
               <SelectContent>
                 {seasonMonths.map((m) => (
@@ -468,10 +637,21 @@ function RankingsView() {
       {subject === "players" && season?.rankings_published !== false && !loading
         && roleCoverage != null && !roleCoverage.has_role_data && <RoleDataNotice />}
 
+      {/* These rows are the last PUBLISHED period, not the live one. Say so, or an old month
+          reads as today's standings. Only meaningful once there are rows to mislabel. */}
+      {!loading && !failed && !isCurrentPeriod && pendingSeason && all.length > 0 && (
+        <PreviousPeriodNote shown={monthLabel} pending={pendingSeason} />
+      )}
+      {!loading && !failed && truncated && <TruncatedNote />}
+
       <Card>
         <CardContent>
           {loading ? (
             <div className="py-16"><FullLoader text={t("rankings.loadingStandings")} /></div>
+          ) : failed ? (
+            // Checked BEFORE every empty state below: a broken request must never be presented
+            // as "no results have been recorded".
+            <LoadError onRetry={() => setRetry((n) => n + 1)} />
           ) : all.length === 0 && subject === "players" && roleFilter !== ROLE_ALL
               && season?.rankings_published !== false ? (
             // A published period where this ROLE simply has nobody yet. Distinct from the
@@ -769,7 +949,12 @@ function TiersView() {
   // i18n: seasonal tiers view copy (messages/en/teamsplayers.json -> "rankings").
   const t = useTranslations("teamsplayers");
   const [seasons, setSeasons] = useState<Season[]>([]);
-  const [seasonId, setSeasonId] = useState<number | undefined>(undefined);
+  // The user's EXPLICIT season pick; undefined = no pick, let the backend serve the most recent
+  // PUBLISHED season (afc_rankings.views._resolve_quarterly_season) and tell us which one that was
+  // on the envelope. Preselecting the ACTIVE season here is what made this tab read "Not published
+  // yet" for every visitor: the live season's tiers have not been graded yet. Same fix, and same
+  // reasoning, as seasonPick/monthPick in RankingsView above.
+  const [seasonPick, setSeasonPick] = useState<number | undefined>(undefined);
   const [q, setQ] = useState("");
   // Country filter for the tiers view (owner 2026-06-30): see tiers for one country. "" = all.
   const [countryFilter, setCountryFilter] = useState("");
@@ -777,30 +962,65 @@ function TiersView() {
   // Season returned on the quarterly envelope - carries rankings_published + tiers_published.
   const [season, setSeason] = useState<SeasonFlags | null>(null);
   const [loading, setLoading] = useState(true);
+  // Envelope honesty flags, same contract as RankingsView: false = these are the last published
+  // season's tiers, not the live one, and the banner must say so.
+  const [isCurrentPeriod, setIsCurrentPeriod] = useState(true);
+  const [pendingSeason, setPendingSeason] = useState<string | null>(null);
+  // Request failed, kept apart from "this season has no tiered teams" (see <LoadError/>).
+  const [failed, setFailed] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const [truncated, setTruncated] = useState(false);
   // Live refresh (owner 2026-07-02): shared tick re-runs the quarterly fetch below.
-  // The seasons() effect is deliberately NOT wired - it auto-selects the active
-  // season, so a background re-run would clobber the user's season pick.
+  // The seasons() effect is deliberately NOT wired - the dropdown list does not change
+  // between ticks, so re-pulling it every 15s would be pure noise.
   const tick = useLiveTick();
+  // Same two refs, same contract, same reasons as RankingsView above: `lastQuery` drives the
+  // loader (a season pick must show one; a tick must not), and `shownCount` decides what a failure
+  // means (keep bands the viewer is reading, never present a dead API as an untiered season).
+  const lastQuery = useRef<string | null>(null);
+  const shownCount = useRef(0);
 
+  useEffect(() => { shownCount.current = teams.length; }, [teams]);
+
+  // Populates the season dropdown ONLY. It no longer preselects the active season: see seasonPick.
+  // Keyed on `retry` for the same reason as RankingsView: "Try again" restores the whole view,
+  // dropdown included, not just the tier bands.
   useEffect(() => {
-    rankingsApi.seasons().then((r) => {
-      setSeasons(r.results);
-      const active = r.results.find((s) => s.is_active) ?? r.results[0];
-      setSeasonId(active?.season_id);
-    }).catch((error) => toast.error(error?.response?.data?.message || t("rankings.loadFailed")));
-  }, []);
+    rankingsApi.seasons()
+      .then((r) => setSeasons(r.results))
+      .catch((error) => toast.error(error?.response?.data?.message || t("rankings.loadFailed")));
+  }, [retry]);
 
   useEffect(() => {
     let active = true;
-    // Live refresh (owner 2026-07-02): tick > 0 = a background re-pull - keep the
-    // tier bands on screen (no loader flash); season pick, search, and country
-    // filter live in separate state and stay untouched.
-    if (tick === 0) setLoading(true);
-    rankingsApi.teamsQuarterly(seasonId)
-      .then((r) => { if (active) { setTeams(r.results); setSeason((r.season as SeasonFlags) ?? null); } })
+    // Live refresh (owner 2026-07-02): a tick re-pull keeps the tier bands on screen (no loader
+    // flash); search and country filter live in separate state and stay untouched either way.
+    const queryKey = `${seasonPick ?? ""}|${retry}`;
+    const queryChanged = queryKey !== lastQuery.current;
+    lastQuery.current = queryKey;
+    if (queryChanged) setLoading(true);
+    rankingsApi.teamsQuarterly(seasonPick)
+      .then((r) => {
+        if (!active) return;
+        setTeams(r.results); setSeason((r.season as SeasonFlags) ?? null);
+        setIsCurrentPeriod(r.is_current_period !== false);
+        setPendingSeason(r.current_season?.name ?? null);
+        setTruncated(r.truncated);
+        setFailed(false);
+      })
+      // Same rule as the ladder: a failed request gets its own state so it can never be read as a
+      // season that simply has no tiered teams. Only a tick re-pull over bands already on screen
+      // is swallowed, and bands belonging to a season the user has since changed are not kept.
+      .catch(() => {
+        if (!active) return;
+        if (queryChanged || shownCount.current === 0) { setTeams([]); setFailed(true); }
+      })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [seasonId, tick]);
+  }, [seasonPick, tick, retry]);
+
+  // What the dropdown DISPLAYS: the user's pick, else the season the backend actually served.
+  const shownSeasonId = seasonPick ?? season?.season_id;
 
   // Tiers not published yet → backend sends tier=null on every row even though rankings are published.
   const tiersHidden = season?.tiers_published === false;
@@ -840,8 +1060,14 @@ function TiersView() {
               </SelectContent>
             </Select>
           )}
-          <Select value={seasonId ? String(seasonId) : undefined} onValueChange={(v) => setSeasonId(Number(v))}>
-            <SelectTrigger className="h-9 w-[170px]"><SelectValue placeholder={t("rankings.season")} /></SelectTrigger>
+          <Select value={shownSeasonId ? String(shownSeasonId) : undefined} onValueChange={(v) => setSeasonPick(Number(v))}>
+            {/* Name-only trigger, same reason as the ladder's season picker above: the
+                " · current" marker is for the open list, not the closed control. */}
+            <SelectTrigger className="h-9 w-[170px]">
+              <SelectValue placeholder={t("rankings.season")}>
+                {seasons.find((s) => s.season_id === shownSeasonId)?.name}
+              </SelectValue>
+            </SelectTrigger>
             <SelectContent>
               {seasons.map((s) => (
                 <SelectItem key={s.season_id} value={String(s.season_id)}>
@@ -863,8 +1089,17 @@ function TiersView() {
         </div>
       )}
 
+      {/* Not the live season: name the season on screen and the one still pending. */}
+      {!loading && !failed && !isCurrentPeriod && pendingSeason && teams.length > 0 && season?.name && (
+        <PreviousPeriodNote shown={season.name} pending={pendingSeason} />
+      )}
+      {!loading && !failed && truncated && <TruncatedNote />}
+
       {loading ? (
         <Card><CardContent><div className="py-16"><FullLoader text={t("rankings.loadingTiers")} /></div></CardContent></Card>
+      ) : failed ? (
+        // Before every empty state below, for the same reason as on the ladder.
+        <Card><CardContent><LoadError onRetry={() => setRetry((n) => n + 1)} /></CardContent></Card>
       ) : teams.length === 0 && season?.rankings_published === false ? (
         <Card><CardContent><NotPublished seasonName={season?.name} what={t("rankings.rankingsLabel")} /></CardContent></Card>
       ) : teams.length === 0 ? (

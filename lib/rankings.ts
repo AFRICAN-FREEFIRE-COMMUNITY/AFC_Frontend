@@ -183,13 +183,62 @@ async function get<T>(path: string, params?: Record<string, any>): Promise<Envel
   return res.data;
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+ * WHOLE-PERIOD reads for the public ladders.
+ *
+ * The rankings API pages at 25 by default and CAPS `limit` at 100, so one call returns a
+ * fragment of any real period. app/(user)/rankings/page.tsx then filters, searches, groups into
+ * tier bands and re-ranks by country entirely CLIENT-side, which means a fragment is not just an
+ * incomplete list, it makes those features wrong:
+ *   - June 2026 holds 187 player rows; the page fetched 25, so searching for anyone ranked below
+ *     25th answered "No matches for ...", which reads as "this player is not ranked".
+ *   - SEASON 2 holds 84 quarterly team rows; the Tiers tab fetched 25 and printed "25 teams" as
+ *     the size of the tier band, a number that was really just the page size.
+ * So these endpoints are read to exhaustion instead.
+ *
+ * MAX_PAGES caps the walk so a runaway period can never spin forever. When the cap is hit the
+ * envelope comes back with truncated=true and the caller must say so on screen rather than
+ * silently presenting a partial ladder as the whole one.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+// The backend's own ceiling (afc_rankings pagination). Asking for more is silently clamped to it.
+const PAGE_LIMIT = 100;
+// 20 pages x 100 = 20,000 rows, far above any real period, but bounded.
+const MAX_PAGES = 20;
+
+export type FullEnvelope<T> = Envelope<T> & { truncated: boolean };
+
+// Query params are only ever month / season_id / role / period plus the limit + offset added
+// below, so this is typed concretely rather than reusing get()'s looser Record<string, any>.
+type LadderParams = Record<string, string | number | undefined>;
+
+async function getAll<T>(path: string, params?: LadderParams): Promise<FullEnvelope<T>> {
+  let offset = 0;
+  let rows: T[] = [];
+  let envelope: Envelope<T> | null = null;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const env = await get<T>(path, { ...params, limit: PAGE_LIMIT, offset });
+    envelope = env;
+    rows = rows.concat(env.results ?? []);
+    if (!env.pagination?.has_more) {
+      // Keep the LAST envelope's month/season/publish metadata: it is identical on every page,
+      // and it is what the page reads to label the period and honour the publish gate.
+      return { ...env, results: rows, truncated: false };
+    }
+    offset = env.pagination.next_offset ?? offset + PAGE_LIMIT;
+  }
+  return { ...(envelope as Envelope<T>), results: rows, truncated: true };
+}
+
 // PUBLIC rankings client (no auth), consumed by app/(user)/rankings/page.tsx; the
 // Bearer-gated admin twin is lib/rankingsAdmin.ts.
 export const rankingsApi = {
-  teamsMonthly: (month?: string) => get<TeamRow>("teams/monthly/", month ? { month } : undefined),
-  teamsQuarterly: (seasonId?: number) => get<TeamRow>("teams/quarterly/", seasonId ? { season_id: seasonId } : undefined),
-  playersMonthly: (month?: string) => get<PlayerRow>("players/monthly/", month ? { month } : undefined),
-  playersQuarterly: (seasonId?: number) => get<PlayerRow>("players/quarterly/", seasonId ? { season_id: seasonId } : undefined),
+  // The four ladders below read the WHOLE period (see getAll): the /rankings page searches,
+  // filters and re-ranks them client-side, so a single page of 25 would make those features lie.
+  teamsMonthly: (month?: string) => getAll<TeamRow>("teams/monthly/", month ? { month } : undefined),
+  teamsQuarterly: (seasonId?: number) => getAll<TeamRow>("teams/quarterly/", seasonId ? { season_id: seasonId } : undefined),
+  playersMonthly: (month?: string) => getAll<PlayerRow>("players/monthly/", month ? { month } : undefined),
+  playersQuarterly: (seasonId?: number) => getAll<PlayerRow>("players/quarterly/", seasonId ? { season_id: seasonId } : undefined),
   /**
    * The player ladder for ONE in-game role, plus the role tab bar, in a single call.
    *
@@ -206,12 +255,15 @@ export const rankingsApi = {
    * Consumed by app/(user)/rankings/page.tsx (the player role tabs).
    */
   playersByRole: (params?: { role?: string; period?: "monthly" | "quarterly"; month?: string; seasonId?: number }) =>
-    get<PlayerRow>("players/by-role/", {
+    // Read to exhaustion like the ladders above: this IS the player ladder the page renders, and
+    // the role tab bar / role_coverage ride along on the same envelope (preserved by getAll,
+    // which keeps the last page's non-results fields).
+    getAll<PlayerRow>("players/by-role/", {
       ...(params?.role ? { role: params.role } : {}),
       ...(params?.period ? { period: params.period } : {}),
       ...(params?.month ? { month: params.month } : {}),
       ...(params?.seasonId ? { season_id: params.seasonId } : {}),
-    }) as Promise<Envelope<PlayerRow> & {
+    }) as Promise<FullEnvelope<PlayerRow> & {
       role: string | null;
       roles: PlayerRoleOption[];
       role_coverage?: PlayerRoleCoverage;
