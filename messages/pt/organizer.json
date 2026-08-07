@@ -1237,7 +1237,8 @@
       "savedAllMaps": "Guardei tudo isto neste grupo: {count, plural,  one { # mapa }  other { # mapas } }.",
       "savedSomeMaps": "{ok} de {total} mapas guardados. Falha em {failed}: {reason}",
       "saveGroupError": "Não foi possível guardar os mapas do grupo",
-      "retryHint": "abre o mapa que não está a funcionar e tenta novamente"
+      "retryHint": "abre o mapa que não está a funcionar e tenta novamente",
+      "missingPlacement": "Nenhuma colocação final inserida para: {names}. Escreva a colocação de cada um (1 para o vencedor, depois 2, 3, e assim por diante), ou desmarque Jogou, e guarde novamente."
     }
   },
   "exportGraphic": {

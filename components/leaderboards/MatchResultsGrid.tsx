@@ -82,27 +82,38 @@ import {
 // Same two shared components the admin edit page uses inline, so the grid looks identical on both.
 import { CountryFlag } from "@/lib/countryFlag";
 import { WatchTag } from "@/components/WatchTag";
+// Absent-vs-zero for every score box (owner bug 2026-08-06). Rendering a stored 0 as "" and
+// reading "" back as 0 is what made a typed zero vanish and a blank placement save silently at
+// zero points. See lib/scoreInput.ts for the full write-up.
+import {
+  parseScoreInput,
+  scoreInputValue,
+  scoreOrZero,
+  type ScoreValue,
+} from "@/lib/scoreInput";
 
 // ── Row shapes (structurally identical to the admin page's inline types so the admin can
 // pass its existing state straight through; the organizer builds the same shapes). ──
+// Every numeric cell is a ScoreValue (number | null) so "left empty" survives all the way to the
+// save handler instead of being laundered into 0 by the input.
 export interface EditRow {
   id: number;
   name: string;
   // Team country for the flag (undefined/null for solo rows -> no flag).
   teamCountry?: string | null;
-  placement: number;
-  kills: number;
-  bonus_points: number;
-  penalty_points: number;
+  placement: ScoreValue;
+  kills: ScoreValue;
+  bonus_points: ScoreValue;
+  penalty_points: ScoreValue;
   played: boolean;
 }
 
 export interface PlayerEditRow {
   player_id: number;
   username: string;
-  kills: number;
-  damage: number;
-  assists: number;
+  kills: ScoreValue;
+  damage: ScoreValue;
+  assists: ScoreValue;
   played: boolean;
 }
 
@@ -258,18 +269,20 @@ export interface MatchResultsGridProps {
   /** Which per-team player groups are expanded (keyed `${selectedMatchId}-${teamId}`). */
   expandedTeams: Record<string, boolean>;
   onToggleTeam: (key: string) => void;
+  // `value` is a ScoreValue for the numeric fields (null = the box was emptied) and a boolean for
+  // the Played checkbox. Handlers must keep null as null - see lib/scoreInput.ts.
   onUpdateRow: (
     matchId: number,
     idx: number,
     field: keyof Omit<EditRow, "id" | "name">,
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) => void;
   onUpdatePlayerRow: (
     matchId: number,
     teamIdx: number,
     playerIdx: number,
     field: keyof Omit<PlayerEditRow, "player_id" | "username">,
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) => void;
   /** Is this standings-row entity (team in team mode, player in solo mode) watched? */
   isEntityWatched: (id?: number) => boolean;
@@ -429,14 +442,14 @@ export function MatchResultsGrid({
                             type="number"
                             min="0"
                             className="h-8 w-24"
-                            value={row.placement || ""}
+                            value={scoreInputValue(row.placement)}
                             disabled={!canEdit}
                             onChange={(e) =>
                               onUpdateRow(
                                 selectedMatchId,
                                 idx,
                                 "placement",
-                                parseInt(e.target.value) || 0,
+                                parseScoreInput(e.target.value),
                               )
                             }
                           />
@@ -447,14 +460,14 @@ export function MatchResultsGrid({
                               type="number"
                               min="0"
                               className="h-8 w-24"
-                              value={row.kills || ""}
+                              value={scoreInputValue(row.kills)}
                               disabled={!canEdit}
                               onChange={(e) =>
                                 onUpdateRow(
                                   selectedMatchId,
                                   idx,
                                   "kills",
-                                  parseInt(e.target.value) || 0,
+                                  parseScoreInput(e.target.value),
                                 )
                               }
                             />
@@ -466,14 +479,14 @@ export function MatchResultsGrid({
                               type="number"
                               min="0"
                               className="h-8 w-24"
-                              value={row.bonus_points || ""}
+                              value={scoreInputValue(row.bonus_points)}
                               disabled={!canEdit}
                               onChange={(e) =>
                                 onUpdateRow(
                                   selectedMatchId,
                                   idx,
                                   "bonus_points",
-                                  parseInt(e.target.value) || 0,
+                                  parseScoreInput(e.target.value),
                                 )
                               }
                             />
@@ -485,14 +498,14 @@ export function MatchResultsGrid({
                               type="number"
                               min="0"
                               className="h-8 w-24"
-                              value={row.penalty_points || ""}
+                              value={scoreInputValue(row.penalty_points)}
                               disabled={!canEdit}
                               onChange={(e) =>
                                 onUpdateRow(
                                   selectedMatchId,
                                   idx,
                                   "penalty_points",
-                                  parseInt(e.target.value) || 0,
+                                  parseScoreInput(e.target.value),
                                 )
                               }
                             />
@@ -614,7 +627,7 @@ export function MatchResultsGrid({
                                         type="number"
                                         min="0"
                                         className="h-8 w-24"
-                                        value={player.kills || ""}
+                                        value={scoreInputValue(player.kills)}
                                         disabled={!canEdit}
                                         onChange={(e) =>
                                           onUpdatePlayerRow(
@@ -622,7 +635,7 @@ export function MatchResultsGrid({
                                             teamIdx,
                                             playerIdx,
                                             "kills",
-                                            parseInt(e.target.value) || 0,
+                                            parseScoreInput(e.target.value),
                                           )
                                         }
                                       />
@@ -632,7 +645,7 @@ export function MatchResultsGrid({
                                         type="number"
                                         min="0"
                                         className="h-8 w-24"
-                                        value={player.damage || ""}
+                                        value={scoreInputValue(player.damage)}
                                         disabled={!canEdit}
                                         onChange={(e) =>
                                           onUpdatePlayerRow(
@@ -640,7 +653,7 @@ export function MatchResultsGrid({
                                             teamIdx,
                                             playerIdx,
                                             "damage",
-                                            parseInt(e.target.value) || 0,
+                                            parseScoreInput(e.target.value),
                                           )
                                         }
                                       />
@@ -650,7 +663,7 @@ export function MatchResultsGrid({
                                         type="number"
                                         min="0"
                                         className="h-8 w-24"
-                                        value={player.assists || ""}
+                                        value={scoreInputValue(player.assists)}
                                         disabled={!canEdit}
                                         onChange={(e) =>
                                           onUpdatePlayerRow(
@@ -658,7 +671,7 @@ export function MatchResultsGrid({
                                             teamIdx,
                                             playerIdx,
                                             "assists",
-                                            parseInt(e.target.value) || 0,
+                                            parseScoreInput(e.target.value),
                                           )
                                         }
                                       />
@@ -756,14 +769,23 @@ export function MatchResultsGrid({
                         );
                         const editRow =
                           editIdx >= 0 ? currentRows[editIdx] : undefined;
-                        const bonus = editRow?.bonus_points ?? stat.bonus_points;
-                        const penalty =
-                          editRow?.penalty_points ?? stat.penalty_points;
+                        // The edit row WINS whenever this stat has one, including when its box
+                        // was cleared (null). Only fall back to the saved stat when the row is
+                        // not loaded at all - otherwise clearing a bonus box would keep showing
+                        // the old saved bonus and the preview would disagree with what saves.
+                        const bonus: ScoreValue = editRow
+                          ? editRow.bonus_points
+                          : stat.bonus_points;
+                        const penalty: ScoreValue = editRow
+                          ? editRow.penalty_points
+                          : stat.penalty_points;
+                        // A blank bonus/penalty counts as zero in the running total (the save
+                        // sends it as 0), so the preview matches the number that will be stored.
                         const liveTotal =
                           stat.placement_points +
                           stat.kill_points +
-                          bonus -
-                          penalty;
+                          scoreOrZero(bonus) -
+                          scoreOrZero(penalty);
                         return (
                           <TableRow key={statId || idx}>
                             <TableCell className="text-muted-foreground font-medium">
@@ -795,14 +817,14 @@ export function MatchResultsGrid({
                                 type="number"
                                 min="0"
                                 className="h-8 w-24"
-                                value={bonus || ""}
+                                value={scoreInputValue(bonus)}
                                 disabled={editIdx < 0 || !canEdit}
                                 onChange={(e) =>
                                   onUpdateRow(
                                     selectedMatchId,
                                     editIdx,
                                     "bonus_points",
-                                    parseInt(e.target.value) || 0,
+                                    parseScoreInput(e.target.value),
                                   )
                                 }
                               />
@@ -812,14 +834,14 @@ export function MatchResultsGrid({
                                 type="number"
                                 min="0"
                                 className="h-8 w-24"
-                                value={penalty || ""}
+                                value={scoreInputValue(penalty)}
                                 disabled={editIdx < 0 || !canEdit}
                                 onChange={(e) =>
                                   onUpdateRow(
                                     selectedMatchId,
                                     editIdx,
                                     "penalty_points",
-                                    parseInt(e.target.value) || 0,
+                                    parseScoreInput(e.target.value),
                                   )
                                 }
                               />

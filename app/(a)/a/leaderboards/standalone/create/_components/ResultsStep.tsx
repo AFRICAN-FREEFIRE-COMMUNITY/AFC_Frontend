@@ -82,6 +82,17 @@ import {
   type PickedGhostPlayer,
 } from "@/components/ui/user-search-select";
 import { GhostCreateInline } from "./GhostCreateInline";
+// Absent-vs-zero for the score boxes (owner bug 2026-08-06): rendering a stored 0 as "" made a
+// typed zero vanish, so the admin could not tell an entered 0 from an untouched box. Unlike the
+// EVENT grid this step has no per-row "played" flag, so a blank placement legitimately means
+// "this participant has no placement on this map" and still goes to the server as 0 - the fix
+// here is purely that 0 and empty stop LOOKING the same. See lib/scoreInput.ts.
+import {
+  parseScoreInput,
+  scoreInputValue,
+  scoreOrZero,
+  type ScoreValue,
+} from "@/lib/scoreInput";
 import {
   standaloneLeaderboardsApi,
   type ParticipantRosterEntry,
@@ -94,7 +105,7 @@ import {
 interface PlayerKillRow {
   name: string;
   user_id: number | null;
-  kills: number;
+  kills: ScoreValue;
 }
 
 // One editable result-set per participant, per map. `players` is seeded from the participant's
@@ -107,8 +118,8 @@ interface ResultRow {
   participant_id: number;
   name: string;
   is_ghost: boolean;
-  placement: number;
-  kills: number; // the manually-typed team total (authoritative when manualKills, or no roster)
+  placement: ScoreValue;
+  kills: ScoreValue; // the manually-typed team total (authoritative when manualKills, or no roster)
   manualKills: boolean; // true once the admin typed the team total directly
   players: PlayerKillRow[];
 }
@@ -185,10 +196,12 @@ export function ResultsStep({
     participant_id: p.id,
     name: p.name,
     is_ghost: p.is_ghost,
-    placement: 0,
-    kills: 0,
+    // A fresh row starts EMPTY, not at a fake 0, so an untouched box is visibly different from
+    // one the admin deliberately scored at 0.
+    placement: null,
+    kills: null,
     manualKills: false,
-    players: (rosterByPid[p.id] ?? []).map((r) => ({ ...r, kills: 0 })),
+    players: (rosterByPid[p.id] ?? []).map((r) => ({ ...r, kills: null })),
   });
 
   // Ensure every map has a row-set, every participant has a row on every map (incl. ones added
@@ -209,7 +222,7 @@ export function ResultsStep({
             const roster = rosterByPid[r.participant_id];
             if (roster && roster.length > 0) {
               changed = true;
-              return { ...r, players: roster.map((x) => ({ ...x, kills: 0 })) };
+              return { ...r, players: roster.map((x) => ({ ...x, kills: null })) };
             }
           }
           return r;
@@ -231,7 +244,7 @@ export function ResultsStep({
     matchId: number,
     idx: number,
     field: "placement" | "kills",
-    value: number,
+    value: ScoreValue,
   ) =>
     setRowsByMatch((prev) => {
       const rows = [...(prev[matchId] ?? [])];
@@ -255,7 +268,12 @@ export function ResultsStep({
 
   // Per-player kills edit (team format). Editing a player returns the row to DERIVED mode -
   // entering player data means the breakdown is the source of truth again.
-  const updatePlayerKills = (matchId: number, rowIdx: number, playerIdx: number, kills: number) =>
+  const updatePlayerKills = (
+    matchId: number,
+    rowIdx: number,
+    playerIdx: number,
+    kills: ScoreValue,
+  ) =>
     setRowsByMatch((prev) => {
       const rows = [...(prev[matchId] ?? [])];
       const row = rows[rowIdx];
@@ -265,13 +283,16 @@ export function ResultsStep({
       return { ...prev, [matchId]: rows };
     });
 
+  // A player whose kills box is blank contributes none (scoreOrZero), same as one scored at 0.
   const playersSum = (row: ResultRow): number =>
-    row.players.reduce((acc, p) => acc + (p.kills || 0), 0);
+    row.players.reduce((acc, p) => acc + scoreOrZero(p.kills), 0);
 
   // The team's overall kills: the manually-typed total when overridden (or no roster), else the
   // live SUM of the player kills.
   const teamKills = (row: ResultRow): number =>
-    row.manualKills || row.players.length === 0 ? row.kills : playersSum(row);
+    row.manualKills || row.players.length === 0
+      ? scoreOrZero(row.kills)
+      : playersSum(row);
 
   // ── Add a participant from THIS step (mirrors ParticipantsStep.add: POST .../participants/,
   // append the returned row to the shared list; the effects above then seed roster + map rows). ──
@@ -399,7 +420,9 @@ export function ResultsStep({
       await standaloneLeaderboardsApi.saveResults(activeMatchId, {
         results: rows.map((r) => ({
           participant_id: r.participant_id,
-          placement: r.placement,
+          // No "played" flag exists on this step, so a blank placement keeps its existing meaning
+          // of "no placement on this map" and is sent as 0 exactly as before.
+          placement: scoreOrZero(r.placement),
           kills: teamKills(r),
           // The breakdown only rides along in DERIVED mode - a manually-typed team total wins
           // outright (the server would re-sum any players sent, overriding the override).
@@ -408,7 +431,7 @@ export function ResultsStep({
                 players: r.players.map((p) => ({
                   name: p.name,
                   user_id: p.user_id,
-                  kills: p.kills,
+                  kills: scoreOrZero(p.kills),
                 })),
               }
             : {}),
@@ -627,9 +650,9 @@ export function ResultsStep({
                         type="number"
                         min="0"
                         className="h-8 w-20"
-                        value={row.placement || ""}
+                        value={scoreInputValue(row.placement)}
                         onChange={(e) =>
-                          updateRow(activeMatchId!, idx, "placement", parseInt(e.target.value) || 0)
+                          updateRow(activeMatchId!, idx, "placement", parseScoreInput(e.target.value))
                         }
                       />
                     </div>
@@ -643,9 +666,13 @@ export function ResultsStep({
                         type="number"
                         min="0"
                         className="h-8 w-20"
-                        value={teamKills(row) || ""}
+                        value={scoreInputValue(
+                          row.manualKills || row.players.length === 0
+                            ? row.kills
+                            : teamKills(row),
+                        )}
                         onChange={(e) =>
-                          updateRow(activeMatchId!, idx, "kills", parseInt(e.target.value) || 0)
+                          updateRow(activeMatchId!, idx, "kills", parseScoreInput(e.target.value))
                         }
                       />
                       {row.manualKills && row.players.length > 0 && (
@@ -683,13 +710,13 @@ export function ResultsStep({
                             type="number"
                             min="0"
                             className="h-8 w-16 text-xs"
-                            value={p.kills || ""}
+                            value={scoreInputValue(p.kills)}
                             onChange={(e) =>
                               updatePlayerKills(
                                 activeMatchId!,
                                 idx,
                                 pi,
-                                parseInt(e.target.value) || 0,
+                                parseScoreInput(e.target.value),
                               )
                             }
                           />
@@ -732,13 +759,13 @@ export function ResultsStep({
                         type="number"
                         min="0"
                         className="h-8 w-20"
-                        value={row.placement || ""}
+                        value={scoreInputValue(row.placement)}
                         onChange={(e) =>
                           updateRow(
                             activeMatchId!,
                             idx,
                             "placement",
-                            parseInt(e.target.value) || 0,
+                            parseScoreInput(e.target.value),
                           )
                         }
                       />
@@ -748,13 +775,13 @@ export function ResultsStep({
                         type="number"
                         min="0"
                         className="h-8 w-20"
-                        value={row.kills || ""}
+                        value={scoreInputValue(row.kills)}
                         onChange={(e) =>
                           updateRow(
                             activeMatchId!,
                             idx,
                             "kills",
-                            parseInt(e.target.value) || 0,
+                            parseScoreInput(e.target.value),
                           )
                         }
                       />

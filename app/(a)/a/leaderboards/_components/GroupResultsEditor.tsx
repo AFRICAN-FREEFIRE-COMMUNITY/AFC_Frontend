@@ -57,6 +57,16 @@ import {
 // 2026-07-03). team_country rides on each stat row (get_all_leaderboard_details_for_event) and is
 // threaded onto EditRow / TeamPlayerGroup below. Solo/blank -> CountryFlag renders nothing.
 import { CountryFlag } from "@/lib/countryFlag";
+// Absent-vs-zero for the manual score boxes (owner bug 2026-08-06). A blank placement must stay
+// null so the backend rejects it instead of scoring 0; a blank kills box collapses to 0.
+// See lib/scoreInput.ts for the full write-up.
+import {
+  parseScoreInput,
+  rowsMissingPlacement,
+  scoreInputValue,
+  scoreOrZero,
+  type ScoreValue,
+} from "@/lib/scoreInput";
 
 // ── Shapes (subset of the leaderboard-details API rows) ──────────────────────
 interface RawPlayer {
@@ -91,23 +101,25 @@ interface GroupData {
   matches?: MapData[];
 }
 
+// Numeric cells are ScoreValue (number | null): null means "this box is empty", which is a
+// DIFFERENT thing from 0 and must survive to buildRequest below.
 interface EditRow {
   id: number;
   name: string;
   // Team country for the flag (undefined for solo rows -> no flag).
   teamCountry?: string | null;
-  placement: number;
-  kills: number;
-  bonus_points: number;
-  penalty_points: number;
+  placement: ScoreValue;
+  kills: ScoreValue;
+  bonus_points: ScoreValue;
+  penalty_points: ScoreValue;
   played: boolean;
 }
 interface PlayerEditRow {
   player_id: number;
   username: string;
-  kills: number;
-  damage: number;
-  assists: number;
+  kills: ScoreValue;
+  damage: ScoreValue;
+  assists: ScoreValue;
   played: boolean;
 }
 interface TeamPlayerGroup {
@@ -217,7 +229,7 @@ export function GroupResultsEditor({
     matchId: number,
     idx: number,
     field: keyof Omit<EditRow, "id" | "name">,
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) =>
     setEditRows((prev) => {
       const rows = [...(prev[matchId] ?? [])];
@@ -230,7 +242,7 @@ export function GroupResultsEditor({
     teamIdx: number,
     playerIdx: number,
     field: keyof Omit<PlayerEditRow, "player_id" | "username">,
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) =>
     setPlayerGroups((prev) => {
       const groups = (prev[matchId] ?? []).map((g, ti) => {
@@ -257,11 +269,13 @@ export function GroupResultsEditor({
           match_id: matchId.toString(),
           rows: rows.map((r) => ({
             competitor_id: r.id,
+            // RAW: an empty placement box must arrive as null so the backend rejects the save
+            // instead of storing 0 placement points (owner bug 2026-08-06).
             placement: r.placement,
-            kills: r.kills,
+            kills: scoreOrZero(r.kills),
             played: r.played,
-            bonus_points: r.bonus_points,
-            penalty_points: r.penalty_points,
+            bonus_points: scoreOrZero(r.bonus_points),
+            penalty_points: scoreOrZero(r.penalty_points),
           })),
         },
       };
@@ -275,15 +289,16 @@ export function GroupResultsEditor({
           const teamGroup = groups.find((g) => g.teamId === r.id);
           return {
             tournament_team_id: r.id,
+            // RAW placement (see the solo branch above); counts collapse a blank box to 0.
             placement: r.placement,
             played: r.played,
-            bonus_points: r.bonus_points,
-            penalty_points: r.penalty_points,
+            bonus_points: scoreOrZero(r.bonus_points),
+            penalty_points: scoreOrZero(r.penalty_points),
             players: (teamGroup?.players ?? []).map((p) => ({
               user_id: p.player_id,
-              kills: p.kills,
-              damage: p.damage,
-              assists: p.assists,
+              kills: scoreOrZero(p.kills),
+              damage: scoreOrZero(p.damage),
+              assists: scoreOrZero(p.assists),
               played: p.played,
             })),
           };
@@ -295,6 +310,17 @@ export function GroupResultsEditor({
   const saveMatchById = async (matchId: number): Promise<void> => {
     const req = buildRequest(matchId);
     if (!req) return;
+    // Name the rows that played but have no finishing position. The backend rejects this case
+    // too, but its message cannot say WHICH rows are at fault. Throwing (not returning) makes the
+    // "Save all maps" fan-out count this map as failed rather than silently skip it.
+    const missingPlacement = rowsMissingPlacement(editRows[matchId] ?? []);
+    if (missingPlacement.length > 0) {
+      throw new Error(
+        `No finishing position entered for: ${missingPlacement.join(", ")}. ` +
+          "Type each one's position (1 for the winner, then 2, 3, and so on), " +
+          "or untick Played, then save again.",
+      );
+    }
     const res = await fetch(req.endpoint, {
       method: "POST",
       headers: {
@@ -451,13 +477,13 @@ export function GroupResultsEditor({
                               type="number"
                               min="0"
                               className="h-8 w-20"
-                              value={row.placement || ""}
+                              value={scoreInputValue(row.placement)}
                               onChange={(e) =>
                                 updateRow(
                                   activeMatchId!,
                                   idx,
                                   "placement",
-                                  parseInt(e.target.value) || 0,
+                                  parseScoreInput(e.target.value),
                                 )
                               }
                             />
@@ -468,13 +494,13 @@ export function GroupResultsEditor({
                                 type="number"
                                 min="0"
                                 className="h-8 w-20"
-                                value={row.kills || ""}
+                                value={scoreInputValue(row.kills)}
                                 onChange={(e) =>
                                   updateRow(
                                     activeMatchId!,
                                     idx,
                                     "kills",
-                                    parseInt(e.target.value) || 0,
+                                    parseScoreInput(e.target.value),
                                   )
                                 }
                               />
@@ -485,13 +511,13 @@ export function GroupResultsEditor({
                               type="number"
                               min="0"
                               className="h-8 w-20"
-                              value={row.bonus_points || ""}
+                              value={scoreInputValue(row.bonus_points)}
                               onChange={(e) =>
                                 updateRow(
                                   activeMatchId!,
                                   idx,
                                   "bonus_points",
-                                  parseInt(e.target.value) || 0,
+                                  parseScoreInput(e.target.value),
                                 )
                               }
                             />
@@ -501,13 +527,13 @@ export function GroupResultsEditor({
                               type="number"
                               min="0"
                               className="h-8 w-20"
-                              value={row.penalty_points || ""}
+                              value={scoreInputValue(row.penalty_points)}
                               onChange={(e) =>
                                 updateRow(
                                   activeMatchId!,
                                   idx,
                                   "penalty_points",
-                                  parseInt(e.target.value) || 0,
+                                  parseScoreInput(e.target.value),
                                 )
                               }
                             />
@@ -586,14 +612,14 @@ export function GroupResultsEditor({
                                             type="number"
                                             min="0"
                                             className="h-8 w-20"
-                                            value={player.kills || ""}
+                                            value={scoreInputValue(player.kills)}
                                             onChange={(e) =>
                                               updatePlayerRow(
                                                 activeMatchId!,
                                                 teamIdx,
                                                 playerIdx,
                                                 "kills",
-                                                parseInt(e.target.value) || 0,
+                                                parseScoreInput(e.target.value),
                                               )
                                             }
                                           />
@@ -603,14 +629,14 @@ export function GroupResultsEditor({
                                             type="number"
                                             min="0"
                                             className="h-8 w-20"
-                                            value={player.damage || ""}
+                                            value={scoreInputValue(player.damage)}
                                             onChange={(e) =>
                                               updatePlayerRow(
                                                 activeMatchId!,
                                                 teamIdx,
                                                 playerIdx,
                                                 "damage",
-                                                parseInt(e.target.value) || 0,
+                                                parseScoreInput(e.target.value),
                                               )
                                             }
                                           />
@@ -620,14 +646,14 @@ export function GroupResultsEditor({
                                             type="number"
                                             min="0"
                                             className="h-8 w-20"
-                                            value={player.assists || ""}
+                                            value={scoreInputValue(player.assists)}
                                             onChange={(e) =>
                                               updatePlayerRow(
                                                 activeMatchId!,
                                                 teamIdx,
                                                 playerIdx,
                                                 "assists",
-                                                parseInt(e.target.value) || 0,
+                                                parseScoreInput(e.target.value),
                                               )
                                             }
                                           />

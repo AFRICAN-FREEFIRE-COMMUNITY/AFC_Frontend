@@ -17,6 +17,16 @@ import { Loader } from "@/components/Loader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+// Absent-vs-zero for the manual score boxes (owner bug 2026-08-06). A blank placement stays null
+// so the backend rejects it instead of scoring 0; a blank kills box collapses to 0. Rendering also
+// goes through here so a typed 0 stays visible instead of redrawing as an empty box.
+import {
+  parseScoreInput,
+  rowsMissingPlacement,
+  scoreInputValue,
+  scoreOrZero,
+  type ScoreValue,
+} from "@/lib/scoreInput";
 import { toast } from "sonner";
 // Add-player picker (Roster Rules, owner 2026-06-15): a per-team dialog that lists the
 // team's PLAYING-role members who are NOT yet on this event's roster, then POSTs the
@@ -61,12 +71,14 @@ interface TournamentTeam {
   members: TournamentMember[];
 }
 
+// Every numeric field is a ScoreValue (number | null). null means "this box is empty", which is
+// a DIFFERENT thing from 0 and must survive to handleSubmit below (see lib/scoreInput.ts).
 interface PlayerResult {
   user_id: number;
   username: string;
-  kills: number;
-  damage: number;
-  assists: number;
+  kills: ScoreValue;
+  damage: ScoreValue;
+  assists: ScoreValue;
   played: boolean;
 }
 
@@ -74,7 +86,7 @@ interface TeamResult {
   tournament_team_id: number;
   team_name: string;
   team_logo: string | null;
-  placement: number;
+  placement: ScoreValue;
   played: boolean;
   players: PlayerResult[];
 }
@@ -82,10 +94,10 @@ interface TeamResult {
 interface SoloResult {
   competitor_id: number;
   username: string;
-  placement: number;
-  kills: number;
-  bonus_points: number;
-  penalty_points: number;
+  placement: ScoreValue;
+  kills: ScoreValue;
+  bonus_points: ScoreValue;
+  penalty_points: ScoreValue;
   played: boolean;
 }
 
@@ -162,7 +174,7 @@ export function ManualMatchResultStep({
           initialStats.map((s: any) => ({
             competitor_id: s.competitor_id,
             username: s.username,
-            placement: s.placement ?? 0,
+            placement: s.placement ?? null,
             kills: s.kills ?? 0,
             bonus_points: s.bonus_points ?? 0,
             penalty_points: s.penalty_points ?? 0,
@@ -214,16 +226,22 @@ export function ManualMatchResultStep({
                 tournament_team_id: tt.tournament_team_id,
                 team_name: tt.team_name,
                 team_logo: tt.team_logo ?? null,
-                placement: stat?.placement ?? 0,
+                // No saved stat for this team yet -> the placement box starts EMPTY, not at a
+                // fake 0. A 0 here used to be indistinguishable from a real entry and saved as a
+                // played row worth 0 placement points (owner bug 2026-08-06).
+                placement: stat?.placement ?? null,
                 played: stat?.played ?? true,
                 players: (tt.members ?? []).map((m) => {
                   const sp = savedByUid.get(m.player_id);
                   return {
                     user_id: m.player_id,
                     username: m.username,
-                    kills: sp?.kills ?? 0,
-                    damage: sp?.damage ?? 0,
-                    assists: sp?.assists ?? 0,
+                    // No saved row for this member on this map means nothing has been entered
+                    // for them yet, so their boxes start EMPTY; a member WITH a saved row keeps
+                    // its real value, including a deliberate 0 (bug 2026-08-06).
+                    kills: sp?.kills ?? null,
+                    damage: sp?.damage ?? null,
+                    assists: sp?.assists ?? null,
                     // Squad matches allow max 4 PLAYED players (the backend rejects >4).
                     // Registered rosters can hold 5-6 (substitutes), so a member counts as
                     // played by DEFAULT only when they have a saved stat for this map; subs
@@ -243,7 +261,7 @@ export function ManualMatchResultStep({
               tournament_team_id: s.tournament_team_id,
               team_name: s.team_name,
               team_logo: s.team_logo ?? null,
-              placement: s.placement ?? 0,
+              placement: s.placement ?? null,
               played: s.played ?? true,
               players: (s.players ?? []).map((p: any) => ({
                 user_id: p.player_id ?? p.user_id,
@@ -263,7 +281,7 @@ export function ManualMatchResultStep({
             competitors.map((name, idx) => ({
               competitor_id: idx + 1,
               username: name,
-              placement: 0,
+              placement: null,
               kills: 0,
               bonus_points: 0,
               penalty_points: 0,
@@ -276,7 +294,7 @@ export function ManualMatchResultStep({
               (tt.members ?? []).map((m) => ({
                 competitor_id: m.player_id,
                 username: m.username,
-                placement: 0,
+                placement: null,
                 kills: 0,
                 bonus_points: 0,
                 penalty_points: 0,
@@ -297,7 +315,7 @@ export function ManualMatchResultStep({
 
   // ── Team helpers ───────────────────────────────────────────────────────────
 
-  const updateTeamPlacement = (idx: number, val: number) => {
+  const updateTeamPlacement = (idx: number, val: ScoreValue) => {
     setTeamResults((prev) => {
       const next = [...prev];
       next[idx] = { ...next[idx], placement: val };
@@ -317,7 +335,7 @@ export function ManualMatchResultStep({
     teamIdx: number,
     playerIdx: number,
     field: "kills" | "damage" | "assists" | "played",
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) => {
     setTeamResults((prev) => {
       const next = [...prev];
@@ -326,7 +344,10 @@ export function ManualMatchResultStep({
       // Entering any stat for a player implies they played (a non-player has no stats), so
       // auto-tick "Played". The submit only sends played=true players to respect the squad
       // 4-played cap, so this stops typed kills from being silently dropped. (bug fix 2026-06-15)
-      if (field !== "played" && typeof value === "number" && value > 0) {
+      // Typing 0 counts as entering a stat (owner bug 2026-08-06). This used to be `value > 0`,
+      // so the one player deliberately scored at 0 kills was never ticked and was then dropped by
+      // the .filter(p => p.played) in handleSubmit.
+      if (field !== "played" && typeof value === "number") {
         updated.played = true;
       }
       players[playerIdx] = updated;
@@ -426,7 +447,7 @@ export function ManualMatchResultStep({
   const updateSoloField = (
     idx: number,
     field: "placement" | "kills" | "bonus_points" | "penalty_points" | "played",
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) => {
     setSoloResults((prev) => {
       const next = [...prev];
@@ -438,6 +459,34 @@ export function ManualMatchResultStep({
   // ── Submit ─────────────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
+    // Name the rows that played this map but have no finishing position entered. The backend
+    // rejects this case (validate_placements) but cannot say WHICH rows are at fault, and in a
+    // 12-team lobby that is the difference between fixable and not. (owner bug 2026-08-06)
+    const missingPlacement =
+      participantType === "team"
+        ? rowsMissingPlacement(
+            teamResults.map((t) => ({
+              name: t.team_name,
+              placement: t.placement,
+              played: t.played,
+            })),
+          )
+        : rowsMissingPlacement(
+            soloResults.map((s) => ({
+              name: s.username,
+              placement: s.placement,
+              played: s.played,
+            })),
+          );
+    if (missingPlacement.length > 0) {
+      toast.error(
+        `No finishing position entered for: ${missingPlacement.join(", ")}. ` +
+          "Type each one's position (1 for the winner, then 2, 3, and so on), " +
+          "or untick them, then submit again.",
+      );
+      return;
+    }
+
     setSubmitting(true);
     try {
       let endpoint: string;
@@ -452,6 +501,8 @@ export function ManualMatchResultStep({
           match_id: match.match_id,
           results: teamResults.map((t) => ({
             tournament_team_id: t.tournament_team_id,
+            // RAW: a placement box left empty arrives as null so the backend rejects the save
+            // instead of storing a played row at 0 placement points.
             placement: t.placement,
             played: t.played,
             // Only players who actually played (≤4 for squad). Omitting not-played subs keeps
@@ -461,9 +512,10 @@ export function ManualMatchResultStep({
               .filter((p) => p.played)
               .map((p) => ({
                 user_id: p.user_id,
-                kills: p.kills,
-                damage: p.damage,
-                assists: p.assists,
+                // A blank kills/damage/assists box legitimately means none.
+                kills: scoreOrZero(p.kills),
+                damage: scoreOrZero(p.damage),
+                assists: scoreOrZero(p.assists),
                 played: true,
               })),
           })),
@@ -477,11 +529,12 @@ export function ManualMatchResultStep({
           match_id: match.match_id,
           results: soloResults.map((s) => ({
             competitor_id: s.competitor_id,
+            // RAW placement (see the team branch above); counts collapse a blank box to 0.
             placement: s.placement,
-            kills: s.kills,
+            kills: scoreOrZero(s.kills),
             played: s.played,
-            bonus_points: s.bonus_points,
-            penalty_points: s.penalty_points,
+            bonus_points: scoreOrZero(s.bonus_points),
+            penalty_points: scoreOrZero(s.penalty_points),
           })),
         };
       }
@@ -585,10 +638,10 @@ export function ManualMatchResultStep({
                     type="number"
                     min="0"
                     className="max-w-xs"
-                    value={team.placement || ""}
+                    value={scoreInputValue(team.placement)}
                     disabled={!team.played}
                     onChange={(e) =>
-                      updateTeamPlacement(ti, parseInt(e.target.value) || 0)
+                      updateTeamPlacement(ti, parseScoreInput(e.target.value))
                     }
                   />
                 </div>
@@ -630,14 +683,14 @@ export function ManualMatchResultStep({
                                 type="number"
                                 min="0"
                                 placeholder="0"
-                                value={player.kills || ""}
+                                value={scoreInputValue(player.kills)}
                                 disabled={!player.played}
                                 onChange={(e) =>
                                   updatePlayerField(
                                     ti,
                                     pi,
                                     "kills",
-                                    parseInt(e.target.value) || 0,
+                                    parseScoreInput(e.target.value),
                                   )
                                 }
                               />
@@ -654,14 +707,14 @@ export function ManualMatchResultStep({
                                 type="number"
                                 min="0"
                                 placeholder="0"
-                                value={player.damage || ""}
+                                value={scoreInputValue(player.damage)}
                                 disabled={!player.played}
                                 onChange={(e) =>
                                   updatePlayerField(
                                     ti,
                                     pi,
                                     "damage",
-                                    parseInt(e.target.value) || 0,
+                                    parseScoreInput(e.target.value),
                                   )
                                 }
                               />
@@ -678,14 +731,14 @@ export function ManualMatchResultStep({
                                 type="number"
                                 min="0"
                                 placeholder="0"
-                                value={player.assists || ""}
+                                value={scoreInputValue(player.assists)}
                                 disabled={!player.played}
                                 onChange={(e) =>
                                   updatePlayerField(
                                     ti,
                                     pi,
                                     "assists",
-                                    parseInt(e.target.value) || 0,
+                                    parseScoreInput(e.target.value),
                                   )
                                 }
                               />
@@ -753,13 +806,13 @@ export function ManualMatchResultStep({
                         type="number"
                         min="0"
                         placeholder="0"
-                        value={solo.placement || ""}
+                        value={scoreInputValue(solo.placement)}
                         disabled={!solo.played}
                         onChange={(e) =>
                           updateSoloField(
                             si,
                             "placement",
-                            parseInt(e.target.value) || 0,
+                            parseScoreInput(e.target.value),
                           )
                         }
                       />
@@ -773,13 +826,13 @@ export function ManualMatchResultStep({
                         type="number"
                         min="0"
                         placeholder="0"
-                        value={solo.kills || ""}
+                        value={scoreInputValue(solo.kills)}
                         disabled={!solo.played}
                         onChange={(e) =>
                           updateSoloField(
                             si,
                             "kills",
-                            parseInt(e.target.value) || 0,
+                            parseScoreInput(e.target.value),
                           )
                         }
                       />
@@ -796,13 +849,13 @@ export function ManualMatchResultStep({
                         type="number"
                         min="0"
                         placeholder="0"
-                        value={solo.bonus_points || ""}
+                        value={scoreInputValue(solo.bonus_points)}
                         disabled={!solo.played}
                         onChange={(e) =>
                           updateSoloField(
                             si,
                             "bonus_points",
-                            parseInt(e.target.value) || 0,
+                            parseScoreInput(e.target.value),
                           )
                         }
                       />
@@ -819,13 +872,13 @@ export function ManualMatchResultStep({
                         type="number"
                         min="0"
                         placeholder="0"
-                        value={solo.penalty_points || ""}
+                        value={scoreInputValue(solo.penalty_points)}
                         disabled={!solo.played}
                         onChange={(e) =>
                           updateSoloField(
                             si,
                             "penalty_points",
-                            parseInt(e.target.value) || 0,
+                            parseScoreInput(e.target.value),
                           )
                         }
                       />

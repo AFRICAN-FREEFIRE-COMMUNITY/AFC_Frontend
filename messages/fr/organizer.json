@@ -1237,7 +1237,8 @@
       "savedAllMaps": "{count, plural, one {# carte enregistrée} other {# cartes enregistrées}} dans ce groupe.",
       "savedSomeMaps": "{ok} carte(s) sur {total} enregistrée(s). Échec pour {failed} : {reason}",
       "saveGroupError": "Impossible d'enregistrer les cartes du groupe",
-      "retryHint": "ouvrez la carte qui pose problème et réessayez"
+      "retryHint": "ouvrez la carte qui pose problème et réessayez",
+      "missingPlacement": "Aucune position finale saisie pour : {names}. Indiquez la position de chacun (1 pour le vainqueur, puis 2, 3, etc.), ou décochez Joué, puis enregistrez à nouveau."
     }
   },
   "exportGraphic": {

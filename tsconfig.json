@@ -30,5 +30,6 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "//exclude": "*.test.ts files run on the Node test runner (node --test), which needs the explicit .ts import extension that this config's bundler resolution rejects. They are not part of the app bundle, so they are excluded here rather than loosening allowImportingTsExtensions for the whole app.",
+  "exclude": ["node_modules", "**/*.test.ts"]
 }

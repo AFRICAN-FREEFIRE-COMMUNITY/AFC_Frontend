@@ -84,6 +84,14 @@ import { env } from "@/lib/env";
 // (get_all_leaderboard_details_for_event) and is threaded onto EditRow / TeamPlayerGroup below.
 // Solo/blank -> CountryFlag renders nothing.
 import { CountryFlag } from "@/lib/countryFlag";
+// Absent-vs-zero for the manual score boxes (owner bug 2026-08-06). scoreOrZero collapses a blank
+// COUNT box to 0 for the API; placement is deliberately NOT collapsed so a blank one reaches the
+// backend as null and gets rejected instead of scoring 0. See lib/scoreInput.ts.
+import {
+  rowsMissingPlacement,
+  scoreOrZero,
+  type ScoreValue,
+} from "@/lib/scoreInput";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -199,24 +207,28 @@ interface OverallEntry {
   effective_total: number;
 }
 
+// Numeric cells are ScoreValue (number | null): null means "this box is empty", which is a
+// DIFFERENT thing from 0 and must survive all the way to buildMatchSaveRequest. See
+// lib/scoreInput.ts for why (owner bug 2026-08-06: a blanked placement used to post as 0 and
+// save silently at zero placement points).
 interface EditRow {
   id: number;
   name: string;
   // Team country for the flag (undefined for solo rows -> no flag).
   teamCountry?: string | null;
-  placement: number;
-  kills: number;
-  bonus_points: number;
-  penalty_points: number;
+  placement: ScoreValue;
+  kills: ScoreValue;
+  bonus_points: ScoreValue;
+  penalty_points: ScoreValue;
   played: boolean;
 }
 
 interface PlayerEditRow {
   player_id: number;
   username: string;
-  kills: number;
-  damage: number;
-  assists: number;
+  kills: ScoreValue;
+  damage: ScoreValue;
+  assists: ScoreValue;
   played: boolean;
 }
 
@@ -573,9 +585,13 @@ export default function EditLeaderboardPage({
             return {
               player_id: mem.player_id,
               username: mem.username,
-              kills: sp?.kills ?? 0,
-              damage: sp?.damage ?? 0,
-              assists: sp?.assists ?? 0,
+              // No saved row for this member on this map means nothing has been entered for
+              // them yet, so their boxes start EMPTY. A member WITH a saved row keeps its real
+              // value, including a deliberate 0 - that is the distinction the owner could not
+              // see before (bug 2026-08-06).
+              kills: sp?.kills ?? null,
+              damage: sp?.damage ?? null,
+              assists: sp?.assists ?? null,
               // Free Fire squad allows at most 4 PLAYED players per match - the backend
               // (edit-match-result) rejects any team with >4 played. A registered roster
               // can hold 5-6 (substitutes), so a roster member counts as "played" by
@@ -703,7 +719,7 @@ export default function EditLeaderboardPage({
     matchId: number,
     idx: number,
     field: keyof Omit<EditRow, "id" | "name">,
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) => {
     setEditRows((prev) => {
       const rows = [...(prev[matchId] ?? [])];
@@ -717,7 +733,7 @@ export default function EditLeaderboardPage({
     teamIdx: number,
     playerIdx: number,
     field: keyof Omit<PlayerEditRow, "player_id" | "username">,
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) => {
     setPlayerGroups((prev) => {
       const groups = (prev[matchId] ?? []).map((g, ti) => {
@@ -729,7 +745,12 @@ export default function EditLeaderboardPage({
           // has no stats), so auto-tick "Played". This stops the save from silently dropping
           // a player whose kills were typed while "Played" was left unticked - the save only
           // sends played=true players to respect the 4-per-squad cap. (bug fix 2026-06-15)
-          if (field !== "played" && typeof value === "number" && value > 0) {
+          //
+          // Typing 0 counts as entering a stat (owner bug 2026-08-06). This test used to be
+          // `value > 0`, so a player the organizer deliberately scored at 0 kills was NOT
+          // ticked and was then dropped by the .filter(p => p.played) below - the one player
+          // in the lobby who went scoreless lost their row while everyone else kept theirs.
+          if (field !== "played" && typeof value === "number") {
             next.played = true;
           }
           return next;
@@ -757,6 +778,11 @@ export default function EditLeaderboardPage({
     const rows = editRows[matchId] ?? [];
     if (rows.length === 0) return null;
 
+    // PLACEMENT is sent RAW so a box the admin left empty arrives as null and the backend's
+    // "every team that played this map needs a finishing position" guard rejects the save.
+    // Sending 0 here (what `parseInt(x) || 0` used to produce) sailed past that guard and stored
+    // a played row at 0 placement points. COUNT fields go through scoreOrZero: a blank kills box
+    // legitimately means none. (owner bug 2026-08-06 - see lib/scoreInput.ts)
     if (participantType === "solo") {
       return {
         endpoint: `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-solo-match-result/`,
@@ -765,10 +791,10 @@ export default function EditLeaderboardPage({
           rows: rows.map((r) => ({
             competitor_id: r.id,
             placement: r.placement,
-            kills: r.kills,
+            kills: scoreOrZero(r.kills),
             played: r.played,
-            bonus_points: r.bonus_points,
-            penalty_points: r.penalty_points,
+            bonus_points: scoreOrZero(r.bonus_points),
+            penalty_points: scoreOrZero(r.penalty_points),
           })),
         },
       };
@@ -785,8 +811,8 @@ export default function EditLeaderboardPage({
             tournament_team_id: r.id,
             placement: r.placement,
             played: r.played,
-            bonus_points: r.bonus_points,
-            penalty_points: r.penalty_points,
+            bonus_points: scoreOrZero(r.bonus_points),
+            penalty_points: scoreOrZero(r.penalty_points),
             // Send ONLY the players who actually played this map. Squad rules cap a match at
             // 4 played players, and persisting not-played substitutes (played=false) would
             // also make them reappear as "played" on the next load (the details API carries
@@ -797,9 +823,9 @@ export default function EditLeaderboardPage({
               .filter((p) => p.played)
               .map((p) => ({
                 user_id: p.player_id,
-                kills: p.kills,
-                damage: p.damage,
-                assists: p.assists,
+                kills: scoreOrZero(p.kills),
+                damage: scoreOrZero(p.damage),
+                assists: scoreOrZero(p.assists),
                 played: true,
               })),
           };
@@ -808,11 +834,31 @@ export default function EditLeaderboardPage({
     };
   };
 
+  /**
+   * Names of the teams/players in this map that are ticked as PLAYED but have an empty
+   * placement box. The backend rejects the save for exactly this case, but its message cannot
+   * say WHICH rows are at fault, and in a 12-team lobby that is the whole difference between
+   * fixable and not. Called by both save paths below before the POST goes out.
+   * (owner bug 2026-08-06 - "they can leave score blank for certain players")
+   */
+  const blankPlacementNames = (matchId: number): string[] =>
+    rowsMissingPlacement(editRows[matchId] ?? []);
+
   // POST one map's results. Throws on a non-OK response so callers (single + bulk) can
   // count successes/failures uniformly.
   const saveMatchById = async (matchId: number): Promise<void> => {
     const req = buildMatchSaveRequest(matchId);
     if (!req) return; // nothing entered for this map -> skip (not an error)
+    // Stop a half-filled map here rather than letting the server reject it, so the admin is told
+    // WHICH rows are missing a finishing position. Throwing (not returning) means the "Save all
+    // maps" fan-out counts this map as failed instead of silently skipping it.
+    const missing = blankPlacementNames(matchId);
+    if (missing.length > 0) {
+      throw new Error(
+        `${missing.join(", ")} ${missing.length === 1 ? "has" : "have"} no finishing position for this map. ` +
+          "Type each one's position (1 for the winner, then 2, 3, and so on), or untick Played, then save again.",
+      );
+    }
     const res = await fetch(req.endpoint, {
       method: "POST",
       headers: {
@@ -1082,17 +1128,36 @@ export default function EditLeaderboardPage({
       return;
     }
 
+    // The adjustment save re-posts the whole first map (placements included) with the bonus /
+    // penalty deltas folded in, so it hits the same blank-placement trap as a normal save: a row
+    // whose placement box was cleared would post null. Guard it here with the same named-rows
+    // message rather than letting the server answer - on the SOLO endpoint that payload used to
+    // come back as a 500. (owner bug 2026-08-06 - see lib/scoreInput.ts)
+    const missingForAdjust = blankPlacementNames(firstMatchId);
+    if (missingForAdjust.length > 0) {
+      toast.error(
+        `${missingForAdjust.join(", ")} ${missingForAdjust.length === 1 ? "has" : "have"} no finishing position on the first map. ` +
+          "Fill that in on the Results tab before saving adjustments.",
+      );
+      return;
+    }
+
     setSavingAdjust(true);
     try {
       const firstMatchRows = editRows[firstMatchId] ?? [];
+      // An adjustment ADDS to whatever bonus/penalty the row already carries; a row whose box is
+      // empty carries none, so scoreOrZero is the right base (blank bonus == 0 bonus).
       const updatedRows = firstMatchRows.map((row) => {
         const adj = adjustments[row.id] ?? 0;
         return {
           ...row,
-          bonus_points: Math.max(0, row.bonus_points + (adj > 0 ? adj : 0)),
+          bonus_points: Math.max(
+            0,
+            scoreOrZero(row.bonus_points) + (adj > 0 ? adj : 0),
+          ),
           penalty_points: Math.max(
             0,
-            row.penalty_points + (adj < 0 ? Math.abs(adj) : 0),
+            scoreOrZero(row.penalty_points) + (adj < 0 ? Math.abs(adj) : 0),
           ),
         };
       });
@@ -1107,7 +1172,7 @@ export default function EditLeaderboardPage({
           rows: updatedRows.map((r) => ({
             competitor_id: r.id,
             placement: r.placement,
-            kills: r.kills,
+            kills: scoreOrZero(r.kills),
             played: r.played,
             bonus_points: r.bonus_points,
             penalty_points: r.penalty_points,
@@ -1126,9 +1191,9 @@ export default function EditLeaderboardPage({
               played: r.played,
               players: (teamGroup?.players ?? []).map((p) => ({
                 player_id: p.player_id,
-                kills: p.kills,
-                damage: p.damage,
-                assists: p.assists,
+                kills: scoreOrZero(p.kills),
+                damage: scoreOrZero(p.damage),
+                assists: scoreOrZero(p.assists),
                 played: p.played,
               })),
             };

@@ -1237,7 +1237,8 @@
       "savedAllMaps": "Saved all {count, plural, one {# map} other {# maps}} in this group.",
       "savedSomeMaps": "Saved {ok} of {total} maps. {failed} failed: {reason}",
       "saveGroupError": "Failed to save the group's maps",
-      "retryHint": "open the failing map and try again"
+      "retryHint": "open the failing map and try again",
+      "missingPlacement": "No finishing position entered for: {names}. Type each one's position (1 for the winner, then 2, 3, and so on), or untick Played, then save again."
     }
   },
   "exportGraphic": {

@@ -246,6 +246,13 @@ import { MatchEvidencePanel } from "@/components/leaderboards/MatchEvidencePanel
 // get_all_leaderboard_details_for_event) carries team_country; player rows inherit it below. Mirrors
 // the admin leaderboard view. CountryFlag renders nothing when the value is blank/unresolvable.
 import { CountryFlag } from "@/lib/countryFlag";
+// Absent-vs-zero for the manual score boxes (owner bug 2026-08-06). A blank placement must
+// stay null so the backend rejects it; a blank kills box collapses to 0. See lib/scoreInput.ts.
+import {
+  rowsMissingPlacement,
+  scoreOrZero,
+  type ScoreValue,
+} from "@/lib/scoreInput";
 import { watchlistApi } from "@/lib/watchlist";
 
 type Params = { slug: string };
@@ -800,9 +807,12 @@ export default function OrganizerEventLeaderboardPage({
               return {
                 player_id: mem.player_id,
                 username: mem.username,
-                kills: sp?.kills ?? 0,
-                damage: sp?.damage ?? 0,
-                assists: sp?.assists ?? 0,
+                // No saved row for this member on this map means nothing has been entered for
+                // them yet, so their boxes start EMPTY; a member WITH a saved row keeps its real
+                // value, including a deliberate 0 (bug 2026-08-06).
+                kills: sp?.kills ?? null,
+                damage: sp?.damage ?? null,
+                assists: sp?.assists ?? null,
                 played: sp != null,
               };
             }),
@@ -1360,7 +1370,7 @@ export default function OrganizerEventLeaderboardPage({
     matchId: number,
     idx: number,
     field: keyof Omit<GridEditRow, "id" | "name">,
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) => {
     setGridEditRows((prev) => {
       const rows = [...(prev[matchId] ?? [])];
@@ -1374,7 +1384,7 @@ export default function OrganizerEventLeaderboardPage({
     teamIdx: number,
     playerIdx: number,
     field: keyof Omit<GridPlayerEditRow, "player_id" | "username">,
-    value: number | boolean,
+    value: ScoreValue | boolean,
   ) => {
     setGridPlayerGroups((prev) => {
       const groups = (prev[matchId] ?? []).map((g, ti) => {
@@ -1382,7 +1392,10 @@ export default function OrganizerEventLeaderboardPage({
         const players = g.players.map((p, pi) => {
           if (pi !== playerIdx) return p;
           const next = { ...p, [field]: value };
-          if (field !== "played" && typeof value === "number" && value > 0) {
+          // Typing 0 counts as entering a stat (owner bug 2026-08-06). This used to be
+          // `value > 0`, so the one player scored at 0 kills was never ticked and was then
+          // dropped by the .filter(p => p.played) in buildGridSaveRequest below.
+          if (field !== "played" && typeof value === "number") {
             next.played = true;
           }
           return next;
@@ -1416,11 +1429,13 @@ export default function OrganizerEventLeaderboardPage({
           match_id: matchId.toString(),
           rows: rows.map((r) => ({
             competitor_id: r.id,
+            // RAW: an empty placement box must arrive as null so the backend rejects the save
+            // instead of storing 0 placement points (owner bug 2026-08-06, lib/scoreInput.ts).
             placement: r.placement,
-            kills: r.kills,
+            kills: scoreOrZero(r.kills),
             played: r.played,
-            bonus_points: r.bonus_points,
-            penalty_points: r.penalty_points,
+            bonus_points: scoreOrZero(r.bonus_points),
+            penalty_points: scoreOrZero(r.penalty_points),
           })),
         },
       };
@@ -1435,18 +1450,19 @@ export default function OrganizerEventLeaderboardPage({
           const teamGroup = groups.find((g) => g.teamId === r.id);
           return {
             tournament_team_id: r.id,
+            // RAW placement (see the solo branch above); counts collapse a blank box to 0.
             placement: r.placement,
             played: r.played,
-            bonus_points: r.bonus_points,
-            penalty_points: r.penalty_points,
+            bonus_points: scoreOrZero(r.bonus_points),
+            penalty_points: scoreOrZero(r.penalty_points),
             // Only the players who actually played this map (squad rules cap a match at 4 played).
             players: (teamGroup?.players ?? [])
               .filter((p) => p.played)
               .map((p) => ({
                 user_id: p.player_id,
-                kills: p.kills,
-                damage: p.damage,
-                assists: p.assists,
+                kills: scoreOrZero(p.kills),
+                damage: scoreOrZero(p.damage),
+                assists: scoreOrZero(p.assists),
                 played: true,
               })),
           };
@@ -1459,6 +1475,18 @@ export default function OrganizerEventLeaderboardPage({
   const saveGridMatchById = async (matchId: number): Promise<void> => {
     const req = buildGridSaveRequest(matchId);
     if (!req) return; // nothing entered for this map -> skip (not an error)
+    // Catch a half-filled map here so the organizer is told WHICH rows have no finishing position.
+    // The backend rejects this case too (validate_placements) but cannot name the offenders, and in
+    // a 12-team lobby that is the difference between fixable and not. Throwing (not returning) makes
+    // the "Save all maps" fan-out count this map as failed rather than silently skip it.
+    const missingPlacement = rowsMissingPlacement(gridEditRows[matchId] ?? []);
+    if (missingPlacement.length > 0) {
+      throw new Error(
+        t("eventLeaderboard.matchResults.missingPlacement", {
+          names: missingPlacement.join(", "),
+        }),
+      );
+    }
     const res = await fetch(req.endpoint, {
       method: "POST",
       headers: {
