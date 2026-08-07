@@ -1001,7 +1001,7 @@
       },
       "categoryFilter": {
         "title": "Filtrer par catégorie",
-        "description": "Les catégories : Actualités générales, Mises à jour des tournois, Mises à jour des joueurs ou équipes bannis. Choisissez-en une ou affichez tout."
+        "description": "Les catégories : Actualités générales, Mises à jour des tournois, Mises à jour éducatives, Mises à jour des joueurs ou équipes bannis. Choisissez-en une ou affichez tout."
       },
       "statusFilter": {
         "title": "Filtrer par statut de publication",

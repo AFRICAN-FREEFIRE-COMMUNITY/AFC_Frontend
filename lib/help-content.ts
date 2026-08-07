@@ -582,8 +582,11 @@ export const HELP = {
     "Write a new article - give it a title, body, category and cover image, then publish it to the public News page.",
   "news.edit._page":
     "Update a published article. Changes go live on the public News page as soon as you save.",
+  // Keep this list in step with News.CATEGORY_CHOICES (backend afc_auth/models.py) and
+  // `newsCategories` in @/constants - it is the ⓘ shown right beside the picker, so an admin
+  // reading it while filing an article must see every option that is actually in the dropdown.
   "news.category":
-    "Where the article is filed on the public site - General, Tournament updates, or Ban announcements. Drives how readers filter the feed.",
+    "Where the article is filed on the public site - General, Tournament updates, Education updates, or Ban announcements. Drives how readers filter the feed.",
   "news.related_event":
     "Optionally tie the article to a tournament so it shows alongside that event. Leave blank for general news.",
 

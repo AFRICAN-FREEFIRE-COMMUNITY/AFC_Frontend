@@ -145,6 +145,18 @@ export function NewsClient({
     }
   };
 
+  // Category badge label. get-news-detail returns the RAW category key ("general" | "tournament" |
+  // "education" | "bans" - backend News.CATEGORY_CHOICES); this maps it to the viewer's language
+  // using the SAME messages/<locale>/news.json categories.* keys the /news list and the home-page
+  // teaser use, so one post is labelled identically everywhere. Previously the raw key was printed,
+  // which showed an English key to every viewer and would have read as a bare "Education" for the
+  // new Education Updates category. t.has() keeps any legacy/unknown key rendering as itself
+  // instead of blowing up on a missing message (same idiom as player-markets/applications/[id]).
+  const getCategoryLabel = (category: string) =>
+    category && t.has(`categories.${category}`)
+      ? t(`categories.${category}`)
+      : category;
+
   if (loading) return <FullLoader />;
   if (!newsDetails) notFound();
 
@@ -155,8 +167,11 @@ export function NewsClient({
           <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-2">
             <LocalTime value={newsDetails.created_at} mode="date" />
             <span>•</span>
-            <Badge variant="secondary" className="capitalize">
-              {newsDetails.category}
+            {/* No `capitalize` here: the label is a fully-cased translated phrase, and CSS
+                capitalize would title-case every word of it (French "Mises à jour éducatives"
+                would render as "Mises À Jour Éducatives"). */}
+            <Badge variant="secondary">
+              {getCategoryLabel(newsDetails.category)}
             </Badge>
             <div className="flex items-center gap-3 border-l pl-3 ml-1 border-muted-foreground/20">
               <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">

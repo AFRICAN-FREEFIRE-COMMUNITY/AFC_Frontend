@@ -1001,7 +1001,7 @@
       },
       "categoryFilter": {
         "title": "Filter by category",
-        "description": "Categories: General News, Tournament Updates, Banned Player or Team Updates. Select one or view all."
+        "description": "Categories: General News, Tournament Updates, Education Updates, Banned Player or Team Updates. Select one or view all."
       },
       "statusFilter": {
         "title": "Filter by publication status",

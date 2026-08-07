@@ -71,10 +71,14 @@ const page = () => {
   const [pending, startTransition] = useTransition();
   const [news, setNews] = useState<any>();
 
+  // Admin list filter + the per-row category badge (getCategoryLabel below). Same keys and same
+  // order as `newsCategories` in @/constants (the create/edit picker) and News.CATEGORY_CHOICES
+  // on the backend. English labels: the admin News area is operated in English.
   const categories = [
     { value: "all", label: "All Categories" },
     { value: "general", label: "General News" },
     { value: "tournament", label: "Tournament Updates" },
+    { value: "education", label: "Education Updates" },
     { value: "bans", label: "Banned Player/Team Updates" },
   ];
 

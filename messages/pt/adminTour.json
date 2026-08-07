@@ -1001,7 +1001,7 @@
       },
       "categoryFilter": {
         "title": "Filtrar por categoria",
-        "description": "As categorias: Notícias gerais, Atualizações de torneios, Atualizações de jogadores ou equipas banidos. Escolha uma ou veja todas."
+        "description": "As categorias: Notícias gerais, Atualizações de torneios, Atualizações educativas, Atualizações de jogadores ou equipas banidos. Escolha uma ou veja todas."
       },
       "statusFilter": {
         "title": "Filtrar por estado de publicação",

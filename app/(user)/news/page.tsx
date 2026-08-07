@@ -93,6 +93,7 @@ const page = () => {
     { value: "all", label: t("categories.all") },
     { value: "general", label: t("categories.general") },
     { value: "tournament", label: t("categories.tournament") },
+    { value: "education", label: t("categories.education") },
     { value: "bans", label: t("categories.bans") },
   ];
 
@@ -358,7 +359,10 @@ const page = () => {
                     className="object-cover size-full aspect-video"
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                    <Badge variant="secondary" className="text-xs capitalize">
+                    {/* No `capitalize`: getCategoryLabel already returns a fully-cased translated
+                        phrase, and CSS capitalize would title-case every word of it (French
+                        "Mises à jour éducatives" -> "Mises À Jour Éducatives"). */}
+                    <Badge variant="secondary" className="text-xs">
                       {getCategoryLabel(newsDetails.category)}
                     </Badge>
                   </div>

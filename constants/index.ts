@@ -137,9 +137,15 @@ export const REGIONS_MAP = {
 export const DEFAULT_PROFILE_PICTURE =
   "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
 
+// Category picker for the ADMIN news editor (app/(a)/a/news/create + [slug]/edit). `value` is the
+// key the backend stores and validates against News.CATEGORY_CHOICES (backend afc_auth/models.py);
+// keep this list and that one in the same order. Labels stay English here because the whole admin
+// News area is English-operated; the PUBLIC labels are localized separately from
+// messages/<locale>/news.json (categories.*) and home.json (latestNews.categories.*).
 export const newsCategories = [
   { value: "general", label: "General News" },
   { value: "tournament", label: "Tournament Updates" },
+  { value: "education", label: "Education Updates" },
   { value: "bans", label: "Banned Player/Team Updates" },
 ];
 
