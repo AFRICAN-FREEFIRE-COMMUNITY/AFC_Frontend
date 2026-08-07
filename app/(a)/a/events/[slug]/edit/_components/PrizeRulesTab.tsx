@@ -27,6 +27,10 @@ import {
 import { PRIZE_CURRENCIES } from "@/app/(a)/a/events/create/_components/Step5PrizePool";
 // Shared live distribution-vs-cash-value check (owner 2026-07-02: same rule as the create wizard).
 import { PrizeDistributionSummary } from "@/app/(a)/a/events/create/_components/PrizeDistributionSummary";
+// Shared "Suggest a split" dialog (owner backlog item 24: same suggestion the create wizard offers).
+// On an event that already has amounts entered it shows them beside the suggestion and relabels its
+// button to say it replaces them, so an existing payout table is never overwritten silently.
+import { PrizeSuggestionDialog } from "@/app/(a)/a/events/create/_components/PrizeSuggestionDialog";
 import {
   Card,
   CardContent,
@@ -220,13 +224,24 @@ export default function PrizeRulesTab({
               </div>
             </div>
           ))}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addPrizePosition}
-          >
-            {t("prizeRules.addPrizePosition")}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addPrizePosition}
+            >
+              {t("prizeRules.addPrizePosition")}
+            </Button>
+            {/* Suggest a whole distribution at once, instead of typing every line by hand. */}
+            <PrizeSuggestionDialog
+              cashValue={form.watch("prizepool_cash_value")}
+              currency={(form.watch("prize_currency") as string) || "USD"}
+              distribution={prizeDistribution}
+              onApply={(suggested) =>
+                form.setValue("prize_distribution", suggested, { shouldDirty: true })
+              }
+            />
+          </div>
 
           {/* Live tally: does the distribution add up to the cash value? Tells over/under + by how much. */}
           <PrizeDistributionSummary
@@ -240,7 +255,11 @@ export default function PrizeRulesTab({
 
         <div className="space-y-4">
           <FormLabel>{t("prizeRules.tournamentRules")}</FormLabel>
-          <div className="flex gap-2">
+          {/* flex-wrap so the pair does not push the page sideways on a phone: the French and
+              Portuguese labels ("Mettre en ligne un document") are far longer than the English
+              ones and overflowed a 390px viewport by 31px before this. Same idiom as the
+              add-position / suggest-a-split row above. */}
+          <div className="flex flex-wrap gap-2">
             <Button
               type="button"
               variant={rulesInputMethod === "type" ? "default" : "outline"}

@@ -123,7 +123,7 @@
     "sponsorAccountsHelp": "Selecione uma ou mais contas de patrocinador para associar a este evento.",
     "loadingSponsors": "A carregar patrocinadores...",
     "noSponsors": "Não há patrocinadores disponíveis.",
-    "selectedCount": "{count, plural,  one { # patrocinador selecionado }  other { # patrocinadores selecionados } }",
+    "selectedCount": "{count, plural, =0 {# patrocinadores selecionados} one {# patrocinador selecionado} other {# patrocinadores selecionados}}",
     "requirementDescription": "Descrição dos requisitos",
     "requirementDescriptionPlaceholder": "Por exemplo: Descarrega a nossa aplicação na App Store, cria uma conta e introduz o teu UUID de jogador abaixo.",
     "uuidFieldLabel": "Rótulo do campo UUID",
@@ -190,5 +190,38 @@
     "cancel": "Cancelar",
     "submitting": "A enviar...",
     "accept": "Aceito"
+  },
+  "prizeSuggest": {
+    "trigger": "Sugerir uma distribuição",
+    "title": "Sugerir uma distribuição de prémios",
+    "description": "Escolha quantos lugares recebem prémio e a forma da curva. Nada muda até aplicar a sugestão.",
+    "placesLabel": "Número de lugares premiados",
+    "shapeLabel": "Forma",
+    "shapes": {
+      "top_heavy": {
+        "name": "Concentrada no topo",
+        "hint": "Cada lugar recebe metade do lugar acima. Foi o que a AFC pagou em 3 e em 6 lugares."
+      },
+      "balanced": {
+        "name": "Equilibrada",
+        "hint": "O 2.º lugar continua a receber metade do 1.º e, a partir daí, a curva desce mais suavemente para que os últimos lugares mantenham uma parte real. Foi o que a AFC pagou em 12 lugares."
+      },
+      "flat": {
+        "name": "Igual",
+        "hint": "Todos os lugares recebem o mesmo montante."
+      }
+    },
+    "colPlace": "Lugar",
+    "colCurrent": "Atual",
+    "colSuggested": "Sugerido",
+    "removedMark": "Removido",
+    "totalRow": "Total distribuído",
+    "roundingNote": "Os montantes são arredondados por defeito para se manterem legíveis e o restante de {amount} {currency} vai para o 1.º lugar. As linhas somam sempre o prémio total.",
+    "noPool": "Introduza primeiro o valor monetário do prémio total e volte depois para obter uma sugestão.",
+    "poolTooSmall": "Este prémio total é demasiado pequeno para ser dividido por {places} lugares.",
+    "replaceWarning": "Este evento já tem montantes de prémios introduzidos. Aplicar esta sugestão substitui todas as linhas.",
+    "apply": "Usar esta distribuição",
+    "replace": "Substituir montantes",
+    "cancel": "Cancelar"
   }
 }

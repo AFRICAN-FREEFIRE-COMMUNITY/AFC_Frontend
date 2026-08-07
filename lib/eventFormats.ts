@@ -81,7 +81,9 @@ export const FORMAT_LABEL: Record<string, string> = {
 // A prize map as it MIGHT arrive: the form schema is Record<string, string>, but a couple
 // of legacy create seeds initialise values as the number 0 (e.g. { "1st": 0 }). Accept the
 // wider value type on input so those callers type-check; we always EMIT Record<string,string>.
-type PrizeDistInput = Record<string, string | number | null | undefined>;
+// Exported so components that hold a prize map before renumbering it can name the same
+// contract instead of inventing a looser one (PrizeSuggestionDialog does exactly that).
+export type PrizeDistInput = Record<string, string | number | null | undefined>;
 
 // Renumber a prize map to contiguous numeric string keys "1".."N", preserving the
 // existing left-to-right order of the values. Used after every add/remove so the keys

@@ -190,5 +190,38 @@
     "cancel": "Cancel",
     "submitting": "Submitting...",
     "accept": "I accept"
+  },
+  "prizeSuggest": {
+    "trigger": "Suggest a split",
+    "title": "Suggest a prize split",
+    "description": "Pick how many places get paid and the shape of the curve. Nothing changes until you apply it.",
+    "placesLabel": "Number of paying places",
+    "shapeLabel": "Shape",
+    "shapes": {
+      "top_heavy": {
+        "name": "Concentrated at the top",
+        "hint": "Each place gets half of the place above it. This is what AFC paid out at 3 and 6 places."
+      },
+      "balanced": {
+        "name": "Balanced",
+        "hint": "2nd still gets half of 1st, then the curve tapers more gently so the lower places keep a real share. This is what AFC paid out at 12 places."
+      },
+      "flat": {
+        "name": "Equal",
+        "hint": "Every place gets the same amount."
+      }
+    },
+    "colPlace": "Place",
+    "colCurrent": "Current",
+    "colSuggested": "Suggested",
+    "removedMark": "Removed",
+    "totalRow": "Adds up to",
+    "roundingNote": "Amounts are rounded down to keep them tidy, and the {amount} {currency} left over goes to 1st place. The lines always add up to the full prize pool.",
+    "noPool": "Enter the prize pool cash value first, then come back for a suggestion.",
+    "poolTooSmall": "That prize pool is too small to split across {places} places.",
+    "replaceWarning": "This event already has prize amounts entered. Applying this will overwrite every line.",
+    "apply": "Use this split",
+    "replace": "Replace amounts",
+    "cancel": "Cancel"
   }
 }

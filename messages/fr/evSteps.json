@@ -190,5 +190,38 @@
     "cancel": "Annuler",
     "submitting": "Envoi en cours...",
     "accept": "J'accepte"
+  },
+  "prizeSuggest": {
+    "trigger": "Proposer une répartition",
+    "title": "Proposer une répartition des prix",
+    "description": "Choisissez le nombre de places récompensées et la forme de la courbe. Rien ne change tant que vous n'appliquez pas la proposition.",
+    "placesLabel": "Nombre de places récompensées",
+    "shapeLabel": "Forme",
+    "shapes": {
+      "top_heavy": {
+        "name": "Concentrée en haut",
+        "hint": "Chaque place reçoit la moitié de celle du dessus. C'est ce que l'AFC a versé sur 3 et 6 places."
+      },
+      "balanced": {
+        "name": "Équilibrée",
+        "hint": "La 2e place reçoit toujours la moitié de la 1re, puis la courbe descend plus doucement pour que les dernières places gardent une part réelle. C'est ce que l'AFC a versé sur 12 places."
+      },
+      "flat": {
+        "name": "Égale",
+        "hint": "Chaque place reçoit le même montant."
+      }
+    },
+    "colPlace": "Place",
+    "colCurrent": "Actuel",
+    "colSuggested": "Proposé",
+    "removedMark": "Supprimée",
+    "totalRow": "Total réparti",
+    "roundingNote": "Les montants sont arrondis à l'inférieur pour rester lisibles, et le reste de {amount} {currency} va à la 1re place. Le total correspond toujours à l'intégralité de la cagnotte.",
+    "noPool": "Saisissez d'abord la valeur en espèces de la cagnotte, puis revenez pour obtenir une proposition.",
+    "poolTooSmall": "Cette cagnotte est trop petite pour être répartie sur {places} places.",
+    "replaceWarning": "Cet événement contient déjà des montants de prix. Appliquer cette proposition remplacera toutes les lignes.",
+    "apply": "Utiliser cette répartition",
+    "replace": "Remplacer les montants",
+    "cancel": "Annuler"
   }
 }

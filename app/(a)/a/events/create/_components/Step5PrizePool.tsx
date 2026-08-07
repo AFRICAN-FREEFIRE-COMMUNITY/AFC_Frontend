@@ -29,6 +29,10 @@ import {
 } from "@/lib/eventFormats";
 // Live "distribution vs cash value" check (owner 2026-07-02). Same component + rule the edit tab uses.
 import { PrizeDistributionSummary } from "./PrizeDistributionSummary";
+// "Suggest a split" (owner backlog item 24): offers a distribution across the current number of
+// positions, based on the curve AFC has actually paid out historically. Suggestion only, nothing is
+// written until the organizer presses apply. Shared with the edit tab, same as the summary above.
+import { PrizeSuggestionDialog } from "./PrizeSuggestionDialog";
 
 // Prize-currency options (owner 2026-07-01: "more currencies, not just usd and ngn"; widened again by
 // backlog item 28, 2026-08-03: "some currencies are missing when entering a prize pool").
@@ -218,9 +222,20 @@ export function Step5PrizePool({ form }: Step5Props) {
               </div>
             </div>
           ))}
-          <Button type="button" variant="outline" onClick={addPrizePosition}>
-            {t("step5.addPosition")}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={addPrizePosition}>
+              {t("step5.addPosition")}
+            </Button>
+            {/* Suggest a whole distribution at once, instead of typing every line by hand. */}
+            <PrizeSuggestionDialog
+              cashValue={form.watch("prizepool_cash_value")}
+              currency={(form.watch("prize_currency") as string) || "USD"}
+              distribution={prizeDistribution}
+              onApply={(suggested) =>
+                form.setValue("prize_distribution", suggested, { shouldDirty: true })
+              }
+            />
+          </div>
 
           {/* Live tally: does the distribution add up to the cash value? Tells over/under + by how much. */}
           <PrizeDistributionSummary
