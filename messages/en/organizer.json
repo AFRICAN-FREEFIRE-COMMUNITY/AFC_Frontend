@@ -5,6 +5,13 @@
   },
   "tour": {
     "button": "Take a tour",
+    "buttonAria": "Take a guided tour of this organizer page",
+    "driver": {
+      "progress": "Step '{{'current'}}' of '{{'total'}}'",
+      "next": "Next",
+      "back": "Back",
+      "done": "Done"
+    },
     "sidebar": {
       "title": "Your organizer navigation",
       "description": "This sidebar is how you move around your organization: overview, events, leaderboards, members, payouts and more. The section you are on is highlighted in green."

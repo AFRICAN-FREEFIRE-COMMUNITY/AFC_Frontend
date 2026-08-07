@@ -1,4 +1,10 @@
 {
+  "tour.button": "Take a tour",
+  "tour.buttonAria": "Take a guided tour of the sponsor dashboard",
+  "tour.driver.progress": "Step '{{'current'}}' of '{{'total'}}'",
+  "tour.driver.next": "Next",
+  "tour.driver.back": "Back",
+  "tour.driver.done": "Done",
   "tour.dashboard.intro.title": "Welcome to your sponsor portal",
   "tour.dashboard.intro.description": "This is your sponsor area. Use the header to head back to the main site or log out. Everything you need to manage your sponsored events is below.",
   "tour.dashboard.welcome.title": "Your sponsor dashboard",

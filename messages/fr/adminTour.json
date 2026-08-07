@@ -1,0 +1,1130 @@
+{
+  "tour": {
+    "button": "Faites une visite guidée",
+    "buttonAria": "Faites une visite guidée de cette page admin",
+    "driver": {
+      "progress": "Étape '{{'current'}}' sur '{{'total'}}'",
+      "next": "Suivant",
+      "back": "Précédent",
+      "done": "Terminé"
+    },
+    "sidebar": {
+      "title": "Votre navigation admin",
+      "description": "Cette barre latérale vous permet de circuler dans l'espace admin : tableau de bord, événements, équipes, classements, actualités, boutique et plus encore. La section où vous vous trouvez est surlignée en vert."
+    },
+    "dashboard": {
+      "title": {
+        "title": "Bienvenue sur le tableau de bord admin",
+        "description": "C'est votre centre de contrôle. Les cartes ci-dessous vous donnent une lecture en direct des membres, des équipes, des tournois, des scrims, des actualités et des revenus, d'un seul coup d'oeil."
+      },
+      "metrics": {
+        "title": "Statistiques de la communauté en direct",
+        "description": "Chaque carte affiche un chiffre clé et un raccourci pour gérer cette partie du site. Le total des membres suit les inscriptions, le total des équipes renvoie directement vers Équipes et joueurs, et la carte des revenus reflète les recettes de la boutique et des événements."
+      },
+      "quickActions": {
+        "title": "Actions rapides",
+        "description": "Lancez directement les tâches les plus courantes (créer une actualité, créer un événement) sans chercher dans le menu. Ce sont les mêmes boutons principaux que sur chaque page de section."
+      },
+      "recentActivity": {
+        "title": "Activité admin récente",
+        "description": "Un journal continu de ce que les autres admins ont fait récemment, pour que l'équipe reste synchronisée et que vous voyiez qui a modifié quoi. Utilisez Voir toutes les activités pour l'historique complet."
+      }
+    },
+    "events": {
+      "tabs": {
+        "title": "Événements et classements",
+        "description": "Cette page unique contient deux onglets. Événements est l'endroit où vous organisez les tournois et les scrims ; Classements est l'endroit où vous publiez les classements. Nous allons parcourir l'onglet Événements d'abord, puis vous basculer sur Classements. Les cartes sous l'en-tête résument tout votre calendrier : le total des événements réparti entre tournois et scrims, combien sont à venir, en cours ou terminés, la moyenne de participants par événement, et votre format le plus populaire."
+      },
+      "create": {
+        "title": "Créer un nouvel événement",
+        "description": "Lancez un tournoi ou un scrim ici. L'assistant vous guide à travers les détails, les phases, les dotations et les règles, puis le publie. Une fois créé, vous le gérez depuis la liste ci-dessous."
+      },
+      "payments": {
+        "title": "Paiements de l'événement",
+        "description": "Pour les événements payants, ceci ouvre le tableau de bord de séquestre où vous libérez ou remboursez les frais d'inscription retenus par Stripe. Seuls les événements payants y apparaissent."
+      },
+      "search": {
+        "title": "Trouver un événement rapidement",
+        "description": "Filtrez la liste ci-dessous par nom d'événement, par type (tournoi ou scrim) ou par statut. Bien pratique dès que vous avez beaucoup d'événements enregistrés."
+      },
+      "list": {
+        "title": "Vos événements et scrims",
+        "description": "Tous les événements vivent ici. Par ligne : Voir ouvre le détail complet de l'événement (qui a ses propres onglets, dont Vue d'ensemble, Inscriptions, Phases et Effectifs des groupes), Modifier rouvre l'assistant, et l'icône corbeille le supprime. Une petite icône de cadenas signale un événement privé."
+      },
+      "switchToLeaderboards": {
+        "title": "Passons à l'onglet Classements",
+        "description": "Voilà pour les Événements. Cliquez sur Suivant et nous vous basculons sur l'onglet Classements, où vous transformez les résultats bruts des matchs en classements publiés."
+      },
+      "lbStats": {
+        "title": "Totaux des classements",
+        "description": "Ces cartes comptent vos classements dans leur ensemble et les répartissent entre classements de tournois et classements de scrims, pour que vous voyiez ce qui a été noté et ce qui reste en attente."
+      },
+      "lbSearch": {
+        "title": "Choisissez un événement à noter",
+        "description": "Recherchez vos événements ici, puis utilisez le tableau juste en dessous. Chaque ligne est un événement auquel vous pouvez rattacher ou mettre à jour un classement."
+      },
+      "lbTable": {
+        "title": "Voir ou modifier un classement",
+        "description": "Pour chaque événement, Voir ouvre son classement actuel et Modifier vous permet de saisir ou de corriger les places et les points d'élimination. C'est de là que vient le classement public de cet événement."
+      }
+    },
+    "teams": {
+      "tabs": {
+        "title": "Équipes et joueurs",
+        "description": "Cette page unique combine deux onglets. Équipes gère les escouades inscrites et leurs niveaux ; Joueurs gère les comptes individuels. Nous allons parcourir Équipes d'abord, puis vous basculer sur Joueurs."
+      },
+      "rank": {
+        "title": "Classer les équipes par niveau",
+        "description": "Lancez le passage de classement qui répartit les équipes en niveaux 1, 2 et 3 selon leurs performances. Utilisez-le une fois les résultats saisis. Pour le verrouillage trimestriel complet des niveaux et le calcul des points, passez par la section Classements dans la barre latérale."
+      },
+      "search": {
+        "title": "Rechercher et filtrer les équipes",
+        "description": "Cherchez une équipe par son nom, ou réduisez la liste à un seul niveau. Le tableau ci-dessous se met à jour au fur et à mesure que vous tapez."
+      },
+      "list": {
+        "title": "La liste des équipes",
+        "description": "Toutes les équipes inscrites, avec leur niveau, leur nombre de membres, leurs victoires et leurs gains. Les actions de la ligne vous permettent de voir une équipe, de la bannir ou de la débannir. Sous ce tableau, vous trouverez aussi les Équipes fantômes, ces escouades provisoires qui conservent les résultats de tournoi jusqu'à ce qu'une vraie équipe les réclame."
+      },
+      "switchToPlayers": {
+        "title": "Passons à l'onglet Joueurs",
+        "description": "Voilà pour les Équipes. Cliquez sur Suivant et nous vous basculons sur l'onglet Joueurs, où vous gérez les comptes de joueurs individuels."
+      },
+      "playersCreate": {
+        "title": "Créer un joueur fantôme",
+        "description": "Créez un joueur provisoire (un pseudo en jeu mis de côté) qui peut être rattaché à une équipe fantôme et réclamé plus tard. Pratique pour enregistrer des résultats avant qu'un vrai compte n'existe."
+      },
+      "playersStats": {
+        "title": "Statistiques des joueurs en un coup d'oeil",
+        "description": "Ces cartes montrent le nombre total de joueurs, les joueurs actifs et bannis, la moyenne d'éliminations, ainsi que vos meilleurs joueurs en MVP et en victoires. Une lecture rapide de la santé de la base de joueurs."
+      },
+      "playersSearch": {
+        "title": "Rechercher et filtrer les joueurs",
+        "description": "Trouvez un joueur par son nom, ou filtrez par équipe (y compris Sans équipe) et par statut (actif ou banni). Le tableau ci-dessous se met à jour quand vous changez ces filtres."
+      },
+      "playersList": {
+        "title": "Le tableau des joueurs",
+        "description": "Tous les joueurs avec leur équipe, leurs éliminations, leurs victoires, leurs MVP et leur statut. Voir ouvre le profil du joueur ; le bouton Bannir ou Débannir contrôle son accès à la plateforme."
+      },
+      "switchToReports": {
+        "title": "Passons à l'onglet Signalements",
+        "description": "Voilà pour les Équipes et les Joueurs. Cliquez sur Suivant et nous ouvrons l'onglet Signalements, où vous traitez les signalements de joueurs et d'équipes déposés par la communauté."
+      },
+      "reportsStats": {
+        "title": "Nombre de signalements en un coup d'oeil",
+        "description": "Ces cartes montrent le total des signalements déposés et combien de personnes ou d'équipes sont des récidivistes (3 signalements ou plus sur le même joueur ou la même équipe en 2 semaines)."
+      },
+      "reportsFilters": {
+        "title": "Filtrer et rechercher les signalements",
+        "description": "Réduisez la file d'attente par sujet (joueur ou équipe), par statut ou par catégorie, cherchez par nom signalé ou par auteur du signalement, ou n'affichez que les récidivistes."
+      },
+      "reportsTable": {
+        "title": "Examiner et répondre aux signalements",
+        "description": "Chaque signalement indique qui a été signalé, par qui, le motif, l'image de preuve et son statut. Cliquez sur Réponse pour lire les preuves et rédiger une réponse que l'auteur du signalement verra sur son profil."
+      }
+    },
+    "rankings": {
+      "header": {
+        "title": "L'espace de travail Classements",
+        "description": "Classements a sa propre rangée de sous-pages en haut : Vue d'ensemble (ici), Configuration des points, Niveaux de tournoi, Marqueurs de résultats, Saisons, Équipes fantômes, Réseaux sociaux, Dotations, Ajustements manuels et Journal. Cette Vue d'ensemble est la salle de contrôle ; les autres sont là où vous définissez les règles et les données brutes."
+      },
+      "season": {
+        "title": "Choisissez la saison",
+        "description": "Tout sur cette page est limité à une seule saison. Changez de saison ici ; les points des équipes, la répartition des niveaux et l'état de publication ci-dessous suivent tous la saison que vous choisissez."
+      },
+      "status": {
+        "title": "État de la saison en un coup d'oeil",
+        "description": "Ces cartes montrent la saison en cours, si la fenêtre de transfert est ouverte ou verrouillée, si un recalcul est en cours, et quand la dernière évaluation trimestrielle a été lancée et par qui."
+      },
+      "evaluation": {
+        "title": "Lancer l'évaluation trimestrielle",
+        "description": "Ceci verrouille le niveau de chaque équipe et de chaque joueur pour le trimestre suivant à partir des points actuels. Faites d'abord un aperçu (un essai à blanc qui n'écrit rien), puis validez. Vous pouvez aussi mettre en file d'attente un recalcul pour une seule équipe ou un seul joueur ici. Réservé à l'administrateur principal ou à l'admin des statistiques."
+      },
+      "distribution": {
+        "title": "Répartition des niveaux",
+        "description": "Une répartition en direct du nombre d'équipes dans chaque niveau pour cette saison. Le badge signale les équipes sous le seuil d'activité, ce qui peut affecter leur éligibilité."
+      },
+      "publish": {
+        "title": "Publier pour le public",
+        "description": "Les classements publics et les badges de niveau restent masqués tant que vous ne les publiez pas, et les deux surfaces se contrôlent séparément. Publiez l'une sans l'autre, chacune avec un motif enregistré."
+      },
+      "quicklinks": {
+        "title": "Accéder aux pages de détail",
+        "description": "Ces cartes ouvrent les outils Classements plus poussés : Marqueurs de résultats (vainqueurs, finales et indicateurs MVP), Saisons (dates et fenêtre de transfert), Équipes fantômes (créer des escouades provisoires et traiter les réclamations), et le Journal d'audit (chaque modification des données brutes). Configuration des points et Niveaux de tournoi se trouvent dans le sous-menu ci-dessus."
+      },
+      "teams": {
+        "title": "Le tableau des points par équipe",
+        "description": "Le rang, le niveau, les tournois joués, les éliminations et le score total de chaque équipe pour la saison. Faites une recherche à droite, et utilisez Modifier les marqueurs sur une ligne pour aller aux Marqueurs de résultats de cette équipe. C'est la vue brouillon, vous voyez donc les scores calculés avant même leur publication."
+      }
+    },
+    "player-markets": {
+      "title": {
+        "title": "Administration du marché des joueurs",
+        "description": "La supervision du marché des transferts : annonces d'équipes, annonces de joueurs, essais et signalements vivent tous sur cette page unique."
+      },
+      "tabs": {
+        "title": "Naviguer entre les sections du marché",
+        "description": "Vue d'ensemble affiche les chiffres principaux. Les autres onglets détaillent les Annonces d'équipes, les Annonces de joueurs, les Essais et candidatures, et les Signalements et alertes. Ouvrez un onglet pour agir sur les éléments qu'il contient."
+      },
+      "overview": {
+        "title": "Le marché en un coup d'oeil",
+        "description": "Ces cartes résument les annonces actives, les essais en cours et les signalements en attente, pour que vous repériez ce qui demande votre attention avant d'ouvrir les onglets de détail."
+      }
+    },
+    "rankings-overview": {
+      "header": {
+        "title": "L'espace de travail Classements",
+        "description": "Classements a sa propre rangée de sous-pages en haut : Vue d'ensemble ici, Configuration des points, Niveaux de tournoi, Marqueurs de résultats, Saisons, Équipes fantômes, Réseaux sociaux, Dotations, Ajustements manuels et Journal. Cette Vue d'ensemble est la salle de contrôle où vous définissez les règles et gérez les données brutes."
+      },
+      "season": {
+        "title": "Choisissez la saison",
+        "description": "Tout sur cette page est limité à une seule saison. Changez de saison ici. Les points des équipes, la répartition des niveaux et l'état de publication ci-dessous suivent tous la saison que vous choisissez."
+      },
+      "status": {
+        "title": "État de la saison en un coup d'oeil",
+        "description": "Ces cartes montrent la saison en cours, si la fenêtre de transfert est ouverte ou verrouillée, si un recalcul est en cours, et quand la dernière évaluation trimestrielle a été lancée et par qui."
+      },
+      "evaluation": {
+        "title": "Lancer l'évaluation trimestrielle",
+        "description": "Ceci verrouille le niveau de chaque équipe et de chaque joueur pour le trimestre suivant à partir des points actuels. Faites d'abord un aperçu, un essai à blanc qui n'écrit rien, puis validez. Vous pouvez aussi mettre en file d'attente un recalcul pour une seule équipe ou un seul joueur ici. Réservé à l'administrateur principal ou à l'admin des statistiques."
+      },
+      "distribution": {
+        "title": "Répartition des niveaux",
+        "description": "Une répartition en direct du nombre d'équipes dans chaque niveau pour cette saison. Le badge signale les équipes sous le seuil d'activité, ce qui peut affecter leur éligibilité."
+      },
+      "publish": {
+        "title": "Publier pour le public",
+        "description": "Les classements publics et les badges de niveau restent masqués tant que vous ne les publiez pas. Les deux surfaces se contrôlent séparément. Publiez l'une sans l'autre, chacune avec un motif enregistré."
+      }
+    },
+    "rankings-scoring-config": {
+      "title": {
+        "title": "Page Configuration des points",
+        "description": "Les coefficients, les tranches et les seuils qui pilotent chaque calcul de classement et de niveau. Les modifications sont versionnées et recalculent automatiquement les points sur toute la saison."
+      },
+      "version": {
+        "title": "Version de configuration active",
+        "description": "Indique si la configuration actuelle correspond aux valeurs par défaut de la spécification ou à une version enregistrée. Quand vous enregistrez, une nouvelle version est créée en brouillon."
+      },
+      "unsaved": {
+        "title": "Modifications non enregistrées",
+        "description": "Nombre de champs qui diffèrent de la version enregistrée. Les surlignages orange marquent les champs modifiés au fur et à mesure de vos changements."
+      },
+      "scales": {
+        "title": "Tranches de points",
+        "description": "Modifiez les échelles de compression pour les éliminations, le classement, les dotations et les réseaux sociaux. Les tranches ouvertes (la dernière ligne de chaque tableau) n'ont pas de limite supérieure."
+      },
+      "reset": {
+        "title": "Revenir aux valeurs par défaut de la spécification",
+        "description": "Charge les valeurs par défaut de la spécification depuis le code. Elles sont préparées localement dans l'éditeur sans être enregistrées. Enregistrez pour les mettre en brouillon comme nouvelle version."
+      },
+      "save": {
+        "title": "Enregistrer les modifications",
+        "description": "Crée en brouillon une nouvelle version de configuration inaltérable et met en file d'attente un recalcul complet pour chaque équipe et chaque joueur classé. Le nombre de champs non enregistrés est affiché sur le bouton."
+      }
+    },
+    "rankings-tournament-tiers": {
+      "title": {
+        "title": "Classification des niveaux de tournoi",
+        "description": "Construisez une liste de règles ordonnées par priorité qui classent les tournois par niveau. Un tournoi est évalué de haut en bas, la première règle qu'il satisfait fixe son niveau."
+      },
+      "stats": {
+        "title": "Nombre de règles",
+        "description": "Indique combien de règles sont actuellement activées. Les règles désactivées sont conservées mais ne participent pas à la classification."
+      },
+      "rules": {
+        "title": "Règles de niveau",
+        "description": "Glissez pour réordonner les règles par priorité. La première règle qu'un tournoi satisfait fixe son niveau (1 = multiplicateur 2,0x, 2 = 1,5x, 3 = 1,0x)."
+      },
+      "add": {
+        "title": "Ajouter une nouvelle règle",
+        "description": "Créez une nouvelle règle de classification. Définissez ses conditions, son niveau, et si elle doit satisfaire toutes les conditions ou seulement l'une d'entre elles."
+      },
+      "test": {
+        "title": "Tester un tournoi",
+        "description": "Saisissez la dotation, le nombre d'équipes et le nombre de joueurs d'un tournoi pour voir quelle règle il satisfait et dans quel niveau il serait classé."
+      },
+      "save": {
+        "title": "Enregistrer toutes les modifications",
+        "description": "Enregistre toutes les modifications de règles. Le journal d'audit consigne quelles règles ont été créées, mises à jour, supprimées ou réordonnées."
+      }
+    },
+    "rankings-result-markers": {
+      "title": {
+        "title": "Contrôle des marqueurs de résultats",
+        "description": "Activez ou désactivez la prise en compte des résultats de tournoi dans les classements. Basculez le comptage pour des événements entiers ou excluez des équipes et des joueurs précis."
+      },
+      "status": {
+        "title": "État des résultats",
+        "description": "Les cartes montrent le total des tournois, combien comptent entièrement, combien sont partiellement limités ou désactivés. Un aperçu rapide des événements qui alimentent les classements."
+      },
+      "search": {
+        "title": "Trouver un événement",
+        "description": "Filtrez les tournois par nom, par niveau ou par statut. Vous localisez ainsi rapidement les événements à ajuster."
+      },
+      "list": {
+        "title": "Liste des tournois",
+        "description": "L'état de comptage de chaque tournoi. Cliquez pour entrer dans le détail des exclusions d'équipes et de joueurs pour cet événement."
+      },
+      "flags": {
+        "title": "Indicateurs de comptage",
+        "description": "Basculez la prise en compte des vainqueurs, des points de classement et des éliminations pour un tournoi entier. Désactivez-la pour arrêter d'enregistrer des résultats avant que l'événement ne soit officiel."
+      },
+      "exclusions": {
+        "title": "Exclusions d'équipes et de joueurs",
+        "description": "Excluez une équipe ou un joueur précis du comptage d'un événement (par exemple pour infraction au règlement). Les exclusions demandent un motif et sont consignées."
+      }
+    },
+    "rankings-seasons": {
+      "title": {
+        "title": "Gestion des saisons",
+        "description": "Définissez les saisons de compétition, réglez le trimestre et l'année, ouvrez et fermez la fenêtre de transfert, et lancez l'évaluation trimestrielle des niveaux."
+      },
+      "create": {
+        "title": "Créer une nouvelle saison",
+        "description": "Démarrez un nouveau trimestre. Réglez le nom de la saison, le trimestre, l'année, les dates de début et de fin. Elle devient la saison active dès sa création."
+      },
+      "list": {
+        "title": "Tableau de toutes les saisons",
+        "description": "Chaque saison, son trimestre et son année, sa période, l'état de la fenêtre de transfert et l'historique des évaluations. Cliquez sur Modifier pour changer les dates ou rouvrir la fenêtre de transfert."
+      },
+      "transfer": {
+        "title": "Fenêtre de transfert",
+        "description": "Ouvrez ou fermez la fenêtre de transfert (la période où les équipes peuvent échanger des joueurs). Cette fenêtre est indépendante des dates de la saison."
+      },
+      "evaluation": {
+        "title": "Évaluation des niveaux",
+        "description": "Chaque saison indique quand son évaluation trimestrielle a été lancée et par qui. L'évaluation verrouille les niveaux des équipes et des joueurs pour le trimestre suivant."
+      },
+      "log": {
+        "title": "Journal de la fenêtre de transfert",
+        "description": "Le journal d'audit de chaque ouverture, fermeture ou prolongation de la fenêtre de transfert. Il indique qui a fait le changement et pour quel motif."
+      }
+    },
+    "rankings-ghost-teams": {
+      "title": {
+        "title": "Création d'équipes fantômes",
+        "description": "Créez des escouades provisoires pour conserver les résultats de tournoi avant qu'une vraie équipe ne les réclame. Remplissez l'effectif provisoire avec des pseudos en jeu."
+      },
+      "stats": {
+        "title": "Nombre d'équipes fantômes",
+        "description": "Les cartes montrent le total des fantômes non réclamés, ceux avec une réclamation en attente, et ceux qui ont été réclamés. Un résumé rapide du processus."
+      },
+      "create": {
+        "title": "Créer un nouveau fantôme",
+        "description": "Définissez une équipe provisoire avec un effectif de pseudos en jeu. Le fantôme conserve les résultats jusqu'à ce qu'une vraie équipe le réclame."
+      },
+      "tabs": {
+        "title": "Filtrer par statut",
+        "description": "Changez d'onglet pour voir tous les fantômes ou seulement ceux avec une réclamation en attente. Vous repérez ainsi le travail à approuver."
+      },
+      "list": {
+        "title": "Tableau des équipes fantômes",
+        "description": "Tous les fantômes triés par statut de réclamation. Les non réclamés sont disponibles pour enregistrer des résultats, ceux en attente ont une réclamation en cours, les réclamés sont retirés."
+      },
+      "claim": {
+        "title": "Approuver ou révoquer les réclamations",
+        "description": "Quand une équipe tente de réclamer un fantôme, approuvez pour valider la réclamation ou révoquez si elle était frauduleuse. Les deux actions demandent un motif et sont consignées."
+      }
+    },
+    "rankings-social": {
+      "title": {
+        "title": "Vérification des réseaux sociaux",
+        "description": "Les équipes relient leurs comptes Instagram et TikTok depuis leur tableau de bord. Vous vérifiez le nombre d'abonnés cumulé, qui rapporte des points selon l'échelle par tranches."
+      },
+      "search": {
+        "title": "Trouver une équipe",
+        "description": "Filtrez la liste par nom d'équipe. Elle montre les équipes reliées et non reliées, ce qui permet de voir facilement qui doit encore relier ses comptes."
+      },
+      "list": {
+        "title": "Équipes reliées",
+        "description": "Toutes les équipes qui ont relié leurs comptes, leur nombre d'abonnés sur chaque plateforme, le total cumulé et l'état de vérification."
+      },
+      "verify": {
+        "title": "Vérifier le nombre d'abonnés",
+        "description": "Confirmez le nombre d'abonnés cumulé d'une équipe et validez-le. L'échelle par tranches convertit les abonnés en points (plafonnés à 10). Annulez la vérification pour modifier à nouveau les chiffres."
+      },
+      "correction": {
+        "title": "Corriger le nombre d'abonnés",
+        "description": "Modifiez les chiffres d'abonnés Instagram et TikTok s'ils ne sont plus à jour. Une fois enregistrés, vérifiez-les pour les valider et attribuer les points."
+      },
+      "brackets": {
+        "title": "Aperçu de l'échelle de points",
+        "description": "Montre comment les abonnés cumulés se convertissent en points par niveau. Les points sont calculés en direct pendant que vous modifiez, puis enregistrés quand vous vérifiez."
+      }
+    },
+    "rankings-prize": {
+      "title": {
+        "title": "Suivi des dotations",
+        "description": "Enregistrez les dotations versées aux équipes pour chaque tournoi. Le total trimestriel se convertit en points sur une échelle par tranches qui alimente les scores de niveau."
+      },
+      "total": {
+        "title": "Total de la saison",
+        "description": "La carte affiche la somme de toutes les dotations enregistrées pour la saison active. Elle vous aide à vérifier que vous avez bien saisi tous les versements."
+      },
+      "add": {
+        "title": "Enregistrer un versement",
+        "description": "Créez une nouvelle entrée de dotation. Choisissez le tournoi, l'équipe et le montant en NGN. Un motif obligatoire est consigné pour l'audit."
+      },
+      "search": {
+        "title": "Trouver un versement",
+        "description": "Filtrez par nom d'événement ou d'équipe. Cela vous aide à localiser une dotation précise à modifier ou à corriger."
+      },
+      "list": {
+        "title": "Tableau des dotations versées",
+        "description": "Toutes les dotations enregistrées pour la saison. Le tableau indique le nom de l'événement, l'équipe, le montant en NGN et la date d'attribution. Modifiez ou supprimez avec un motif."
+      },
+      "scale": {
+        "title": "Échelle des tranches de dotation",
+        "description": "Montre comment les totaux trimestriels de dotations se convertissent en points. L'échelle est liée aux tranches de dotation de la configuration des points."
+      }
+    },
+    "rankings-overrides": {
+      "title": {
+        "title": "Ajustements manuels de niveau et de score",
+        "description": "Remplacez le niveau calculé d'une équipe ou d'un joueur, retirez des points en guise de pénalité, ou remettez leur score à zéro pour la saison. Toutes ces actions demandent un motif et sont consignées."
+      },
+      "search": {
+        "title": "Trouver une équipe ou un joueur",
+        "description": "Cherchez par nom pour trouver l'équipe ou le joueur à ajuster. Le tableau se met à jour au fur et à mesure que vous tapez."
+      },
+      "list": {
+        "title": "Tableau des équipes et des joueurs",
+        "description": "Toutes les entités classées avec leur score calculé et leur niveau, plus les indicateurs d'ajustement et de pénalité. Cliquez sur une ligne pour changer le niveau ou retirer des points."
+      },
+      "tier": {
+        "title": "Forcer le niveau",
+        "description": "Fixez manuellement le niveau d'une équipe. L'ajustement reste en place tant que vous ne le changez pas. Utile quand le niveau calculé ne correspond pas à l'application du règlement."
+      },
+      "deduct": {
+        "title": "Retirer des points",
+        "description": "Retirez un nombre de points précis en guise de pénalité partielle. L'équipe reste classée mais avec un score réduit. Contrairement à une remise à zéro, elle n'est pas masquée."
+      },
+      "ban": {
+        "title": "Bannir ou remettre à zéro",
+        "description": "Retirez complètement une équipe ou un joueur des classements pour la saison. Une remise à zéro met leur score à 0 et apparaît dans le journal d'audit."
+      }
+    },
+    "rankings-audit": {
+      "title": {
+        "title": "Journal d'audit",
+        "description": "L'enregistrement complet de chaque modification du système de classements. Filtrez par type d'action, par période et par motif. Inclut le détail des données brutes par équipe et par joueur."
+      },
+      "filters": {
+        "title": "Filtrer par type et par date",
+        "description": "Réduisez le journal par type d'action (résultat de tournoi, dotation, ajustement manuel, etc.) et par période. La recherche par motif s'applique aux résultats affichés."
+      },
+      "search": {
+        "title": "Rechercher par motif",
+        "description": "Recherche en texte libre dans le champ motif des entrées d'audit chargées. Cela vous aide à retrouver le changement que vous cherchez."
+      },
+      "list": {
+        "title": "Entrées d'audit",
+        "description": "Le journal chronologique de chaque action. Il indique le type, le motif, qui a fait le changement et quand. Cliquez pour voir les instantanés avant et après."
+      },
+      "details": {
+        "title": "Avant et après",
+        "description": "Quand vous cliquez sur une entrée d'audit, vous voyez les instantanés JSON avant et après. Cela vous aide à comprendre ce qui a changé et à vérifier que c'était voulu."
+      },
+      "raw": {
+        "title": "Détail des données brutes",
+        "description": "Récupérez le détail brut du score d'une équipe ou d'un joueur. Il montre comment son score final se compose des parties tournoi, scrim, dotation et réseaux sociaux."
+      }
+    },
+    "shop-dashboard": {
+      "ordersCard": {
+        "title": "Carte Vos commandes",
+        "description": "Un accès rapide au suivi des commandes. Elle renvoie directement vers la page Commandes pour voir toutes les commandes de la boutique et leur statut."
+      },
+      "vendorsCard": {
+        "title": "Gérer les vendeurs",
+        "description": "L'accès à la gestion des vendeurs. Accordez un accès de vente à des utilisateurs, suspendez ou réactivez des vendeurs, et attribuez-leur des produits."
+      },
+      "approvalsCard": {
+        "title": "Validation des produits",
+        "description": "Examinez les produits soumis par les vendeurs dans la file de validation. Approuvez pour publier, ou rejetez avec un retour à améliorer."
+      },
+      "ordersFilter": {
+        "title": "Filtre temporel des commandes",
+        "description": "Basculez entre les vues jour, semaine ou mois des commandes récentes. Le tableau ci-dessous se met à jour avec les commandes de la période choisie."
+      },
+      "ordersTable": {
+        "title": "Tableau des commandes récentes",
+        "description": "Les commandes en direct de votre boutique filtrées par la période choisie. Il affiche l'identifiant de commande, le client, le statut, la date et le montant total."
+      },
+      "stockStatus": {
+        "title": "État actuel du stock",
+        "description": "Un instantané de l'inventaire de diamants virtuels par variante. Des badges de couleur montrent les niveaux de stock et un lien ouvre la gestion complète de l'inventaire."
+      }
+    },
+    "shop-coupons": {
+      "statsCards": {
+        "title": "Cartes de statistiques des coupons",
+        "description": "Elles résument la performance des coupons : nombre total, nombre actif, total des utilisations, total des économies et taux de conversion sur l'ensemble des coupons."
+      },
+      "tabs": {
+        "title": "Onglets de statistiques",
+        "description": "Basculez entre Performance (les coupons classés par utilisation), Tendances (les tendances d'utilisation par mois) et Activité récente (les dernières utilisations de coupons)."
+      },
+      "performanceTable": {
+        "title": "Tableau des coupons",
+        "description": "Tous les coupons classés par nombre d'utilisations. Il affiche le code, le type et la valeur de la remise, le statut, le nombre d'utilisations et une barre de progression indiquant la capacité maximale."
+      },
+      "pagination": {
+        "title": "Contrôles de pagination",
+        "description": "Parcourez les pages de coupons quand la liste est longue. Comprend suivant, précédent et le choix direct d'une page."
+      },
+      "couponLink": {
+        "title": "Voir le détail d'un coupon",
+        "description": "Cliquez sur n'importe quel code de coupon pour voir son détail complet, son historique, ses statistiques d'utilisation et pour modifier des réglages comme la valeur de la remise ou la période de validité."
+      }
+    },
+    "shop-inventory": {
+      "addProduct": {
+        "title": "Bouton Ajouter un produit",
+        "description": "Créez une nouvelle fiche produit. Ouvre une fenêtre pour saisir le nom du produit, la catégorie, les variantes avec leurs prix et les quantités en stock."
+      },
+      "manageCategories": {
+        "title": "Gérer les catégories",
+        "description": "Créez, modifiez ou supprimez les catégories de produits qui organisent le catalogue de votre boutique et apparaissent comme onglets pour les clients."
+      },
+      "couponLink": {
+        "title": "Lien vers les statistiques des coupons",
+        "description": "Accédez à la page Statistiques des coupons pour suivre les utilisations, les économies et les tendances de performance."
+      },
+      "statusFilter": {
+        "title": "Filtre de statut des produits",
+        "description": "Filtrez les produits par statut : Tous, Actifs ou Inactifs. Le tableau des produits se met à jour immédiatement quand vous choisissez un filtre."
+      },
+      "productsTable": {
+        "title": "Tableau des produits",
+        "description": "Il liste tous les produits avec leur nom, leur type, leur catégorie, leur niveau de stock, leur fourchette de prix, leur statut et leur date de dernière mise à jour. Les actions de la ligne permettent de modifier ou de supprimer."
+      },
+      "couponsSection": {
+        "title": "Gestion des coupons",
+        "description": "Créez de nouveaux coupons ou gérez ceux qui existent. La section montre les coupons actifs et archivés avec le suivi des utilisations et les contrôles de statut."
+      }
+    },
+    "shop-orders": {
+      "search": {
+        "title": "Recherche de commandes",
+        "description": "Trouvez rapidement des commandes par identifiant de commande, nom du client, nom du produit ou identifiant utilisateur. Les résultats se mettent à jour au fur et à mesure que vous tapez."
+      },
+      "statusTabs": {
+        "title": "Onglets de filtre par statut",
+        "description": "Filtrez les commandes par statut : Toutes, En attente ou Payées. Les onglets affichent le nombre pour chaque statut, ce qui vous permet de repérer les commandes en attente qui demandent votre attention."
+      },
+      "table": {
+        "title": "Liste des commandes",
+        "description": "Toutes les commandes avec leur identifiant, le client, les articles achetés, un badge de statut, la date et le total. Chaque ligne a un menu pour voir le détail complet."
+      },
+      "pagination": {
+        "title": "Pagination",
+        "description": "Parcourez les pages de commandes quand la liste complète est longue. Les numéros de page apparaissent quand c'est nécessaire."
+      },
+      "viewDetails": {
+        "title": "Voir le détail d'une commande",
+        "description": "Cliquez sur Voir les détails sur une commande pour voir le détail complet : articles, quantités, prix, remises et informations de livraison du client."
+      }
+    },
+    "shop-vendors": {
+      "add": {
+        "title": "Ajouter un vendeur",
+        "description": "Accordez un accès de vente sur la place de marché à un utilisateur existant. Saisissez son e-mail ou son identifiant utilisateur et configurez son profil vendeur avec un nom affiché et des coordonnées."
+      },
+      "assignProduct": {
+        "title": "Attribuer un produit à un vendeur",
+        "description": "Réattribuez un produit à un autre vendeur ou remettez-le dans le stock propre d'AFC. Choisissez le produit et le vendeur cible dans les listes déroulantes."
+      },
+      "table": {
+        "title": "Liste des vendeurs",
+        "description": "Tous les vendeurs avec leur nom affiché, leur e-mail de contact, leur numéro WhatsApp, leur statut, leur nombre de produits et leur date d'inscription. Les bascules de statut permettent de suspendre ou de réactiver immédiatement."
+      },
+      "statusToggle": {
+        "title": "Bascule de statut du vendeur",
+        "description": "Suspendez un vendeur actif pour lui retirer son accès de vente, ou réactivez un vendeur suspendu pour lui permettre de vendre à nouveau."
+      },
+      "contactInfo": {
+        "title": "Coordonnées du vendeur",
+        "description": "Chaque ligne de vendeur affiche son e-mail de contact et son numéro WhatsApp, pour la coordination du support et le suivi des expéditions."
+      }
+    },
+    "shop-approvals": {
+      "queueTable": {
+        "title": "File de validation",
+        "description": "Tous les produits soumis par les vendeurs en attente d'examen. Elle affiche le nom du produit, le vendeur, la fourchette de prix, le nombre de variantes et la date de soumission pour une évaluation rapide."
+      },
+      "approveButton": {
+        "title": "Approuver un produit",
+        "description": "Publiez un produit de vendeur dans la boutique. Une fois approuvé, le statut du produit change et il peut être mis en vente."
+      },
+      "rejectButton": {
+        "title": "Rejeter un produit",
+        "description": "Renvoyez un produit au vendeur avec un retour. Ouvre une fenêtre pour saisir un motif de rejet que le vendeur peut voir et traiter."
+      },
+      "rejectReason": {
+        "title": "Champ du motif de rejet",
+        "description": "Rédigez un retour clair pour le vendeur en expliquant pourquoi son produit a été rejeté, par exemple un problème de prix ou des informations manquantes."
+      },
+      "emptyState": {
+        "title": "File vide",
+        "description": "Quand aucun produit n'a été soumis, la file affiche un état vide. Les produits apparaissent ici dès que des vendeurs soumettent de nouvelles fiches."
+      }
+    },
+    "events-lb-main": {
+      "tabs": {
+        "title": "Onglets Événements et Classements",
+        "description": "Basculez entre l'onglet Événements (gérer les tournois et les scrims) et l'onglet Classements (publier les classements). La visite parcourt les deux onglets."
+      },
+      "create": {
+        "title": "Créer un nouvel événement",
+        "description": "Lancez un tournoi ou un scrim. L'assistant vous guide à travers les détails, les phases, les dotations et les règles, puis le publie."
+      },
+      "payments": {
+        "title": "Tableau de bord des paiements d'événement",
+        "description": "Pour les événements payants, gérez le séquestre où vous libérez ou remboursez les frais d'inscription retenus par Stripe."
+      },
+      "search": {
+        "title": "Trouver un événement rapidement",
+        "description": "Filtrez la liste ci-dessous par nom d'événement, par type (tournoi ou scrim) ou par statut. Bien pratique dès que vous avez beaucoup d'événements enregistrés."
+      },
+      "list": {
+        "title": "Vos événements et scrims",
+        "description": "Tous les événements vivent ici. Par ligne : Voir ouvre le détail complet de l'événement, Modifier rouvre l'assistant, et l'icône corbeille le supprime."
+      },
+      "lbStats": {
+        "title": "Totaux des classements",
+        "description": "Les cartes comptent vos classements dans leur ensemble et les répartissent entre classements de tournois et classements de scrims, pour que vous voyiez ce qui a été noté."
+      }
+    },
+    "events-lb-create": {
+      "title": {
+        "title": "Créer un nouvel événement",
+        "description": "Un assistant en plusieurs étapes pour construire un tournoi ou un scrim de zéro. Suivez les étapes : détails, phases, dotations et règles."
+      },
+      "nextButton": {
+        "title": "Navigation entre les étapes",
+        "description": "Cliquez sur Suivant ou Précédent pour avancer dans l'assistant de création d'événement."
+      },
+      "save": {
+        "title": "Bouton Créer l'événement",
+        "description": "Quand vous arrivez à la dernière étape, cliquez sur Créer l'événement pour enregistrer et publier votre tournoi ou votre scrim."
+      }
+    },
+    "events-lb-payments": {
+      "title": {
+        "title": "Séquestre des paiements d'événement",
+        "description": "Les frais d'inscription des événements payants sont retenus en séquestre. Libérez les fonds vers l'organisateur ou remboursez le joueur ici."
+      },
+      "filter": {
+        "title": "Filtrer par événement",
+        "description": "Choisissez un événement payant précis pour voir ses paiements retenus, ou affichez tous les paiements de tous les événements payants."
+      },
+      "summary": {
+        "title": "Cartes de synthèse des paiements",
+        "description": "Voyez le nombre total de paiements, combien sont retenus en séquestre en attente d'une action, et combien sont affichés avec votre filtre actuel."
+      },
+      "table": {
+        "title": "Tableau des paiements",
+        "description": "Par ligne de paiement : l'événement, le payeur, l'équipe, le montant, le statut et l'état du séquestre. Les paiements retenus affichent les boutons Libérer et Rembourser."
+      }
+    },
+    "events-lb-detail": {
+      "title": {
+        "title": "Page de détail de l'événement",
+        "description": "Le centre de gestion d'un événement. Consultez ou modifiez tous ses aspects : vue d'ensemble, inscriptions, phases, équipes et dotations."
+      },
+      "overview": {
+        "title": "Onglet Vue d'ensemble",
+        "description": "Un instantané en direct de l'événement : le total des inscrits, le compte à rebours avant le début, la cagnotte et sa répartition."
+      },
+      "details": {
+        "title": "Onglet Détails",
+        "description": "Les informations de l'événement : nom, type, mode, dates, règles, restrictions, sponsors et configuration de la liste d'attente."
+      },
+      "registrations": {
+        "title": "Onglet Inscriptions",
+        "description": "Qui s'est inscrit. Consultez la chronologie des inscriptions, filtrez par statut, téléchargez la liste des participants et gérez les invitations pour les événements privés."
+      },
+      "stages": {
+        "title": "Onglet Phases",
+        "description": "La structure du tableau du tournoi. Voyez chaque phase, ses groupes, ses équipes et son nombre de matchs. Répartissez les équipes des événements en direct ou modifiez la configuration des phases et des groupes ici."
+      },
+      "groupRosters": {
+        "title": "Onglet Effectifs des groupes",
+        "description": "La vérification de la répartition pendant un événement en direct : qui est où, dans quel groupe. Cherchez par nom de joueur ou d'équipe pour une consultation rapide pendant l'événement."
+      }
+    },
+    "events-lb-edit": {
+      "title": {
+        "title": "Modifier l'événement",
+        "description": "Rouvrez l'assistant de l'événement pour changer n'importe quel détail, phase ou règle après sa création."
+      },
+      "basic": {
+        "title": "Onglet Informations de base",
+        "description": "Le nom de l'événement, son type, son mode, ses dates, les dates et liens d'inscription, et son statut public ou privé."
+      },
+      "stages": {
+        "title": "Onglet Phases et groupes",
+        "description": "Modifiez le nombre de phases, leurs dates, leurs formats, le nombre de groupes, les équipes qualifiées et les cagnottes."
+      },
+      "prizes": {
+        "title": "Onglet Dotations et règles",
+        "description": "Gérez les montants de la cagnotte, sa répartition par place, et le texte des règles de l'événement ou leur fichier."
+      },
+      "actions": {
+        "title": "Onglet Actions",
+        "description": "Publiez vers les tournois ou les actualités, ou enregistrez en brouillon. Contrôlez qui peut s'inscrire et gérez les réglages des sponsors et de la liste d'attente."
+      }
+    },
+    "events-lb-ocr": {
+      "title": {
+        "title": "Extraction OCR des captures d'écran",
+        "description": "Téléversez une capture d'écran des résultats d'un match et extrayez automatiquement les pseudos, les éliminations et les places. Vérifiez et corrigez avant d'enregistrer."
+      },
+      "upload": {
+        "title": "Téléverser une capture d'écran",
+        "description": "Déposez ou choisissez l'image d'une capture d'écran des résultats d'un match. Le moteur OCR y cherche les statistiques des joueurs."
+      },
+      "review": {
+        "title": "Vérifier les données extraites",
+        "description": "Le résultat de l'OCR s'affiche sous forme de tableau. Vérifiez l'exactitude de chaque ligne et corrigez à la main les erreurs de lecture avant de valider."
+      },
+      "commit": {
+        "title": "Valider les données OCR",
+        "description": "Enregistrez les lignes OCR vérifiées sur cet événement. Elles deviennent partie intégrante du résultat du match."
+      }
+    },
+    "events-lb-sponsors": {
+      "title": {
+        "title": "Gestion des sponsors de l'événement",
+        "description": "Listez les participants selon qu'ils ont rempli ou non les exigences des sponsors. Cherchez, filtrez par statut et vérifiez ou rejetez les soumissions."
+      },
+      "filter": {
+        "title": "Filtrer par statut",
+        "description": "Affichez tous les participants, seulement ceux qui ont passé la vérification des sponsors, ou seulement ceux qui ont échoué."
+      },
+      "table": {
+        "title": "Tableau des participants",
+        "description": "Par ligne : le nom du participant, son UUID ou identifiant, la date de soumission et le statut. Utilisez les actions pour vérifier ou rejeter chacun d'eux."
+      },
+      "verify": {
+        "title": "Vérifier ou rejeter une soumission",
+        "description": "Par ligne : cliquez sur Vérifier pour accepter une exigence de sponsor, ou sur Rejeter si elle ne remplit pas les critères."
+      }
+    },
+    "events-lb-leaderboards-create": {
+      "title": {
+        "title": "Créer un classement",
+        "description": "Un assistant en plusieurs étapes pour générer le classement d'un tournoi ou d'un scrim. Choisissez l'événement, la phase et le groupe, puis saisissez ou téléversez les résultats."
+      },
+      "basic": {
+        "title": "Étape Informations de base",
+        "description": "Choisissez l'événement, la phase et le groupe à noter. Le formulaire affiche les phases et les groupes disponibles pour cet événement."
+      },
+      "scoring": {
+        "title": "Étape Système de points",
+        "description": "Réglez les points d'élimination, d'assistance et de dégâts. Choisissez si les mêmes valeurs s'appliquent à toutes les cartes ou varient d'un match à l'autre."
+      },
+      "matches": {
+        "title": "Étape Résultats des matchs",
+        "description": "Saisissez les résultats des matchs à la main, téléversez une capture d'écran pour l'extraction OCR, ou téléversez un fichier de salle 3D. Une option par match."
+      },
+      "review": {
+        "title": "Étape Vérification et publication",
+        "description": "Voyez le classement final, puis publiez-le pour rendre les résultats de ce groupe visibles du public."
+      }
+    },
+    "events-lb-leaderboards-view": {
+      "title": {
+        "title": "Classement",
+        "description": "Consultez le classement final d'un groupe. Voyez les places, le nombre d'éliminations et le total de points de chaque participant."
+      },
+      "stageGroup": {
+        "title": "Sélecteur de phase et de groupe",
+        "description": "Des listes déroulantes pour consulter le classement des différentes phases et des différents groupes de cet événement."
+      },
+      "table": {
+        "title": "Tableau du classement",
+        "description": "Par ligne de participant : la place, le nom, le nombre d'éliminations, les assistances, les dégâts et le total de points."
+      },
+      "matchPicker": {
+        "title": "Sélecteur de match",
+        "description": "Choisissez le classement Général ou entrez dans un seul match pour voir la place et les points de ce match uniquement."
+      },
+      "download": {
+        "title": "Télécharger le classement",
+        "description": "Exportez le classement au format CSV ou Excel pour le partager avec les organisateurs ou le public."
+      }
+    },
+    "events-lb-leaderboards-edit": {
+      "title": {
+        "title": "Modifier le classement",
+        "description": "Corrigez ou ressaisissez les résultats des matchs d'un classement publié. Mettez à jour les points, les places et le nombre d'éliminations par match."
+      },
+      "stageGroup": {
+        "title": "Sélecteur de phase et de groupe",
+        "description": "Choisissez la phase et le groupe dont vous voulez remodifier les matchs."
+      },
+      "matchList": {
+        "title": "Liste des matchs",
+        "description": "Voyez tous les matchs du groupe choisi. Cliquez sur un match pour ouvrir la vue de modification de ses résultats."
+      },
+      "match": {
+        "title": "Modifier un match",
+        "description": "Ressaisissez ou téléversez les résultats du match. Choisissez la saisie manuelle, l'OCR d'une capture d'écran, ou le téléversement d'un fichier de salle 3D."
+      },
+      "save": {
+        "title": "Enregistrer les modifications",
+        "description": "Quand vous avez fini de modifier les résultats des matchs, cliquez sur Enregistrer pour mettre à jour le classement publié."
+      },
+      "mvpTab": {
+        "title": "MVP de l'événement",
+        "description": "Un MVP est désigné pour CHAQUE carte selon les critères que vous avez définis (éliminations, dégâts, assistances, et les statistiques de salle 3D une fois importées) ; le MVP de l'événement est le joueur qui a le plus de MVP de carte. Choisissez si les MVP proviennent de l'ensemble de l'événement ou de l'équipe gagnante de chaque carte."
+      },
+      "tieBreakers": {
+        "title": "Départages (onglet Configuration des points)",
+        "description": "Quand des équipes terminent à égalité de points, cet ordre les départage : Booyah, éliminations, points de classement, et même les MVP de carte remportés. Comme pour les cartes, il peut s'appliquer à tout l'événement ou être remplacé par phase ou par groupe."
+      },
+      "debuggerBackfill": {
+        "title": "Reprise du journal debugger (onglet Téléversement)",
+        "description": "Téléversez le fichier debugger-*.log du PC observateur pour ajouter APRÈS COUP les morts, les mises à terre, les tirs à la tête, les réanimations et le temps de survie aux matchs. Associez chaque manche détectée à son match et appliquez : les joueurs sont reconnus par leur UID Free Fire, et les critères de MVP de salle 3D se débloquent automatiquement."
+      }
+    },
+    "live-overlays-list": {
+      "capture": {
+        "title": "Le logiciel AFC Capture",
+        "description": "Téléchargez l'application de bureau qui tourne sur le PC hôte de la salle. Elle envoie automatiquement le résultat de chaque manche et pousse le classement en direct vers vos superpositions."
+      },
+      "events": {
+        "title": "Choisissez un événement",
+        "description": "Tous les événements sont listés ici. Ouvrez-en un pour gérer TOUTES ses superpositions : les designs avec aperçu en direct, la scène du compte à rebours, le contrôle de diffusion et la clé de capture."
+      }
+    },
+    "live-overlays-studio": {
+      "newOverlay": {
+        "title": "Créer une superposition",
+        "description": "Créez une nouvelle superposition à partir de n'importe quel design de classement, ou ajoutez une scène de compte à rebours. Chaque superposition reçoit UN lien permanent que vous ajoutez une seule fois dans OBS ou vMix."
+      },
+      "cards": {
+        "title": "Vos superpositions enregistrées",
+        "description": "Chaque carte est une superposition avec un aperçu EN DIRECT de son vrai lien. Changez son design, sa phase ou son groupe, ses animations, ou déclenchez le compte à rebours : le même lien se met à jour tout seul dans OBS. Renommez, dupliquez ou supprimez depuis la carte."
+      },
+      "broadcast": {
+        "title": "Contrôle de diffusion",
+        "description": "Les superpositions réglées sur 'Suivre la sélection de diffusion' affichent ce que vous choisissez ici : changez la phase ou le groupe en direct sans toucher à OBS."
+      }
+    },
+    "orgs-misc-organizations-list": {
+      "create": {
+        "title": "Créer une nouvelle organisation",
+        "description": "Créez une nouvelle organisation et désignez son propriétaire. Le formulaire demande un nom et le nom d'utilisateur du propriétaire pour démarrer."
+      },
+      "search": {
+        "title": "Rechercher des organisations",
+        "description": "Filtrez la liste des organisations par nom ou par slug. Les résultats se mettent à jour au fur et à mesure que vous tapez."
+      },
+      "subnav": {
+        "title": "Sections des organisations",
+        "description": "Basculez entre la liste des organisations, les Demandes de design et les Signalements d'organisations grâce aux onglets de sous-navigation."
+      },
+      "table": {
+        "title": "Tableau des organisations",
+        "description": "Toutes les organisations enregistrées avec leur statut, leur nombre de membres, leurs événements et leur date de création. Cliquez sur un nom pour voir ou modifier ses détails."
+      },
+      "pagination": {
+        "title": "Parcourir les pages d'organisations",
+        "description": "Parcourez la liste des organisations avec les numéros de page. Le tableau est paginé côté serveur pour les performances."
+      }
+    },
+    "orgs-misc-org-reports": {
+      "title": {
+        "title": "Signalements d'intégrité des organisations",
+        "description": "Une file d'attente pour les signalements déposés par les utilisateurs contre des organisations : manipulation de classements, faux résultats ou conduite déloyale."
+      },
+      "subnav": {
+        "title": "Basculer entre les sections des organisations",
+        "description": "Naviguez entre la liste des organisations, les Demandes de design et les Signalements d'organisations avec ce sous-menu."
+      },
+      "statusFilter": {
+        "title": "Filtrer les signalements par statut",
+        "description": "Affichez les signalements par statut : tous, ouverts, en cours d'examen, résolus ou écartés. Les signalements ouverts sont prioritaires."
+      },
+      "table": {
+        "title": "Lignes de signalement",
+        "description": "Chaque ligne indique l'organisation, la catégorie, l'auteur du signalement, l'événement concerné, le statut et la date. Utilisez Résoudre pour traiter chaque signalement."
+      },
+      "resolve": {
+        "title": "Résoudre un signalement d'intégrité",
+        "description": "Ouvrez une fenêtre pour changer le statut, ajouter des notes de résolution, consulter les preuves et, si besoin, exclure l'événement des classements."
+      }
+    },
+    "orgs-misc-org-detail": {
+      "profileTab": {
+        "title": "Modifier le profil de l'organisation",
+        "description": "Mettez à jour le nom de l'organisation, son e-mail, sa description, ses liens sociaux et son statut. Enregistrez ou suspendez depuis cet onglet."
+      },
+      "membersTab": {
+        "title": "Gérer les membres de l'organisation",
+        "description": "Ajoutez des membres, consultez leurs permissions, définissez le propriétaire et retirez des utilisateurs depuis cet onglet."
+      },
+      "eventsTab": {
+        "title": "Examiner les événements de l'organisation",
+        "description": "Consultez tous les événements qui appartiennent à cette organisation. Validez ou invalidez le classement de chaque événement depuis ce tableau."
+      },
+      "saveProfile": {
+        "title": "Enregistrer les modifications du profil",
+        "description": "Validez les modifications du nom, de l'e-mail, de la description et des réseaux sociaux après vos changements dans l'onglet Profil."
+      },
+      "suspend": {
+        "title": "Suspendre l'organisation",
+        "description": "Bloquez temporairement l'accès de l'organisation sans la supprimer. Utilisez Réactiver pour lui rendre l'accès plus tard."
+      }
+    },
+    "orgs-misc-sponsors-list": {
+      "create": {
+        "title": "Créer un nouveau compte sponsor",
+        "description": "Créez un nouveau compte sponsor avec ses identifiants de connexion et ses événements attribués, dans un assistant guidé."
+      },
+      "search": {
+        "title": "Rechercher des comptes sponsors",
+        "description": "Filtrez par nom complet, nom d'utilisateur ou e-mail. Les résultats se mettent à jour au fur et à mesure que vous tapez."
+      },
+      "table": {
+        "title": "Tableau des comptes sponsors",
+        "description": "Tous les sponsors avec leur nom complet, leur nom d'utilisateur, leur e-mail et les actions. Cliquez sur Modifier pour mettre à jour leurs détails et leurs événements attribués."
+      },
+      "pagination": {
+        "title": "Parcourir les pages de sponsors",
+        "description": "Parcourez la liste des sponsors avec les numéros de page. Le tableau est paginé côté client."
+      }
+    },
+    "orgs-misc-sponsors-create": {
+      "stepIndicator": {
+        "title": "Création d'un sponsor en deux étapes",
+        "description": "Étape 1 : les détails du compte avec ses identifiants. Étape 2 : attribuer des événements au compte sponsor."
+      },
+      "accountForm": {
+        "title": "Créer les identifiants du compte",
+        "description": "Saisissez le nom complet, l'UID, le nom d'utilisateur, l'e-mail et le mot de passe. Le mot de passe doit respecter les exigences de complexité."
+      },
+      "passwordStrength": {
+        "title": "Indicateur de robustesse du mot de passe",
+        "description": "Il montre les exigences remplies et le niveau de robustesse : faible, moyen ou fort."
+      },
+      "events": {
+        "title": "Attribuer des événements au sponsor",
+        "description": "Choisissez les événements auxquels donner accès au sponsor. Cette étape est facultative. Passez-la pour terminer sans attribution."
+      },
+      "success": {
+        "title": "Compte créé avec succès",
+        "description": "Les identifiants en clair ne s'affichent qu'une seule fois. Copiez-les ou téléchargez-les immédiatement avant de fermer."
+      }
+    },
+    "orgs-misc-sponsors-edit": {
+      "details": {
+        "title": "Mettre à jour les détails du sponsor",
+        "description": "Modifiez le nom complet, l'e-mail et le nom d'utilisateur. Vous pouvez aussi réinitialiser le mot de passe, en respectant les exigences de complexité."
+      },
+      "password": {
+        "title": "Réinitialiser le mot de passe du sponsor",
+        "description": "Laissez vide pour garder le mot de passe actuel. Si vous le changez, il doit respecter les exigences de robustesse."
+      },
+      "events": {
+        "title": "Mettre à jour les événements attribués",
+        "description": "Cherchez et choisissez les événements auxquels le sponsor a accès. Les changements prennent effet dès l'enregistrement."
+      },
+      "save": {
+        "title": "Enregistrer les modifications du sponsor",
+        "description": "Validez toutes les modifications des détails et des événements attribués."
+      }
+    },
+    "orgs-misc-partners-list": {
+      "create": {
+        "title": "Créer un nouveau partenaire à clé API",
+        "description": "Créez un nouveau partenaire de l'API de données. Il démarre avec toutes les options désactivées et aucune portée tant qu'il n'est pas configuré."
+      },
+      "search": {
+        "title": "Rechercher des partenaires à clé API",
+        "description": "Filtrez par nom ou par slug. Les résultats se mettent à jour au fur et à mesure que vous tapez."
+      },
+      "table": {
+        "title": "Tableau des partenaires à clé API",
+        "description": "Chaque partenaire affiche son nom, son slug, son statut, son nombre de clés actives et sa date de création. Cliquez sur le nom pour le configurer."
+      },
+      "activeKeys": {
+        "title": "Nombre de clés API actives",
+        "description": "Il indique combien de clés actives (non révoquées) sont délivrées pour chaque partenaire."
+      },
+      "pagination": {
+        "title": "Parcourir les pages de partenaires",
+        "description": "Parcourez la liste des partenaires avec les numéros de page. La pagination se fait côté serveur."
+      }
+    },
+    "orgs-misc-partners-detail": {
+      "profileTab": {
+        "title": "Profil du partenaire et suspension",
+        "description": "Consultez le nom et l'e-mail de contact (en lecture seule). Utilisez Suspendre pour bloquer toutes les clés d'un coup sans les révoquer."
+      },
+      "scopeTab": {
+        "title": "Configurer la portée et les options",
+        "description": "Donnez accès aux événements AFC natifs, à des événements précis, à des organisations, et configurez 6 options de ressources et 8 options de champs."
+      },
+      "keysTab": {
+        "title": "Gérer les clés API",
+        "description": "Délivrez de nouvelles clés avec un libellé facultatif et une limite de débit par clé. Révoquez les clés actives avec effet immédiat."
+      },
+      "nativeAfc": {
+        "title": "Donner accès à tous les événements AFC natifs",
+        "description": "Un seul interrupteur donne accès d'un coup à tous les événements organisés par AFC (sans organisateur externe), par commodité."
+      },
+      "allowedEvents": {
+        "title": "Choisir les événements autorisés",
+        "description": "Une liste d'événements avec recherche, pour donner au partenaire un accès en lecture."
+      },
+      "issueKey": {
+        "title": "Délivrer une nouvelle clé API",
+        "description": "Créez une nouvelle clé avec un libellé facultatif et une limite de débit. La clé en clair n'est affichée qu'une seule fois."
+      }
+    },
+    "orgs-misc-news-list": {
+      "create": {
+        "title": "Créer une nouvelle actualité",
+        "description": "Rédigez et publiez une actualité avec du texte enrichi, des images, une catégorie et un statut. Le formulaire se fait par étapes."
+      },
+      "search": {
+        "title": "Rechercher une actualité par titre, contenu ou auteur",
+        "description": "Filtrez les articles en temps réel au fur et à mesure que vous tapez votre recherche."
+      },
+      "dateFilter": {
+        "title": "Filtrer par date de publication",
+        "description": "N'affichez que les articles publiés à une date précise."
+      },
+      "categoryFilter": {
+        "title": "Filtrer par catégorie",
+        "description": "Les catégories : Actualités générales, Mises à jour des tournois, Mises à jour des joueurs ou équipes bannis. Choisissez-en une ou affichez tout."
+      },
+      "statusFilter": {
+        "title": "Filtrer par statut de publication",
+        "description": "Affichez séparément les articles publiés, en brouillon ou archivés."
+      },
+      "clearFilters": {
+        "title": "Réinitialiser tous les filtres",
+        "description": "Retirez tous les critères de recherche et de filtre actifs pour revoir la liste complète des actualités."
+      },
+      "cards": {
+        "title": "Cartes des actualités",
+        "description": "Une grille de cartes d'articles avec image, titre, auteur, date, et j'aime et je n'aime pas. Cliquez sur Voir pour lire l'article complet."
+      }
+    },
+    "settings-misc-admins": {
+      "tabsHeader": {
+        "title": "Basculer entre les onglets des paramètres",
+        "description": "Cette page de paramètres a plusieurs onglets : Utilisateurs admin, Tous les utilisateurs, Rôles, Notifications, Historique de connexion et Activités des admins. Chaque onglet contrôle un aspect différent de la gestion des utilisateurs et des rôles."
+      },
+      "exportExcel": {
+        "title": "Exporter les administrateurs vers Excel",
+        "description": "Téléchargez la liste complète de tous les administrateurs et de leurs rôles sous forme de fichier Excel, pour vos archives ou vos rapports."
+      },
+      "adminSearch": {
+        "title": "Trouver un administrateur",
+        "description": "Cherchez des utilisateurs admin par nom d'utilisateur, e-mail ou rôle. Le tableau ci-dessous se met à jour au fur et à mesure que vous tapez."
+      },
+      "adminEdit": {
+        "title": "Modifier les rôles d'un administrateur",
+        "description": "Cliquez sur l'icône crayon à côté d'un admin pour changer les rôles et les permissions qui lui sont attribués. Vous pouvez combiner plusieurs rôles."
+      },
+      "adminSuspend": {
+        "title": "Suspendre ou activer un admin",
+        "description": "Désactivez temporairement un compte administrateur en cliquant sur Suspendre, ou réactivez un compte suspendu en cliquant sur Activer."
+      }
+    },
+    "settings-misc-ocr-model": {
+      "headline": {
+        "title": "Chiffres clés du modèle OCR",
+        "description": "Surveillez les chiffres essentiels : la version du modèle actif, la part locale (le pourcentage de lectures traitées par le modèle local), le taux sans intervention (les lectures qui n'ont demandé aucune correction d'admin) et les appels Gemini (un indicateur de coût)."
+      },
+      "tabs": {
+        "title": "Explorer le détail du modèle OCR",
+        "description": "Les graphiques de performance montrent comment la dynamique s'installe (le modèle local traite plus de lectures, les admins corrigent moins). Les onglets Jeu de données, Historique des réentraînements et Contrôles contiennent les outils de l'opérateur."
+      },
+      "download": {
+        "title": "Télécharger le jeu de données d'entraînement",
+        "description": "Exportez les données d'entraînement de référence actuelles sous forme de fichier ZIP. L'outil d'entraînement hors ligne s'en sert pour entraîner la version suivante du modèle."
+      },
+      "promote": {
+        "title": "Promouvoir un modèle en actif",
+        "description": "Saisissez la version d'un modèle entraîné (par exemple local_student_v4) et cliquez sur Promouvoir pour en faire le moteur de lecture actif des nouvelles captures d'écran."
+      },
+      "rollback": {
+        "title": "Revenir au modèle précédent",
+        "description": "Si le modèle actif pose problème, cliquez sur Revenir en arrière pour rétablir la version promue précédemment, le temps de diagnostiquer et de promouvoir un correctif."
+      }
+    },
+    "settings-misc-drafts": {
+      "metrics": {
+        "title": "Aperçu des événements en brouillon",
+        "description": "Deux cartes affichent le nombre total d'événements en brouillon, tous admins confondus, et le nombre que vous avez créé personnellement. Servez-vous-en pour suivre le travail en cours."
+      },
+      "search": {
+        "title": "Trouver un brouillon par nom d'événement",
+        "description": "Tapez un nom d'événement pour filtrer la liste ci-dessous. La recherche porte sur tous les brouillons ou seulement sur les vôtres, selon l'onglet ouvert."
+      },
+      "tabs": {
+        "title": "Basculer entre Tous les brouillons et Mes brouillons",
+        "description": "L'onglet Tous les brouillons montre les événements en cours de tous les admins. Mes brouillons ne montre que ceux que vous avez créés. Les badges affichent les compteurs."
+      },
+      "continue": {
+        "title": "Continuer la modification d'un brouillon",
+        "description": "Cliquez sur le bouton Continuer la modification pour rouvrir un événement en brouillon dans l'assistant et reprendre là où vous vous étiez arrêté."
+      },
+      "delete": {
+        "title": "Supprimer un événement en brouillon",
+        "description": "Cliquez sur l'icône corbeille pour retirer un brouillon. Une confirmation est demandée. Supprimer un brouillon n'affecte pas les événements publiés."
+      }
+    },
+    "settings-misc-votes": {
+      "metrics": {
+        "title": "Chiffres clés du tableau de bord des votes",
+        "description": "Les cartes principales affichent le total des votes exprimés, les votants uniques, le taux d'achèvement et la durée moyenne de vote. Surveillez-les pour suivre la santé de la campagne de vote."
+      },
+      "tabs": {
+        "title": "Explorer les données de vote par onglet",
+        "description": "Les onglets vous permettent d'entrer dans Vue d'ensemble, Sections, Catégories, Nommés, Lauréats, Chronologie, Meilleures performances et Gestion. Chacun offre une vue différente des données de vote."
+      },
+      "sections": {
+        "title": "Voir les sections de récompenses",
+        "description": "L'onglet Sections montre tous les regroupements de récompenses (par exemple les récompenses des créateurs de contenu, les récompenses esport) avec le total des votes et le nombre de catégories pour chacun."
+      },
+      "categories": {
+        "title": "Analyser les votes par catégorie",
+        "description": "L'onglet Catégories détaille les votes par catégorie de récompense avec des graphiques et des barres. Utilisez le filtre de section pour vous concentrer sur un domaine de récompenses."
+      },
+      "winners": {
+        "title": "Consulter les lauréats par catégorie",
+        "description": "L'onglet Lauréats affiche celui qui a le plus de votes dans chaque catégorie, avec le nombre de votes et les pourcentages, pour voir qui mène en temps réel."
+      }
+    },
+    "help-center": {
+      "header": {
+        "title": "La référence écrite",
+        "description": "Chaque visite guidée, celle-ci comprise, pointe des contrôles sur un écran réel. Cette page en est la version que vous pouvez lire loin de l'écran et, contrairement à une visite, vous pouvez la chercher."
+      },
+      "search": {
+        "title": "Tout chercher d'un coup",
+        "description": "La recherche couvre les deux vues : les guides et tous les contrôles documentés. Tapez le libellé que vous avez vu sur un bouton, par exemple Unpublish ou Reseed, plutôt qu'une question entière."
+      },
+      "areas": {
+        "title": "Réduire à un seul domaine",
+        "description": "Événements, classements, équipes, joueurs, rangs, diffusions, superpositions, boutique, actualités, sponsors, organisations, marché et paramètres. Choisissez-en un quand vous savez déjà à peu près où se trouve ce que vous cherchez."
+      },
+      "views": {
+        "title": "Les guides ou la liste complète des contrôles",
+        "description": "Les guides parcourent un processus entier de bout en bout, comme organiser un tournoi le jour J. Tous les contrôles, c'est le dictionnaire : ce que fait un bouton précis, qui peut l'utiliser, et s'il modifie des données."
+      },
+      "guides": {
+        "title": "Chaque guide renvoie à l'écran réel",
+        "description": "Commencer ici sur un guide ouvre l'écran sur lequel le processus démarre, et chaque guide a un emplacement prêt pour une vidéo explicative à ajouter plus tard."
+      }
+    }
+  }
+}

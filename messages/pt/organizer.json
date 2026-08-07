@@ -5,6 +5,13 @@
   },
   "tour": {
     "button": "Faça uma visita guiada",
+    "buttonAria": "Faça uma visita guiada a esta página de organizador",
+    "driver": {
+      "progress": "Passo '{{'current'}}' de '{{'total'}}'",
+      "next": "Próximo",
+      "back": "Voltar",
+      "done": "Concluído"
+    },
     "sidebar": {
       "title": "A navegação no seu organizador",
       "description": "Esta barra lateral permite-lhe navegar pela sua organização: visão geral, eventos, tabelas de classificação, membros, pagamentos e muito mais. A secção em que se encontra está destacada a verde."

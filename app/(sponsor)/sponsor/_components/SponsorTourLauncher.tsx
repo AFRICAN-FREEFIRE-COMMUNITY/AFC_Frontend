@@ -18,8 +18,10 @@
 //   - STEPS: ./sponsor-tour-steps.ts (SPONSOR_TOUR_STEPS[pageKey]); the route maps to a
 //     pageKey via resolveSponsorTourPageKey(pathname).
 //   - COPY: i18n (AFC hard rule). Reads the "sponsor" namespace via useTranslations and
-//     looks up `${step.tKey}.title` / `${step.tKey}.description`. English source lives in
-//     messages/en/sponsor.json -> tour.* (fr/pt machine-generated).
+//     looks up `${step.tKey}.title` / `${step.tKey}.description`. The popover chrome
+//     (Next / Back / Done / "Step X of Y") and the launcher label come from
+//     tour.driver.* and tour.button / tour.buttonAria in the same namespace. English
+//     source lives in messages/en/sponsor.json -> tour.*, with fr/pt beside it.
 //   - TOUR LIBRARY: driver.js (1.4.x); base CSS imported once, our .afc-sponsor-tour
 //     popover themed to the AFC dark/green look via the app's CSS variables.
 //
@@ -139,11 +141,14 @@ export function SponsorTourLauncher() {
       stageRadius: 8,
       allowClose: true,
       showProgress: true,
-      // Chrome labels mirror the admin tour verbatim (English, like the admin system).
-      progressText: "Step {{current}} of {{total}}",
-      nextBtnText: "Next",
-      prevBtnText: "Back",
-      doneBtnText: "Done",
+      // Chrome labels are localized like the step copy (sponsor.json tour.driver.*).
+      // progressText keeps driver.js's own {{current}}/{{total}} mustache tokens: in the
+      // JSON value they are ICU-escaped ('{{'current'}}') so next-intl emits them
+      // literally for driver.js to substitute at runtime.
+      progressText: t("tour.driver.progress"),
+      nextBtnText: t("tour.driver.next"),
+      prevBtnText: t("tour.driver.back"),
+      doneBtnText: t("tour.driver.done"),
       popoverClass: "afc-sponsor-tour",
       steps,
       onDestroyed: () => {
@@ -177,10 +182,10 @@ export function SponsorTourLauncher() {
         variant="outline"
         size="sm"
         onClick={start}
-        aria-label="Take a guided tour of the sponsor dashboard"
+        aria-label={t("tour.buttonAria")}
       >
         <IconHelpCircle className="h-4 w-4" />
-        <span className="hidden sm:inline">Take a tour</span>
+        <span className="hidden sm:inline">{t("tour.button")}</span>
       </Button>
       <SponsorTourStyles />
     </>

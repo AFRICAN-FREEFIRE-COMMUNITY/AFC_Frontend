@@ -160,12 +160,14 @@ export function VendorTourLauncher() {
       stageRadius: 8,
       allowClose: true, // Escape / overlay click can dismiss
       showProgress: true,
-      // Chrome labels mirror the admin tour verbatim (kept in English like the admin
-      // system, which sets the precedent; the localized content is the step copy).
-      progressText: "Step {{current}} of {{total}}",
-      nextBtnText: "Next",
-      prevBtnText: "Back",
-      doneBtnText: "Done",
+      // Chrome labels are localized like the step copy (vendor.json tour.driver.*).
+      // progressText keeps driver.js's own {{current}}/{{total}} mustache tokens: in the
+      // JSON value they are ICU-escaped ('{{'current'}}') so next-intl emits them
+      // literally for driver.js to substitute at runtime.
+      progressText: t("tour.driver.progress"),
+      nextBtnText: t("tour.driver.next"),
+      prevBtnText: t("tour.driver.back"),
+      doneBtnText: t("tour.driver.done"),
       popoverClass: "afc-vendor-tour", // themed in <VendorTourStyles/> below
       steps,
       // Fired whenever the tour ends for ANY reason (Done, Skip/close, Escape, overlay
@@ -205,11 +207,11 @@ export function VendorTourLauncher() {
         variant="outline"
         size="sm"
         onClick={start}
-        aria-label="Take a guided tour of this vendor page"
+        aria-label={t("tour.buttonAria")}
       >
         <IconHelpCircle className="h-4 w-4" />
         {/* Label hides on very small screens to keep the header tidy; icon + aria stay. */}
-        <span className="hidden sm:inline">Take a tour</span>
+        <span className="hidden sm:inline">{t("tour.button")}</span>
       </Button>
       <VendorTourStyles />
     </>

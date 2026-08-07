@@ -1,5 +1,13 @@
 {
   "tour": {
+    "button": "Faites une visite guidée",
+    "buttonAria": "Faites une visite guidée du tableau de bord des sponsors",
+    "driver": {
+      "progress": "Étape '{{'current'}}' sur '{{'total'}}'",
+      "next": "Suivant",
+      "back": "Précédent",
+      "done": "Terminé"
+    },
     "dashboard": {
       "intro": {
         "title": "Bienvenue sur votre portail des sponsors",

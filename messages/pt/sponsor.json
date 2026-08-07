@@ -1,5 +1,13 @@
 {
   "tour": {
+    "button": "Faça uma visita guiada",
+    "buttonAria": "Faça uma visita guiada ao painel do patrocinador",
+    "driver": {
+      "progress": "Passo '{{'current'}}' de '{{'total'}}'",
+      "next": "Próximo",
+      "back": "Voltar",
+      "done": "Concluído"
+    },
     "dashboard": {
       "intro": {
         "title": "Bem-vindo ao seu portal de patrocinadores",
@@ -28,7 +36,7 @@
     "introCreateSuffix": "Os patrocinadores são associados logo após a criação do evento.",
     "searchPlaceholder": "Procurar um patrocinador...",
     "searching": "A pesquisar...",
-    "eventsCount": "{count, plural,  one { # evento }  other { # eventos } } até agora",
+    "eventsCount": "{count, plural, =0 {# eventos} one {# evento} other {# eventos}} até agora",
     "noneAdded": "Ainda não foram adicionados patrocinadores. Utilize a pesquisa acima para adicionar um.",
     "attached": "em anexo",
     "willAttach": "será anexado aquando da criação",

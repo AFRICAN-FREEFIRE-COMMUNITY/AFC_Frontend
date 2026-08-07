@@ -23,6 +23,14 @@
 //   - STEPS come from app/(a)/a/_components/admin-tour-steps.ts
 //     (ADMIN_TOUR_STEPS[pageKey]). Each step targets a real control by CSS selector
 //     - mostly the [data-tour="…"] hooks we added on the admin pages.
+//   - COPY is internationalized, exactly like the organizer tour
+//     (app/(organizer)/organizer/_components/OrganizerTourLauncher.tsx): every title
+//     and description is resolved through next-intl (useTranslations("adminTour"))
+//     using the key  tour.<pageKey>.<stepId>.title / .description  (the shared sidebar
+//     step uses tour.sidebar.title / .description). The popover chrome (Next / Back /
+//     Done / "Step X of Y") and the launcher button label come from tour.driver.* and
+//     tour.button / tour.buttonAria. English source: messages/en/adminTour.json, with
+//     hand-written messages/fr/adminTour.json + messages/pt/adminTour.json beside it.
 //   - The LAUNCHER + AUTO-SHOW are mounted from the persistent admin header,
 //     components/site-header.tsx → <AdminTourLauncher/>, which reads the current
 //     pathname (usePathname), resolves it to a pageKey via resolveAdminTourPageKey,
@@ -54,6 +62,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { driver, type Driver, type DriveStep } from "driver.js";
 import "driver.js/dist/driver.css";
 import { Button } from "@/components/ui/button";
@@ -63,6 +72,11 @@ import {
   type AdminTourPageKey,
   type AdminTourStep,
 } from "./admin-tour-steps";
+
+// A translator function shaped like next-intl's `t`. Captured at render time and
+// handed to the imperative driver.js builder so it can resolve copy lazily.
+// Mirrors OrganizerTourLauncher's `Translate` alias.
+type Translate = ReturnType<typeof useTranslations>;
 
 // localStorage key for "this page's tour has been seen/dismissed". Centralised so
 // the key format is defined in exactly one place.
@@ -117,9 +131,32 @@ function activateInactiveTab(tabListSelector: string): void {
   inactive?.click();
 }
 
-// Turn our AdminTourStep[] into driver.js DriveStep[].
+// Resolve a step's i18n title + description from the "adminTour" namespace. The
+// shared sidebar step reads the flat tour.sidebar.* keys; every other step reads
+// tour.<pageKey>.<id>.*. Wrapped in try/catch so a missing key DROPS that one step
+// rather than throwing the whole tour. Mirrors OrganizerTourLauncher.resolveCopy().
+function resolveCopy(
+  t: Translate,
+  pageKey: AdminTourPageKey,
+  step: AdminTourStep,
+): { title: string; description: string } | null {
+  const base =
+    step.id === "sidebar" ? "tour.sidebar" : `tour.${pageKey}.${step.id}`;
+  try {
+    return { title: t(`${base}.title`), description: t(`${base}.description`) };
+  } catch {
+    return null;
+  }
+}
+
+// Turn our AdminTourStep[] into driver.js DriveStep[], resolving the i18n copy for
+// each step as we go.
 //
-// Two behaviours layered on top of the basic "title + description" mapping:
+// Three behaviours layered on top of the basic "title + description" mapping:
+//
+//   0. I18N LOOKUP. Copy comes from messages/*/adminTour.json via resolveCopy()
+//      above; a step whose keys are missing is dropped, exactly like a step whose
+//      selector is missing, so a half-translated catalogue can never throw.
 //
 //   1. MISSING-SELECTOR GUARD. A step whose target is not in the DOM is DROPPED so
 //      driver.js never highlights nothing. EXCEPTION: steps flagged `lazy` live in a
@@ -136,60 +173,64 @@ function activateInactiveTab(tabListSelector: string): void {
 //      give React a tick to mount the new <TabsContent>, then call driver.moveNext().
 //      `getDriver` lets this closure reach the live Driver instance created in start().
 function buildSteps(
+  pageKey: AdminTourPageKey,
   steps: AdminTourStep[],
+  t: Translate,
   getDriver: () => Driver | null,
 ): DriveStep[] {
   if (typeof document === "undefined") return [];
-  return steps
-    .filter((s) => {
-      // Lazy steps are always kept (their target mounts later, after a tab switch).
-      if (s.lazy) return true;
-      // Non-lazy steps must currently resolve to a real element, else drop them.
-      return !!safeQuery(s.element);
-    })
-    .map((s) => {
-      const driveStep: DriveStep = {
-        // Lazy steps resolve their selector at highlight time (post tab-switch);
-        // eager steps keep the plain selector string.
-        element: s.lazy
-          ? () => safeQuery(s.element) ?? document.body
-          : s.element,
-        popover: {
-          title: s.title,
-          description: s.description,
-          side: s.side,
-          align: s.align,
-        },
+  const out: DriveStep[] = [];
+
+  for (const s of steps) {
+    // Lazy steps are always kept (their target mounts later, after a tab switch).
+    // Non-lazy steps must currently resolve to a real element, else drop them.
+    if (!s.lazy && !safeQuery(s.element)) continue;
+
+    const copy = resolveCopy(t, pageKey, s);
+    if (!copy) continue; // missing translation → skip rather than throw
+
+    const driveStep: DriveStep = {
+      // Lazy steps resolve their selector at highlight time (post tab-switch);
+      // eager steps keep the plain selector string.
+      element: s.lazy ? () => safeQuery(s.element) ?? document.body : s.element,
+      popover: {
+        title: copy.title,
+        description: copy.description,
+        side: s.side,
+        align: s.align,
+      },
+    };
+
+    // Tab-switch step: take over Next so we can mount the other tab first.
+    if (s.activateInactiveTab) {
+      const tabList = s.activateInactiveTab;
+      driveStep.popover!.onNextClick = () => {
+        // Mount the other tab's content...
+        activateInactiveTab(tabList);
+        // ...then advance once React has had a tick to render it, so the next
+        // (lazy) step's target exists when driver tries to highlight it.
+        window.setTimeout(() => {
+          getDriver()?.moveNext();
+        }, 220);
       };
+    }
 
-      // Tab-switch step: take over Next so we can mount the other tab first.
-      if (s.activateInactiveTab) {
-        const tabList = s.activateInactiveTab;
-        driveStep.popover!.onNextClick = () => {
-          // Mount the other tab's content...
-          activateInactiveTab(tabList);
-          // ...then advance once React has had a tick to render it, so the next
-          // (lazy) step's target exists when driver tries to highlight it.
-          window.setTimeout(() => {
-            getDriver()?.moveNext();
-          }, 220);
-        };
-      }
+    // Specific-tab switch: click one exact tab trigger (by selector), then advance.
+    // Used to reach a 3rd/4th tab that activateInactiveTab (first-inactive) can't target.
+    if (s.activateTab) {
+      const target = s.activateTab;
+      driveStep.popover!.onNextClick = () => {
+        safeQuery(target)?.click();
+        window.setTimeout(() => {
+          getDriver()?.moveNext();
+        }, 220);
+      };
+    }
 
-      // Specific-tab switch: click one exact tab trigger (by selector), then advance.
-      // Used to reach a 3rd/4th tab that activateInactiveTab (first-inactive) can't target.
-      if (s.activateTab) {
-        const target = s.activateTab;
-        driveStep.popover!.onNextClick = () => {
-          safeQuery(target)?.click();
-          window.setTimeout(() => {
-            getDriver()?.moveNext();
-          }, 220);
-        };
-      }
+    out.push(driveStep);
+  }
 
-      return driveStep;
-    });
+  return out;
 }
 
 // ── useAdminTour: the reusable hook the brief asks for ───────────────────────
@@ -197,6 +238,17 @@ function buildSteps(
 // Returns the handful of things callers need; everything else stays internal.
 export function useAdminTour(pageKey: AdminTourPageKey) {
   const driverRef = React.useRef<Driver | null>(null);
+  // The tour's own message namespace (messages/*/adminTour.json). Read here rather
+  // than passed in, so the two existing callers (AdminTourButton + AdminTour) stay
+  // unchanged and can never disagree about which namespace the copy comes from.
+  const t = useTranslations("adminTour");
+  // Keep the latest translator in a ref so the (stable) start() closure always
+  // resolves copy with the current next-intl context, even though start() does not
+  // list `t` as a dependency.
+  const tRef = React.useRef<Translate>(t);
+  React.useEffect(() => {
+    tRef.current = t;
+  }, [t]);
   // We track "seen" in state too so the button copy can react ("Take a tour" stays
   // the same either way, but consumers may want it). Initialised from storage.
   const [hasSeen, setHasSeen] = React.useState<boolean>(true);
@@ -226,7 +278,9 @@ export function useAdminTour(pageKey: AdminTourPageKey) {
     // getDriver lets the tab-switch onNextClick closures reach the live instance
     // (created just below) so they can call moveNext() after mounting the new tab.
     const steps = buildSteps(
+      pageKey,
       ADMIN_TOUR_STEPS[pageKey] ?? [],
+      tRef.current,
       () => driverRef.current,
     );
     if (steps.length === 0) return; // nothing to show - do not open an empty overlay
@@ -244,10 +298,14 @@ export function useAdminTour(pageKey: AdminTourPageKey) {
       stageRadius: 8,
       allowClose: true, // Escape / overlay click can dismiss
       showProgress: true,
-      progressText: "Step {{current}} of {{total}}",
-      nextBtnText: "Next",
-      prevBtnText: "Back",
-      doneBtnText: "Done",
+      // Popover chrome, localized. progressText keeps driver.js's own
+      // {{current}}/{{total}} mustache tokens: in the JSON value they are ICU-escaped
+      // ('{{'current'}}') so next-intl emits them literally for driver.js to
+      // substitute at runtime. Same trick as the user PageGuide (home.json).
+      progressText: tRef.current("tour.driver.progress"),
+      nextBtnText: tRef.current("tour.driver.next"),
+      prevBtnText: tRef.current("tour.driver.back"),
+      doneBtnText: tRef.current("tour.driver.done"),
       popoverClass: "afc-admin-tour", // themed in <AdminTourStyles/> below
       steps,
       // Fired whenever the tour ends for ANY reason (Done, Skip/close, Escape,
@@ -279,6 +337,7 @@ export function AdminTourButton({
   className?: string;
 }) {
   const { start } = useAdminTour(pageKey);
+  const t = useTranslations("adminTour");
   return (
     <Button
       type="button"
@@ -287,12 +346,12 @@ export function AdminTourButton({
       onClick={start}
       className={className}
       // aria-label so the icon-led button is clear to screen readers.
-      aria-label="Take a guided tour of this admin page"
+      aria-label={t("tour.buttonAria")}
     >
       <IconHelpCircle className="h-4 w-4" />
       {/* Label hides on very small screens to keep the header tidy; the icon + aria
           stay, so the control is never lost. */}
-      <span className="hidden sm:inline">Take a tour</span>
+      <span className="hidden sm:inline">{t("tour.button")}</span>
     </Button>
   );
 }

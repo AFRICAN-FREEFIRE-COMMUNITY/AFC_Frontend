@@ -4,6 +4,14 @@
     "exit": "Sair"
   },
   "tour": {
+    "button": "Faça uma visita guiada",
+    "buttonAria": "Faça uma visita guiada a esta página de fornecedor",
+    "driver": {
+      "progress": "Passo '{{'current'}}' de '{{'total'}}'",
+      "next": "Próximo",
+      "back": "Voltar",
+      "done": "Concluído"
+    },
     "sidebar": {
       "title": "A sua navegação pelos fornecedores",
       "description": "Utilize esta barra lateral para navegar no portal do fornecedor: Encomendas a processar, o seu catálogo de produtos e Pagamentos, onde pode introduzir os seus dados bancários. A secção em que se encontra está destacada a verde."

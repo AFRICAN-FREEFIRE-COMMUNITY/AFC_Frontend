@@ -1,0 +1,1130 @@
+{
+  "tour": {
+    "button": "Faça uma visita guiada",
+    "buttonAria": "Faça uma visita guiada a esta página de administração",
+    "driver": {
+      "progress": "Passo '{{'current'}}' de '{{'total'}}'",
+      "next": "Próximo",
+      "back": "Voltar",
+      "done": "Concluído"
+    },
+    "sidebar": {
+      "title": "A sua navegação de administração",
+      "description": "Esta barra lateral permite-lhe navegar pela área de administração: painel de controlo, eventos, equipas, classificações, notícias, loja e muito mais. A secção em que se encontra está destacada a verde."
+    },
+    "dashboard": {
+      "title": {
+        "title": "Bem-vindo ao painel de administração",
+        "description": "Este é o seu centro de controlo. Os cartões abaixo dão-lhe uma leitura em direto dos membros, equipas, torneios, scrims, notícias e receitas, tudo num relance."
+      },
+      "metrics": {
+        "title": "Métricas da comunidade em direto",
+        "description": "Cada cartão mostra um número essencial e um atalho para gerir essa área. O total de membros acompanha os registos, o total de equipas liga diretamente a Equipas e Jogadores, e o cartão de receitas reflete os rendimentos da loja e dos eventos."
+      },
+      "quickActions": {
+        "title": "Ações rápidas",
+        "description": "Avance diretamente para as tarefas mais comuns (criar uma notícia, criar um evento) sem procurar no menu. São os mesmos botões principais que existem em cada página de secção."
+      },
+      "recentActivity": {
+        "title": "Atividade recente de administração",
+        "description": "Um registo contínuo do que os outros administradores fizeram recentemente, para que a equipa se mantenha alinhada e possa ver quem alterou o quê. Use Ver todas as atividades para o histórico completo."
+      }
+    },
+    "events": {
+      "tabs": {
+        "title": "Eventos e Classificações",
+        "description": "Esta única página tem dois separadores. Eventos é onde organiza torneios e scrims; Classificações é onde publica as classificações. Vamos percorrer primeiro o separador Eventos e depois mudamos para Classificações. Os cartões por baixo do cabeçalho resumem todo o seu calendário: o total de eventos dividido entre torneios e scrims, quantos estão por vir, a decorrer ou concluídos, a média de participantes por evento e o seu formato mais popular."
+      },
+      "create": {
+        "title": "Criar um novo evento",
+        "description": "Comece aqui um torneio ou um scrim. O assistente guia-o pelos detalhes, fases, prémios e regras, e depois publica-o. Depois de criado, gere-o a partir da lista abaixo."
+      },
+      "payments": {
+        "title": "Pagamentos do evento",
+        "description": "Para eventos pagos, isto abre o painel de garantia onde liberta ou reembolsa as taxas de inscrição retidas pela Stripe. Só os eventos pagos aparecem ali."
+      },
+      "search": {
+        "title": "Encontrar um evento rapidamente",
+        "description": "Filtre a lista abaixo por nome do evento, tipo (torneio ou scrim) ou estado. Muito útil quando já tem muitos eventos registados."
+      },
+      "list": {
+        "title": "Os seus eventos e scrims",
+        "description": "Todos os eventos ficam aqui. Por linha: Ver abre o detalhe completo do evento (que tem os seus próprios separadores, incluindo Resumo, Inscrições, Fases e Plantéis dos grupos), Editar reabre o assistente, e o ícone do caixote do lixo apaga-o. Um pequeno ícone de cadeado assinala um evento privado."
+      },
+      "switchToLeaderboards": {
+        "title": "Agora o separador Classificações",
+        "description": "Ficámos pelos Eventos. Clique em Próximo e mudamos para o separador Classificações, onde transforma os resultados brutos dos jogos em classificações publicadas."
+      },
+      "lbStats": {
+        "title": "Totais das classificações",
+        "description": "Estes cartões contam as suas classificações no total e dividem-nas entre classificações de torneios e de scrims, para que veja o que já foi pontuado e o que ainda está por fazer."
+      },
+      "lbSearch": {
+        "title": "Escolha um evento para pontuar",
+        "description": "Pesquise aqui os seus eventos e depois use a tabela logo abaixo. Cada linha é um evento ao qual pode associar ou atualizar uma classificação."
+      },
+      "lbTable": {
+        "title": "Ver ou editar uma classificação",
+        "description": "Para cada evento, Ver abre a classificação atual e Editar permite-lhe introduzir ou corrigir posições e pontos de abate. É daqui que sai a classificação pública desse evento."
+      }
+    },
+    "teams": {
+      "tabs": {
+        "title": "Equipas e Jogadores",
+        "description": "Esta única página junta dois separadores. Equipas gere as equipas inscritas e os seus níveis; Jogadores gere as contas individuais. Vamos percorrer primeiro Equipas e depois mudamos para Jogadores."
+      },
+      "rank": {
+        "title": "Classificar as equipas por nível",
+        "description": "Execute a passagem de nivelamento que distribui as equipas pelos níveis 1, 2 e 3 a partir do seu desempenho. Use-a depois de os resultados estarem lançados. Para o bloqueio trimestral completo dos níveis e a pontuação, use a secção Classificações na barra lateral."
+      },
+      "search": {
+        "title": "Pesquisar e filtrar equipas",
+        "description": "Procure uma equipa pelo nome ou restrinja a lista a um único nível. A tabela abaixo atualiza-se à medida que escreve."
+      },
+      "list": {
+        "title": "A lista de equipas",
+        "description": "Todas as equipas inscritas, com o nível, o número de membros, o total de vitórias e os ganhos. As ações da linha permitem-lhe ver uma equipa ou banir e desbanir. Por baixo desta tabela encontra também as Equipas fantasma, as equipas provisórias que guardam resultados de torneios até uma equipa real os reclamar."
+      },
+      "switchToPlayers": {
+        "title": "Agora o separador Jogadores",
+        "description": "Ficámos pelas Equipas. Clique em Próximo e mudamos para o separador Jogadores, onde gere as contas individuais dos jogadores."
+      },
+      "playersCreate": {
+        "title": "Criar um jogador fantasma",
+        "description": "Crie um jogador provisório (um nome de jogo reservado) que pode ser associado a uma equipa fantasma e reclamado mais tarde. Útil para lançar resultados antes de existir uma conta real."
+      },
+      "playersStats": {
+        "title": "Estatísticas dos jogadores num relance",
+        "description": "Estes cartões mostram o total de jogadores, os ativos e os banidos, a média de abates e os seus melhores jogadores em MVP e em vitórias. Uma leitura rápida da saúde da base de jogadores."
+      },
+      "playersSearch": {
+        "title": "Pesquisar e filtrar jogadores",
+        "description": "Encontre um jogador pelo nome ou filtre pela equipa (incluindo Sem equipa) e pelo estado (ativo ou banido). A tabela abaixo atualiza-se quando altera estes filtros."
+      },
+      "playersList": {
+        "title": "A tabela de jogadores",
+        "description": "Todos os jogadores com a sua equipa, abates, vitórias, MVP e estado. Ver abre o perfil desse jogador; o botão Banir ou Desbanir controla o acesso dele à plataforma."
+      },
+      "switchToReports": {
+        "title": "Agora o separador Denúncias",
+        "description": "Ficámos pelas Equipas e Jogadores. Clique em Próximo e abrimos o separador Denúncias, onde trata das denúncias de jogadores e equipas feitas pela comunidade."
+      },
+      "reportsStats": {
+        "title": "Contagem de denúncias num relance",
+        "description": "Estes cartões mostram o total de denúncias apresentadas e quantos visados são reincidentes (3 ou mais denúncias sobre o mesmo jogador ou equipa em 2 semanas)."
+      },
+      "reportsFilters": {
+        "title": "Filtrar e pesquisar denúncias",
+        "description": "Restrinja a fila por visado (jogador ou equipa), estado ou categoria, pesquise pelo nome denunciado ou por quem denunciou, ou mostre apenas os reincidentes."
+      },
+      "reportsTable": {
+        "title": "Analisar e responder às denúncias",
+        "description": "Cada denúncia mostra quem foi denunciado, por quem, o motivo, a imagem de prova e o seu estado. Clique em Resposta para ler as provas e escrever uma resposta que quem denunciou verá no seu perfil."
+      }
+    },
+    "rankings": {
+      "header": {
+        "title": "O espaço de trabalho Classificações",
+        "description": "Classificações tem a sua própria linha de subpáginas no topo: Resumo (aqui), Configuração de pontuação, Níveis de torneio, Marcadores de resultados, Temporadas, Equipas fantasma, Redes sociais, Prémios, Ajustes manuais e Registo. Este Resumo é a sala de controlo; as outras são onde define as regras e os dados brutos."
+      },
+      "season": {
+        "title": "Escolha a temporada",
+        "description": "Tudo nesta página está limitado a uma temporada. Mude de temporada aqui; a pontuação das equipas, a distribuição de níveis e o estado de publicação abaixo seguem todos a temporada que escolher."
+      },
+      "status": {
+        "title": "Estado da temporada num relance",
+        "description": "Estes cartões mostram a temporada atual, se a janela de transferências está aberta ou bloqueada, se está a decorrer um recálculo, e quando foi feita a última avaliação trimestral e por quem."
+      },
+      "evaluation": {
+        "title": "Executar a avaliação trimestral",
+        "description": "Isto bloqueia o nível de cada equipa e de cada jogador para o trimestre seguinte a partir da pontuação atual. Faça primeiro uma pré-visualização (um ensaio que não grava nada) e só depois confirme. Também pode colocar em fila um recálculo para uma só equipa ou um só jogador aqui. Apenas para o administrador principal ou o administrador de métricas."
+      },
+      "distribution": {
+        "title": "Distribuição de níveis",
+        "description": "Uma repartição em direto de quantas equipas estão em cada nível nesta temporada. O emblema assinala as equipas abaixo do limite mínimo de atividade, o que pode afetar a sua elegibilidade."
+      },
+      "publish": {
+        "title": "Publicar para o público",
+        "description": "As classificações públicas e os emblemas de nível ficam escondidos até os publicar, e as duas superfícies são controladas em separado. Publique uma sem a outra, cada uma com um motivo registado."
+      },
+      "quicklinks": {
+        "title": "Saltar para as páginas de detalhe",
+        "description": "Estes cartões abrem as ferramentas mais avançadas de Classificações: Marcadores de resultados (vencedores, finais e indicadores de MVP), Temporadas (datas e janela de transferências), Equipas fantasma (criar equipas provisórias e tratar das reclamações) e o Registo de auditoria (todas as edições aos dados brutos). Configuração de pontuação e Níveis de torneio ficam no submenu acima."
+      },
+      "teams": {
+        "title": "A tabela de pontuação das equipas",
+        "description": "A posição, o nível, os torneios jogados, os abates e a pontuação total de cada equipa na temporada. Pesquise à direita e use Editar marcadores numa linha para ir aos Marcadores de resultados dessa equipa. Esta é a vista de rascunho, por isso vê a pontuação calculada mesmo antes de ser publicada."
+      }
+    },
+    "player-markets": {
+      "title": {
+        "title": "Administração do Mercado de Jogadores",
+        "description": "A supervisão do mercado de transferências: anúncios de equipas, anúncios de jogadores, testes e denúncias vivem todos nesta única página."
+      },
+      "tabs": {
+        "title": "Circular entre as secções do mercado",
+        "description": "Resumo mostra os números principais. Os outros separadores detalham os Anúncios de equipas, os Anúncios de jogadores, os Testes e candidaturas, e as Denúncias e alertas. Abra um separador para agir sobre os itens que contém."
+      },
+      "overview": {
+        "title": "O mercado num relance",
+        "description": "Estes cartões resumem os anúncios ativos, os testes a decorrer e as denúncias pendentes, para que detete o que precisa de atenção antes de abrir os separadores de detalhe."
+      }
+    },
+    "rankings-overview": {
+      "header": {
+        "title": "O espaço de trabalho Classificações",
+        "description": "Classificações tem a sua própria linha de subpáginas no topo: Resumo aqui, Configuração de pontuação, Níveis de torneio, Marcadores de resultados, Temporadas, Equipas fantasma, Redes sociais, Prémios, Ajustes manuais e Registo. Este Resumo é a sala de controlo onde define as regras e gere os dados brutos."
+      },
+      "season": {
+        "title": "Escolha a temporada",
+        "description": "Tudo nesta página está limitado a uma temporada. Mude de temporada aqui. A pontuação das equipas, a distribuição de níveis e o estado de publicação abaixo seguem todos a temporada que escolher."
+      },
+      "status": {
+        "title": "Estado da temporada num relance",
+        "description": "Estes cartões mostram a temporada atual, se a janela de transferências está aberta ou bloqueada, se está a decorrer um recálculo, e quando foi feita a última avaliação trimestral e por quem."
+      },
+      "evaluation": {
+        "title": "Executar a avaliação trimestral",
+        "description": "Isto bloqueia o nível de cada equipa e de cada jogador para o trimestre seguinte a partir da pontuação atual. Faça primeiro uma pré-visualização, um ensaio que não grava nada, e só depois confirme. Também pode colocar em fila um recálculo para uma só equipa ou um só jogador aqui. Apenas para o administrador principal ou o administrador de métricas."
+      },
+      "distribution": {
+        "title": "Distribuição de níveis",
+        "description": "Uma repartição em direto de quantas equipas estão em cada nível nesta temporada. O emblema assinala as equipas abaixo do limite mínimo de atividade, o que pode afetar a sua elegibilidade."
+      },
+      "publish": {
+        "title": "Publicar para o público",
+        "description": "As classificações públicas e os emblemas de nível ficam escondidos até os publicar. As duas superfícies são controladas em separado. Publique uma sem a outra, cada uma com um motivo registado."
+      }
+    },
+    "rankings-scoring-config": {
+      "title": {
+        "title": "Página de Configuração de pontuação",
+        "description": "Os pesos, os escalões e os limiares que orientam todos os cálculos de classificação e de nível. As alterações são versionadas e recalculam automaticamente a pontuação de toda a temporada."
+      },
+      "version": {
+        "title": "Versão de configuração ativa",
+        "description": "Mostra se a configuração atual corresponde às predefinições da especificação ou a uma versão guardada. Quando guarda, é criada uma nova versão em rascunho."
+      },
+      "unsaved": {
+        "title": "Alterações por guardar",
+        "description": "Número de campos que diferem da versão guardada. Os destaques a laranja marcam os campos alterados à medida que os edita."
+      },
+      "scales": {
+        "title": "Escalões de pontuação",
+        "description": "Edite as escalas de compressão para abates, classificação, prémios monetários e redes sociais. Os escalões abertos (a última linha de cada tabela) não têm limite superior."
+      },
+      "reset": {
+        "title": "Repor as predefinições da especificação",
+        "description": "Carrega as predefinições da especificação a partir do código. Ficam preparados localmente no editor sem serem gravados. Guarde para os criar em rascunho como uma nova versão."
+      },
+      "save": {
+        "title": "Guardar alterações",
+        "description": "Cria em rascunho uma nova versão de configuração inalterável e coloca em fila um recálculo completo para todas as equipas e jogadores classificados. O número de campos por guardar aparece no botão."
+      }
+    },
+    "rankings-tournament-tiers": {
+      "title": {
+        "title": "Classificação dos Níveis de torneio",
+        "description": "Construa uma lista de regras ordenada por prioridade que classifica os torneios por nível. Um torneio é avaliado de cima para baixo, e a primeira regra que corresponder define o seu nível."
+      },
+      "stats": {
+        "title": "Número de regras",
+        "description": "Mostra quantas regras estão ativas neste momento. As regras desativadas são mantidas mas não participam na classificação."
+      },
+      "rules": {
+        "title": "Regras de nível",
+        "description": "Arraste para reordenar as regras por prioridade. A primeira regra que um torneio cumprir define o seu nível (1 = multiplicador 2,0x, 2 = 1,5x, 3 = 1,0x)."
+      },
+      "add": {
+        "title": "Adicionar uma nova regra",
+        "description": "Crie uma nova regra de classificação. Defina as condições, o nível e se tem de cumprir todas as condições ou apenas uma delas."
+      },
+      "test": {
+        "title": "Testar um torneio",
+        "description": "Introduza o prémio, o número de equipas e o número de jogadores de um torneio para ver que regra ele cumpre e em que nível ficaria classificado."
+      },
+      "save": {
+        "title": "Guardar todas as alterações",
+        "description": "Grava todas as alterações às regras. O registo de auditoria regista que regras foram criadas, atualizadas, apagadas ou reordenadas."
+      }
+    },
+    "rankings-result-markers": {
+      "title": {
+        "title": "Controlo dos Marcadores de resultados",
+        "description": "Ative ou desative se os resultados dos torneios contam para as classificações. Ligue ou desligue a contagem para eventos inteiros ou exclua equipas e jogadores específicos."
+      },
+      "status": {
+        "title": "Estado dos resultados",
+        "description": "Os cartões mostram o total de torneios, quantos contam por completo e quantos estão parcialmente limitados ou desativados. Um retrato rápido dos eventos que alimentam as classificações."
+      },
+      "search": {
+        "title": "Encontrar um evento",
+        "description": "Filtre os torneios por nome, nível ou estado. Ajuda-o a localizar rapidamente os eventos que precisam de ajuste."
+      },
+      "list": {
+        "title": "Lista de torneios",
+        "description": "O estado de contagem de cada torneio. Clique para entrar no detalhe das exclusões de equipas e jogadores nesse evento."
+      },
+      "flags": {
+        "title": "Indicadores de contagem",
+        "description": "Ligue ou desligue a contagem de vencedores, pontos de classificação e abates para um torneio inteiro. Desligue para deixar de lançar resultados antes de o evento ser oficial."
+      },
+      "exclusions": {
+        "title": "Exclusões de equipas e jogadores",
+        "description": "Exclua uma equipa ou um jogador específico da contagem de um evento (por exemplo, por violação das regras). As exclusões exigem um motivo e ficam registadas."
+      }
+    },
+    "rankings-seasons": {
+      "title": {
+        "title": "Gestão de temporadas",
+        "description": "Defina as temporadas de competição, indique o trimestre e o ano, abra e feche a janela de transferências, e execute a avaliação trimestral de níveis."
+      },
+      "create": {
+        "title": "Criar uma nova temporada",
+        "description": "Comece um novo trimestre. Defina o nome da temporada, o trimestre, o ano e as datas de início e de fim. Passa a ser a temporada ativa assim que for criada."
+      },
+      "list": {
+        "title": "Tabela de todas as temporadas",
+        "description": "Cada temporada, o seu trimestre e ano, o intervalo de datas, o estado da janela de transferências e o histórico de avaliações. Clique em Editar para mudar as datas ou reabrir a janela de transferências."
+      },
+      "transfer": {
+        "title": "Janela de transferências",
+        "description": "Abra ou feche a janela de transferências (o período em que as equipas podem trocar jogadores). A janela é independente das datas da temporada."
+      },
+      "evaluation": {
+        "title": "Avaliação de níveis",
+        "description": "Cada temporada mostra quando decorreu a sua avaliação trimestral e quem a executou. A avaliação bloqueia os níveis das equipas e dos jogadores para o trimestre seguinte."
+      },
+      "log": {
+        "title": "Registo da janela de transferências",
+        "description": "O registo de auditoria de todas as vezes que a janela de transferências foi aberta, fechada ou prolongada. Mostra quem fez a alteração e o motivo."
+      }
+    },
+    "rankings-ghost-teams": {
+      "title": {
+        "title": "Criação de Equipas fantasma",
+        "description": "Crie equipas provisórias para guardar resultados de torneios antes de uma equipa real os reclamar. Preencha o plantel provisório com nomes de jogo."
+      },
+      "stats": {
+        "title": "Contagem de equipas fantasma",
+        "description": "Os cartões mostram o total de fantasmas por reclamar, os que têm reclamações pendentes e os já reclamados. Um resumo rápido do processo."
+      },
+      "create": {
+        "title": "Criar um novo fantasma",
+        "description": "Defina uma equipa provisória com um plantel de nomes de jogo. O fantasma guarda os resultados até uma equipa real o reclamar."
+      },
+      "tabs": {
+        "title": "Filtrar por estado",
+        "description": "Mude de separador para ver todos os fantasmas ou apenas os que têm reclamações pendentes. Ajuda-o a detetar o trabalho que precisa de aprovação."
+      },
+      "list": {
+        "title": "Tabela de equipas fantasma",
+        "description": "Todos os fantasmas ordenados por estado de reclamação. Os que estão por reclamar ficam disponíveis para receber resultados, os pendentes têm reclamações a decorrer, e os reclamados são retirados."
+      },
+      "claim": {
+        "title": "Aprovar ou revogar reclamações",
+        "description": "Quando uma equipa tenta reclamar um fantasma, aprove para confirmar a reclamação ou revogue se for fraudulenta. Ambas as ações exigem um motivo e ficam registadas."
+      }
+    },
+    "rankings-social": {
+      "title": {
+        "title": "Verificação das redes sociais",
+        "description": "As equipas ligam as suas contas de Instagram e TikTok a partir do painel delas. Você verifica o número combinado de seguidores, que atribui pontos segundo a escala de escalões."
+      },
+      "search": {
+        "title": "Encontrar uma equipa",
+        "description": "Filtre a lista pelo nome da equipa. Mostra as equipas ligadas e as não ligadas, o que facilita ver quem ainda tem de associar as suas contas."
+      },
+      "list": {
+        "title": "Equipas ligadas",
+        "description": "Todas as equipas que ligaram contas, o número de seguidores em cada plataforma, o total combinado e o estado da verificação."
+      },
+      "verify": {
+        "title": "Verificar o número de seguidores",
+        "description": "Confirme o total combinado de seguidores de uma equipa e fixe-o. A escala de escalões converte seguidores em pontos (com limite de 10). Anule a verificação para voltar a editar os números."
+      },
+      "correction": {
+        "title": "Corrigir o número de seguidores",
+        "description": "Edite os números de seguidores do Instagram e do TikTok se estiverem desatualizados. Depois de guardar, verifique para os fixar e atribuir os pontos."
+      },
+      "brackets": {
+        "title": "Pré-visualização da escala de pontos",
+        "description": "Mostra como os seguidores combinados se convertem em pontos por escalão. Os pontos são calculados em direto enquanto edita e gravados quando verifica."
+      }
+    },
+    "rankings-prize": {
+      "title": {
+        "title": "Acompanhamento dos prémios monetários",
+        "description": "Registe os prémios pagos às equipas em cada torneio. O total trimestral converte-se em pontos numa escala de escalões que constrói a pontuação de nível."
+      },
+      "total": {
+        "title": "Total da temporada",
+        "description": "O cartão mostra a soma de todos os prémios registados na temporada ativa. Ajuda-o a confirmar que registou todos os pagamentos."
+      },
+      "add": {
+        "title": "Registar um pagamento",
+        "description": "Crie uma nova entrada de prémio. Escolha o torneio, a equipa e o valor em NGN. É registado um motivo obrigatório para auditoria."
+      },
+      "search": {
+        "title": "Encontrar um pagamento",
+        "description": "Filtre por nome do evento ou da equipa. Ajuda-o a localizar um prémio específico para editar ou corrigir."
+      },
+      "list": {
+        "title": "Tabela de prémios pagos",
+        "description": "Todos os prémios registados na temporada. Mostra o nome do evento, a equipa, o valor em NGN e a data de atribuição. Edite ou apague indicando um motivo."
+      },
+      "scale": {
+        "title": "Escala de escalões de prémios",
+        "description": "Mostra como os totais trimestrais de prémios se convertem em pontos. A escala está ligada aos escalões de prémios da configuração de pontuação."
+      }
+    },
+    "rankings-overrides": {
+      "title": {
+        "title": "Ajustes manuais de nível e pontuação",
+        "description": "Substitua o nível calculado de uma equipa ou de um jogador, retire pontos como penalização, ou zere a pontuação deles para a temporada. Todas as ações exigem um motivo e ficam registadas."
+      },
+      "search": {
+        "title": "Encontrar equipa ou jogador",
+        "description": "Pesquise pelo nome para localizar quem quer ajustar. A tabela atualiza-se à medida que escreve."
+      },
+      "list": {
+        "title": "Tabela de equipas e jogadores",
+        "description": "Todas as equipas e jogadores classificados com a pontuação calculada e o nível, mais os indicadores de ajustes e penalizações. Clique numa linha para alterar o nível ou retirar pontos."
+      },
+      "tier": {
+        "title": "Forçar o nível",
+        "description": "Defina manualmente o nível de uma equipa. O ajuste mantém-se até o alterar. Útil quando o nível calculado não corresponde à aplicação das regras."
+      },
+      "deduct": {
+        "title": "Retirar pontos",
+        "description": "Subtraia um número específico de pontos como penalização parcial. A equipa continua classificada mas com pontuação reduzida. Ao contrário de zerar a pontuação, a equipa não fica escondida."
+      },
+      "ban": {
+        "title": "Banir ou zerar a pontuação",
+        "description": "Retire por completo uma equipa ou um jogador das classificações durante a temporada. Zerar coloca a pontuação a 0 e fica visível no registo de auditoria."
+      }
+    },
+    "rankings-audit": {
+      "title": {
+        "title": "Registo de auditoria",
+        "description": "O registo completo de todas as edições ao sistema de classificações. Filtra por tipo de ação, intervalo de datas e motivo. Inclui o detalhe dos dados brutos por equipa e por jogador."
+      },
+      "filters": {
+        "title": "Filtrar por tipo e data",
+        "description": "Restrinja o registo por tipo de ação (resultado de torneio, prémio, ajuste manual, etc.) e por intervalo de datas. A pesquisa por motivo aplica-se aos resultados visíveis."
+      },
+      "search": {
+        "title": "Pesquisar por motivo",
+        "description": "Pesquisa em texto livre no campo do motivo das entradas de auditoria carregadas. Ajuda-o a encontrar a alteração que procura."
+      },
+      "list": {
+        "title": "Entradas de auditoria",
+        "description": "O registo cronológico de todas as ações. Mostra o tipo, o motivo, quem fez a alteração e quando. Clique para ver os retratos de antes e depois."
+      },
+      "details": {
+        "title": "Antes e depois",
+        "description": "Quando clica numa entrada de auditoria, vê os retratos JSON de antes e depois. Ajuda-o a perceber o que mudou e a confirmar que foi intencional."
+      },
+      "raw": {
+        "title": "Detalhe dos dados brutos",
+        "description": "Obtenha o detalhe bruto da pontuação de qualquer equipa ou jogador. Mostra como a pontuação final se compõe das parcelas de torneio, scrim, prémios e redes sociais."
+      }
+    },
+    "shop-dashboard": {
+      "ordersCard": {
+        "title": "Cartão As suas encomendas",
+        "description": "Acesso rápido ao seguimento de encomendas. Liga diretamente à página Encomendas para ver todas as encomendas da loja e o respetivo estado."
+      },
+      "vendorsCard": {
+        "title": "Gerir fornecedores",
+        "description": "O acesso à gestão de fornecedores. Conceda acesso de venda a utilizadores, suspenda ou reative fornecedores, e atribua-lhes produtos."
+      },
+      "approvalsCard": {
+        "title": "Aprovação de produtos",
+        "description": "Analise os produtos submetidos pelos fornecedores na fila de aprovação. Aprove para publicar ou rejeite com comentários a melhorar."
+      },
+      "ordersFilter": {
+        "title": "Filtro temporal de encomendas",
+        "description": "Alterne entre as vistas de dia, semana ou mês das encomendas recentes. A tabela abaixo atualiza-se com as encomendas do período escolhido."
+      },
+      "ordersTable": {
+        "title": "Tabela de encomendas recentes",
+        "description": "As encomendas em direto da sua loja filtradas pelo período escolhido. Mostra o ID da encomenda, o cliente, o estado, a data e o valor total."
+      },
+      "stockStatus": {
+        "title": "Estado atual do stock",
+        "description": "Um retrato do inventário de diamantes virtuais por variante. Emblemas com código de cores mostram os níveis de stock e um link abre a gestão completa do inventário."
+      }
+    },
+    "shop-coupons": {
+      "statsCards": {
+        "title": "Cartões de métricas dos cupões",
+        "description": "Resumem o desempenho dos cupões: total, número de ativos, total de utilizações, total de poupanças e taxas de conversão em todos os cupões."
+      },
+      "tabs": {
+        "title": "Separadores de métricas",
+        "description": "Alterne entre Desempenho (cupões ordenados por utilização), Tendências (tendências mensais de utilização) e Atividade recente (as últimas utilizações de cupões)."
+      },
+      "performanceTable": {
+        "title": "Tabela de cupões",
+        "description": "Todos os cupões ordenados pelo número de utilizações. Mostra o código, o tipo e o valor do desconto, o estado, o número de utilizações e uma barra de progresso com a capacidade máxima de utilização."
+      },
+      "pagination": {
+        "title": "Controlos de paginação",
+        "description": "Percorra as páginas de cupões quando a lista é longa. Inclui seguinte, anterior e a escolha direta de uma página."
+      },
+      "couponLink": {
+        "title": "Ver os detalhes de um cupão",
+        "description": "Clique em qualquer código de cupão para ver os detalhes completos, o histórico, as estatísticas de utilização e para editar definições como o valor do desconto ou o período de validade."
+      }
+    },
+    "shop-inventory": {
+      "addProduct": {
+        "title": "Botão Adicionar produto",
+        "description": "Crie um novo produto. Abre uma janela para introduzir o nome do produto, a categoria, as variantes com preços e as quantidades em stock."
+      },
+      "manageCategories": {
+        "title": "Gerir categorias",
+        "description": "Crie, edite ou apague as categorias de produtos que organizam o catálogo da sua loja e aparecem como separadores para os clientes."
+      },
+      "couponLink": {
+        "title": "Ligação para as métricas dos cupões",
+        "description": "Salte para a página de Métricas dos cupões para acompanhar as utilizações, as poupanças e as tendências de desempenho."
+      },
+      "statusFilter": {
+        "title": "Filtro de estado dos produtos",
+        "description": "Filtre os produtos por estado: Todos, Ativos ou Inativos. A tabela de produtos atualiza-se de imediato quando escolhe um filtro."
+      },
+      "productsTable": {
+        "title": "Tabela de produtos",
+        "description": "Lista todos os produtos com o nome, o tipo, a categoria, o nível de stock, o intervalo de preços, o estado e a data da última atualização. Inclui ações de linha para editar ou apagar."
+      },
+      "couponsSection": {
+        "title": "Gestão de cupões",
+        "description": "Crie novos cupões ou faça a gestão dos que já existem. Mostra os cupões ativos e arquivados com o acompanhamento das utilizações e os controlos de estado."
+      }
+    },
+    "shop-orders": {
+      "search": {
+        "title": "Pesquisa de encomendas",
+        "description": "Encontre encomendas rapidamente pelo ID da encomenda, nome do cliente, nome do produto ou ID do utilizador. Os resultados atualizam-se à medida que escreve."
+      },
+      "statusTabs": {
+        "title": "Separadores de filtro por estado",
+        "description": "Filtre as encomendas por estado: Todas, Pendentes ou Pagas. Os separadores mostram a contagem de cada estado para que detete as encomendas pendentes que precisam de atenção."
+      },
+      "table": {
+        "title": "Lista de encomendas",
+        "description": "Todas as encomendas com ID, cliente, artigos comprados, emblema de estado, data e total. Cada linha tem um menu para ver os detalhes completos."
+      },
+      "pagination": {
+        "title": "Paginação",
+        "description": "Percorra as páginas de encomendas quando a lista completa é grande. Os números de página aparecem quando são necessários."
+      },
+      "viewDetails": {
+        "title": "Ver os detalhes da encomenda",
+        "description": "Clique em Ver detalhes numa encomenda para ver a repartição completa: artigos, quantidades, preços, descontos e os dados de envio do cliente."
+      }
+    },
+    "shop-vendors": {
+      "add": {
+        "title": "Adicionar fornecedor",
+        "description": "Conceda acesso de venda no mercado a um utilizador existente. Introduza o e-mail ou o ID de utilizador dele e configure o perfil de fornecedor com nome a apresentar e contactos."
+      },
+      "assignProduct": {
+        "title": "Atribuir produto a um fornecedor",
+        "description": "Reatribua um produto a outro fornecedor ou devolva-o ao stock próprio da AFC. Escolha o produto e o fornecedor de destino nas listas pendentes."
+      },
+      "table": {
+        "title": "Lista de fornecedores",
+        "description": "Todos os fornecedores com o nome a apresentar, o e-mail de contacto, o número de WhatsApp, o estado, o número de produtos e a data de registo. Os botões de estado permitem suspender ou reativar de imediato."
+      },
+      "statusToggle": {
+        "title": "Botão de estado do fornecedor",
+        "description": "Suspenda um fornecedor ativo para lhe retirar o acesso de venda, ou reative um fornecedor suspenso para o deixar vender outra vez."
+      },
+      "contactInfo": {
+        "title": "Contactos do fornecedor",
+        "description": "Cada linha de fornecedor mostra o e-mail de contacto e o número de WhatsApp, para a coordenação do apoio e a comunicação sobre os envios."
+      }
+    },
+    "shop-approvals": {
+      "queueTable": {
+        "title": "Fila de aprovação",
+        "description": "Todos os produtos submetidos pelos fornecedores à espera de análise. Mostra o nome do produto, o fornecedor, o intervalo de preços, o número de variantes e a data de submissão para uma avaliação rápida."
+      },
+      "approveButton": {
+        "title": "Aprovar produto",
+        "description": "Publique na loja um produto de fornecedor. Depois de aprovado, o estado do produto muda e pode ser colocado à venda."
+      },
+      "rejectButton": {
+        "title": "Rejeitar produto",
+        "description": "Devolva um produto ao fornecedor com comentários. Abre uma janela para escrever um motivo de rejeição que o fornecedor pode ver e resolver."
+      },
+      "rejectReason": {
+        "title": "Campo do motivo de rejeição",
+        "description": "Escreva comentários claros para o fornecedor a explicar porque é que o produto dele foi rejeitado, por exemplo problemas de preço ou dados em falta."
+      },
+      "emptyState": {
+        "title": "Fila vazia",
+        "description": "Quando não há produtos submetidos, a fila mostra um estado vazio. Os produtos aparecem aqui quando os fornecedores submetem novos artigos."
+      }
+    },
+    "events-lb-main": {
+      "tabs": {
+        "title": "Separadores Eventos e Classificações",
+        "description": "Alterne entre o separador Eventos (gerir torneios e scrims) e o separador Classificações (publicar classificações). A visita percorre os dois separadores."
+      },
+      "create": {
+        "title": "Criar um novo evento",
+        "description": "Comece um torneio ou um scrim. O assistente guia-o pelos detalhes, fases, prémios e regras, e depois publica-o."
+      },
+      "payments": {
+        "title": "Painel de pagamentos do evento",
+        "description": "Para eventos pagos, faça a gestão da garantia onde liberta ou reembolsa as taxas de inscrição retidas pela Stripe."
+      },
+      "search": {
+        "title": "Encontrar um evento rapidamente",
+        "description": "Filtre a lista abaixo por nome do evento, tipo (torneio ou scrim) ou estado. Muito útil quando já tem muitos eventos registados."
+      },
+      "list": {
+        "title": "Os seus eventos e scrims",
+        "description": "Todos os eventos ficam aqui. Por linha: Ver abre o detalhe completo do evento, Editar reabre o assistente, e o ícone do caixote do lixo apaga-o."
+      },
+      "lbStats": {
+        "title": "Totais das classificações",
+        "description": "Os cartões contam as suas classificações no total e dividem-nas entre classificações de torneios e de scrims, para que veja o que já foi pontuado."
+      }
+    },
+    "events-lb-create": {
+      "title": {
+        "title": "Criar um novo evento",
+        "description": "Um assistente de vários passos para construir um torneio ou um scrim de raiz. Siga os passos pelos detalhes, fases, prémios e regras."
+      },
+      "nextButton": {
+        "title": "Navegação entre passos",
+        "description": "Clique em Seguinte ou Anterior para avançar no assistente de criação do evento."
+      },
+      "save": {
+        "title": "Botão Criar evento",
+        "description": "Quando chegar ao último passo, clique em Criar evento para guardar e publicar o seu torneio ou scrim."
+      }
+    },
+    "events-lb-payments": {
+      "title": {
+        "title": "Garantia dos pagamentos do evento",
+        "description": "As taxas de inscrição dos eventos pagos ficam retidas em garantia. Liberte os fundos para o organizador ou reembolse o jogador aqui."
+      },
+      "filter": {
+        "title": "Filtrar por evento",
+        "description": "Escolha um evento pago específico para ver os pagamentos retidos, ou veja todos os pagamentos de todos os eventos pagos."
+      },
+      "summary": {
+        "title": "Cartões de resumo dos pagamentos",
+        "description": "Veja o número total de pagamentos, quantos estão retidos em garantia à espera de ação, e quantos aparecem com o filtro atual."
+      },
+      "table": {
+        "title": "Tabela de pagamentos",
+        "description": "Por linha de pagamento: o evento, quem pagou, a equipa, o valor, o estado e a situação da garantia. Os pagamentos retidos mostram os botões Libertar e Reembolsar."
+      }
+    },
+    "events-lb-detail": {
+      "title": {
+        "title": "Página de detalhe do evento",
+        "description": "O centro de gestão de um evento. Veja ou edite todos os aspetos: resumo, inscrições, fases, equipas e prémios."
+      },
+      "overview": {
+        "title": "Separador Resumo",
+        "description": "Um retrato em direto do evento: o total de inscritos, a contagem decrescente para o início, o prémio total e a sua distribuição."
+      },
+      "details": {
+        "title": "Separador Detalhes",
+        "description": "Os dados do evento: nome, tipo, modo, datas, regras, restrições, patrocinadores e configuração da lista de espera."
+      },
+      "registrations": {
+        "title": "Separador Inscrições",
+        "description": "Quem se inscreveu. Veja a cronologia das inscrições, filtre por estado, descarregue a lista de participantes e faça a gestão dos convites nos eventos privados."
+      },
+      "stages": {
+        "title": "Separador Fases",
+        "description": "A estrutura da chave do torneio. Veja cada fase, os seus grupos, as equipas e o número de jogos. Distribua as equipas dos eventos em direto ou edite aqui a configuração das fases e dos grupos."
+      },
+      "groupRosters": {
+        "title": "Separador Plantéis dos grupos",
+        "description": "A verificação da distribuição num evento em direto: quem está onde e em que grupo. Pesquise por nome de jogador ou de equipa para consultar rapidamente durante o evento."
+      }
+    },
+    "events-lb-edit": {
+      "title": {
+        "title": "Editar evento",
+        "description": "Reabra o assistente do evento para alterar qualquer detalhe, fase ou regra depois de o ter criado."
+      },
+      "basic": {
+        "title": "Separador Informação básica",
+        "description": "O nome do evento, o tipo, o modo, as datas, as datas e ligações de inscrição, e o estado público ou privado."
+      },
+      "stages": {
+        "title": "Separador Fases e grupos",
+        "description": "Altere o número de fases, as datas, os formatos, o número de grupos, as equipas apuradas e os prémios totais."
+      },
+      "prizes": {
+        "title": "Separador Prémios e regras",
+        "description": "Faça a gestão dos valores do prémio total, da distribuição por posição, e do texto das regras do evento ou do respetivo ficheiro."
+      },
+      "actions": {
+        "title": "Separador Ações",
+        "description": "Publique nos torneios ou nas notícias, ou guarde como rascunho. Controle quem se pode inscrever e faça a gestão das definições de patrocinadores e da lista de espera."
+      }
+    },
+    "events-lb-ocr": {
+      "title": {
+        "title": "Extração OCR de capturas de ecrã",
+        "description": "Carregue uma captura de ecrã com o resultado de um jogo e extraia automaticamente os nomes dos jogadores, os abates e as posições. Reveja e corrija antes de guardar."
+      },
+      "upload": {
+        "title": "Carregar captura de ecrã",
+        "description": "Largue ou escolha a imagem de uma captura de ecrã com o resultado de um jogo. O motor de OCR procura nela as estatísticas dos jogadores."
+      },
+      "review": {
+        "title": "Rever os dados extraídos",
+        "description": "O resultado do OCR aparece numa tabela. Confirme a exatidão de cada linha e corrija à mão as leituras erradas antes de confirmar."
+      },
+      "commit": {
+        "title": "Confirmar os dados do OCR",
+        "description": "Guarde neste evento as linhas de OCR já revistas. Passam a fazer parte do resultado do jogo."
+      }
+    },
+    "events-lb-sponsors": {
+      "title": {
+        "title": "Gestão dos patrocinadores do evento",
+        "description": "Liste os participantes conforme cumpriram ou não os requisitos dos patrocinadores. Pesquise, filtre por estado e verifique ou rejeite as submissões."
+      },
+      "filter": {
+        "title": "Filtrar por estado",
+        "description": "Mostre todos os participantes, apenas os que passaram na verificação dos patrocinadores, ou apenas os que falharam."
+      },
+      "table": {
+        "title": "Tabela de participantes",
+        "description": "Por linha: o nome do participante, o UUID ou identificador, a data de submissão e o estado. Use as ações para verificar ou rejeitar cada um."
+      },
+      "verify": {
+        "title": "Verificar ou rejeitar uma submissão",
+        "description": "Por linha: clique em Verificar para aceitar um requisito de patrocinador, ou em Rejeitar se não cumprir os critérios."
+      }
+    },
+    "events-lb-leaderboards-create": {
+      "title": {
+        "title": "Criar classificação",
+        "description": "Um assistente de vários passos para gerar a classificação de um torneio ou scrim. Escolha o evento, a fase e o grupo, e depois introduza ou carregue os resultados."
+      },
+      "basic": {
+        "title": "Passo Informação básica",
+        "description": "Escolha o evento, a fase e o grupo a pontuar. O formulário mostra as fases e os grupos disponíveis nesse evento."
+      },
+      "scoring": {
+        "title": "Passo Sistema de pontos",
+        "description": "Defina os pontos por abate, por assistência e por dano. Escolha se os mesmos valores se aplicam a todos os mapas ou variam de jogo para jogo."
+      },
+      "matches": {
+        "title": "Passo Resultados dos jogos",
+        "description": "Introduza os resultados dos jogos à mão, carregue uma captura de ecrã para extração por OCR, ou carregue um ficheiro da sala 3D. Uma opção por jogo."
+      },
+      "review": {
+        "title": "Passo Rever e publicar",
+        "description": "Veja a classificação final e depois publique-a para tornar públicos os resultados deste grupo."
+      }
+    },
+    "events-lb-leaderboards-view": {
+      "title": {
+        "title": "Classificação",
+        "description": "Veja a classificação final de um grupo. Consulte as posições, o número de abates e o total de pontos de cada participante."
+      },
+      "stageGroup": {
+        "title": "Seletor de fase e grupo",
+        "description": "Listas pendentes para ver a classificação das várias fases e dos vários grupos deste evento."
+      },
+      "table": {
+        "title": "Tabela de classificação",
+        "description": "Por linha de participante: a posição, o nome, o número de abates, as assistências, o dano e o total de pontos."
+      },
+      "matchPicker": {
+        "title": "Seletor de jogo",
+        "description": "Escolha a classificação Geral ou entre num único jogo para ver a posição e os pontos apenas desse jogo."
+      },
+      "download": {
+        "title": "Descarregar a classificação",
+        "description": "Exporte a classificação como ficheiro CSV ou Excel para partilhar com os organizadores ou com o público."
+      }
+    },
+    "events-lb-leaderboards-edit": {
+      "title": {
+        "title": "Editar classificação",
+        "description": "Corrija ou volte a introduzir os resultados dos jogos de uma classificação publicada. Atualize os pontos, as posições e o número de abates de cada jogo."
+      },
+      "stageGroup": {
+        "title": "Seletor de fase e grupo",
+        "description": "Escolha a fase e o grupo cujos jogos quer voltar a editar."
+      },
+      "matchList": {
+        "title": "Lista de jogos",
+        "description": "Veja todos os jogos do grupo escolhido. Clique num jogo para abrir a vista de edição dos resultados desse jogo."
+      },
+      "match": {
+        "title": "Editar um jogo",
+        "description": "Volte a introduzir ou carregue os resultados do jogo. Escolha a introdução manual, o OCR de uma captura de ecrã, ou o carregamento de um ficheiro da sala 3D."
+      },
+      "save": {
+        "title": "Guardar alterações",
+        "description": "Quando terminar de editar os resultados dos jogos, clique em Guardar para atualizar a classificação publicada."
+      },
+      "mvpTab": {
+        "title": "MVP do evento",
+        "description": "É decidido um MVP para CADA mapa segundo os critérios que definiu (abates, dano, assistências e as estatísticas da sala 3D depois de importadas); o MVP do evento é o jogador com mais MVP de mapa. Escolha se os MVP saem do evento inteiro ou da equipa vencedora de cada mapa."
+      },
+      "tieBreakers": {
+        "title": "Critérios de desempate (separador Configuração de pontuação)",
+        "description": "Quando as equipas terminam empatadas em pontos, esta ordem desfaz o empate: Booyah, abates, pontos de posição, e até os MVP de mapa conquistados. Tal como os mapas, pode aplicar-se ao evento inteiro ou ser substituída por fase ou por grupo."
+      },
+      "debuggerBackfill": {
+        "title": "Recuperação do registo debugger (separador Carregamento)",
+        "description": "Carregue o ficheiro debugger-*.log do PC do observador para acrescentar A POSTERIORI as mortes, os derrubes, os tiros na cabeça, as reanimações e o tempo de sobrevivência aos jogos. Associe cada ronda detetada ao seu jogo e aplique: os jogadores são reconhecidos pelo UID do Free Fire e os critérios de MVP da sala 3D ficam automaticamente disponíveis."
+      }
+    },
+    "live-overlays-list": {
+      "capture": {
+        "title": "O programa AFC Capture",
+        "description": "Descarregue a aplicação de computador que corre no PC que aloja a sala. Ela envia automaticamente o resultado de cada ronda e empurra a classificação em direto para as suas sobreposições."
+      },
+      "events": {
+        "title": "Escolha um evento",
+        "description": "Todos os eventos estão listados aqui. Abra um para gerir TODAS as suas sobreposições: os designs com pré-visualização em direto, a cena da contagem decrescente, o controlo de emissão e a chave de captura."
+      }
+    },
+    "live-overlays-studio": {
+      "newOverlay": {
+        "title": "Criar uma sobreposição",
+        "description": "Crie uma nova sobreposição a partir de qualquer design de classificação, ou acrescente uma cena de contagem decrescente. Cada sobreposição recebe UMA ligação permanente que adiciona ao OBS ou ao vMix uma única vez."
+      },
+      "cards": {
+        "title": "As suas sobreposições guardadas",
+        "description": "Cada cartão é uma sobreposição com uma pré-visualização EM DIRETO da ligação real. Mude o design, a fase ou o grupo, as animações, ou dispare a contagem decrescente: a mesma ligação atualiza-se sozinha no OBS. Mude o nome, duplique ou apague a partir do cartão."
+      },
+      "broadcast": {
+        "title": "Controlo de emissão",
+        "description": "As sobreposições definidas como 'Seguir a seleção de emissão' mostram o que escolher aqui: mude a fase ou o grupo em direto sem tocar no OBS."
+      }
+    },
+    "orgs-misc-organizations-list": {
+      "create": {
+        "title": "Criar uma nova organização",
+        "description": "Crie uma nova organização e atribua-lhe um proprietário. O formulário exige um nome e o nome de utilizador do proprietário para começar."
+      },
+      "search": {
+        "title": "Pesquisar organizações",
+        "description": "Filtre a lista de organizações por nome ou slug. Os resultados atualizam-se à medida que escreve."
+      },
+      "subnav": {
+        "title": "Secções das organizações",
+        "description": "Alterne entre a lista de Organizações, os Pedidos de design e as Denúncias de organizações através dos separadores de subnavegação."
+      },
+      "table": {
+        "title": "Tabela de organizações",
+        "description": "Todas as organizações registadas com o estado, o número de membros, os eventos e a data de criação. Clique num nome para ver ou editar os detalhes."
+      },
+      "pagination": {
+        "title": "Percorrer as páginas de organizações",
+        "description": "Percorra a lista de organizações com os números de página. A tabela é paginada no servidor por questões de desempenho."
+      }
+    },
+    "orgs-misc-org-reports": {
+      "title": {
+        "title": "Denúncias de integridade das organizações",
+        "description": "Uma fila para as denúncias submetidas por utilizadores contra organizações por manipulação de classificações, resultados falsos ou conduta desleal."
+      },
+      "subnav": {
+        "title": "Alternar entre as secções das organizações",
+        "description": "Navegue pela lista de Organizações, os Pedidos de design e as Denúncias de organizações através deste submenu."
+      },
+      "statusFilter": {
+        "title": "Filtrar as denúncias por estado",
+        "description": "Mostre as denúncias por estado: todas, abertas, em análise, resolvidas ou arquivadas. As denúncias abertas são prioritárias."
+      },
+      "table": {
+        "title": "Linhas de denúncia",
+        "description": "Cada linha mostra a organização, a categoria, quem denunciou, o evento relacionado, o estado e a data. Use Resolver para tratar cada denúncia."
+      },
+      "resolve": {
+        "title": "Resolver uma denúncia de integridade",
+        "description": "Abra uma janela para atualizar o estado, acrescentar notas de resolução, ver as provas e, se quiser, excluir o evento das classificações."
+      }
+    },
+    "orgs-misc-org-detail": {
+      "profileTab": {
+        "title": "Editar o perfil da organização",
+        "description": "Atualize o nome da organização, o e-mail, a descrição, as ligações às redes sociais e o estado. Guarde ou suspenda a partir deste separador."
+      },
+      "membersTab": {
+        "title": "Gerir os membros da organização",
+        "description": "Acrescente membros, veja as permissões deles, defina a propriedade e remova utilizadores a partir deste separador."
+      },
+      "eventsTab": {
+        "title": "Rever os eventos da organização",
+        "description": "Veja todos os eventos que pertencem a esta organização. Valide ou retire a validação da classificação de cada evento a partir desta tabela."
+      },
+      "saveProfile": {
+        "title": "Guardar as alterações do perfil",
+        "description": "Confirme as edições ao nome, e-mail, descrição e redes sociais depois de fazer alterações no separador Perfil."
+      },
+      "suspend": {
+        "title": "Suspender a organização",
+        "description": "Bloqueie temporariamente o acesso da organização sem a apagar. Use Retirar suspensão para repor o acesso mais tarde."
+      }
+    },
+    "orgs-misc-sponsors-list": {
+      "create": {
+        "title": "Criar uma nova conta de patrocinador",
+        "description": "Configure uma nova conta de patrocinador com credenciais de acesso e eventos atribuídos, num assistente guiado."
+      },
+      "search": {
+        "title": "Pesquisar contas de patrocinador",
+        "description": "Filtre por nome completo, nome de utilizador ou e-mail. Os resultados atualizam-se à medida que escreve."
+      },
+      "table": {
+        "title": "Tabela de contas de patrocinador",
+        "description": "Todos os patrocinadores com o nome completo, o nome de utilizador, o e-mail e as ações. Clique em Editar para atualizar os detalhes e os eventos atribuídos."
+      },
+      "pagination": {
+        "title": "Percorrer as páginas de patrocinadores",
+        "description": "Percorra a lista de patrocinadores com os números de página. A tabela é paginada no lado do cliente."
+      }
+    },
+    "orgs-misc-sponsors-create": {
+      "stepIndicator": {
+        "title": "Criação de patrocinador em dois passos",
+        "description": "Passo 1: os detalhes da conta com as credenciais. Passo 2: atribuir eventos à conta de patrocinador."
+      },
+      "accountForm": {
+        "title": "Criar as credenciais da conta",
+        "description": "Introduza o nome completo, o UID, o nome de utilizador, o e-mail e a palavra-passe. A palavra-passe tem de cumprir os requisitos de complexidade."
+      },
+      "passwordStrength": {
+        "title": "Indicador de segurança da palavra-passe",
+        "description": "Mostra os requisitos cumpridos e o nível de segurança: fraca, média ou forte."
+      },
+      "events": {
+        "title": "Atribuir eventos ao patrocinador",
+        "description": "Escolha os eventos a que quer dar acesso ao patrocinador. Este passo é opcional. Ignore-o para terminar sem atribuição."
+      },
+      "success": {
+        "title": "Conta criada com sucesso",
+        "description": "As credenciais em texto simples só aparecem uma vez. Copie-as ou descarregue-as de imediato antes de fechar."
+      }
+    },
+    "orgs-misc-sponsors-edit": {
+      "details": {
+        "title": "Atualizar os detalhes do patrocinador",
+        "description": "Edite o nome completo, o e-mail e o nome de utilizador. Pode também repor a palavra-passe, respeitando os requisitos de complexidade."
+      },
+      "password": {
+        "title": "Repor a palavra-passe do patrocinador",
+        "description": "Deixe em branco para manter a palavra-passe atual. Se a alterar, tem de cumprir os requisitos de segurança."
+      },
+      "events": {
+        "title": "Atualizar os eventos atribuídos",
+        "description": "Pesquise e escolha a que eventos o patrocinador pode aceder. As alterações produzem efeito assim que guardar."
+      },
+      "save": {
+        "title": "Guardar as atualizações do patrocinador",
+        "description": "Confirme todas as alterações aos detalhes e aos eventos atribuídos."
+      }
+    },
+    "orgs-misc-partners-list": {
+      "create": {
+        "title": "Criar um novo parceiro com chave API",
+        "description": "Crie um novo parceiro da API de dados. Começa com todas as opções desligadas e sem âmbito até ser configurado."
+      },
+      "search": {
+        "title": "Pesquisar parceiros com chave API",
+        "description": "Filtre por nome ou slug. Os resultados atualizam-se à medida que escreve."
+      },
+      "table": {
+        "title": "Tabela de parceiros com chave API",
+        "description": "Cada parceiro mostra o nome, o slug, o estado, o número de chaves ativas e a data de criação. Clique no nome para o configurar."
+      },
+      "activeKeys": {
+        "title": "Contagem de chaves API ativas",
+        "description": "Mostra quantas chaves ativas (não revogadas) estão emitidas para cada parceiro."
+      },
+      "pagination": {
+        "title": "Percorrer as páginas de parceiros",
+        "description": "Percorra a lista de parceiros com os números de página. A paginação é feita no servidor."
+      }
+    },
+    "orgs-misc-partners-detail": {
+      "profileTab": {
+        "title": "Perfil do parceiro e suspensão",
+        "description": "Veja o nome e o e-mail de contacto (apenas leitura). Use Suspender para bloquear todas as chaves de uma vez sem as revogar."
+      },
+      "scopeTab": {
+        "title": "Configurar o âmbito e as opções",
+        "description": "Dê acesso aos eventos nativos da AFC, a eventos específicos e a organizações, e configure 6 opções de recursos e 8 opções de campos."
+      },
+      "keysTab": {
+        "title": "Gerir as chaves API",
+        "description": "Emita novas chaves com etiquetas opcionais e limites de pedidos por chave. Revogue as chaves ativas com efeito imediato."
+      },
+      "nativeAfc": {
+        "title": "Dar acesso a todos os eventos nativos da AFC",
+        "description": "Um único interruptor dá acesso, de uma só vez, a todos os eventos organizados pela AFC (sem organizador externo), por comodidade."
+      },
+      "allowedEvents": {
+        "title": "Escolher os eventos permitidos",
+        "description": "Uma lista de eventos com pesquisa, para dar ao parceiro acesso de leitura."
+      },
+      "issueKey": {
+        "title": "Emitir uma nova chave API",
+        "description": "Crie uma nova chave com etiqueta opcional e limite de pedidos. O texto simples da chave só é mostrado uma vez."
+      }
+    },
+    "orgs-misc-news-list": {
+      "create": {
+        "title": "Criar uma nova notícia",
+        "description": "Escreva e publique uma notícia com texto formatado, imagens, categoria e estado. Usa um formulário por passos."
+      },
+      "search": {
+        "title": "Pesquisar notícias por título, conteúdo ou autor",
+        "description": "Filtre os artigos em tempo real à medida que escreve a sua pesquisa."
+      },
+      "dateFilter": {
+        "title": "Filtrar por data de publicação",
+        "description": "Mostre apenas os artigos publicados numa data específica."
+      },
+      "categoryFilter": {
+        "title": "Filtrar por categoria",
+        "description": "As categorias: Notícias gerais, Atualizações de torneios, Atualizações de jogadores ou equipas banidos. Escolha uma ou veja todas."
+      },
+      "statusFilter": {
+        "title": "Filtrar por estado de publicação",
+        "description": "Mostre em separado os artigos publicados, em rascunho ou arquivados."
+      },
+      "clearFilters": {
+        "title": "Repor todos os filtros",
+        "description": "Retire todos os critérios de pesquisa e de filtro ativos para voltar a ver a lista completa de notícias."
+      },
+      "cards": {
+        "title": "Cartões das notícias",
+        "description": "Uma grelha de cartões de artigos com imagem, título, autor, data, e gostos e não gostos. Clique em Ver para ler o artigo completo."
+      }
+    },
+    "settings-misc-admins": {
+      "tabsHeader": {
+        "title": "Alternar entre os separadores das definições",
+        "description": "Esta página de definições tem vários separadores: Utilizadores admin, Todos os utilizadores, Funções, Notificações, Histórico de sessões e Atividades dos admins. Cada separador controla um aspeto diferente da gestão de utilizadores e funções."
+      },
+      "exportExcel": {
+        "title": "Exportar os administradores para Excel",
+        "description": "Descarregue a lista completa de todos os administradores e das suas funções num ficheiro Excel, para arquivo ou relatórios."
+      },
+      "adminSearch": {
+        "title": "Encontrar um administrador",
+        "description": "Pesquise utilizadores admin por nome de utilizador, e-mail ou função. A tabela abaixo atualiza-se à medida que escreve."
+      },
+      "adminEdit": {
+        "title": "Editar as funções de um administrador",
+        "description": "Clique no ícone do lápis ao lado de um admin para alterar as funções e permissões que lhe estão atribuídas. Pode combinar várias funções."
+      },
+      "adminSuspend": {
+        "title": "Suspender ou ativar um admin",
+        "description": "Desative temporariamente uma conta de administrador clicando em Suspender, ou reative uma conta suspensa clicando em Ativar."
+      }
+    },
+    "settings-misc-ocr-model": {
+      "headline": {
+        "title": "Números principais do modelo de OCR",
+        "description": "Acompanhe os números essenciais: a versão do modelo ativo, a quota local (a percentagem de leituras respondidas pelo modelo local), a taxa sem intervenção (leituras que não precisaram de correções do admin) e as chamadas ao Gemini (um indicador de custo)."
+      },
+      "tabs": {
+        "title": "Explorar o detalhe do modelo de OCR",
+        "description": "Os gráficos de desempenho mostram como a dinâmica está a crescer (o modelo local trata mais leituras e os admins corrigem menos). Os separadores Conjunto de dados, Histórico de retreino e Controlos contêm as ferramentas do operador."
+      },
+      "download": {
+        "title": "Descarregar o conjunto de dados de treino",
+        "description": "Exporte os dados de treino de referência atuais num ficheiro ZIP. A ferramenta de treino offline usa-os para treinar a versão seguinte do modelo."
+      },
+      "promote": {
+        "title": "Promover um modelo a ativo",
+        "description": "Escreva a versão de um modelo treinado (por exemplo local_student_v4) e clique em Promover para o tornar o motor de leitura ativo das novas capturas de ecrã."
+      },
+      "rollback": {
+        "title": "Reverter para o modelo anterior",
+        "description": "Se o modelo ativo der problemas, clique em Reverter para voltar à versão promovida anteriormente, até conseguir diagnosticar e promover uma correção."
+      }
+    },
+    "settings-misc-drafts": {
+      "metrics": {
+        "title": "Retrato dos eventos em rascunho",
+        "description": "Dois cartões mostram o número total de eventos em rascunho de todos os admins e o número que criou pessoalmente. Use-os para acompanhar o trabalho em curso."
+      },
+      "search": {
+        "title": "Encontrar um rascunho pelo nome do evento",
+        "description": "Escreva um nome de evento para filtrar a lista abaixo. A pesquisa abrange todos os rascunhos ou apenas os seus, conforme o separador que tiver aberto."
+      },
+      "tabs": {
+        "title": "Alternar entre Todos os rascunhos e Os meus rascunhos",
+        "description": "O separador Todos os rascunhos mostra os eventos em curso de todos os admins. Os meus rascunhos mostra apenas os que criou. Os emblemas mostram as contagens."
+      },
+      "continue": {
+        "title": "Continuar a editar um rascunho",
+        "description": "Clique no botão Continuar a editar para reabrir um evento em rascunho no assistente e retomar onde ficou."
+      },
+      "delete": {
+        "title": "Apagar um evento em rascunho",
+        "description": "Clique no ícone do caixote do lixo para remover um rascunho. É pedida uma confirmação. Apagar um rascunho não afeta os eventos publicados."
+      }
+    },
+    "settings-misc-votes": {
+      "metrics": {
+        "title": "Números principais do painel de votações",
+        "description": "Os cartões principais mostram o total de votos expressos, os votantes únicos, a taxa de conclusão e o tempo médio de votação. Acompanhe-os para perceber a saúde da campanha de votação."
+      },
+      "tabs": {
+        "title": "Explorar os dados de votação por separador",
+        "description": "Os separadores deixam-no entrar em Resumo, Secções, Categorias, Nomeados, Vencedores, Cronologia, Melhores desempenhos e Gestão. Cada um oferece uma vista diferente dos dados de votação."
+      },
+      "sections": {
+        "title": "Ver as secções de prémios",
+        "description": "O separador Secções mostra todos os agrupamentos de prémios (por exemplo, prémios de criadores de conteúdos, prémios de esports) com o total de votos e o número de categorias de cada um."
+      },
+      "categories": {
+        "title": "Analisar as votações por categoria",
+        "description": "O separador Categorias reparte os votos por categoria de prémio com gráficos e barras. Use o filtro de secção para se concentrar numa área de prémios."
+      },
+      "winners": {
+        "title": "Rever os vencedores de cada categoria",
+        "description": "O separador Vencedores mostra quem tem mais votos em cada categoria, com o número de votos e as percentagens, para ver quem lidera em tempo real."
+      }
+    },
+    "help-center": {
+      "header": {
+        "title": "A referência escrita",
+        "description": "Todas as visitas guiadas, incluindo esta, apontam para controlos num ecrã real. Esta página é a versão que pode ler longe do ecrã e, ao contrário de uma visita, pode pesquisá-la."
+      },
+      "search": {
+        "title": "Pesquisar tudo de uma vez",
+        "description": "A pesquisa abrange as duas vistas: os guias e todos os controlos documentados. Escreva o texto que viu num botão, por exemplo Unpublish ou Reseed, em vez de uma pergunta inteira."
+      },
+      "areas": {
+        "title": "Restringir a uma só área",
+        "description": "Eventos, classificações, equipas, jogadores, posições, emissões, sobreposições, loja, notícias, patrocinadores, organizações, mercado e definições. Escolha uma quando já sabe mais ou menos onde está o que procura."
+      },
+      "views": {
+        "title": "Os guias ou a lista completa de controlos",
+        "description": "Os guias percorrem um processo inteiro do princípio ao fim, como organizar um torneio no próprio dia. Todos os controlos é o dicionário: o que faz um botão específico, quem o pode usar, e se altera dados."
+      },
+      "guides": {
+        "title": "Cada guia liga ao ecrã real",
+        "description": "Começar aqui num guia abre o ecrã onde o processo começa, e cada guia tem um espaço pronto para um vídeo explicativo a acrescentar mais tarde."
+      }
+    }
+  }
+}

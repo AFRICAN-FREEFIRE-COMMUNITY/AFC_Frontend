@@ -229,10 +229,13 @@ function useOrganizerTour(pageKey: OrganizerTourPageKey, t: Translate) {
       stageRadius: 8,
       allowClose: true, // Escape / overlay click can dismiss
       showProgress: true,
-      progressText: "Step {{current}} of {{total}}",
-      nextBtnText: "Next",
-      prevBtnText: "Back",
-      doneBtnText: "Done",
+      // Popover chrome, localized like the step copy. progressText keeps driver.js's own
+      // {{current}}/{{total}} mustache tokens: in the JSON value they are ICU-escaped
+      // ('{{'current'}}') so next-intl emits them literally for driver.js to substitute.
+      progressText: tRef.current("tour.driver.progress"),
+      nextBtnText: tRef.current("tour.driver.next"),
+      prevBtnText: tRef.current("tour.driver.back"),
+      doneBtnText: tRef.current("tour.driver.done"),
       popoverClass: "afc-org-tour", // themed in <OrganizerTourStyles/> below
       steps,
       // Fired whenever the tour ends for ANY reason (Done, Skip/close, Escape,
@@ -301,7 +304,7 @@ function OrganizerTourControls({
       variant="outline"
       size="sm"
       onClick={start}
-      aria-label={t("tour.button")}
+      aria-label={t("tour.buttonAria")}
     >
       <IconHelpCircle className="h-4 w-4" />
       {/* Label hides on very small screens to keep the header tidy; the icon +

@@ -5,6 +5,13 @@
   },
   "tour": {
     "button": "Faites une visite guidée",
+    "buttonAria": "Faites une visite guidée de cette page organisateur",
+    "driver": {
+      "progress": "Étape '{{'current'}}' sur '{{'total'}}'",
+      "next": "Suivant",
+      "back": "Précédent",
+      "done": "Terminé"
+    },
     "sidebar": {
       "title": "Navigation dans votre espace organisateur",
       "description": "Cette barre latérale vous permet de naviguer au sein de votre organisation : aperçu, événements, classements, membres, paiements et bien plus encore. La section dans laquelle vous vous trouvez est surlignée en vert."

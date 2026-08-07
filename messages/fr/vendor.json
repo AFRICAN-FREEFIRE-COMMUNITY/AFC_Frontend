@@ -4,6 +4,14 @@
     "exit": "Sortie"
   },
   "tour": {
+    "button": "Faites une visite guidée",
+    "buttonAria": "Faites une visite guidée de cette page fournisseur",
+    "driver": {
+      "progress": "Étape '{{'current'}}' sur '{{'total'}}'",
+      "next": "Suivant",
+      "back": "Précédent",
+      "done": "Terminé"
+    },
     "sidebar": {
       "title": "Navigation parmi vos fournisseurs",
       "description": "Utilisez cette barre latérale pour naviguer dans le portail des fournisseurs : « Commandes à traiter », « Votre catalogue de produits » et « Paiements » pour vos coordonnées bancaires. La section dans laquelle vous vous trouvez est surlignée en vert."
