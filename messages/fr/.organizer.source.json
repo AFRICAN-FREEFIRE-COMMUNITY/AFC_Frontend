@@ -1181,5 +1181,9 @@
   "broadcastKit.download": "Download kit",
   "broadcastKit.downloaded": "Kit downloaded.",
   "broadcastKit.downloadFailed": "Could not build the kit.",
-  "broadcastKit.noTeams": "No teams registered yet."
+  "broadcastKit.noTeams": "No teams registered yet.",
+  "studio.booyahDesignsGroup": "Booyah designs",
+  "studio.bannerDesignsGroup": "Other designs (built-in banner)",
+  "studio.booyahDesignDriven": "This design drives the whole overlay. What shows is what you placed on it, filled with the winning team and its players.",
+  "studio.booyahDesignHint": "This design only sets the background and colours of the built-in banner. Pick a booyah design to control the whole layout yourself."
 }

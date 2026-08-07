@@ -1466,7 +1466,11 @@
     "addMvp": "Ajouter un tableau MVP",
     "addTopKillers": "Ajouter les meilleurs éliminateurs",
     "mvpCreated": "Tableau MVP créé. Associez-lui un design et choisissez sa portée, puis copiez son lien une seule fois.",
-    "topKillersCreated": "Tableau des meilleurs éliminateurs créé. Associez-lui un design et choisissez sa portée, puis copiez son lien une seule fois."
+    "topKillersCreated": "Tableau des meilleurs éliminateurs créé. Associez-lui un design et choisissez sa portée, puis copiez son lien une seule fois.",
+    "booyahDesignsGroup": "Designs booyah",
+    "bannerDesignsGroup": "Autres designs (bannière intégrée)",
+    "booyahDesignDriven": "Ce design pilote toute la superposition. Ce qui s'affiche est ce que vous y avez placé, rempli avec l'équipe gagnante et ses joueurs.",
+    "booyahDesignHint": "Ce design ne définit que l'arrière-plan et les couleurs de la bannière intégrée. Choisissez un design booyah pour contrôler vous-même toute la mise en page."
   },
   "mediaAudit": {
     "title": "Médias de diffusion",

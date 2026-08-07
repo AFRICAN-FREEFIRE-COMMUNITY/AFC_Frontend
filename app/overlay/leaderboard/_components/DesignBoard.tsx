@@ -402,10 +402,23 @@ export function DesignBoard({
   const textY = (t: LeaderboardDesignText) =>
     yt ? (t.y_pct_youtube ?? t.y_pct) : t.y_pct;
 
-  // Stable team identity across polls (drives the FLIP-glide keys). team_name is unique within a
-  // tournament; solo/edge rows fall back to a name-ish field, then the position as a last resort.
+  // Stable row identity across polls (drives the FLIP-glide keys). A row may state its own identity
+  // via `row_key` (the booyah board does: every player of the winning squad carries the SAME
+  // team_name, so the team-name identity below would collapse them onto one React key and the roster
+  // block would render a single player). Leaderboard rows set no row_key and are unchanged:
+  // team_name is unique within a tournament; solo/edge rows fall back to a name-ish field, then the
+  // position as a last resort.
   const rowKey = (row: OverlayStandingRow): string =>
-    String(row.team_name ?? row.player ?? row.name ?? row.username ?? `pos-${row.pos}`);
+    String(
+      row.row_key ?? row.team_name ?? row.player ?? row.name ?? row.username ?? `pos-${row.pos}`,
+    );
+
+  // WHICH slot a row occupies in the design's column groups. Normally the row's rank (`pos`), but a
+  // scene row can separate the two: on the booyah board the winning team occupies slot 1 while its
+  // `pos` shows its rank on the leaderboard, and each player occupies slot 2, 3, 4... while its
+  // `pos` shows the rank within the squad. Rows without `slot` (every leaderboard row) are unaffected.
+  const rowSlot = (row: OverlayStandingRow): number =>
+    typeof row.slot === "number" ? row.slot : row.pos;
 
   // Background image for the active size (transparent designs skip it), read off the active page when
   // multi-page else the design row. Falls back to the other size's bg if the active one is missing.
@@ -607,7 +620,7 @@ export function DesignBoard({
             the design's rows) are not drawn. */}
         {canvasH > 0 &&
           standings.flatMap((row, rowIdx) => {
-            const slot = slotByRank.get(row.pos);
+            const slot = slotByRank.get(rowSlot(row));
             if (!slot) return [];
             const key = rowKey(row);
             const groupFields = fieldsByGroup.get(slot.gi) ?? [];

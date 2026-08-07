@@ -1466,7 +1466,11 @@
     "addMvp": "Adicionar quadro MVP",
     "addTopKillers": "Adicionar melhores matadores",
     "mvpCreated": "Painel MVP criado. Associe um projeto e selecione o seu âmbito; depois, copie o link uma vez.",
-    "topKillersCreated": "Classificação dos melhores matadores criada. Associe um design, escolha o seu âmbito e copie o link uma vez."
+    "topKillersCreated": "Classificação dos melhores matadores criada. Associe um design, escolha o seu âmbito e copie o link uma vez.",
+    "booyahDesignsGroup": "Designs booyah",
+    "bannerDesignsGroup": "Outros designs (banner integrado)",
+    "booyahDesignDriven": "Este design comanda toda a sobreposição. O que aparece é o que colocou nele, preenchido com a equipa vencedora e os seus jogadores.",
+    "booyahDesignHint": "Este design apenas define o fundo e as cores do banner integrado. Escolha um design booyah para controlar toda a disposição."
   },
   "mediaAudit": {
     "title": "Meios de comunicação social",

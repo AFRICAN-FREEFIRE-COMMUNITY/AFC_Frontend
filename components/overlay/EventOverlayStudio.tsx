@@ -35,7 +35,9 @@ import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -126,6 +128,16 @@ function OverlayCard({
   >([]);
   const [booyahTeamId, setBooyahTeamId] = useState("");
   const [booyahMap, setBooyahMap] = useState((cfg.match_map as string) || "");
+  // ── Design-driven booyah (owner 2026-08-06) ──
+  // A design authored for the winner moment (design_type "booyah") REPLACES the built-in banner: the
+  // overlay renders that design's placed columns through the same board renderer the live leaderboard
+  // uses (BE views_overlays._booyah_board -> FE BooyahView -> DesignBoard). Any other design only
+  // lends its background + colours to the banner, which is what every pre-2026-08-06 overlay does and
+  // keeps doing. Split here so the picker can say which is which, and so the card can explain what
+  // the current pick actually means.
+  const booyahDesigns = designs.filter((d) => d.design_type === "booyah");
+  const otherDesigns = designs.filter((d) => d.design_type !== "booyah");
+  const usesBooyahDesign = booyahDesigns.some((d) => d.id === Number(cfg.design_id));
   // H2H competitor options (owner 2026-07-02): teams OR players of this event, from the media-audit
   // endpoint (it already lists both, gated). Only fetched for h2h cards.
   const [h2hPlayers, setH2hPlayers] = useState<
@@ -966,6 +978,12 @@ function OverlayCard({
               {t("studio.booyahAuto")}
             </Label>
           </div>
+          {/* Design picker (owner 2026-08-06): SPLIT into booyah designs and the rest, because the
+              two behave differently and the operator has to be able to tell which is which:
+                • a BOOYAH design drives the whole overlay - whatever columns were placed on it are
+                  what shows, filled with the winning team's leaderboard row and its players;
+                • any other design only lends its background + colours to the built-in banner.
+              Both stay selectable, so nobody mid-season loses the banner they configured. */}
           <div className="col-span-2 space-y-1">
             <Label className="text-xs">{t("studio.design")}</Label>
             <Select
@@ -976,13 +994,35 @@ function OverlayCard({
                 <SelectValue placeholder={t("studio.pickDesign")} />
               </SelectTrigger>
               <SelectContent>
-                {designs.map((d) => (
-                  <SelectItem key={d.id} value={String(d.id)}>
-                    {d.name}
-                  </SelectItem>
-                ))}
+                {booyahDesigns.length > 0 ? (
+                  <SelectGroup>
+                    <SelectLabel className="text-[0.65rem]">
+                      {t("studio.booyahDesignsGroup")}
+                    </SelectLabel>
+                    {booyahDesigns.map((d) => (
+                      <SelectItem key={d.id} value={String(d.id)}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ) : null}
+                <SelectGroup>
+                  <SelectLabel className="text-[0.65rem]">
+                    {t("studio.bannerDesignsGroup")}
+                  </SelectLabel>
+                  {otherDesigns.map((d) => (
+                    <SelectItem key={d.id} value={String(d.id)}>
+                      {d.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
+            <p className="text-[11px] text-muted-foreground">
+              {usesBooyahDesign
+                ? t("studio.booyahDesignDriven")
+                : t("studio.booyahDesignHint")}
+            </p>
           </div>
           {/* LIVE mode (owner 2026-07-02): follow the leaderboard - the banner resolves the event's
               LATEST booyah on every poll and updates itself as new results land. Team/map picks are

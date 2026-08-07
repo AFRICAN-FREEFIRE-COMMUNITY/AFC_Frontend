@@ -146,6 +146,17 @@ const FIELD_LABELS: Record<FieldType, string> = {
   team_flag: "TEAM FLAG",
   // Player esport image (owner 2026-07-02): image cell like team_logo; player-scoped renders.
   esports_image: "PLAYER IMAGE",
+  // ── PLAYER-row columns (owner 2026-08-06) ──
+  // The backend has accepted these since the MVP boards shipped, but the palette never offered them,
+  // so no design could lay out a player block. Needed by the design-driven BOOYAH overlay (the
+  // winning squad occupies slots 2+ of the board) and by the MVP / top-killer boards.
+  player_name: "PLAYER NAME",
+  damage: "DAMAGE",
+  assists: "ASSISTS",
+  mvp_count: "MAP MVPS",
+  // The map a booyah was won on: the one value the old hard-coded booyah banner drew that a design
+  // had no column for. Blank on a leaderboard row.
+  match_map: "MAP",
   booyah: "BOOYAH",
   placement_points: "PP",
   kill_points: "KP",
@@ -175,6 +186,9 @@ const FIELD_LABELS: Record<FieldType, string> = {
 const FIELD_ORDER: FieldType[] = [
   "pos", "team_name", "team_logo", "team_flag", "esports_image", "booyah", "placement_points", "kill_points",
   "total_points", "rush_points", "kills", "matches", "base_total", "bonus", "penalty",
+  // Player-row + booyah columns (owner 2026-08-06): after the team standings columns, before the
+  // live-only extras, so the palette reads "team columns, player columns, live extras".
+  "player_name", "damage", "assists", "mvp_count", "match_map",
   "deaths", "knockdowns", "headshots", "most_used_weapon", "survival_time",
   "revives_received", "gloowall_used", "medkit_used",
 ];
@@ -185,6 +199,10 @@ const DEFAULT_X: Record<FieldType, number> = {
   placement_points: 40.3, kill_points: 45.4, total_points: 49.2,
   rush_points: 44.0, kills: 44.0, matches: 40.0, base_total: 47.0,
   bonus: 42.0, penalty: 42.0,
+  // Player-row + booyah columns (owner 2026-08-06): a player block reads photo, name, then stats,
+  // so the name lands beside the team-name column and the stats to its right. The map name defaults
+  // near the top-centre, where a booyah banner usually captions the moment.
+  player_name: 13.0, damage: 52.0, assists: 58.0, mvp_count: 49.2, match_map: 50.0,
   // Rich LIVE-only stats: default to the right half of the row (past the point columns); the admin
   // drags each to its final X per column group after adding.
   deaths: 52.0, knockdowns: 55.0, headshots: 58.0, most_used_weapon: 62.0,
@@ -197,6 +215,8 @@ const DEFAULT_ALIGN: Partial<Record<FieldType, TextAlign>> = {
   team_logo: "center",
   team_flag: "center",
   esports_image: "center",
+  // A player's name reads as a label beside their photo, like the team name (owner 2026-08-06).
+  player_name: "left",
 };
 
 // 16 mock teams for the canvas preview. Shape: [name, booyah, pp, kp, tp].
@@ -270,6 +290,73 @@ function mockCellValue(rankIndex: number, field: FieldType): string {
     case "revives_received": return String(rankIndex % 4);
     case "gloowall_used": return String(3 + (rankIndex % 5));
     case "medkit_used": return String(2 + (rankIndex % 4));
+    // Player-row columns (owner 2026-08-06). A TEAM standings row carries none of these, so the
+    // leaderboard preview shows them blank - which is exactly what the live overlay does.
+    case "player_name": return "";
+    case "damage": return "";
+    case "assists": return "";
+    case "mvp_count": return "";
+    case "match_map": return "";
+    default: return "";
+  }
+}
+
+// ── BOOYAH-design preview mock (owner 2026-08-06) ────────────────────────────────────────────────
+// A booyah design's rows are not a standings table, so previewing one against the 16 mock teams
+// above would mislead: the operator would lay a roster block out and then find team rows in it on
+// air. The real row list (afc_tournament_and_scrims.views_overlays._booyah_board_rows) is:
+//   slot 1        -> the WINNING TEAM, its numbers lifted out of the live leaderboard
+//   slots 2..N+1  -> that team's PLAYERS, with their stats from the map they won
+// so the preview mocks exactly that. `pos` stays displayable on both blocks (the team's rank on the
+// leaderboard, then 1..N within the squad), matching the row contract.
+const MOCK_BOOYAH_TEAM: { name: string; map: string; pos: number; kills: number; kp: number; pp: number; tp: number; matches: number } =
+  { name: "V-ENT ESPORTS", map: "BERMUDA", pos: 1, kills: 41, kp: 41, pp: 58, tp: 99, matches: 8 };
+// [in-game name, kills, damage, assists] for the winning squad.
+const MOCK_BOOYAH_PLAYERS: [string, number, number, number][] = [
+  ["V-ENT ALPHA", 7, 1840, 3],
+  ["V-ENT BLAZE", 5, 1512, 2],
+  ["V-ENT CIPHER", 4, 1290, 4],
+  ["V-ENT DRIFT", 2, 860, 1],
+  ["V-ENT ECHO", 1, 540, 0],
+  ["V-ENT FLUX", 0, 310, 2],
+];
+// How many slots a booyah board has: the team + the squad (matches BOOYAH_MAX_PLAYERS server-side).
+const MOCK_BOOYAH_SLOTS = 1 + MOCK_BOOYAH_PLAYERS.length;
+
+// Mock cell for slot `slotIndex` (0-based: 0 = the team slot, 1+ = the players) of a booyah design.
+function mockBooyahCellValue(slotIndex: number, field: FieldType): string {
+  const team = MOCK_BOOYAH_TEAM;
+  // ── Slot 1: the winning team. ──
+  if (slotIndex === 0) {
+    switch (field) {
+      case "pos": return String(team.pos);
+      case "team_name": return team.name;
+      case "match_map": return team.map;
+      case "booyah": return "1";
+      case "placement_points": return String(team.pp);
+      case "kill_points": return String(team.kp);
+      case "total_points": return String(team.tp);
+      case "base_total": return String(team.tp);
+      case "kills": return String(team.kills);
+      case "matches": return String(team.matches);
+      // Player columns are blank on the team slot, exactly as the live row set has them.
+      default: return "";
+    }
+  }
+  // ── Slots 2+: the winning squad. ──
+  const p = MOCK_BOOYAH_PLAYERS[slotIndex - 1];
+  if (!p) return "";
+  const [name, kills, damage, assists] = p;
+  switch (field) {
+    case "pos": return String(slotIndex); // rank within the squad: 1, 2, 3, 4...
+    case "player_name": return name;
+    case "kills": return String(kills);
+    case "damage": return String(damage);
+    case "assists": return String(assists);
+    // Team context is repeated on every player row, so a design may show it beside each player.
+    case "team_name": return team.name;
+    case "match_map": return team.map;
+    case "matches": return "1";
     default: return "";
   }
 }
@@ -407,6 +494,10 @@ export function DesignFieldsEditor({
   const [dsBoardHeader, setDsBoardHeader] = useState(false);
   const [dsType, setDsType] = useState("leaderboard");
   const dsTypeIsVersus = dsType === "versus";
+  // BOOYAH designs (owner 2026-08-06) use the ordinary field/column-group tools, so the only thing
+  // the type changes here is the PREVIEW data: slot 1 is the winning team and slots 2+ are its
+  // players, not 16 standings rows. See mockBooyahCellValue.
+  const dsTypeIsBooyah = dsType === "booyah";
 
   const saveDesignSettings = async (patch: Record<string, string | Blob>) => {
     if (!canManage) return;
@@ -1749,6 +1840,9 @@ export function DesignFieldsEditor({
                   <SelectContent>
                     <SelectItem value="leaderboard">Leaderboard</SelectItem>
                     <SelectItem value="versus">Versus (head-to-head)</SelectItem>
+                    {/* Booyah (owner 2026-08-06): a design laid out for the winner moment. Same
+                        tools, different rows - see the hint under the canvas. */}
+                    <SelectItem value="booyah">Booyah (winner moment)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1863,6 +1957,27 @@ export function DesignFieldsEditor({
                 </>
               ) : null}
             </div>
+          </div>
+        )}
+
+        {/* ── Booyah layout hint (owner 2026-08-06). A booyah design needs NO new tools: it is placed
+            with the same columns and column groups as a leaderboard. What it needs is for the
+            operator to know what the rows ARE, because they are not a standings table. The preview
+            canvas already shows the real shape (mockBooyahCellValue); this spells it out. ── */}
+        {dsTypeIsBooyah && canManage && (
+          <div className="rounded-md border bg-card p-3 space-y-2">
+            <p className="text-xs font-medium text-foreground">Booyah layout</p>
+            <p className="text-[0.65rem] text-muted-foreground">
+              This design fills with the winner of a map, not a standings table. Row slot 1 is the
+              winning TEAM, and its numbers come straight from the leaderboard. Slots 2 and up are
+              that team&apos;s PLAYERS, with the stats they got in the map they just won.
+            </p>
+            <p className="text-[0.65rem] text-muted-foreground">
+              So build it with two column groups: one group of 1 row starting at rank 1 for the team
+              (team name, team logo, map, total points), then a second group starting at rank 2 for
+              the squad (player name, player image, kills, damage). Add the big &quot;BOOYAH!&quot;
+              word as a text element.
+            </p>
           </div>
         )}
 
@@ -2337,7 +2452,12 @@ export function DesignFieldsEditor({
                         {/* Mock data cells (one per group row). */}
                         {Array.from({ length: grp.row_count }).map((_, ri) => {
                           const rankIdx = grp.start_rank - 1 + ri;
-                          if (rankIdx >= MOCK_TEAMS.length) return null;
+                          // A booyah design previews its OWN row set (team then squad), so it is
+                          // bounded by the booyah slot count rather than the 16 mock teams.
+                          const mockLen = dsTypeIsBooyah
+                            ? MOCK_BOOYAH_SLOTS
+                            : MOCK_TEAMS.length;
+                          if (rankIdx >= mockLen) return null;
                           const topPct =
                             grp.row_start_pct + ri * grp.row_height_pct;
                           const transformX =
@@ -2371,7 +2491,9 @@ export function DesignFieldsEditor({
                               />
                             );
                           }
-                          const cellText = mockCellValue(rankIdx, field.field_type);
+                          const cellText = dsTypeIsBooyah
+                            ? mockBooyahCellValue(rankIdx, field.field_type)
+                            : mockCellValue(rankIdx, field.field_type);
                           return (
                             <span
                               key={`${field.draftId}-r${ri}`}

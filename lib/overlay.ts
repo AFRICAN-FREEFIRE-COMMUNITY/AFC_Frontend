@@ -49,8 +49,36 @@ export interface OverlayStandingRow {
   total_points?: number;
   booyah?: number;
   matches?: number;
+  // ── Scene rows (owner 2026-08-06, the design-driven booyah) ────────────────────────────────
+  // A leaderboard row never sets these two; a booyah row always does.
+  //   slot    - WHICH row slot of the design's column groups this row occupies. It exists because a
+  //             booyah row's DISPLAYED rank is not its position on the board: the winning team sits
+  //             in slot 1 while `pos` shows its rank on the leaderboard, and each player sits in
+  //             slot 2, 3, 4... while `pos` shows their rank within the squad. DesignBoard positions
+  //             by `slot ?? pos`, so leaderboard rows (no slot) are completely unaffected.
+  //   row_key - the row's stable identity between polls, for the FLIP glide + count-up animations.
+  //             Needed because every player row of a booyah carries the SAME team_name, which the
+  //             default identity would collapse into one React key.
+  slot?: number;
+  row_key?: string;
   // Solo events may key the competitor under a player-ish name; kept open for forward-compat.
   [field_type: string]: number | string | null | undefined;
+}
+
+// ── Design-driven BOOYAH board (owner 2026-08-06) ────────────────────────────────────────────
+// The booyah overlay's answer to "the overlays should be based off what's on the design": instead of
+// a hard-coded banner, the poll ships the whole DESIGN plus the rows to pour into it, and the FE
+// renders both through DesignBoard - the very same component the live leaderboard overlay uses, so
+// the two can never drift apart. Produced by views_overlays._booyah_board.
+export interface OverlayBooyahBoard {
+  // The full design, identical in shape to OverlayFeed.design (afc_organizers._serialize_design).
+  design: LeaderboardDesign;
+  // slot 1 = the winning TEAM (its numbers taken from the live leaderboard), slots 2+ = that team's
+  // players with their stats from the map they just won.
+  rows: OverlayStandingRow[];
+  // The canvas the design renders at. Always "youtube" today: an OBS browser source is 1920x1080,
+  // the same reason the leaderboard overlay's stable link hardcodes size=youtube.
+  size: OverlaySize;
 }
 
 // The board identity line (which stage/group + the title/subtitle text the design may render).
@@ -420,6 +448,14 @@ export interface OverlayConfigFeed {
       transparent: boolean;
     } | null;
     roster: Array<{ name: string; image: string | null }>;
+    // DESIGN-DRIVEN booyah (owner 2026-08-06): set ONLY when the overlay's bound design is
+    // design_type "booyah". It carries the FULL design (same shape the leaderboard overlay feed
+    // ships) + the resolved booyah rows, so BooyahView renders the moment through the SAME
+    // DesignBoard the live leaderboard uses instead of the hard-coded banner. null/absent =>
+    // the legacy banner draws from `design` + `roster` above (every pre-2026-08-06 overlay).
+    // Row shape (views_overlays._booyah_board_rows): slot 1 = the winning TEAM, its numbers lifted
+    // out of the live leaderboard; slots 2+ = that team's players in the map they won.
+    board?: OverlayBooyahBoard | null;
   };
   h2h?: {
     // "bracket" (P1#6, owner 2026-07-13): a Clash Squad stage has no BR stats to compare, so the

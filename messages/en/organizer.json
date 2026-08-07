@@ -1466,7 +1466,11 @@
     "addMvp": "Add MVP board",
     "addTopKillers": "Add top killers",
     "mvpCreated": "MVP board created. Bind a design and pick its scope, then copy its link once.",
-    "topKillersCreated": "Top killers board created. Bind a design and pick its scope, then copy its link once."
+    "topKillersCreated": "Top killers board created. Bind a design and pick its scope, then copy its link once.",
+    "booyahDesignsGroup": "Booyah designs",
+    "bannerDesignsGroup": "Other designs (built-in banner)",
+    "booyahDesignDriven": "This design drives the whole overlay. What shows is what you placed on it, filled with the winning team and its players.",
+    "booyahDesignHint": "This design only sets the background and colours of the built-in banner. Pick a booyah design to control the whole layout yourself."
   },
   "mediaAudit": {
     "title": "Broadcast media",

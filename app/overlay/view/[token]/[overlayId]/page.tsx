@@ -22,6 +22,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { env } from "@/lib/env";
+// The leaderboard overlay's board renderer, reused verbatim by the design-driven booyah scene
+// (owner 2026-08-06) so a booyah design and a leaderboard design are drawn by ONE implementation.
+import {
+  DesignBoard,
+  type OverlayAnim,
+  type OverlayReveal,
+} from "@/app/overlay/leaderboard/_components/DesignBoard";
 import {
   overlayConfigApi,
   type OverlayConfigFeed,
@@ -135,10 +142,34 @@ function TimerView({ feed, offset }: { feed: OverlayConfigFeed; offset: number }
 // NO auto-hide (owner 2026-07-02: "remove auto hide from all overlays"): the banner stays on until
 // the operator hits Hide in the studio, or the next booyah trigger replaces it. shown_at keys the
 // pop-in animation so a re-trigger animates again.
+//
+// TWO renderers live here, and the payload decides which one runs (owner 2026-08-06):
+//   • feed.booyah.board present -> the overlay's bound design is design_type "booyah", so the moment
+//     renders THROUGH THAT DESIGN via DesignBoard, the same component the live leaderboard overlay
+//     uses. Whatever the organizer placed on the design is what shows, filled with leaderboard data.
+//   • otherwise -> the legacy hard-coded banner below, unchanged. That is what every booyah overlay
+//     configured before this change keeps rendering, because none of them is bound to a booyah-type
+//     design. Binding one in the studio is how an operator opts in; picking another design opts out.
 function BooyahView({ feed }: { feed: OverlayConfigFeed }) {
   const cfg = feed.config as {
     team_name?: string; team_logo?: string | null; match_map?: string; shown_at?: string;
+    anim?: OverlayAnim; reveal?: OverlayReveal;
   };
+  const board = feed.booyah?.board;
+  // ── Design-driven path. Keyed on shown_at so a NEW winner remounts the board and replays its
+  //    entrance animation, exactly as shown_at re-keys the legacy banner's pop-in below. ──
+  if (board && feed.active) {
+    return (
+      <DesignBoard
+        key={cfg?.shown_at || "booyah-board"}
+        design={board.design}
+        standings={board.rows}
+        size={board.size}
+        anim={cfg?.anim || "fade"}
+        reveal={cfg?.reveal || "staggered"}
+      />
+    );
+  }
   if (!feed.active || !cfg?.team_name) return null;
   // Design template (owner 2026-07-02): the picked design's bg + colors set the look; the booyah
   // team's ROSTER (player esport images + names) rides below the team plaque.

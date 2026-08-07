@@ -66,6 +66,15 @@ export type FieldType =
   // blank on team standings rows, populated by solo/versus/MVP feeds.
   | "pos" | "team_name" | "team_logo" | "team_flag" | "esports_image" | "booyah" | "placement_points" | "kill_points"
   | "total_points" | "rush_points" | "kills" | "matches" | "base_total" | "bonus" | "penalty"
+  // ── PLAYER-row columns (backend FIELD_CHOICES since the MVP boards, owner 2026-07-05) ──
+  // They bind to a PLAYER row rather than a team row: the MVP / top-killer boards and the winning
+  // squad of a design-driven booyah. On a TEAM standings row the keys are simply absent, so placing
+  // one on a leaderboard design just renders a blank cell. Listed here (and in the editor palette)
+  // from 2026-08-06 - the backend accepted them all along but the frontend never offered them, so a
+  // roster block could not be laid out at all.
+  | "player_name" | "damage" | "assists" | "mvp_count"
+  // The MAP a booyah was won on (owner 2026-08-06). Only booyah rows carry it.
+  | "match_map"
   // ── Rich LIVE-only stats (owner 2026-07-01, spec §12 + memory project_freefire_live_capture §2/§2b) ──
   // These come ONLY from the in-round debugger stream the capture client tails (Tier 2), NOT from the
   // per-round MatchResult / round_robin standings. So a design column bound to one of these renders a
@@ -176,7 +185,11 @@ export interface LeaderboardDesign {
   background_behavior?: "persistent" | "animate";
   // Design TYPE (owner 2026-07-02): "leaderboard" (standings rows) or "versus" (a head-to-head
   // look: competitor slots + the stat rows in versus_config.stat_keys). Rendered by H2HView.
-  design_type?: "leaderboard" | "versus";
+  // "booyah" (owner 2026-08-06) is a design laid out for the WINNER moment: the same editor tools,
+  // but its rows are slot 1 = the winning team (numbers from the leaderboard) and slots 2+ = that
+  // team's players. The type is the marker the booyah overlay checks before rendering a design
+  // instead of its legacy banner. See views_overlays._booyah_board + BooyahView.
+  design_type?: "leaderboard" | "versus" | "booyah";
   versus_config?: { stat_keys?: string[]; slots?: { x_pct: number; y_pct: number }[] };
   // Title/subtitle styling (owner 2026-07-02): position/size/color/font/align for the header text
   // when show_title/show_subtitle are on. {} = the legacy fixed top-center header.
@@ -224,9 +237,14 @@ export type GraphicSize = "instagram" | "youtube";
 export const COLUMN_HEADER_LABELS: Partial<Record<FieldType, string>> = {
   pos: "POS",
   team_name: "TEAM",
+  player_name: "PLAYER",
   team_logo: "",
   team_flag: "",
   esports_image: "",
+  damage: "DAMAGE",
+  assists: "ASSISTS",
+  mvp_count: "MVPS",
+  match_map: "MAP",
   matches: "MP",
   booyah: "BOOYAH",
   kill_points: "KILL POINTS",
