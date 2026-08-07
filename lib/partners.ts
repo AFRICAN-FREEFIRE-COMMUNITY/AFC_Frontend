@@ -195,8 +195,16 @@ export const partnersApi = {
   // ── Key management ───────────────────────────────────────────────────────
   // issueKey mints a new key and returns the plaintext ONCE (IssueKeyResponse.api_key).
   // Optional label + per-key rate-limit override (defaults to 60/min server-side).
-  issueKey: (slug: string, body?: { label?: string; rate_limit_per_min?: number }) =>
-    aPost<IssueKeyResponse>(`admin/${slug}/keys/`, body),
+  // `expires_at` is an optional "YYYY-MM-DD" (what the date input emits) that the backend
+  // reads as END of that day UTC, so a key handed out for a tournament weekend stops
+  // working by itself. Omit it for a key that never expires. A malformed or already-past
+  // date is a 400 (unlike rate_limit_per_min, which falls back to the default) - silently
+  // issuing an immortal key because the date failed to parse is the surprise the field
+  // exists to prevent. See views_admin.issue_key / _parse_expires_at.
+  issueKey: (
+    slug: string,
+    body?: { label?: string; rate_limit_per_min?: number; expires_at?: string },
+  ) => aPost<IssueKeyResponse>(`admin/${slug}/keys/`, body),
   // revokeKey permanently disables one key (addressed by id - a key is the thing acted on).
   // Idempotent server-side: re-revoking is a harmless no-op success.
   revokeKey: (keyId: number | string) =>

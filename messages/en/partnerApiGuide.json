@@ -1,0 +1,187 @@
+{
+  "metaTitle": "Partner Data API guide",
+  "title": "Partner Data API",
+  "description": "How to authenticate, what each endpoint returns, and what to do when a call fails.",
+  "navLabel": "Guide sections",
+  "copyAria": "Copy to clipboard",
+  "copyFailed": "Could not copy. Select the text and copy it manually.",
+  "connect": {
+    "title": "Connect",
+    "baseUrl": "Base URL",
+    "authHeader": "Auth header",
+    "firstCall": "Your first call. Replace the key with the one AFC issued you, and run it from your server, never from a browser."
+  },
+  "sections": {
+    "overview": {
+      "title": "What you get",
+      "intro": "A read-only REST API over the tournament data AFC has published to partners, for the events your organisation has been granted. An AFC admin publishes an event explicitly, normally once its results are final, so what you read is settled data rather than a match in progress. There is no write, no delete, and no live match feed. Everything is versioned under /api/v1/, so a future breaking change ships as /api/v2/ and leaves your integration alone.",
+      "tables": {
+        "resources": {
+          "headers": {
+            "h0": "Resource",
+            "h1": "What it is"
+          },
+          "rows": {
+            "events": "The event card: name, slug, dates, tier, status, prize pool.",
+            "stages": "The structure of an event, with each stage's groups nested.",
+            "matches": "Per-match rows: match number, map, MVP, whether the result is in.",
+            "standings": "The final ranked table for an event.",
+            "teams": "Every registered team, with event-wide totals and rosters.",
+            "players": "Everyone who recorded stats, with their per-event stats.",
+            "designs": "Branded leaderboard templates: background art, placed logos, brand colours."
+          }
+        }
+      },
+      "neverReturns": "What the API never returns, on any plan: real names, emails, Discord IDs or any other personal data; room IDs and room passwords; AFC's internal database IDs; events AFC has not published to partners; site-wide rankings and tier ladders.",
+      "slugs": "Events are always addressed by their slug, for example dynasty-cup-nigeria, never by a numeric ID. Store the slug: it is the only stable handle you are given."
+    },
+    "auth": {
+      "title": "Authenticating",
+      "header": "Every request carries your key in the X-API-Key header. A key has three parts joined by underscores: the namespace afcp, a short public prefix you can safely quote in a support message, and the secret, which must never leave your servers.",
+      "quickStartCaption": "A complete authenticated request.",
+      "secrecy": "Your key is shown to the AFC admin once, at the moment it is created, and is stored only as a hash. Nobody at AFC can retrieve it afterwards. If you lose it, ask for a new one. If you think it has leaked, tell AFC immediately and they will revoke it.",
+      "lifecycle": "A key can be revoked, deleted, or given an expiry date at issue time. An expiry date means the key works through the end of that day, UTC, which is what makes a key for a single tournament weekend practical. A revoked, deleted or expired key stops working instantly, as does every key belonging to a partner account AFC has suspended. All of those return 401. Send the key over HTTPS only, and never put it in client-side code, a mobile app, or a public repository.",
+      "whyItFailed": "If you present the correct key, the 401 body names the cause, for example Key expired. or Partner suspended., so you can tell an expiry apart from a suspension without asking. If the key itself is wrong, every failure reads Unknown or revoked key. instead. That is deliberate: a stranger guessing at keys must not be able to learn which ones exist."
+    },
+    "access": {
+      "title": "Why a field or endpoint is missing",
+      "intro": "Your access has three layers, all set by AFC and all closed by default. If something you expected is not in the response, one of these three is the reason, and none of them is a bug.",
+      "published": "First, the event has to be published to partners. An AFC admin publishes an event explicitly, and until they do, no partner can read it however broadly scoped. An unpublished event is a 404.",
+      "resourceToggles": "Second, resource toggles decide which endpoints answer at all: events, stages, matches, standings, teams, players, designs. If one is off for you, that endpoint returns 403 resource_not_enabled and the rest keep working.",
+      "fieldToggles": "Third, field toggles decide which fields appear inside a resource you can already read.",
+      "tables": {
+        "fields": {
+          "headers": {
+            "h0": "Field",
+            "h1": "Appears when AFC enables"
+          },
+          "rows": {
+            "placements": "Placements. The team's best finish, on teams and standings.",
+            "kills": "Kills, on teams, players and standings.",
+            "damage": "Damage, on teams, players and standings.",
+            "assists": "Assists, on teams, players and standings.",
+            "rosters": "Rosters. The player list on each team.",
+            "maps": "Maps played. maps on a group, map on a match.",
+            "prize": "Prize pool, on events.",
+            "mvp": "MVP, on matches. The in-game handle, or null if none was recorded.",
+            "media": "Images and files. Event banners and rules files, team logos, player esport images, and design artwork.",
+            "text": "Descriptions and rules text. The event rules blurb and a team's self-description."
+          }
+        }
+      },
+      "absentNotNull": "A field you are not entitled to is absent from the JSON, not present and null. Read defensively: check that a key exists rather than assuming it does. A key that is present and null means the field is enabled for you and the underlying value is genuinely empty, for example a team that never uploaded a logo."
+    },
+    "endpoints": {
+      "title": "Endpoints",
+      "intro": "Eight endpoints, all GET. Any other verb returns 405. Paths below are relative to the base URL, and the slug placeholder in each path is an event slug returned by the events list. Every list endpoint is paginated.",
+      "tables": {
+        "list": {
+          "headers": {
+            "h0": "Endpoint",
+            "h1": "Toggle",
+            "h2": "Returns"
+          },
+          "rows": {
+            "events": "The events you may read, newest first.",
+            "event": "One event. 404 if it is not yours to read.",
+            "stages": "Stages in running order, each with its groups nested.",
+            "matches": "The event's matches. Room credentials are never included.",
+            "standings": "The final ranked table, winners first.",
+            "teams": "Every registered team with its event-wide totals.",
+            "players": "Everyone who recorded stats, scoped to this event.",
+            "designs": "Branded leaderboard templates for the event's owner."
+          }
+        },
+        "teamStatus": {
+          "headers": {
+            "h0": "Value",
+            "h1": "Meaning"
+          },
+          "rows": {
+            "played": "Turned up and played at least one match. These are the competitors.",
+            "registered": "Accepted into the event, has not played a match.",
+            "waitlisted": "Signed up but holding a waitlist slot, not a playing slot.",
+            "pending": "Registration submitted and awaiting approval. Sponsored events only.",
+            "noShow": "Was expected to play and the organizer marked it absent.",
+            "withdrawn": "Pulled out of the event.",
+            "left": "Left the event.",
+            "disqualified": "Removed by the organizer for a rules breach."
+          }
+        }
+      },
+      "eventsSample": "Returns the standard envelope. is_native_afc tells you whether AFC ran the event itself or an organiser did, without revealing which organiser.",
+      "stagesSample": "Nests each stage's groups. order is a 1-based sequence number within the event, not a database ID.",
+      "matchesSample": "One row per match.",
+      "standingsSample": "The final table, rank ascending.",
+      "standingsRanking": "Ranking uses the same metric as AFC's official standings: placement points plus kill points plus bonus points minus penalty points, with first-place finishes and then total kills breaking ties. placement is the team's best finish across the event. Solo events are ranked by player, and each row carries username and in_game_id instead of team.",
+      "teamsSample": "Every registered team sorted by name, with its event-wide totals.",
+      "teamsStatusWhy": "This list is the full registration list, not the list of competitors. Registering for an AFC event and playing in one are different things, and a team that registered but never played returns zeroed stats and an empty roster, which is easy to mistake for a team that played badly. Read status to tell them apart before you draw a bracket, a standings card, or a team count. status is always present and does not depend on any toggle.",
+      "teamsStatusPrecedence": "Only one value is returned per team. Where more than one could apply, the more specific one wins, in this order: disqualified, withdrawn, left, pending, waitlisted, no_show, played, registered. So a team that played two maps and then withdrew comes back as withdrawn, not played, and its stats are a partial record of an event it did not finish. Note also that a team can hold match rows without being played: AFC seeds teams into a map before it is contested, and a team that does not turn up keeps that row with no result.",
+      "playersSample": "Scopes every stat to this event rather than to career totals. esports_image_url is the player's posed roster photo, for lower-thirds and versus cards, and is null for players who have not uploaded one.",
+      "designsSample": "The branded templates behind this event's graphics, so you can produce on-brand standings cards yourself. The Designs toggle unlocks the endpoint; the artwork additionally needs Images and files.",
+      "designsCanvas": "The two canvases are Instagram portrait at 1080x1350 and YouTube landscape at 1920x1080. Logo positions are a percentage of the canvas anchored at the logo's centre, so the same pair of numbers places a logo correctly on both sizes. max_rows is how many standings rows the template is designed to hold. You only ever receive designs belonging to the event's owner: the organiser's library for an organiser-run event, or AFC's own library for a native AFC event."
+    },
+    "pagination": {
+      "title": "Pagination",
+      "intro": "Every list endpoint is paginated, and there is no way to fetch an unbounded list. The event detail endpoint returns a single object and is not paginated.",
+      "tables": {
+        "params": {
+          "headers": {
+            "h0": "Parameter",
+            "h1": "Default",
+            "h2": "Notes"
+          },
+          "rows": {
+            "limit": "Rows per page. A value above 100 is silently capped at 100.",
+            "offset": "Rows to skip. A malformed limit or offset falls back to the default rather than erroring."
+          }
+        }
+      },
+      "envelopeCaption": "Every list response uses the same envelope.",
+      "loop": "Page through by following next_offset until has_more is false, at which point next_offset is null. An offset past the end returns an empty results array rather than an error."
+    },
+    "rateLimits": {
+      "title": "Rate limits",
+      "intro": "Requests are limited per key, in a fixed one-minute wall-clock window. Your ceiling is 60 requests per minute unless AFC agreed a different figure for your key.",
+      "headersCaption": "Every successful response tells you where you stand, so you can slow down before you are blocked.",
+      "exceededCaption": "Exceed the limit and the next request is refused until the window rolls over.",
+      "backoff": "Watch X-RateLimit-Remaining and pause as it approaches zero, or honour Retry-After after a 429. Because the window is a wall-clock minute, a fresh allowance begins when the minute rolls over rather than sixty seconds after your first call."
+    },
+    "errors": {
+      "title": "Errors",
+      "intro": "Errors raised by the API carry a single error field alongside the matching HTTP status. Switch on the status code rather than on the body: a wrong HTTP verb is refused by the web framework before the API sees it and carries a detail field instead, and a request to a path that does not exist at all is not JSON.",
+      "tables": {
+        "codes": {
+          "headers": {
+            "h0": "Status",
+            "h1": "Body",
+            "h2": "What it means and what to do"
+          },
+          "rows": {
+            "unauthorized": "Your key is missing, malformed, unknown, revoked or expired, or your partner account is suspended. Check the header first, then contact AFC.",
+            "forbidden": "You are authenticated, but this resource is switched off for your account. Ask AFC to enable it.",
+            "notFound": "You cannot read that event. Confirm the slug with AFC.",
+            "methodNotAllowed": "Every endpoint is GET only. This one is refused before the API sees it, so its body carries a detail field rather than error.",
+            "rateLimited": "You are over your per-minute budget. Honour the Retry-After header."
+          }
+        }
+      },
+      "why404": "The difference between 403 and 404 is deliberate. A 403 says the resource type is switched off for you. A 404 says you cannot see that event, and it is returned whether the event is out of your scope, not yet published, or simply does not exist. The API will not confirm that an event exists if you are not allowed to read it, so a 404 is never proof that a slug is wrong."
+    },
+    "media": {
+      "title": "Images, logos and artwork",
+      "intro": "Every image and file URL the API returns is absolute and publicly fetchable, so you can download it or hot-link it directly. They are plain URLs with no signature and no expiry, which means they keep working, and also means anyone you pass one to can fetch it. Treat a media URL as public, because it is.",
+      "urlCaption": "A media field, as returned.",
+      "nullNotError": "A missing asset is null, never an error. A team with no uploaded logo returns logo_url as null. The field is only absent entirely when the Images and files toggle is off for your account.",
+      "cache": "Download media once and serve it from your own storage rather than hot-linking it on every page view. Banners, logos and design artwork change rarely, your pages will render faster, and you will not be affected if AFC moves an asset. Media responses carry ETag and Last-Modified, so if you would rather revalidate than re-download, a conditional request with If-None-Match gets you a cheap 304."
+    },
+    "practices": {
+      "title": "Working with the API",
+      "poll": "Poll, do not hammer. Data only changes when AFC publishes or corrects a result. Once a day during a season, or once an hour around a final, is plenty. There are no webhooks.",
+      "absentFields": "Handle absent fields. A field you are not entitled to is missing from the JSON, so read defensively rather than assuming a key exists.",
+      "permanent404": "Expect a 404 to be lasting. If an event you were reading starts returning 404, AFC has either unpublished it or changed your scope. Retrying will not help, so ask AFC.",
+      "slugs": "Slugs are the identifiers. Store the event slug, not the position of an event in a list, because a new event changes every position.",
+      "help": "Contact your AFC partner manager for a new or rotated key, to change which events or resources you can read, or to report anything the API returns that looks wrong. Include the endpoint, the timestamp, and your key's prefix, the afcp_3f9a part, never the full key."
+    }
+  }
+}

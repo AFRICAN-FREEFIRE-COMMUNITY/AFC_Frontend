@@ -1,0 +1,187 @@
+{
+  "metaTitle": "Guide de l'API Données Partenaires",
+  "title": "API Données Partenaires",
+  "description": "Comment s'authentifier, ce que renvoie chaque point de terminaison, et quoi faire lorsqu'un appel échoue.",
+  "navLabel": "Sections du guide",
+  "copyAria": "Copier dans le presse-papiers",
+  "copyFailed": "Copie impossible. Sélectionnez le texte et copiez-le manuellement.",
+  "connect": {
+    "title": "Se connecter",
+    "baseUrl": "URL de base",
+    "authHeader": "En-tête d'authentification",
+    "firstCall": "Votre premier appel. Remplacez la clé par celle que l'AFC vous a délivrée, et exécutez-le depuis votre serveur, jamais depuis un navigateur."
+  },
+  "sections": {
+    "overview": {
+      "title": "Ce que vous obtenez",
+      "intro": "Une API REST en lecture seule sur les données de tournoi que l'AFC a publiées à ses partenaires, pour les événements accordés à votre organisation. Un administrateur AFC publie un événement de façon explicite, en général une fois ses résultats définitifs, de sorte que ce que vous lisez est une donnée établie plutôt qu'un match en cours. Aucune écriture, aucune suppression, aucun flux de match en direct. Tout est versionné sous /api/v1/, de sorte qu'une future modification incompatible sera publiée sous /api/v2/ et laissera votre intégration intacte.",
+      "tables": {
+        "resources": {
+          "headers": {
+            "h0": "Ressource",
+            "h1": "De quoi il s'agit"
+          },
+          "rows": {
+            "events": "La fiche de l'événement : nom, slug, dates, palier, statut, dotation.",
+            "stages": "La structure d'un événement, chaque phase contenant ses groupes.",
+            "matches": "Une ligne par match : numéro, carte, MVP, résultat saisi ou non.",
+            "standings": "Le classement final d'un événement.",
+            "teams": "Toutes les équipes inscrites, avec leurs totaux sur l'événement et leurs effectifs.",
+            "players": "Tous ceux qui ont enregistré des statistiques, avec leurs statistiques sur l'événement.",
+            "designs": "Modèles de classement aux couleurs de la marque : visuels de fond, logos positionnés, couleurs."
+          }
+        }
+      },
+      "neverReturns": "Ce que l'API ne renvoie jamais, quelle que soit la formule : noms réels, adresses e-mail, identifiants Discord ou toute autre donnée personnelle ; identifiants et mots de passe de salon ; identifiants de base de données internes de l'AFC ; les événements que l'AFC n'a pas publiés à ses partenaires ; classements généraux et échelles de paliers du site.",
+      "slugs": "Les événements sont toujours désignés par leur slug, par exemple dynasty-cup-nigeria, jamais par un identifiant numérique. Conservez le slug : c'est le seul identifiant stable qui vous est fourni."
+    },
+    "auth": {
+      "title": "Authentification",
+      "header": "Chaque requête transporte votre clé dans l'en-tête X-API-Key. Une clé comporte trois parties reliées par des tirets bas : l'espace de noms afcp, un préfixe public court que vous pouvez citer sans risque dans un message d'assistance, et le secret, qui ne doit jamais quitter vos serveurs.",
+      "quickStartCaption": "Une requête authentifiée complète.",
+      "secrecy": "Votre clé est affichée une seule fois à l'administrateur AFC, au moment de sa création, et n'est stockée que sous forme de hachage. Personne à l'AFC ne peut la récupérer ensuite. Si vous la perdez, demandez-en une nouvelle. Si vous pensez qu'elle a fuité, prévenez immédiatement l'AFC qui la révoquera.",
+      "lifecycle": "Une clé peut être révoquée, supprimée, ou dotée d'une date d'expiration au moment de son émission. Une date d'expiration signifie que la clé fonctionne jusqu'à la fin de ce jour-là, en UTC, ce qui rend praticable une clé pour un seul week-end de tournoi. Une clé révoquée, supprimée ou expirée cesse de fonctionner instantanément, tout comme chaque clé appartenant à un compte partenaire suspendu par l'AFC. Tous ces cas renvoient 401. Transmettez la clé uniquement en HTTPS, et ne la placez jamais dans du code côté client, une application mobile ou un dépôt public.",
+      "whyItFailed": "Si vous présentez la bonne clé, le corps du 401 nomme la cause, par exemple Key expired. ou Partner suspended., ce qui vous permet de distinguer une expiration d'une suspension sans avoir à demander. Si la clé elle-même est incorrecte, chaque échec affiche plutôt Unknown or revoked key. C'est délibéré : un inconnu qui tente des clés au hasard ne doit pas pouvoir apprendre lesquelles existent."
+    },
+    "access": {
+      "title": "Pourquoi un champ ou un point de terminaison manque",
+      "intro": "Votre accès comporte trois couches, toutes définies par l'AFC et toutes fermées par défaut. Si quelque chose que vous attendiez ne figure pas dans la réponse, l'une de ces trois couches en est la raison, et aucune n'est un bogue.",
+      "published": "D'abord, l'événement doit être publié pour les partenaires. Un administrateur AFC publie un événement explicitement, et tant qu'il ne l'a pas fait, aucun partenaire ne peut le lire, quelle que soit l'étendue de sa portée. Un événement non publié renvoie 404.",
+      "resourceToggles": "Ensuite, les interrupteurs de ressource décident quels points de terminaison répondent : events, stages, matches, standings, teams, players, designs. Si l'un est désactivé pour vous, ce point de terminaison renvoie 403 resource_not_enabled et les autres continuent de fonctionner.",
+      "fieldToggles": "Enfin, les interrupteurs de champ décident quels champs apparaissent dans une ressource que vous pouvez déjà lire.",
+      "tables": {
+        "fields": {
+          "headers": {
+            "h0": "Champ",
+            "h1": "Apparaît lorsque l'AFC active"
+          },
+          "rows": {
+            "placements": "Placements. Le meilleur résultat de l'équipe, sur teams et standings.",
+            "kills": "Éliminations, sur teams, players et standings.",
+            "damage": "Dégâts, sur teams, players et standings.",
+            "assists": "Assistances, sur teams, players et standings.",
+            "rosters": "Effectifs. La liste des joueurs de chaque équipe.",
+            "maps": "Cartes jouées. maps sur un groupe, map sur un match.",
+            "prize": "Dotation, sur events.",
+            "mvp": "MVP, sur matches. Le pseudo en jeu, ou null si aucun n'a été enregistré.",
+            "media": "Images et fichiers. Bannières et règlements d'événements, logos d'équipes, images esport des joueurs, et visuels des modèles.",
+            "text": "Descriptions et texte de règlement. Le texte de règlement de l'événement et la description d'une équipe."
+          }
+        }
+      },
+      "absentNotNull": "Un champ auquel vous n'avez pas droit est absent du JSON, et non présent avec la valeur null. Lisez de façon défensive : vérifiez qu'une clé existe au lieu de le supposer. Une clé présente et nulle signifie que le champ est activé pour vous et que la valeur sous-jacente est réellement vide, par exemple une équipe qui n'a jamais téléversé de logo."
+    },
+    "endpoints": {
+      "title": "Points de terminaison",
+      "intro": "Huit points de terminaison, tous en GET. Tout autre verbe renvoie 405. Les chemins ci-dessous sont relatifs à l'URL de base, et l'emplacement du slug dans chaque chemin correspond à un slug d'événement renvoyé par la liste des événements. Chaque point de terminaison de liste est paginé.",
+      "tables": {
+        "list": {
+          "headers": {
+            "h0": "Point de terminaison",
+            "h1": "Interrupteur",
+            "h2": "Renvoie"
+          },
+          "rows": {
+            "events": "Les événements que vous pouvez lire, du plus récent au plus ancien.",
+            "event": "Un événement. 404 s'il ne vous est pas accessible.",
+            "stages": "Les phases dans l'ordre de déroulement, chacune contenant ses groupes.",
+            "matches": "Les matchs de l'événement. Les accès au salon ne sont jamais inclus.",
+            "standings": "Le classement final, vainqueurs en tête.",
+            "teams": "Toutes les équipes inscrites avec leurs totaux sur l'événement.",
+            "players": "Tous ceux qui ont enregistré des statistiques, limitées à cet événement.",
+            "designs": "Modèles de classement de marque appartenant au propriétaire de l'événement."
+          }
+        },
+        "teamStatus": {
+          "headers": {
+            "h0": "Valeur",
+            "h1": "Signification"
+          },
+          "rows": {
+            "played": "S'est présentée et a joué au moins un match. Ce sont les concurrentes.",
+            "registered": "Acceptée dans l'événement, n'a joué aucun match.",
+            "waitlisted": "Inscrite mais sur liste d'attente, sans place de jeu.",
+            "pending": "Inscription envoyée et en attente de validation. Événements sponsorisés uniquement.",
+            "noShow": "Était attendue et l'organisateur l'a marquée absente.",
+            "withdrawn": "S'est retirée de l'événement.",
+            "left": "A quitté l'événement.",
+            "disqualified": "Exclue par l'organisateur pour infraction au règlement."
+          }
+        }
+      },
+      "eventsSample": "Renvoie l'enveloppe standard. is_native_afc indique si l'AFC a organisé l'événement elle-même ou si un organisateur l'a fait, sans révéler lequel.",
+      "stagesSample": "Imbrique les groupes de chaque phase. order est un numéro d'ordre commençant à 1 au sein de l'événement, pas un identifiant de base de données.",
+      "matchesSample": "Une ligne par match.",
+      "standingsSample": "Le classement final, par rang croissant.",
+      "standingsRanking": "Le classement utilise la même métrique que les classements officiels de l'AFC : points de placement plus points d'élimination plus points bonus moins points de pénalité, les premières places puis le total d'éliminations départageant les ex aequo. placement est le meilleur résultat de l'équipe sur l'ensemble de l'événement. Les événements en solo sont classés par joueur, et chaque ligne porte username et in_game_id au lieu de team.",
+      "teamsSample": "Toutes les équipes inscrites triées par nom, avec leurs totaux sur l'événement.",
+      "teamsStatusWhy": "Cette liste est la liste complète des inscriptions, pas la liste des concurrentes. S'inscrire à un événement AFC et y jouer sont deux choses différentes, et une équipe inscrite qui n'a jamais joué renvoie des statistiques à zéro et un effectif vide, ce qui se confond facilement avec une équipe ayant mal joué. Lisez status pour les distinguer avant de dessiner un arbre, une carte de classement ou un décompte d'équipes. status est toujours présent et ne dépend d'aucun interrupteur.",
+      "teamsStatusPrecedence": "Une seule valeur est renvoyée par équipe. Lorsque plusieurs pourraient s'appliquer, la plus spécifique l'emporte, dans cet ordre : disqualified, withdrawn, left, pending, waitlisted, no_show, played, registered. Ainsi une équipe ayant joué deux cartes puis s'étant retirée revient en withdrawn, pas en played, et ses statistiques ne sont qu'un relevé partiel d'un événement qu'elle n'a pas terminé. Notez aussi qu'une équipe peut posséder des lignes de match sans être played : l'AFC place les équipes sur une carte avant qu'elle ne soit disputée, et une équipe qui ne se présente pas conserve cette ligne sans résultat.",
+      "playersSample": "Limite chaque statistique à cet événement plutôt qu'aux totaux de carrière. esports_image_url est la photo posée du joueur, pour les bandeaux et les cartes de confrontation, et vaut null pour les joueurs qui n'en ont pas téléversé.",
+      "designsSample": "Les modèles de marque utilisés pour les graphismes de cet événement, afin que vous puissiez produire vous-même des cartes de classement aux bonnes couleurs. L'interrupteur Modèles de classement ouvre le point de terminaison ; les visuels exigent en plus Images et fichiers.",
+      "designsCanvas": "Les deux formats sont Instagram portrait en 1080x1350 et YouTube paysage en 1920x1080. Les positions des logos sont un pourcentage du format, ancré au centre du logo, de sorte que le même couple de valeurs place correctement un logo sur les deux tailles. max_rows indique combien de lignes de classement le modèle est prévu pour contenir. Vous ne recevez que les modèles appartenant au propriétaire de l'événement : la bibliothèque de l'organisateur pour un événement organisé par un tiers, ou celle de l'AFC pour un événement AFC natif."
+    },
+    "pagination": {
+      "title": "Pagination",
+      "intro": "Chaque point de terminaison de liste est paginé, et il n'existe aucun moyen de récupérer une liste sans limite. Le point de terminaison de détail d'un événement renvoie un objet unique et n'est pas paginé.",
+      "tables": {
+        "params": {
+          "headers": {
+            "h0": "Paramètre",
+            "h1": "Par défaut",
+            "h2": "Remarques"
+          },
+          "rows": {
+            "limit": "Lignes par page. Une valeur supérieure à 100 est silencieusement plafonnée à 100.",
+            "offset": "Lignes à ignorer. Un limit ou un offset mal formé retombe sur la valeur par défaut au lieu de provoquer une erreur."
+          }
+        }
+      },
+      "envelopeCaption": "Toutes les réponses de liste utilisent la même enveloppe.",
+      "loop": "Parcourez les pages en suivant next_offset jusqu'à ce que has_more vaille false, moment auquel next_offset vaut null. Un offset au-delà de la fin renvoie un tableau results vide plutôt qu'une erreur."
+    },
+    "rateLimits": {
+      "title": "Limites de débit",
+      "intro": "Les requêtes sont limitées par clé, dans une fenêtre fixe d'une minute d'horloge. Votre plafond est de 60 requêtes par minute, sauf si l'AFC a convenu d'un autre chiffre pour votre clé.",
+      "headersCaption": "Chaque réponse réussie vous indique où vous en êtes, afin de ralentir avant d'être bloqué.",
+      "exceededCaption": "Dépassez la limite et la requête suivante est refusée jusqu'au changement de fenêtre.",
+      "backoff": "Surveillez X-RateLimit-Remaining et faites une pause à l'approche de zéro, ou respectez Retry-After après un 429. La fenêtre étant une minute d'horloge, un nouveau quota commence au changement de minute et non soixante secondes après votre premier appel."
+    },
+    "errors": {
+      "title": "Erreurs",
+      "intro": "Les erreurs levées par l'API portent un unique champ error, accompagné du statut HTTP correspondant. Basez-vous sur le code de statut plutôt que sur le corps : un verbe HTTP incorrect est refusé par le cadre web avant que l'API ne le voie et porte un champ detail à la place, et une requête vers un chemin qui n'existe pas du tout n'est pas du JSON.",
+      "tables": {
+        "codes": {
+          "headers": {
+            "h0": "Statut",
+            "h1": "Corps",
+            "h2": "Signification et marche à suivre"
+          },
+          "rows": {
+            "unauthorized": "Votre clé est absente, mal formée, inconnue, révoquée ou expirée, ou votre compte partenaire est suspendu. Vérifiez d'abord l'en-tête, puis contactez l'AFC.",
+            "forbidden": "Vous êtes authentifié, mais cette ressource est désactivée pour votre compte. Demandez à l'AFC de l'activer.",
+            "notFound": "Vous ne pouvez pas lire cet événement. Confirmez le slug auprès de l'AFC.",
+            "methodNotAllowed": "Chaque point de terminaison est en GET uniquement. Celui-ci est refusé avant que l'API ne le voie, donc son corps porte un champ detail plutôt que error.",
+            "rateLimited": "Vous dépassez votre quota par minute. Respectez l'en-tête Retry-After."
+          }
+        }
+      },
+      "why404": "La différence entre 403 et 404 est délibérée. Un 403 signifie que le type de ressource est désactivé pour vous. Un 404 signifie que vous ne pouvez pas voir cet événement, et il est renvoyé que l'événement soit hors de votre portée, pas encore publié, ou simplement inexistant. L'API ne confirmera jamais l'existence d'un événement que vous n'avez pas le droit de lire, donc un 404 ne prouve jamais qu'un slug est erroné."
+    },
+    "media": {
+      "title": "Images, logos et visuels",
+      "intro": "Chaque URL d'image ou de fichier renvoyée par l'API est absolue et publiquement accessible : vous pouvez la télécharger ou y faire un lien direct. Ce sont de simples URL, sans signature ni expiration, ce qui signifie qu'elles continuent de fonctionner, mais aussi que toute personne à qui vous en transmettez une peut la récupérer. Considérez une URL de média comme publique, parce qu'elle l'est.",
+      "urlCaption": "Un champ média, tel que renvoyé.",
+      "nullNotError": "Un fichier absent vaut null, jamais une erreur. Une équipe sans logo téléversé renvoie logo_url à null. Le champ n'est totalement absent que lorsque l'interrupteur Images et fichiers est désactivé pour votre compte.",
+      "cache": "Téléchargez les médias une fois et servez-les depuis votre propre stockage plutôt que d'y faire un lien direct à chaque affichage. Les bannières, logos et visuels de modèles changent rarement, vos pages s'afficheront plus vite, et un déplacement de fichier côté AFC ne vous affectera pas. Les réponses média portent ETag et Last-Modified : si vous préférez revalider plutôt que retélécharger, une requête conditionnelle avec If-None-Match vous renvoie un 304 peu coûteux."
+    },
+    "practices": {
+      "title": "Travailler avec l'API",
+      "poll": "Interrogez régulièrement, sans saturer. Les données ne changent que lorsque l'AFC publie ou corrige un résultat. Une fois par jour pendant une saison, ou une fois par heure autour d'une finale, suffit largement. Il n'y a pas de webhooks.",
+      "absentFields": "Gérez les champs absents. Un champ auquel vous n'avez pas droit est absent du JSON : lisez de façon défensive au lieu de supposer qu'une clé existe.",
+      "permanent404": "Attendez-vous à ce qu'un 404 dure. Si un événement que vous lisiez commence à renvoyer 404, l'AFC l'a soit dépublié, soit a modifié votre portée. Réessayer ne changera rien : contactez l'AFC.",
+      "slugs": "Les slugs sont les identifiants. Conservez le slug de l'événement, pas sa position dans une liste, car un nouvel événement décale toutes les positions.",
+      "help": "Contactez votre responsable partenaires AFC pour une clé nouvelle ou renouvelée, pour modifier les événements ou ressources que vous pouvez lire, ou pour signaler tout ce que l'API renvoie qui vous semble erroné. Indiquez le point de terminaison, l'horodatage et le préfixe de votre clé, la partie afcp_3f9a, jamais la clé complète."
+    }
+  }
+}

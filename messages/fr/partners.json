@@ -85,7 +85,7 @@
       "withdrawnBadge": "Retiré",
       "withdraw": "Retirer",
       "action": "Publier vers l'API partenaire",
-      "note": "Ce panneau ne précharge pas l'état de publication actuel de chaque événement, un bouton reflète donc ce que vous définissez ici. Republier est sans effet si l'événement est déjà publié.",
+      "note": "Chaque ligne affiche l'état actuel de l'événement et se met à jour dès que vous appuyez sur le bouton. Republier est sans effet si l'événement est déjà publié.",
       "published": "« {name} » est maintenant lisible via l'API partenaire.",
       "withdrawn": "« {name} » a été retiré de l'API partenaire.",
       "failed": "Échec de la mise à jour de l'état de publication."
@@ -134,8 +134,12 @@
         "matches": "Matchs",
         "standings": "Classements",
         "teams": "Équipes et effectifs",
-        "players": "Joueurs"
-      }
+        "players": "Joueurs",
+        "designs": "Modèles de classement"
+      },
+      "guideTitle": "Guide d'intégration partenaire",
+      "guideOpen": "Ouvrir le guide partenaire dans un nouvel onglet",
+      "guideNote": "La page que lisent les équipes techniques du partenaire : l'authentification, ce que renvoie chaque point de terminaison, la pagination, les limites de débit, le modèle d'erreur et la gestion des images. Elle est publique, vous pouvez donc envoyer ce lien avec la clé."
     },
     "keys": {
       "title": "Clés API",
@@ -151,7 +155,9 @@
       "revoked": "Révoquée",
       "never": "Jamais",
       "revoke": "Révoquer",
-      "empty": "Aucune clé pour le moment. Émettez-en une pour donner à ce partenaire l'accès à l'API."
+      "empty": "Aucune clé pour le moment. Émettez-en une pour donner à ce partenaire l'accès à l'API.",
+      "colExpires": "Expiration",
+      "noExpiry": "Jamais"
     },
     "issue": {
       "title": "Émettre une clé API",
@@ -165,7 +171,9 @@
       "successDescription": "Copiez cette clé maintenant et conservez-la en lieu sûr. Pour votre sécurité, elle n'est affichée qu'une seule fois, vous ne pourrez plus la revoir.",
       "issuedToast": "Clé API émise. Copiez-la maintenant, elle ne sera plus affichée.",
       "failed": "Échec de l'émission de la clé.",
-      "copyFailed": "Copie impossible, sélectionnez et copiez la clé manuellement."
+      "copyFailed": "Copie impossible, sélectionnez et copiez la clé manuellement.",
+      "expiresAt": "Expire le",
+      "expiresAtHint": "Laissez vide pour une clé sans expiration. La clé fonctionne jusqu'à la fin de la journée choisie."
     },
     "revoke": {
       "title": "Révoquer la clé API ?",

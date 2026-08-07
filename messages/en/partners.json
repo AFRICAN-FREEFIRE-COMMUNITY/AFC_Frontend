@@ -85,7 +85,7 @@
       "withdrawnBadge": "Withdrawn",
       "withdraw": "Withdraw",
       "action": "Publish to partner API",
-      "note": "This panel does not preload each event's current publish state, so a button reflects what you set here. Publishing again is harmless if the event is already published.",
+      "note": "Each row shows the event's current state, and updates as soon as you press the button. Publishing again is harmless if the event is already published.",
       "published": "\"{name}\" is now readable through the partner API.",
       "withdrawn": "\"{name}\" was withdrawn from the partner API.",
       "failed": "Failed to update publish state."
@@ -134,8 +134,12 @@
         "matches": "Matches",
         "standings": "Standings",
         "teams": "Teams & rosters",
-        "players": "Players"
-      }
+        "players": "Players",
+        "designs": "Leaderboard designs"
+      },
+      "guideTitle": "Partner integration guide",
+      "guideOpen": "Open the partner guide in a new tab",
+      "guideNote": "The page the partner's own engineers read: authenticating, what every endpoint returns, paging, rate limits, the error model and how to handle images. It is public, so you can send this link along with the key."
     },
     "keys": {
       "title": "API keys",
@@ -151,7 +155,9 @@
       "revoked": "Revoked",
       "never": "Never",
       "revoke": "Revoke",
-      "empty": "No keys yet. Issue one to give this partner API access."
+      "empty": "No keys yet. Issue one to give this partner API access.",
+      "colExpires": "Expires",
+      "noExpiry": "Never"
     },
     "issue": {
       "title": "Issue API key",
@@ -165,7 +171,9 @@
       "successDescription": "Copy this key now and store it securely. For your security it is shown only once, you won't be able to see it again.",
       "issuedToast": "API key issued. Copy it now, it will not be shown again.",
       "failed": "Failed to issue key.",
-      "copyFailed": "Couldn't copy, select and copy the key manually."
+      "copyFailed": "Couldn't copy, select and copy the key manually.",
+      "expiresAt": "Expires on",
+      "expiresAtHint": "Leave blank for a key that never expires. The key works through the end of the day you pick."
     },
     "revoke": {
       "title": "Revoke API key?",

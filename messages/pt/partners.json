@@ -8,7 +8,7 @@
   },
   "list": {
     "title": "Chaves API",
-    "count": "{count, plural, one {# chave API} other {# chaves API}}",
+    "count": "{count, plural, =0 {# chaves API} one {# chave API} other {# chaves API}}",
     "create": "Criar chave API",
     "searchPlaceholder": "Pesquisar por nome ou slug...",
     "empty": "Ainda não existem chaves API. Crie uma para começar.",
@@ -85,7 +85,7 @@
       "withdrawnBadge": "Retirado",
       "withdraw": "Retirar",
       "action": "Publicar na API de parceiros",
-      "note": "Este painel não pré-carrega o estado de publicação atual de cada evento, por isso um botão reflete o que definir aqui. Voltar a publicar não tem efeito se o evento já estiver publicado.",
+      "note": "Cada linha mostra o estado atual do evento e atualiza assim que carregar no botão. Voltar a publicar não tem efeito se o evento já estiver publicado.",
       "published": "«{name}» está agora legível através da API de parceiros.",
       "withdrawn": "«{name}» foi retirado da API de parceiros.",
       "failed": "Falha ao atualizar o estado de publicação."
@@ -134,8 +134,12 @@
         "matches": "Partidas",
         "standings": "Classificações",
         "teams": "Equipas e planteis",
-        "players": "Jogadores"
-      }
+        "players": "Jogadores",
+        "designs": "Modelos de classificação"
+      },
+      "guideTitle": "Guia de integração para parceiros",
+      "guideOpen": "Abrir o guia do parceiro num novo separador",
+      "guideNote": "A página que as equipas técnicas do parceiro leem: a autenticação, o que devolve cada ponto final, a paginação, os limites de pedidos, o modelo de erros e como lidar com as imagens. É pública, por isso pode enviar esta ligação juntamente com a chave."
     },
     "keys": {
       "title": "Chaves API",
@@ -151,7 +155,9 @@
       "revoked": "Revogada",
       "never": "Nunca",
       "revoke": "Revogar",
-      "empty": "Ainda não existem chaves. Emita uma para dar a este parceiro acesso à API."
+      "empty": "Ainda não existem chaves. Emita uma para dar a este parceiro acesso à API.",
+      "colExpires": "Expiração",
+      "noExpiry": "Nunca"
     },
     "issue": {
       "title": "Emitir chave API",
@@ -165,7 +171,9 @@
       "successDescription": "Copie esta chave agora e guarde-a em segurança. Por motivos de segurança é mostrada apenas uma vez, não a poderá ver novamente.",
       "issuedToast": "Chave API emitida. Copie-a agora, não será mostrada outra vez.",
       "failed": "Falha ao emitir a chave.",
-      "copyFailed": "Não foi possível copiar, selecione e copie a chave manualmente."
+      "copyFailed": "Não foi possível copiar, selecione e copie a chave manualmente.",
+      "expiresAt": "Expira a",
+      "expiresAtHint": "Deixe em branco para uma chave sem expiração. A chave funciona até ao fim do dia escolhido."
     },
     "revoke": {
       "title": "Revogar a chave API?",

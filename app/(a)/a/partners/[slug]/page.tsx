@@ -81,6 +81,11 @@ import {
 import {
   IconCheck,
   IconCopy,
+  // Opens the partner-facing guide (app/(root)/partners/api) in a new tab from the
+  // Connection card. Added with that card; it was used without being imported, which is a
+  // runtime ReferenceError that white-screened this whole page (caught in the browser
+  // 2026-08-07, alongside the three missing detail.connection.guide* messages).
+  IconExternalLink,
   IconKey,
   IconSearch,
   IconTrash,
@@ -126,12 +131,24 @@ const TOGGLE_HINT_IDS: PartnerToggle[] = [
 // only the issued key (Keys tab) and the published events (Scope tab) differ.
 const PARTNER_API_BASE = `${env.NEXT_PUBLIC_BACKEND_API_URL}/api/v1/partner/`;
 
-// The seven GET endpoints the read API exposes (paths RELATIVE to PARTNER_API_BASE).
+// The PARTNER-facing integration guide (app/(root)/partners/api, a public page). This card
+// is the staff summary; that page is the document the partner's engineers actually read.
+// Built off NEXT_PUBLIC_URL (the frontend origin, lib/env) rather than hard-coded, so the
+// URL an admin copies here points at the environment they are working in.
+const PARTNER_GUIDE_URL = `${env.NEXT_PUBLIC_URL}/partners/api`;
+
+// The eight GET endpoints the read API exposes (paths RELATIVE to PARTNER_API_BASE).
 // <slug> = an event's slug (returned by events/). Each is additionally gated by this
 // partner's resource toggles (Scope & Toggles tab), so a path 200s only if the matching
 // can_read_* switch is on AND the event is published.
 // `descKey` resolves under partners.detail.connection.endpoints.* - the PATH itself is a
 // literal URL and is never translated.
+//
+// MUST stay in lock-step with afc_partner_api/partner_urls.py. It drifted once already:
+// designs/ shipped on the backend but was never added here, so an admin reading this card
+// would tell a partner the endpoint does not exist (audit 2026-08-06). Adding a route
+// there means adding a row here AND its description under partners.detail.connection
+// .endpoints.<descKey> in messages/{en,fr,pt}/partners.json.
 const PARTNER_ENDPOINTS: { path: string; descKey: string }[] = [
   { path: "events/", descKey: "events" },
   { path: "events/<slug>/", descKey: "event" },
@@ -140,6 +157,7 @@ const PARTNER_ENDPOINTS: { path: string; descKey: string }[] = [
   { path: "events/<slug>/standings/", descKey: "standings" },
   { path: "events/<slug>/teams/", descKey: "teams" },
   { path: "events/<slug>/players/", descKey: "players" },
+  { path: "events/<slug>/designs/", descKey: "designs" },
 ];
 
 // The literal stand-in for the issued key, shown inside the auth-header field. It is
@@ -293,6 +311,10 @@ export default function PartnerDetailPage({
   const [issueOpen, setIssueOpen] = useState(false);
   const [keyLabel, setKeyLabel] = useState("");
   const [keyRateLimit, setKeyRateLimit] = useState("60");
+  // Optional expiry, "" = never expires (the default, and what every key issued before
+  // 2026-08-06 has). A <input type="date"> value, so always "YYYY-MM-DD"; the backend
+  // reads a bare date as the END of that day so a key stays usable through it.
+  const [keyExpiresAt, setKeyExpiresAt] = useState("");
   const [issuing, setIssuing] = useState(false);
   // The plaintext key - present ONLY in the issue response and shown exactly once.
   const [issuedKey, setIssuedKey] = useState<string | null>(null);
@@ -462,6 +484,9 @@ export default function PartnerDetailPage({
       const res = await partnersApi.issueKey(slug, {
         label: keyLabel.trim() || undefined,
         rate_limit_per_min: Number.isFinite(rate) && rate > 0 ? rate : undefined,
+        // Left out entirely when blank, which is what makes the key non-expiring. The
+        // backend 400s a past or malformed date, so the toast below carries its message.
+        expires_at: keyExpiresAt || undefined,
       });
       // swap the form for the show-once plaintext panel (same dialog stays open)
       setIssuedKey(res.api_key);
@@ -493,6 +518,7 @@ export default function PartnerDetailPage({
     setIssuedKey(null);
     setKeyLabel("");
     setKeyRateLimit("60");
+    setKeyExpiresAt("");
     setCopied(false);
   };
 
@@ -1070,6 +1096,39 @@ export default function PartnerDetailPage({
                 </p>
               </div>
 
+              {/* Link out to the partner-facing guide (app/(root)/partners/api). This card
+                  is the AFC-staff summary; the guide is the long version the PARTNER reads,
+                  covering auth, paging, rate limits, the error model and media handling.
+                  Surfacing it here means an admin handing over a key has a URL to send with
+                  it instead of writing the explanation themselves. It is a public page, so
+                  the partner can open it without an AFC account; opened in a new tab so the
+                  admin does not lose this page mid-handover. */}
+              <div className="space-y-2">
+                <Label>{t("detail.connection.guideTitle")}</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    readOnly
+                    value={PARTNER_GUIDE_URL}
+                    className="font-mono text-xs"
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                  <CopyButton value={PARTNER_GUIDE_URL} />
+                  <Button asChild variant="outline" size="icon">
+                    <a
+                      href={PARTNER_GUIDE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t("detail.connection.guideOpen")}
+                    >
+                      <IconExternalLink className="size-4" />
+                    </a>
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("detail.connection.guideNote")}
+                </p>
+              </div>
+
               {/* Sample request (copy-paste curl) */}
               <div className="space-y-2">
                 <Label>{t("detail.connection.sample")}</Label>
@@ -1121,6 +1180,10 @@ export default function PartnerDetailPage({
                     <TableHead>{t("detail.keys.colLabel")}</TableHead>
                     <TableHead>{t("detail.keys.colStatus")}</TableHead>
                     <TableHead>{t("detail.keys.colRate")}</TableHead>
+                    {/* Expiry is shown next to status because together they answer the
+                        only question this table is really asked: is this key still going
+                        to work tomorrow. */}
+                    <TableHead>{t("detail.keys.colExpires")}</TableHead>
                     <TableHead>{t("detail.keys.colLastUsed")}</TableHead>
                     <TableHead className="text-right">{t("detail.keys.colActions")}</TableHead>
                   </TableRow>
@@ -1153,6 +1216,23 @@ export default function PartnerDetailPage({
                           )}
                         </TableCell>
                         <TableCell>{k.rate_limit_per_min}</TableCell>
+                        {/* Expiry. Rendered with the same YYYY-MM-DD slice as "Last used"
+                            next to it (one date idiom per table beats two). An expiry
+                            already in the past is called out in amber, because the row
+                            still says "Active" - status and expiry are separate reasons a
+                            key stops working, and auth.py refuses an expired key whatever
+                            its status says. */}
+                        <TableCell
+                          className={
+                            k.expires_at && new Date(k.expires_at) < new Date()
+                              ? "text-amber-500"
+                              : "text-muted-foreground"
+                          }
+                        >
+                          {k.expires_at
+                            ? k.expires_at.slice(0, 10)
+                            : t("detail.keys.noExpiry")}
+                        </TableCell>
                         <TableCell className="text-muted-foreground">
                           {k.last_used_at ? k.last_used_at.slice(0, 10) : t("detail.keys.never")}
                         </TableCell>
@@ -1191,7 +1271,7 @@ export default function PartnerDetailPage({
                   ) : (
                     <TableRow>
                       <TableCell
-                        colSpan={6}
+                        colSpan={7}
                         className="text-center py-8 text-muted-foreground"
                       >
                         {t("detail.keys.empty")}
@@ -1280,6 +1360,26 @@ export default function PartnerDetailPage({
                     onChange={(e) => setKeyRateLimit(e.target.value)}
                     className="w-full sm:w-40"
                   />
+                </div>
+                {/* Optional expiry. Blank = never expires, which is what every key issued
+                    before this field existed does. A date input (not a datetime) because
+                    the decision an admin actually makes is "through which day", and the
+                    backend turns a bare date into the END of it. */}
+                <div className="space-y-2">
+                  <Label htmlFor="key-expires">
+                    {t("detail.issue.expiresAt")}{" "}
+                    <span className="text-muted-foreground">{t("optional")}</span>
+                  </Label>
+                  <Input
+                    id="key-expires"
+                    type="date"
+                    value={keyExpiresAt}
+                    onChange={(e) => setKeyExpiresAt(e.target.value)}
+                    className="w-full sm:w-52"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t("detail.issue.expiresAtHint")}
+                  </p>
                 </div>
               </div>
 
