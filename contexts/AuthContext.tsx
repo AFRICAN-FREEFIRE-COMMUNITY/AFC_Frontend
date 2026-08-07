@@ -31,13 +31,16 @@ export interface UserStats {
   solo: MatchStats;
   team: MatchStats;
 
+  // Match wins (a Booyah is a match win in Free Fire). This is the ONLY win count the
+  // get-user-profile payload carries: the former sibling `total_wins` was computed from the
+  // identical backend expression and the profile rendered both as separate tiles, so it was
+  // dropped (owner bug 2026-08-07, afc_auth/views.py get_user_profile).
   total_booyahs: number;
   total_earnings: number;
   total_kills: number;
   total_mvps: number;
   total_scrims_played: number;
   total_tournaments_played: number;
-  total_wins: number;
 }
 
 export interface User {

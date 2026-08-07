@@ -4,9 +4,18 @@
  * TwoFactorStep - the SECOND step of signing in (owner 2026-08-06).
  *
  * WHAT IT IS: after a user with two-step sign-in enters the right password, POST /auth/login/
- * returns a CHALLENGE instead of a session token. This screen collects the 6 digit code that was
- * emailed to them (or a recovery code), exchanges it at POST /auth/two-factor/verify/, and hands
- * the resulting session token to the caller.
+ * returns a CHALLENGE instead of a session token. This screen collects the 6 digit code (or a
+ * recovery code), exchanges it at POST /auth/two-factor/verify/, and hands the resulting session
+ * token to the caller.
+ *
+ * ONE SCREEN, TWO METHODS (authenticator app added 2026-08-07). `challenge.method` decides what is
+ * rendered, and the DIFFERENCE IS NOT COSMETIC: an authenticator app generates the code itself, so
+ * for method "totp" there is nothing to resend and nothing to wait out. Rendering a resend button
+ * there would be a button that either lies or does nothing, and a cooldown counting down to an
+ * action that has no meaning. So the whole resend control is absent, not disabled, and the copy
+ * points at the phone rather than at an inbox. Everything else - the input, the recovery-code
+ * escape hatch, the attempts warning, the verify call - is byte-identical for both, because the
+ * backend endpoint is.
  *
  * WHY IT IS A SHARED COMPONENT: there are TWO places a user signs in - the /login page
  * (app/(auth)/_components/LoginForm.tsx) and the in-place modal that pops when a session expires
@@ -29,13 +38,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { IconMail, IconKey, IconArrowLeft } from "@tabler/icons-react";
+import {
+  IconMail,
+  IconKey,
+  IconArrowLeft,
+  IconDeviceMobile,
+} from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/Loader";
 import {
+  methodSendsCode,
   resendTwoFactorCode,
   verifyTwoFactor,
   type LoginSuccess,
@@ -57,6 +72,11 @@ export function TwoFactorStep({
   onCancel,
 }: TwoFactorStepProps) {
   const t = useTranslations("twoFactor");
+
+  // Does this account's method SEND anything? False for an authenticator app, and that single
+  // boolean is what removes the resend control, the cooldown timer, the spam-folder note and the
+  // "check your inbox" wording - none of which mean anything when the code is already on the phone.
+  const sendsCode = methodSendsCode(challenge.method);
 
   // The challenge token is STATE, not just a prop: resending issues a new code and therefore a NEW
   // challenge token (the old one is invalidated server-side). Holding the prop would leave the user
@@ -149,15 +169,21 @@ export function TwoFactorStep({
         <div className="mx-auto flex size-11 items-center justify-center rounded-full bg-primary/10">
           {usingBackup ? (
             <IconKey className="size-5 text-primary" />
-          ) : (
+          ) : sendsCode ? (
             <IconMail className="size-5 text-primary" />
+          ) : (
+            <IconDeviceMobile className="size-5 text-primary" />
           )}
         </div>
         <h2 className="text-lg font-semibold">{t("step.title")}</h2>
         <p className="text-sm text-muted-foreground">
-          {destination
-            ? t("step.description", { destination })
-            : t("step.descriptionNoDestination")}
+          {/* Three sentences, because "we sent a code to jo***@gmail.com" is simply untrue when
+              nothing was sent. An authenticator user is told where to look instead. */}
+          {!sendsCode
+            ? t("step.descriptionApp")
+            : destination
+              ? t("step.description", { destination })
+              : t("step.descriptionNoDestination")}
         </p>
       </div>
 
@@ -180,7 +206,9 @@ export function TwoFactorStep({
         </div>
       ) : (
         <div className="space-y-1.5">
-          <Label htmlFor="tfa-code">{t("step.codeLabel")}</Label>
+          <Label htmlFor="tfa-code">
+            {sendsCode ? t("step.codeLabel") : t("step.codeLabelApp")}
+          </Label>
           <Input
             id="tfa-code"
             // inputMode numeric brings up the number pad on a phone, which is where most AFC
@@ -198,11 +226,16 @@ export function TwoFactorStep({
               if (e.key === "Enter" && canSubmit && !submitting) submit();
             }}
           />
-          <p className="text-xs text-muted-foreground">{t("step.spamNote")}</p>
+          {/* The spam-folder hint only makes sense for a code that travelled. An authenticator
+              user gets the thing they actually need to know: the code rolls over every 30s. */}
+          <p className="text-xs text-muted-foreground">
+            {sendsCode ? t("step.spamNote") : t("step.appRefreshNote")}
+          </p>
         </div>
       )}
 
-      {/* Mail actually failed to go out. Say so, and point at the way in that does not need it. */}
+      {/* Mail actually failed to go out. Say so, and point at the way in that does not need it.
+          Cannot fire for an authenticator account: nothing is sent, so nothing can fail to send. */}
       {deliveryFailed && !usingBackup ? (
         <p className="rounded-md bg-gold/10 px-3 py-2 text-sm text-gold">
           {t("step.deliveryFailed")}
@@ -230,7 +263,9 @@ export function TwoFactorStep({
 
       {/* Stacked on a phone so both controls stay full-width tap targets at 390px. */}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-        {!usingBackup ? (
+        {/* ABSENT, not disabled, for an authenticator account. A greyed-out "send a new code" would
+            still tell the user a code exists to be sent, and it never will be. */}
+        {!usingBackup && sendsCode ? (
           <Button
             type="button"
             variant="ghost"
@@ -262,7 +297,11 @@ export function TwoFactorStep({
             setAttemptsLeft(null);
           }}
         >
-          {usingBackup ? t("step.useEmailCode") : t("step.useBackupCode")}
+          {usingBackup
+            ? sendsCode
+              ? t("step.useEmailCode")
+              : t("step.useAppCode")
+            : t("step.useBackupCode")}
         </Button>
       </div>
 

@@ -17,15 +17,26 @@
  *   - Turns it OFF and regenerates recovery codes, both behind a fresh emailed code, because a
  *     live session alone should not be enough to strip the second factor off an account.
  *
- * WHY EMAIL: every AFC account has a verified email; WhatsApp reaches roughly 90 of ~6,790 users.
- * The backend is written behind a method interface (afc_auth/two_factor.py), so when the approved
- * WhatsApp template or an authenticator app is added, this page picks it up through
- * status.available_methods without being rewritten.
+ * ── TWO METHODS (authenticator app added 2026-08-07) ────────────────────────────────────────────
+ *   EMAIL a 6 digit code to the account address. The default, and the one every AFC account can
+ *         use, which is why it is listed first.
+ *   APP   a 6 digit code from an authenticator app. Nothing is sent, so it keeps working through a
+ *         compromised mailbox and an SMTP outage. Enrolment lives in TotpEnrolDialog.tsx.
+ * WhatsApp is deliberately not offered: it reaches roughly 90 of ~6,790 users. The page renders one
+ * card per entry in status.available_methods, so a third method appears here without a rewrite.
+ *
+ * SWITCHING is guarded exactly like turning 2FA off, because swapping the owner's factor for
+ * somebody else's is a takeover rather than a preference change. Moving TO the app is one guarded
+ * step (TotpEnrolDialog collects proof of the current factor). Moving BACK to email is turn off,
+ * then turn on: both halves are already guarded, and building a third proof path to save one click
+ * would be more security surface for less clarity.
  *
  * HOW IT CONNECTS
  *   - Data: lib/twoFactor.ts -> /auth/two-factor/ (afc_auth/views_two_factor.py).
+ *   - Enrolment: ./TotpEnrolDialog.tsx, which hands back the same status shape this page holds.
  *   - Session token from AuthContext, same Bearer pattern as ConnectedApps.tsx.
  *   - Dates render through <LocalTime> so "turned on" shows in the VIEWER's timezone, not UTC.
+ *   - NEW tag: components/NewBadge.tsx, dated, self-expiring (CLAUDE.md hard rule).
  *   - i18n: the `twoFactor` namespace, security.* keys.
  * DESIGN: AFC constants - Card `rounded-md`, PageHeader, primary green, no em dashes, controls
  * that stack full-width on a phone.
@@ -40,6 +51,8 @@ import {
   IconDownload,
   IconRefresh,
   IconKey,
+  IconMail,
+  IconDeviceMobile,
 } from "@tabler/icons-react";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -62,10 +75,14 @@ import { NewBadge } from "@/components/NewBadge";
 import { FullLoader } from "@/components/Loader";
 import { LocalTime } from "@/components/LocalTime";
 import { useAuth } from "@/contexts/AuthContext";
+// Authenticator-app enrolment. Its own component because it is a three-step flow with a QR, and
+// folding it in here would double the length of this file for a dialog most users open once.
+import { TotpEnrolDialog } from "./TotpEnrolDialog";
 import {
   disableTwoFactor,
   enableTwoFactor,
   getTwoFactorStatus,
+  methodSendsCode,
   regenerateBackupCodes,
   sendTwoFactorProofCode,
   type TwoFactorStatus,
@@ -87,6 +104,10 @@ export function TwoFactorSecurity() {
   const [status, setStatus] = useState<TwoFactorStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+
+  // The authenticator enrolment dialog is separate from `flow`: it is not one of the three
+  // send-a-code-then-confirm flows below, it has its own three steps and its own component.
+  const [totpOpen, setTotpOpen] = useState(false);
 
   const [flow, setFlow] = useState<Flow>(null);
   // Inside a flow: "send" is asking for the code to go out, "code" is collecting it.
@@ -233,6 +254,12 @@ export function TwoFactorSecurity() {
 
   const enabled = !!status?.enabled;
   const remaining = status?.backup_codes_remaining ?? 0;
+  // Which method is guarding the account, and whether it SENDS anything. The second one drives
+  // every "check your email" sentence on this page: none of them are true for an authenticator.
+  const activeSends = methodSendsCode(status?.method ?? "email");
+  const activeMethodLabel = activeSends
+    ? t("security.methodEmail")
+    : t("security.methodApp");
 
   return (
     <div className="container mx-auto py-6">
@@ -276,7 +303,11 @@ export function TwoFactorSecurity() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-base font-semibold">{t("security.methodEmail")}</h3>
+                    {/* Names the method actually guarding the account, so a user who switched to
+                        an authenticator is not still told this page is about email. */}
+                    <h3 className="text-base font-semibold">
+                      {enabled ? activeMethodLabel : t("security.title")}
+                    </h3>
                     <Badge
                       variant="outline"
                       className={
@@ -305,7 +336,11 @@ export function TwoFactorSecurity() {
               <div className="rounded-md bg-muted/40 px-3 py-2">
                 <p className="text-sm font-medium">{t("security.explainerTitle")}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {t("security.explainerBody")}
+                  {/* "AFC emails you a code" is simply false once an authenticator is guarding the
+                      account, and this is the paragraph a confused user reads first. */}
+                  {activeSends
+                    ? t("security.explainerBody")
+                    : t("security.explainerBodyApp")}
                 </p>
               </div>
 
@@ -337,6 +372,88 @@ export function TwoFactorSecurity() {
             </CardContent>
           </Card>
 
+          {/* ── How you get your code. One row per method the backend offers, so a third method
+                 appears here without this file changing. Shown whether 2FA is on or off: with it
+                 off these are the two ways to switch it on, with it on they are what it is and
+                 what it could be. ─────────────────────────────────────────────────────────── */}
+          <Card className="mt-4">
+            <CardContent className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-base font-semibold">{t("security.methods.title")}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t("security.methods.subtitle")}
+                </p>
+              </div>
+
+              {(status?.available_methods ?? ["email"]).map((method) => {
+                const isActive = enabled && status?.method === method;
+                const isApp = method === "totp";
+                return (
+                  <div
+                    key={method}
+                    // Stacks on a phone so the action button stays a full-width tap target.
+                    className={`flex flex-col gap-3 rounded-md border p-3 sm:flex-row sm:items-center ${
+                      isActive ? "border-primary/50 bg-primary/5" : ""
+                    }`}
+                  >
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
+                      {isApp ? (
+                        <IconDeviceMobile className="size-4.5 text-muted-foreground" />
+                      ) : (
+                        <IconMail className="size-4.5 text-muted-foreground" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-medium">
+                          {isApp ? t("security.methodApp") : t("security.methodEmail")}
+                        </p>
+                        {/* The authenticator app is the new option, so it wears the dated tag.
+                            It expires by itself 5 days after 2026-08-07 (CLAUDE.md hard rule);
+                            nothing here has to be removed later. */}
+                        {isApp ? <NewBadge since="2026-08-07" /> : null}
+                        {isActive ? (
+                          <Badge
+                            variant="outline"
+                            className="rounded-full border-primary/60 px-2 py-0.5 text-xs text-primary"
+                          >
+                            {t("security.methods.inUse")}
+                          </Badge>
+                        ) : null}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {isApp
+                          ? t("security.methods.appBody")
+                          : t("security.methods.emailBody")}
+                      </p>
+                    </div>
+
+                    {/* Only the app has an action here. Moving BACK to email is turn off then turn
+                        on (both already guarded), and the hint says so rather than offering a
+                        button that would need a third proof path to exist. */}
+                    {isApp && !isActive ? (
+                      <Button
+                        variant={enabled ? "outline" : "default"}
+                        className="w-full sm:w-auto"
+                        onClick={() => setTotpOpen(true)}
+                      >
+                        {enabled
+                          ? t("security.methods.switchToApp")
+                          : t("security.methods.setUpApp")}
+                      </Button>
+                    ) : null}
+                    {!isApp && !isActive && enabled ? (
+                      <p className="text-xs text-muted-foreground sm:max-w-[11rem]">
+                        {t("security.methods.switchBackHint")}
+                      </p>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+
           {/* ── Recovery codes. Only meaningful while 2FA is on. ──────────────────── */}
           {enabled ? (
             <Card className="mt-4">
@@ -357,7 +474,11 @@ export function TwoFactorSecurity() {
                 </div>
 
                 <p className="text-sm text-muted-foreground">
-                  {t("security.backupExplainer")}
+                  {/* Same codes either way (they are account-level, not per method), but what the
+                      user is being protected against differs: a lost mailbox or a lost phone. */}
+                  {activeSends
+                    ? t("security.backupExplainer")
+                    : t("security.backupExplainerApp")}
                 </p>
 
                 {/* Warn BEFORE the last code is gone, not after. */}
@@ -404,21 +525,28 @@ export function TwoFactorSecurity() {
                   : t("security.regenerate")}
             </DialogTitle>
             <DialogDescription>
+              {/* The "enable" flow is always email (an authenticator is turned on through
+                  TotpEnrolDialog instead), so only the disable/regenerate copy has to know that
+                  nothing is sent when the account is guarded by an app. */}
               {flowStep === "send"
                 ? flow === "enable"
                   ? t("security.enable.step1Description", {
                       destination: status?.destination ?? "",
                     })
-                  : t("security.disable.step1Description", {
-                      destination: status?.destination ?? "",
-                    })
+                  : activeSends
+                    ? t("security.disable.step1Description", {
+                        destination: status?.destination ?? "",
+                      })
+                    : t("security.disable.step1DescriptionApp")
                 : flow === "enable"
                   ? t("security.enable.step2Description", {
                       destination: status?.destination ?? "",
                     })
-                  : t("security.disable.step2Description", {
-                      destination: status?.destination ?? "",
-                    })}
+                  : activeSends
+                    ? t("security.disable.step2Description", {
+                        destination: status?.destination ?? "",
+                      })
+                    : t("security.disable.step2DescriptionApp")}
             </DialogDescription>
           </DialogHeader>
 
@@ -470,7 +598,16 @@ export function TwoFactorSecurity() {
                 disabled={busy}
                 onClick={() => sendProofCode(flow === "enable" ? "enable" : "disable")}
               >
-                {busy ? t("security.enable.sending") : t("security.enable.sendCode")}
+                {/* Turning it ON is always the email flow (an authenticator is turned on through
+                    TotpEnrolDialog), so that keeps "Send me a code". Turning it OFF or regenerating
+                    on an authenticator account sends NOTHING: the press only raises the challenge,
+                    and a button promising to send a code would be promising something that never
+                    arrives. */}
+                {busy
+                  ? t("security.enable.sending")
+                  : flow === "enable" || activeSends
+                    ? t("security.enable.sendCode")
+                    : t("security.app.readyForProof")}
               </Button>
             ) : (
               <Button
@@ -503,6 +640,27 @@ export function TwoFactorSecurity() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── Authenticator app enrolment. Owns its own three steps (scan, prove the app, prove it
+             is you); this page only reacts to the finished result. ─────────────────────────── */}
+      {token ? (
+        <TotpEnrolDialog
+          open={totpOpen}
+          token={token}
+          onClose={() => setTotpOpen(false)}
+          onEnrolled={(data) => {
+            setStatus(data);
+            toast.success(data.message);
+            // A FIRST enable returns a set of recovery codes and they must be shown once. A method
+            // SWITCH returns an empty list, because the user's existing codes still work and
+            // popping an empty save-your-codes dialog would be alarming and wrong.
+            if (data.backup_codes?.length) {
+              setNewCodes(data.backup_codes);
+              setSavedConfirmed(false);
+            }
+          }}
+        />
+      ) : null}
 
       {/* ── Save-your-codes dialog. Shown once, after enable or regenerate. Deliberately NOT
              dismissible by clicking outside or pressing Escape: closing it loses the codes for

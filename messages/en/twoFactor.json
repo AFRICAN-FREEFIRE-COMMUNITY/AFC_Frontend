@@ -24,7 +24,11 @@
     "genericError": "That code is not valid. Request a new one and try again.",
     "lockedOut": "Too many wrong codes. Sign in again to get a new one.",
     "spamNote": "No code? Check your spam folder before requesting another.",
-    "deliveryFailed": "We could not send the code just now. Try Send a new code, or use a recovery code below."
+    "deliveryFailed": "We could not send the code just now. Try Send a new code, or use a recovery code below.",
+    "descriptionApp": "Open your authenticator app and enter the 6 digit code it is showing for AFC.",
+    "codeLabelApp": "Code from your app",
+    "appRefreshNote": "The code changes every 30 seconds. If it is about to change, wait for the next one.",
+    "useAppCode": "Use your authenticator app instead"
   },
   "security": {
     "title": "Two-step sign-in",
@@ -66,7 +70,9 @@
       "step2Description": "Enter the 6 digit code sent to {destination}, or use a recovery code.",
       "confirm": "Turn it off",
       "confirming": "Turning it off",
-      "success": "Two-step sign-in is off."
+      "success": "Two-step sign-in is off.",
+      "step1DescriptionApp": "To confirm it is you, we will ask for a code from your authenticator app.",
+      "step2DescriptionApp": "Enter the 6 digit code your authenticator app is showing, or use a recovery code."
     },
     "codes": {
       "title": "Save your recovery codes",
@@ -79,7 +85,40 @@
     },
     "cancel": "Cancel",
     "back": "Back",
-    "genericError": "Something went wrong. Please try again."
+    "genericError": "Something went wrong. Please try again.",
+    "methodApp": "Authenticator app",
+    "backupExplainerApp": "Recovery codes get you in if you lose your phone or the app. Each one works once.",
+    "methods": {
+      "title": "How you get your code",
+      "subtitle": "Pick where your sign-in code comes from. You can change this later.",
+      "inUse": "In use",
+      "emailBody": "We send a 6 digit code to your email address. Works on any device, needs your inbox.",
+      "appBody": "Your phone makes the code itself, so it keeps working with no signal and no email.",
+      "setUpApp": "Set up",
+      "switchToApp": "Switch to this",
+      "switchBackHint": "To go back to email codes, turn two-step sign-in off, then turn it on again."
+    },
+    "app": {
+      "title": "Set up your authenticator app",
+      "description": "Two short steps. Nothing changes on your account until the last one.",
+      "preparing": "Preparing your setup code",
+      "step1Title": "1. Add AFC to your app",
+      "step1Body": "Open Google Authenticator, Authy, 1Password or any app like them, and scan this square.",
+      "secretLabel": "Or type this key instead",
+      "secretHelp": "Use this if you cannot scan, for example when you are already on the phone your app is on.",
+      "step2Title": "2. Enter the code your app shows",
+      "step2Body": "This proves the app really works before we switch anything on, so you cannot get locked out.",
+      "step3Title": "3. Confirm it is you",
+      "step3BodyEmail": "We will send a code to {destination} as well, so nobody else can add their own app to your account.",
+      "step3BodyApp": "Enter a code from the authenticator you are replacing, so nobody else can swap it for their own.",
+      "sendProof": "Send me a code",
+      "readyForProof": "I have my current app open",
+      "proofSent": "We sent a code to your email.",
+      "currentAppLabel": "Code from your current app",
+      "confirm": "Turn on the authenticator app",
+      "confirming": "Turning it on"
+    },
+    "explainerBodyApp": "After you enter your password, you open your authenticator app and type the 6 digit code it shows. Nothing is sent, so it works with no signal and even if your email is taken over."
   },
   "prompt": {
     "title": "Turn on two-step sign-in",

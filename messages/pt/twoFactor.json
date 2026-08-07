@@ -24,7 +24,11 @@
     "genericError": "Esse código não é válido. Peça um novo e tente outra vez.",
     "lockedOut": "Demasiados códigos errados. Inicie sessão de novo para obter outro.",
     "spamNote": "Não recebeu o código? Verifique a pasta de spam antes de pedir outro.",
-    "deliveryFailed": "Não foi possível enviar o código neste momento. Experimente \"Enviar um novo código\", ou use um código de recuperação abaixo."
+    "deliveryFailed": "Não foi possível enviar o código neste momento. Experimente \"Enviar um novo código\", ou use um código de recuperação abaixo.",
+    "descriptionApp": "Abra a sua aplicação de autenticação e introduza o código de 6 dígitos que mostra para a AFC.",
+    "codeLabelApp": "Código da sua aplicação",
+    "appRefreshNote": "O código muda a cada 30 segundos. Se estiver prestes a mudar, aguarde pelo seguinte.",
+    "useAppCode": "Usar antes a sua aplicação de autenticação"
   },
   "security": {
     "title": "Início de sessão em duas etapas",
@@ -66,7 +70,9 @@
       "step2Description": "Introduza o código de 6 dígitos enviado para {destination}, ou use um código de recuperação.",
       "confirm": "Desativar",
       "confirming": "A desativar",
-      "success": "O início de sessão em duas etapas está desativado."
+      "success": "O início de sessão em duas etapas está desativado.",
+      "step1DescriptionApp": "Para confirmar que é mesmo você, vamos pedir-lhe um código da sua aplicação de autenticação.",
+      "step2DescriptionApp": "Introduza o código de 6 dígitos que a sua aplicação de autenticação mostra, ou use um código de recuperação."
     },
     "codes": {
       "title": "Guarde os seus códigos de recuperação",
@@ -79,7 +85,40 @@
     },
     "cancel": "Cancelar",
     "back": "Voltar",
-    "genericError": "Algo correu mal. Tente novamente."
+    "genericError": "Algo correu mal. Tente novamente.",
+    "methodApp": "Aplicação de autenticação",
+    "backupExplainerApp": "Os códigos de recuperação deixam-no entrar se perder o telemóvel ou a aplicação. Cada um funciona uma única vez.",
+    "methods": {
+      "title": "Como recebe o seu código",
+      "subtitle": "Escolha de onde vem o seu código de início de sessão. Pode alterar isto mais tarde.",
+      "inUse": "Em uso",
+      "emailBody": "Enviamos um código de 6 dígitos para o seu endereço de e-mail. Funciona em qualquer dispositivo, mas precisa da sua caixa de entrada.",
+      "appBody": "O seu telemóvel cria o código por si próprio, por isso funciona sem rede e sem e-mail.",
+      "setUpApp": "Configurar",
+      "switchToApp": "Mudar para esta",
+      "switchBackHint": "Para voltar aos códigos por e-mail, desative o início de sessão em duas etapas e ative-o novamente."
+    },
+    "app": {
+      "title": "Configurar a sua aplicação de autenticação",
+      "description": "Duas etapas rápidas. Nada muda na sua conta até à última.",
+      "preparing": "A preparar o seu código de configuração",
+      "step1Title": "1. Adicione a AFC à sua aplicação",
+      "step1Body": "Abra o Google Authenticator, o Authy, o 1Password ou uma aplicação semelhante e leia este quadrado.",
+      "secretLabel": "Ou introduza esta chave em alternativa",
+      "secretHelp": "Use isto se não conseguir ler o código, por exemplo se já estiver no telemóvel onde tem a aplicação.",
+      "step2Title": "2. Introduza o código que a aplicação mostra",
+      "step2Body": "Isto prova que a aplicação funciona mesmo antes de ativarmos seja o que for, para que não fique sem acesso.",
+      "step3Title": "3. Confirme que é mesmo você",
+      "step3BodyEmail": "Vamos enviar também um código para {destination}, para que mais ninguém possa acrescentar a sua própria aplicação à sua conta.",
+      "step3BodyApp": "Introduza um código da aplicação que está a substituir, para que mais ninguém a possa trocar pela sua.",
+      "sendProof": "Enviem-me um código",
+      "readyForProof": "Tenho a minha aplicação atual aberta",
+      "proofSent": "Enviámos um código para o seu e-mail.",
+      "currentAppLabel": "Código da sua aplicação atual",
+      "confirm": "Ativar a aplicação de autenticação",
+      "confirming": "A ativar"
+    },
+    "explainerBodyApp": "Depois da palavra-passe, abre a sua aplicação de autenticação e introduz o código de 6 dígitos que aparece. Nada é enviado, por isso funciona sem rede e mesmo que o seu e-mail seja comprometido."
   },
   "prompt": {
     "title": "Ative o início de sessão em duas etapas",

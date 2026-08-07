@@ -24,7 +24,11 @@
     "genericError": "Ce code n'est pas valable. Demandez-en un nouveau et réessayez.",
     "lockedOut": "Trop de codes erronés. Reconnectez-vous pour en obtenir un nouveau.",
     "spamNote": "Pas de code ? Vérifiez vos courriers indésirables avant d'en demander un autre.",
-    "deliveryFailed": "Nous n'avons pas pu envoyer le code pour le moment. Essayez « Envoyer un nouveau code », ou utilisez un code de secours ci-dessous."
+    "deliveryFailed": "Nous n'avons pas pu envoyer le code pour le moment. Essayez « Envoyer un nouveau code », ou utilisez un code de secours ci-dessous.",
+    "descriptionApp": "Ouvrez votre application d'authentification et saisissez le code à 6 chiffres affiché pour AFC.",
+    "codeLabelApp": "Code de votre application",
+    "appRefreshNote": "Le code change toutes les 30 secondes. S'il est sur le point de changer, attendez le suivant.",
+    "useAppCode": "Utiliser plutôt votre application d'authentification"
   },
   "security": {
     "title": "Connexion en deux étapes",
@@ -66,7 +70,9 @@
       "step2Description": "Saisissez le code à 6 chiffres envoyé à {destination}, ou utilisez un code de secours.",
       "confirm": "Désactiver",
       "confirming": "Désactivation",
-      "success": "La connexion en deux étapes est désactivée."
+      "success": "La connexion en deux étapes est désactivée.",
+      "step1DescriptionApp": "Pour confirmer que c'est bien vous, nous vous demanderons un code de votre application d'authentification.",
+      "step2DescriptionApp": "Saisissez le code à 6 chiffres affiché par votre application d'authentification, ou utilisez un code de secours."
     },
     "codes": {
       "title": "Enregistrez vos codes de secours",
@@ -79,7 +85,40 @@
     },
     "cancel": "Annuler",
     "back": "Retour",
-    "genericError": "Une erreur s'est produite. Veuillez réessayer."
+    "genericError": "Une erreur s'est produite. Veuillez réessayer.",
+    "methodApp": "Application d'authentification",
+    "backupExplainerApp": "Les codes de secours vous permettent d'entrer si vous perdez votre téléphone ou l'application. Chacun ne fonctionne qu'une fois.",
+    "methods": {
+      "title": "Comment vous recevez votre code",
+      "subtitle": "Choisissez d'où vient votre code de connexion. Vous pourrez le changer plus tard.",
+      "inUse": "Utilisé",
+      "emailBody": "Nous envoyons un code à 6 chiffres à votre adresse e-mail. Fonctionne sur tout appareil, mais exige votre boîte mail.",
+      "appBody": "Votre téléphone fabrique le code lui-même : il fonctionne sans réseau et sans e-mail.",
+      "setUpApp": "Configurer",
+      "switchToApp": "Passer à ceci",
+      "switchBackHint": "Pour revenir aux codes par e-mail, désactivez la connexion en deux étapes, puis réactivez-la."
+    },
+    "app": {
+      "title": "Configurer votre application d'authentification",
+      "description": "Deux étapes rapides. Rien ne change sur votre compte avant la dernière.",
+      "preparing": "Préparation de votre code de configuration",
+      "step1Title": "1. Ajoutez AFC à votre application",
+      "step1Body": "Ouvrez Google Authenticator, Authy, 1Password ou une application similaire, puis scannez ce carré.",
+      "secretLabel": "Ou saisissez cette clé à la place",
+      "secretHelp": "Utilisez ceci si vous ne pouvez pas scanner, par exemple si vous êtes déjà sur le téléphone où se trouve votre application.",
+      "step2Title": "2. Saisissez le code affiché par votre application",
+      "step2Body": "Cela prouve que l'application fonctionne vraiment avant que nous activions quoi que ce soit, pour que vous ne puissiez pas être bloqué.",
+      "step3Title": "3. Confirmez que c'est bien vous",
+      "step3BodyEmail": "Nous enverrons aussi un code à {destination}, pour que personne d'autre ne puisse ajouter sa propre application à votre compte.",
+      "step3BodyApp": "Saisissez un code de l'application que vous remplacez, pour que personne d'autre ne puisse la remplacer par la sienne.",
+      "sendProof": "Envoyez-moi un code",
+      "readyForProof": "Mon application actuelle est ouverte",
+      "proofSent": "Nous avons envoyé un code à votre e-mail.",
+      "currentAppLabel": "Code de votre application actuelle",
+      "confirm": "Activer l'application d'authentification",
+      "confirming": "Activation en cours"
+    },
+    "explainerBodyApp": "Après votre mot de passe, vous ouvrez votre application d’authentification et saisissez le code à 6 chiffres affiché. Rien n’est envoyé : cela fonctionne sans réseau et même si votre e-mail est piraté"
   },
   "prompt": {
     "title": "Activez la connexion en deux étapes",
