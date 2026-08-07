@@ -72,8 +72,11 @@ interface PlayerDetails {
   tournaments_kills: number;
   scrims_wins: number;
   tournaments_wins: number;
-  scrim_booyah: number;
-  tournament_booyah: number;
+  // The rostered-teams record. Replaces scrim_booyah / tournament_booyah, which were a second
+  // name for scrims_wins / tournaments_wins (owner bug 2026-08-07).
+  team_matches: number;
+  team_wins: number;
+  team_win_rate: number;
   status?: "active" | "banned";
   in_game_role?: string;
   email?: string;
@@ -432,23 +435,22 @@ const Page = ({ params }: Props) => {
                   {formatMoneyInput(player.total_kills)}
                 </p>
               </div>
+              {/* These two read "wins", not "tournaments played". They used to add
+                  tournaments_wins + tournament_booyah, two names the backend gave the SAME
+                  number, so both boxes printed exactly double the real count (owner bug
+                  2026-08-07). The booyah half is gone; the label now says what it counts. */}
               <div>
                 <p className="text-xs text-muted-foreground">
-                  Total Tournaments
+                  Tournament Wins
                 </p>
                 <p className="text-2xl font-bold mt-0.5">
-                  {formatMoneyInput(
-                    (player.tournaments_wins ?? 0) +
-                      (player.tournament_booyah ?? 0),
-                  )}
+                  {formatMoneyInput(player.tournaments_wins ?? 0)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Total Scrims</p>
+                <p className="text-xs text-muted-foreground">Scrim Wins</p>
                 <p className="text-2xl font-bold mt-0.5">
-                  {formatMoneyInput(
-                    (player.scrims_wins ?? 0) + (player.scrim_booyah ?? 0),
-                  )}
+                  {formatMoneyInput(player.scrims_wins ?? 0)}
                 </p>
               </div>
               <div>
@@ -543,18 +545,21 @@ const Page = ({ params }: Props) => {
                   {formatMoneyInput(player.scrims_wins)}
                 </p>
               </div>
+              {/* The Tournament/Scrim Booyah pair that used to follow the two Wins boxes above
+                  is gone: the backend counted booyahs in the same branch as wins, so the four
+                  boxes were two numbers printed twice (owner bug 2026-08-07). */}
               <div>
-                <p className="text-xs text-muted-foreground">
-                  Tournament Booyahs
-                </p>
+                <p className="text-xs text-muted-foreground">Team Matches</p>
                 <p className="text-2xl font-bold mt-0.5">
-                  {formatMoneyInput(player.tournament_booyah)}
+                  {formatMoneyInput(player.team_matches)}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Scrim Booyahs</p>
+                <p className="text-xs text-muted-foreground">
+                  Team Wins (rostered)
+                </p>
                 <p className="text-2xl font-bold mt-0.5">
-                  {formatMoneyInput(player.scrim_booyah)}
+                  {formatMoneyInput(player.team_wins)}
                 </p>
               </div>
             </div>

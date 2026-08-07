@@ -69,10 +69,11 @@ export type AchievementCategory = "lifetime" | "monthly" | "daily";
 // of UserStats (contexts/AuthContext.tsx), so the ladder reads user.stats[metric].
 export type StatMetric =
   | "total_kills"
-  | "total_wins"
   | "total_tournaments_played"
   | "total_scrims_played"
   | "total_mvps"
+  // Match wins. There is no sibling "total_wins" metric: it held the identical number and
+  // is gone from the API (owner bug 2026-08-07). See the BOOYAHS ladder below.
   | "total_booyahs";
 
 // The real-data context an achievement's earned rule reads. `stats` mirrors the
@@ -152,17 +153,6 @@ const KILLS = ladder("Kills", "total_kills", IconCrosshair, [
   { threshold: 10000, title: "Apex Predator", points: 2000 },
 ]);
 
-// ── WINS ladder (metric total_wins) ──
-const WINS = ladder("Wins", "total_wins", IconMedal, [
-  { threshold: 1, title: "First Win", points: 50 },
-  { threshold: 5, title: "Contender", points: 100 },
-  { threshold: 10, title: "Champion", points: 200 },
-  { threshold: 25, title: "Conqueror", points: 400 },
-  { threshold: 50, title: "Dominator", points: 700 },
-  { threshold: 100, title: "Unstoppable", points: 1200 },
-  { threshold: 250, title: "Immortal", points: 2000 },
-]);
-
 // ── TOURNAMENTS ladder (metric total_tournaments_played) ──
 const TOURNAMENTS = ladder(
   "Tournaments",
@@ -197,12 +187,20 @@ const MVPS = ladder("MVPs", "total_mvps", IconStar, [
 ]);
 
 // ── BOOYAHS ladder (metric total_booyahs) ──
+// There used to be a second, parallel "Wins" ladder on a `total_wins` metric. The backend computed
+// total_wins and total_booyahs from the identical expression, so the two ladders counted ONE
+// accomplishment twice and a player collected two sets of badges for the same match wins (owner bug
+// 2026-08-07). A booyah IS a match win in Free Fire, so the ladders were merged into this one and
+// total_wins was dropped from the API. The 10 and 250 tiers below are carried over from the old
+// Wins ladder so no threshold a player could previously reach disappeared from the ladder.
 const BOOYAHS = ladder("Booyahs", "total_booyahs", IconFlame, [
   { threshold: 1, title: "Booyah", points: 75 },
   { threshold: 5, title: "Booyah Hunter", points: 150 },
+  { threshold: 10, title: "Booyah Champion", points: 250 },
   { threshold: 25, title: "Booyah King", points: 400 },
   { threshold: 50, title: "Booyah Legend", points: 700 },
   { threshold: 100, title: "Booyah God", points: 1200 },
+  { threshold: 250, title: "Booyah Immortal", points: 2000 },
 ]);
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -400,7 +398,6 @@ const DAILY: Achievement[] = [
 // substantive, computable ones), then monthly, then daily.
 export const ACHIEVEMENTS: Achievement[] = [
   ...KILLS,
-  ...WINS,
   ...TOURNAMENTS,
   ...SCRIMS,
   ...MVPS,

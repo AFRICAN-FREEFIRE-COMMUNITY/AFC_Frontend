@@ -596,6 +596,8 @@
     "mvpAwards": "Prêmios MVP",
     "kdr": "KDR",
     "winRate": "Taxa de Vitórias",
+    "teamWinRate": "Taxa de Vitórias da Equipe",
+    "teamWins": "Vitórias da Equipe",
     "avgDamage": "Dano Médio",
     "currentTier": "Nível Atual",
     "unranked": "Não Ranqueado",

@@ -199,6 +199,9 @@ interface PublicPlayer {
   } | null;
   total_matches: number;
   total_kills: number;
+  // The player's OWN record: matches they were on the sheet for, and how many of those their
+  // team won. total_wins is a subset of total_matches, so win_rate cannot exceed 100%. Distinct
+  // from team_wins / team_win_rate below (owner bug 2026-08-07).
   total_wins: number;
   total_mvps: number;
   kdr: number;
@@ -208,8 +211,11 @@ interface PublicPlayer {
   tournaments_kills: number;
   scrims_wins: number;
   tournaments_wins: number;
-  scrim_booyah: number;
-  tournament_booyah: number;
+  // The record of the TEAMS this player was rostered on: every match those teams played,
+  // whether or not the player was fielded. This is what the old total_wins silently measured.
+  team_matches: number;
+  team_wins: number;
+  team_win_rate: number;
   per_event: PerEventRow[];
   recent_matches: RecentMatchRow[];
   tier_history: TierHistoryRow[];
@@ -515,15 +521,16 @@ export function PlayerClient({ username }: { username: string }) {
         ? t("player.kdRatio")
         : metricLabel(activeMetric.id);
 
-  // Solo-vs-team split, straight from the real scalar fields (no math invented).
+  // Scrims-vs-tournaments split, straight from the real scalar fields (no math invented).
+  // The booyah pair that used to sit here (scrim_booyah / tournament_booyah) is gone: the backend
+  // incremented it in the same branch as scrims_wins / tournaments_wins so it was always the same
+  // number, and this card printed both rows (owner bug 2026-08-07).
   const split = player
     ? {
         soloKills: player.scrims_kills, // scrims surface as the "solo / scrim" line
         teamKills: player.tournaments_kills,
-        soloWins: player.scrims_wins,
-        teamWins: player.tournaments_wins,
-        soloBooyah: player.scrim_booyah,
-        teamBooyah: player.tournament_booyah,
+        soloBooyah: player.scrims_wins,
+        teamBooyah: player.tournaments_wins,
       }
     : null;
 
@@ -843,6 +850,20 @@ export function PlayerClient({ username }: { username: string }) {
                     <StatBox
                       label={t("player.winRate")}
                       value={`${player.win_rate.toFixed(1)}%`}
+                    />
+                    {/* The TEAM record, sitting next to the personal rate so the two are
+                        readable as the different statistics they are. "Wins"/"Win Rate"
+                        above count only matches this player was fielded in; these two count
+                        every match their rostered teams played. The old single "Win Rate"
+                        fused the two (team wins over the player's own match count) and
+                        printed 400% for four real players (owner bug 2026-08-07). */}
+                    <StatBox
+                      label={t("player.teamWins")}
+                      value={player.team_wins}
+                    />
+                    <StatBox
+                      label={t("player.teamWinRate")}
+                      value={`${player.team_win_rate.toFixed(1)}%`}
                     />
                     <StatBox
                       label={t("player.avgDamage")}
@@ -1227,14 +1248,6 @@ export function PlayerClient({ username }: { username: string }) {
                         </span>
                         <span className="text-center font-semibold">
                           {split.teamKills}
-                        </span>
-
-                        <span className="text-muted-foreground">{t("player.wins")}</span>
-                        <span className="text-center font-semibold">
-                          {split.soloWins}
-                        </span>
-                        <span className="text-center font-semibold">
-                          {split.teamWins}
                         </span>
 
                         <span className="text-muted-foreground">{t("player.booyahs")}</span>

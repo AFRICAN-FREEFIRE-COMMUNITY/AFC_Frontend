@@ -97,7 +97,8 @@ import { MyPlayerReports } from "./MyPlayerReports";
 // changing the data module. Unknown groups fall back to the raw string.
 const ACHIEVEMENT_GROUP_KEY: Record<string, string> = {
   Kills: "kills",
-  Wins: "wins",
+  // No lifetime "Wins" group: its ladder was merged into Booyahs (one number, one ladder).
+  // "Monthly Wins" below is a separate, still-live group.
   Tournaments: "tournaments",
   Scrims: "scrims",
   MVPs: "mvps",
@@ -271,7 +272,6 @@ export const ProfileContent = () => {
   const achievementCtx: AchievementContext = {
     stats: {
       total_kills: user?.stats?.total_kills ?? 0,
-      total_wins: user?.stats?.total_wins ?? 0,
       total_mvps: user?.stats?.total_mvps ?? 0,
       total_booyahs: user?.stats?.total_booyahs ?? 0,
       total_tournaments_played: user?.stats?.total_tournaments_played ?? 0,
@@ -551,14 +551,10 @@ export const ProfileContent = () => {
                       {user?.stats.total_kills}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("overview.wins")}
-                    </p>
-                    <p className="text-lg md:text-xl font-semibold">
-                      {user?.stats.total_wins}
-                    </p>
-                  </div>
+                  {/* NOTE: there is no separate "Wins" tile beside Booyahs any more. The backend
+                      computed total_wins and total_booyahs from the identical expression, so this
+                      grid showed the same number twice under two labels (owner bug 2026-08-07).
+                      A booyah IS a match win, so one number now carries one label. */}
                   <div>
                     <p className="text-sm text-muted-foreground">
                       {t("overview.mvps")}
@@ -606,6 +602,22 @@ export const ProfileContent = () => {
                           t("overview.unranked"))}
                     </p>
                   </div>
+                  {/* Total Matches: the DENOMINATOR behind KDR and Win Rate. The public
+                      player page has always shown it in its career snapshot; this page
+                      omitted it, which is what made a rate here look impossible to check
+                      against anything (owner bug 2026-08-07). Same richProfile payload the
+                      two tiles below use (POST /player/get-public-player-stats/), so it
+                      follows their render guard: real value or nothing, never a fake 0. */}
+                  {typeof richProfile?.total_matches === "number" && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {t("overview.totalMatches")}
+                      </p>
+                      <p className="text-lg md:text-xl font-semibold">
+                        {richProfile.total_matches}
+                      </p>
+                    </div>
+                  )}
                   {/* KDR + Win Rate only render when the rich endpoint actually
                       provides them, so we surface real values or nothing (never a
                       fake 0). */}
