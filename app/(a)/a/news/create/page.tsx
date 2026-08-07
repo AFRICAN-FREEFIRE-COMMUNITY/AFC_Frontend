@@ -29,6 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { newsCategories } from "@/constants";
+// Shared, self-expiring NEW tag (owner rule: a new option in a picker wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import { EventMultiSelect } from "@/components/news/EventMultiSelect";
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
@@ -203,7 +205,17 @@ function page() {
                       <SelectContent>
                         {newsCategories.map((category, index) => (
                           <SelectItem key={index} value={category.value}>
-                            {category.label}
+                            {/* NEW tag on a recently added CATEGORY (Education Updates,
+                                2026-08-07), so an admin who already knows this picker sees
+                                that a new option appeared in it. Driven by `newSince` on the
+                                shared constant, so this picker and the edit form stay in
+                                step, and the pill removes itself after 5 days. */}
+                            <span className="flex items-center gap-2">
+                              {category.label}
+                              {category.newSince && (
+                                <NewBadge since={category.newSince} />
+                              )}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>

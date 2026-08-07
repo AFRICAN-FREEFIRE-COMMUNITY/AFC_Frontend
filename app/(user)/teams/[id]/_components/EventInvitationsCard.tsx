@@ -39,6 +39,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// Shared, self-expiring NEW tag (owner rule: any new surface wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -87,6 +89,15 @@ interface TeamMemberRow {
 }
 
 const STAFF_ROLES = ["coach", "manager", "analyst"];
+
+// The accept endpoint forwards register-for-event's refusal verbatim, and every refusal body on
+// both paths carries a human-readable `message`. Narrowing through axios's own type guard states
+// that shape once and checks it, instead of reaching through an `any` at each call site.
+function errorMessage(err: unknown): string | undefined {
+  return axios.isAxiosError<{ message?: string }>(err)
+    ? err.response?.data?.message
+    : undefined;
+}
 
 const STATUS_CLASS: Record<TeamInvitation["status"], string> = {
   pending: "text-yellow-400 border-yellow-800",
@@ -173,12 +184,12 @@ export function EventInvitationsCard({
       toast.success(t("team.toastAccepted", { event: acceptTarget.event_name }));
       setAcceptTarget(null);
       fetchInvitations();
-    } catch (err: any) {
+    } catch (err) {
       // The message comes from register-for-event itself ("Registration limit reached.",
       // "Roster must contain 4 to 6 players.", the per-player requirements body, and so on). It is
       // shown as-is because the invited team is judged by the same rules as everybody else, and
       // the hint says plainly that nothing was accepted.
-      toast.error(err?.response?.data?.message || t("team.toastAcceptFailed"), {
+      toast.error(errorMessage(err) || t("team.toastAcceptFailed"), {
         description: t("team.acceptBlockedHint"),
         duration: 10000,
       });
@@ -200,8 +211,8 @@ export function EventInvitationsCard({
       setDeclineTarget(null);
       setReason("");
       fetchInvitations();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || t("team.toastDeclineFailed"));
+    } catch (err) {
+      toast.error(errorMessage(err) || t("team.toastDeclineFailed"));
     } finally {
       setBusy(false);
     }
@@ -221,6 +232,11 @@ export function EventInvitationsCard({
         <CardTitle className="flex items-center gap-2 flex-wrap">
           <IconMailForward className="size-5 text-primary" />
           <span>{t("team.title")}</span>
+          {/* NEW tag: being invited to an event as a team, and answering for yourself, is a
+              thing captains could not do before 2026-08-06. The badge expires by itself
+              5 days on. It sits inside the title's existing flex-wrap row, so on a phone it
+              wraps with the pending-count pill instead of stretching the card. */}
+          <NewBadge since="2026-08-06" />
           {pendingCount > 0 && (
             <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-yellow-400 border-yellow-800">
               {t("team.pendingCount", { count: pendingCount })}

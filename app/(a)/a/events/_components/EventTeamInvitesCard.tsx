@@ -38,6 +38,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// Shared, self-expiring NEW tag (owner rule: any new surface wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import {
   Dialog,
   DialogContent,
@@ -89,6 +91,16 @@ interface EventTeamInvitesCardProps {
   registeredTeamIds?: number[];
 }
 
+// Every error body the invitation endpoints return carries a human-readable `message`
+// (afc_tournament_and_scrims/event_invites.py returns {"message": ...} on every refusal). Narrowing
+// through axios's own type guard states that shape once and checks it, instead of reaching through
+// an `any` at four separate call sites.
+function errorMessage(err: unknown): string | undefined {
+  return axios.isAxiosError<{ message?: string }>(err)
+    ? err.response?.data?.message
+    : undefined;
+}
+
 // Badge colouring per status. Outline badges with a coloured border are the AFC idiom for a state
 // pill (see the tier badges), so a status reads at a glance without inventing a new shape.
 const STATUS_CLASS: Record<Invitation["status"], string> = {
@@ -138,11 +150,11 @@ export function EventTeamInvitesCard({
     } finally {
       setLoading(false);
     }
-    // `t` is deliberately NOT a dependency, and this is not laziness - see the note on the dialog
-    // effect below. With it in the list this callback is rebuilt on every render, and the effect
-    // that calls it re-fires, so the list refetches continuously.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, eventId]);
+    // `t` is listed even though it is only read in the failure toast. It is safe to list: use-intl
+    // memoises the translator on the intl context, so its identity does not change between renders
+    // (measured in the browser, 2026-08-06: stable across 30 consecutive renders including typing).
+    // Listing it therefore costs nothing and keeps this callback honest with exhaustive-deps.
+  }, [token, eventId, t]);
 
   useEffect(() => {
     fetchInvitations();
@@ -151,14 +163,13 @@ export function EventTeamInvitesCard({
   // The picker's team list is only fetched when the dialog opens (the whole roster is a big list
   // and most visits to this tab never invite anybody). Mirrors AddTeamsModal.
   //
-  // `t` MUST NOT be in the dependency list, even though the effect calls it (found in the browser,
-  // 2026-08-06). useTranslations returns a NEW function identity on every render, so listing it
-  // makes this effect re-run on every render while the dialog is open - and this effect resets
-  // selected / search / message. The symptom was brutal and silent: an organizer ticked three
-  // teams, typed a note, and the act of typing (one setMessage -> one render) cleared the three
-  // ticks, so "Send invitations" was permanently disabled and nothing said why. The effect must
-  // fire on OPEN, which is exactly what these two dependencies express.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // This effect RESETS the form (selected / search / message), so it must fire on OPEN and not on
+  // an ordinary re-render: if it re-ran while the dialog was open, an organizer's ticked teams
+  // would vanish as they typed their note. That is safe with `t` listed, because use-intl memoises
+  // the translator on the intl context (verified in the browser: `t` identity stable across 30
+  // renders, and typing into the message box does not re-run this effect). The locale itself can
+  // only change on the profile page, which navigates away, so it can never swap under an open
+  // dialog either.
   useEffect(() => {
     if (!open || !token) return;
     setTeamsLoading(true);
@@ -172,7 +183,7 @@ export function EventTeamInvitesCard({
       .then((res) => setTeams(res.data.teams ?? []))
       .catch(() => toast.error(t("organizer.toastTeamsFailed")))
       .finally(() => setTeamsLoading(false));
-  }, [open, token]);
+  }, [open, token, t]);
 
   // Teams that already hold a PENDING invitation cannot be invited twice (the backend skips them,
   // and the picker greys them out so an organizer never selects a no-op).
@@ -223,10 +234,8 @@ export function EventTeamInvitesCard({
       }
       setOpen(false);
       fetchInvitations();
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || t("organizer.toastSendFailed"),
-      );
+    } catch (err) {
+      toast.error(errorMessage(err) || t("organizer.toastSendFailed"));
     } finally {
       setSending(false);
     }
@@ -242,10 +251,8 @@ export function EventTeamInvitesCard({
       );
       toast.success(t("organizer.toastCancelled"));
       fetchInvitations();
-    } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || t("organizer.toastCancelFailed"),
-      );
+    } catch (err) {
+      toast.error(errorMessage(err) || t("organizer.toastCancelFailed"));
     } finally {
       setCancellingId(null);
     }
@@ -255,7 +262,13 @@ export function EventTeamInvitesCard({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
-          <span>{t("organizer.title")}</span>
+          {/* Title + NEW tag grouped in their own flex row so the CardTitle's
+              justify-between still puts the title left and the button right. Inviting a
+              team to an event shipped 2026-08-06; the badge expires by itself 5 days on. */}
+          <span className="flex items-center gap-2">
+            {t("organizer.title")}
+            <NewBadge since="2026-08-06" />
+          </span>
           <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
             <IconMailForward className="size-4 mr-1.5" />
             {t("organizer.inviteButton")}

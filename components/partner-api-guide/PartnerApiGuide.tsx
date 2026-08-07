@@ -43,6 +43,8 @@ import { toast } from "sonner";
 import { IconCheck, IconCopy, IconKey, IconLink } from "@tabler/icons-react";
 
 import { PageHeader } from "@/components/PageHeader";
+// Shared, self-expiring NEW tag (owner rule: any new page wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -229,7 +231,18 @@ export function PartnerApiGuide() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t("title")} description={t("description")} />
+      {/* NEW tag: the guide itself is the addition that shipped 2026-08-07 (the white-screen
+          repair that rode along in the same commit is a FIX and deliberately carries no badge).
+          flex-wrap keeps the pill on its own line on a phone instead of widening the page. */}
+      <PageHeader
+        title={
+          <span className="flex flex-wrap items-center gap-2">
+            {t("title")}
+            <NewBadge since="2026-08-07" />
+          </span>
+        }
+        description={t("description")}
+      />
 
       {/* Connect card. Lifted above the prose because a partner arriving with a key in
           hand wants the base URL and one working call, not a preamble. */}

@@ -24,6 +24,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+// Shared, self-expiring NEW tag (owner rule: a new control wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 
 // The maths. Pure, unit-tested in lib/__tests__/prizeSuggestion.test.ts. Everything about WHICH
 // curve and WHY (it is fitted to AFC's own historical payouts) is documented there, not here.
@@ -150,6 +152,12 @@ export function PrizeSuggestionDialog({
         <Button type="button" variant="outline">
           <Wand2 className="w-4 h-4 mr-2" />
           {t("prizeSuggest.trigger")}
+          {/* NEW tag on the trigger, tagged HERE rather than at the two call sites, so the
+              create wizard's Step 5 and the edit form's Prize Rules tab both get it from one
+              line and cannot drift. Shipped 2026-08-07; expires by itself 5 days on.
+              Inside the button it just follows the label, and the Badge's shrink-0 +
+              whitespace-nowrap keep the button from being stretched or wrapped. */}
+          <NewBadge since="2026-08-07" className="ml-2" />
         </Button>
       </DialogTrigger>
 

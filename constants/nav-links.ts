@@ -150,6 +150,11 @@ interface AdminNavLink {
   icon: any;
   comingSoon?: boolean;
   allowedRoles?: string[]; // Optional: if omitted, all admins see it
+  // Go-live day ("YYYY-MM-DD") for the shared NEW tag, per the owner's rule that any new
+  // surface wears one for 5 days. components/nav-main.tsx renders <NewBadge since={newSince}>
+  // beside the label, and the badge removes ITSELF once the window closes - so this line is
+  // left in place rather than cleaned up later. See components/NewBadge.tsx + lib/newBadge.ts.
+  newSince?: string;
 }
 
 export const adminNavLinks: AdminNavLink[] = [
@@ -352,6 +357,8 @@ export const adminNavLinks: AdminNavLink[] = [
     navKey: "helpCenter",
     slug: "/a/help",
     icon: IconHelpCircle,
+    // Shipped 2026-08-06. The NEW tag beside this entry expires on its own 5 days later.
+    newSince: "2026-08-06",
   },
   {
     label: "Admin Partner Verification",

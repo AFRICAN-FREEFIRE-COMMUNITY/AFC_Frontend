@@ -26,6 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { newsCategories } from "@/constants";
+// Shared, self-expiring NEW tag (owner rule: a new option in a picker wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import { EventMultiSelect } from "@/components/news/EventMultiSelect";
 import { use, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
@@ -348,7 +350,15 @@ export default function EditNewsForm({ params }: { params: Params }) {
                       <SelectContent>
                         {newsCategories.map((category, index) => (
                           <SelectItem key={index} value={category.value}>
-                            {category.label}
+                            {/* NEW tag on a recently added CATEGORY (Education Updates,
+                                2026-08-07). Same `newSince` source as the create form, so
+                                the two pickers cannot drift, and it expires by itself. */}
+                            <span className="flex items-center gap-2">
+                              {category.label}
+                              {category.newSince && (
+                                <NewBadge since={category.newSince} />
+                              )}
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>

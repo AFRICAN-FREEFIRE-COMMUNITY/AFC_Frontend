@@ -60,6 +60,8 @@ import {
   IconLayoutDashboard,
 } from "@tabler/icons-react";
 import { Logo } from "@/components/Logo";
+// Shared, self-expiring NEW tag for recently added nav entries (owner rule: 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import Link from "next/link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -91,7 +93,19 @@ const SELECTED_ORG_KEY = "organizer:selected-slug";
 // Each item carries a `key` (a stable i18n sub-key under the "organizer.nav.*"
 // namespace) rather than a literal label, so the visible link text is resolved
 // at render via next-intl (see OrganizerSidebar's t(`nav.${item.key}`)).
-const NAV_ITEMS = [
+// Explicitly typed (rather than inferred) because only SOME entries carry `newSince`:
+// without the annotation TypeScript infers a union of two object shapes and reading
+// item.newSince at the render site below is an error on the half that lacks it.
+type OrganizerNavItem = {
+  // i18n key under the "organizer" namespace -> t(`nav.${key}`).
+  key: string;
+  href: string;
+  // Go-live day ("YYYY-MM-DD") for the shared NEW tag, per the owner's 5-day rule.
+  // components/NewBadge.tsx expires it by itself, so entries are never tidied up later.
+  newSince?: string;
+};
+
+const NAV_ITEMS: OrganizerNavItem[] = [
   { key: "overview", href: "/organizer/overview" },
   { key: "events", href: "/organizer/events" },
   // "Drafts" - the org's UNPUBLISHED (is_draft=True) events, saved from the
@@ -146,7 +160,9 @@ const NAV_ITEMS = [
   // Last in the list and deliberately NOT permission-gated: someone who cannot yet do
   // a thing should still be able to read how it works. It complements the per-page
   // "Take a tour" launcher in the header, which spotlights the same controls live.
-  { key: "help", href: "/organizer/help" },
+  // `newSince` drives the shared self-expiring NEW tag (owner rule: 5 days). It shipped
+  // 2026-08-06; the badge removes itself after that, so this line stays as written.
+  { key: "help", href: "/organizer/help", newSince: "2026-08-06" },
 ];
 
 // ── Sidebar ──────────────────────────────────────────────────────────────────
@@ -228,6 +244,22 @@ function OrganizerSidebar() {
                         onClick={() => setOpenMobile(false)}
                       >
                         <span>{label}</span>
+                        {/* NEW tag, pinned right with ml-auto (same idiom as the admin
+                            sidebar's badges) so it fills the row's spare width instead
+                            of pushing the label. Renders nothing once 5 days have passed.
+                            On the ACTIVE row (filled bg-primary, see the cn() above) the
+                            badge's default green would sit on green and vanish, so it
+                            flips to the row's foreground colour, exactly as the label does. */}
+                        {item.newSince && (
+                          <NewBadge
+                            since={item.newSince}
+                            className={cn(
+                              "ml-auto",
+                              isActive &&
+                                "border-primary-foreground/60 bg-primary-foreground/15 text-primary-foreground",
+                            )}
+                          />
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

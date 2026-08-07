@@ -3,6 +3,8 @@
 import { useAuthModal } from "@/components/AuthModal";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
+// Shared, self-expiring NEW tag (owner rule: a new option in a picker wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import {
   extractTiptapText,
   truncateText,
@@ -89,11 +91,14 @@ const page = () => {
   // Category options drive both the filter dropdown and the card badge label
   // (via getCategoryLabel). Labels are localized from messages/en/news.json
   // (categories.*); the `value` is the backend category key and stays untranslated.
-  const categories = [
+  // `newSince` carries the shared NEW tag onto a recently added option, per the owner's rule
+  // (a new option in a picker wears one for 5 days). Typed explicitly because only one entry
+  // has it; inferred, the array becomes a union and reading .newSince errors on the rest.
+  const categories: { value: string; label: string; newSince?: string }[] = [
     { value: "all", label: t("categories.all") },
     { value: "general", label: t("categories.general") },
     { value: "tournament", label: t("categories.tournament") },
-    { value: "education", label: t("categories.education") },
+    { value: "education", label: t("categories.education"), newSince: "2026-08-07" },
     { value: "bans", label: t("categories.bans") },
   ];
 
@@ -314,7 +319,13 @@ const page = () => {
             <SelectContent>
               {categories.map((category) => (
                 <SelectItem key={category.value} value={category.value}>
-                  {category.label}
+                  {/* NEW tag on a recently added category (Education Updates, 2026-08-07),
+                      so a returning reader notices there is a new kind of post to filter
+                      for. Removes itself after 5 days (components/NewBadge.tsx). */}
+                  <span className="flex items-center gap-2">
+                    {category.label}
+                    {category.newSince && <NewBadge since={category.newSince} />}
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>

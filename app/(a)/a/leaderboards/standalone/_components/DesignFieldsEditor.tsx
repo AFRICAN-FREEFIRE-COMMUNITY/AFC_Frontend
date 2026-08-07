@@ -70,6 +70,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+// Shared, self-expiring NEW tag (owner rule: a new option in a picker wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import {
   Select,
   SelectContent,
@@ -1841,8 +1843,17 @@ export function DesignFieldsEditor({
                     <SelectItem value="leaderboard">Leaderboard</SelectItem>
                     <SelectItem value="versus">Versus (head-to-head)</SelectItem>
                     {/* Booyah (owner 2026-08-06): a design laid out for the winner moment. Same
-                        tools, different rows - see the hint under the canvas. */}
-                    <SelectItem value="booyah">Booyah (winner moment)</SelectItem>
+                        tools, different rows - see the hint under the canvas.
+                        NEW tag: this is a new OPTION in an existing picker, exactly the case the
+                        owner's rule covers, and a designer who already knows this dropdown would
+                        not otherwise spot it. Live 2026-08-07 (the day the design-driven booyah
+                        shipped); the pill removes itself 5 days on. */}
+                    <SelectItem value="booyah">
+                      <span className="flex items-center gap-2">
+                        Booyah (winner moment)
+                        <NewBadge since="2026-08-07" />
+                      </span>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

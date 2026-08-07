@@ -55,6 +55,8 @@ import {
   useAccountIdentity,
   useCanRepairIdentity,
 } from "../../_components/AccountIdentityControls";
+// Shared, self-expiring NEW tag (owner rule: a new control wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 
 interface PlayerDetails {
   player_id: number;
@@ -359,11 +361,18 @@ const Page = ({ params }: Props) => {
                   <p className="text-sm break-all">{player.email ?? "-"}</p>
                   {/* Admin email fix for locked-out users. POST auth/admin/set-user-email/. */}
                   {canRepair && identity && (
-                    <EditEmailDialog
-                      playerName={player.name}
-                      identity={identity}
-                      onSuccess={onIdentityChanged}
-                    />
+                    <>
+                      <EditEmailDialog
+                        playerName={player.name}
+                        identity={identity}
+                        onSuccess={onIdentityChanged}
+                      />
+                      {/* NEW tag BESIDE the trigger rather than inside it: the button is
+                          size="sm" and a pill in it would stretch the control. This row is
+                          already flex-wrap, so the badge wraps on a phone instead of pushing
+                          the email out. Shipped 2026-08-07; expires by itself 5 days on. */}
+                      <NewBadge since="2026-08-07" />
+                    </>
                   )}
                 </div>
               </div>
@@ -391,11 +400,15 @@ const Page = ({ params }: Props) => {
                   <p className="text-sm">{player.uid || "-"}</p>
                   {/* Admin UID fix / removal. POST auth/admin/set-user-uid/. */}
                   {canRepair && identity && (
-                    <EditUidDialog
-                      playerName={player.name}
-                      identity={identity}
-                      onSuccess={onIdentityChanged}
-                    />
+                    <>
+                      <EditUidDialog
+                        playerName={player.name}
+                        identity={identity}
+                        onSuccess={onIdentityChanged}
+                      />
+                      {/* Same placement reasoning as the email control above. */}
+                      <NewBadge since="2026-08-07" />
+                    </>
                   )}
                 </div>
               </div>

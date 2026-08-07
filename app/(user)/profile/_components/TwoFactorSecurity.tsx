@@ -57,6 +57,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/PageHeader";
+// Shared, self-expiring NEW tag (owner rule: any new page wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import { FullLoader } from "@/components/Loader";
 import { LocalTime } from "@/components/LocalTime";
 import { useAuth } from "@/contexts/AuthContext";
@@ -234,7 +236,17 @@ export function TwoFactorSecurity() {
 
   return (
     <div className="container mx-auto py-6">
-      <PageHeader title={t("security.title")} description={t("security.subtitle")} />
+      {/* NEW tag: the whole Sign-in security page shipped 2026-08-06. flex-wrap so on a
+          phone the pill drops below the heading instead of widening the page. */}
+      <PageHeader
+        title={
+          <span className="flex flex-wrap items-center gap-2">
+            {t("security.title")}
+            <NewBadge since="2026-08-06" />
+          </span>
+        }
+        description={t("security.subtitle")}
+      />
 
       {failed ? (
         <Card className="mt-4">

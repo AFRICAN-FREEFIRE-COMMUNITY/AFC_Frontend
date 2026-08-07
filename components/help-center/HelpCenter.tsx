@@ -49,6 +49,8 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 
 import { PageHeader } from "@/components/PageHeader";
+// Shared, self-expiring NEW tag (owner rule: any new page wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -175,7 +177,16 @@ export function HelpCenter({ portal }: { portal: HelpPortal }) {
   return (
     <div>
       <PageHeader
-        title={t("page.title")}
+        // NEW tag beside the title, for both portals at once (this component is the whole
+        // page for /a/help and /organizer/help). The Help Center shipped 2026-08-06 and the
+        // badge disappears on its own 5 days on. flex-wrap so on a phone the pill drops to
+        // its own line under the heading rather than widening the page.
+        title={
+          <span className="flex flex-wrap items-center gap-2">
+            {t("page.title")}
+            <NewBadge since="2026-08-06" />
+          </span>
+        }
         description={
           portal === "admin"
             ? t("page.descriptionAdmin")

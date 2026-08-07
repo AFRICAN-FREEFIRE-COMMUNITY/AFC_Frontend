@@ -31,6 +31,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+// Shared, self-expiring NEW tag (owner rule: a new option in a picker wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -996,8 +998,14 @@ function OverlayCard({
               <SelectContent>
                 {booyahDesigns.length > 0 ? (
                   <SelectGroup>
-                    <SelectLabel className="text-[0.65rem]">
+                    {/* NEW tag on the GROUP label, not on each design: the new thing here is
+                        that booyah-typed designs are now offered at all (they draw the winner
+                        moment instead of the built-in banner), while the designs listed under
+                        it are the organizer's own and are not themselves new. Live 2026-08-07;
+                        the pill removes itself 5 days on. */}
+                    <SelectLabel className="flex items-center gap-2 text-[0.65rem]">
                       {t("studio.booyahDesignsGroup")}
+                      <NewBadge since="2026-08-07" />
                     </SelectLabel>
                     {booyahDesigns.map((d) => (
                       <SelectItem key={d.id} value={String(d.id)}>

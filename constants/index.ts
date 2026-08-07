@@ -142,10 +142,18 @@ export const DEFAULT_PROFILE_PICTURE =
 // keep this list and that one in the same order. Labels stay English here because the whole admin
 // News area is English-operated; the PUBLIC labels are localized separately from
 // messages/<locale>/news.json (categories.*) and home.json (latestNews.categories.*).
-export const newsCategories = [
+// `newSince` carries the shared NEW tag into the picker for a recently added CATEGORY, per the
+// owner's rule that a new option in a picker gets one for 5 days. Typed explicitly because only
+// some entries have it: inferred, the array becomes a union and reading .newSince errors on the
+// half without it. components/NewBadge.tsx expires the pill on its own, so the line stays put.
+export const newsCategories: {
+  value: string;
+  label: string;
+  newSince?: string;
+}[] = [
   { value: "general", label: "General News" },
   { value: "tournament", label: "Tournament Updates" },
-  { value: "education", label: "Education Updates" },
+  { value: "education", label: "Education Updates", newSince: "2026-08-07" },
   { value: "bans", label: "Banned Player/Team Updates" },
 ];
 

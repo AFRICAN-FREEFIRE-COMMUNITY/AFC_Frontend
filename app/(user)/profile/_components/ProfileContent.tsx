@@ -37,6 +37,8 @@ import { formatWord } from "@/lib/utils";
 // (components/LocalTime.tsx). Replaces the old formatDate() calls, which rendered in
 // UTC with a hardcoded "en-US" locale. Used here for the team-history join date.
 import { LocalTime } from "@/components/LocalTime";
+// Shared, self-expiring NEW tag (owner rule: any new surface wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 // formatLocalTime: the string-form sibling of <LocalTime/> (lib/i18n/time.ts), for
 // the (rare) places a plain string is needed instead of JSX. Used here to localize
 // the "Applied {date}" line whose date is passed as a t() parameter.
@@ -909,8 +911,13 @@ export const ProfileContent = () => {
       <Card className="mt-4">
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-base font-semibold">
+            {/* NEW tag on the card title: two-step sign-in shipped 2026-08-06, and this
+                card is the only way an ordinary player finds it, so it is exactly the
+                "returning user would not otherwise notice it" case the rule is for.
+                Expires by itself 5 days on. */}
+            <h3 className="flex flex-wrap items-center gap-2 text-base font-semibold">
               {tTwoFactor("profileCard.title")}
+              <NewBadge since="2026-08-06" />
             </h3>
             <p className="text-sm text-muted-foreground mt-1">
               {tTwoFactor("profileCard.description")}

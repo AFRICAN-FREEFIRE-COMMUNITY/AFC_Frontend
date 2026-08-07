@@ -18,6 +18,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+// Shared, self-expiring NEW tag (owner rule: any new surface wears one for 5 days).
+// Driven by each item's `newSince` in constants/nav-links.ts; it renders nothing once
+// the window closes, so nav entries are never cleaned up by hand.
+import { NewBadge } from "@/components/NewBadge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -33,6 +37,8 @@ export function NavMain({
     icon?: Icon | LucideIcon;
     comingSoon?: boolean;
     allowedRoles?: string[];
+    // "YYYY-MM-DD" the entry went live; drives the self-expiring NEW tag (see below).
+    newSince?: string;
   }[];
 }) {
   const pathname = usePathname();
@@ -123,6 +129,24 @@ export function NavMain({
                       <Link href={item.slug} onClick={handleLinkClick}>
                         {IconComponent && <IconComponent className="size-4" />}
                         <span>{label}</span>
+                        {/* NEW tag, pinned right with ml-auto exactly like the "Soon"
+                            badge above, so it uses the row's spare width and never
+                            shifts the icon or the label. Renders nothing after 5 days.
+                            The active row is filled with bg-primary, and the badge's
+                            default green-on-transparent would be green on green there -
+                            invisible, as it was when first tried. So on the active row
+                            only, it flips to the row's own foreground colour, which is
+                            the same override this button already applies to its label. */}
+                        {item.newSince && (
+                          <NewBadge
+                            since={item.newSince}
+                            className={cn(
+                              "ml-auto",
+                              isActive &&
+                                "border-primary-foreground/60 bg-primary-foreground/15 text-primary-foreground",
+                            )}
+                          />
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   )}

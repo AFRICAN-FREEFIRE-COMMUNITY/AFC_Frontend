@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useTransition, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// Shared, self-expiring NEW tag (owner rule: any new surface wears one for 5 days).
+import { NewBadge } from "@/components/NewBadge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -1979,7 +1981,14 @@ const Page = ({ params }: { params: Params }) => {
               team with two seats left would mint a link that stops working part way through and
               look like a bug to whoever it was shared with. */}
           <div className="space-y-2 border-t pt-3">
-            <Label htmlFor="invite-uses">{t("teamDetail.inviteUsesLabel")}</Label>
+            {/* NEW tag beside the control's own label, not the dialog title: the dialog is
+                old, this seats picker is the 2026-08-05 addition, and a captain who has used
+                this dialog before would otherwise not notice it appear. Expires by itself
+                5 days on (components/NewBadge.tsx). */}
+            <Label htmlFor="invite-uses" className="flex flex-wrap items-center gap-2">
+              {t("teamDetail.inviteUsesLabel")}
+              <NewBadge since="2026-08-05" />
+            </Label>
             <Select
               value={String(inviteMaxUses)}
               onValueChange={(v) => setInviteMaxUses(Number(v))}
