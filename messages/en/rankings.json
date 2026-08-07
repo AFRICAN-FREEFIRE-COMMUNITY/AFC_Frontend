@@ -749,7 +749,7 @@
         "or": "or"
       },
       "fields": {
-        "prize": "Prize pool (₦)",
+        "prize": "Prize pool",
         "teams": "Registered teams",
         "players": "Registered players",
         "format": "Format"
@@ -771,7 +771,14 @@
         "dragToReorder": "Drag to reorder",
         "ruleEnabled": "Rule enabled",
         "deleteRule": "Delete rule",
-        "removeCondition": "Remove condition"
+        "removeCondition": "Remove condition",
+        "thresholdCurrency": "Threshold currency"
+      },
+      "currency": {
+        "approxNgn": "≈ {ngn} at today's rate",
+        "noRate": "No exchange rate is stored for {currency}, so this condition cannot be compared and the rule matches nothing until one is.",
+        "fxNoteTitle": "One of your thresholds is not in naira.",
+        "fxNote": "A threshold in a currency other than naira is converted to naira at the exchange rate in force each time an event is classified, so the events it matches can change as the rate moves. A threshold written in naira is fixed and never uses an exchange rate."
       },
       "stats": {
         "activeRules": "Active rules",
@@ -792,6 +799,9 @@
         "title": "Test a tournament",
         "blurb": "Enter sample event details to see which rule fires and the tier it would get.",
         "prizeLabel": "Prize pool",
+        "prizeCurrencyLabel": "Prize pool currency",
+        "comparedAs": "Compared as {ngn}",
+        "convertFailed": "No exchange rate is stored for {currency}, so a pool in that currency cannot be tested right now.",
         "teamsLabel": "Teams",
         "playersLabel": "Players",
         "formatLabel": "Format",

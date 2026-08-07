@@ -749,7 +749,7 @@
         "or": "ou"
       },
       "fields": {
-        "prize": "Prémio total (₦)",
+        "prize": "Prémio total",
         "teams": "Equipas inscritas",
         "players": "Jogadores inscritos",
         "format": "Formato"
@@ -771,7 +771,14 @@
         "dragToReorder": "Arraste para reorganizar",
         "ruleEnabled": "Regra ativa",
         "deleteRule": "Eliminar regra",
-        "removeCondition": "Remover condição"
+        "removeCondition": "Remover condição",
+        "thresholdCurrency": "Moeda do limite"
+      },
+      "currency": {
+        "approxNgn": "≈ {ngn} à taxa de hoje",
+        "noRate": "Não existe qualquer taxa de câmbio guardada para {currency}, pelo que esta condição não pode ser comparada e a regra não corresponde a nada enquanto não existir.",
+        "fxNoteTitle": "Um dos seus limites não está em nairas.",
+        "fxNote": "Um limite definido numa moeda que não o naira é convertido para nairas à taxa de câmbio em vigor sempre que um evento é classificado, pelo que os eventos a que corresponde podem mudar à medida que a taxa varia. Um limite escrito em nairas é fixo e nunca utiliza uma taxa de câmbio."
       },
       "stats": {
         "activeRules": "Regras ativas",
@@ -792,6 +799,9 @@
         "title": "Testar um torneio",
         "blurb": "Introduza os dados de um evento de exemplo para ver que regra é acionada e o nível que receberia.",
         "prizeLabel": "Prémio total",
+        "prizeCurrencyLabel": "Moeda do prémio total",
+        "comparedAs": "Comparado como {ngn}",
+        "convertFailed": "Não existe qualquer taxa de câmbio guardada para {currency}, pelo que um prémio nessa moeda não pode ser testado neste momento.",
         "teamsLabel": "Equipas",
         "playersLabel": "Jogadores",
         "formatLabel": "Formato",

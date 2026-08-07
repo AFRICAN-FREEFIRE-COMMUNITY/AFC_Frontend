@@ -749,7 +749,7 @@
         "or": "ou"
       },
       "fields": {
-        "prize": "Cagnotte (₦)",
+        "prize": "Cagnotte",
         "teams": "Équipes inscrites",
         "players": "Joueurs inscrits",
         "format": "Format"
@@ -771,7 +771,14 @@
         "dragToReorder": "Faites glisser pour réorganiser",
         "ruleEnabled": "Règle activée",
         "deleteRule": "Supprimer la règle",
-        "removeCondition": "Retirer la condition"
+        "removeCondition": "Retirer la condition",
+        "thresholdCurrency": "Devise du seuil"
+      },
+      "currency": {
+        "approxNgn": "≈ {ngn} au taux du jour",
+        "noRate": "Aucun taux de change n'est enregistré pour {currency} : cette condition ne peut donc pas être comparée et la règle ne correspond à rien tant qu'il n'y en a pas.",
+        "fxNoteTitle": "L'un de vos seuils n'est pas en nairas.",
+        "fxNote": "Un seuil libellé dans une devise autre que le naira est converti en nairas au taux de change en vigueur à chaque classement d'un événement, donc les événements auxquels il correspond peuvent changer quand le taux évolue. Un seuil écrit en nairas est fixe et n'utilise jamais de taux de change."
       },
       "stats": {
         "activeRules": "Règles actives",
@@ -792,6 +799,9 @@
         "title": "Tester un tournoi",
         "blurb": "Saisissez les détails d'un événement type pour voir quelle règle se déclenche et le niveau obtenu.",
         "prizeLabel": "Cagnotte",
+        "prizeCurrencyLabel": "Devise de la cagnotte",
+        "comparedAs": "Comparé comme {ngn}",
+        "convertFailed": "Aucun taux de change n'est enregistré pour {currency}, une cagnotte dans cette devise ne peut donc pas être testée pour le moment.",
         "teamsLabel": "Équipes",
         "playersLabel": "Joueurs",
         "formatLabel": "Format",

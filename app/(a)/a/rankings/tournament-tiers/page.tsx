@@ -45,6 +45,12 @@ import { cn } from "@/lib/utils";
 import { FullLoader } from "@/components/Loader";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import { InfoTip } from "@/components/ui/info-tip";
+// Currency on a prize threshold (owner 2026-08-07). AFC_CURRENCIES is the platform's ONE currency
+// menu - the same list the prize-pool and registration-fee forms offer, kept identical to its
+// backend twin afc_auth/currencies.py by a test. Never hand-roll a currency array here.
+import { AFC_CURRENCIES } from "@/lib/currencies";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { convertMoney } from "@/lib/money";
 // Backend-reported problems are rendered with the SAME primitives the Scoring Config editor
 // uses (orange pill in the header, orange message row under it). Both pages report the output
 // of the same checker - afc_rankings/scoring/validation.py - so they must not grow two
@@ -73,12 +79,36 @@ import {
  * Contradictions: the list response AND every write response carry a `contradictions` array
  * (see the CONTRADICTIONS note in admin_tournament_tiers.py). They are advisory - the backend
  * saves either way - so they surface as a banner plus a per-rule marker, never as a blocker.
+ *
+ * Currency (owner 2026-08-07): a PRIZE threshold carries the currency it is written in, but the
+ * comparison always happens in naira - the backend converts both the rule's threshold and the
+ * event's pool before comparing (afc_rankings/scoring/currency.py). Two things follow for this
+ * page, and both are deliberate:
+ *   • a threshold in any currency other than naira shows its naira equivalent underneath, because
+ *     a list of bars in mixed currencies is otherwise impossible to read in priority order;
+ *   • that equivalent is labelled as today's rate and carries the drift warning, because the
+ *     conversion happens at CLASSIFICATION time, so the same rule can match a different set of
+ *     events next month with nobody having edited it. A naira threshold is fixed and says so by
+ *     showing no rate line at all.
+ * Rates come from CurrencyContext (GET /auth/fx-rates/), which is served out of the same FxRate
+ * table the backend classifier reads, so the preview and the real comparison agree.
  */
 
 type Tier = 1 | 2 | 3;
 type Field = "prize" | "teams" | "players" | "format";
 type Op = "gte" | "lte" | "is_lan" | "is_virtual";
-type Condition = { id: number; field: Field; op: Op; value: number };
+type Condition = {
+  id: number;
+  field: Field;
+  op: Op;
+  value: number;
+  /** ISO code the threshold is WRITTEN in. Prize only; always set for prize (the server
+   *  normalizes an omitted currency to NGN, which is what a legacy rule already meant). */
+  currency: string;
+  /** The server's own naira figure for this threshold at the rate it last read. Used only as the
+   *  fallback while CurrencyContext is still fetching, so the rate line never renders blank. */
+  valueNgn: number | null;
+};
 type Rule = {
   id: string;            // local id for DnD / React keys (server id stringified, or "new-…" for unsaved)
   serverId: number | null; // backing EventTierRule.id, or null if not yet persisted
@@ -115,7 +145,50 @@ const FORMAT_OPS: { value: Op; labelKey: string }[] = [
   { value: "is_virtual", labelKey: "ops.isVirtual" },
 ];
 const isNumeric = (f: Field) => f !== "format";
-const ngn = (n: number) => "₦" + n.toLocaleString();
+const ngn = (n: number) => "₦" + Math.round(n).toLocaleString();
+
+// The currency every prize threshold is COMPARED in, whatever it was authored in. Mirrors
+// afc_rankings/scoring/currency.BASE_CURRENCY; the list response echoes it as `base_currency`.
+const BASE_CURRENCY = "NGN";
+// A brand new prize condition starts in naira, so adding a condition never silently changes the
+// currency an admin was last working in and never depends on FX data to mean something.
+const DEFAULT_PRIZE_CURRENCY = BASE_CURRENCY;
+
+/**
+ * A prize threshold restated in naira, or null when it cannot be worked out.
+ *
+ * Prefers the LIVE client rates so the figure tracks the amount as the admin types. Falls back to
+ * the server's own `value_ngn` for a saved condition while CurrencyContext is still fetching.
+ * Returns null when neither is available (no rate for that currency), which the caller renders as
+ * a warning rather than a number - a threshold the backend cannot convert matches nothing at all.
+ */
+function thresholdInNgn(c: Condition, rates: Record<string, number>): number | null {
+  const cur = (c.currency || BASE_CURRENCY).toUpperCase();
+  if (cur === BASE_CURRENCY) return c.value;
+  if (rates?.[cur] && rates?.[BASE_CURRENCY]) {
+    return convertMoney(c.value, cur, BASE_CURRENCY, rates);
+  }
+  return c.valueNgn;
+}
+
+/**
+ * One prize threshold written the way the admin authored it: "₦100,000" in naira, "1,000 USD" in
+ * anything else.
+ *
+ * The naira form keeps the sign used everywhere else on this page and the site. A non-naira bar
+ * prints the ISO code AFTER the number so it reads exactly like the row that produced it (amount
+ * box, then currency picker) and can never be mistaken for naira. This matters because the summary
+ * that uses it sits next to naira figures: printing a fixed ₦ in front of every threshold, which is
+ * what this page did while naira was the only option, becomes a plain lie the moment a threshold can
+ * be authored in dollars.
+ *
+ * Deliberately NOT lib/money.formatMoney: that renders two decimal places for a display amount,
+ * while a threshold is a whole number the backend validates as an int.
+ */
+function thresholdText(c: Condition): string {
+  const cur = (c.currency || BASE_CURRENCY).toUpperCase();
+  return cur === BASE_CURRENCY ? ngn(c.value) : `${c.value.toLocaleString()} ${cur}`;
+}
 
 // Where the backend hangs a tier-rule contradiction. afc_rankings/scoring/validation.py
 // addresses a problem either at the whole list ("event_tier_rules", used for a prize range no
@@ -142,6 +215,13 @@ function fromServerRule(r: any): Rule {
         field: c.field as Field,
         op: c.op as Op,
         value: typeof c.value === "number" ? c.value : 0,
+        // The server always spells the currency out on a prize condition (it normalizes a legacy
+        // rule's missing key to NGN on the way out), so the fallback here is belt and braces
+        // rather than the back-compatibility path - that lives in the backend, one place.
+        currency: c.field === "prize"
+          ? String(c.currency || BASE_CURRENCY).toUpperCase()
+          : BASE_CURRENCY,
+        valueNgn: typeof c.value_ngn === "number" ? c.value_ngn : null,
       }))
     : [];
   return {
@@ -154,7 +234,13 @@ function fromServerRule(r: any): Rule {
   };
 }
 
-/** Strip a local Rule down to the write payload the backend validates ({match, conditions, tier, enabled}). */
+/** Strip a local Rule down to the write payload the backend validates ({match, conditions, tier, enabled}).
+ *
+ * `currency` is sent for a PRIZE condition only. The backend refuses one on a teams/players count
+ * (a count is not money), so sending it there would 400 the whole save. It is also what makes a
+ * currency-only edit count as a change: ruleSignature is built from this payload, so switching a
+ * threshold from naira to dollars without touching the number still dispatches an update.
+ */
 function toWritePayload(rule: Rule) {
   return {
     match: rule.match,
@@ -163,7 +249,9 @@ function toWritePayload(rule: Rule) {
     conditions: rule.conditions.map((c) =>
       c.field === "format"
         ? { field: "format", op: c.op, value: null }
-        : { field: c.field, op: c.op, value: c.value },
+        : c.field === "prize"
+          ? { field: c.field, op: c.op, value: c.value, currency: c.currency }
+          : { field: c.field, op: c.op, value: c.value },
     ),
   };
 }
@@ -191,7 +279,10 @@ function TierPill({ tier }: { tier: Tier }) {
 function condText(c: Condition, t: (key: string) => string) {
   if (c.field === "format") return c.op === "is_lan" ? t("cond.lan") : t("cond.virtual");
   const f = c.field === "prize" ? t("cond.prize") : c.field === "teams" ? t("cond.teams") : t("cond.players");
-  const v = c.field === "prize" ? ngn(c.value) : c.value;
+  // A prize threshold prints in ITS OWN currency (thresholdText), not a blanket naira sign: this
+  // line explains which rule matched, so quoting "₦1,000" for a $1,000 bar would misdescribe the
+  // very rule it is reporting.
+  const v = c.field === "prize" ? thresholdText(c) : c.value;
   return `${f} ${c.op === "gte" ? "≥" : "≤"} ${v}`;
 }
 
@@ -228,6 +319,9 @@ function SortableRule({
 }) {
   const t = useTranslations("rankings.admin.tournamentTiers");
   const tTier = useTranslations("rankings");
+  // Live FX, from the same table the backend classifier reads. Only used to restate a non-naira
+  // threshold in naira for the admin; nothing here is sent to the server.
+  const { rates } = useCurrency();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: rule.id });
 
@@ -238,11 +332,19 @@ function SortableRule({
     // switching numeric <-> format needs a compatible operator
     const op: Op = isNumeric(field) ? "gte" : "is_lan";
     const value = field === "prize" ? 100_000 : 0;
-    patchCond(cidv, { field, op, value });
+    // Reset to naira when a condition BECOMES a prize threshold: the number is being replaced too,
+    // so carrying a currency over from whatever this row used to be would be meaningless.
+    patchCond(cidv, { field, op, value, currency: DEFAULT_PRIZE_CURRENCY, valueNgn: null });
   };
 
   const addCond = () =>
-    onChange({ ...rule, conditions: [...rule.conditions, { id: cid(), field: "prize", op: "gte", value: 100_000 }] });
+    onChange({
+      ...rule,
+      conditions: [...rule.conditions, {
+        id: cid(), field: "prize", op: "gte", value: 100_000,
+        currency: DEFAULT_PRIZE_CURRENCY, valueNgn: null,
+      }],
+    });
   const removeCond = (cidv: number) =>
     onChange({ ...rule, conditions: rule.conditions.length <= 1 ? rule.conditions : rule.conditions.filter((c) => c.id !== cidv) });
 
@@ -325,8 +427,17 @@ function SortableRule({
             the rule is clean. */}
         <IssueList issues={issues} />
 
-        {rule.conditions.map((c, ci) => (
-          <div key={c.id} className="flex flex-wrap items-center gap-2">
+        {rule.conditions.map((c, ci) => {
+          // Naira equivalent of a non-naira bar, so a list of thresholds in mixed currencies can
+          // still be read top to bottom. null = no rate for that currency, which is not cosmetic:
+          // the backend fails such a condition closed, so the rule currently matches nothing.
+          const inNgn = c.field === "prize" && c.currency !== BASE_CURRENCY
+            ? thresholdInNgn(c, rates)
+            : null;
+          const unconvertible = c.field === "prize" && c.currency !== BASE_CURRENCY && inNgn === null;
+          return (
+          <div key={c.id} className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="w-10 text-[11px] uppercase text-muted-foreground">
               {ci === 0 ? t("conn.if") : rule.match === "all" ? t("conn.and") : t("conn.or")}
             </span>
@@ -345,16 +456,32 @@ function SortableRule({
               </SelectContent>
             </Select>
             {isNumeric(c.field) && (
-              <div className="relative">
-                {c.field === "prize" && (
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">₦</span>
-                )}
-                <Input
-                  type="number" min={0} value={c.value}
-                  onChange={(e) => patchCond(c.id, { value: Math.max(0, parseInt(e.target.value || "0", 10)) })}
-                  className={cn("h-8 w-32 text-xs tabular-nums", c.field === "prize" && "pl-5")}
-                />
-              </div>
+              <Input
+                type="number" min={0} value={c.value}
+                onChange={(e) => patchCond(c.id, { value: Math.max(0, parseInt(e.target.value || "0", 10)) })}
+                className="h-8 w-32 text-xs tabular-nums"
+              />
+            )}
+            {/* Currency sits immediately after the amount so the pair reads as one figure
+                ("1000 USD"). Prize only: teams and players are counts, and the backend refuses a
+                currency on either. The old fixed ₦ inside the input was removed with this - it
+                would now be a lie whenever the picker says anything else. */}
+            {c.field === "prize" && (
+              <Select
+                value={c.currency}
+                onValueChange={(v) => patchCond(c.id, { currency: v, valueNgn: null })}
+              >
+                <SelectTrigger className="h-8 w-[104px] text-xs" aria-label={t("a11y.thresholdCurrency")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AFC_CURRENCIES.map((cur) => (
+                    <SelectItem key={cur.code} value={cur.code} className="text-xs">
+                      {cur.code} · {cur.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
             <Button
               variant="ghost" size="icon"
@@ -365,7 +492,21 @@ function SortableRule({
               <IconX className="size-3.5" />
             </Button>
           </div>
-        ))}
+          {/* Rate line. Shown ONLY for a non-naira threshold, so a naira rule visibly carries no
+              exchange-rate risk rather than the admin having to infer it. */}
+          {c.field === "prize" && c.currency !== BASE_CURRENCY && (
+            <p className={cn(
+              "pl-12 text-[11px]",
+              unconvertible ? "text-orange-400" : "text-muted-foreground",
+            )}>
+              {unconvertible
+                ? t("currency.noRate", { currency: c.currency })
+                : t("currency.approxNgn", { ngn: ngn(inNgn as number) })}
+            </p>
+          )}
+          </div>
+          );
+        })}
 
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={addCond}>
@@ -410,9 +551,27 @@ export default function TournamentTiersPage() {
   const snapshotRef = useRef<{ rules: Rule[]; defaultTier: Tier }>({ rules: [], defaultTier: 3 });
 
   // test tournament (the live classifier sample)
-  const [test, setTest] = useState({ prize: 500_000, teams: 18, players: 72, format: "lan" as "lan" | "virtual" });
-  // server classifier result for the current sample: { tier, ruleId(local) }
-  const [result, setResult] = useState<{ tier: Tier; ruleId: string | null }>({ tier: 3, ruleId: null });
+  // `prizeCurrency` is the currency the sample POOL is typed in, defaulting to naira so the panel
+  // behaves exactly as it always did until someone touches the picker. It exists because an admin
+  // thinking in dollars should be able to type a pool the way an organizer enters it instead of
+  // pre-converting in their head. The backend converts it with the SAME FxRate map and formula the
+  // real classifier applies to Event.prize_currency, so the preview cannot disagree with the tier
+  // the event will actually be given.
+  const [test, setTest] = useState({
+    prize: 500_000, teams: 18, players: 72,
+    format: "lan" as "lan" | "virtual",
+    prizeCurrency: BASE_CURRENCY,
+  });
+  // Server classifier result for the current sample. `prizeNgn` is the naira figure the rules were
+  // actually compared against, so the panel can show the number the rules saw and not only the one
+  // that was typed; `converted` is false for a naira pool, where the two are the same.
+  const [result, setResult] = useState<{
+    tier: Tier; ruleId: string | null; prizeNgn: number | null; converted: boolean;
+  }>({ tier: 3, ruleId: null, prizeNgn: null, converted: false });
+  // Set when the sample pool cannot be converted (no FX row for the picked currency). The panel is
+  // non-blocking, but it must not keep displaying the PREVIOUS tier as if it answered the sample now
+  // on screen, so the tier is hidden while this is set.
+  const [testError, setTestError] = useState<string | null>(null);
 
   const sortableId = useId();
   const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}));
@@ -464,19 +623,39 @@ export default function TournamentTiersPage() {
       rankingsAdminApi
         .classifyTournament({
           prize: test.prize, teams: test.teams, players: test.players, format: test.format,
+          // Omitted means naira server-side, but it is sent explicitly so the request says what it
+          // means and the preview never depends on a default agreeing at both ends.
+          prize_currency: test.prizeCurrency,
         })
         .then((r: any) => {
           const tier = ([1, 2, 3].includes(r?.tier) ? r.tier : defaultTier) as Tier;
           const matched = r?.matched_rule_id != null
             ? rules.find((x) => x.serverId === r.matched_rule_id)?.id ?? null
             : null;
-          setResult({ tier, ruleId: matched });
+          setResult({
+            tier, ruleId: matched,
+            prizeNgn: typeof r?.prize_ngn === "number" ? r.prize_ngn : null,
+            converted: Boolean(r?.prize_converted),
+          });
+          setTestError(null);
         })
-        .catch(() => {
-          // keep the previous result; the test panel is non-blocking
+        .catch((err: any) => {
+          // A 400 here is the reachable case: the picked currency has no exchange rate, so the
+          // backend refuses rather than previewing a tier off a pool it could not convert. Say so
+          // instead of leaving the last answer on screen looking like the answer to this sample.
+          // Any other failure (network, auth) keeps the previous result: the panel is non-blocking.
+          if (err?.response?.status === 400) {
+            setTestError(err?.response?.data?.message
+              || t("test.convertFailed", { currency: test.prizeCurrency }));
+          }
         });
     }, 300);
     return () => clearTimeout(handle);
+    // `t` is left out on purpose: the translator is a fresh function identity on every render, so
+    // listing it would re-arm the 300ms debounce on each render instead of only when the sample
+    // changes. It is only read inside the catch, for a fallback message. Same reasoning as the
+    // exhaustive-deps exemption on `load` above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [test, rules, defaultTier, loading]);
 
   const mutate = (next: Rule[]) => { setRules(next); setDirty(true); };
@@ -491,9 +670,31 @@ export default function TournamentTiersPage() {
   // param renamed off `t` so it does not shadow the translator
   const perTier = (tier: Tier) => rules.filter((r) => r.tier === tier && r.enabled).length;
 
+  // Does any threshold sit in a currency other than naira? If so the rule set now moves with the
+  // exchange rate, and the admin has to be told - the conversion happens when an EVENT IS
+  // CLASSIFIED, not when the rule is written, so the same untouched rule can match a different set
+  // of events next month. The backend states the same fact in its `fx_note` for API consumers
+  // (_FX_NOTE in admin_tournament_tiers.py); this page renders the translated twin because the
+  // admin dashboard is localised and that field is English only. Keep the two in step.
+  //
+  // Computed from LOCAL rules, not the saved snapshot, so it appears the instant an admin picks a
+  // foreign currency rather than only after they save - which is the moment the warning is useful.
+  const usesForeignCurrency = useMemo(
+    () => rules.some((r) => r.conditions.some(
+      (c) => c.field === "prize" && (c.currency || BASE_CURRENCY) !== BASE_CURRENCY)),
+    [rules],
+  );
+
   const addRule = () => mutate([...rules, {
     id: `new-${Date.now()}`, serverId: null, match: "all", tier: 2, enabled: true,
-    conditions: [{ id: cid(), field: "prize", op: "gte", value: 100_000 }],
+    // Same starting shape a new CONDITION gets (see addCond): naira, no server-side naira figure
+    // yet. Both fields are required - without them the currency picker renders with nothing
+    // selected and the rate line treats the bar as foreign, so a plain naira rule would open
+    // claiming it needed converting.
+    conditions: [{
+      id: cid(), field: "prize", op: "gte", value: 100_000,
+      currency: DEFAULT_PRIZE_CURRENCY, valueNgn: null,
+    }],
   }]);
 
   // ── reset → revert to the last loaded server snapshot ─────────────────────
@@ -654,6 +855,21 @@ export default function TournamentTiersPage() {
         </span>
       </div>
 
+      {/* FX drift disclosure. Shown ONLY once a threshold is in a foreign currency, so a naira-only
+          rule set stays uncluttered and, more importantly, so the absence of this box is itself
+          honest information: naira thresholds carry no exchange-rate risk at all.
+          Amber, not the orange used by the contradiction banner below - this is a consequence of a
+          choice the admin made, not a problem with their rules. */}
+      {usesForeignCurrency && (
+        <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-muted-foreground">
+          <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-amber-400" />
+          <span>
+            <span className="font-semibold text-amber-300">{t("currency.fxNoteTitle")}</span>{" "}
+            {t("currency.fxNote")}
+          </span>
+        </div>
+      )}
+
       {/* Contradiction banner. WARNING ONLY, never a blocker: the backend saves either way, and
           an admin mid-edit can legitimately have two overlapping rules on screen for a moment.
           It summarises, then defers - a problem belonging to one rule is printed on that rule's
@@ -750,14 +966,39 @@ export default function TournamentTiersPage() {
               <p className="text-xs text-muted-foreground">
                 {t("test.blurb")}
               </p>
+              {/* Pool + its currency, laid out like a rule's threshold row (amount, then picker) so
+                  the two read the same way. The fixed ₦ that used to sit inside this input is gone
+                  for the same reason it went from the rule rows: it would be wrong for any other
+                  currency. */}
               <div className="space-y-1.5">
                 <Label className="text-xs">{t("test.prizeLabel")}</Label>
-                <div className="relative">
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">₦</span>
+                <div className="flex items-center gap-2">
                   <Input type="number" min={0} value={test.prize}
-                    onChange={(e) => setTest((t) => ({ ...t, prize: Math.max(0, parseInt(e.target.value || "0", 10)) }))}
-                    className="h-8 pl-5 text-xs tabular-nums" />
+                    onChange={(e) => setTest((s) => ({ ...s, prize: Math.max(0, parseInt(e.target.value || "0", 10)) }))}
+                    className="h-8 min-w-0 flex-1 text-xs tabular-nums" />
+                  <Select
+                    value={test.prizeCurrency}
+                    onValueChange={(v) => setTest((s) => ({ ...s, prizeCurrency: v }))}
+                  >
+                    <SelectTrigger className="h-8 w-[104px] shrink-0 text-xs" aria-label={t("test.prizeCurrencyLabel")}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AFC_CURRENCIES.map((cur) => (
+                        <SelectItem key={cur.code} value={cur.code} className="text-xs">
+                          {cur.code} · {cur.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+                {/* The naira figure the rules were actually compared against. Only for a converted
+                    pool: for a naira pool it would just repeat the number above. */}
+                {result.converted && result.prizeNgn != null && !testError && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {t("test.comparedAs", { ngn: ngn(result.prizeNgn) })}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1.5">
@@ -790,7 +1031,14 @@ export default function TournamentTiersPage() {
                 </div>
               </div>
 
+              {/* Result. When the sample pool could not be converted there IS no answer, so the
+                  tier is withheld rather than showing the previous sample's verdict next to the
+                  numbers currently on screen. */}
               <div className="rounded-md border bg-muted/30 p-3">
+                {testError ? (
+                  <p className="text-[11px] text-orange-400">{testError}</p>
+                ) : (
+                <>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{t("test.classifiedAs")}</span>
                   <TierPill tier={result.tier} />
@@ -813,6 +1061,8 @@ export default function TournamentTiersPage() {
                       })
                     : t("test.noMatch")}
                 </p>
+                </>
+                )}
               </div>
             </CardContent>
           </Card>
