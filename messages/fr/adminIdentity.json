@@ -1,0 +1,48 @@
+{
+  "uid": {
+    "trigger": "Modifier l'UID",
+    "title": "Modifier l'UID Free Fire",
+    "description": "Corrigez ou effacez l'UID Free Fire du compte de {name}. Vérifiez avec le joueur que le nouvel UID est bien le sien avant d'enregistrer.",
+    "current": "UID actuel",
+    "none": "Non renseigné",
+    "new": "Nouvel UID",
+    "placeholder": "Chiffres uniquement",
+    "hint": "Chiffres uniquement, 15 au maximum. Laissez ce champ vide et utilisez Retirer l'UID pour l'effacer.",
+    "lockedTitle": "Ce joueur participe à un événement en cours",
+    "lockedBody": "Ses résultats de match sont rattachés à l'UID enregistré actuellement. Le modifier en pleine compétition peut rompre ce lien : ne le faites que si l'UID actuel est faux.",
+    "save": "Enregistrer l'UID",
+    "saving": "Enregistrement...",
+    "remove": "Retirer l'UID",
+    "removing": "Suppression...",
+    "removeTitle": "Retirer cet UID ?",
+    "removeBody": "{name} n'aura plus d'UID Free Fire tant qu'il n'en aura pas ajouté un. Il pourra toujours se connecter avec son pseudo en jeu ou son e-mail, mais plus avec son UID, et ne passera aucun événement qui exige un UID. La valeur {uid} redevient disponible pour son véritable propriétaire.",
+    "removeConfirm": "Oui, le retirer",
+    "failed": "Échec de la mise à jour de l'UID"
+  },
+  "email": {
+    "trigger": "Modifier l'e-mail",
+    "title": "Changer l'e-mail du compte",
+    "description": "Définissez une nouvelle adresse e-mail pour {name}. À utiliser pour un joueur inscrit avec une mauvaise adresse et bloqué hors de son compte. Vérifiez son identité avant de changer quoi que ce soit.",
+    "current": "E-mail actuel",
+    "new": "Nouvel e-mail",
+    "placeholder": "Saisissez l'adresse correcte",
+    "consequencesTitle": "Ce que cela fait",
+    "consequenceSignIn": "Il se connecte immédiatement avec la nouvelle adresse, sans e-mail de confirmation.",
+    "consequenceSessions": "{count, plural, =0 {Aucun appareil n'est connecté actuellement.} one {# appareil connecté sera déconnecté.} other {# appareils connectés seront déconnectés.}}",
+    "consequenceReactivate": "Le compte est réactivé, donc une inscription jamais vérifiée peut de nouveau se connecter.",
+    "consequenceNotice": "L'ancienne et la nouvelle adresse sont toutes deux prévenues par e-mail.",
+    "twoFactorTitle": "Ce compte a la double authentification activée",
+    "twoFactorBody": "Le deuxième facteur est un code envoyé à l'e-mail du compte : changer l'adresse le confierait à la nouvelle boîte de réception. Enregistrer désactive la double authentification et supprime les codes de secours. Le joueur reçoit un e-mail lui demandant de la réactiver.",
+    "twoFactorConfirm": "J'ai compris, désactiver la double authentification",
+    "save": "Enregistrer l'e-mail",
+    "saving": "Enregistrement...",
+    "failed": "Échec de la mise à jour de l'e-mail"
+  },
+  "reason": {
+    "label": "Motif",
+    "placeholder": "Pourquoi effectuez-vous ce changement ?",
+    "hint": "Enregistré dans le journal d'audit avec votre nom, l'ancienne et la nouvelle valeur."
+  },
+  "cancel": "Annuler",
+  "loadFailed": "Échec du chargement des informations du compte"
+}

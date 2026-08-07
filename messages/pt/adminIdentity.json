@@ -1,0 +1,48 @@
+{
+  "uid": {
+    "trigger": "Editar UID",
+    "title": "Editar UID do Free Fire",
+    "description": "Corrija ou limpe o UID do Free Fire na conta de {name}. Confirme com o jogador que o novo UID é mesmo dele antes de guardar.",
+    "current": "UID atual",
+    "none": "Por definir",
+    "new": "Novo UID",
+    "placeholder": "Apenas números",
+    "hint": "Apenas números, até 15 dígitos. Deixe este campo vazio e use Remover UID para o limpar.",
+    "lockedTitle": "Este jogador está num evento a decorrer",
+    "lockedBody": "Os resultados das partidas estão associados ao UID que temos agora. Alterá-lo a meio do evento pode quebrar essa ligação, por isso só o faça se o UID atual estiver errado.",
+    "save": "Guardar UID",
+    "saving": "A guardar...",
+    "remove": "Remover UID",
+    "removing": "A remover...",
+    "removeTitle": "Remover este UID?",
+    "removeBody": "{name} fica sem UID do Free Fire até adicionar um. Continua a poder iniciar sessão com o nome em jogo ou o e-mail, mas já não com o UID, e não passa em nenhum evento que exija UID. O valor {uid} fica livre para o seu verdadeiro dono.",
+    "removeConfirm": "Sim, remover",
+    "failed": "Não foi possível atualizar o UID"
+  },
+  "email": {
+    "trigger": "Editar e-mail",
+    "title": "Alterar o e-mail da conta",
+    "description": "Defina um novo e-mail para {name}. Use isto para um jogador que se registou com o endereço errado e ficou sem acesso. Confirme a identidade dele antes de alterar.",
+    "current": "E-mail atual",
+    "new": "Novo e-mail",
+    "placeholder": "Introduza o e-mail correto",
+    "consequencesTitle": "O que isto faz",
+    "consequenceSignIn": "Passa a iniciar sessão de imediato com o novo endereço, sem e-mail de confirmação.",
+    "consequenceSessions": "{count, plural, =0 {Não há dispositivos com sessão iniciada neste momento.} one {# dispositivo com sessão iniciada será desligado.} other {# dispositivos com sessão iniciada serão desligados.}}",
+    "consequenceReactivate": "A conta é reativada, por isso um registo nunca verificado volta a poder iniciar sessão.",
+    "consequenceNotice": "Tanto o endereço antigo como o novo são avisados por e-mail.",
+    "twoFactorTitle": "Esta conta tem a autenticação de dois fatores ativada",
+    "twoFactorBody": "O segundo fator é um código enviado para o e-mail da conta, por isso mudar o endereço entregaria esse fator à nova caixa de correio. Ao guardar, a autenticação de dois fatores é desativada e os códigos de recuperação são apagados. O jogador recebe um e-mail a pedir que a volte a ativar.",
+    "twoFactorConfirm": "Compreendo, desativar a autenticação de dois fatores",
+    "save": "Guardar e-mail",
+    "saving": "A guardar...",
+    "failed": "Não foi possível atualizar o e-mail"
+  },
+  "reason": {
+    "label": "Motivo",
+    "placeholder": "Porque está a fazer esta alteração?",
+    "hint": "Registado no registo de auditoria com o seu nome, o valor antigo e o novo."
+  },
+  "cancel": "Cancelar",
+  "loadFailed": "Não foi possível carregar os dados da conta"
+}

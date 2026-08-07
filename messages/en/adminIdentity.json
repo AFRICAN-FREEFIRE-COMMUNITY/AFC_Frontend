@@ -1,0 +1,48 @@
+{
+  "uid": {
+    "trigger": "Edit UID",
+    "title": "Edit Free Fire UID",
+    "description": "Fix or clear the Free Fire UID on {name}'s account. Confirm with the player that the new UID is theirs before you save.",
+    "current": "Current UID",
+    "none": "Not set",
+    "new": "New UID",
+    "placeholder": "Numbers only",
+    "hint": "Numbers only, up to 15 digits. Leave this blank and use Remove UID to clear it instead.",
+    "lockedTitle": "This player is in a live event",
+    "lockedBody": "Their match results are attributed under the UID we hold now. Changing it mid-event can break that link, so only do this if the current UID is wrong.",
+    "save": "Save UID",
+    "saving": "Saving...",
+    "remove": "Remove UID",
+    "removing": "Removing...",
+    "removeTitle": "Remove this UID?",
+    "removeBody": "{name} will have no Free Fire UID until they add one. They can still sign in with their in-game name or their email, but not with their UID, and they will not pass any event that requires a UID. The value {uid} becomes free for its real owner.",
+    "removeConfirm": "Yes, remove it",
+    "failed": "Failed to update the UID"
+  },
+  "email": {
+    "trigger": "Edit email",
+    "title": "Change account email",
+    "description": "Set a new email for {name}. Use this for a player who signed up with the wrong address and is locked out. Verify who they are before you change it.",
+    "current": "Current email",
+    "new": "New email",
+    "placeholder": "Enter the correct email",
+    "consequencesTitle": "What this does",
+    "consequenceSignIn": "They sign in with the new address straight away, no confirmation email needed.",
+    "consequenceSessions": "{count, plural, =0 {No devices are signed in right now.} one {# signed-in device is signed out.} other {# signed-in devices are signed out.}}",
+    "consequenceReactivate": "The account is reactivated, so a never-verified signup can sign in again.",
+    "consequenceNotice": "Both the old and the new address are emailed about the change.",
+    "twoFactorTitle": "This account has two-factor authentication on",
+    "twoFactorBody": "The second factor is a code sent to the account email, so moving the address would hand it to the new inbox. Saving switches two-factor off and deletes the recovery codes. The player is told by email to turn it back on.",
+    "twoFactorConfirm": "I understand, switch two-factor off",
+    "save": "Save email",
+    "saving": "Saving...",
+    "failed": "Failed to update the email"
+  },
+  "reason": {
+    "label": "Reason",
+    "placeholder": "Why are you making this change?",
+    "hint": "Recorded in the audit log with your name, the old value and the new one."
+  },
+  "cancel": "Cancel",
+  "loadFailed": "Failed to load account details"
+}
