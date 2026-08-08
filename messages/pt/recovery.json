@@ -1,0 +1,59 @@
+{
+  "heading": "Recupere sua conta pelo WhatsApp",
+  "description": "Não consegue entrar na sua conta e o e-mail de redefinição não ajuda porque você perdeu essa caixa de entrada? Se você salvou um número de WhatsApp, confirme o código que enviamos para ele. Depois você pode escolher uma nova senha ou mudar sua conta para um e-mail que consiga abrir de verdade.",
+  "backToLogin": "Voltar para o login",
+  "identify": {
+    "label": "Seu e-mail, nome no jogo ou UID",
+    "placeholder": "Digite qualquer um deles",
+    "hint": "Aquele que você costuma usar para entrar. Enviamos um código para o número de WhatsApp salvo nessa conta.",
+    "submit": "Quero receber um código no WhatsApp",
+    "sending": "Enviando",
+    "reach": "Isso só funciona se você salvou um número de WhatsApp na sua conta, e a maioria das pessoas não salvou. Se não for o seu caso, nada vai chegar:"
+  },
+  "code": {
+    "label": "O código de 6 dígitos",
+    "placeholder": "123456",
+    "hint": "Confira o WhatsApp no número salvo na sua conta. O código funciona uma vez só e expira em 10 minutos.",
+    "submit": "Confirmar o código",
+    "checking": "Verificando",
+    "back": "Usar outra conta",
+    "attemptsLeft": "{count, plural, one {Resta # tentativa.} other {Restam # tentativas.}}"
+  },
+  "choose": {
+    "provedFor": "Agora você pode ajeitar",
+    "intro": "É você mesmo. O que você quer ajeitar?",
+    "passwordTitle": "Escolher uma nova senha",
+    "passwordBody": "Você sabe seu e-mail, só não lembra a senha.",
+    "emailTitle": "Mudar meu e-mail",
+    "emailBody": "O e-mail da sua conta está errado, ou você não consegue mais abrir essa caixa de entrada.",
+    "oneOnly": "Com este código você pode fazer uma das duas coisas. Se precisar das duas, volte depois e confirme um código novo."
+  },
+  "email": {
+    "changingFor": "Mudando o e-mail de",
+    "label": "Seu novo e-mail",
+    "placeholder": "voce@exemplo.com",
+    "hint": "Use um e-mail que você consiga abrir agora. Enviamos um código para ele, e sua conta só muda depois que você digitar esse código.",
+    "submit": "Enviar um código para esse e-mail",
+    "sending": "Enviando",
+    "back": "Voltar"
+  },
+  "emailCode": {
+    "label": "O código de 6 dígitos do seu novo e-mail",
+    "hint": "Enviamos para {email}. Não é esse? Volte e corrija antes de finalizar.",
+    "submit": "Mudar meu e-mail",
+    "saving": "Salvando",
+    "back": "Usar outro e-mail"
+  },
+  "password": {
+    "resettingFor": "Redefinindo a senha de",
+    "hint": "Todos os aparelhos conectados a esta conta serão desconectados, e qualquer aparelho que você pediu para lembrarmos vai precisar do código de novo. Se sua conta usa login em duas etapas, ele continua sendo necessário para entrar, então nada muda nisso.",
+    "submit": "Salvar minha nova senha",
+    "saving": "Salvando",
+    "back": "Voltar",
+    "stuck": "Não consegue entrar por aqui?",
+    "contactSupport": "Fale com o suporte"
+  },
+  "errors": {
+    "generic": "Algo deu errado. Tente novamente."
+  }
+}

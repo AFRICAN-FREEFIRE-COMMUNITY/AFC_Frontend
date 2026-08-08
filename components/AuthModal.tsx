@@ -57,7 +57,15 @@ import { useTranslations } from "next-intl";
 // just the /login page: this is the form that pops when a session expires mid-work, so an admin
 // with 2FA on would otherwise be stuck here. Same shared component the login page renders.
 import { TwoFactorStep } from "@/app/(auth)/_components/TwoFactorStep";
-import { isTwoFactorChallenge, type TwoFactorChallenge } from "@/lib/twoFactor";
+// "Remember this device" (owner 2026-08-08). Same pair as LoginForm: the stored token rides along
+// with the password so a remembered browser skips the code screen, and a new one is persisted after
+// a successful second step. See lib/twoFactor.ts for why the token is not a credential on its own.
+import {
+  getDeviceToken,
+  isTwoFactorChallenge,
+  saveDeviceToken,
+  type TwoFactorChallenge,
+} from "@/lib/twoFactor";
 // SSO on the in-place modal (owner 2026-08-06). Without these, a user who signed up with Google
 // or Discord and has no local password could not get back in from the session-expired modal at
 // all: they had to navigate to /login and lose their place, which is the exact thing this modal
@@ -241,10 +249,13 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
       try {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login/`,
-          { ...data },
+          // Absent for any browser that has not been remembered. See the import note above.
+          { ...data, ...(getDeviceToken() ? { device_token: getDeviceToken() } : {}) },
         );
 
         // Two-step sign-in: swap the password form for the code screen. Nothing is signed in yet.
+        // A remembered device never gets here, which matters most in this modal: it pops when a
+        // session lapses mid-task, and that is the worst possible moment to be asked for a code.
         if (isTwoFactorChallenge(response.data)) {
           setChallenge(response.data);
           return;
@@ -289,6 +300,8 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
       <TwoFactorStep
         challenge={challenge}
         onVerified={async (data) => {
+          // Before login(), which unmounts this modal via onSuccess. No-op unless the user ticked.
+          saveDeviceToken(data);
           await login(data.session_token);
           toast.success(data.message || t("auth.loginSuccess"));
           onSuccess?.();

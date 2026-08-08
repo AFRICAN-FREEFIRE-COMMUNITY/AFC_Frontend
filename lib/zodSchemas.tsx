@@ -118,6 +118,14 @@ export const RegisterFormSchema = z
         message: vt("passwordSpecial"),
       }),
     confirmPassword: z.string(),
+    // OPTIONAL WhatsApp number (owner 2026-08-08). Blank is a perfectly good answer and must never
+    // block a signup, which is why there is no min() and no required flag: it is offered only
+    // because a number saved on day one is a way back into the account if the email address ever
+    // stops working (POST /auth/recovery/whatsapp/start/). The COUNTRY CODE is compulsory when one
+    // IS given, and that rule is enforced by the backend
+    // (afc_whatsapp.phone.require_international); the RPNInput control on the form only ever emits
+    // the international form, so an honest user never meets the error. max(20) matches the column.
+    whatsappNumber: z.string().max(20).optional(),
 
     // 💥 NEW VALIDATION FIELD 💥
     acceptTerms: z.literal(true, {

@@ -28,7 +28,9 @@
     "descriptionApp": "Open your authenticator app and enter the 6 digit code it is showing for AFC.",
     "codeLabelApp": "Code from your app",
     "appRefreshNote": "The code changes every 30 seconds. If it is about to change, wait for the next one.",
-    "useAppCode": "Use your authenticator app instead"
+    "useAppCode": "Use your authenticator app instead",
+    "rememberDevice": "Remember this device",
+    "rememberDeviceHelp": "We will stop asking for a code on this browser for 30 days. Leave it off on a shared or borrowed device."
   },
   "security": {
     "title": "Two-step sign-in",
@@ -131,5 +133,39 @@
     "title": "Sign-in security",
     "description": "Turn on two-step sign-in and manage your recovery codes.",
     "manage": "Manage"
+  },
+  "devices": {
+    "title": "Remembered devices",
+    "subtitle": "These browsers skip the code step for {days} days. Remove any you do not recognise.",
+    "empty": "Nothing is remembered yet. Tick \"Remember this device\" the next time you enter a code, and this browser will stop asking.",
+    "lastUsed": "Last used",
+    "trustedUntil": "Skips the code until",
+    "remove": "Remove",
+    "removeAll": "Remove all",
+    "toast": {
+      "revoked": "That device will be asked for a code next time.",
+      "revokedAll": "Every device will be asked for a code next time.",
+      "revokeFailed": "We could not remove that device. Please try again.",
+      "signedOut": "Signed out of {count} other places.",
+      "signedOutOne": "Signed out of 1 other place.",
+      "signOutFailed": "We could not sign the other devices out. Please try again."
+    },
+    "sessions": {
+      "title": "Signed in right now",
+      "subtitle": "You are signed in somewhere else as well. If that was not you, sign it out.",
+      "onlyHere": "This is the only place you are signed in.",
+      "elsewhere": "{count} other places",
+      "elsewhereOne": "1 other place",
+      "explainer": "Signing out ends a session straight away. It does not remove a remembered device, and removing a device does not sign it out.",
+      "signOutOthers": "Sign out everywhere else"
+    },
+    "confirm": {
+      "oneTitle": "Remove {label}?",
+      "oneDescription": "That browser will be asked for a code the next time it signs in. It stays signed in for now.",
+      "allTitle": "Remove every remembered device?",
+      "allDescription": "Every browser, including this one, will be asked for a code the next time it signs in.",
+      "signOutTitle": "Sign out everywhere else?",
+      "signOutDescription": "Every other browser is signed out straight away. You stay signed in here, and remembered devices are left alone."
+    }
   }
 }

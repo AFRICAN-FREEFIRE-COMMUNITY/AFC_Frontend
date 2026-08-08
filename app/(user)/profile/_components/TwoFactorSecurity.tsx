@@ -22,8 +22,12 @@
  *         use, which is why it is listed first.
  *   APP   a 6 digit code from an authenticator app. Nothing is sent, so it keeps working through a
  *         compromised mailbox and an SMTP outage. Enrolment lives in TotpEnrolDialog.tsx.
- * WhatsApp is deliberately not offered: it reaches roughly 90 of ~6,790 users. The page renders one
- * card per entry in status.available_methods, so a third method appears here without a rewrite.
+ * WhatsApp is NOT a sign-in method and is not listed here. The owner turned it down: it reaches
+ * roughly 116 of ~6,809 accounts, and it is already the ACCOUNT RECOVERY channel (/recover-account),
+ * so using it for both would collapse two independent proofs into one. The backend keeps it
+ * registered for recovery and holds it out of available_methods, so it can never appear on this
+ * page. The page renders one card per entry in status.available_methods, so a genuinely new method
+ * would appear here without a rewrite.
  *
  * SWITCHING is guarded exactly like turning 2FA off, because swapping the owner's factor for
  * somebody else's is a takeover rather than a preference change. Moving TO the app is one guarded
@@ -78,6 +82,9 @@ import { useAuth } from "@/contexts/AuthContext";
 // Authenticator-app enrolment. Its own component because it is a three-step flow with a QR, and
 // folding it in here would double the length of this file for a dialog most users open once.
 import { TotpEnrolDialog } from "./TotpEnrolDialog";
+// Remembered devices + live sessions (owner 2026-08-08). Rendered here rather than from the page
+// so it can be handed the 2FA state this component already holds, instead of fetching it twice.
+import { TrustedDevices } from "./TrustedDevices";
 import {
   disableTwoFactor,
   enableTwoFactor,
@@ -508,6 +515,13 @@ export function TwoFactorSecurity() {
               </CardContent>
             </Card>
           ) : null}
+
+          {/* ── Remembered devices + live sessions ────────────────────────────────────────────
+                 The answer to "a code every single time is stressful": a device the user ticked on
+                 the code screen skips the second step for 30 days, and this is where they can see
+                 and remove those. Renders its own two cards, and hides the device one while 2FA is
+                 off (a list of things that skip a step that does not exist is a puzzle). */}
+          <TrustedDevices twoFactorEnabled={enabled} />
         </>
       )}
 

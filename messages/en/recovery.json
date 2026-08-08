@@ -1,0 +1,59 @@
+{
+  "heading": "Get back into your account with WhatsApp",
+  "description": "Cannot get into your account, and the reset email is no help because you have lost that inbox? If you saved a WhatsApp number, confirm a code we send to it. You can then choose a new password, or move your account to an email address you can actually read.",
+  "backToLogin": "Back to login",
+  "identify": {
+    "label": "Your email, in-game name or UID",
+    "placeholder": "Enter any one of them",
+    "hint": "Whichever one you would normally sign in with. We send a code to the WhatsApp number saved on that account.",
+    "submit": "Send me a code on WhatsApp",
+    "sending": "Sending",
+    "reach": "This only works if you saved a WhatsApp number on your account, and most people have not. If you did not, nothing will arrive:"
+  },
+  "code": {
+    "label": "The 6 digit code",
+    "placeholder": "123456",
+    "hint": "Check WhatsApp on the number saved on your account. The code works once and runs out in 10 minutes.",
+    "submit": "Confirm the code",
+    "checking": "Checking",
+    "back": "Use a different account",
+    "attemptsLeft": "{count, plural, one {# try left.} other {# tries left.}}"
+  },
+  "choose": {
+    "provedFor": "You are signed in to fix",
+    "intro": "That is you. What would you like to fix?",
+    "passwordTitle": "Set a new password",
+    "passwordBody": "You know your email, you just cannot remember your password.",
+    "emailTitle": "Change my email address",
+    "emailBody": "The email on your account is wrong, or you cannot open that inbox any more.",
+    "oneOnly": "You can do one of these with this code. If you need both, come back and confirm a new code afterwards."
+  },
+  "email": {
+    "changingFor": "Changing the email for",
+    "label": "Your new email address",
+    "placeholder": "you@example.com",
+    "hint": "Use an address you can open right now. We send a code to it, and your account only moves once you enter that code.",
+    "submit": "Send a code to that address",
+    "sending": "Sending",
+    "back": "Go back"
+  },
+  "emailCode": {
+    "label": "The 6 digit code from your new email",
+    "hint": "We sent it to {email}. Not right? Go back and fix it before you finish.",
+    "submit": "Change my email address",
+    "saving": "Saving",
+    "back": "Use a different address"
+  },
+  "password": {
+    "resettingFor": "Resetting the password for",
+    "hint": "Everyone signed in to this account will be signed out, and any device you told us to remember will be asked for its code again. If your account uses two-step sign-in, you will still need it to get in, so nothing about that changes.",
+    "submit": "Save my new password",
+    "saving": "Saving",
+    "back": "Go back",
+    "stuck": "Cannot get in this way?",
+    "contactSupport": "Contact support"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again."
+  }
+}

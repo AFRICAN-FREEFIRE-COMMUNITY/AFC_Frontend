@@ -41,6 +41,9 @@
   "register.alreadyHaveAccount": "Already have an account?",
   "register.loginHere": "Login here",
   "register.genericError": "Something went wrong. Please try again.",
+  "register.whatsappLabel": "WhatsApp number (optional)",
+  "register.whatsappDescription": "Add it with your country code and you can reset your password by WhatsApp if you ever lose access to this email.",
+  "register.whatsappPlaceholder": "+234 801 234 5678",
   "passwordStrength.req8Chars": "At least 8 characters",
   "passwordStrength.req1Number": "At least 1 number",
   "passwordStrength.req1Lowercase": "At least 1 lowercase letter",
@@ -108,5 +111,10 @@
   "enterEmail.successSent": "Verification code sent!",
   "enterEmail.failed": "Failed to send verification code",
   "support.cantAccessEmail": "Can't access your email?",
-  "support.contactSupport": "Contact support"
+  "support.contactSupport": "Contact support",
+  "support.noWhatsAppNumber": "No WhatsApp number saved?",
+  "support.resetWithWhatsApp": "Recover it with WhatsApp",
+  "whatsappReset.title": "Lost that inbox too?",
+  "whatsappReset.body": "If you saved a WhatsApp number on your account, we can send the code there instead. You can then set a new password, or move your account to an email address you can actually read.",
+  "whatsappReset.cta": "Recover my account with WhatsApp"
 }

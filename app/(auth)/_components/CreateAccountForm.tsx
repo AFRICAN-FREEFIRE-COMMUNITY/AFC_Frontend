@@ -40,6 +40,17 @@ import { useTranslations } from "next-intl";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 // "Continue with Discord" (owner 2026-06-21). Gated on NEXT_PUBLIC_DISCORD_SSO_ENABLED.
 import { DiscordSignInButton } from "@/components/auth/DiscordSignInButton";
+// OPTIONAL WhatsApp number (owner 2026-08-08). Same control the profile page uses, so the country
+// code is picked rather than typed and the value is always emitted in international form. The
+// backend refuses a number without one (afc_whatsapp.phone.require_international), because the
+// number is now a way back into the account and a number that cannot be dialled is worse than none.
+import * as RPNInput from "react-phone-number-input";
+import {
+  CountrySelect,
+  FlagComponent,
+  PhoneInput,
+} from "@/components/PhoneNumberInput";
+import { NewBadge } from "@/components/NewBadge";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -119,6 +130,10 @@ export function CreateAccountForm() {
       // uid: "",
       password: "",
       confirmPassword: "",
+      // Optional. Empty string rather than undefined so RPNInput is a controlled
+      // input from the first render (it yields `undefined` when cleared, which is
+      // coerced back to "" in its onChange below).
+      whatsappNumber: "",
       // Initialize the new field to false
       acceptTerms: false as any,
     },
@@ -204,6 +219,10 @@ export function CreateAccountForm() {
           confirm_password: data.confirmPassword,
           full_name: data.fullName,
           // country: data.country,
+          // OPTIONAL. Sent only when the user typed one, so an ordinary signup posts exactly the
+          // body it always did. The backend stores it on UserProfile.whatsapp_number after
+          // insisting on a country code (afc_auth.views.signup -> require_international).
+          ...(data.whatsappNumber ? { whatsapp_number: data.whatsappNumber } : {}),
           // Removed data.acceptTerms from authData as it's not needed by the backend typically
         };
         const response = await axios.post(
@@ -230,6 +249,10 @@ export function CreateAccountForm() {
         const lower = backendMessage.toLowerCase();
         if (lower.includes("in-game name")) {
           form.setError("ingameName", { type: "server", message: backendMessage });
+        } else if (lower.includes("whatsapp")) {
+          // Checked BEFORE the email branch: the country-code refusal names the WhatsApp
+          // field, and routing it to `email` would point the user at the wrong input.
+          form.setError("whatsappNumber", { type: "server", message: backendMessage });
         } else if (lower.includes("email")) {
           form.setError("email", { type: "server", message: backendMessage });
         }
@@ -443,6 +466,60 @@ export function CreateAccountForm() {
                   </Button>
                 </div>
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* ── OPTIONAL WhatsApp number (owner 2026-08-08) ────────────────────────────────
+            WHY IT IS OFFERED AT ALL, and why the label says so in one line: a number saved
+            here is the way back into this account if the email address ever stops working
+            (/recover-account -> auth/recovery/whatsapp/*). A field with no stated reason
+            gets skipped, and the people who skip it are exactly the ones who will need it.
+
+            IT IS OPTIONAL AND MUST STAY THAT WAY: no validation blocks submit, the button
+            does not care whether it is filled, and leaving it empty posts the same body
+            signup has always received.
+
+            The COUNTRY CODE is compulsory when a number IS given, which is why this is the
+            shared RPNInput control (a country picker plus the number) rather than a plain
+            text input: it can only emit the international form. The backend enforces the
+            same rule independently, because a client-side rule is not a rule. Placed after
+            the password fields so the required path to "Create account" is uninterrupted.
+            Sits below the last required field and above the terms, where an optional extra
+            reads as an extra. */}
+        <FormField
+          control={form.control}
+          name="whatsappNumber"
+          render={({ field }) => (
+            <FormItem>
+              <div className="space-y-2 rounded-lg border p-4">
+                <FormLabel
+                  htmlFor="signup-whatsapp-number"
+                  className="flex flex-wrap items-center gap-2 text-sm font-medium"
+                >
+                  {t("register.whatsappLabel")}
+                  <NewBadge since="2026-08-08" />
+                </FormLabel>
+                <p className="text-xs text-muted-foreground">
+                  {t("register.whatsappDescription")}
+                </p>
+                <FormControl>
+                  {/* RPNInput yields `undefined` when cleared; coerce to "" so the
+                      optional string schema and the conditional POST above stay happy. */}
+                  <RPNInput.default
+                    id="signup-whatsapp-number"
+                    className="flex rounded-md shadow-xs"
+                    international
+                    flagComponent={FlagComponent}
+                    countrySelectComponent={CountrySelect}
+                    inputComponent={PhoneInput}
+                    placeholder={t("register.whatsappPlaceholder")}
+                    value={field.value ?? ""}
+                    onChange={(value) => field.onChange(value ?? "")}
+                  />
+                </FormControl>
+              </div>
               <FormMessage />
             </FormItem>
           )}

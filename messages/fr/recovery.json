@@ -1,0 +1,59 @@
+{
+  "heading": "Récupérez votre compte avec WhatsApp",
+  "description": "Vous n'arrivez plus à accéder à votre compte, et l'e-mail de réinitialisation ne sert à rien parce que vous avez perdu cette boîte de réception ? Si vous avez enregistré un numéro WhatsApp, confirmez le code que nous y envoyons. Vous pourrez ensuite choisir un nouveau mot de passe, ou déplacer votre compte vers une adresse e-mail que vous pouvez vraiment consulter.",
+  "backToLogin": "Retour à la connexion",
+  "identify": {
+    "label": "Votre e-mail, nom en jeu ou UID",
+    "placeholder": "Saisissez l'un des trois",
+    "hint": "Celui avec lequel vous vous connectez d'habitude. Nous envoyons un code au numéro WhatsApp enregistré sur ce compte.",
+    "submit": "Recevoir un code sur WhatsApp",
+    "sending": "Envoi en cours",
+    "reach": "Cela ne fonctionne que si vous avez enregistré un numéro WhatsApp sur votre compte, et la plupart des gens ne l'ont pas fait. Si ce n'est pas votre cas, vous ne recevrez rien :"
+  },
+  "code": {
+    "label": "Le code à 6 chiffres",
+    "placeholder": "123456",
+    "hint": "Regardez WhatsApp sur le numéro enregistré sur votre compte. Le code ne fonctionne qu'une fois et expire au bout de 10 minutes.",
+    "submit": "Confirmer le code",
+    "checking": "Vérification",
+    "back": "Utiliser un autre compte",
+    "attemptsLeft": "{count, plural, one {# essai restant.} other {# essais restants.}}"
+  },
+  "choose": {
+    "provedFor": "Vous pouvez maintenant corriger",
+    "intro": "C'est bien vous. Que souhaitez-vous corriger ?",
+    "passwordTitle": "Choisir un nouveau mot de passe",
+    "passwordBody": "Vous connaissez votre e-mail, vous avez seulement oublié votre mot de passe.",
+    "emailTitle": "Changer mon adresse e-mail",
+    "emailBody": "L'e-mail de votre compte est erroné, ou vous n'avez plus accès à cette boîte de réception.",
+    "oneOnly": "Ce code vous permet de faire l'une de ces deux choses. S'il vous faut les deux, revenez ensuite confirmer un nouveau code."
+  },
+  "email": {
+    "changingFor": "Changement de l'e-mail de",
+    "label": "Votre nouvelle adresse e-mail",
+    "placeholder": "vous@exemple.com",
+    "hint": "Utilisez une adresse que vous pouvez ouvrir tout de suite. Nous y envoyons un code, et votre compte ne change qu'une fois ce code saisi.",
+    "submit": "Envoyer un code à cette adresse",
+    "sending": "Envoi en cours",
+    "back": "Revenir en arrière"
+  },
+  "emailCode": {
+    "label": "Le code à 6 chiffres reçu sur votre nouvelle adresse",
+    "hint": "Nous l'avons envoyé à {email}. Ce n'est pas la bonne ? Revenez en arrière et corrigez-la avant de terminer.",
+    "submit": "Changer mon adresse e-mail",
+    "saving": "Enregistrement",
+    "back": "Utiliser une autre adresse"
+  },
+  "password": {
+    "resettingFor": "Réinitialisation du mot de passe de",
+    "hint": "Tous les appareils connectés à ce compte seront déconnectés, et tout appareil que vous nous aviez demandé de mémoriser devra à nouveau saisir son code. Si votre compte utilise la connexion en deux étapes, elle reste exigée pour entrer : rien ne change de ce côté.",
+    "submit": "Enregistrer mon nouveau mot de passe",
+    "saving": "Enregistrement",
+    "back": "Revenir en arrière",
+    "stuck": "Vous n'arrivez pas à entrer par ce moyen ?",
+    "contactSupport": "Contacter le support"
+  },
+  "errors": {
+    "generic": "Une erreur s'est produite. Veuillez réessayer."
+  }
+}

@@ -28,7 +28,9 @@
     "descriptionApp": "Ouvrez votre application d'authentification et saisissez le code à 6 chiffres affiché pour AFC.",
     "codeLabelApp": "Code de votre application",
     "appRefreshNote": "Le code change toutes les 30 secondes. S'il est sur le point de changer, attendez le suivant.",
-    "useAppCode": "Utiliser plutôt votre application d'authentification"
+    "useAppCode": "Utiliser plutôt votre application d'authentification",
+    "rememberDevice": "Se souvenir de cet appareil",
+    "rememberDeviceHelp": "Nous ne demanderons plus de code sur ce navigateur pendant 30 jours. Laissez cette case décochée sur un appareil partagé ou emprunté."
   },
   "security": {
     "title": "Connexion en deux étapes",
@@ -131,5 +133,39 @@
     "title": "Sécurité de la connexion",
     "description": "Activez la connexion en deux étapes et gérez vos codes de secours.",
     "manage": "Gérer"
+  },
+  "devices": {
+    "title": "Appareils mémorisés",
+    "subtitle": "Ces navigateurs passent l'étape du code pendant {days} jours. Supprimez ceux que vous ne reconnaissez pas.",
+    "empty": "Aucun appareil mémorisé pour l'instant. Cochez « Se souvenir de cet appareil » la prochaine fois que vous saisissez un code, et ce navigateur cessera de le demander.",
+    "lastUsed": "Dernière utilisation",
+    "trustedUntil": "Passe le code jusqu'au",
+    "remove": "Supprimer",
+    "removeAll": "Tout supprimer",
+    "toast": {
+      "revoked": "Un code sera demandé à cet appareil la prochaine fois.",
+      "revokedAll": "Un code sera demandé à tous les appareils la prochaine fois.",
+      "revokeFailed": "Nous n'avons pas pu supprimer cet appareil. Veuillez réessayer.",
+      "signedOut": "Déconnecté de {count} autres endroits.",
+      "signedOutOne": "Déconnecté d'un autre endroit.",
+      "signOutFailed": "Nous n'avons pas pu déconnecter les autres appareils. Veuillez réessayer."
+    },
+    "sessions": {
+      "title": "Connexions en cours",
+      "subtitle": "Vous êtes aussi connecté ailleurs. Si ce n'était pas vous, déconnectez-le.",
+      "onlyHere": "C'est le seul endroit où vous êtes connecté.",
+      "elsewhere": "{count} autres endroits",
+      "elsewhereOne": "1 autre endroit",
+      "explainer": "La déconnexion met fin à une session immédiatement. Elle ne supprime pas un appareil mémorisé, et supprimer un appareil ne le déconnecte pas.",
+      "signOutOthers": "Se déconnecter partout ailleurs"
+    },
+    "confirm": {
+      "oneTitle": "Supprimer {label} ?",
+      "oneDescription": "Un code sera demandé à ce navigateur lors de sa prochaine connexion. Il reste connecté pour l'instant.",
+      "allTitle": "Supprimer tous les appareils mémorisés ?",
+      "allDescription": "Un code sera demandé à chaque navigateur, celui-ci compris, lors de sa prochaine connexion.",
+      "signOutTitle": "Se déconnecter partout ailleurs ?",
+      "signOutDescription": "Tous les autres navigateurs sont déconnectés immédiatement. Vous restez connecté ici, et les appareils mémorisés ne sont pas touchés."
+    }
   }
 }

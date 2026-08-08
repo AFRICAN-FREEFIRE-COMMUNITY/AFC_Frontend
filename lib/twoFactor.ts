@@ -13,8 +13,22 @@
 //           Authy, 1Password, Aegis), added 2026-08-07. Nothing is sent: the app
 //           and the server derive the same digits from the clock, so it survives
 //           a compromised mailbox and an SMTP outage.
-// WhatsApp is deliberately not one of them: it reaches roughly 90 of ~6,790
-// users, and a second factor most people cannot switch on is not a second factor.
+// WhatsApp is NOT one of them, and that is a settled decision rather than a gap:
+// the owner turned down WhatsApp sign-in. It reaches roughly 116 of ~6,809
+// accounts, and it is already the ACCOUNT RECOVERY channel (lib/recovery.ts), so
+// using it for both would collapse two independent proofs into one. The backend
+// keeps it registered for recovery and holds it out of ENABLED_METHODS, so it can
+// never come back in `available_methods` and no screen here has to handle it.
+//
+// ── REMEMBER THIS DEVICE (owner 2026-08-08) ──────────────────────────────────
+// The owner's actual complaint was not about the channel, it was about the
+// FREQUENCY: "logging in each time with a code is stressful". So after the
+// second step succeeds a user may tick a box, and THAT browser stops being
+// challenged for 30 days. Everything about it lives at the bottom of this file.
+//
+// The one thing to hold onto while reading: a device token is NOT a session and
+// NOT a password. The backend only looks at it AFTER a correct password, and all
+// it does then is skip step two. On its own it opens nothing.
 //
 // THE ONE RULE THAT MATTERS WHEN READING THIS FILE: signing in is METHOD BLIND.
 // verifyTwoFactor is the same call for both methods, and the login response is
@@ -42,6 +56,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import axios from "axios";
+import Cookies from "js-cookie";
 import { env } from "@/lib/env";
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
@@ -90,12 +105,23 @@ export type TwoFactorChallenge = {
   message: string;
 };
 
-/** The normal login success body. Identical whether or not 2FA was involved. */
+/**
+ * The normal login success body. Identical whether or not 2FA was involved.
+ *
+ * The two device_token fields are ADDITIVE and only present when the user ticked
+ * "Remember this device" on the code screen. Nothing else about this shape moved,
+ * which is why a one-step login and a 2FA login are still the same object to
+ * AuthContext.
+ */
 export type LoginSuccess = {
   message: string;
   session_token: string;
   user: { id: number; username: string; language: string };
   geo: Record<string, unknown>;
+  /** Present ONLY when remember_device was asked for. Store it, send it back on future logins. */
+  device_token?: string;
+  /** Seconds the device token is good for (30 days). Used as the cookie lifetime. */
+  device_token_expires_in?: number;
 };
 
 export type TwoFactorStatus = {
@@ -184,6 +210,13 @@ export function isTwoFactorChallenge(
  * `session_token` straight to AuthContext.login() exactly as it would after a
  * one-step login.
  *
+ * `rememberDevice` defaults to false and is the user's explicit tick, never
+ * inferred. When true the response also carries `device_token`, which the caller
+ * must hand to saveDeviceToken() so the next sign-in on this browser skips the
+ * code screen. It is accepted on the recovery-code path too, on purpose: someone
+ * signing in with a recovery code is exactly the person who least wants to be
+ * back here next week.
+ *
  * Throws on 400 (wrong or dead code) and 429 (attempt cap spent). The error body
  * carries `attempts_left` so the screen can warn before the last try.
  */
@@ -191,11 +224,15 @@ export async function verifyTwoFactor(args: {
   challengeToken: string;
   code?: string;
   backupCode?: string;
+  rememberDevice?: boolean;
 }): Promise<LoginSuccess> {
   const res = await axios.post<LoginSuccess>(url("verify/"), {
     challenge_token: args.challengeToken,
     ...(args.code ? { code: args.code } : {}),
     ...(args.backupCode ? { backup_code: args.backupCode } : {}),
+    // Sent only when true, so a request that does not want it is byte-identical
+    // to what this endpoint received before the feature existed.
+    ...(args.rememberDevice ? { remember_device: true } : {}),
   });
   return res.data;
 }
@@ -364,6 +401,198 @@ export async function confirmTotp(
       ...(args.proofCode ? { proof_code: args.proofCode } : {}),
       ...(args.backupCode ? { backup_code: args.backupCode } : {}),
     },
+    { headers: bearer(token) },
+  );
+  return res.data;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REMEMBER THIS DEVICE (owner 2026-08-08)
+//
+// THE PROBLEM, in the owner's words: "it'll be stressful to be inputting code
+// each time every user wants to login". A user who ticks the box on their own
+// phone meets the second step about once a month instead of every single time; a
+// browser nobody ticked is challenged exactly as it is today.
+//
+// ── WHY THE TOKEN LIVES IN A JS-READABLE COOKIE ──────────────────────────────
+// The obvious alternative is an HttpOnly cookie set by Django. It is rejected
+// for a concrete reason, not a stylistic one: the API is on a DIFFERENT ORIGIN
+// (api.africanfreefirecommunity.com, and :8010 in dev), so an HttpOnly cookie
+// would have to be SameSite=None; Secure and every axios call would need
+// withCredentials, which is a change to the whole request stack for one feature.
+//
+// The trade is honest and small. This token is NOT a session and NOT a password:
+// the backend reads it only AFTER a correct password, and all it does then is
+// skip step two. A page-script attacker who could read this cookie could already
+// read `auth_token` sitting beside it, which IS the live session. So this adds no
+// new class of exposure, and the worst case if it leaks is "an attacker who
+// already knew the password is back where they were before 2FA existed".
+//
+// LIFETIME: the cookie is written with the exact window the backend reports
+// (device_token_expires_in, 30 days), so the browser forgets it at the same
+// moment the server does and a user never sends a token that cannot work.
+//
+// SameSite strict + secure-in-production, matching the auth_token cookie in
+// contexts/AuthContext.tsx so both auth-adjacent cookies obey one rule.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DEVICE_COOKIE = "afc_trusted_device";
+
+/** Fallback window if the backend ever omits device_token_expires_in. Days. */
+const DEVICE_COOKIE_FALLBACK_DAYS = 30;
+
+const deviceCookieOptions = (days: number) => ({
+  expires: days,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict" as const,
+  path: "/",
+});
+
+/**
+ * Persist the device token returned by a successful verify, if there is one.
+ *
+ * Takes the whole login body rather than a string so callers can pass it
+ * straight through without checking, and so "no token in the response" (the
+ * normal case, because remembering is opt-in) is a silent no-op rather than
+ * something every call site has to remember to guard.
+ */
+export function saveDeviceToken(login: LoginSuccess): void {
+  if (!login?.device_token) return;
+  const days = login.device_token_expires_in
+    ? login.device_token_expires_in / 86400
+    : DEVICE_COOKIE_FALLBACK_DAYS;
+  Cookies.set(DEVICE_COOKIE, login.device_token, deviceCookieOptions(days));
+}
+
+/**
+ * The device token to send with a sign-in, or undefined.
+ *
+ * Spread into the /auth/login/ body. Undefined rather than "" so the field is
+ * simply absent for the overwhelming majority of sign-ins, and the request is
+ * byte-identical to what it was before this feature.
+ */
+export function getDeviceToken(): string | undefined {
+  return Cookies.get(DEVICE_COOKIE) || undefined;
+}
+
+/**
+ * Forget this browser's device token locally.
+ *
+ * Called after revoking devices from the security page: the server row is gone,
+ * so keeping the cookie would only mean sending a dead token forever. Removed at
+ * both the explicit path and the js-cookie default, the same belt-and-braces
+ * AuthContext uses for auth_token after a stale duplicate cookie at a deeper
+ * path caused a day of "logged in but everything 401s".
+ */
+export function clearDeviceToken(): void {
+  Cookies.remove(DEVICE_COOKIE, { path: "/" });
+  Cookies.remove(DEVICE_COOKIE);
+}
+
+// ── Managing devices and sessions (backend afc_auth/views_devices.py) ────────
+// TWO DIFFERENT THINGS, and the page says so out loud because confusing them is
+// the only way a user can get this wrong:
+//   A TRUSTED DEVICE skips the second step for 30 days. It is not a sign-in.
+//   A SESSION is being signed in right now, and lapses after 3h of inactivity.
+// Someone who lent a friend their phone wants the first gone. Someone who left
+// themselves signed in at a cybercafe wants the second gone.
+
+export type TrustedDevice = {
+  id: number;
+  /** "Chrome on Android". Derived from the user agent when the device was remembered. */
+  label: string;
+  /** May be empty when the address was never resolved. */
+  last_ip: string;
+  created_at: string;
+  last_used_at: string;
+  expires_at: string;
+};
+
+export type TrustedDeviceList = {
+  devices: TrustedDevice[];
+  count: number;
+  /** How many days trust lasts, from the backend, so the copy never hardcodes 30. */
+  trust_days: number;
+};
+
+export type SessionSummary = {
+  created_at: string;
+  expires_at: string;
+  /** True for the browser making the request, so the UI never offers to sign it out. */
+  current: boolean;
+};
+
+export type SessionList = {
+  sessions: SessionSummary[];
+  count: number;
+  /** count minus the current one: exactly what "sign out everywhere else" will end. */
+  others: number;
+};
+
+const deviceUrl = (path: string) => `${BASE}/auth/devices/${path}`;
+
+/** Every browser allowed to skip this account's second step, most recently used first. */
+export async function listTrustedDevices(
+  token: string,
+): Promise<TrustedDeviceList> {
+  const res = await axios.get<TrustedDeviceList>(deviceUrl("trusted/"), {
+    headers: bearer(token),
+  });
+  return res.data;
+}
+
+/**
+ * Stop trusting one device. It is asked for a code on its very next sign-in:
+ * the backend reads the row every time, so there is no cache to wait out.
+ *
+ * Idempotent, so a double tap on a phone returns 200 with revoked: 0 rather than
+ * a scary failure toast.
+ */
+export async function revokeTrustedDevice(
+  token: string,
+  deviceId: number,
+): Promise<{ message: string; revoked: number }> {
+  const res = await axios.post(
+    deviceUrl("trusted/revoke/"),
+    { device_id: deviceId },
+    { headers: bearer(token) },
+  );
+  return res.data;
+}
+
+/** Stop trusting every device, including the one you are on. The panic button. */
+export async function revokeAllTrustedDevices(
+  token: string,
+): Promise<{ message: string; revoked: number }> {
+  const res = await axios.post(
+    deviceUrl("trusted/revoke/"),
+    { all: true },
+    { headers: bearer(token) },
+  );
+  return res.data;
+}
+
+/** How many browsers this account is signed in on right now. */
+export async function listSessions(token: string): Promise<SessionList> {
+  const res = await axios.get<SessionList>(deviceUrl("sessions/"), {
+    headers: bearer(token),
+  });
+  return res.data;
+}
+
+/**
+ * Sign out everywhere except here. The caller stays signed in, which is what
+ * makes this safe as one tap: it cannot lock anybody out of their own account.
+ *
+ * Deliberately does NOT forget trusted devices. They answer a different question
+ * and the page offers them separately.
+ */
+export async function signOutOtherSessions(
+  token: string,
+): Promise<{ message: string; signed_out: number }> {
+  const res = await axios.post(
+    deviceUrl("sessions/sign-out-others/"),
+    {},
     { headers: bearer(token) },
   );
   return res.data;

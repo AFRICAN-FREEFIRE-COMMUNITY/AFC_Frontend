@@ -28,10 +28,23 @@
  * would be a way to probe which accounts exist and which have 2FA on. The backend returns one
  * generic message for exactly the same reason; we render what it sends.
  *
+ * ── REMEMBER THIS DEVICE (owner 2026-08-08) ─────────────────────────────────────────────────────
+ * The owner's complaint was that a code EVERY TIME is stressful, and this tick is the answer: on
+ * success it stores a device token, and this browser is not challenged again for 30 days. Three
+ * rules the control obeys, all visible below:
+ *   • It is OFF by default and never pre-ticked. Trust has to be a decision.
+ *   • The label says what it actually costs ("we will not ask on this browser for 30 days"), not a
+ *     vague "trust this device". Someone on a shared or borrowed phone has to be able to tell.
+ *   • It is shown on the recovery-code path too. Somebody using a recovery code is exactly the
+ *     person who least wants to be back on this screen next week.
+ *
  * HOW IT CONNECTS
  *   - Data: lib/twoFactor.ts (verifyTwoFactor, resendTwoFactorCode) -> /auth/two-factor/.
  *   - Session: the caller passes the token to AuthContext.login(), which is the same call a
  *     one-step login makes, so nothing downstream knows 2FA happened.
+ *   - Device token: the CALLER stores it (lib/twoFactor.ts saveDeviceToken) alongside signing in,
+ *     because the caller already owns "what happens after success" and this is part of that.
+ *   - Revoking: app/(user)/profile/_components/TrustedDevices.tsx, on /profile/security.
  *   - i18n: the `twoFactor` namespace (messages/en|fr|pt/twoFactor.json), step.* keys.
  * DESIGN: AFC constants - no em dashes, primary green accents, tap targets that work at 390px.
  */
@@ -48,6 +61,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+// Shared, self-expiring NEW tag (owner rule: anything a returning user would not otherwise
+// notice wears one for 5 days, then removes itself).
+import { NewBadge } from "@/components/NewBadge";
 import { Loader } from "@/components/Loader";
 import {
   methodSendsCode,
@@ -99,6 +116,9 @@ export function TwoFactorStep({
   // True when the email genuinely failed to go out. The screen then says so and steers the user to
   // a recovery code, instead of telling them to watch an inbox nothing was sent to.
   const [deliveryFailed, setDeliveryFailed] = useState(!!challenge.delivery_failed);
+  // "Remember this device". OFF by default and never seeded from anything: trust has to be a
+  // decision somebody made, not a state they inherited.
+  const [rememberDevice, setRememberDevice] = useState(false);
 
   // Tick the resend cooldown down to zero. One interval, cleared on unmount.
   useEffect(() => {
@@ -127,7 +147,11 @@ export function TwoFactorStep({
       const data = await verifyTwoFactor({
         challengeToken,
         ...(usingBackup ? { backupCode: backupCode.trim() } : { code: code.trim() }),
+        // Only ever true because the user ticked the box on this screen.
+        rememberDevice,
       });
+      // The caller stores the device token, because the caller already owns everything that
+      // happens after success (sign in, then navigate or close the modal).
       await onVerified(data);
     } catch (err) {
       toast.error(errMessage(err));
@@ -251,6 +275,35 @@ export function TwoFactorStep({
             : t("step.attemptsLeft", { count: attemptsLeft })}
         </p>
       ) : null}
+
+      {/* ── Remember this device ──────────────────────────────────────────────────────────────
+          Sits directly ABOVE the submit button, because it changes what that button does and a
+          user has to see it before they commit, not after. Shown on the recovery-code path too.
+
+          The whole row is a <label>, so the text is part of the tap target: a bare 16px checkbox
+          is a miserable thing to hit on a 390px phone, which is where most AFC users are.
+
+          The second line is not decoration. "Remember this device" alone does not tell somebody on
+          a borrowed phone what they are agreeing to, so the consequence is spelled out with the
+          real number of days. */}
+      <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border bg-muted/30 p-3 text-sm">
+        <Checkbox
+          id="tfa-remember-device"
+          checked={rememberDevice}
+          onCheckedChange={(v) => setRememberDevice(v === true)}
+          className="mt-0.5"
+        />
+        <span className="leading-relaxed">
+          <span className="flex flex-wrap items-center gap-2 font-medium">
+            {t("step.rememberDevice")}
+            {/* Dated, self-expiring: gone by itself 5 days after 2026-08-08. */}
+            <NewBadge since="2026-08-08" />
+          </span>
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            {t("step.rememberDeviceHelp")}
+          </span>
+        </span>
+      </label>
 
       <Button
         type="button"

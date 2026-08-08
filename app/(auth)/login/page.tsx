@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { LoginForm } from "../_components/LoginForm";
 import { Separator } from "@/components/ui/separator";
+import { NewBadge } from "@/components/NewBadge";
 import { generatePageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = generatePageMetadata({
@@ -33,14 +34,33 @@ export default async function LoginPage() {
         </Link>
       </div>
       {/* Locked-out recovery (owner 2026-07-10, bug #1 "what of those who can't
-          login"): self-serve email change needs a working login + inbox. A user
-          who signed up with the wrong/inaccessible email can't reach that, so
-          point them at /contact, where an admin can set their email + reactivate
-          the account (auth/admin/set-user-email/). /contact is a public page, so
-          this is reachable while logged out. */}
+          login"): the "Forgot password?" link above emails a code, which is no use
+          to somebody who signed up with an address they cannot read. SECOND
+          CHANNEL (owner 2026-08-08): if they saved a WhatsApp number,
+          /recover-account sends the code there instead (auth/recovery/whatsapp/*).
+          Proving that number opens TWO endings, so it covers both halves of being
+          locked out: set a new password, or move the account onto an address they
+          can actually read. The email move is refused on an account with two-step
+          sign-in, where support is still the answer.
+
+          /contact stays underneath as the fallback, and today it is still the
+          answer for most people: only about 116 of 6,809 accounts have a number
+          saved. Both pages are public, so both are reachable while logged out. */}
       <div className="mt-2 text-center text-sm">
         <span className="text-muted-foreground">
           {t("support.cantAccessEmail")}{" "}
+        </span>
+        <Link
+          href="/recover-account"
+          className="inline-flex items-center gap-1.5 text-primary hover:underline"
+        >
+          {t("support.resetWithWhatsApp")}
+          <NewBadge since="2026-08-08" />
+        </Link>
+      </div>
+      <div className="mt-1 text-center text-xs">
+        <span className="text-muted-foreground">
+          {t("support.noWhatsAppNumber")}{" "}
         </span>
         <Link href="/contact" className="text-primary hover:underline">
           {t("support.contactSupport")}

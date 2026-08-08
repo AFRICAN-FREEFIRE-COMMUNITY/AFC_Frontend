@@ -31,7 +31,15 @@ import { DiscordSignInButton } from "@/components/auth/DiscordSignInButton";
 // instead of a session token; TwoFactorStep collects the emailed code and completes the sign-in.
 // Users without 2FA - everyone today - never reach this branch and see the flow they always had.
 import { TwoFactorStep } from "./TwoFactorStep";
-import { isTwoFactorChallenge, type TwoFactorChallenge } from "@/lib/twoFactor";
+// "Remember this device" (owner 2026-08-08): getDeviceToken rides along with the password so a
+// browser the user chose to remember skips the code screen entirely; saveDeviceToken persists the
+// one a successful second step hands back. Both are no-ops for the ~6,809 accounts without 2FA.
+import {
+  getDeviceToken,
+  isTwoFactorChallenge,
+  saveDeviceToken,
+  type TwoFactorChallenge,
+} from "@/lib/twoFactor";
 
 function LoginFormContent() {
   const router = useRouter();
@@ -85,11 +93,16 @@ function LoginFormContent() {
       try {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/login/`,
-          { ...data },
+          // device_token is the "remember this device" cookie, and the field is simply ABSENT for
+          // any browser that has not been remembered. The backend only consults it for an account
+          // with 2FA on, and only after this password has already been accepted, so it is not a
+          // credential on its own.
+          { ...data, ...(getDeviceToken() ? { device_token: getDeviceToken() } : {}) },
         );
 
         // Two-step sign-in: the password was right, but this account also needs an emailed code.
         // No session token comes back here, so nothing is signed in until TwoFactorStep succeeds.
+        // A remembered device never reaches this branch: the backend hands back a session directly.
         if (isTwoFactorChallenge(response.data)) {
           setChallenge(response.data);
           return;
@@ -133,6 +146,10 @@ function LoginFormContent() {
       <TwoFactorStep
         challenge={challenge}
         onVerified={async (data) => {
+          // Store the device token BEFORE signing in: login() triggers the redirect effect above,
+          // and this component can be unmounted by the time an await after it would resume.
+          // saveDeviceToken is a no-op unless the user ticked "Remember this device".
+          saveDeviceToken(data);
           await login(data.session_token);
           toast.success(data.message);
         }}

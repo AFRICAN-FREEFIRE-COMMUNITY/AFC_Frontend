@@ -28,7 +28,9 @@
     "descriptionApp": "Abra a sua aplicação de autenticação e introduza o código de 6 dígitos que mostra para a AFC.",
     "codeLabelApp": "Código da sua aplicação",
     "appRefreshNote": "O código muda a cada 30 segundos. Se estiver prestes a mudar, aguarde pelo seguinte.",
-    "useAppCode": "Usar antes a sua aplicação de autenticação"
+    "useAppCode": "Usar antes a sua aplicação de autenticação",
+    "rememberDevice": "Memorizar este dispositivo",
+    "rememberDeviceHelp": "Deixamos de pedir um código neste navegador durante 30 dias. Não assinale esta opção num dispositivo partilhado ou emprestado."
   },
   "security": {
     "title": "Início de sessão em duas etapas",
@@ -131,5 +133,39 @@
     "title": "Segurança do início de sessão",
     "description": "Ative o início de sessão em duas etapas e faça a gestão dos seus códigos de recuperação.",
     "manage": "Gerir"
+  },
+  "devices": {
+    "title": "Dispositivos memorizados",
+    "subtitle": "Estes navegadores saltam o passo do código durante {days} dias. Remova os que não reconhecer.",
+    "empty": "Ainda não há nenhum dispositivo memorizado. Assinale \"Memorizar este dispositivo\" da próxima vez que introduzir um código e este navegador deixa de o pedir.",
+    "lastUsed": "Última utilização",
+    "trustedUntil": "Salta o código até",
+    "remove": "Remover",
+    "removeAll": "Remover todos",
+    "toast": {
+      "revoked": "Será pedido um código a esse dispositivo da próxima vez.",
+      "revokedAll": "Será pedido um código a todos os dispositivos da próxima vez.",
+      "revokeFailed": "Não foi possível remover esse dispositivo. Tente outra vez.",
+      "signedOut": "Sessão terminada noutros {count} sítios.",
+      "signedOutOne": "Sessão terminada noutro sítio.",
+      "signOutFailed": "Não foi possível terminar a sessão nos outros dispositivos. Tente outra vez."
+    },
+    "sessions": {
+      "title": "Sessões abertas neste momento",
+      "subtitle": "Também tem sessão iniciada noutro sítio. Se não foi você, termine-a.",
+      "onlyHere": "Este é o único sítio onde tem sessão iniciada.",
+      "elsewhere": "mais {count} sítios",
+      "elsewhereOne": "mais 1 sítio",
+      "explainer": "Terminar sessão fecha-a de imediato. Não remove um dispositivo memorizado, e remover um dispositivo não lhe termina a sessão.",
+      "signOutOthers": "Terminar sessão nos outros sítios"
+    },
+    "confirm": {
+      "oneTitle": "Remover {label}?",
+      "oneDescription": "Será pedido um código a esse navegador no próximo início de sessão. Por agora, a sessão continua aberta.",
+      "allTitle": "Remover todos os dispositivos memorizados?",
+      "allDescription": "Será pedido um código a todos os navegadores, incluindo este, no próximo início de sessão.",
+      "signOutTitle": "Terminar sessão nos outros sítios?",
+      "signOutDescription": "A sessão é terminada de imediato em todos os outros navegadores. Aqui continua com sessão iniciada e os dispositivos memorizados não são afetados."
+    }
   }
 }
