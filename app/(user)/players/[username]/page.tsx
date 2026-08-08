@@ -47,7 +47,7 @@ async function getPlayerData(ign: string) {
 // the SAME endpoint PlayerClient reads, so the embed matches what the page shows.
 // Response shape: { player: { username, team: {team_name,...}|null,
 //   profile_picture, esports_picture, kdr, total_kills, total_wins, win_rate, ... } }.
-// The embed surfaces the player IGN + team + headline stats (kills / wins / KDR)
+// The embed surfaces the player IGN + team + headline stats (kills / wins / kills per match)
 // and uses the profile/esports picture as the image. Falls back to site-default
 // metadata when the player is missing - never throws.
 export async function generateMetadata({
@@ -87,7 +87,9 @@ export async function generateMetadata({
     const statBits: string[] = [];
     if (player.total_kills != null) statBits.push(`${player.total_kills} kills`);
     if (player.total_wins != null) statBits.push(`${player.total_wins} wins`);
-    if (player.kdr != null) statBits.push(`${player.kdr} KDR`);
+    // `kdr` is the wire field name; the value is total kills / matches played, so the
+    // description says so rather than implying a kill-death ratio.
+    if (player.kdr != null) statBits.push(`${player.kdr} kills per match`);
 
     const lead = teamName
       ? `${player.username} plays for ${teamName}.`
@@ -102,7 +104,7 @@ export async function generateMetadata({
       description,
       path: `/players/${username}`,
       // omitImage: the sibling opengraph-image.tsx renders a branded 1200x630 card
-      // (avatar + IGN + team + kills/wins/KDR) as THE og:image. A raw avatar is
+      // (avatar + IGN + team + kills/wins/kills per match) as THE og:image. A raw avatar is
       // often small/portrait and embeds poorly; the card always reads well. This
       // avoids a second, competing og:image tag.
       omitImage: true,
@@ -148,7 +150,7 @@ const Page = async ({ params }: { params: Params }) => {
     const stats: string[] = [];
     if (player.total_kills != null) stats.push(`${player.total_kills} kills`);
     if (player.total_wins != null) stats.push(`${player.total_wins} wins`);
-    if (player.kdr != null) stats.push(`${player.kdr} KDR`);
+    if (player.kdr != null) stats.push(`${player.kdr} kills per match`);
 
     playerSchema = generatePlayerSchema({
       name: player.username,

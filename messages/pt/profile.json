@@ -51,7 +51,7 @@
     "scrims": "Scrims",
     "currentTier": "Tier Atual",
     "unranked": "Não Ranqueado",
-    "kdr": "KDR",
+    "kdr": "Abates por Partida",
     "winRate": "Taxa de Vitórias"
   },
   "stats": {
@@ -199,7 +199,7 @@
     "totalKills": "Total de Abates",
     "wins": "Vitórias",
     "mvpAwards": "Prêmios de MVP",
-    "kdr": "KDR",
+    "kdr": "Abates por Partida",
     "winRate": "Taxa de Vitórias",
     "avgDamage": "Dano Médio",
     "eventsPlayed": "Eventos Jogados",
@@ -209,12 +209,12 @@
       "kills": "Abates",
       "placement": "Colocação",
       "points": "Pontos",
-      "kd": "K-D"
+      "kd": "Abates por Partida"
     },
     "axis": {
       "eventDate": "Data do evento",
       "placement": "Colocação (quanto menor, melhor)",
-      "kd": "Taxa K-D"
+      "kd": "Abates por partida"
     },
     "notEnoughEvents": "Não há eventos suficientes para traçar uma curva de desempenho ainda.",
     "eventsPlayedHeading": "Eventos jogados",

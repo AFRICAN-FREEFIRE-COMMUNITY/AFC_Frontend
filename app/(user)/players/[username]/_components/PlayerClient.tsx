@@ -252,7 +252,10 @@ const METRICS = [
   { id: "kills", label: "Kills" },
   { id: "placement", label: "Placement" },
   { id: "points", label: "Points" },
-  { id: "kd", label: "K-D" },
+  // "kd" is the metric id kept for the chart dataKey and the curve row field. The label is
+  // "Kills per Match" because that is what the value is (kills / matches_played), not a
+  // kill-death ratio: deaths are not recorded on any match row.
+  { id: "kd", label: "Kills per Match" },
 ] as const;
 type MetricId = (typeof METRICS)[number]["id"];
 
@@ -1079,7 +1082,7 @@ export function PlayerClient({ username }: { username: string }) {
                         {t("player.performanceCurve")}
                       </CardTitle>
                       {/* metric switcher (pill segment) */}
-                      <div className="inline-flex gap-1 bg-muted rounded-lg p-[3px] w-fit">
+                      <div className="inline-flex flex-wrap gap-1 bg-muted rounded-lg p-[3px] w-fit">
                         {METRICS.map((m) => (
                           <button
                             key={m.id}
@@ -1352,7 +1355,7 @@ export function PlayerClient({ username }: { username: string }) {
                     <CardTitle className="text-base">
                       {t("player.performanceOverTime")}
                     </CardTitle>
-                    <div className="inline-flex gap-1 bg-muted rounded-lg p-[3px] w-fit">
+                    <div className="inline-flex flex-wrap gap-1 bg-muted rounded-lg p-[3px] w-fit">
                       {METRICS.map((m) => (
                         <button
                           key={m.id}
@@ -1420,7 +1423,11 @@ export function PlayerClient({ username }: { username: string }) {
                             metric === "placement" && value != null
                               ? `#${value}`
                               : value,
-                            activeMetric.label,
+                            // Same localized label the switcher and the sibling chart above
+                            // use. This tooltip previously printed the raw English
+                            // METRICS[].label, which now reads "Kills per Match" and so must
+                            // not leak untranslated into fr/pt.
+                            metricLabel(activeMetric.id),
                           ]}
                           labelFormatter={(_label, payload) =>
                             payload?.[0]?.payload?.event ?? _label

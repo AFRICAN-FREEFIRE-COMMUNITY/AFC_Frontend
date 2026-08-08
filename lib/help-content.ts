@@ -487,7 +487,7 @@ export const HELP = {
   "players.detail._page":
     "A player's full admin profile - contact details, lifetime stats, match and event history, and login records. Ban or unban from here too.",
   "players.detail.statistics._section":
-    "Career performance split across tournaments and scrims - KDR, win rate, kills, wins and booyahs.",
+    "Career performance split across tournaments and scrims - kills per match, win rate, kills, wins and booyahs.",
   "players.detail.login_history":
     "On demand, pull this player's recent sign-in records (IP, location, time) - useful for spotting account sharing or suspicious access.",
 

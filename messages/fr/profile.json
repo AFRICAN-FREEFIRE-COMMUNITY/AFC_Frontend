@@ -51,7 +51,7 @@
     "scrims": "Scrims",
     "currentTier": "Niveau actuel",
     "unranked": "Non classé",
-    "kdr": "KDR",
+    "kdr": "Éliminations par match",
     "winRate": "Taux de victoire"
   },
   "stats": {
@@ -199,7 +199,7 @@
     "totalKills": "Total d'éliminations",
     "wins": "Victoires",
     "mvpAwards": "Récompenses MVP",
-    "kdr": "KDR",
+    "kdr": "Éliminations par match",
     "winRate": "Taux de victoire",
     "avgDamage": "Dégâts moyens",
     "eventsPlayed": "Événements joués",
@@ -209,12 +209,12 @@
       "kills": "Éliminations",
       "placement": "Classement",
       "points": "Points",
-      "kd": "K-D"
+      "kd": "Éliminations par match"
     },
     "axis": {
       "eventDate": "Date de l'événement",
       "placement": "Classement (plus bas est mieux)",
-      "kd": "Ratio K-D"
+      "kd": "Éliminations par match"
     },
     "notEnoughEvents": "Pas assez d'événements pour tracer une courbe de performance pour l'instant.",
     "eventsPlayedHeading": "Événements joués",

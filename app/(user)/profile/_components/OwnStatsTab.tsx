@@ -7,8 +7,8 @@
  * (the "Stats" tab in ProfileContent.tsx). Previously /profile only showed a basic
  * Overview (6 scalars); this surfaces the SAME rich stats window the public player
  * page (players/[username]/_components/PlayerClient.tsx) renders for a player:
- *   - headline cards (Total Matches, Kills, Wins, MVPs, KDR, Win Rate, Avg Damage)
- *   - a performance curve over the player's events (kills / placement / points / K-D)
+ *   - headline cards (Total Matches, Kills, Wins, MVPs, Kills per Match, Win Rate, Avg Damage)
+ *   - a performance curve over the player's events (kills / placement / points / kills per match)
  *   - a per-event breakdown table (kills, points, best placement, MVPs)
  *   - a recent-matches table (the player's last individual match lines)
  *
@@ -110,7 +110,8 @@ const METRICS = [
   { id: "kills", label: "Kills" },
   { id: "placement", label: "Placement" },
   { id: "points", label: "Points" },
-  { id: "kd", label: "K-D" },
+  // See PlayerClient's METRICS: "kd" is the id only, the value is kills / matches_played.
+  { id: "kd", label: "Kills per Match" },
 ] as const;
 type MetricId = (typeof METRICS)[number]["id"];
 
@@ -216,7 +217,7 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
               {t("ownStats.performanceCurve")}
             </CardTitle>
             {/* metric switcher (AFC pill segment) */}
-            <div className="inline-flex gap-1 bg-muted rounded-lg p-[3px] w-fit">
+            <div className="inline-flex flex-wrap gap-1 bg-muted rounded-lg p-[3px] w-fit">
               {METRICS.map((m) => (
                 <button
                   key={m.id}

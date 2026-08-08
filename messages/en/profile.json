@@ -51,7 +51,7 @@
     "scrims": "Scrims",
     "currentTier": "Current Tier",
     "unranked": "Unranked",
-    "kdr": "KDR",
+    "kdr": "Kills per Match",
     "winRate": "Win Rate"
   },
   "stats": {
@@ -199,7 +199,7 @@
     "totalKills": "Total Kills",
     "wins": "Wins",
     "mvpAwards": "MVP Awards",
-    "kdr": "KDR",
+    "kdr": "Kills per Match",
     "winRate": "Win Rate",
     "avgDamage": "Avg Damage",
     "eventsPlayed": "Events Played",
@@ -209,12 +209,12 @@
       "kills": "Kills",
       "placement": "Placement",
       "points": "Points",
-      "kd": "K-D"
+      "kd": "Kills per Match"
     },
     "axis": {
       "eventDate": "Event date",
       "placement": "Placement (lower is better)",
-      "kd": "K-D ratio"
+      "kd": "Kills per Match"
     },
     "notEnoughEvents": "Not enough events to plot a performance curve yet.",
     "eventsPlayedHeading": "Events played",

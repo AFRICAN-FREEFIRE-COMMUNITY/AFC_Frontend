@@ -228,7 +228,12 @@ const buildPerformanceData = (player: PlayerDetails) => [
     month: "Overall",
     Kills: player.total_kills,
     Wins: player.total_wins,
-    KDR: player.kdr,
+    // Object keys here ARE the Recharts series names printed in the legend and tooltip,
+    // so this reads "Kills per Match" to match the tile and table header below. The wire
+    // field stays `kdr` (see PlayerDetails): only the displayed name changed, because the
+    // number is total kills / matches played, never a kill-death ratio (deaths are not
+    // recorded on any match row).
+    "Kills per Match": player.kdr,
     "Avg. Damage": player.avg_damage,
     "Headshot %": 0,
   },
@@ -498,7 +503,7 @@ const Page = ({ params }: Props) => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-5">
               <div>
-                <p className="text-xs text-muted-foreground">KDR</p>
+                <p className="text-xs text-muted-foreground">Kills per Match</p>
                 <p className="text-2xl font-bold mt-0.5">
                   {player.kdr.toFixed(2)}
                 </p>
@@ -572,7 +577,7 @@ const Page = ({ params }: Props) => {
                 <TableRow>
                   <TableHead>Tournament</TableHead>
                   <TableHead>Kills</TableHead>
-                  <TableHead>KDR</TableHead>
+                  <TableHead>Kills per Match</TableHead>
                   <TableHead>Damage</TableHead>
                   <TableHead>MVPs</TableHead>
                   <TableHead>Placement</TableHead>
@@ -668,7 +673,12 @@ const Page = ({ params }: Props) => {
                   <Legend />
                   <Line type="monotone" dataKey="Kills" stroke="#6366f1" dot />
                   <Line type="monotone" dataKey="Wins" stroke="#22c55e" dot />
-                  <Line type="monotone" dataKey="KDR" stroke="#eab308" dot />
+                  <Line
+                    type="monotone"
+                    dataKey="Kills per Match"
+                    stroke="#eab308"
+                    dot
+                  />
                   <Line
                     type="monotone"
                     dataKey="Avg. Damage"

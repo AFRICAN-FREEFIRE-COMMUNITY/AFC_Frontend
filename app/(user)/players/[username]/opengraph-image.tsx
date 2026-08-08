@@ -4,7 +4,7 @@
 // Next.js file-convention image route: renders the 1200x630 og:image shown when a
 // player profile link is shared. We generate a BRANDED card (dark AFC background,
 // green/gold accents, the player IGN, their team, and headline stats: kills, wins,
-// KDR) with Next's ImageResponse, fetching REAL data from the public, no-auth,
+// kills per match) with Next's ImageResponse, fetching REAL data from the public, no-auth,
 // no-PII endpoint POST /player/get-public-player-stats/ - the same data the page
 // and its generateMetadata use. The player's avatar/esports picture is composited
 // into the card when present.
@@ -88,8 +88,10 @@ export default async function Image({
     stats.push({ label: "Kills", value: String(player.total_kills) });
   if (player?.total_wins != null)
     stats.push({ label: "Wins", value: String(player.total_wins) });
+  // `kdr` is the wire field name only. It carries total kills / matches played, so the
+  // chip is labelled "Kills per Match" to match the on-page career snapshot.
   if (player?.kdr != null)
-    stats.push({ label: "KDR", value: String(player.kdr) });
+    stats.push({ label: "Kills per Match", value: String(player.kdr) });
 
   return new ImageResponse(
     (

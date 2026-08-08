@@ -602,7 +602,7 @@ export const ProfileContent = () => {
                           t("overview.unranked"))}
                     </p>
                   </div>
-                  {/* Total Matches: the DENOMINATOR behind KDR and Win Rate. The public
+                  {/* Total Matches: the DENOMINATOR behind Kills per Match and Win Rate. The public
                       player page has always shown it in its career snapshot; this page
                       omitted it, which is what made a rate here look impossible to check
                       against anything (owner bug 2026-08-07). Same richProfile payload the
@@ -618,7 +618,7 @@ export const ProfileContent = () => {
                       </p>
                     </div>
                   )}
-                  {/* KDR + Win Rate only render when the rich endpoint actually
+                  {/* Kills per Match + Win Rate only render when the rich endpoint actually
                       provides them, so we surface real values or nothing (never a
                       fake 0). */}
                   {typeof richProfile?.kdr === "number" && (
