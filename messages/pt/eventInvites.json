@@ -12,6 +12,26 @@
     "banned": "Esta equipa está banida",
     "not_found": "Equipa não encontrada"
   },
+  "kind": {
+    "per_team": "Uma por equipa",
+    "fcfs": "Por ordem de chegada",
+    "bulk": "Um convite geral"
+  },
+  "kindHint": {
+    "per_team": "Cada equipa recebe o seu próprio convite. Todas as que escolher podem aceitar.",
+    "fcfs": "Convide mais equipas do que as vagas que tem. As que aceitarem primeiro ficam com elas.",
+    "bulk": "Um único convite aberto. Qualquer equipa que avisar pode ocupar uma vaga enquanto houver."
+  },
+  "channel": {
+    "push": "Notificação no site",
+    "email": "E-mail",
+    "whatsapp": "WhatsApp"
+  },
+  "campaignStatus": {
+    "open": "Aberto",
+    "closed": "Fechado",
+    "cancelled": "Cancelado"
+  },
   "organizer": {
     "title": "Convites a equipas",
     "description": "Convide equipas para este evento em vez de as adicionar você mesmo. Elas aceitam ou recusam, e aceitar inscreve-as passando pelas verificações normais de inscrição.",
@@ -50,7 +70,32 @@
     "toastCancelled": "Convite cancelado.",
     "toastCancelFailed": "Não foi possível cancelar o convite.",
     "empty": "Ainda não foi convidada nenhuma equipa para este evento.",
-    "summary": "Pendentes: {pending} | Aceites: {accepted} | Recusados: {declined}"
+    "summary": "Pendentes: {pending} | Aceites: {accepted} | Recusados: {declined}",
+    "emptyRowsWithCampaign": "Nenhuma equipa respondeu ainda. Um convite geral não cria linhas por equipa enquanto ninguém o aceitar.",
+    "kindLabel": "Que tipo de convite",
+    "slotsLabel": "Quantas vagas",
+    "slotsPlaceholder": "Deixe vazio para usar a capacidade do evento",
+    "slotsHint": "Quantas destas equipas podem entrar. Deixe vazio e a capacidade restante do evento é o único limite.",
+    "deliveryLabel": "Onde enviar",
+    "deliveryHint": "Todas as pessoas que podem responder pela equipa recebem: o proprietário, o capitão, o vice-capitão, o manager e o treinador.",
+    "deliveryWhatsappHint": "O WhatsApp só chega a quem o ativou no seu perfil. Mantenha também o e-mail selecionado.",
+    "reachRecipients": "{people} pessoas podem responder pelas {teams} equipa(s) que escolheu.",
+    "reachEmail": "O e-mail chega a {reached} delas.",
+    "reachWhatsapp": "O WhatsApp chega a {reached} delas.",
+    "deliveryNoneSelected": "Escolha pelo menos um sítio para enviar.",
+    "campaignsTitle": "Convites enviados",
+    "colKind": "Tipo",
+    "colAudience": "Equipas avisadas",
+    "colPlaces": "Vagas",
+    "colAccepted": "Aceites",
+    "noPlaceLimit": "Capacidade do evento",
+    "placesLeft": "{left} de {total} restantes",
+    "closeCampaign": "Fechar",
+    "closing": "A fechar...",
+    "toastClosed": "Convite fechado.",
+    "toastCloseFailed": "Não foi possível fechar o convite.",
+    "toastSentBulk": "Convite aberto enviado a {count} equipa(s).",
+    "toastDelivered": "{recipients} pessoas alcançadas: {pushed} no site, {emailed} por e-mail, {whatsapp} no WhatsApp."
   },
   "team": {
     "title": "Convites para eventos",
@@ -85,6 +130,10 @@
     "declining": "A recusar...",
     "toastDeclined": "Convite recusado.",
     "toastDeclineFailed": "Não foi possível recusar o convite.",
-    "cancelDialog": "Cancelar"
+    "cancelDialog": "Cancelar",
+    "fcfsNotice": "Por ordem de chegada. Foram convidadas mais equipas do que as vagas existentes, por isso as que aceitarem primeiro ficam com elas.",
+    "bulkNotice": "Um convite aberto. Ocupe uma vaga enquanto houver.",
+    "placesLeft": "{count} restantes.",
+    "eventPlacesLeft": "{count} vagas restantes neste evento."
   }
 }

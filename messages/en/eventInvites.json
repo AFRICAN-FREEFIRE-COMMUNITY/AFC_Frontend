@@ -12,6 +12,26 @@
     "banned": "This team is banned",
     "not_found": "Team not found"
   },
+  "kind": {
+    "per_team": "One per team",
+    "fcfs": "First come, first served",
+    "bulk": "One general invitation"
+  },
+  "kindHint": {
+    "per_team": "Each team gets its own invitation. Everyone you pick can accept.",
+    "fcfs": "Ask more teams than you have places for. The ones who accept first take them.",
+    "bulk": "A single open invitation. Any team you tell about it can take a place while they last."
+  },
+  "channel": {
+    "push": "In-app notification",
+    "email": "Email",
+    "whatsapp": "WhatsApp"
+  },
+  "campaignStatus": {
+    "open": "Open",
+    "closed": "Closed",
+    "cancelled": "Cancelled"
+  },
   "organizer": {
     "title": "Team invitations",
     "description": "Invite teams to this event instead of adding them yourself. They accept or decline, and accepting registers them through the normal registration checks.",
@@ -50,7 +70,32 @@
     "toastCancelled": "Invitation cancelled.",
     "toastCancelFailed": "Could not cancel the invitation.",
     "empty": "No teams have been invited to this event yet.",
-    "summary": "Pending: {pending} | Accepted: {accepted} | Declined: {declined}"
+    "emptyRowsWithCampaign": "No team has answered yet. A general invitation has no per-team rows until somebody accepts it.",
+    "summary": "Pending: {pending} | Accepted: {accepted} | Declined: {declined}",
+    "kindLabel": "What kind of invitation",
+    "slotsLabel": "How many places",
+    "slotsPlaceholder": "Leave empty to use the event's own capacity",
+    "slotsHint": "How many of these teams may get in. Leave it empty and the event's own remaining capacity is the only limit.",
+    "deliveryLabel": "Where to send it",
+    "deliveryHint": "Everyone who can answer for the team gets it: the owner, captain, vice-captain, manager and coach.",
+    "deliveryWhatsappHint": "WhatsApp only reaches people who switched it on in their profile. Keep email ticked as well.",
+    "reachRecipients": "{people} people can answer for the {teams} team(s) you picked.",
+    "reachEmail": "Email reaches {reached} of them.",
+    "reachWhatsapp": "WhatsApp reaches {reached} of them.",
+    "deliveryNoneSelected": "Pick at least one place to send it.",
+    "campaignsTitle": "Invitations sent",
+    "colKind": "Type",
+    "colAudience": "Teams told",
+    "colPlaces": "Places",
+    "colAccepted": "Accepted",
+    "noPlaceLimit": "Event capacity",
+    "placesLeft": "{left} of {total} left",
+    "closeCampaign": "Close",
+    "closing": "Closing...",
+    "toastClosed": "Invitation closed.",
+    "toastCloseFailed": "Could not close the invitation.",
+    "toastSentBulk": "Open invitation sent to {count} team(s).",
+    "toastDelivered": "Reached {recipients} people: {pushed} in-app, {emailed} by email, {whatsapp} on WhatsApp."
   },
   "team": {
     "title": "Event invitations",
@@ -85,6 +130,10 @@
     "declining": "Declining...",
     "toastDeclined": "Invitation declined.",
     "toastDeclineFailed": "Could not decline the invitation.",
-    "cancelDialog": "Cancel"
+    "cancelDialog": "Cancel",
+    "fcfsNotice": "First come, first served. More teams were asked than there are places, so the ones who accept first take them.",
+    "bulkNotice": "An open invitation. Take a place while they last.",
+    "placesLeft": "{count} left.",
+    "eventPlacesLeft": "{count} places left in this event."
   }
 }

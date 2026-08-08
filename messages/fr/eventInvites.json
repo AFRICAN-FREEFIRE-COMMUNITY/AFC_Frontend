@@ -12,6 +12,26 @@
     "banned": "Cette équipe est bannie",
     "not_found": "Équipe introuvable"
   },
+  "kind": {
+    "per_team": "Une par équipe",
+    "fcfs": "Premier arrivé, premier servi",
+    "bulk": "Une invitation générale"
+  },
+  "kindHint": {
+    "per_team": "Chaque équipe reçoit sa propre invitation. Toutes celles que vous choisissez peuvent accepter.",
+    "fcfs": "Invitez plus d'équipes que vous n'avez de places. Celles qui acceptent en premier les prennent.",
+    "bulk": "Une seule invitation ouverte. Toute équipe que vous prévenez peut prendre une place tant qu'il en reste."
+  },
+  "channel": {
+    "push": "Notification dans le site",
+    "email": "E-mail",
+    "whatsapp": "WhatsApp"
+  },
+  "campaignStatus": {
+    "open": "Ouverte",
+    "closed": "Fermée",
+    "cancelled": "Annulée"
+  },
   "organizer": {
     "title": "Invitations d'équipes",
     "description": "Invitez des équipes à cet événement au lieu de les ajouter vous-même. Elles acceptent ou refusent, et l'acceptation les inscrit en passant par les vérifications d'inscription habituelles.",
@@ -50,7 +70,32 @@
     "toastCancelled": "Invitation annulée.",
     "toastCancelFailed": "Impossible d'annuler l'invitation.",
     "empty": "Aucune équipe n'a encore été invitée à cet événement.",
-    "summary": "En attente : {pending} | Acceptées : {accepted} | Refusées : {declined}"
+    "summary": "En attente : {pending} | Acceptées : {accepted} | Refusées : {declined}",
+    "emptyRowsWithCampaign": "Aucune équipe n'a encore répondu. Une invitation générale ne crée aucune ligne par équipe tant que personne ne l'accepte.",
+    "kindLabel": "Quel type d'invitation",
+    "slotsLabel": "Combien de places",
+    "slotsPlaceholder": "Laissez vide pour utiliser la capacité de l'événement",
+    "slotsHint": "Combien de ces équipes peuvent entrer. Laissez vide et la capacité restante de l'événement est la seule limite.",
+    "deliveryLabel": "Où l'envoyer",
+    "deliveryHint": "Toute personne qui peut répondre pour l'équipe la reçoit : le propriétaire, le capitaine, le vice-capitaine, le manager et le coach.",
+    "deliveryWhatsappHint": "WhatsApp ne touche que les personnes qui l'ont activé dans leur profil. Gardez aussi l'e-mail coché.",
+    "reachRecipients": "{people} personnes peuvent répondre pour les {teams} équipe(s) que vous avez choisies.",
+    "reachEmail": "L'e-mail en touche {reached}.",
+    "reachWhatsapp": "WhatsApp en touche {reached}.",
+    "deliveryNoneSelected": "Choisissez au moins un endroit où l'envoyer.",
+    "campaignsTitle": "Invitations envoyées",
+    "colKind": "Type",
+    "colAudience": "Équipes prévenues",
+    "colPlaces": "Places",
+    "colAccepted": "Acceptées",
+    "noPlaceLimit": "Capacité de l'événement",
+    "placesLeft": "{left} sur {total} restantes",
+    "closeCampaign": "Fermer",
+    "closing": "Fermeture...",
+    "toastClosed": "Invitation fermée.",
+    "toastCloseFailed": "Impossible de fermer l'invitation.",
+    "toastSentBulk": "Invitation ouverte envoyée à {count} équipe(s).",
+    "toastDelivered": "{recipients} personnes touchées : {pushed} dans le site, {emailed} par e-mail, {whatsapp} sur WhatsApp."
   },
   "team": {
     "title": "Invitations à des événements",
@@ -85,6 +130,10 @@
     "declining": "Refus...",
     "toastDeclined": "Invitation refusée.",
     "toastDeclineFailed": "Impossible de refuser l'invitation.",
-    "cancelDialog": "Annuler"
+    "cancelDialog": "Annuler",
+    "fcfsNotice": "Premier arrivé, premier servi. Plus d'équipes ont été invitées qu'il n'y a de places, donc celles qui acceptent en premier les prennent.",
+    "bulkNotice": "Une invitation ouverte. Prenez une place tant qu'il en reste.",
+    "placesLeft": "{count} restantes.",
+    "eventPlacesLeft": "{count} places restantes dans cet événement."
   }
 }

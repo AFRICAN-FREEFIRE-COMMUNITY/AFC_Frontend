@@ -14,10 +14,23 @@
 //   edit), so both surfaces get it from one component. Team events only: solo events have no teams
 //   to invite, and the backend refuses that case anyway.
 //
+// THE THREE KINDS + DELIVERY (owner 2026-08-08)
+//   The dialog now asks two more things before it sends, because the owner asked for both:
+//     WHAT KIND      per team (one invitation each), first come first served (more teams than
+//                    places, quickest in), or one general invitation (a single open offer).
+//     WHERE TO SEND  in-app notification, email, WhatsApp, in any combination. Every channel goes
+//                    to EVERYONE who can answer for the team (owner, captain, vice-captain,
+//                    manager, coach), not only the captain.
+//   A "first come, first served" send also takes a places count, and a general invitation writes no
+//   per-team rows at all, which is why the table below lists CAMPAIGNS as well as invitations: a
+//   general invitation would otherwise be invisible on the screen that sent it.
+//
 // WHICH ENDPOINTS IT HITS (afc_tournament_and_scrims/event_invites.py)
-//   GET  /events/team-invitations/?event_id=       list this event's invitations + status counts
-//   POST /events/team-invitations/create/          {event_id, team_ids[], message}
+//   GET  /events/team-invitations/?event_id=       this event's invitations, campaigns and counts
+//   POST /events/team-invitations/create/          {event_id, team_ids[], kind, delivery, slots,
+//                                                   message}
 //   POST /events/team-invitations/<id>/cancel/     take back a pending one
+//   POST /events/invitation-campaigns/<id>/close/  stop an offer taking new answers
 //   The team picker reuses /team/get-all-teams/, exactly as AddTeamsModal does.
 //
 // i18n: namespace messages/*/eventInvites.json (admin surfaces are in scope since the owner's
@@ -35,6 +48,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,6 +73,16 @@ import { IconLoader2, IconMailForward, IconSearch } from "@tabler/icons-react";
 // Timestamps render in the VIEWER's timezone + language, never a raw toLocale* call.
 import { LocalTime } from "@/components/LocalTime";
 
+// The three kinds an invitation can be sent as, and the channels it can go out on. Both vocabularies
+// are the BACKEND's: `kind` matches EventInvitationCampaign.KIND_CHOICES and the channel tokens are
+// afc_auth.audience's, comma-joined into the `delivery` field. Kept as literal unions so a typo is
+// a compile error here rather than a 400 at send time.
+type InviteKind = "per_team" | "fcfs" | "bulk";
+type Channel = "push" | "email" | "whatsapp";
+
+const KINDS: InviteKind[] = ["per_team", "fcfs", "bulk"];
+const CHANNELS: Channel[] = ["push", "email", "whatsapp"];
+
 // One row of /events/team-invitations/ (event_invites._serialize).
 interface Invitation {
   id: number;
@@ -72,6 +96,24 @@ interface Invitation {
   team_tag: string | null;
   invited_by: string | null;
   responded_by: string | null;
+  kind: InviteKind;
+  campaign_id: number | null;
+}
+
+// One campaign of /events/team-invitations/ (event_invites._serialize_campaign): the invitation as
+// the organizer authored it. Listed alongside the rows because a BULK send writes no rows.
+interface Campaign {
+  campaign_id: number;
+  kind: InviteKind;
+  status: "open" | "closed" | "cancelled";
+  message: string;
+  delivery: string;
+  slots: number | null;
+  slots_remaining: number | null;
+  audience_size: number;
+  accepted_count: number;
+  created_at: string;
+  created_by: string | null;
 }
 
 // One row of /team/get-all-teams/ (the same shape AddTeamsModal reads).
@@ -82,6 +124,15 @@ interface PickableTeam {
   member_count: number;
   country: string;
   is_banned: boolean;
+}
+
+// GET /events/team-invitations/reach/ (event_invites.invitation_reach): how many PEOPLE the
+// current selection would reach, per channel, deduplicated across teams.
+interface Reach {
+  recipients: number;
+  email: number;
+  whatsapp: number;
+  teams: number;
 }
 
 interface EventTeamInvitesCardProps {
@@ -120,9 +171,11 @@ export function EventTeamInvitesCard({
   const { token } = useAuth();
 
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [closingId, setClosingId] = useState<number | null>(null);
 
   // Invite dialog state.
   const [open, setOpen] = useState(false);
@@ -132,6 +185,16 @@ export function EventTeamInvitesCard({
   const [selected, setSelected] = useState<number[]>([]);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  // The two new choices (owner 2026-08-08). Defaults are deliberately the OLD behaviour: one
+  // invitation per team, delivered in-app and by email, so an organizer who changes nothing gets
+  // exactly what this card did before, and "both" is what the backend defaults to as well.
+  const [kind, setKind] = useState<InviteKind>("per_team");
+  const [channels, setChannels] = useState<Channel[]>(["push", "email"]);
+  const [slots, setSlots] = useState("");
+  // How many people the CURRENT selection would actually reach, per channel. Fetched live rather
+  // than written into the copy, because the WhatsApp figure is the whole point and a number typed
+  // into a translation string is wrong the day after it is written.
+  const [reach, setReach] = useState<Reach | null>(null);
 
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
@@ -144,6 +207,7 @@ export function EventTeamInvitesCard({
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setInvitations(res.data.invitations ?? []);
+      setCampaigns(res.data.campaigns ?? []);
       setCounts(res.data.counts ?? {});
     } catch {
       toast.error(t("organizer.toastLoadFailed"));
@@ -176,6 +240,9 @@ export function EventTeamInvitesCard({
     setSelected([]);
     setSearch("");
     setMessage("");
+    setKind("per_team");
+    setChannels(["push", "email"]);
+    setSlots("");
     axios
       .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -203,41 +270,122 @@ export function EventTeamInvitesCard({
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
 
+  const toggleChannel = (channel: Channel) =>
+    setChannels((prev) =>
+      prev.includes(channel) ? prev.filter((c) => c !== channel) : [...prev, channel],
+    );
+
+  // ── Live reach for the current selection ─────────────────────────────────────────────────
+  // Re-asked whenever the ticked teams change, so the WhatsApp line under the tick box says
+  // "reaches 2 of these 14 people" about THIS send rather than quoting a site-wide average.
+  // Debounced by 300ms because ticking several teams in a row would otherwise fire a request per
+  // click, and aborted on change so a slow earlier answer cannot overwrite a newer one.
+  useEffect(() => {
+    if (!open || !token) return;
+    if (selected.length === 0) {
+      setReach(null);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      axios
+        .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/team-invitations/reach/`, {
+          params: { event_id: eventId, team_ids: selected.join(",") },
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        })
+        .then((res) => setReach(res.data))
+        // Silent: reach is advisory. A failed lookup must not block a send or nag the organizer,
+        // it just means the line is not shown.
+        .catch(() => undefined);
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [open, token, eventId, selected]);
+
   const handleSend = async () => {
-    if (selected.length === 0) return;
+    if (selected.length === 0 || channels.length === 0) return;
     setSending(true);
     try {
       const res = await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/team-invitations/create/`,
-        { event_id: eventId, team_ids: selected, message: message.trim() },
+        {
+          event_id: eventId,
+          team_ids: selected,
+          message: message.trim(),
+          kind,
+          // The backend speaks afc_auth.audience's comma-joined vocabulary, so the tick boxes are
+          // joined rather than sent as a list. parse_delivery accepts either, but matching the
+          // stored form keeps the request readable in a log.
+          delivery: channels.join(","),
+          // Only meaningful for first come, first served, and the backend REFUSES it on the other
+          // kinds rather than ignoring it, so it must not be sent otherwise.
+          ...(kind === "fcfs" && slots.trim() ? { slots: Number(slots) } : {}),
+        },
         authHeader,
       );
       const invited = res.data.invited?.length ?? 0;
       const skipped = res.data.skipped ?? [];
+      const delivered = res.data.delivered ?? {};
+      // What actually went out, per channel. Worth showing because the channels are a choice now:
+      // an organizer who ticked WhatsApp needs to see that it reached two people, not twenty.
+      const deliveryLine = t("organizer.toastDelivered", {
+        recipients: delivered.recipients ?? 0,
+        pushed: delivered.pushed ?? 0,
+        emailed: delivered.emailed ?? 0,
+        whatsapp: delivered.whatsapp ?? 0,
+      });
       // A partly-skipped batch is normal (a team registered itself an hour ago), so it is reported
       // rather than hidden: the toast names how many went out and, per skipped team, why not.
-      if (skipped.length > 0) {
-        toast.success(
-          t("organizer.toastSentWithSkips", { count: invited, skipped: skipped.length }),
-          {
-            description: skipped
+      const skipLine =
+        skipped.length > 0
+          ? skipped
               .map(
                 (s: { team_name: string | null; reason: string }) =>
                   `${s.team_name ?? s.reason}: ${t(`skipReason.${s.reason}` as never)}`,
               )
-              .join(", "),
-            duration: 10000,
-          },
-        );
-      } else {
-        toast.success(t("organizer.toastSent", { count: invited }));
-      }
+              .join(", ")
+          : "";
+      // A bulk send addresses nobody, so "3 teams invited" would be wrong: it is one invitation
+      // that N teams were told about.
+      const headline =
+        kind === "bulk"
+          ? t("organizer.toastSentBulk", { count: res.data.campaign?.audience_size ?? 0 })
+          : skipped.length > 0
+            ? t("organizer.toastSentWithSkips", { count: invited, skipped: skipped.length })
+            : t("organizer.toastSent", { count: invited });
+
+      toast.success(headline, {
+        description: skipLine ? `${deliveryLine} ${skipLine}` : deliveryLine,
+        duration: 10000,
+      });
       setOpen(false);
       fetchInvitations();
     } catch (err) {
       toast.error(errorMessage(err) || t("organizer.toastSendFailed"));
     } finally {
       setSending(false);
+    }
+  };
+
+  // Close an offer so it stops taking new answers. Answers already given stand: teams that accepted
+  // are in the bracket, which is why this is "close", not "cancel".
+  const handleClose = async (campaignId: number) => {
+    setClosingId(campaignId);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/invitation-campaigns/${campaignId}/close/`,
+        {},
+        authHeader,
+      );
+      toast.success(t("organizer.toastClosed"));
+      fetchInvitations();
+    } catch (err) {
+      toast.error(errorMessage(err) || t("organizer.toastCloseFailed"));
+    } finally {
+      setClosingId(null);
     }
   };
 
@@ -278,6 +426,92 @@ export function EventTeamInvitesCard({
       </CardHeader>
 
       <CardContent>
+        {/* ── Campaigns: the invitations AS SENT ────────────────────────────────────────────
+            Listed above the per-team rows because a BULK send writes no per-team rows at all:
+            without this an organizer would press Send, see nothing appear, and send again. It
+            also carries the only place a first-come race is visible ("2 of 5 places left"). */}
+        {campaigns.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-medium mb-2 flex items-center gap-2">
+              {t("organizer.campaignsTitle")}
+              <NewBadge since="2026-08-08" />
+            </p>
+            <div className="overflow-x-auto rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("organizer.colKind")}</TableHead>
+                    <TableHead>{t("organizer.colStatus")}</TableHead>
+                    <TableHead>{t("organizer.colAudience")}</TableHead>
+                    <TableHead>{t("organizer.colPlaces")}</TableHead>
+                    <TableHead>{t("organizer.colAccepted")}</TableHead>
+                    <TableHead>{t("organizer.colSent")}</TableHead>
+                    <TableHead>{t("organizer.colActions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {campaigns.map((campaign) => (
+                    <TableRow key={campaign.campaign_id}>
+                      <TableCell className="text-xs font-medium">
+                        {t(`kind.${campaign.kind}` as never)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={`rounded-full px-2 py-0.5 text-xs ${
+                            campaign.status === "open"
+                              ? "text-green-400 border-green-800"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {t(`campaignStatus.${campaign.status}` as never)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {campaign.audience_size}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {/* Only a first-come send has a places ceiling of its own. For the other
+                            kinds the event's own capacity is the limit, so a number here would be
+                            a number we do not actually enforce. */}
+                        {campaign.slots === null
+                          ? t("organizer.noPlaceLimit")
+                          : t("organizer.placesLeft", {
+                              left: campaign.slots_remaining ?? 0,
+                              total: campaign.slots,
+                            })}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {campaign.accepted_count}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        <LocalTime value={campaign.created_at} mode="date" />
+                      </TableCell>
+                      <TableCell>
+                        {campaign.status === "open" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={closingId === campaign.campaign_id}
+                            onClick={() => handleClose(campaign.campaign_id)}
+                          >
+                            {closingId === campaign.campaign_id && (
+                              <IconLoader2 className="size-4 animate-spin mr-1" />
+                            )}
+                            {closingId === campaign.campaign_id
+                              ? t("organizer.closing")
+                              : t("organizer.closeCampaign")}
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-8 text-muted-foreground gap-2 text-sm">
             <IconLoader2 className="size-4 animate-spin" />
@@ -285,7 +519,7 @@ export function EventTeamInvitesCard({
           </div>
         ) : invitations.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-6">
-            {t("organizer.empty")}
+            {campaigns.length > 0 ? t("organizer.emptyRowsWithCampaign") : t("organizer.empty")}
           </p>
         ) : (
           <>
@@ -378,7 +612,13 @@ export function EventTeamInvitesCard({
 
       {/* ── Invite dialog: pick teams, add a note, send ─────────────────────────────────── */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
+        {/* max-h + overflow-y-auto because this dialog GREW: the kind picker, its three
+            explanations, the channel tick boxes and (on a first come, first served send) the
+            places field push it to ~971px, and a 390x844 phone then cut off BOTH the title and
+            the Send button, so an organizer could not send that kind of invitation at all.
+            Measured on the 390px pass, not guessed. dvh rather than vh so a mobile browser's
+            retracting address bar does not re-clip it. */}
+        <DialogContent className="max-w-lg max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             {/* pr-6 keeps a long event name clear of the dialog's absolutely-positioned close X. */}
             <DialogTitle className="pr-6">
@@ -452,6 +692,134 @@ export function EventTeamInvitesCard({
               </ScrollArea>
             )}
 
+            {/* ── What kind of invitation (owner 2026-08-08) ──────────────────────────────
+                Stacked rather than in a row: each option needs its one-line explanation next to
+                it, because "first come, first served" and "one general invitation" are not
+                self-evident from three words, and on a 390px phone three side-by-side radios with
+                captions do not fit. */}
+            <div className="flex flex-col gap-1.5">
+              <Label className="flex items-center gap-2">
+                {t("organizer.kindLabel")}
+                <NewBadge since="2026-08-08" />
+              </Label>
+              <RadioGroup
+                value={kind}
+                onValueChange={(value) => setKind(value as InviteKind)}
+                className="flex flex-col gap-2"
+              >
+                {KINDS.map((option) => (
+                  <div key={option} className="flex items-start gap-2">
+                    <RadioGroupItem
+                      value={option}
+                      id={`event-invite-kind-${option}`}
+                      className="mt-0.5 shrink-0"
+                    />
+                    {/* A NATIVE label, not the shared <Label>: that one is `uppercase` and
+                        `items-center`, which centred this column away from its radio and shouted
+                        a full explanatory sentence in capitals. Both were visible on the 390px
+                        pass. htmlFor still ties the whole row to the radio, so the tap target is
+                        the 44px row rather than the 15px dot. */}
+                    <label
+                      htmlFor={`event-invite-kind-${option}`}
+                      className="flex flex-col gap-0.5 cursor-pointer select-none flex-1 min-w-0"
+                    >
+                      <span className="text-sm font-medium">{t(`kind.${option}` as never)}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t(`kindHint.${option}` as never)}
+                      </span>
+                    </label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            {/* Places only exist for a first-come send: on the other kinds the backend REFUSES a
+                slots value rather than ignoring it, so the field is not just hidden, it is not
+                sent. Leaving it empty means the event's own capacity is the only limit. */}
+            {kind === "fcfs" && (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="event-invite-slots">{t("organizer.slotsLabel")}</Label>
+                <Input
+                  id="event-invite-slots"
+                  type="number"
+                  min={1}
+                  inputMode="numeric"
+                  value={slots}
+                  onChange={(e) => setSlots(e.target.value)}
+                  placeholder={t("organizer.slotsPlaceholder")}
+                />
+                <p className="text-xs text-muted-foreground">{t("organizer.slotsHint")}</p>
+              </div>
+            )}
+
+            {/* ── Where it goes (owner 2026-08-08) ────────────────────────────────────────── */}
+            <div className="flex flex-col gap-1.5">
+              <Label className="flex items-center gap-2">
+                {t("organizer.deliveryLabel")}
+                <NewBadge since="2026-08-08" />
+              </Label>
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                {CHANNELS.map((channel) => (
+                  // py-1.5 is not decoration: the bare row is 19px tall, which is a poor tap
+                  // target on a phone. The padding takes the whole label past 30px, and the label
+                  // (not the 16px box) is what a thumb actually hits.
+                  <label
+                    key={channel}
+                    className="flex items-center gap-2 py-1.5 cursor-pointer select-none"
+                  >
+                    <Checkbox
+                      checked={channels.includes(channel)}
+                      onCheckedChange={() => toggleChannel(channel)}
+                    />
+                    <span className="text-sm">{t(`channel.${channel}` as never)}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">{t("organizer.deliveryHint")}</p>
+
+              {/* THE NUMBERS, said before the send rather than after. Every AFC account has an
+                  email address; WhatsApp only reaches somebody who saved a number and left the
+                  opt-in on, which site-wide is under 4% of the people who can answer an
+                  invitation. An organizer who ticks WhatsApp and assumes the teams were told is
+                  exactly what this prevents, so the real count for THIS selection is printed
+                  under the tick boxes. Live from the reach endpoint, never a number in the copy. */}
+              {reach && reach.recipients > 0 && (
+                <div className="text-xs flex flex-col gap-0.5">
+                  <span className="text-muted-foreground">
+                    {t("organizer.reachRecipients", {
+                      people: reach.recipients,
+                      teams: reach.teams,
+                    })}
+                  </span>
+                  {channels.includes("email") && (
+                    <span className="text-muted-foreground">
+                      {t("organizer.reachEmail", {
+                        reached: reach.email,
+                        people: reach.recipients,
+                      })}
+                    </span>
+                  )}
+                  {channels.includes("whatsapp") && (
+                    // Amber when it would reach nobody, because that is the case an organizer
+                    // most needs to notice before pressing Send.
+                    <span className={reach.whatsapp === 0 ? "text-red-400" : "text-yellow-400"}>
+                      {t("organizer.reachWhatsapp", {
+                        reached: reach.whatsapp,
+                        people: reach.recipients,
+                      })}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {channels.includes("whatsapp") && (
+                <p className="text-xs text-yellow-400">{t("organizer.deliveryWhatsappHint")}</p>
+              )}
+              {channels.length === 0 && (
+                <p className="text-xs text-red-400">{t("organizer.deliveryNoneSelected")}</p>
+              )}
+            </div>
+
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="event-invite-message">{t("organizer.messageLabel")}</Label>
               <Textarea
@@ -474,7 +842,10 @@ export function EventTeamInvitesCard({
                 <Button variant="outline" onClick={() => setOpen(false)} disabled={sending}>
                   {t("organizer.cancel")}
                 </Button>
-                <Button onClick={handleSend} disabled={sending || selected.length === 0}>
+                <Button
+                  onClick={handleSend}
+                  disabled={sending || selected.length === 0 || channels.length === 0}
+                >
                   {sending && <IconLoader2 className="size-4 animate-spin mr-2" />}
                   {sending ? t("organizer.sending") : t("organizer.send")}
                 </Button>

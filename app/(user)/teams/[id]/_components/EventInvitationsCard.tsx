@@ -22,10 +22,24 @@
 //   any refusal the registration path returns is shown verbatim, because the invited team is held
 //   to exactly the rules a self-registering team is.
 //
+// THREE KINDS OF ASK (owner 2026-08-08)
+//   An organizer now chooses how they invite, and the difference matters to whoever is deciding:
+//     per team   the place is held for this team alone. Answer whenever.
+//     fcfs       more teams were asked than there are places. Answering fast is the whole game, so
+//                the card says how many places are left.
+//     bulk       ONE open invitation, not addressed to anybody. It arrives here as an "offer" row
+//                and is answered through the CAMPAIGN endpoints, because the backend writes no
+//                per-team row for it until somebody answers.
+//   Offers and addressed invitations arrive in the same list and carry the same keys (the backend
+//   serializes them to one shape on purpose), so this renders one list and branches only where the
+//   two genuinely differ: which endpoint the buttons post to.
+//
 // WHICH ENDPOINTS IT HITS (afc_tournament_and_scrims/event_invites.py)
-//   GET  /events/team-invitations/mine/?team_id=      the team's invitations + can_respond
-//   POST /events/team-invitations/<id>/accept/        {roster_member_ids}
-//   POST /events/team-invitations/<id>/decline/       {reason}
+//   GET  /events/team-invitations/mine/?team_id=          the team's invitations, offers, can_respond
+//   POST /events/team-invitations/<id>/accept/            {roster_member_ids}
+//   POST /events/team-invitations/<id>/decline/           {reason}
+//   POST /events/invitation-campaigns/<id>/accept/        {team_id, roster_member_ids}   (offers)
+//   POST /events/invitation-campaigns/<id>/decline/       {team_id, reason}              (offers)
 //
 // i18n: namespace messages/*/eventInvites.json via useTranslations("eventInvites").
 
@@ -62,10 +76,16 @@ import {
 // Dates render in the VIEWER's timezone + language, never a raw toLocale* call.
 import { LocalTime } from "@/components/LocalTime";
 
-// One row of /events/team-invitations/mine/ (event_invites._serialize with for_team=True).
+// One row of /events/team-invitations/mine/. Two shapes arrive in this one list and they carry the
+// same keys on purpose (event_invites._serialize with for_team=True, and _serialize_campaign with
+// for_team=True):
+//   * an ADDRESSED invitation: `is_offer` absent, answered through /team-invitations/<id>/...
+//   * an OPEN OFFER from a bulk campaign: `is_offer` true, answered through
+//     /invitation-campaigns/<campaign_id>/..., because no per-team row exists until it is answered.
+// `id` is negative for an offer so the two id spaces cannot collide as React keys.
 interface TeamInvitation {
   id: number;
-  status: "pending" | "accepted" | "declined" | "cancelled" | "expired";
+  status: "pending" | "accepted" | "declined" | "cancelled" | "expired" | "open" | "closed";
   message: string;
   decline_reason: string;
   created_at: string;
@@ -78,6 +98,14 @@ interface TeamInvitation {
   registration_open: boolean;
   event_status: string;
   team_registered: boolean;
+  kind: "per_team" | "fcfs" | "bulk";
+  /** true only on a bulk offer: the buttons post to the campaign endpoints instead. */
+  is_offer?: boolean;
+  campaign_id: number | null;
+  /** first come, first served only: places left in THIS invitation. null when uncapped. */
+  slots_remaining: number | null;
+  /** places left in the EVENT itself. null when the event is uncapped. */
+  event_places_left: number | null;
 }
 
 // A member as get-team-details returns them (teamDetails.members). Only PLAYING roles can go on an
@@ -105,7 +133,16 @@ const STATUS_CLASS: Record<TeamInvitation["status"], string> = {
   declined: "text-red-400 border-red-800",
   cancelled: "text-muted-foreground",
   expired: "text-muted-foreground",
+  // A bulk OFFER carries the campaign's own status rather than an invitation's, so these two
+  // exist here as well. "open" is the offer waiting to be taken, and reads like "pending".
+  open: "text-yellow-400 border-yellow-800",
+  closed: "text-muted-foreground",
 };
+
+// An offer is answerable while it is "open"; an addressed invitation while it is "pending". One
+// predicate rather than two branches at every call site.
+const isAnswerable = (invitation: TeamInvitation) =>
+  invitation.is_offer ? invitation.status === "open" : invitation.status === "pending";
 
 interface EventInvitationsCardProps {
   teamId?: number;
@@ -172,13 +209,23 @@ export function EventInvitationsCard({
   const toggleRoster = (id: number) =>
     setRoster((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
+  // An OFFER has no per-team row yet, so it is answered on the campaign and has to name which team
+  // is answering. An addressed invitation already knows its team, so it does not.
+  const answerUrl = (invitation: TeamInvitation, action: "accept" | "decline") =>
+    invitation.is_offer
+      ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/invitation-campaigns/${invitation.campaign_id}/${action}/`
+      : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/team-invitations/${invitation.id}/${action}/`;
+
   const handleAccept = async () => {
     if (!acceptTarget) return;
     setBusy(true);
     try {
       await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/team-invitations/${acceptTarget.id}/accept/`,
-        { roster_member_ids: roster },
+        answerUrl(acceptTarget, "accept"),
+        {
+          roster_member_ids: roster,
+          ...(acceptTarget.is_offer ? { team_id: teamId } : {}),
+        },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       toast.success(t("team.toastAccepted", { event: acceptTarget.event_name }));
@@ -203,8 +250,11 @@ export function EventInvitationsCard({
     setBusy(true);
     try {
       await axios.post(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/team-invitations/${declineTarget.id}/decline/`,
-        { reason: reason.trim() },
+        answerUrl(declineTarget, "decline"),
+        {
+          reason: reason.trim(),
+          ...(declineTarget.is_offer ? { team_id: teamId } : {}),
+        },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       toast.success(t("team.toastDeclined"));
@@ -221,7 +271,7 @@ export function EventInvitationsCard({
   // A team nobody has invited sees nothing at all: no empty card taking up the top of the page.
   if (!loaded || invitations.length === 0) return null;
 
-  const pendingCount = invitations.filter((i) => i.status === "pending").length;
+  const pendingCount = invitations.filter(isAnswerable).length;
   const rosterMin = acceptTarget?.participant_type === "duo" ? 2 : 4;
   const rosterMax = acceptTarget?.participant_type === "duo" ? 2 : 6;
   const rosterValid = roster.length >= rosterMin && roster.length <= rosterMax;
@@ -274,7 +324,12 @@ export function EventInvitationsCard({
                       variant="outline"
                       className={`rounded-full px-2 py-0.5 text-xs ${STATUS_CLASS[invitation.status]}`}
                     >
-                      {t(`status.${invitation.status}` as never)}
+                      {/* An OFFER carries its campaign's status ("open"/"closed"), which lives in
+                          a different key group from an invitation's ("pending"/"accepted"/...).
+                          Reading the wrong group would render a missing-key error in the badge. */}
+                      {invitation.is_offer
+                        ? t(`campaignStatus.${invitation.status}` as never)
+                        : t(`status.${invitation.status}` as never)}
                     </Badge>
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -305,7 +360,29 @@ export function EventInvitationsCard({
                 </p>
               )}
 
-              {invitation.status === "pending" && (
+              {/* WHAT KIND of ask this is, said plainly, because it changes how fast the team
+                  should answer. A first come, first served invitation that does not say so is
+                  just an invitation the team answers next week, by which time it is gone. */}
+              {isAnswerable(invitation) && invitation.kind !== "per_team" && (
+                <p className="text-xs text-yellow-400 flex items-center gap-2 flex-wrap">
+                  <NewBadge since="2026-08-08" />
+                  <span>
+                    {invitation.kind === "fcfs"
+                      ? t("team.fcfsNotice")
+                      : t("team.bulkNotice")}
+                    {/* The concrete number, when there is one. The campaign's own places take
+                        precedence over the event's, because that is the ceiling this team hits
+                        first. */}
+                    {invitation.slots_remaining !== null
+                      ? ` ${t("team.placesLeft", { count: invitation.slots_remaining })}`
+                      : invitation.event_places_left !== null
+                        ? ` ${t("team.eventPlacesLeft", { count: invitation.event_places_left })}`
+                        : ""}
+                  </span>
+                </p>
+              )}
+
+              {isAnswerable(invitation) && (
                 <>
                   {blockedReason && (
                     <p className="text-xs text-red-400">{blockedReason}</p>
