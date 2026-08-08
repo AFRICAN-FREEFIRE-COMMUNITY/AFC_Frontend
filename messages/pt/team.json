@@ -22,5 +22,46 @@
     "saved": "As letras das equipas foram atualizadas.",
     "saveFailed": "Não foi possível atualizar as letras das equipas.",
     "explainerAlt": "Referência de avatares com letras do Free Fire"
+  },
+  "rolePermissions": {
+    "manageButton": "Permissões de funções",
+    "pageTitle": "Permissões de funções",
+    "pageDescription": "Escolha o que cada função da equipe {team} pode fazer.",
+    "explainer": "Ative um controle para que todos com aquela função possam usá-lo. As mudanças valem na hora, e cada ação é verificada de novo no servidor, então uma função só faz o que você permitir aqui.",
+    "ownerNote": "Você é o dono da equipe. Você sempre mantém todos os controles, independentemente do que definir abaixo, e só você pode alterar estas configurações.",
+    "readOnlyNote": "Só o dono da equipe pode alterar estas configurações. É isto que a sua equipe permite no momento.",
+    "grantedCount": "{count} de {total} permitidos",
+    "reset": "Restaurar padrões",
+    "resetting": "Restaurando",
+    "resetDone": "Permissões de funções restauradas para os padrões da AFC.",
+    "saved": "Permissões de funções atualizadas.",
+    "saveFailed": "Não foi possível atualizar as permissões de funções.",
+    "loadFailed": "Não foi possível carregar as permissões de funções.",
+    "capability": {
+      "can_invite_members": {
+        "label": "Convidar membros",
+        "description": "Enviar convite para um jogador e criar links de entrada para a equipe."
+      },
+      "can_manage_join_requests": {
+        "label": "Cuidar dos pedidos de entrada",
+        "description": "Ver quem pediu para entrar na equipe e aprovar ou recusar."
+      },
+      "can_edit_roster": {
+        "label": "Editar o elenco",
+        "description": "Mudar a função de cada membro e a posição em jogo."
+      },
+      "can_remove_members": {
+        "label": "Remover membros",
+        "description": "Tirar alguém da equipe."
+      },
+      "can_register_for_events": {
+        "label": "Inscrever em eventos",
+        "description": "Inscrever a equipe em torneios e scrims, e responder a convites de eventos."
+      },
+      "can_edit_team_profile": {
+        "label": "Editar o perfil da equipe",
+        "description": "Mudar o nome, a tag, o logo, a descrição, as configurações de entrada e as redes sociais da equipe."
+      }
+    }
   }
 }

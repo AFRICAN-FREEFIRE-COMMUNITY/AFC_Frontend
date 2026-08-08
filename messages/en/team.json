@@ -22,5 +22,46 @@
     "saved": "Team letters updated.",
     "saveFailed": "Could not update the team letters.",
     "explainerAlt": "Free Fire letter avatar reference"
+  },
+  "rolePermissions": {
+    "manageButton": "Role permissions",
+    "pageTitle": "Role permissions",
+    "pageDescription": "Choose what each role in {team} is allowed to do.",
+    "explainer": "Turn a control on to let everyone with that role use it. Changes apply straight away, and every action is checked again on the server, so a role can only do what you allow here.",
+    "ownerNote": "You are the team owner. You always keep every control, whatever you set below, and only you can change these settings.",
+    "readOnlyNote": "Only the team owner can change these settings. This is what your team allows right now.",
+    "grantedCount": "{count} of {total} allowed",
+    "reset": "Reset to defaults",
+    "resetting": "Resetting",
+    "resetDone": "Role permissions reset to the AFC defaults.",
+    "saved": "Role permissions updated.",
+    "saveFailed": "Could not update the role permissions.",
+    "loadFailed": "Could not load the role permissions.",
+    "capability": {
+      "can_invite_members": {
+        "label": "Invite members",
+        "description": "Send an invite to a player and create join links for the team."
+      },
+      "can_manage_join_requests": {
+        "label": "Handle join requests",
+        "description": "See who asked to join the team and approve or deny them."
+      },
+      "can_edit_roster": {
+        "label": "Edit the roster",
+        "description": "Change what role each member holds and their in-game position."
+      },
+      "can_remove_members": {
+        "label": "Remove members",
+        "description": "Take someone off the team."
+      },
+      "can_register_for_events": {
+        "label": "Register for events",
+        "description": "Enter the team into tournaments and scrims, and answer event invitations."
+      },
+      "can_edit_team_profile": {
+        "label": "Edit the team profile",
+        "description": "Change the team name, tag, logo, description, join settings and social links."
+      }
+    }
   }
 }

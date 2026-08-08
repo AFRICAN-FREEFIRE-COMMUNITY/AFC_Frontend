@@ -22,5 +22,46 @@
     "saved": "Mise à jour des lettres des équipes.",
     "saveFailed": "Impossible de mettre à jour les lettres des équipes.",
     "explainerAlt": "Référence pour l'avatar « Free Fire Letter »"
+  },
+  "rolePermissions": {
+    "manageButton": "Autorisations des rôles",
+    "pageTitle": "Autorisations des rôles",
+    "pageDescription": "Choisissez ce que chaque rôle de {team} a le droit de faire.",
+    "explainer": "Activez un contrôle pour que tous les membres ayant ce rôle puissent l'utiliser. Les modifications prennent effet immédiatement, et chaque action est revérifiée sur le serveur : un rôle ne peut donc faire que ce que vous autorisez ici.",
+    "ownerNote": "Vous êtes le propriétaire de l'équipe. Vous conservez toujours tous les contrôles, quels que soient vos réglages ci-dessous, et vous seul pouvez modifier ces paramètres.",
+    "readOnlyNote": "Seul le propriétaire de l'équipe peut modifier ces paramètres. Voici ce que votre équipe autorise actuellement.",
+    "grantedCount": "{count} sur {total} autorisés",
+    "reset": "Rétablir les valeurs par défaut",
+    "resetting": "Rétablissement",
+    "resetDone": "Autorisations des rôles rétablies aux valeurs par défaut d'AFC.",
+    "saved": "Autorisations des rôles mises à jour.",
+    "saveFailed": "Impossible de mettre à jour les autorisations des rôles.",
+    "loadFailed": "Impossible de charger les autorisations des rôles.",
+    "capability": {
+      "can_invite_members": {
+        "label": "Inviter des membres",
+        "description": "Envoyer une invitation à un joueur et créer des liens d'adhésion pour l'équipe."
+      },
+      "can_manage_join_requests": {
+        "label": "Gérer les demandes d'adhésion",
+        "description": "Voir qui a demandé à rejoindre l'équipe, puis accepter ou refuser."
+      },
+      "can_edit_roster": {
+        "label": "Modifier l'effectif",
+        "description": "Changer le rôle de chaque membre et sa position en jeu."
+      },
+      "can_remove_members": {
+        "label": "Retirer des membres",
+        "description": "Retirer quelqu'un de l'équipe."
+      },
+      "can_register_for_events": {
+        "label": "Inscrire aux compétitions",
+        "description": "Inscrire l'équipe aux tournois et aux scrims, et répondre aux invitations à des compétitions."
+      },
+      "can_edit_team_profile": {
+        "label": "Modifier le profil de l'équipe",
+        "description": "Changer le nom, le tag, le logo, la description, les paramètres d'adhésion et les réseaux sociaux de l'équipe."
+      }
+    }
   }
 }

@@ -253,10 +253,6 @@ const Page = ({ params }: { params: Params }) => {
           { team_name: decodedId },
           token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
-        const requestResponse = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
-          { team_id: res.data.team.team_id },
-        );
         setTeamDetails(res.data.team);
         setIsTeamCreator(res.data.team.team_creator === user?.in_game_name);
 
@@ -272,7 +268,32 @@ const Page = ({ params }: { params: Params }) => {
           setHasFullAccess(teamCreator === user?.in_game_name);
         }
 
-        setJoinRequests(requestResponse.data.join_requests);
+        // Pending join requests, for the "Requests" tab.
+        //
+        // SECURITY FIX 2026-08-08: this endpoint used to be UNAUTHENTICATED and was called for
+        // every visitor, so it handed anyone the requester usernames + Free Fire UIDs of any team.
+        // It now needs a session AND can_manage_join_requests, so this:
+        //   - only asks when the backend already said this viewer may manage join requests
+        //     (my_capabilities from get-team-details), the same person the Requests tab renders
+        //     for, which also drops a pointless call on every anonymous page view,
+        //   - sends the token, and
+        //   - lives in its OWN try/catch. It used to share the block above AND be awaited BEFORE
+        //     setTeamDetails, so any failure here left the whole team page blank. A refusal must
+        //     never cost the visitor the page.
+        if (res.data.team?.my_capabilities?.can_manage_join_requests) {
+          try {
+            const requestResponse = await axios.post(
+              `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
+              { team_id: res.data.team.team_id },
+              { headers: { Authorization: `Bearer ${token}` } },
+            );
+            setJoinRequests(requestResponse.data.join_requests);
+          } catch {
+            setJoinRequests([]);
+          }
+        } else {
+          setJoinRequests([]);
+        }
       } catch (error: any) {
         // Live refresh (owner 2026-07-02): no error toast on a background refresh (a
         // transient hiccup would nag every 30s); the first load still reports failures.
@@ -580,10 +601,6 @@ const Page = ({ params }: { params: Params }) => {
           { team_name: decodedId },
           token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
         );
-        const requestResponse = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
-          { team_id: res.data.team.team_id },
-        );
         setTeamDetails(res.data.team);
         setIsTeamCreator(res.data.team.team_creator === user?.in_game_name);
 
@@ -599,7 +616,32 @@ const Page = ({ params }: { params: Params }) => {
           setHasFullAccess(teamCreator === user?.in_game_name);
         }
 
-        setJoinRequests(requestResponse.data.join_requests);
+        // Pending join requests, for the "Requests" tab.
+        //
+        // SECURITY FIX 2026-08-08: this endpoint used to be UNAUTHENTICATED and was called for
+        // every visitor, so it handed anyone the requester usernames + Free Fire UIDs of any team.
+        // It now needs a session AND can_manage_join_requests, so this:
+        //   - only asks when the backend already said this viewer may manage join requests
+        //     (my_capabilities from get-team-details), the same person the Requests tab renders
+        //     for, which also drops a pointless call on every anonymous page view,
+        //   - sends the token, and
+        //   - lives in its OWN try/catch. It used to share the block above AND be awaited BEFORE
+        //     setTeamDetails, so any failure here left the whole team page blank. A refusal must
+        //     never cost the visitor the page.
+        if (res.data.team?.my_capabilities?.can_manage_join_requests) {
+          try {
+            const requestResponse = await axios.post(
+              `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/view-join-requests-for-a-team/`,
+              { team_id: res.data.team.team_id },
+              { headers: { Authorization: `Bearer ${token}` } },
+            );
+            setJoinRequests(requestResponse.data.join_requests);
+          } catch {
+            setJoinRequests([]);
+          }
+        } else {
+          setJoinRequests([]);
+        }
       } catch (error: any) {
         toast.error(error.response.data.message);
       }
@@ -1792,6 +1834,19 @@ const Page = ({ params }: { params: Params }) => {
                         </p>
                       </div>
                     )}
+                    {/* Role permissions (owner 2026-08-08): the owner decides what a vice-captain,
+                        manager, coach, analyst or player may do with the team. Owner-only, which is
+                        why it lives inside this card. Copy is in messages/<locale>/team.json under
+                        rolePermissions; the screen itself is teams/[id]/permissions and every
+                        switch on it is enforced again server-side. */}
+                    <Button asChild variant="secondary" className="w-full">
+                      <Link href={`/teams/${teamDetails?.team_name}/permissions`}>
+                        <span className="flex items-center gap-2">
+                          {tTeam("rolePermissions.manageButton")}
+                          <NewBadge since="2026-08-08" />
+                        </span>
+                      </Link>
+                    </Button>
                     <div className="flex items-center justify-center gap-2">
                       <Dialog>
                         <DialogTrigger asChild>
