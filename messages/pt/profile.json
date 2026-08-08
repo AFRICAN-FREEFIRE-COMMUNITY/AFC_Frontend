@@ -9,20 +9,14 @@
   "card": {
     "avatarAlt": "Foto de {name}",
     "uid": "UID: {uid}",
-    "team": "Equipe:",
-    "role": "Função:",
-    "language": "Idioma:",
     "editProfile": "Editar Perfil",
     "connectDiscord": "Conectar ao Discord",
     "connecting": "Conectando...",
     "disconnecting": "Desconectando...",
     "disconnect": "Desconectar - {username}",
-    "esportsImageLabel": "Imagem de eSports",
-    "esportsImageAlt": "{name}",
     "esportsImageEmpty": "Ainda não há nenhuma imagem relacionada com os eSports",
     "esportsImageHint": "Adicionar um em «Editar perfil»",
-    "esportImage": "Imagem de desporto eletrónico",
-    "esportImageMissing": "Ainda não há nenhuma imagem de desporto. Toca para carregares a tua."
+    "esportImage": "Imagem de desporto eletrónico"
   },
   "discord": {
     "disconnectTitle": "Tem certeza absoluta?",
@@ -52,7 +46,18 @@
     "currentTier": "Tier Atual",
     "unranked": "Não Ranqueado",
     "kdr": "Abates por Partida",
-    "winRate": "Taxa de Vitórias"
+    "winRate": "Taxa de Vitórias",
+    "careerSnapshot": "Resumo da Carreira",
+    "teamWins": "Vitórias da Equipe",
+    "teamWinRate": "Taxa de Vitórias da Equipe",
+    "teamMatchesSub": "em {count} partidas da equipe",
+    "noMatchesYet": "Nenhuma partida ainda",
+    "noScorelinesTitle": "Você ainda não tem placares de partida registrados.",
+    "noScorelinesBody": "Sua equipe venceu {wins} de suas {matches} partidas enquanto você estava no elenco, mas nenhuma delas lista você no placar, então seus abates e suas médias continuam vazios. Se você jogou alguma delas, peça ao seu organizador para conferir o envio dos resultados.",
+    "joinedTeam": "Entrou na Equipe",
+    "discord": "Discord",
+    "language": "Idioma",
+    "notConnected": "Não conectado"
   },
   "stats": {
     "loading": "Carregando suas estatísticas..."

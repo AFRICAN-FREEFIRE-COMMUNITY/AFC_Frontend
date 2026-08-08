@@ -9,20 +9,14 @@
   "card": {
     "avatarAlt": "{name}'s picture",
     "uid": "UID: {uid}",
-    "team": "Team:",
-    "role": "Role:",
-    "language": "Language:",
     "editProfile": "Edit Profile",
     "connectDiscord": "Connect to Discord",
     "connecting": "Connecting...",
     "disconnecting": "Disconnecting...",
     "disconnect": "Disconnect - {username}",
-    "esportsImageLabel": "Esports Image",
-    "esportsImageAlt": "{name}'s esports image",
     "esportsImageEmpty": "No esports image yet",
     "esportsImageHint": "Add one from Edit Profile",
-    "esportImage": "Esport image",
-    "esportImageMissing": "No esport image yet. Tap to upload yours."
+    "esportImage": "Esport image"
   },
   "discord": {
     "disconnectTitle": "Are you absolutely sure?",
@@ -52,7 +46,18 @@
     "currentTier": "Current Tier",
     "unranked": "Unranked",
     "kdr": "Kills per Match",
-    "winRate": "Win Rate"
+    "winRate": "Win Rate",
+    "careerSnapshot": "Career snapshot",
+    "teamWins": "Team Wins",
+    "teamWinRate": "Team Win Rate",
+    "teamMatchesSub": "across {count} team matches",
+    "noMatchesYet": "No matches yet",
+    "noScorelinesTitle": "You have no match scorelines recorded yet.",
+    "noScorelinesBody": "Your team has won {wins} of its {matches} matches while you were on the roster, but none of those matches list you in the scoreboard, so your kills and averages are still empty. If you played in any of them, ask your organiser to check the match upload.",
+    "joinedTeam": "Joined team",
+    "discord": "Discord",
+    "language": "Language",
+    "notConnected": "Not connected"
   },
   "stats": {
     "loading": "Loading your stats..."

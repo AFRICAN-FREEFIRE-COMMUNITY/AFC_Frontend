@@ -50,6 +50,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { NothingFound } from "@/components/NothingFound";
+// Shared AFC headline-stat card (label over a big number). Was defined privately at the
+// bottom of this file and again in PlayerClient.tsx; now one definition for all three
+// stat grids on the site. See components/StatBox.tsx.
+import { StatBox } from "@/components/StatBox";
 import { formatWord } from "@/lib/utils";
 // LocalTime / formatLocalTime: render stored UTC timestamps in the VIEWER's own
 // timezone + language (components/LocalTime.tsx, lib/i18n/time.ts). They replace
@@ -455,29 +459,6 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
   );
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// StatBox: a single headline card. Matches the AFC card idiom (bg-card, rounded-md,
-// border) and PlayerClient's StatBox so the two stats windows read identically.
-// ──────────────────────────────────────────────────────────────────────────────
-function StatBox({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string | number;
-  accent?: "green" | "gold";
-}) {
-  const valueColor =
-    accent === "green"
-      ? "text-primary"
-      : accent === "gold"
-        ? "text-gold"
-        : "text-foreground";
-  return (
-    <div className="bg-card rounded-md border py-4 px-4 shadow-sm">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${valueColor}`}>{value}</p>
-    </div>
-  );
-}
+// StatBox moved to components/StatBox.tsx (imported at the top of this file). It was
+// defined privately here AND in PlayerClient.tsx; the shared version is the same card
+// plus an optional `sub` line and a `muted` no-data state.

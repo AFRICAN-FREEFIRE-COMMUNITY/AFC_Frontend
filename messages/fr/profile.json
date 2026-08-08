@@ -9,20 +9,14 @@
   "card": {
     "avatarAlt": "Photo de {name}",
     "uid": "UID : {uid}",
-    "team": "Équipe :",
-    "role": "Rôle :",
-    "language": "Langue :",
     "editProfile": "Modifier le profil",
     "connectDiscord": "Se connecter à Discord",
     "connecting": "Connexion en cours...",
     "disconnecting": "Déconnexion en cours...",
     "disconnect": "Déconnexion - {username}",
-    "esportsImageLabel": "Image e-sport",
-    "esportsImageAlt": "{name}",
     "esportsImageEmpty": "Il n'y a pas encore d'image relative à l'e-sport",
     "esportsImageHint": "Ajouter un élément depuis « Modifier le profil »",
-    "esportImage": "Image liée à l'e-sport",
-    "esportImageMissing": "Il n'y a pas encore d'image e-sport. Appuyez ici pour télécharger la vôtre."
+    "esportImage": "Image liée à l'e-sport"
   },
   "discord": {
     "disconnectTitle": "Êtes-vous absolument sûr ?",
@@ -52,7 +46,18 @@
     "currentTier": "Niveau actuel",
     "unranked": "Non classé",
     "kdr": "Éliminations par match",
-    "winRate": "Taux de victoire"
+    "winRate": "Taux de victoire",
+    "careerSnapshot": "Aperçu de carrière",
+    "teamWins": "Victoires de l’équipe",
+    "teamWinRate": "Taux de victoire de l’équipe",
+    "teamMatchesSub": "sur {count} matchs d’équipe",
+    "noMatchesYet": "Aucun match",
+    "noScorelinesTitle": "Aucune feuille de match n’est encore enregistrée pour vous.",
+    "noScorelinesBody": "Votre équipe a gagné {wins} de ses {matches} matchs pendant que vous étiez dans l’effectif, mais aucun de ces matchs ne vous inscrit au tableau des scores, donc vos éliminations et vos moyennes restent vides. Si vous avez joué l’un d’entre eux, demandez à votre organisateur de vérifier l’envoi des résultats.",
+    "joinedTeam": "Arrivée dans l’équipe",
+    "discord": "Discord",
+    "language": "Langue",
+    "notConnected": "Non connecté"
   },
   "stats": {
     "loading": "Chargement de vos statistiques..."

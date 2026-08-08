@@ -52,6 +52,10 @@ import { displayMoney } from "@/lib/money";
 import { FullLoader, Loader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { NothingFound } from "@/components/NothingFound";
+// Shared AFC headline-stat card (label over a big number). Was defined privately at the
+// bottom of this file and again in OwnStatsTab.tsx; now one definition for all three
+// stat grids on the site. See components/StatBox.tsx.
+import { StatBox } from "@/components/StatBox";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -1702,36 +1706,9 @@ function TournamentWinningsCard({
   );
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// StatBox: a single headline/career card. Matches the mockup's .stat block and
-// the AFC card idiom (bg-card, rounded-md, border). Accent tints the value green
-// (primary) or gold to match the design constants.
-// ──────────────────────────────────────────────────────────────────────────────
-function StatBox({
-  label,
-  value,
-  sub,
-  accent,
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  accent?: "green" | "gold";
-}) {
-  const valueColor =
-    accent === "green"
-      ? "text-primary"
-      : accent === "gold"
-        ? "text-gold"
-        : "text-foreground";
-  return (
-    <div className="bg-card rounded-md border py-4 px-4 shadow-sm">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${valueColor}`}>{value}</p>
-      {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
-    </div>
-  );
-}
+// StatBox moved to components/StatBox.tsx (imported at the top of this file). It was
+// defined privately here AND in OwnStatsTab.tsx, and the profile redesign needed it a
+// third time, so the one card now has one definition.
 
 // ──────────────────────────────────────────────────────────────────────────────
 // RangeFilter: the time-range control (presets + custom From/To). Drives the

@@ -66,6 +66,12 @@ import { toast } from "sonner";
 import { InfoTip } from "@/components/ui/info-tip";
 // Subtle clickable team name -> public team page.
 import { TeamLink } from "@/components/ui/entity-link";
+// Shared AFC headline-stat card, the same one the public player page and the Stats tab
+// use, so the owner's career snapshot belongs to the same design system (components/StatBox.tsx).
+import { StatBox } from "@/components/StatBox";
+// Flag glyph for the country chip in the identity band (lib/countryFlag.tsx), matching
+// how the public player page renders a player's country.
+import { CountryFlag } from "@/lib/countryFlag";
 // Achievements catalog + earned-status helpers (display only; the points->rankings
 // boost is an explicit FUTURE feature and is NOT implemented here).
 import {
@@ -264,6 +270,20 @@ export const ProfileContent = () => {
     return null;
   })();
 
+  // ── Does this player have a record of their OWN, and does their team? ────────
+  // Two different populations, and keeping them apart is the whole point of the
+  // 2026-08-07 stat fix:
+  //   total_matches = matches the player was FIELDED in (has a scoreline for). It is
+  //                   the denominator of kills-per-match and win rate.
+  //   team_matches  = every match the player's rostered tournament teams played,
+  //                   whether or not the player was in the lineup. Denominator of
+  //                   team win rate.
+  // A rostered player who never played has total_matches 0 and team_matches > 0. That
+  // is a real and common state (a substitute, or a manager on the roster), so the page
+  // renders it honestly rather than showing 0.00 averages that look like a bug.
+  const hasOwnMatches = (richProfile?.total_matches ?? 0) > 0;
+  const hasTeamMatches = (richProfile?.team_matches ?? 0) > 0;
+
   // Build the real-data context the Achievements catalog computes against. Lifetime
   // metric ladders read `stats`; the profile milestones read the boolean facts.
   // `profileComplete` is true when the account has a picture, a country, and at
@@ -334,99 +354,158 @@ export const ProfileContent = () => {
           <AlertDescription>{t("page.banned.description")}</AlertDescription>
         </Alert>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="md:col-span-1">
-          <CardContent className="flex flex-col items-center">
-            <Avatar className="w-32 h-32 mb-4">
-              <AvatarImage
-                src={user.profile_pic || DEFAULT_PROFILE_PICTURE}
-                alt={t("card.avatarAlt", { name: user.full_name })}
-                className="object-cover"
-              />
-              <AvatarFallback>{user.full_name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <h2 className="text-2xl font-semibold text-center mb-2">
-              {user.full_name}
-            </h2>
-            <p className="text-sm text-muted-foreground mb-2">
-              @{user.in_game_name}
-            </p>
-            <p className="mb-2 text-sm">{t("card.uid", { uid: user.uid })}</p>
-            {user.team && (
-              <p className="mb-4 text-sm">
-                {/* Team name links to the public team page. */}
-                {t("card.team")} <TeamLink name={user.team} />
-              </p>
-            )}
-            {/* ── Esport image (owner 2026-07-02): visible on the profile VIEW so players see it
-                without opening the edit page. Full image (object-contain, natural aspect), with a
-                clear call-to-action when none is uploaded yet. Upload/replace lives on the edit
-                page right under the profile picture. ── */}
-            <div className="mb-4 w-full max-w-[220px]">
-              <p className="text-muted-foreground mb-1 text-center text-xs font-medium uppercase tracking-wide">
-                {t("card.esportImage")}
-              </p>
-              {user.esport_image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.esport_image_url}
-                  alt={t("card.esportImage")}
-                  className="max-h-56 w-full rounded-md border object-contain"
+      {/* ══════════════════════════════════════════════════════════════════════
+          IDENTITY BAND (redesign, owner-approved 2026-08-07)
+          ─────────────────────────────────────────────────────────────────────
+          One full-width block that reads as a PERSON: avatar, real name, @handle
+          and UID on one line, then the facts that used to be a stack of
+          "Label: value" text lines rendered as badges (in-game role, team, tier,
+          country, account role).
+
+          WHAT THIS REPLACED, and why:
+            • The old page was a narrow md:col-span-1 card holding a vertical list
+              of "UID:", "Team:", "Role:", "Language:" lines in mixed styles. It
+              read as a debug dump, and because that column ran long while the
+              tab card beside it ran short, the right half of the page was empty
+              for most of its height.
+            • The esport image rendered TWICE from the same user.esport_image_url,
+              once under an uppercase "ESPORT IMAGE" label and again under
+              "Esports Image". It now renders ONCE, here, at a size that respects
+              its natural aspect (object-contain), and links to the edit page.
+            • Language moved into the Overview facts grid, where the rest of the
+              account details live.
+
+          Mirrors the public player page's identity card
+          (players/[username]/_components/PlayerClient.tsx) one for one, so a
+          player's own profile and their public profile read as one design.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <Card>
+        <CardContent>
+          <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+            {/* flex-wrap + a 14rem basis on the text column: below 640px this lets
+                the avatar and the esport tile share row one (they read as a pair of
+                images) and gives the name, handle and badges the FULL card width on
+                row two. Measured at 390px without it, the name column was squeezed to
+                about 150px, which broke a long real name over three lines and put
+                every badge on its own row. */}
+            <div className="flex min-w-0 flex-1 flex-wrap items-start gap-4">
+              <Avatar className="h-20 w-20 shrink-0 border-4 border-primary">
+                <AvatarImage
+                  src={user.profile_pic || DEFAULT_PROFILE_PICTURE}
+                  alt={t("card.avatarAlt", { name: user.full_name })}
+                  className="object-cover"
                 />
+                <AvatarFallback className="text-2xl">
+                  {user.full_name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+
+              {/* ── Esport image: the ONLY place it appears on this page ──────────
+                  UserProfile.esports_pic, returned as esport_image_url by
+                  GET /auth/get-user-profile/ and held on the AuthContext user.
+                  Organizers use it as the player's image in event graphics and some
+                  events require it before registration, so the player needs to see
+                  whether they have one. Uploaded / replaced on /profile/edit. */}
+              {user.esport_image_url ? (
+                <Link
+                  href="/profile/edit"
+                  title={t("card.esportImage")}
+                  className="h-28 w-20 shrink-0 overflow-hidden rounded-md border transition-colors hover:border-primary/60 sm:h-32 sm:w-24"
+                >
+                  {/* Short alt on purpose. When the file 404s (a real state on any
+                      environment whose media directory is not in sync) the browser
+                      paints the ALT TEXT inside this 80px tile, and the long
+                      "{name}'s esports image" string filled it with wrapped text.
+                      A brief label degrades to something that still reads as a label.
+                      text-[10px] keeps that fallback inside the tile. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={user.esport_image_url}
+                    alt={t("card.esportImage")}
+                    className="h-full w-full object-contain text-[10px] text-muted-foreground"
+                  />
+                </Link>
               ) : (
                 <Link
                   href="/profile/edit"
-                  className="text-primary block rounded-md border border-dashed p-3 text-center text-xs hover:underline"
+                  className="flex h-28 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-dashed p-2 text-center text-[11px] leading-tight text-muted-foreground transition-colors hover:bg-muted/40 sm:h-32 sm:w-24"
                 >
-                  {t("card.esportImageMissing")}
+                  <span>{t("card.esportsImageEmpty")}</span>
+                  <span className="text-primary">{t("card.esportsImageHint")}</span>
                 </Link>
               )}
+
+              <div className="min-w-0 flex-1 basis-56">
+                <h2 className="text-xl font-semibold md:text-3xl break-words">
+                  {user.full_name}
+                </h2>
+                <p className="mt-0.5 text-sm text-muted-foreground break-words">
+                  @{user.in_game_name}
+                  {user.uid ? (
+                    <>
+                      {" "}
+                      <span className="mx-1">·</span>{" "}
+                      {t("card.uid", { uid: user.uid })}
+                    </>
+                  ) : null}
+                </p>
+
+                {/* Badge row: the identity facts, no longer a list of text lines.
+                    Each renders only when it has a real value, so a brand-new
+                    account shows fewer badges rather than empty labels. */}
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  {richProfile?.in_game_role && (
+                    <Badge variant="secondary" className="capitalize">
+                      {formatWord(richProfile.in_game_role)}
+                    </Badge>
+                  )}
+                  {user.team && (
+                    <Badge
+                      variant="outline"
+                      className="border-primary/50 text-primary"
+                      asChild
+                    >
+                      <Link href={`/teams/${user.team}`}>{user.team}</Link>
+                    </Badge>
+                  )}
+                  {/* Real published tier, or a truthful "Unranked". Never a fake rank.
+                      GOLD is what identifies this badge as the competitive tier: a
+                      label like "Entry" sitting untinted between "Rusher" and "Nigeria"
+                      reads as just another role, so the colour is load-bearing, not
+                      decoration (gold is used nowhere else in this row). The title
+                      spells it out for anyone who hovers. */}
+                  <Badge
+                    variant="outline"
+                    title={t("overview.currentTier")}
+                    className={
+                      currentTier?.tier_label
+                        ? "border-gold/60 text-gold"
+                        : "text-muted-foreground"
+                    }
+                  >
+                    {currentTier?.tier_label ?? t("overview.unranked")}
+                  </Badge>
+                  {user.country && (
+                    <Badge
+                      variant="outline"
+                      className="text-muted-foreground gap-1.5"
+                    >
+                      <CountryFlag country={user.country} />
+                      {user.country}
+                    </Badge>
+                  )}
+                  {user.role !== "user" && (
+                    <Badge variant="secondary" className="capitalize">
+                      {user.role}
+                    </Badge>
+                  )}
+                </div>
+              </div>
             </div>
-            {user.role !== "user" && (
-              <Badge className="mb-4" variant="secondary">
-                {t("card.role")} <span className="capitalize">{user.role}</span>
-              </Badge>
-            )}
-            {/* i18n Phase 0: read-only display of the preferred UI language (user.language from
-                AuthContext, set on the profile edit page). Maps the stored code to its native name;
-                change it from "Edit Profile". Defaults to English when absent. */}
-            <p className="mb-4 text-sm">
-              {t("card.language")}{" "}
-              {/* Native language names stay in their own language by design. */}
-              {{ en: "English", fr: "Français", pt: "Português" }[
-                user.language ?? "en"
-              ] ?? "English"}
-            </p>
-            {/* Esports image (UserProfile.esports_pic). Shown on the owner's own profile so they KNOW
-                it exists - organizers use it as the player's image in event graphics. It is uploaded /
-                replaced from the Edit Profile page (the backend already returns esport_image_url on
-                get-user-profile -> AuthContext user). Distinct from the profile picture (the Avatar above). */}
-            <div className="w-full mb-4">
-              <p className="mb-2 text-sm font-medium text-center">
-                {t("card.esportsImageLabel")}
-              </p>
-              {user.esport_image_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.esport_image_url}
-                  alt={t("card.esportsImageAlt", { name: user.full_name })}
-                  className="w-full max-h-48 rounded-md border object-cover"
-                />
-              ) : (
-                <Link
-                  href="/profile/edit"
-                  className="flex flex-col items-center gap-1 rounded-md border border-dashed p-4 text-center hover:bg-muted/40"
-                >
-                  <span className="text-sm text-muted-foreground">
-                    {t("card.esportsImageEmpty")}
-                  </span>
-                  <span className="text-xs text-primary hover:underline">
-                    {t("card.esportsImageHint")}
-                  </span>
-                </Link>
-              )}
-            </div>
-            <div className="grid w-full gap-2">
+
+            {/* Owner actions. w-full on a phone so they are full-width tap targets,
+                auto width beside the identity on desktop. */}
+            <div className="flex w-full shrink-0 flex-col gap-2 md:w-auto md:min-w-44">
               <div className="flex items-center justify-end">
                 <InfoTip id="profile.discord_connect" />
               </div>
@@ -513,11 +592,145 @@ export const ProfileContent = () => {
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card className="md:col-span-2">
-          <CardContent>
+      {/* ══════════════════════════════════════════════════════════════════════
+          CAREER SNAPSHOT
+          ─────────────────────────────────────────────────────────────────────
+          The nine bare label-over-number text cells that used to sit in the
+          Overview tab, now rendered as the shared AFC StatBox card
+          (components/StatBox.tsx) in the same 2-up / 4-up grid the public player
+          page uses. It is promoted OUT of the tabs because it is the thing a
+          player opens this page to see.
+
+          ORDER IS DELIBERATE. "Matches played" comes first because it is the
+          DENOMINATOR behind kills per match and win rate. The owner reported a
+          profile reading 7 wins beside 0 kills and a 0.0% win rate and could not
+          tell which number was lying; the answer was that the wins were the
+          TEAM's and this page never showed how many matches the player was
+          actually in. Both halves are fixed: the denominator is on screen, and
+          the team record is explicitly labelled as the team's.
+
+          DATA: richProfile (POST /player/get-public-player-stats/), which the
+          backend returns in full because we send the owner's token. Each tile
+          keeps the existing render guard, a real value or nothing, never a fake 0.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <div className="mt-6 mb-3 text-xs font-medium text-muted-foreground">
+        {t("overview.careerSnapshot")}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {typeof richProfile?.total_matches === "number" && (
+          <StatBox
+            label={t("overview.totalMatches")}
+            value={richProfile.total_matches}
+          />
+        )}
+        <StatBox
+          label={t("overview.totalKills")}
+          value={user.stats.total_kills}
+          accent="green"
+        />
+        {/* Booyahs comes from richProfile.total_wins, NOT user.stats.total_booyahs,
+            and the difference is the whole bug the owner reported.
+            get_user_profile (afc_auth) still computes total_booyahs as
+            solo_wins + TEAM wins, so it counts matches the player's team won while
+            they sat on the roster. compute_player_stats (afc_player) computes
+            total_wins over the player's OWN match lines only, which is the same
+            population as total_matches and win_rate beside it.
+            Sourcing this tile from the lean payload put a team number in the middle
+            of a row of personal ones, which is exactly how "7 wins, 0 kills, 0.0%
+            win rate" happened in the first place. The whole snapshot now reads from
+            ONE payload with ONE definition, and the team record is the two
+            explicitly labelled tiles below. */}
+        {typeof richProfile?.total_wins === "number" && (
+          <StatBox
+            label={t("overview.booyahs")}
+            value={richProfile.total_wins}
+          />
+        )}
+        <StatBox
+          label={t("overview.mvps")}
+          value={user.stats.total_mvps}
+          accent="gold"
+        />
+        {/* Kills per match and win rate are BOTH per-match averages over the
+            player's own match lines. With no lines there is no average, so we say
+            so instead of printing 0.00, which is what made this page look broken
+            rather than empty (owner bug 2026-08-07). */}
+        {typeof richProfile?.kdr === "number" && (
+          <StatBox
+            label={t("overview.kdr")}
+            value={
+              hasOwnMatches ? richProfile.kdr.toFixed(2) : t("overview.noMatchesYet")
+            }
+            muted={!hasOwnMatches}
+          />
+        )}
+        {typeof richProfile?.win_rate === "number" && (
+          <StatBox
+            label={t("overview.winRate")}
+            value={
+              hasOwnMatches
+                ? `${richProfile.win_rate.toFixed(1)}%`
+                : t("overview.noMatchesYet")
+            }
+            muted={!hasOwnMatches}
+          />
+        )}
+        {/* The TEAM record, named so it can never be read as the player's own.
+            v7.1.41 split these out in the backend; the profile shows them here so a
+            rostered player who has not been fielded still sees why their team page
+            says one thing and their own numbers say another. */}
+        {typeof richProfile?.team_wins === "number" && (
+          <StatBox
+            label={t("overview.teamWins")}
+            value={richProfile.team_wins}
+            sub={
+              typeof richProfile?.team_matches === "number"
+                ? t("overview.teamMatchesSub", {
+                    count: richProfile.team_matches,
+                  })
+                : undefined
+            }
+          />
+        )}
+        {typeof richProfile?.team_win_rate === "number" && (
+          <StatBox
+            label={t("overview.teamWinRate")}
+            value={
+              hasTeamMatches
+                ? `${richProfile.team_win_rate.toFixed(1)}%`
+                : t("overview.noMatchesYet")
+            }
+            muted={!hasTeamMatches}
+          />
+        )}
+      </div>
+
+      {/* The honest empty state. It only appears in the exact situation that
+          confused the owner: the player has no match lines of their own, but their
+          rostered teams DO have a record. Rather than leaving a wall of zeros that
+          reads as a broken page, it says in plain English what the numbers mean and
+          what to do about it. */}
+      {richProfile && !hasOwnMatches && hasTeamMatches && (
+        <p className="mt-4 rounded-md border bg-muted/40 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+          <span className="font-semibold text-foreground">
+            {t("overview.noScorelinesTitle")}
+          </span>{" "}
+          {t("overview.noScorelinesBody", {
+            wins: richProfile.team_wins ?? 0,
+            matches: richProfile.team_matches ?? 0,
+          })}
+        </p>
+      )}
+
+      {/* Tabs are now FULL WIDTH. They used to sit in a md:col-span-2 beside the
+          tall identity column, which left the right half of the page empty for most
+          of its height while the left column ran long. */}
+      <Card className="mt-6">
+        <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <ScrollableTabsList className="w-full mb-4">
                 <TabsTrigger value="overview">
@@ -541,106 +754,69 @@ export const ProfileContent = () => {
                 )}
               </ScrollableTabsList>
 
+              {/* ── OVERVIEW: the account facts ────────────────────────────────
+                  The performance numbers moved OUT of this tab and up into the
+                  career snapshot above, so Overview now carries only the account
+                  details, in the same label-over-value grid the public player page
+                  uses for its identity facts.
+
+                  NOTHING HERE IS REPEATED FROM THE IDENTITY BAND. Country, UID,
+                  team, tier, in-game role and account role are badges up top, so
+                  listing them again would be the same duplication the redesign set
+                  out to remove. What is left is genuinely only here. */}
               <TabsContent value="overview">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5">
                   <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("overview.totalKills")}
-                    </p>
-                    <p className="text-lg md:text-xl font-semibold">
-                      {user?.stats.total_kills}
-                    </p>
-                  </div>
-                  {/* NOTE: there is no separate "Wins" tile beside Booyahs any more. The backend
-                      computed total_wins and total_booyahs from the identical expression, so this
-                      grid showed the same number twice under two labels (owner bug 2026-08-07).
-                      A booyah IS a match win, so one number now carries one label. */}
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("overview.mvps")}
-                    </p>
-                    <p className="text-lg md:text-xl font-semibold">
-                      {user?.stats.total_mvps}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("overview.booyahs")}
-                    </p>
-                    <p className="text-lg md:text-xl font-semibold">
-                      {user?.stats.total_booyahs}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {t("overview.tournaments")}
                     </p>
-                    <p className="text-lg md:text-xl font-semibold">
-                      {user?.stats.total_tournaments_played}
+                    <p className="mt-0.5 text-sm">
+                      {user.stats.total_tournaments_played}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {t("overview.scrims")}
                     </p>
-                    <p className="text-lg md:text-xl font-semibold">
-                      {user?.stats.total_scrims_played}
+                    <p className="mt-0.5 text-sm">
+                      {user.stats.total_scrims_played}
                     </p>
                   </div>
-                  {/* Current Tier: was a hardcoded "0" (misleading). Now shows the
-                      real published tier label from the rich profile's tier_history,
-                      or a truthful "Unranked" when no tier exists yet. We never
-                      fabricate a numeric rank. */}
                   <div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("overview.currentTier")}
+                    <p className="text-xs text-muted-foreground">
+                      {t("overview.joinedTeam")}
                     </p>
-                    <p className="text-lg md:text-xl font-semibold">
-                      {loadingRich && !richProfile
-                        ? "..."
-                        : (currentTier?.tier_label ??
-                          t("overview.unranked"))}
+                    <p className="mt-0.5 text-sm">
+                      {/* Viewer's own timezone + language, per the i18n rule. */}
+                      {richProfile?.join_date ? (
+                        <LocalTime value={richProfile.join_date} mode="date" />
+                      ) : (
+                        "-"
+                      )}
                     </p>
                   </div>
-                  {/* Total Matches: the DENOMINATOR behind Kills per Match and Win Rate. The public
-                      player page has always shown it in its career snapshot; this page
-                      omitted it, which is what made a rate here look impossible to check
-                      against anything (owner bug 2026-08-07). Same richProfile payload the
-                      two tiles below use (POST /player/get-public-player-stats/), so it
-                      follows their render guard: real value or nothing, never a fake 0. */}
-                  {typeof richProfile?.total_matches === "number" && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        {t("overview.totalMatches")}
-                      </p>
-                      <p className="text-lg md:text-xl font-semibold">
-                        {richProfile.total_matches}
-                      </p>
-                    </div>
-                  )}
-                  {/* Kills per Match + Win Rate only render when the rich endpoint actually
-                      provides them, so we surface real values or nothing (never a
-                      fake 0). */}
-                  {typeof richProfile?.kdr === "number" && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        {t("overview.kdr")}
-                      </p>
-                      <p className="text-lg md:text-xl font-semibold">
-                        {richProfile.kdr.toFixed(2)}
-                      </p>
-                    </div>
-                  )}
-                  {typeof richProfile?.win_rate === "number" && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        {t("overview.winRate")}
-                      </p>
-                      <p className="text-lg md:text-xl font-semibold">
-                        {richProfile.win_rate.toFixed(1)}%
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("overview.discord")}
+                    </p>
+                    <p className="mt-0.5 text-sm break-words">
+                      {discordConnected && user.discord_username
+                        ? user.discord_username
+                        : t("overview.notConnected")}
+                    </p>
+                  </div>
+                  {/* Preferred UI language, read-only. Changed from Edit Profile.
+                      Native language names stay in their own language by design. */}
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      {t("overview.language")}
+                    </p>
+                    <p className="mt-0.5 text-sm">
+                      {{ en: "English", fr: "Français", pt: "Português" }[
+                        user.language ?? "en"
+                      ] ?? "English"}
+                    </p>
+                  </div>
                 </div>
               </TabsContent>
               {/* ── STATS ────────────────────────────────────────────────────
@@ -867,79 +1043,89 @@ export const ProfileContent = () => {
                 <MyPlayerReports />
               </TabsContent>
             </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          ACCOUNT QUICK LINKS
+          These were three stacked full-width cards, each a mostly-empty band with
+          one button pinned to the far right. As a 3-up grid they occupy one row on
+          desktop and still stack on a phone, which is what closed most of the
+          remaining vertical dead space on this page.
+          `items-stretch` + `h-full` keeps the three cards the same height when one
+          description wraps to two lines.
+          ══════════════════════════════════════════════════════════════════════ */}
+      <div className="mt-6 grid grid-cols-1 items-stretch gap-4 md:grid-cols-3">
+        {/* Saved addresses -> /profile/addresses (SavedAddresses.tsx), where the buyer
+            reviews the delivery profiles reused at checkout (the picker in
+            shop/_components/CartDetails.tsx). Copy from the `shop` namespace. */}
+        <Card className="h-full">
+          <CardContent className="flex h-full flex-col gap-3">
+            <div className="flex-1">
+              <h3 className="text-base font-semibold">
+                {tShop("savedDelivery.profileCardTitle")}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {tShop("savedDelivery.profileCardDescription")}
+              </p>
+            </div>
+            <Button variant="outline" className="w-full sm:w-auto" asChild>
+              <Link href="/profile/addresses">
+                {tShop("savedDelivery.manage")}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Connected apps -> /profile/connected-apps (ConnectedApps.tsx), where the
+            player sees every partner org they signed into with "Sign in with AFC" and
+            can cut one off. The consent screen those orgs show
+            (backend/afc_sso/templates/afc_sso/authorize.html) promises this page by
+            name, so this link is what makes that promise findable. */}
+        <Card className="h-full">
+          <CardContent className="flex h-full flex-col gap-3">
+            <div className="flex-1">
+              <h3 className="text-base font-semibold">
+                {tConnected("profileCardTitle")}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {tConnected("profileCardDescription")}
+              </p>
+            </div>
+            <Button variant="outline" className="w-full sm:w-auto" asChild>
+              <Link href="/profile/connected-apps">{tConnected("manage")}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Sign-in security -> /profile/security (TwoFactorSecurity.tsx), where the
+            player turns two-step sign-in on or off and manages their recovery codes.
+            It is opt in, so this link is the only route to it for an ordinary player;
+            admins and organizers also get a nudge (components/TwoFactorPrompt.tsx). */}
+        <Card className="h-full">
+          <CardContent className="flex h-full flex-col gap-3">
+            <div className="flex-1">
+              {/* NEW tag on the card title: two-step sign-in shipped 2026-08-06, and this
+                  card is the only way an ordinary player finds it, so it is exactly the
+                  "returning user would not otherwise notice it" case the rule is for.
+                  Expires by itself 5 days on. Kept through the profile redesign: the
+                  redesign is not itself a new feature and gets no badge of its own. */}
+              <h3 className="flex flex-wrap items-center gap-2 text-base font-semibold">
+                {tTwoFactor("profileCard.title")}
+                <NewBadge since="2026-08-06" />
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {tTwoFactor("profileCard.description")}
+              </p>
+            </div>
+            <Button variant="outline" className="w-full sm:w-auto" asChild>
+              <Link href="/profile/security">
+                {tTwoFactor("profileCard.manage")}
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
-
-      {/* ── Saved addresses quick link ───────────────────────────────────────────
-          Points to the manage page (/profile/addresses → SavedAddresses.tsx) where
-          the buyer reviews the delivery profiles reused at checkout (the picker in
-          shop/_components/CartDetails.tsx). Copy from the `shop` namespace. */}
-      <Card className="mt-4">
-        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-base font-semibold">
-              {tShop("savedDelivery.profileCardTitle")}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {tShop("savedDelivery.profileCardDescription")}
-            </p>
-          </div>
-          <Button variant="outline" className="w-full sm:w-auto" asChild>
-            <Link href="/profile/addresses">
-              {tShop("savedDelivery.manage")}
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* ── Connected apps quick link ────────────────────────────────────────────
-          Points to /profile/connected-apps (ConnectedApps.tsx), where the player
-          sees every partner org they signed into with "Sign in with AFC" and can
-          cut one off. The consent screen those orgs show
-          (backend/afc_sso/templates/afc_sso/authorize.html) promises this page by
-          name, so this link is what makes that promise findable. */}
-      <Card className="mt-4">
-        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-base font-semibold">
-              {tConnected("profileCardTitle")}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {tConnected("profileCardDescription")}
-            </p>
-          </div>
-          <Button variant="outline" className="w-full sm:w-auto" asChild>
-            <Link href="/profile/connected-apps">{tConnected("manage")}</Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* ── Sign-in security quick link ──────────────────────────────────────────
-          Points to /profile/security (TwoFactorSecurity.tsx), where the player
-          turns two-step sign-in on or off and manages their recovery codes. It is
-          opt in, so this link is the only route to it for an ordinary player;
-          admins and organizers also get a nudge (components/TwoFactorPrompt.tsx). */}
-      <Card className="mt-4">
-        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            {/* NEW tag on the card title: two-step sign-in shipped 2026-08-06, and this
-                card is the only way an ordinary player finds it, so it is exactly the
-                "returning user would not otherwise notice it" case the rule is for.
-                Expires by itself 5 days on. */}
-            <h3 className="flex flex-wrap items-center gap-2 text-base font-semibold">
-              {tTwoFactor("profileCard.title")}
-              <NewBadge since="2026-08-06" />
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              {tTwoFactor("profileCard.description")}
-            </p>
-          </div>
-          <Button variant="outline" className="w-full sm:w-auto" asChild>
-            <Link href="/profile/security">{tTwoFactor("profileCard.manage")}</Link>
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   );
 };
