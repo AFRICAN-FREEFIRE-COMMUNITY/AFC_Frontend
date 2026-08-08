@@ -118,6 +118,40 @@ export const AFC_CURRENCIES: CurrencyOption[] = [
 /** Just the ISO codes, in menu order. For pickers that render a bare code with no friendly name. */
 export const AFC_CURRENCY_CODES: string[] = AFC_CURRENCIES.map((c) => c.code);
 
+/**
+ * How many decimal places each currency is written with (ISO-4217 "minor units").
+ *
+ * ONLY the exceptions are listed: anything not named here has 2, which covers 42 of the 48 codes.
+ * Widening the menu is what made this necessary. The four legacy pickers only ever offered
+ * two-decimal currencies plus a handful of zero-decimal ones, so a flat "2 decimals unless it is in
+ * a short hardcoded set" rule happened to be right. It is not right for the currencies added in
+ * item 28: a prize of 1500 TND rendered as "1,500.00" is wrong (TND has three decimals), and 1500
+ * DJF rendered as "1,500.00" invents a subunit Djibouti does not use.
+ *
+ * The values below are CLDR's, verified against the runtime rather than written from memory: for
+ * every one of the 48 menu codes, this table matches
+ * `new Intl.NumberFormat("en", { style: "currency", currency: code }).resolvedOptions()
+ *   .maximumFractionDigits`. The table is kept explicit rather than read from Intl at call time so
+ * the number of decimals in a money figure cannot change with the browser's ICU build.
+ * lib/money.ts formatMoney() is the only reader.
+ *
+ * DISPLAY ONLY. This is not the rule for charging: Stripe's minor-unit contract has its own special
+ * cases (ISK and UGX are charged as two-decimal values ending in 00), which is one of the reasons
+ * real charges are restricted to CHARGEABLE_CURRENCIES below.
+ */
+export const CURRENCY_MINOR_UNITS: Record<string, number> = {
+  // ── zero-decimal: no subunit in use ──
+  XOF: 0, XAF: 0, GNF: 0, RWF: 0, UGX: 0, BIF: 0, DJF: 0, KMF: 0, MGA: 0, SOS: 0,
+  // ── three-decimal ──
+  TND: 3, LYD: 3,
+};
+
+/** Decimal places to render `code` with. Unknown or unlisted code -> 2, the overwhelming default. */
+export function currencyFractionDigits(code: string): number {
+  const cur = (code || "").trim().toUpperCase();
+  return CURRENCY_MINOR_UNITS[cur] ?? 2;
+}
+
 /** The platform's base/storage currency and the fallback whenever nothing else is known. */
 export const DEFAULT_CURRENCY = "USD";
 
@@ -133,24 +167,46 @@ export function isSupportedCurrency(code: string): boolean {
 }
 
 /**
- * The subset usable for PER-COUNTRY registration-fee OVERRIDES (CountryPaymentRulesEditor).
+ * The subset AFC can actually TAKE MONEY IN, for the two registration-fee fields.
  *
- * This is narrower than AFC_CURRENCIES on purpose, and it is NOT a second hardcoded list: it is a
- * filter over the canonical one. The backend validator `_ALLOWED_CCY` in
- * backend/afc_tournament_and_scrims/views.py (_parse_country_payment_rules, ~line 929) still rejects
- * anything outside these seven codes with a 400, because a per-country override feeds a real Stripe
- * charge and only these are wired through the checkout path. Offering the full menu here would let an
- * admin pick XOF and then get an unexplained save failure.
+ * WHY THIS IS NARROWER THAN THE MENU, AND WHY THAT IS NOT A SECOND LIST
+ *   It is a filter over the canonical array, not a parallel copy, so a code cannot exist here and be
+ *   missing above. The distinction it encodes is real: everything on AFC_CURRENCIES is CONVERTIBLE
+ *   (every code has an FxRate row, so a prize pool or an announcement can be quoted in it and
+ *   re-expressed in the reader's own currency), but only these seven are CHARGEABLE, because a
+ *   registration fee becomes a live Stripe Checkout session.
  *
- * TO LIFT THIS: widen `_ALLOWED_CCY` in that backend file to import CURRENCY_CODES from
- * afc_auth.currencies, then delete this constant and use AFC_CURRENCIES directly. The event app is
- * owned by another workstream right now, which is why it was left alone.
+ *   Two things break when an unchargeable code reaches that path:
+ *     1. Stripe wants the amount in minor units, and the converter that does that
+ *        (backend afc_tournament_and_scrims/event_payments.py `_amount_minor`) multiplies by 100
+ *        unless the code is in a short zero-decimal set. A three-decimal fee (TND, LYD) would be
+ *        billed at a TENTH of its value, and a zero-decimal one (DJF, KMF, GNF, RWF, BIF, ...) at a
+ *        HUNDRED TIMES its value. Stripe's own contract also has per-currency special cases (ISK and
+ *        UGX are charged as two-decimal values ending in 00), so this cannot be fixed by a table
+ *        written from memory.
+ *     2. Stripe only settles a subset of world currencies for a given account, so most of the menu
+ *        would fail at session-creation time with an error the organizer cannot act on.
  *
- * The base `registration_fee_currency` field has no such restriction (the backend only uppercases and
- * truncates it), so Step1EventDetails and BasicInfoTab use the FULL list.
+ *   The backend agrees rather than being trusted to: `_ALLOWED_CCY` in
+ *   backend/afc_tournament_and_scrims/views.py imports CHARGEABLE_CURRENCY_CODES from
+ *   afc_auth/currencies.py, which holds the same seven codes. So the menu an admin sees and the set
+ *   the API accepts are the same set, in one place.
+ *
+ * TO WIDEN IT: confirm the currency is enabled on the AFC Stripe account, confirm `_amount_minor`
+ * computes its minor units correctly (check Stripe's zero-decimal and special-case lists, do not
+ * assume 2), then add it to CHARGEABLE_CURRENCY_CODES here and in the backend twin.
+ *
+ * Consumers: Step1EventDetails + BasicInfoTab (base registration_fee_currency) and
+ * CountryPaymentRulesEditor (per-country overrides). All three charge, so all three use this list.
  */
-const COUNTRY_PAYMENT_RULE_CODES = ["USD", "NGN", "GHS", "KES", "ZAR", "GBP", "EUR"];
+export const CHARGEABLE_CURRENCY_CODES = ["USD", "NGN", "GHS", "KES", "ZAR", "GBP", "EUR"];
 
-export const COUNTRY_PAYMENT_RULE_CURRENCIES: CurrencyOption[] = AFC_CURRENCIES.filter((c) =>
-  COUNTRY_PAYMENT_RULE_CODES.includes(c.code),
+export const CHARGEABLE_CURRENCIES: CurrencyOption[] = AFC_CURRENCIES.filter((c) =>
+  CHARGEABLE_CURRENCY_CODES.includes(c.code),
 );
+
+/**
+ * Back-compatible alias for the per-country override editor, which named this list after its own
+ * screen before the base fee field was found to need exactly the same restriction.
+ */
+export const COUNTRY_PAYMENT_RULE_CURRENCIES: CurrencyOption[] = CHARGEABLE_CURRENCIES;

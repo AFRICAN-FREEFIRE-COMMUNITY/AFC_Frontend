@@ -14,6 +14,8 @@
  * (so USD === 1). Unknown/zero rate -> no conversion (never fabricate a rate that could mislead).
  */
 
+import { currencyFractionDigits } from "@/lib/currencies";
+
 export type FxRates = Record<string, number>;
 
 /** Convert an amount from one currency to another, via USD. Unknown rates pass the amount through. */
@@ -35,13 +37,15 @@ export function convertMoney(
   return toRate ? usd * toRate : usd;
 }
 
-/** Currencies with no minor units (whole-number display). */
-const ZERO_DECIMAL = new Set(["JPY", "XOF", "XAF", "KRW", "VND", "CLP", "RWF", "UGX", "GNF", "BIF"]);
-
 /** Format an amount already IN `currency` with the correct symbol + decimals (locale-aware). */
 export function formatMoney(amount: number, currency: string): string {
   const cur = (currency || "USD").toUpperCase();
-  const fractionDigits = ZERO_DECIMAL.has(cur) ? 0 : 2;
+  // Decimal places come from lib/currencies.ts, the same file that defines the currency menu, so a
+  // currency cannot become selectable without its decimals being decided at the same time (owner
+  // backlog item 28). This replaced a local zero-decimal Set that listed only 10 codes: correct while
+  // the pickers offered ~20 currencies, wrong once the menu grew to 48, because it silently gave
+  // TND/LYD two decimals instead of three and DJF/KMF/MGA/SOS two instead of none.
+  const fractionDigits = currencyFractionDigits(cur);
   try {
     return new Intl.NumberFormat(undefined, {
       style: "currency",

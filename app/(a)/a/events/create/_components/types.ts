@@ -123,7 +123,7 @@ import { z } from "zod";
 // create flow, edit flow, and organizer flow can't drift. Re-exported below under the
 // historic STAGE_FORMATS / FORMATTED_WORD names so existing importers keep working.
 import { STAGE_FORMATS as SHARED_STAGE_FORMATS, FORMAT_LABEL } from "@/lib/eventFormats";
-import { AFC_CURRENCY_CODES } from "@/lib/currencies";
+import { CHARGEABLE_CURRENCY_CODES } from "@/lib/currencies";
 
 export const GroupSchema = z.object({
   group_name: z.string().min(1, "Group name required"),
@@ -375,8 +375,16 @@ export const AVAILABLE_MAPS = [
 // default; the value is the 3-letter ISO code sent to the backend (registration_fee_currency).
 //
 // Owner backlog item 28 (2026-08-03): this used to be its own 7-code array and was one of four
-// currency lists that had drifted apart. It is now a re-export of the canonical menu in
-// lib/currencies.ts. DO NOT add codes here - add them there, and to the backend twin
-// afc_auth/currencies.py. Kept as a named export so the existing importers (Step1EventDetails,
-// BasicInfoTab, CountryPaymentRulesEditor) keep working unchanged.
-export const REGISTRATION_FEE_CURRENCIES = AFC_CURRENCY_CODES;
+// currency lists that had drifted apart. It is now derived from lib/currencies.ts. DO NOT add codes
+// here - add them there, and to the backend twin afc_auth/currencies.py. Kept as a named export so
+// the existing importers (Step1EventDetails, BasicInfoTab) keep working unchanged.
+//
+// CHARGEABLE, not the full menu (item 28 follow-up). A registration fee is the one currency field on
+// the site that becomes a real Stripe charge, so it is restricted to the currencies AFC can actually
+// bill in, exactly as the per-country override editor already was. Pointing it at the full 48-code
+// menu would let an organizer pick a three-decimal currency (TND, LYD) and be billed a tenth of the
+// fee, or a zero-decimal one (DJF, KMF, ...) and be billed a hundred times it, because Stripe takes
+// amounts in minor units. Prize pools, announcements and tier thresholds are only ever CONVERTED,
+// never charged, so those keep the full menu. Rationale in full: CHARGEABLE_CURRENCIES in
+// lib/currencies.ts; the backend enforces the same seven codes via afc_auth.currencies.
+export const REGISTRATION_FEE_CURRENCIES = CHARGEABLE_CURRENCY_CODES;
