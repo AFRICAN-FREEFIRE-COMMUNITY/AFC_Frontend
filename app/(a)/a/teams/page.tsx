@@ -32,6 +32,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import {
   IconBan,
   IconDownload,
@@ -107,7 +108,13 @@ export default function TeamsAndPlayersPage() {
         {/* shadcn pill/segment tabs (matches the rest of the admin area).
             data-tour anchor: first content step of the teams tour. */}
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <TabsList data-tour="teams-tabs">
+          {/* ScrollableTabsList, not a plain TabsList (fixed 2026-08-11 while verifying this page
+              on a phone): the five triggers measure 437px, and a bare TabsList is `inline-flex
+              w-fit`, so at 390px they pushed the WHOLE PAGE 77px sideways instead of scrolling.
+              This is the component the rest of the app already uses for exactly that, and it also
+              adds the fade hint so an admin can tell the row scrolls. min-w-0 lets it shrink inside
+              the flex row it shares with the Download media button. */}
+          <ScrollableTabsList data-tour="teams-tabs" className="min-w-0 max-w-full">
             {visibleTabs.includes("teams") && (
               <TabsTrigger value="teams">
                 <IconUsersGroup className="h-4 w-4" /> Teams
@@ -134,7 +141,7 @@ export default function TeamsAndPlayersPage() {
                 <IconEye className="h-4 w-4" /> Watchlist
               </TabsTrigger>
             )}
-          </TabsList>
+          </ScrollableTabsList>
           {showMediaExport && (
             <Button type="button" variant="outline" size="sm" onClick={() => setMediaOpen(true)}>
               <IconDownload className="mr-1 h-4 w-4" />

@@ -49,6 +49,12 @@ export interface AccountIdentity {
   username: string;
   email: string;
   uid: string;
+  /** Canonical country name as stored on the account, "" when never set. */
+  country: string;
+  /** MASKED ("+234 ***** 4567"), never the dialable number. The endpoint never sends the raw one. */
+  whatsapp_number: string;
+  /** Whether a number is on file at all, so a dialog can offer Remove without unmasking anything. */
+  has_whatsapp_number: boolean;
   is_active: boolean;
   two_factor_enabled: boolean;
   active_sessions: number;
@@ -98,8 +104,9 @@ export const useAccountIdentity = (userId: number | string, enabled: boolean) =>
 };
 
 // A short "what this does" bullet inside a dialog. Same muted list treatment the other admin
-// dialogs use for consequences.
-const Consequence = ({ children }: { children: React.ReactNode }) => (
+// dialogs use for consequences. Exported for AccountIdentityMore.tsx (the name / country /
+// WhatsApp dialogs), so all five controls state their consequences in one voice.
+export const Consequence = ({ children }: { children: React.ReactNode }) => (
   <li className="flex gap-2 text-xs text-muted-foreground leading-relaxed">
     <span aria-hidden className="text-primary">
       &bull;
@@ -108,8 +115,9 @@ const Consequence = ({ children }: { children: React.ReactNode }) => (
   </li>
 );
 
-// The mandatory reason field, shared by both dialogs so the copy and the rule stay identical.
-const ReasonField = ({
+// The mandatory reason field, shared by every dialog (here and in AccountIdentityMore.tsx) so the
+// copy and the rule stay identical: no repair on this gate happens without a typed reason.
+export const ReasonField = ({
   id,
   value,
   onChange,

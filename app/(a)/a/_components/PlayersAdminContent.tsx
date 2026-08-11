@@ -94,6 +94,10 @@ interface Player {
   total_mvps: number;
   status: "active" | "banned";
   role: string;
+  // From the admin-only list endpoint (see fetchPlayers). Always strings, "" when unset, so the
+  // search haystack never needs a null guard.
+  uid: string;
+  email: string;
 }
 
 const PlayerBanModal = ({
@@ -441,6 +445,7 @@ const CreateGhostPlayerModal = ({ onSuccess }: { onSuccess: () => void }) => {
 };
 
 export const PlayersAdminContent = () => {
+  const { token } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -448,10 +453,16 @@ export const PlayersAdminContent = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
 
+  // GET /player/admin/list-players/ (owner 2026-08-11), NOT the older get-all-players/.
+  // Same rows plus `uid` and `email`, which is what makes the search box below able to find the
+  // player whose UID a support ticket quotes. It needs the token: those two fields are login
+  // identifiers, so they sit behind an admin-only endpoint while get-all-players/ stays public for
+  // the sitemap. See afc_player/views.py::admin_list_players.
   const fetchPlayers = async () => {
     try {
       const res = await axios(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-all-players/`,
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/admin/list-players/`,
+        { headers: { Authorization: `Bearer ${token}` } },
       );
       setPlayers(res.data.users || []);
     } catch {
@@ -497,9 +508,13 @@ export const PlayersAdminContent = () => {
     return players.filter((p) => {
       // Use the shared matchesSearch helper (punctuation/accent/fancy-font
       // insensitive) so a stylized IGN like "V-E" is found by typing "ve".
-      // Only p.name is the user-typed text field here; team is handled by the
-      // separate filterTeam dropdown below.
-      const nameMatches = matchesSearch(p.name, searchTerm);
+      // Team is handled by the separate filterTeam dropdown below.
+      //
+      // UID and email joined the haystack on 2026-08-11: a player on a support ticket usually
+      // quotes their UID and nothing else, and there was nowhere to type it. matchesSearch takes
+      // an array and matches if ANY field hits, and its normalisation also means a UID pasted with
+      // stray spaces or dashes still finds the account.
+      const nameMatches = matchesSearch([p.name, p.uid, p.email], searchTerm);
       const matchesTeam =
         filterTeam === "all"
           ? true
@@ -669,7 +684,7 @@ export const PlayersAdminContent = () => {
           data-tour anchor: teams page tour, Players tab "search and filter players" step. */}
       <div data-tour="players-search" className="flex flex-col md:flex-row gap-2">
         <Input
-          placeholder="Search players..."
+          placeholder="Search by name, UID or email..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full"
@@ -718,6 +733,9 @@ export const PlayersAdminContent = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                {/* Shown so an admin can EYEBALL the UID a player quoted, not just search it.
+                    Admin-only data: this table is the only surface that renders it. */}
+                <TableHead>UID</TableHead>
                 <TableHead>Team</TableHead>
                 <TableHead>Kills</TableHead>
                 <TableHead>Wins</TableHead>
@@ -732,7 +750,7 @@ export const PlayersAdminContent = () => {
               {paginated.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={9}
                     className="text-center text-muted-foreground py-8"
                   >
                     No players found
@@ -742,6 +760,11 @@ export const PlayersAdminContent = () => {
                 paginated.map((player) => (
                   <TableRow key={player.user_id}>
                     <TableCell className="font-medium">{player.name}</TableCell>
+                    {/* tabular-nums so a column of UIDs lines up digit for digit and a wrong one
+                        is spottable at a glance. */}
+                    <TableCell className="text-muted-foreground tabular-nums">
+                      {player.uid || "-"}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {player.team_name ?? "-"}
                     </TableCell>

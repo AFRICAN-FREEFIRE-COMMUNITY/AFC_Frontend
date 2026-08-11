@@ -44,17 +44,24 @@ import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { SendMessageModal } from "../../_components/SendMessageModal";
 import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
-// Admin identity repair (owner 2026-08-07). The two dialogs support uses to fix what a player
-// cannot fix themselves: a wrong Free Fire UID, and a wrong or dead account email that has locked
-// them out. Both hit head-admin-only endpoints in afc_auth/views_admin_identity.py, so they are
-// rendered only for head_admin / super_admin (useCanRepairIdentity); every other admin sees the
-// plain read-only values, exactly as before.
+// Admin identity repair (owner 2026-08-07, extended 2026-08-11). The five dialogs support uses to
+// fix what a player cannot fix themselves: a wrong Free Fire UID, a wrong or dead account email
+// that has locked them out, a wrong in-game name (frozen for the player mid-event), a wrong country
+// (which decides the announcements they get), and a wrong WhatsApp number (which now proves
+// ownership in account recovery). All five hit head-admin-only endpoints in
+// afc_auth/views_admin_identity.py, so they are rendered only for head_admin / super_admin
+// (useCanRepairIdentity); every other admin sees the plain read-only values, exactly as before.
 import {
   EditEmailDialog,
   EditUidDialog,
   useAccountIdentity,
   useCanRepairIdentity,
 } from "../../_components/AccountIdentityControls";
+import {
+  EditCountryDialog,
+  EditUsernameDialog,
+  EditWhatsappDialog,
+} from "../../_components/AccountIdentityMore";
 // Shared, self-expiring NEW tag (owner rule: a new control wears one for 5 days).
 import { NewBadge } from "@/components/NewBadge";
 
@@ -327,7 +334,23 @@ const Page = ({ params }: Props) => {
         <div className="flex items-center gap-4 mb-6">
           <Avatar name={player.name} />
           <div>
-            <h1 className="text-2xl font-bold">{player.name}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold">{player.name}</h1>
+              {/* Admin in-game-name fix. POST auth/admin/set-user-username/. It sits BESIDE the
+                  name rather than in the grid below, because the name is what the whole page is
+                  titled by and that is where an admin looks when it is wrong. flex-wrap keeps the
+                  button under the name on a phone instead of squeezing the heading. */}
+              {canRepair && identity && (
+                <>
+                  <EditUsernameDialog
+                    playerName={player.name}
+                    identity={identity}
+                    onSuccess={onIdentityChanged}
+                  />
+                  <NewBadge since="2026-08-11" />
+                </>
+              )}
+            </div>
             <p className="text-muted-foreground text-sm">@{player.name}</p>
             {player.in_game_role && (
               <Badge variant="secondary" className="mt-1 capitalize">
@@ -385,8 +408,27 @@ const Page = ({ params }: Props) => {
                 </div>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Phone Number</p>
-                <p className="text-sm mt-0.5">{player.phone ?? "-"}</p>
+                {/* Labelled WhatsApp, not "Phone Number": the value support cares about is the
+                    WhatsApp number on the profile, which is what account recovery proves against.
+                    (get_player_details has never populated `player.phone`, so that slot always
+                    read "-".) The number is MASKED by the identity endpoint on purpose. */}
+                <p className="text-xs text-muted-foreground">WhatsApp Number</p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <p className="text-sm">
+                    {identity?.whatsapp_number || player.phone || "-"}
+                  </p>
+                  {/* Admin WhatsApp fix / removal. POST auth/admin/set-user-whatsapp/. */}
+                  {canRepair && identity && (
+                    <>
+                      <EditWhatsappDialog
+                        playerName={player.name}
+                        identity={identity}
+                        onSuccess={onIdentityChanged}
+                      />
+                      <NewBadge since="2026-08-11" />
+                    </>
+                  )}
+                </div>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">
@@ -432,7 +474,24 @@ const Page = ({ params }: Props) => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Country</p>
-                <p className="text-sm mt-0.5">{player.country ?? "-"}</p>
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  {/* Prefer the identity value: it is the canonical spelling this page just wrote,
+                      while player.country comes from the older detail payload. */}
+                  <p className="text-sm">
+                    {identity?.country || player.country || "-"}
+                  </p>
+                  {/* Admin country fix. POST auth/admin/set-user-country/. */}
+                  {canRepair && identity && (
+                    <>
+                      <EditCountryDialog
+                        playerName={player.name}
+                        identity={identity}
+                        onSuccess={onIdentityChanged}
+                      />
+                      <NewBadge since="2026-08-11" />
+                    </>
+                  )}
+                </div>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total Kills</p>
