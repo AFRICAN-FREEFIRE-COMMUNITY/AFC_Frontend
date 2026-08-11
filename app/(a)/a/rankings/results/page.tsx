@@ -29,6 +29,7 @@ import { FullLoader } from "@/components/Loader";
 import { TournamentTierBadge } from "@/components/TournamentTierBadge";
 import { rankingsApi, Season } from "@/lib/rankings";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
+import { authHeaders } from "@/lib/http";
 import {
   IconClipboardCheck, IconCircleCheckFilled, IconAlertTriangle, IconUsersGroup,
   IconSearch, IconFilter, IconAdjustments, IconTrophy, IconMedal, IconSwords,
@@ -305,7 +306,12 @@ export default function ResultMarkersPage() {
     try {
       const [teamsRes, playersRes] = await Promise.all([
         axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`),
-        axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-all-players/`),
+        // The player list is admin-only as of 2026-08-11 (it used to hand the whole roster to
+        // anonymous callers), so this one carries the token. authHeaders() is the same helper
+        // lib/rankingsAdmin.ts uses on this page, reading the auth_token cookie.
+        axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-all-players/`, {
+          headers: authHeaders(),
+        }),
       ]);
       setTeamOptions(
         ((teamsRes.data?.teams ?? []) as any[]).map((t) => ({

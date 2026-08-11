@@ -30,6 +30,7 @@ import { LocalTime } from "@/components/LocalTime";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import axios from "axios";
 import { env } from "@/lib/env";
+import { useAuth } from "@/contexts/AuthContext";
 
 // The public quarterly read carries the §7.4 activity-floor flag on the row; the base
 // ApiTeamRow type doesn't declare it, so widen locally to read it (same idiom as overrides/).
@@ -892,6 +893,9 @@ function RecalcEntityDialog({
   seasonId: number | undefined;
 }) {
   const t = useTranslations("rankings.admin.overview");
+  // The player list is admin-only as of 2026-08-11 (it used to answer anonymous callers with every
+  // account on the site), so this dialog sends the viewer's token like every other admin fetch.
+  const { token } = useAuth();
   const [entityType, setEntityType] = useState<"team" | "player">("team");
   // name picker - the text the admin types and the RESOLVED id (gate submit on this id).
   const [query, setQuery] = useState("");
@@ -930,7 +934,9 @@ function RecalcEntityDialog({
       .catch((err: any) => {
         if (active) toast.error(err?.response?.data?.message || t("recalcDialog.loadTeamsFailed"));
       });
-    axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-all-players/`)
+    axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-all-players/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
       .then((res) => {
         if (!active) return;
         const list = (res.data?.users ?? []).map((u: any) => ({ id: u.user_id, name: u.name }));
@@ -940,7 +946,9 @@ function RecalcEntityDialog({
         if (active) toast.error(err?.response?.data?.message || t("recalcDialog.loadPlayersFailed"));
       });
     return () => { active = false; };
-  }, [open]);
+    // `token` is a dependency now that both fetches carry it: a dialog opened before the session
+    // resolved would otherwise keep an empty header and its 401 forever.
+  }, [open, token]);
 
   // when the admin switches entity type, clear the in-flight selection.
   const selectType = (key: "team" | "player") => {
