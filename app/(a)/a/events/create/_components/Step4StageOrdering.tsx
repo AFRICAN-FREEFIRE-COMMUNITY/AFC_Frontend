@@ -7,6 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 import { EventFormType, FORMATTED_WORD } from "./types";
+// Stage-shape helpers: the summary line below has to say the right thing for the two
+// GROUPLESS shapes (Clash Squad = a bracket, BR Round-Robin = base groups). See lib/eventFormats.ts.
+import {
+  isClashSquadFormat,
+  isRoundRobinBuilderFormat,
+} from "@/lib/eventFormats";
 
 interface Step4Props {
   form: UseFormReturn<EventFormType>;
@@ -38,12 +44,28 @@ export function Step4StageOrdering({
             const stage = stages[index];
             // FORMATTED_WORD is a shared bracket-label constant (lib/eventFormats); its value
             // is interpolated into the translated "{count} Groups • {format}" string.
-            const stageStatus = stage
-              ? t("step4.groupsFormat", {
-                  count: stage.groups.length,
-                  format: FORMATTED_WORD[stage.stage_format],
-                })
-              : t("step4.notConfigured");
+            // Summary line under the stage name. It used to always read "{n} Groups", which
+            // printed "0 Groups" for the two shapes that legitimately carry none and made a
+            // correctly-configured Clash Squad stage look unfinished (owner 2026-08-12):
+            //   • Clash Squad -> "Bracket • <format>" (the bracket is generated later on the
+            //     event page, so there is nothing to count here);
+            //   • BR Round-Robin -> counts the base groups A/B/C from the round-robin panel,
+            //     which is where that format actually keeps them;
+            //   • everything else -> the classic per-group lobby count, unchanged.
+            const format = FORMATTED_WORD[stage?.stage_format ?? ""];
+            const stageStatus = !stage
+              ? t("step4.notConfigured")
+              : isClashSquadFormat(stage.stage_format)
+                ? t("step4.bracketFormat", { format })
+                : isRoundRobinBuilderFormat(stage.stage_format)
+                  ? t("step4.baseGroupsFormat", {
+                      count: stage.round_robin?.round_robin_groups?.length ?? 0,
+                      format,
+                    })
+                  : t("step4.groupsFormat", {
+                      count: stage.groups.length,
+                      format,
+                    });
 
             return (
               <div

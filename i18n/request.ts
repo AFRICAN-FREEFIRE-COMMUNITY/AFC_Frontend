@@ -145,13 +145,21 @@ async function loadMessages(locale: Locale): Promise<Record<string, unknown>> {
   return merged;
 }
 
-// Cached namespace list. Computed once per server process by reading the
-// English messages directory so we never hardcode the namespace names - adding
-// messages/en/<new>.json is picked up automatically on the next cold start.
+// Cached namespace list, read once from the English messages directory so we never hardcode the
+// namespace names.
+//
+// PRODUCTION ONLY (fixed 2026-08-14). The cache used to apply in development too, which meant a
+// BRAND-NEW messages/en/<ns>.json was invisible until someone happened to cold-restart the dev
+// server: every `t()` in the new namespace rendered its raw key, exactly as if the keys were
+// missing, with nothing in the console to say why. That cost real debugging time twice. In dev the
+// list is re-read per request - one readdir of a directory the OS has cached, against a page that
+// is already doing far more work - so adding a namespace just works. In production the file set
+// cannot change under a running server, so the cache stays.
 let cachedNamespaces: string[] | null = null;
+const CACHE_NAMESPACES = process.env.NODE_ENV === "production";
 
 async function getNamespaces(): Promise<string[]> {
-  if (cachedNamespaces) return cachedNamespaces;
+  if (CACHE_NAMESPACES && cachedNamespaces) return cachedNamespaces;
   // Use fs at request-config time (server only) to enumerate messages/en. This
   // file never runs in the browser, so importing node:fs/path here is safe.
   const { readdir } = await import("node:fs/promises");

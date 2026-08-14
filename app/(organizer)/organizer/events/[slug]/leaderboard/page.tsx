@@ -67,6 +67,9 @@
 "use client";
 
 import React, { use, useEffect, useState } from "react";
+// One rule for "is this Clash Squad?" - the plain "cs" format the picker
+// writes since 2026-08-13 does not match the old "cs - " literals.
+import { isClashSquadFormat } from "@/lib/eventFormats";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
@@ -834,7 +837,7 @@ export default function OrganizerEventLeaderboardPage({
   // Clash Squad (head-to-head) stage guard (CS remediation P1#3, owner 2026-07-13): a `cs -` stage
   // runs as a bracket, not BR groups/lobbies, so it has no groups/matches to edit here. Show a note
   // pointing to the event-page bracket instead of the empty BR group/match editors below.
-  const isCsStage = String(currentStage?.stage_format || "").startsWith("cs -");
+  const isCsStage = isClashSquadFormat(currentStage?.stage_format);
   const currentGroup = currentStage?.groups?.find(
     (g: any) => g.group_id.toString() === selectedGroupId,
   );

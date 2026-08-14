@@ -10,6 +10,8 @@ import React, {
   useTransition,
 } from "react";
 import { notFound, useRouter, useSearchParams } from "next/navigation";
+// One rule for "is this Clash Squad?" (lib/eventFormats).
+import { isClashSquadFormat } from "@/lib/eventFormats";
 // i18n: copy lives in messages/en/tournaments.json (detail.* / register.* /
 // editRoster.* / leaveModal.* / stageResults.* / teamRegister.*). useTranslations
 // resolves the NEXT_LOCALE cookie locale, en fallback.
@@ -23,6 +25,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// A Clash Squad stage renders its BRACKET in the results tab rather than the Battle Royale
+// placement table, which showed nothing but zeroes for it (owner 2026-08-12).
+// One card per bracket: a stage split into groups shows several, an ordinary
+// stage shows exactly one (owner backlog item 21, 2026-08-13).
+import { H2HStageBrackets } from "@/components/h2h-bracket";
 import {
   CheckCircle,
   Users,
@@ -5891,12 +5898,28 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   value={stage.stage_name}
                   className="mt-4 animate-in fade-in slide-in-from-bottom-2"
                 >
-                  <StageResultsTable
-                    stage={stage}
-                    participantType={eventDetails.participant_type}
-                    // Hidden standings => "Results not published yet" in place of the results table.
-                    resultsPublished={eventDetails.results_published}
-                  />
+                  {/* A Clash Squad stage is a BRACKET, not a lobby with placement points. The
+                      results tab used to draw the Battle Royale table for it - Kills / Place Pts /
+                      Total Points, every kill zero - and the actual bracket was hidden behind the
+                      Structure tab (owner 2026-08-12, finding #13). Show the bracket here instead,
+                      read-only: the room settings, the tree, the standings, and the "submit our
+                      result" form for a player who is in it. */}
+                  {isClashSquadFormat(stage.stage_format) ? (
+                    <H2HStageBrackets
+                      stageId={stage.stage_id}
+                      stageName={stage.stage_name}
+                      stageFormat={stage.stage_format ?? ""}
+                      isManager={false}
+                      registeredTeams={[]}
+                    />
+                  ) : (
+                    <StageResultsTable
+                      stage={stage}
+                      participantType={eventDetails.participant_type}
+                      // Hidden standings => "Results not published yet" in place of the table.
+                      resultsPublished={eventDetails.results_published}
+                    />
+                  )}
                 </TabsContent>
               ))}
                 </Tabs>

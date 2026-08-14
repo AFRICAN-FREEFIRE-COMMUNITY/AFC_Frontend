@@ -35,7 +35,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, ChevronRight, ChevronDown, ArrowUp } from "lucide-react";
 // IconArrowRight matches the LinkedEventsCard chip aesthetic (components/event-links.tsx).
 import { IconArrowRight } from "@tabler/icons-react";
-import { FORMAT_LABEL } from "@/lib/eventFormats";
+import { isClashSquadFormat, FORMAT_LABEL } from "@/lib/eventFormats";
 // Public qualification-link client (lib/eventLinks.ts publicStructure -> GET
 // events/<id>/links/structure/, no auth). Powers the "Qualification Links" section below.
 import { eventLinksApi, type PublicLinksStructure } from "@/lib/eventLinks";
@@ -47,7 +47,8 @@ import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 // GET bracket endpoint (headToHeadApi.getBracket) is public, and isManager={false} strips every
 // generate/report control, so spectators see the tree + standings without any edit affordance
 // (CS remediation P1#5, owner 2026-07-13).
-import { H2HBracketCard } from "@/components/h2h-bracket";
+// One card per bracket (owner backlog item 21, 2026-08-13).
+import { H2HStageBrackets } from "@/components/h2h-bracket";
 
 // Local mirrors of the Stage/StageGroup shapes from EventDetailsWrapper (kept local so
 // this component stays self-contained; `any` rows because leaderboard keys vary solo/squad).
@@ -531,11 +532,11 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
           )}
         </div>
 
-        {String(stage.stage_format || "").startsWith("cs") ? (
+        {isClashSquadFormat(stage.stage_format) ? (
           // Clash-Squad stage: show the read-only head-to-head bracket instead of the group grid
           // (a CS stage has no groups). registeredTeams=[] because the public viewer never seeds/
           // generates - that control is manager-only and hidden by isManager={false}.
-          <H2HBracketCard
+          <H2HStageBrackets
             stageId={stage.stage_id}
             stageName={stage.stage_name}
             stageFormat={stage.stage_format}

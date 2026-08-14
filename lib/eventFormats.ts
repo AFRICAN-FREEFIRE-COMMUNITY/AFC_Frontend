@@ -12,6 +12,12 @@
 
 // The bracket types a stage can run. `as const` so callers get a precise string union.
 export const STAGE_FORMATS = [
+  // ── what the picker writes now (owner backlog item 21, 2026-08-13) ──
+  // Game only; the MODE is the second question, and for Clash Squad it lives on the group.
+  // Listed first so they are the top of the dropdown for anyone still seeing the flat list.
+  "br",
+  "cs",
+  // ── legacy values: still selectable, still meaningful, still what old stages carry ──
   "br - normal",
   // Legacy bracket value. The backend's Stages.STAGE_FORMAT_CHOICES labels this
   // key "Battle Royale - Knockout" (NOT "Round Robin"), so we mirror that label in
@@ -41,6 +47,8 @@ export const STAGE_FORMATS = [
 // falling back to FORMAT_LABEL here. Admin/organizer create/edit surfaces are i18n-exempt and
 // keep reading these English labels directly.
 export const FORMAT_LABEL: Record<string, string> = {
+  "br": "Battle Royale",
+  "cs": "Clash Squad",
   "br - normal": "Battle Royale - Normal",
   // Mirror the backend label for the legacy unspaced key (it is "Knockout" there,
   // not "Round Robin") so the dropdown no longer shows two identical "Round Robin"
@@ -53,6 +61,92 @@ export const FORMAT_LABEL: Record<string, string> = {
   "cs - double elimination": "Clash Squad - Double Elimination",
   "cs - round robin": "Clash Squad - Round Robin",
 };
+
+// ── Stage SHAPE helpers: which stages actually own classic BR groups ────────────
+//
+// Three stage shapes exist and each keeps its "groups" somewhere DIFFERENT:
+//   • classic BR ("br - normal", "br - roundrobin")  -> stage.groups
+//     (the Step-2 lobby wizard: per-group maps, room, match count)
+//   • BR Round-Robin ("br - round robin")            -> stage.round_robin.round_robin_groups
+//     (base groups A/B/C built in RoundRobinPanel; stage.groups stays EMPTY on purpose,
+//      see the create pages' handleSaveStage which sends `groups: []` for this format)
+//   • Clash Squad ("cs - *")                          -> NO groups at all. A CS stage runs as a
+//     head-to-head bracket generated later from the event page (components/h2h-bracket.tsx),
+//     so there is nothing group-shaped to configure at creation time (see ClashSquadPanel).
+//
+// Any validation that asks "does this stage have groups yet?" MUST branch on the shape first.
+// BUG THIS FIXES (owner 2026-08-12): the create wizard's Step-4 gate asked the blanket
+// `stage.groups.length > 0`, so BOTH Clash Squad and BR Round-Robin stages saved fine and then
+// Next refused with "One or more stages have not been fully configured with groups" - with no
+// groups UI anywhere to satisfy it. Clash Squad events could not be created at all. The EDIT
+// flow already branched correctly (app/(a)/a/events/[slug]/edit/types.tsx validateEventData),
+// so these helpers exist to keep the create + edit + organizer surfaces on ONE rule.
+//
+// CONSUMED BY: app/(a)/a/events/create/page.tsx (Step-4 gate),
+// app/(organizer)/organizer/events/create/page.tsx (same gate),
+// app/(a)/a/events/create/_components/Step4StageOrdering.tsx (the stage summary line).
+
+// ── The two-question stage picker (owner backlog item 21, 2026-08-13) ───────────
+//
+// A stage now answers ONE question in its format field - which GAME is this? - and the specific
+// mode is a second question. For Clash Squad the mode lives on the GROUP
+// (StageGroups.bracket_format), which is what lets one stage run "Group A - Knockout" beside
+// "Group B - League". Every legacy value above still works and still means what it meant; these
+// are just the shorter way to say the same thing, and what the picker writes now.
+
+/** The value a stage carries when the organizer picks Clash Squad in the new picker. */
+export const CS_STAGE_FORMAT = "cs";
+/** The value a stage carries when the organizer picks Battle Royale in the new picker. */
+export const BR_STAGE_FORMAT = "br";
+
+/** The four bracket modes a Clash Squad group can run, with their labels.
+ *  Mirrors StageGroups.BRACKET_FORMAT_CHOICES on the backend - keep the codes identical. */
+export const CS_BRACKET_MODES = [
+  { value: "single_elim", label: "Knockout" },
+  { value: "double_elim", label: "Double elimination" },
+  { value: "league", label: "League" },
+  { value: "round_robin_h2h", label: "Round robin" },
+] as const;
+
+export type CSBracketMode = (typeof CS_BRACKET_MODES)[number]["value"];
+
+/** The mode a LEGACY Clash Squad format implied, so an old stage opens on the right one.
+ *  Mirrors stage_formats.LEGACY_CS_MODE on the backend. Returns null for the plain "cs". */
+export function legacyClashSquadMode(format?: string | null): CSBracketMode | null {
+  const map: Record<string, CSBracketMode> = {
+    "cs - knockout": "single_elim",
+    "cs - double elimination": "double_elim",
+    "cs - league": "league",
+    "cs - round robin": "round_robin_h2h",
+    "cs - normal": "single_elim",
+  };
+  return map[String(format ?? "").trim().toLowerCase()] ?? null;
+}
+
+/** True for any Clash Squad stage, of any generation: the plain "cs" the picker writes now, and
+ *  every legacy "cs - knockout" / "cs - league" / ... value. */
+export function isClashSquadFormat(format?: string | null): boolean {
+  const value = String(format ?? "").trim().toLowerCase();
+  return value === CS_STAGE_FORMAT || /^cs\s*-/i.test(value);
+}
+
+/** True for any Battle Royale stage, of any generation. */
+export function isBattleRoyaleFormat(format?: string | null): boolean {
+  const value = String(format ?? "").trim().toLowerCase();
+  return value === BR_STAGE_FORMAT || /^br\s*-/i.test(value);
+}
+
+/** True ONLY for the live BR Round-Robin builder format (the SPACED backend value).
+ *  The legacy unspaced "br - roundrobin" is a plain knockout and keeps classic groups. */
+export function isRoundRobinBuilderFormat(format?: string | null): boolean {
+  return String(format ?? "").trim().toLowerCase() === "br - round robin";
+}
+
+/** True when the stage is configured with the classic per-group lobby wizard (stage.groups).
+ *  False for Clash Squad (bracket) and BR Round-Robin (base groups) stages. */
+export function stageUsesClassicGroups(format?: string | null): boolean {
+  return !isClashSquadFormat(format) && !isRoundRobinBuilderFormat(format);
+}
 
 // ── Prize distribution helpers ──────────────────────────────────────────────────
 //

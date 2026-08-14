@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, use } from "react";
+// One rule for "is this Clash Squad?" - the plain "cs" format the picker
+// writes since 2026-08-13 does not match the old "cs - " literals.
+import { isClashSquadFormat } from "@/lib/eventFormats";
 import {
   Card,
   CardContent,
@@ -694,7 +697,7 @@ export default function EditLeaderboardPage({
   // When the selected stage is CS we hide the whole BR editor and point the admin to the
   // bracket on the event page (mounted there via H2HBracketCard). Mirrors the same guard
   // added to the organizer leaderboard page and the public TournamentStructure.
-  const isCsStage = String(currentStage?.stage_format || "").startsWith("cs -");
+  const isCsStage = isClashSquadFormat(currentStage?.stage_format);
   const currentGroup = currentStage?.groups?.find(
     (g: any) => g.group_id.toString() === selectedGroupId,
   );

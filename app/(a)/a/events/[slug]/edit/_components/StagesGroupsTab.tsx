@@ -25,6 +25,18 @@
 // import { EditMatchModal } from "../../../_components/EditMatchModal";
 // import { DeleteMatchModal } from "../../../_components/DeleteMatchModal";
 // import { formatDate } from "@/lib/utils";
+// Bracket-mode labels for a Clash Squad group (owner item 21, 2026-08-13).
+import { isClashSquadFormat } from "@/lib/eventFormats";
+
+// The clashSquad namespace label key for each bracket mode code (mirrors
+// ClashSquadPanel). Kept here so the group card names the mode in the viewer's
+// language rather than in English.
+const MODE_LABEL_KEY: Record<string, string> = {
+  single_elim: "modeSingleElim",
+  double_elim: "modeDoubleElim",
+  league: "modeLeague",
+  round_robin_h2h: "modeRoundRobin",
+};
 // import {
 //   type EventFormType,
 //   type EventDetails,
@@ -544,6 +556,9 @@ export default function StagesGroupsTab({
   const stages = (form.watch("stages") || []) as any[];
   const { token } = useAuth();
   const t = useTranslations("evEditStages");
+  // Second namespace: the Clash Squad wording is shared with ClashSquadPanel, so the group
+  // card names a bracket mode with the same strings the stage modal uses.
+  const tCS = useTranslations("clashSquad");
 
   // Shared DnD sensors (mouse + touch + keyboard for mobile/accessibility), matching
   // app/(a)/a/rankings/tournament-tiers/page.tsx.
@@ -855,12 +870,31 @@ export default function StagesGroupsTab({
                           {formatDate(group?.playing_date)} {t("at")}{" "}
                           {group?.playing_time}
                         </p>
-                        <p className="text-primary">
-                          {t("mapsLabel")}{" "}
-                          {group?.match_maps?.join(", ") || (
-                            <span className="italic">{t("noMapsSelected")}</span>
-                          )}
-                        </p>
+                        {/* A Clash Squad group is a BRACKET, not a lobby (owner backlog item 21,
+                            2026-08-13): it has no maps and no per-map schedule, so showing
+                            "Maps: none selected" and an empty match table on it reads as an
+                            unfinished lobby. Say what it actually is instead; the teams and the
+                            bracket itself are managed from the event page. */}
+                        {isClashSquadFormat(stage?.stage_format) ? (
+                          <p className="text-primary">
+                            {tCS("groupRunsBracket", {
+                              mode: (() => {
+                                // Dynamic key -> t.has() guard (house rule): an unrecognised mode
+                                // must not throw, it falls back to the plain game name.
+                                const code = group?.bracket_format;
+                                const key = MODE_LABEL_KEY[code as string];
+                                return key && tCS.has(key) ? tCS(key) : "Clash Squad";
+                              })(),
+                            })}
+                          </p>
+                        ) : (
+                          <p className="text-primary">
+                            {t("mapsLabel")}{" "}
+                            {group?.match_maps?.join(", ") || (
+                              <span className="italic">{t("noMapsSelected")}</span>
+                            )}
+                          </p>
+                        )}
                         <p>
                           {group?.total_teams_in_group ||
                             group?.competitors_in_group?.length}{" "}
@@ -895,7 +929,10 @@ export default function StagesGroupsTab({
                           </CardContent>
                         </Card>
                       </div>
-                      <div className="w-full">
+                      {/* The per-map schedule is a Battle Royale lobby concept. A Clash Squad
+                          group's fixtures ARE its bracket, drawn and scored on the event page, so
+                          an empty map table here would only look broken (owner item 21). */}
+                      <div className={`w-full${isClashSquadFormat(stage?.stage_format) ? " hidden" : ""}`}>
                         <Card className="gap-0">
                           <CardHeader>
                             <CardTitle className="flex items-center justify-start gap-2">

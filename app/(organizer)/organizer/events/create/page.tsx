@@ -101,6 +101,13 @@ import {
   StageModalData,
 } from "@/app/(a)/a/events/create/_components/StageModal";
 import { DEFAULT_ROUND_ROBIN_CONFIG } from "@/app/(a)/a/events/_components/RoundRobinPanel";
+// Stage-shape helpers, shared with the admin create wizard: Clash Squad stages have NO groups
+// (bracket, generated from the event page) and BR Round-Robin keeps its groups on
+// round_robin.round_robin_groups. Used by the Step-4 gate below. See lib/eventFormats.ts.
+import {
+  isClashSquadFormat,
+  isRoundRobinBuilderFormat,
+} from "@/lib/eventFormats";
 // ── Sponsor-system P2: post-create sponsor attach loop (mirrors the admin page). ──
 // StepSponsorRequirement's builder holds SponsorshipDraft rows in the `sponsorships`
 // form field; after create-event returns the new event_id, onSubmit attaches +
@@ -482,7 +489,7 @@ export default function OrganizerCreateEventPage() {
     const isRoundRobinStage = stageModalData.stage_format === "br - round robin";
     // Clash Squad (cs - *) runs as a head-to-head BRACKET seeded from the registered teams on
     // the event page - no groups/maps to validate; sends groups: [] (P1#2, owner 2026-07-13).
-    const isClashSquadStage = (stageModalData.stage_format || "").startsWith("cs - ");
+    const isClashSquadStage = isClashSquadFormat(stageModalData.stage_format);
     if (isRoundRobinStage) {
       const baseGroups = stageModalData.round_robin?.round_robin_groups ?? [];
       if (baseGroups.length < 2) {
@@ -551,6 +558,23 @@ export default function OrganizerCreateEventPage() {
       // ── Round-Robin config (sub-project B) - only for the BR Round-Robin format. ──
       ...(stageModalData.stage_format === "br - round robin"
         ? { round_robin: stageModalData.round_robin }
+        : {}),
+      // ── Clash Squad room settings (owner 2026-08-13) - optional ────────────────
+      // Sent only when the organizer actually filled it in, and only for a CS stage. Absent
+      // means no room configuration is created, exactly as before this existed. The backend
+      // materialises it into a CSRoomConfig scoped to the stage.
+      ...(stageModalData.cs_room_settings &&
+      isClashSquadFormat(stageModalData.stage_format)
+        ? { cs_room_settings: stageModalData.cs_room_settings }
+        : {}),
+      // ── Clash Squad mode + optional groups (owner item 21, 2026-08-13) ────────
+      // The mode no longer lives in stage_format: it rides here for a one-bracket stage, or
+      // per group when the organizer split the stage. Sent only for a CS stage.
+      ...(isClashSquadFormat(stageModalData.stage_format)
+        ? {
+            cs_bracket_format: stageModalData.cs_bracket_format,
+            cs_groups: stageModalData.cs_groups ?? [],
+          }
         : {}),
     };
 
@@ -666,9 +690,17 @@ export default function OrganizerCreateEventPage() {
           );
           return;
         }
-        const allValid = form
-          .getValues("stages")
-          .every((s) => s.groups && s.groups.length > 0);
+        // Shape-aware completeness check, identical to the admin wizard (owner 2026-08-12):
+        // Clash Squad stages have no groups at all (bracket), BR Round-Robin keeps them on the
+        // round-robin base groups. The old blanket stage.groups check made both formats
+        // impossible to create here too. See lib/eventFormats.ts for the shape rules.
+        const allValid = form.getValues("stages").every((s) => {
+          if (isClashSquadFormat(s.stage_format)) return true;
+          if (isRoundRobinBuilderFormat(s.stage_format)) {
+            return (s.round_robin?.round_robin_groups?.length ?? 0) > 0;
+          }
+          return !!s.groups && s.groups.length > 0;
+        });
         if (!allValid) {
           toast.error(t("toast.stagesNotConfigured"));
           return;

@@ -375,6 +375,9 @@
 "use client";
 
 import React from "react";
+// One rule for "is this Clash Squad?" - the plain "cs" format the picker
+// writes since 2026-08-13 does not match the old "cs - " literals.
+import { isClashSquadFormat } from "@/lib/eventFormats";
 import { toast } from "sonner";
 // next-intl client hook. Strings live in messages/{en,fr,pt}/evStageModal.json;
 // stage-format labels reuse the shared messages/{...}/eventFormats.json namespace
@@ -416,6 +419,7 @@ import {
 } from "../../_components/RoundRobinPanel";
 // Shared Clash Squad (bracket) explainer (CS sub-project) - same panel used by the edit flow.
 import { ClashSquadPanel } from "../../_components/ClashSquadPanel";
+import type { CSRoomDraft } from "@/components/cs-room-settings";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -443,6 +447,19 @@ export interface StageModalData {
   // ── Round-Robin config (sub-project B). Edited only when stage_format is
   //    "br - round robin"; rides into the FormData stages array on save. ──
   round_robin: RoundRobinConfig;
+  // ── Clash Squad ROOM SETTINGS (owner 2026-08-13) ────────────────────────────────
+  // The in-game custom-room configuration for this stage, filled in optionally while the event
+  // is being created. Undefined / null = nothing configured, and the key is simply not sent.
+  // create_event materialises it into a CSRoomConfig scoped to the new stage; from then on it is
+  // edited from the bracket card on the event page. See components/cs-room-settings.tsx.
+  cs_room_settings?: CSRoomDraft | null;
+  // ── Clash Squad: the MODE, and the optional split into groups (owner item 21, 2026-08-13) ──
+  // cs_bracket_format is the mode a one-bracket stage runs. cs_groups is non-empty ONLY when the
+  // organizer ticked "split this stage into groups"; each entry becomes a StageGroups row with
+  // its own bracket, teams and room. Both are optional: a stage that never touches them behaves
+  // exactly as Clash Squad stages did before.
+  cs_bracket_format?: import("@/lib/eventFormats").CSBracketMode;
+  cs_groups?: import("../../_components/ClashSquadPanel").CSGroupDraft[];
 }
 
 interface StageModalProps {
@@ -847,7 +864,7 @@ export function StageModal({
   // Clash Squad (cs - *) runs as a head-to-head bracket, not BR lobbies: like round-robin
   // it has no classic groups and no Step-2 per-group config, so it saves straight from
   // Step 1 (the bracket is generated later from the event page). See ClashSquadPanel.
-  const isClashSquad = (stageModalData.stage_format || "").startsWith("cs - ");
+  const isClashSquad = isClashSquadFormat(stageModalData.stage_format);
 
   const handleNextStep = () => {
     if (
@@ -984,14 +1001,38 @@ export function StageModal({
                 format INSTEAD of the BR group/map wizard. It has no inputs - the bracket is
                 generated from the event page - so the modal saves straight from Step 1. */}
             {isClashSquad && (
-              <ClashSquadPanel stageFormat={stageModalData.stage_format} />
+              <ClashSquadPanel
+                stageFormat={stageModalData.stage_format}
+                stageName={stageModalData.stage_name}
+                // The MODE, and the optional split into groups (owner backlog item 21,
+                // 2026-08-13). Both live on the stage draft and ride into the payload.
+                mode={stageModalData.cs_bracket_format}
+                onModeChange={(m) =>
+                  setStageModalData({ ...stageModalData, cs_bracket_format: m })
+                }
+                groups={stageModalData.cs_groups ?? []}
+                onGroupsChange={(g) =>
+                  setStageModalData({ ...stageModalData, cs_groups: g })
+                }
+                // The stage does not exist yet, so the room settings ride along in the stage
+                // draft and are materialised by create_event (owner 2026-08-13). Optional:
+                // leaving it untouched sends nothing.
+                roomSettings={stageModalData.cs_room_settings ?? null}
+                onRoomSettingsChange={(draft) =>
+                  setStageModalData({ ...stageModalData, cs_room_settings: draft })
+                }
+              />
             )}
 
             {/* ── Scoring modes (sub-project A): Champion-Point + Point-Rush ──────────
                 Both are independent per-stage toggles. Champion-Point is a match-point
                 win rule; Point-Rush banks this stage's placement bonus into a later
-                stage. They can be on together. */}
-            <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                stage. They can be on together.
+                HIDDEN FOR CLASH SQUAD (owner 2026-08-12, finding #14): both are Battle Royale
+                rules about placement points across a lobby. A Clash Squad set is won by round
+                wins in a head-to-head bracket, so neither toggle does anything there and
+                offering them only invites an organizer to turn on a rule that will not apply. */}
+            <div className={`space-y-4 p-4 border rounded-lg bg-muted/30${isClashSquad ? " hidden" : ""}`}>
               <p className="text-sm font-semibold text-primary">
                 {t("scoringModes")}
               </p>

@@ -35,6 +35,13 @@ import { StepSponsorRequirement } from "./_components/StepSponsorRequirement";
 import { StepWaitlist } from "./_components/StepWaitlist";
 import { StageModal, StageModalData } from "./_components/StageModal";
 import { DEFAULT_ROUND_ROBIN_CONFIG } from "../_components/RoundRobinPanel";
+// Stage-shape helpers: a Clash Squad stage has NO groups (it runs as a bracket) and a BR
+// Round-Robin stage keeps its groups on round_robin.round_robin_groups, so the Step-4 gate
+// below has to branch per shape instead of counting stage.groups. See lib/eventFormats.ts.
+import {
+  isClashSquadFormat,
+  isRoundRobinBuilderFormat,
+} from "@/lib/eventFormats";
 // Upload size gate + honest failure messages (owner-reported 2026-08-05).
 import { checkUploadSize, describeSubmitFailure } from "@/lib/upload-limits";
 // ── Sponsor-system P2: post-create sponsor attach loop. ──
@@ -660,7 +667,7 @@ export default function CreateEventPage() {
     // Clash Squad (cs - *) runs as a head-to-head BRACKET seeded from the registered teams on
     // the event page - it has no groups/maps to validate and sends groups: [] (P1#2, owner
     // 2026-07-13). Without this it fell into the BR `else` and the default tempGroups failed.
-    const isClashSquadStage = (stageModalData.stage_format || "").startsWith("cs - ");
+    const isClashSquadStage = isClashSquadFormat(stageModalData.stage_format);
     if (isRoundRobinStage) {
       const baseGroups = stageModalData.round_robin?.round_robin_groups ?? [];
       if (baseGroups.length < 2) {
@@ -734,6 +741,23 @@ export default function CreateEventPage() {
       //    bracket types don't carry a stray round_robin payload. ──
       ...(stageModalData.stage_format === "br - round robin"
         ? { round_robin: stageModalData.round_robin }
+        : {}),
+      // ── Clash Squad room settings (owner 2026-08-13) - optional ────────────────
+      // Sent only when the organizer actually filled it in, and only for a CS stage. Absent means
+      // no room configuration is created, which is how every Clash Squad stage behaved before.
+      // create_event turns it into a CSRoomConfig scoped to the new stage.
+      ...(stageModalData.cs_room_settings &&
+      isClashSquadFormat(stageModalData.stage_format)
+        ? { cs_room_settings: stageModalData.cs_room_settings }
+        : {}),
+      // ── Clash Squad mode + optional groups (owner item 21, 2026-08-13) ────────
+      // The mode no longer lives in stage_format: it rides here for a one-bracket stage, or
+      // per group when the organizer split the stage. Sent only for a CS stage.
+      ...(isClashSquadFormat(stageModalData.stage_format)
+        ? {
+            cs_bracket_format: stageModalData.cs_bracket_format,
+            cs_groups: stageModalData.cs_groups ?? [],
+          }
         : {}),
     };
 
@@ -848,9 +872,21 @@ export default function CreateEventPage() {
           );
           return;
         }
-        const allValid = form
-          .getValues("stages")
-          .every((s) => s.groups && s.groups.length > 0);
+        // Shape-aware "is this stage finished?" check (owner 2026-08-12). The old blanket
+        // `s.groups.length > 0` blocked Next for the two GROUPLESS stage shapes and pointed the
+        // admin at a groups UI that does not exist for them:
+        //   • Clash Squad ("cs - *")   -> runs as a bracket, generated later from the event page,
+        //                                 so it is complete with just name/dates/qualifiers.
+        //   • BR Round-Robin           -> its groups are the base groups A/B/C in the round-robin
+        //                                 panel, so check THOSE instead of stage.groups.
+        // Mirrors the edit flow's validateEventData (app/(a)/a/events/[slug]/edit/types.tsx).
+        const allValid = form.getValues("stages").every((s) => {
+          if (isClashSquadFormat(s.stage_format)) return true;
+          if (isRoundRobinBuilderFormat(s.stage_format)) {
+            return (s.round_robin?.round_robin_groups?.length ?? 0) > 0;
+          }
+          return !!s.groups && s.groups.length > 0;
+        });
         if (!allValid) {
           toast.error(t("toast.stagesNotConfigured"));
           return;

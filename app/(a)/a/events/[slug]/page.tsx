@@ -1,6 +1,9 @@
 "use client";
 
 import { FullLoader } from "@/components/Loader";
+// One rule for "is this Clash Squad?" - the plain "cs" format the picker
+// writes since 2026-08-13 does not match the old "cs - " literals.
+import { isClashSquadFormat } from "@/lib/eventFormats";
 import { PageHeader } from "@/components/PageHeader";
 // One-click ZIP of the event's registered team logos + player esport images.
 import { DownloadEventMediaButton } from "@/components/esport-media";
@@ -9,7 +12,9 @@ import { LinkedEventsCard } from "@/components/event-links";
 // on the public tournament page, admins read the aggregate + comments here).
 import { EventReviewsCard } from "@/components/event-reviews-admin";
 // Clash-Squad head-to-head bracket (sub-project C): generate/tree/results per CS stage.
-import { H2HBracketCard } from "@/components/h2h-bracket";
+// One card per bracket: a stage split into groups shows several, an ordinary
+// stage shows exactly one (owner backlog item 21, 2026-08-13).
+import { H2HStageBrackets } from "@/components/h2h-bracket";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -833,7 +838,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const allStagesCs =
     Array.isArray(stages) &&
     stages.length > 0 &&
-    stages.every((s: any) => String(s.stage_format || "").startsWith("cs -"));
+    stages.every((s: any) => isClashSquadFormat(s.stage_format));
 
   const {
     totalRegistered,
@@ -2106,15 +2111,22 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       CS-format stages get the head-to-head bracket card: generate
                       (seed order from the registered teams), tree + result entry,
                       standings. BR stages keep the plain groups grid below. */}
-                  {String(stage.stage_format || "").startsWith("cs") && (
+                  {isClashSquadFormat(stage.stage_format) && (
                     <CardContent>
-                      <H2HBracketCard
+                      <H2HStageBrackets
                         stageId={stage.stage_id}
                         stageName={stage.stage_name}
                         stageFormat={stage.stage_format ?? ""}
                         isManager
                         registeredTeams={(eventDetails.tournament_teams ?? [])
-                          .filter((t: any) => !t.is_waitlisted && t.tournament_team_id)
+                          // Confirmed participants only (owner backlog item 11, 2026-08-14). The
+                          // old test was `!t.is_waitlisted` alone, but this payload does not carry
+                          // that field (views.py sends `status`), so every team passed - including
+                          // withdrawn and disqualified ones - into the Generate-bracket seed list.
+                          // `status === "active"` is what the rest of the system reads, and the
+                          // backend now refuses a non-active team outright.
+                          .filter((t: any) => t.tournament_team_id && !t.is_waitlisted
+                            && (t.status ?? "active") === "active")
                           .map((t: any) => ({
                             tournament_team_id: t.tournament_team_id,
                             team_name: t.team_name,
@@ -2122,7 +2134,19 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       />
                     </CardContent>
                   )}
-                  <CardContent className="max-h-96 overflow-auto grid md:grid-cols-2 gap-2">
+                  {/* Groups grid: Battle Royale lobbies only. A Clash Squad stage has no groups -
+                      the bracket above IS its structure - and the only row it can ever have is the
+                      synthetic "Bracket Results" anchor that head_to_head.write_placement_stats
+                      creates to hang placement stats off. That was leaking here as a real-looking
+                      lobby card with "Add Teams to Group" and "View Results" on a finished bracket
+                      (owner 2026-08-12). Hide the whole grid for CS rather than filtering by name,
+                      because the anchor is an implementation detail, not something to display. */}
+                  <CardContent
+                    className={cn(
+                      "max-h-96 overflow-auto grid md:grid-cols-2 gap-2",
+                      isClashSquadFormat(stage.stage_format) && "hidden",
+                    )}
+                  >
                     {stage.groups.map((group) => (
                       <Card
                         key={group.group_id}
@@ -2389,7 +2413,11 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       token={token}
                     />
                   </div>
-                  {stage.groups?.map((group: any) => (
+                  {/* Skip the synthetic "Bracket Results" anchor group: it is where a Clash Squad
+                      bracket hangs its placement stats, not a lobby anyone is in, so offering
+                      "Get user IDs" and "Delete group notifications" on it is meaningless
+                      (owner 2026-08-12, backed by StageGroups.is_synthetic). */}
+                  {stage.groups?.filter((group: any) => !group.is_synthetic).map((group: any) => (
                     <div key={group.group_id} className="ml-4 space-y-2">
                       <div className="flex items-center justify-between gap-4 rounded-lg border border-dashed p-3">
                         <div>
@@ -2698,7 +2726,16 @@ function GroupRostersPanel({
             </CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-2 gap-2">
-            {stage.groups.length === 0 ? (
+            {/* A Clash Squad stage has no group rosters: its teams live in the bracket, and the
+                only group row it can have is the synthetic "Bracket Results" anchor used to hang
+                placement stats off. Showing that here read as an empty lobby nobody had seeded
+                (owner 2026-08-12). Point at the bracket instead. */}
+            {isClashSquadFormat(stage.stage_format) ? (
+              <p className="text-muted-foreground text-sm md:col-span-2">
+                This stage runs as a Clash Squad bracket. Its teams and results are on the bracket
+                in the Stages tab, not in group rosters.
+              </p>
+            ) : stage.groups.length === 0 ? (
               <p className="text-muted-foreground italic text-sm md:col-span-2">
                 No groups yet, seed this stage first.
               </p>

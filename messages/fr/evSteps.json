@@ -19,6 +19,8 @@
     "stageOrder": "Ordre des phases",
     "notConfigured": "Non configuré",
     "groupsFormat": "{count} Groupes • {format}",
+    "bracketFormat": "Bracket • {format}",
+    "baseGroupsFormat": "{count} Groupes de base • {format}",
     "edit": "Modifier",
     "add": "Ajouter"
   },

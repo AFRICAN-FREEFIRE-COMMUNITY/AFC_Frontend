@@ -3,7 +3,12 @@ import { toast } from "sonner";
 // Shared bracket-types + labels (see lib/eventFormats.ts). Re-exported below under the
 // historic formattedWord / STAGE_FORMATS names so existing importers keep working - the
 // point-rush / champion-rush pseudo-formats were dropped (now per-stage toggles).
-import { STAGE_FORMATS as SHARED_STAGE_FORMATS, FORMAT_LABEL } from "@/lib/eventFormats";
+import {
+  STAGE_FORMATS as SHARED_STAGE_FORMATS,
+  FORMAT_LABEL,
+  isClashSquadFormat,
+  isRoundRobinBuilderFormat,
+} from "@/lib/eventFormats";
 
 // ============================================================================
 // CONSTANTS
@@ -45,6 +50,11 @@ export const GroupSchema = z.object({
   teams_qualifying: z.coerce.number().min(1, "Must qualify at least 1 team"),
   match_count: z.coerce.number().min(1, "Must play at least 1 match"),
   match_maps: z.array(z.string()).min(1, "At least one map must be selected"),
+  // A Clash Squad group runs a BRACKET, and this is its mode (owner item 21, 2026-08-13).
+  // Blank/absent for every Battle Royale lobby. Declared for the same reason group_order above
+  // is: zod STRIPS an unknown key, which is how the mode was getting lost between the API and
+  // the stage modal, so a round-robin group opened the editor showing "Knockout".
+  bracket_format: z.string().optional(),
 });
 
 // ── Round-Robin config schema (sub-project B) - mirrors the create-flow schema. ──
@@ -97,9 +107,12 @@ export const StageSchema = z.object({
   stage_discord_role_id: z.string().optional(),
   start_date: z.string().min(1, "Start date required"),
   end_date: z.string().min(1, "End date required"),
-  number_of_groups: z.coerce.number().min(1, "Must have at least 1 group"),
+  // NOT min(1): the group requirement is format-dependent, enforced by the superRefine at
+  // the bottom of this schema (Clash Squad runs as a bracket with no groups; BR Round-Robin
+  // keeps its groups on round_robin.round_robin_groups). Mirrors the create schema.
+  number_of_groups: z.coerce.number().min(0),
   stage_format: z.string().min(1, "Stage format required"),
-  groups: z.array(GroupSchema).min(1, "At least one group required"),
+  groups: z.array(GroupSchema),
   teams_qualifying_from_stage: z.coerce.number().min(0).default(0),
   total_teams_in_stage: z.coerce.number().min(0).default(0),
   // ── Scoring-mode config (sub-project A). Both modes are independent + combinable. ──
@@ -116,7 +129,49 @@ export const StageSchema = z.object({
   // ── Round-Robin config (sub-project B). Present only for "br - round robin"
   //    stages; rehydrated from stage.round_robin and threaded into the FormData. ──
   round_robin: RoundRobinConfigSchema.optional(),
-});
+  // Clash Squad room settings drafted for a stage that does not exist yet (owner 2026-08-13).
+  // Same reasoning as the create schema: validated by the backend against the catalogue, and
+  // declared here only so the resolver does not strip the key. A stage that already exists edits
+  // its room settings through the API instead and never sends this.
+  cs_room_settings: z.any().optional().nullable(),
+  // Clash Squad mode + the optional split into groups (owner item 21, 2026-08-13). Validated by
+  // the backend against the real bracket engines; declared here only so the resolver does not
+  // strip the keys - zod drops what it does not know about.
+  cs_bracket_format: z.string().optional(),
+  cs_groups: z.any().optional(),
+})
+  // ── Format-aware group requirement (owner 2026-08-12) ────────────────────────────
+  // Same fix as the create schema: the blanket groups.min(1) / number_of_groups.min(1)
+  // rejected the two GROUPLESS stage shapes, so saving an edit on a Clash Squad event
+  // failed at the resolver with "At least one group required" before validateEventData
+  // (which already branches correctly, below) ever ran. Keep the two in agreement.
+  .superRefine((stage, ctx) => {
+    if (isClashSquadFormat(stage.stage_format)) return; // bracket: no groups by design
+    if (isRoundRobinBuilderFormat(stage.stage_format)) {
+      if ((stage.round_robin?.round_robin_groups?.length ?? 0) === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["round_robin"],
+          message: "At least one round-robin base group is required",
+        });
+      }
+      return;
+    }
+    if (stage.groups.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["groups"],
+        message: "At least one group required",
+      });
+    }
+    if (stage.number_of_groups < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["number_of_groups"],
+        message: "Must have at least 1 group",
+      });
+    }
+  });
 
 export const EventFormSchema = z
   .object({

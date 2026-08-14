@@ -9,6 +9,8 @@ import {
   use,
 } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
+// Stage-shape helper: a Clash Squad stage carries its mode per group now (owner item 21).
+import { isClashSquadFormat } from "@/lib/eventFormats";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 // next-intl: this admin edit shell owns its page-header, tab labels, save/discard prompts and
@@ -33,6 +35,12 @@ import {
   removePrizePositionFrom,
   formatPrizeKey,
 } from "@/lib/eventFormats";
+// Save-confirm diff (see lib/eventChangeSummary.ts). Shared with the organizer edit page so the
+// two cannot disagree about what counts as a change.
+import {
+  buildEventChangeRows,
+  type EventChangeRow,
+} from "@/lib/eventChangeSummary";
 import axios from "axios";
 import { FullLoader } from "@/components/Loader";
 import { SeedStageModal } from "../../_components/SeedStageModal";
@@ -275,6 +283,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     advancement_rules?: AdvancementRuleInput[];
     // ── Round-Robin config (sub-project B) - only for "br - round robin" stages. ──
     round_robin: RoundRobinConfig;
+    // Clash Squad room settings drafted for a stage that has no stage_id yet
+    // (owner 2026-08-13). A saved stage edits its settings through the API instead.
+    cs_room_settings?: import("@/components/cs-room-settings").CSRoomDraft | null;
+    // Clash Squad mode + the optional split into groups (owner item 21, 2026-08-13).
+    cs_bracket_format?: import("@/lib/eventFormats").CSBracketMode;
+    cs_groups?: import("@/app/(a)/a/events/_components/ClashSquadPanel").CSGroupDraft[];
   }>({
     stage_name: "",
     start_date: "",
@@ -373,6 +387,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   });
 
   const { token, loading: authLoading } = useAuth();
+
+  // Snapshot of the form as it stood when the event finished loading. The save-confirm dialog
+  // diffs against this, so it can list exactly what the admin changed. Filled in the reset effect.
+  const editBaselineRef = useRef<Record<string, unknown> | null>(null);
 
   // ── Form setup ─────────────────────────────────────────────────────────────
   const form = useForm<EventFormType>({
@@ -594,6 +612,11 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           sponsor_field_label:
             eventDetails.sponsor_field_label ?? "Player UUID",
         });
+
+        // Baseline for the save-confirm dialog. Taken from the FORM, not from eventDetails, so
+        // both sides of the later comparison have the same shape and only real edits show up.
+        // See lib/eventChangeSummary.ts for why the dialog stopped being a hand-written list.
+        editBaselineRef.current = form.getValues() as Record<string, unknown>;
 
         setPreviewUrl(eventDetails.event_banner_url || "");
         setPreviewRuleUrl(eventDetails.uploaded_rules_url || "");
@@ -843,6 +866,31 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         prizepool: existingStage.prizepool || "",
         prizepool_cash_value: existingStage.prizepool_cash_value || "",
         prize_distribution: existingStage.prize_distribution || {},
+        // ── Clash Squad: the mode + any groups (owner item 21, 2026-08-13) ──────────────
+        // Read from eventDetails, NOT from the form's copy of the stage: the form's group rows
+        // are rebuilt through the zod schema and the mode did not survive that round-trip, so a
+        // round-robin stage opened the editor showing "Knockout". eventDetails is the API
+        // response verbatim, which is where bracket_format actually lives.
+        ...(() => {
+          const apiStage = (eventDetails?.stages || []).find(
+            (st: any) => (st.stage_id ?? st.id) === existingStage.stage_id,
+          );
+          const brackets = ((apiStage as any)?.groups || []).filter(
+            (g: any) => g?.bracket_format,
+          );
+          return {
+            cs_bracket_format: brackets[0]?.bracket_format ?? "single_elim",
+            // One bracket group IS an unsplit stage, so it stays out of the group editor.
+            cs_groups:
+              brackets.length > 1
+                ? brackets.map((g: any) => ({
+                    group_id: g.group_id,
+                    group_name: g.group_name,
+                    bracket_format: g.bracket_format,
+                  }))
+                : [],
+          };
+        })(),
         // ── Scoring-mode config carried back into the modal for re-editing. ──
         champion_point_enabled: existingStage.champion_point_enabled ?? false,
         champion_point_threshold: existingStage.champion_point_threshold,
@@ -1107,7 +1155,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     // page). Like round-robin it sends groups: [] and the backend (P1#1 guard) skips group
     // materialisation for it. Without this branch CS fell into the BR `else` below and the
     // leftover default tempGroups failed "complete all group details" (P1#2, owner 2026-07-13).
-    const isClashSquadStage = (stageModalData.stage_format || "").startsWith("cs - ");
+    const isClashSquadStage = isClashSquadFormat(stageModalData.stage_format);
     if (isRoundRobinStage) {
       const baseGroups = stageModalData.round_robin?.round_robin_groups ?? [];
       if (baseGroups.length < 2) {
@@ -1194,6 +1242,23 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       //    format so other bracket types don't carry a stray round_robin payload. ──
       ...(stageModalData.stage_format === "br - round robin"
         ? { round_robin: stageModalData.round_robin }
+        : {}),
+      // ── Clash Squad room settings (owner 2026-08-13) - optional ────────────────
+      // Sent only when the organizer actually filled it in, and only for a CS stage. Absent
+      // means no room configuration is created, exactly as before this existed. The backend
+      // materialises it into a CSRoomConfig scoped to the stage.
+      ...(stageModalData.cs_room_settings &&
+      isClashSquadFormat(stageModalData.stage_format)
+        ? { cs_room_settings: stageModalData.cs_room_settings }
+        : {}),
+      // ── Clash Squad mode + optional groups (owner item 21, 2026-08-13) ────────
+      // The mode no longer lives in stage_format: it rides here for a one-bracket stage, or
+      // per group when the organizer split the stage. Sent only for a CS stage.
+      ...(isClashSquadFormat(stageModalData.stage_format)
+        ? {
+            cs_bracket_format: stageModalData.cs_bracket_format,
+            cs_groups: stageModalData.cs_groups ?? [],
+          }
         : {}),
     };
 
@@ -1589,88 +1654,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
   // ── Save / submit ──────────────────────────────────────────────────────────
 
-  const getChangedFields = (
-    data: EventFormType,
-  ): { label: string; from: string; to: string }[] => {
-    if (!eventDetails) return [];
-    const changes: { label: string; from: string; to: string }[] = [];
-
-    const check = (
-      label: string,
-      original: string | number | boolean | null | undefined,
-      updated: string | number | boolean | null | undefined,
-    ) => {
-      const orig = String(original ?? "").trim();
-      const upd = String(updated ?? "").trim();
-      if (orig !== upd) changes.push({ label, from: orig, to: upd });
-    };
-
-    check(t("changes.eventName"), eventDetails.event_name, data.event_name);
-    // The confirm dialog exists to show what is about to change, so every editable field has to
-    // be listed here or it reports "No changes detected" while quietly saving one. Caught in
-    // testing 2026-08-06: the description saved correctly and the dialog denied there was an edit.
-    check(
-      t("changes.eventDescription"),
-      eventDetails.event_description,
-      (data as any).event_description,
-    );
-    check(
-      t("changes.competitionType"),
-      eventDetails.competition_type,
-      data.competition_type,
-    );
-    check(
-      t("changes.participantType"),
-      eventDetails.participant_type,
-      data.participant_type,
-    );
-    check(t("changes.eventType"), eventDetails.event_type, data.event_type);
-    check(
-      t("changes.eventPrivacy"),
-      eventDetails.is_public ? t("changes.public") : t("changes.private"),
-      data.is_public === "True" ? t("changes.public") : t("changes.private"),
-    );
-    check(
-      t("changes.maxParticipants"),
-      eventDetails.max_teams_or_players,
-      data.max_teams_or_players,
-    );
-    check(t("changes.eventMode"), eventDetails.event_mode, data.event_mode);
-    check(t("changes.startDate"), eventDetails.start_date, data.start_date);
-    check(t("changes.endDate"), eventDetails.end_date, data.end_date);
-    check(
-      t("changes.registrationOpen"),
-      eventDetails.registration_open_date,
-      data.registration_open_date,
-    );
-    check(
-      t("changes.registrationClose"),
-      eventDetails.registration_end_date,
-      data.registration_end_date,
-    );
-    check(
-      t("changes.registrationLink"),
-      eventDetails.registration_link ?? "",
-      data.registration_link ?? "",
-    );
-    check(t("changes.prizePool"), eventDetails.prizepool, data.prizepool);
-    check(t("changes.eventStatus"), eventDetails.event_status, data.event_status);
-
-    if (selectedFile)
-      changes.push({
-        label: t("changes.eventBanner"),
-        from: t("changes.previousBanner"),
-        to: t("changes.newFile", { name: selectedFile.name }),
-      });
-    if (selectedRuleFile)
-      changes.push({
-        label: t("changes.rulesDocument"),
-        from: t("changes.previousDocument"),
-        to: t("changes.newFile", { name: selectedRuleFile.name }),
-      });
-
-    return changes;
-  };
+  // What the save-confirm dialog lists. The comparison itself lives in lib/eventChangeSummary.ts
+  // and is shared with the organizer edit page, because the old hand-written list of fields drifted
+  // from the form schema and told admins "No changes detected" while saving a real edit.
+  const getChangedFields = (data: EventFormType): EventChangeRow[] =>
+    buildEventChangeRows({
+      baseline: editBaselineRef.current,
+      current: data as unknown as Record<string, unknown>,
+      t,
+      bannerFileName: selectedFile?.name ?? null,
+      rulesFileName: selectedRuleFile?.name ?? null,
+    });
 
   // Round-robin schedule backfill (owner 2026-07-01) - mirrors the create flow. A round-robin stage
   // keeps its schedule on the game-day MEETINGS (round_robin.game_days), so its base groups A/B/C have

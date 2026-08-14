@@ -48,6 +48,9 @@
 "use client";
 
 import { use, useCallback, useEffect, useMemo, useState } from "react";
+// One rule for "is this Clash Squad?" - the plain "cs" format the picker
+// writes since 2026-08-13 does not match the old "cs - " literals.
+import { isClashSquadFormat } from "@/lib/eventFormats";
 import axios from "axios";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -216,7 +219,7 @@ export default function AdminEventOcrPage({
       const opts: MapOption[] = [];
       const ids = new Set<number>();
       for (const stage of details.stages ?? []) {
-        const isCs = String(stage.stage_format || "").startsWith("cs -");
+        const isCs = isClashSquadFormat(stage.stage_format);
         for (const group of stage.groups ?? []) {
           for (const match of group.matches ?? []) {
             // Track every match_id for session scoping regardless of stage format.

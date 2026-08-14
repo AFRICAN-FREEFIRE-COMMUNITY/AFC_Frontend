@@ -122,7 +122,12 @@ import { z } from "zod";
 // Shared bracket-types + labels live in one module now (see lib/eventFormats.ts) so the
 // create flow, edit flow, and organizer flow can't drift. Re-exported below under the
 // historic STAGE_FORMATS / FORMATTED_WORD names so existing importers keep working.
-import { STAGE_FORMATS as SHARED_STAGE_FORMATS, FORMAT_LABEL } from "@/lib/eventFormats";
+import {
+  STAGE_FORMATS as SHARED_STAGE_FORMATS,
+  FORMAT_LABEL,
+  isClashSquadFormat,
+  isRoundRobinBuilderFormat,
+} from "@/lib/eventFormats";
 import { CHARGEABLE_CURRENCY_CODES } from "@/lib/currencies";
 
 export const GroupSchema = z.object({
@@ -139,6 +144,11 @@ export const GroupSchema = z.object({
   prizepool: z.string().optional(),
   prizepool_cash_value: z.string().optional(),
   prize_distribution: z.record(z.string(), z.string()).optional(),
+  // A Clash Squad group runs a BRACKET, and this is its mode (owner item 21, 2026-08-13).
+  // Blank/absent for every Battle Royale lobby. Declared so the key survives the resolver -
+  // zod strips what it does not know about, which is how the mode was getting lost between
+  // the API and the stage modal.
+  bracket_format: z.string().optional(),
 });
 
 // ── Round-Robin config schema (sub-project B). ───────────────────────────────────
@@ -184,9 +194,13 @@ export const StageSchema = z.object({
   stage_discord_role_id: z.string().optional(),
   start_date: z.string().min(1, "Start date required"),
   end_date: z.string().min(1, "End date required"),
-  number_of_groups: z.coerce.number().min(1, "Must have at least 1 group"),
+  // NOT min(1) here: the group requirement is format-dependent and is enforced by the
+  // superRefine at the bottom of this schema. A Clash Squad stage legitimately carries
+  // 0 groups (it runs as a bracket) and a BR Round-Robin stage keeps its groups on
+  // round_robin.round_robin_groups. See lib/eventFormats.ts for the three shapes.
+  number_of_groups: z.coerce.number().min(0),
   stage_format: z.string().min(1, "Stage format required"),
-  groups: z.array(GroupSchema).min(1, "At least one group required"),
+  groups: z.array(GroupSchema),
   teams_qualifying_from_stage: z.coerce.number().min(0).optional(),
   // ── Branching advancement rules (feature #9). Optional: a stage with rules is in
   //    "branching mode" (rules OVERRIDE the single teams_qualifying_from_stage at advance
@@ -210,7 +224,61 @@ export const StageSchema = z.object({
   // a manual game_days list. Validated loosely (passthrough) - the round-robin panel
   // owns the editing UX; the backend is the source of truth for structural rules.
   round_robin: RoundRobinConfigSchema.optional(),
-});
+  // ── Clash Squad ROOM SETTINGS (owner 2026-08-13) ──────────────────────────────────────────
+  // OPTIONAL, and deliberately unvalidated here: the whole document (rounds, map, the ~110-item
+  // store, per-round economy, per-round areas) is validated by the backend against the catalogue,
+  // which is the single source of truth for what Free Fire offers. Re-declaring that shape in zod
+  // would be a second copy to keep in step with every Garena patch. Typed loosely so the key
+  // SURVIVES the resolver - zod strips unknown keys, so without this line the settings an
+  // organizer filled in would silently never reach create_event.
+  cs_room_settings: z.any().optional().nullable(),
+  // Clash Squad mode + the optional split into groups (owner item 21, 2026-08-13). Validated by
+  // the backend against the real bracket engines; declared here only so the resolver does not
+  // strip the keys - zod drops what it does not know about.
+  cs_bracket_format: z.string().optional(),
+  cs_groups: z.any().optional(),
+})
+  // ── Format-aware group requirement (owner 2026-08-12) ────────────────────────────
+  // The old schema demanded `groups.min(1)` + `number_of_groups.min(1)` for EVERY stage,
+  // so the final "Create Event" submit rejected the two groupless shapes with
+  // "Stage 1 > Groups: At least one group required" even though their own builders were
+  // complete. Clash Squad events could not be created at all; BR Round-Robin only got
+  // through because its base groups live elsewhere. Branch on the shape instead, matching
+  // the Step-4 gate in the create pages and validateEventData in the edit flow.
+  .superRefine((stage, ctx) => {
+    // Clash Squad: a head-to-head bracket, generated later from the event page. No groups,
+    // no lobby config, nothing to require here.
+    if (isClashSquadFormat(stage.stage_format)) return;
+
+    // BR Round-Robin: lobbies are derived from the base groups A/B/C in the round-robin
+    // panel, so require at least one of THOSE rather than a classic group.
+    if (isRoundRobinBuilderFormat(stage.stage_format)) {
+      if ((stage.round_robin?.round_robin_groups?.length ?? 0) === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["round_robin"],
+          message: "At least one round-robin base group is required",
+        });
+      }
+      return;
+    }
+
+    // Classic Battle Royale: the Step-2 per-group lobby wizard must have produced a group.
+    if (stage.groups.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["groups"],
+        message: "At least one group required",
+      });
+    }
+    if (stage.number_of_groups < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["number_of_groups"],
+        message: "Must have at least 1 group",
+      });
+    }
+  });
 
 export const EventFormSchema = z
   .object({

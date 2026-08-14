@@ -60,6 +60,8 @@
 "use client";
 
 import React, { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
+// One rule for "is this Clash Squad?" (lib/eventFormats).
+import { isClashSquadFormat } from "@/lib/eventFormats";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
@@ -142,7 +144,9 @@ import { PageHeader } from "@/components/PageHeader";
 // The shared qualification-chains card (same component the admin event page mounts).
 import { LinkedEventsCard } from "@/components/event-links";
 // Clash-Squad bracket card (sub-project C/E): generate/tree/results per CS stage.
-import { H2HBracketCard } from "@/components/h2h-bracket";
+// One card per bracket: a stage split into groups shows several, an ordinary
+// stage shows exactly one (owner backlog item 21, 2026-08-13).
+import { H2HStageBrackets } from "@/components/h2h-bracket";
 // Broadcast media hygiene (owner 2026-07-02): same card the admin view page mounts.
 import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
 // Ratings + anonymous feedback card (organizer parity E1): same component the admin
@@ -859,9 +863,9 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
               (can_edit_events) and result entry (can_upload_results). */}
           {(canEdit || canUploadResults) &&
             (details.stages ?? [])
-              .filter((s) => String(s.stage_format || "").startsWith("cs"))
+              .filter((s) => isClashSquadFormat(s.stage_format))
               .map((s) => (
-                <H2HBracketCard
+                <H2HStageBrackets
                   key={s.stage_id}
                   stageId={s.stage_id}
                   stageName={s.stage_name}
@@ -873,7 +877,11 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
                   canEdit={canEdit}
                   canUpload={canUploadResults}
                   registeredTeams={(details.tournament_teams ?? [])
-                    .filter((tt: any) => !tt.is_waitlisted && tt.tournament_team_id)
+                    // Confirmed participants only (owner backlog item 11, 2026-08-14) - same rule
+                    // and same reason as the admin event page: `is_waitlisted` is not in this
+                    // payload, `status` is, and a withdrawn team must never reach the seed list.
+                    .filter((tt: any) => tt.tournament_team_id && !tt.is_waitlisted
+                      && (tt.status ?? "active") === "active")
                     .map((tt: any) => ({
                       tournament_team_id: tt.tournament_team_id,
                       team_name: tt.team_name,
