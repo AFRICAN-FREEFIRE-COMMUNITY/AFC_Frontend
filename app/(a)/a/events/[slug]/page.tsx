@@ -926,7 +926,12 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </div>
           )}
         </div>
-        <div className="flex gap-2 w-full lg:w-auto">
+        {/* Action row. On a phone these six controls could not fit one line: they kept their
+            widths and pushed the whole page to a 484px scroll width at 375px, so the header (and
+            everything under it) slid sideways. A 2-column grid wraps them into rows instead, which
+            also gives each one a full-width tap target. From lg up it is the original single row.
+            (owner report 2026-08-14) */}
+        <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:w-auto">
           {/* ZIP of every registered team's logo + every rostered player's esport image
               (owner 2026-06-12). Backend: events/download-esport-media/ {event_id}. */}
           <DownloadEventMediaButton eventId={eventDetails.event_id} size="md" />
@@ -961,12 +966,15 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               Manage Event
             </Link>
           </Button>
-          <DeleteEventModal
-            eventId={eventDetails.event_id}
-            eventName={event_name}
-            redirectTo="/a/events"
-            isIcon
-          />
+          {/* Icon-only, so it keeps its own size instead of stretching across a grid cell. */}
+          <div className="flex items-center justify-center lg:contents">
+            <DeleteEventModal
+              eventId={eventDetails.event_id}
+              eventName={event_name}
+              redirectTo="/a/events"
+              isIcon
+            />
+          </div>
         </div>
       </div>
       {/* bg-muted keeps this box OPAQUE so a broken banner URL can never let the fixed
