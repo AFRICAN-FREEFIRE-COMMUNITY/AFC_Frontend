@@ -125,6 +125,14 @@
     "off": "Off",
     "stageCount": "{count, plural, =1 {# stage} other {# stages}}",
     "ruleCount": "{count, plural, =1 {# rule} other {# rules}}",
-    "itemCount": "{count, plural, =1 {# item} other {# items}}"
+    "itemCount": "{count, plural, =1 {# item} other {# items}}",
+    "requireTeamLogo": "Team logo required",
+    "requireEsportImages": "Esport image required",
+    "requireProfileImage": "Profile image required",
+    "requireUid": "Free Fire UID required",
+    "requireWhatsapp": "WhatsApp number required",
+    "allowTeamResults": "Teams submit their own results",
+    "minLetterAvatars": "Minimum letter avatars",
+    "waitlistMode": "Waitlist order"
   }
 }

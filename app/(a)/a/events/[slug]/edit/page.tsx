@@ -391,6 +391,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   // Snapshot of the form as it stood when the event finished loading. The save-confirm dialog
   // diffs against this, so it can list exactly what the admin changed. Filled in the reset effect.
   const editBaselineRef = useRef<Record<string, unknown> | null>(null);
+  // The same snapshot for the settings that are NOT in the form: the registration-requirement
+  // toggles and the waitlist block, which live in `waitlistForm` state but ride to edit_event on
+  // the same save. Without it the dialog said "No changes detected" after a real requirement
+  // change (owner report 2026-08-14), and Go Back then threw the change away. Filled beside
+  // setWaitlistForm in the fetch below, so it is re-taken after every save's refetch.
+  const settingsBaselineRef = useRef<Record<string, unknown> | null>(null);
 
   // ── Form setup ─────────────────────────────────────────────────────────────
   const form = useForm<EventFormType>({
@@ -744,7 +750,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           requirement_description: ed.sponsor_requirement_description ?? "",
           sponsor_field_label: ed.sponsor_field_label ?? "Player UUID",
         });
-        setWaitlistForm({
+        const seededSettings = {
           is_waitlist_enabled: ed.is_waitlist_enabled ?? false,
           waitlist_capacity:
             ed.waitlist_capacity != null ? Number(ed.waitlist_capacity) : "",
@@ -760,7 +766,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           // Letter-avatars gate (feature #7): rehydrate the count from the event (0 = off). Coerced
           // to a clean 0-or-positive number so the BasicInfoTab control reads a real value.
           min_letter_avatars: Number(ed.min_letter_avatars ?? 0) || 0,
-        });
+        };
+        setWaitlistForm(seededSettings);
+        // What the save-confirm dialog diffs these against. Taken from the SAME object that seeds
+        // the state, and re-taken on the refetch after each save, so the dialog reports a toggle
+        // change once and stops reporting it afterwards.
+        settingsBaselineRef.current = { ...seededSettings };
       }
 
       setLoadingEvent(false);
@@ -1664,6 +1675,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       t,
       bannerFileName: selectedFile?.name ?? null,
       rulesFileName: selectedRuleFile?.name ?? null,
+      // The Basic Info requirement toggles + the waitlist block live here, not in the form, and
+      // this save sends them. Without this pair the dialog denied a real change.
+      extraBaseline: settingsBaselineRef.current,
+      extraCurrent: waitlistForm as unknown as Record<string, unknown>,
     });
 
   // Round-robin schedule backfill (owner 2026-07-01) - mirrors the create flow. A round-robin stage

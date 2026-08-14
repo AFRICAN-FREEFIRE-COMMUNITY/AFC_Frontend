@@ -447,6 +447,9 @@ export default function OrganizerEditEventPage({
   // Snapshot of the form as it stood when the event finished loading. The save-confirm dialog
   // diffs against this, so it lists exactly what the organizer changed. Filled in the reset effect.
   const editBaselineRef = useRef<Record<string, unknown> | null>(null);
+  // The same for the settings kept outside the form (registration requirements + waitlist), which
+  // this page sends to edit_event on the same save. See the admin edit page for the bug.
+  const settingsBaselineRef = useRef<Record<string, unknown> | null>(null);
 
   // ── Form setup (same defaults as the admin edit page) ──────────────────────
   const form = useForm<EventFormType>({
@@ -824,7 +827,7 @@ export default function OrganizerEditEventPage({
           requirement_description: ed.sponsor_requirement_description ?? "",
           sponsor_field_label: ed.sponsor_field_label ?? "Player UUID",
         });
-        setWaitlistForm({
+        const seededSettings = {
           is_waitlist_enabled: ed.is_waitlist_enabled ?? false,
           waitlist_capacity:
             ed.waitlist_capacity != null ? Number(ed.waitlist_capacity) : "",
@@ -839,7 +842,12 @@ export default function OrganizerEditEventPage({
           // Letter-avatars gate (feature #7): rehydrate the count from the event (0 = off). Coerced
           // to a clean 0-or-positive number so the BasicInfoTab control reads a real value.
           min_letter_avatars: Number(ed.min_letter_avatars ?? 0) || 0,
-        });
+        };
+        setWaitlistForm(seededSettings);
+        // Baseline for the save-confirm dialog's non-form half. Same reason as the admin page: a
+        // requirement toggle lives here, not in the form, so without this the dialog claimed
+        // nothing had changed right after the organizer changed something real.
+        settingsBaselineRef.current = { ...seededSettings };
       }
 
       setLoadingEvent(false);
@@ -1676,6 +1684,9 @@ export default function OrganizerEditEventPage({
       t,
       bannerFileName: selectedFile?.name ?? null,
       rulesFileName: selectedRuleFile?.name ?? null,
+      // Requirement toggles + waitlist: state, not form, but saved by the same call.
+      extraBaseline: settingsBaselineRef.current,
+      extraCurrent: waitlistForm as unknown as Record<string, unknown>,
     });
 
   // Round-robin schedule backfill (owner 2026-07-01) - mirrors the create + admin-edit flow. A

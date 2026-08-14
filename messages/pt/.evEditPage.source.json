@@ -112,5 +112,13 @@
   "changes.off": "Off",
   "changes.stageCount": "{count, plural, =1 {# stage} other {# stages}}",
   "changes.ruleCount": "{count, plural, =1 {# rule} other {# rules}}",
-  "changes.itemCount": "{count, plural, =1 {# item} other {# items}}"
+  "changes.itemCount": "{count, plural, =1 {# item} other {# items}}",
+  "changes.requireTeamLogo": "Team logo required",
+  "changes.requireEsportImages": "Esport image required",
+  "changes.requireProfileImage": "Profile image required",
+  "changes.requireUid": "Free Fire UID required",
+  "changes.requireWhatsapp": "WhatsApp number required",
+  "changes.allowTeamResults": "Teams submit their own results",
+  "changes.minLetterAvatars": "Minimum letter avatars",
+  "changes.waitlistMode": "Waitlist order"
 }

@@ -96,6 +96,20 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   is_waitlist_enabled: "waitlistEnabled",
   waitlist_capacity: "waitlistCapacity",
   waitlist_discord_role_id: "waitlistDiscordRole",
+  // ── the settings that live OUTSIDE the react-hook-form state (owner report 2026-08-14) ──
+  // The registration-requirement toggles sit on the Basic Info tab but are held in the edit page's
+  // own `waitlistForm` state, so walking the form alone could never see them: flipping "require a
+  // WhatsApp number" and pressing Save produced "No changes detected. Are you sure you want to
+  // save?", and an operator who answers that honestly (Go Back) loses the change and finds the
+  // toggle off again on the next visit. The page passes this state as extraBaseline/extraCurrent.
+  require_team_logo: "requireTeamLogo",
+  require_esport_images: "requireEsportImages",
+  require_player_profile_image: "requireProfileImage",
+  require_player_uid: "requireUid",
+  require_whatsapp: "requireWhatsapp",
+  allow_team_result_submissions: "allowTeamResults",
+  min_letter_avatars: "minLetterAvatars",
+  waitlist_mode: "waitlistMode",
 };
 
 /** Booleans read better as On / Off than as "true" / "false". */
@@ -106,6 +120,12 @@ const BOOLEAN_FIELDS = new Set([
   "publish_to_tournaments",
   "publish_to_news",
   "save_to_drafts",
+  "require_team_logo",
+  "require_esport_images",
+  "require_player_profile_image",
+  "require_player_uid",
+  "require_whatsapp",
+  "allow_team_result_submissions",
 ]);
 
 /** A long value (the rules body, a country list) would push the dialog off a phone screen. */
@@ -206,6 +226,16 @@ export interface BuildEventChangeRowsArgs {
   bannerFileName?: string | null;
   /** Name of a newly picked rules document, if the admin chose one this session. */
   rulesFileName?: string | null;
+  /**
+   * Settings the edit page keeps OUTSIDE react-hook-form (the registration-requirement toggles and
+   * the waitlist block, held in its `waitlistForm` state), snapshotted right after the fetch that
+   * seeds them. Both edit pages send these to the SAME edit-event call as the form, so a change
+   * here is as much a save as any field above and must be listed. Omit the pair on a page that has
+   * no such state and nothing changes.
+   */
+  extraBaseline?: Record<string, unknown> | null;
+  /** The same settings as they stand now. */
+  extraCurrent?: Record<string, unknown> | null;
 }
 
 /**
@@ -221,6 +251,8 @@ export function buildEventChangeRows({
   t,
   bannerFileName,
   rulesFileName,
+  extraBaseline,
+  extraCurrent,
 }: BuildEventChangeRowsArgs): EventChangeRow[] {
   const rows: EventChangeRow[] = [];
 
@@ -239,6 +271,35 @@ export function buildEventChangeRows({
 
       const before = baseline[field];
       const after = current[field];
+      if (isSame(before, after)) continue;
+
+      rows.push({
+        label: labelFor(field, t),
+        from: formatValue(field, before, t),
+        to: formatValue(field, after, t),
+      });
+    }
+  }
+
+  // The non-form settings, compared exactly the same way. Same rule as above: a key is only left
+  // out when it genuinely did not change, because an empty list is what says "no changes".
+  if (extraBaseline && extraCurrent) {
+    const ordered = Object.keys(FIELD_LABEL_KEYS);
+    const extraKeys = [
+      ...ordered.filter((key) => key in extraBaseline || key in extraCurrent),
+      ...Array.from(
+        new Set([...Object.keys(extraBaseline), ...Object.keys(extraCurrent)]),
+      ).filter((key) => !ordered.includes(key)),
+    ];
+
+    for (const field of extraKeys) {
+      if (IGNORED_FIELDS.has(field)) continue;
+      // A key the form ALSO holds was already compared above; reporting it twice would list the
+      // same edit on two rows.
+      if (baseline && field in baseline) continue;
+
+      const before = extraBaseline[field];
+      const after = extraCurrent[field];
       if (isSame(before, after)) continue;
 
       rows.push({

@@ -125,6 +125,14 @@
     "off": "Désactivé",
     "stageCount": "{count, plural, =1 {# phase} other {# phases}}",
     "ruleCount": "{count, plural, =1 {# règle} other {# règles}}",
-    "itemCount": "{count, plural, =1 {# élément} other {# éléments}}"
+    "itemCount": "{count, plural, =1 {# élément} other {# éléments}}",
+    "requireTeamLogo": "Logo d’équipe obligatoire",
+    "requireEsportImages": "Image esport obligatoire",
+    "requireProfileImage": "Photo de profil obligatoire",
+    "requireUid": "UID Free Fire obligatoire",
+    "requireWhatsapp": "Numéro WhatsApp obligatoire",
+    "allowTeamResults": "Les équipes envoient leurs résultats",
+    "minLetterAvatars": "Avatars-lettres minimum",
+    "waitlistMode": "Ordre de la liste d’attente"
   }
 }
