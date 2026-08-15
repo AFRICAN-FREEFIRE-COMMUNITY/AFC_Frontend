@@ -113,7 +113,10 @@ export default function SponsorsAdminPage() {
         <div className="flex w-full md:w-auto items-center gap-1.5">
           {/* data-tour="orgs-misc-sponsors-create": admin-tour anchor (orgs-misc area).
               On the asChild Link so the attribute lands on the rendered anchor element. */}
-          <Button asChild className="w-full md:w-auto">
+          {/* flex-1 rather than w-full on phones: w-full made the button the FULL page width
+              and then the ⓘ beside it pushed 11px past the edge, so the whole page scrolled
+              sideways. Sharing the row keeps the same look and removes the overflow. */}
+          <Button asChild className="min-w-0 flex-1 md:flex-none md:w-auto">
             <Link href="/a/sponsors/create" data-tour="orgs-misc-sponsors-create">
               <IconPlus />
               Create Sponsor Account
