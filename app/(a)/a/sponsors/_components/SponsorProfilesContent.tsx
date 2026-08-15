@@ -46,10 +46,12 @@ import {
   UserSearchSelect,
   type PickedUser,
 } from "@/components/ui/user-search-select";
-import { IconLoader2, IconPlus, IconTrash, IconUsers, IconX } from "@tabler/icons-react";
+import { IconLoader2, IconMail, IconPlus, IconTrash, IconUsers, IconX } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
+import { LocalTime } from "@/components/LocalTime";
 import { env } from "@/lib/env";
 import { matchesSearch } from "@/lib/search";
-import { sponsorsApi, type SponsorRow } from "@/lib/sponsors";
+import { sponsorsApi, type SponsorInviteRow, type SponsorRow } from "@/lib/sponsors";
 import Cookies from "js-cookie";
 
 // Minimal event shape for the attach picker (from GET /events/get-all-events/).
@@ -60,6 +62,10 @@ interface PickableEvent {
 }
 
 export function SponsorProfilesContent() {
+  // sponsorAdmin namespace: the email-invite block added 2026-08-14. The rest of this component
+  // predates the admin i18n rule and is still English; new copy is translated on creation.
+  const t = useTranslations("sponsorAdmin");
+
   const [sponsors, setSponsors] = useState<SponsorRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -78,6 +84,14 @@ export function SponsorProfilesContent() {
   const [allEvents, setAllEvents] = useState<PickableEvent[]>([]);
   const [eventQuery, setEventQuery] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // ── invite a sponsor's contact by EMAIL (owner 2026-08-14) ──
+  // The member picker above can only choose someone who ALREADY has an AFC account, which brand
+  // contacts do not. These two pieces of state drive the email path: the address being typed, and
+  // the invitations already sent but not yet claimed (so nobody invites the same person twice).
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [invites, setInvites] = useState<SponsorInviteRow[]>([]);
+  const [inviting, setInviting] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -121,13 +135,19 @@ export function SponsorProfilesContent() {
   const openManage = async (s: SponsorRow) => {
     setManage(s);
     setEventQuery("");
+    setInviteEmail("");
+    setInvites([]);
     try {
-      const [detail, events] = await Promise.all([
+      const [detail, events, pending] = await Promise.all([
         sponsorsApi.detail(s.id),
         sponsorsApi.events(s.id),
+        // Pending email invitations. Fetched alongside the members so the dialog shows the whole
+        // picture: who has access, and who has been asked but has not signed up yet.
+        sponsorsApi.listInvites(s.id),
       ]);
       setManage(detail.sponsor);
       setManageEvents(events.results.map((e) => ({ event_id: e.event_id, event_name: e.event_name })));
+      setInvites(pending.results);
     } catch {
       toast.error("Failed to load the sponsor's details.");
     }
@@ -154,13 +174,57 @@ export function SponsorProfilesContent() {
 
   const reloadManage = async () => {
     if (!manage) return;
-    const [detail, events] = await Promise.all([
+    const [detail, events, pending] = await Promise.all([
       sponsorsApi.detail(manage.id),
       sponsorsApi.events(manage.id),
+      sponsorsApi.listInvites(manage.id),
     ]);
     setManage(detail.sponsor);
     setManageEvents(events.results.map((e) => ({ event_id: e.event_id, event_name: e.event_name })));
+    setInvites(pending.results);
     refresh();
+  };
+
+  // Send (or re-send) an email invitation. The backend decides which of the two things happens:
+  // an address that already has an AFC account becomes a member on the spot, anything else gets
+  // a mailed invite that is claimed automatically when that account is verified. Either way the
+  // dialog reloads, so the member list or the pending list picks the change up.
+  const handleInvite = async () => {
+    if (!manage) return;
+    const email = inviteEmail.trim();
+    if (!email) {
+      toast.error(t("inviteEmailRequired"));
+      return;
+    }
+    setInviting(true);
+    try {
+      const res = await sponsorsApi.inviteMember(manage.id, { email });
+      // The backend writes the sentence for each outcome (added / already a member / invited /
+      // re-sent), so it is never out of step with what actually happened.
+      toast.success(res.message);
+      setInviteEmail("");
+      await reloadManage();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("toastInviteFailed"));
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  // Withdraw an invitation that has not been claimed. The row survives as "revoked" for the
+  // audit trail, and a later signup on that address gets nothing.
+  const handleRevokeInvite = async (inviteId: number) => {
+    if (!manage) return;
+    setBusy(true);
+    try {
+      await sponsorsApi.revokeInvite(manage.id, inviteId);
+      toast.success(t("inviteRevoked"));
+      await reloadManage();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("toastRevokeFailed"));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleAddMember = async (_u: string | null, user?: PickedUser) => {
@@ -338,7 +402,9 @@ export function SponsorProfilesContent() {
 
       {/* ── Manage dialog (members + events of one sponsor) ── */}
       <Dialog open={!!manage} onOpenChange={(o) => !o && !busy && setManage(null)}>
-        <DialogContent className="sm:max-w-lg">
+        {/* The dialog grew a third block (invitations), so it scrolls inside itself rather than
+            running off the bottom of a phone screen. */}
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage {manage?.name}</DialogTitle>
             <DialogDescription>
@@ -374,6 +440,77 @@ export function SponsorProfilesContent() {
                       </Button>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+
+            {/* invite by email: the path for a brand contact with no AFC account yet */}
+            <div className="space-y-2">
+              <Label htmlFor="sponsor-invite-email">{t("inviteLabel")}</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="sponsor-invite-email"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleInvite();
+                    }
+                  }}
+                  placeholder={t("invitePlaceholder")}
+                  disabled={inviting || busy}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0"
+                  disabled={inviting || busy}
+                  onClick={handleInvite}
+                >
+                  {inviting ? (
+                    <IconLoader2 className="size-4 animate-spin" />
+                  ) : (
+                    <IconMail className="size-4" />
+                  )}
+                  {t("inviteSend")}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">{t("inviteHelp")}</p>
+
+              {invites.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <Label className="text-xs text-muted-foreground">
+                    {t("pendingInvites", { count: invites.length })}
+                  </Label>
+                  <div className="divide-y rounded-md border">
+                    {invites.map((i) => (
+                      <div key={i.invite_id} className="flex items-center justify-between gap-2 p-2">
+                        <div className="min-w-0">
+                          <span className="block truncate text-sm">{i.email}</span>
+                          {i.expires_at && (
+                            <span className="flex gap-1 text-xs text-muted-foreground">
+                              {t("inviteExpires")}
+                              {/* Viewer's own clock: the API speaks UTC. */}
+                              <LocalTime value={i.expires_at} mode="date" />
+                            </span>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                          disabled={busy || inviting}
+                          onClick={() => handleRevokeInvite(i.invite_id)}
+                          aria-label={t("inviteRevoke", { email: i.email })}
+                        >
+                          <IconX className="size-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

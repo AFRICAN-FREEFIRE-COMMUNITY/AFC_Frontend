@@ -121,6 +121,34 @@ export interface EngagementSubmissionRow {
   updated_at: string | null;
 }
 
+// One row of the CROSS-EVENT approval queue (GET sponsors/queue/engagement-submissions/).
+// The same submission as above plus the context the per-event table did not need, because this
+// queue spans every event and sponsor the caller may decide for (owner 2026-08-14).
+export interface QueuedSubmissionRow extends EngagementSubmissionRow {
+  event_id: number;
+  event_name: string;
+  event_slug: string;
+  sponsor_id: number;
+  sponsor_name: string;
+  requires_approval: boolean;
+}
+
+// The dropdown pools the queue endpoint returns: only the events and sponsors the CALLER can
+// actually decide for, so the filters can never offer a row the list would refuse to show.
+export interface SponsorQueueFilters {
+  events: Array<{ event_id: number; event_name: string }>;
+  sponsors: Array<{ sponsor_id: number; name: string }>;
+}
+
+// A pending email invitation to manage a sponsor (GET sponsors/<id>/members/invites/).
+export interface SponsorInviteRow {
+  invite_id: number;
+  email: string;
+  role: "owner" | "member";
+  expires_at: string | null;
+  created_at: string | null;
+}
+
 // The caller's OWN submissions for one event (GET sponsors/my-submissions/<event_id>/),
 // powering the "waiting for approval" badges + the rejected re-input prompt.
 export interface MySubmissionRow {
@@ -147,6 +175,22 @@ export const sponsorsApi = {
   addMember: (id: number, body: { user_id: number; role?: "owner" | "member" }) =>
     sPost(`${id}/members/add/`, body),
   removeMember: (id: number, memberId: number) => sDelete(`${id}/members/${memberId}/`),
+  // ── inviting a sponsor's own contact by EMAIL (owner 2026-08-14) ──
+  // addMember above needs an AFC username, which a brand contact does not have yet. This takes an
+  // address: one that already has an account becomes a member at once (outcome "member_added"),
+  // anything else gets a mailed invitation (outcome "invited") that is claimed automatically when
+  // that account is verified. Backend: afc_sponsors/invites.py.
+  inviteMember: (id: number, body: { email: string; role?: "owner" | "member" }) =>
+    sPost<{
+      message: string;
+      outcome: "member_added" | "already_member" | "invited" | "already_invited";
+      username?: string;
+      email?: string;
+    }>(`${id}/members/invite/`, body),
+  listInvites: (id: number) =>
+    sGet<{ results: SponsorInviteRow[]; total_count: number }>(`${id}/members/invites/`),
+  revokeInvite: (id: number, inviteId: number) =>
+    sDelete(`${id}/members/invites/${inviteId}/`),
   attachEvent: (id: number, eventId: number) =>
     sPost(`${id}/events/attach/`, { event_id: eventId }),
   detachEvent: (id: number, eventId: number) => sDelete(`${id}/events/${eventId}/`),
@@ -231,4 +275,43 @@ export const sponsorsApi = {
   // The caller's own submissions for one event (status badges + re-input prompts).
   mySubmissions: (eventId: number) =>
     sGet<{ results: MySubmissionRow[]; total_count: number }>(`my-submissions/${eventId}/`),
+
+  // ── the CROSS-EVENT approval queue (owner 2026-08-14) ──
+  // Every submission the caller may decide, across all events and sponsors, pending first.
+  // Backend: afc_sponsors/engagements.py admin_submission_queue, which scopes the list with the
+  // very same permission it applies to deciding, so a visible row is always an actionable one.
+  // Consumed by app/(a)/a/sponsor-dashboard (the Approvals tab). Decisions go through
+  // decideSubmission above, unchanged.
+  queue: (params?: {
+    status?: string;
+    event?: number;
+    sponsor?: number;
+    engagement?: number;
+    limit?: number;
+    offset?: number;
+  }) =>
+    sGet<{
+      results: QueuedSubmissionRow[];
+      total_count: number;
+      has_more: boolean;
+      next_offset: number | null;
+      filters: SponsorQueueFilters;
+    }>("queue/engagement-submissions/", params),
+  // Same rows, same filters, as a CSV download (blob idiom shared with the two exports above).
+  queueCsv: async (
+    filename: string,
+    params?: { status?: string; event?: number; sponsor?: number },
+  ) => {
+    const res = await axios.get(`${BASE}/queue/engagement-submissions/`, {
+      headers: headers(),
+      params: { ...(params ?? {}), csv: 1 },
+      responseType: "blob",
+    });
+    const url = URL.createObjectURL(res.data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };

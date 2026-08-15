@@ -45,7 +45,14 @@ import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
+import { NewBadge } from "@/components/NewBadge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// The cross-event sponsor approval queue (owner 2026-08-14). Lives in its own component because
+// it talks to a different endpoint family (afc_sponsors engagement submissions) than the legacy
+// registrant table above it. See _components/ApprovalQueuePanel.tsx.
+import { ApprovalQueuePanel } from "./_components/ApprovalQueuePanel";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -96,6 +103,9 @@ function StatusBadge({ status }: { status: Status }) {
 
 export default function SponsorDashboardPage() {
   const { token, loading: authLoading, user } = useAuth();
+  // sponsorAdmin namespace: the tab strip + everything inside the Approvals tab. The legacy
+  // registrant table below it predates the admin i18n rule and is still English.
+  const t = useTranslations("sponsorAdmin");
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -280,7 +290,9 @@ export default function SponsorDashboardPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
-  if (loading || authLoading) {
+  // Only the SESSION gates the whole page now. The registrant fetch gets its own spinner inside
+  // its tab, so a slow legacy call no longer holds the Approvals tab hostage.
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
         <IconLoader2 className="size-5 animate-spin" />
@@ -303,6 +315,26 @@ export default function SponsorDashboardPage() {
         }
       />
 
+      {/* Two jobs, two tabs: the legacy per-registrant confirm/reject list, and the newer
+          cross-event queue of sponsor ANSWERS (the engagement submissions) that need deciding. */}
+      <Tabs defaultValue="registrants" className="flex flex-col gap-3">
+        <TabsList>
+          <TabsTrigger value="registrants">{t("tabRegistrants")}</TabsTrigger>
+          <TabsTrigger value="approvals" className="gap-1.5">
+            {t("tabApprovals")}
+            {/* Date-driven, disappears on its own five days after the surface went live. */}
+            <NewBadge since="2026-08-15" />
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="registrants" className="flex flex-col gap-3">
+          {loading ? (
+            <div className="flex items-center justify-center py-24 gap-2 text-muted-foreground text-sm">
+              <IconLoader2 className="size-5 animate-spin" />
+              Loading your events...
+            </div>
+          ) : (
+            <>
       {/* Search + Filter + Export */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -502,7 +534,18 @@ export default function SponsorDashboardPage() {
         </Card>
       )}
 
-      {/* Reject dialog */}
+            </>
+          )}
+        </TabsContent>
+
+        {/* The cross-event approval queue. Self-contained: it fetches, filters, decides and
+            exports on its own, and shares the decide endpoint with the sponsor portal. */}
+        <TabsContent value="approvals">
+          <ApprovalQueuePanel />
+        </TabsContent>
+      </Tabs>
+
+      {/* Reject dialog (registrants tab) */}
       <Dialog
         open={rejectDialog.open}
         onOpenChange={(open) =>
