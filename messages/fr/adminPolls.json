@@ -1,0 +1,232 @@
+{
+  "title": "Sondages",
+  "subtitle": "Les sondages de la communauté et les bulletins de récompense, avec les saisons qui les regroupent.",
+  "loadFailed": "Impossible de charger cela.",
+  "notFound": "Ce sondage est introuvable.",
+  "backToList": "Tous les sondages",
+  "viewPublic": "Voir la page publique",
+  "tabs": {
+    "polls": "Sondages",
+    "editions": "Saisons de récompenses",
+    "basics": "Bases",
+    "questions": "Questions",
+    "audience": "Qui peut voter",
+    "branching": "Branchements",
+    "results": "Résultats"
+  },
+  "empty": {
+    "polls": "Aucun sondage pour l'instant. Créez le premier.",
+    "editions": "Aucune saison de récompenses pour l'instant."
+  },
+  "kind": {
+    "award": "Bulletin de récompense",
+    "standard": "Sondage"
+  },
+  "subject": {
+    "individual": "Une personne, une voix",
+    "team": "L'équipe vote d'une seule voix"
+  },
+  "visibility": {
+    "draft": "Brouillon",
+    "public": "Public",
+    "link_only": "Lien uniquement",
+    "preview_only": "Aperçu uniquement"
+  },
+  "resultsVisibility": {
+    "admins_only": "Admins uniquement",
+    "after_close": "Tout le monde, après la clôture",
+    "after_announcement": "Tout le monde, une fois les gagnants annoncés",
+    "always": "Tout le monde, toujours"
+  },
+  "phase": {
+    "auto": "Suit les dates",
+    "announced": "Nommés annoncés",
+    "voting": "Vote ouvert",
+    "counting": "Dépouillement",
+    "winners": "Gagnants annoncés",
+    "archived": "Archivée"
+  },
+  "quorum": {
+    "any": "N'importe quel membre",
+    "half": "Plus de la moitié des joueurs",
+    "all": "Tous les joueurs"
+  },
+  "tiePolicy": {
+    "captain": "La réponse du capitaine l'emporte",
+    "none": "Pas de vote d'équipe, noté comme sans consensus",
+    "earliest": "La réponse arrivée la première"
+  },
+  "answerType": {
+    "single_choice": "Choisir une réponse",
+    "multiple_choice": "Choisir plusieurs réponses",
+    "rating": "Note",
+    "ranking": "Classer",
+    "short_text": "Réponse courte",
+    "long_text": "Réponse longue"
+  },
+  "seasonTier": {
+    "0": "Élite",
+    "1": "Compétitif",
+    "2": "En progression",
+    "3": "Débutant"
+  },
+  "teamRole": {
+    "team_captain": "Capitaine",
+    "vice_captain": "Vice-capitaine",
+    "member": "Joueur",
+    "coach": "Coach",
+    "manager": "Manager",
+    "analyst": "Analyste"
+  },
+  "profileField": {
+    "uid": "UID en jeu",
+    "country": "Pays"
+  },
+  "table": {
+    "poll": "Sondage",
+    "kind": "Type",
+    "state": "État",
+    "responses": "Réponses",
+    "closes": "Clôture",
+    "edition": "Saison",
+    "phase": "Où elle en est",
+    "ballots": "Bulletins",
+    "announced": "Gagnants annoncés"
+  },
+  "fields": {
+    "title": "Titre",
+    "description": "Description",
+    "kind": "Type",
+    "subject": "Qui répond",
+    "subjectHint": "Un sondage d'équipe est rempli par les membres de l'effectif et se résume en une seule réponse d'équipe.",
+    "edition": "Saison de récompenses",
+    "noEdition": "Hors saison",
+    "year": "Année",
+    "order": "Ordre",
+    "tagline": "Accroche",
+    "visibility": "Qui peut le voir",
+    "resultsVisibility": "Qui peut voir les résultats",
+    "afterAnnouncementHint": "La clôture du vote et l'annonce des gagnants sont deux moments différents. La date d'annonce se règle sur la saison.",
+    "opensAt": "Ouverture",
+    "opensHint": "Un sondage sans heure d'ouverture n'accepte jamais de réponses, ce qui permet de publier des résultats lisibles mais fermés.",
+    "closesAt": "Clôture",
+    "quorum": "Combien doivent répondre",
+    "quorumHint": "Seuls les joueurs comptent. Coachs, managers et analystes sont dans l'effectif mais pas dans le quorum.",
+    "tiePolicy": "En cas d'égalité",
+    "nominations_close": "Fin des nominations",
+    "voting_opens_at": "Ouverture du vote",
+    "voting_closes_at": "Clôture du vote",
+    "winners_announced_at": "Annonce des gagnants",
+    "datesHint": "Toutes les heures s'affichent dans le fuseau horaire de chaque visiteur. Laissez une date vide si elle n'est pas encore fixée."
+  },
+  "switches": {
+    "allowEdit": "Autoriser le changement de réponse",
+    "allowEditHint": "Activé, on peut revenir changer d'avis jusqu'à la clôture. Désactivé, la première réponse est définitive.",
+    "anonymous": "Réponses anonymes",
+    "anonymousHint": "Personne, admins AFC compris, ne peut voir comment quelqu'un a répondu. Impossible à désactiver une fois qu'une réponse existe.",
+    "anonymousLocked": "Des personnes ont déjà répondu, ce réglage ne peut plus changer.",
+    "anonymousEditableCaveat": "Anonyme et modifiable en même temps signifie que le site doit pouvoir retrouver la réponse. Aucun admin ne la voit, mais ce n'est pas indéchiffrable en principe. Désactivez la modification pour cela.",
+    "voterList": "Publier qui a voté pour quoi",
+    "voterListHint": "Les pseudos apparaissent sous chaque option. On répond différemment quand son nom est attaché, et cela ne peut pas être annulé après coup.",
+    "voterListBlocked": "Indisponible sur un sondage anonyme.",
+    "captainOverride": "Laisser le capitaine fixer la réponse de l'équipe",
+    "captainOverrideHint": "Désactivé par défaut. Quand c'est utilisé, l'effectif le voit toujours, avec ses propres comptes à côté.",
+    "showRollup": "Montrer à l'équipe son décompte en cours",
+    "showRollupHint": "Désactivez-le si voir le décompte changerait la façon de répondre du reste de l'effectif."
+  },
+  "create": {
+    "button": "Créer un sondage",
+    "heading": "Créer un sondage",
+    "created": "Sondage créé",
+    "failed": "Impossible d'enregistrer.",
+    "saving": "Enregistrement",
+    "titleRequired": "Donnez-lui d'abord un titre.",
+    "editionButton": "Créer une saison",
+    "editionHeading": "Créer une saison de récompenses",
+    "editionCreated": "Saison créée"
+  },
+  "edit": {
+    "button": "Enregistrer",
+    "saved": "Enregistré",
+    "failed": "Impossible d'enregistrer."
+  },
+  "questions": {
+    "save": "Enregistrer les questions",
+    "saved": "Questions enregistrées",
+    "addQuestion": "Ajouter une question",
+    "addOption": "Ajouter une option",
+    "required": "Obligatoire",
+    "maxChoices": "Choix max",
+    "scalePoints": "Points d'échelle",
+    "promptPlaceholder": "Que demandez-vous ?",
+    "helpPlaceholder": "Une petite ligne sous la question (facultatif)",
+    "optionPlaceholder": "Une option à choisir",
+    "locked": "Questions verrouillées",
+    "lockedHint": "Des personnes ont déjà répondu, les questions ne peuvent plus changer. Les modifier changerait en silence ce qu'on leur a demandé."
+  },
+  "audience": {
+    "everyone": "Tout le monde avec un compte AFC",
+    "everyoneHint": "Laissez activé pour un sondage communautaire. Désactivez pour restreindre.",
+    "countries": "Pays",
+    "teamTiers": "Palier d'équipe",
+    "teamTiersHint": "Le palier fixé à la main par un admin. Le palier 1 est le plus fort.",
+    "seasonTiers": "Palier de saison",
+    "seasonTiersHint": "Le palier calculé par le classement ce trimestre. Élite est le plus fort. Figé à l'ouverture, pour que personne ne voie un bulletin puis se fasse refuser.",
+    "scopeTeam": "Le palier de saison de leur équipe",
+    "scopePlayer": "Leur propre palier de saison",
+    "teamRoles": "Rôle dans leur équipe",
+    "teamRolesHint": "Capitaine compte quelle que soit la façon dont l'équipe l'enregistre.",
+    "intersectWarning": "Choisir les deux systèmes de paliers exige que les DEUX soient vrais, ce qui peut faire un groupe bien plus petit que chacun séparément.",
+    "beforeTheyVote": "Avant de pouvoir voter",
+    "beforeTheyVoteHint": "Cela ne restreint pas l'audience. Quelqu'un à qui il manque un élément reste invité, il doit juste le remplir d'abord, et il reçoit un lien pour le faire.",
+    "preview": "Les compter",
+    "count": "{count} personnes peuvent voter",
+    "noCount": "Appuyez sur compter pour voir combien de personnes cela représente."
+  },
+  "branching": {
+    "intro": "Les branchements sont une liste de phrases. Chacune observe une réponse et affiche ou masque une question.",
+    "watchable": "Seules les questions à choix unique, à choix multiple et de notation peuvent être observées. Le texte libre n'est pas lisible de façon fiable par une règle.",
+    "addRule": "Ajouter une règle",
+    "save": "Enregistrer les règles",
+    "remove": "Retirer",
+    "when": "Quand cette question",
+    "operator": "Est",
+    "answer": "Ces réponses",
+    "rating": "Ce chiffre",
+    "action": "Alors",
+    "target": "Cette question",
+    "show": "Afficher",
+    "hide": "Masquer",
+    "pickQuestion": "Choisir une question",
+    "op": {
+      "is": "est",
+      "is_not": "n'est pas",
+      "is_any_of": "est l'une de",
+      "gte": "vaut au moins",
+      "lte": "vaut au plus"
+    }
+  },
+  "results": {
+    "responses": "Réponses",
+    "eligible": "Personnes pouvant voter",
+    "turnout": "Participation",
+    "announce": "Annoncer ce sondage",
+    "announced": "Annoncé à {count} personnes",
+    "publishWinner": "Publier comme gagnant",
+    "isWinner": "Gagnant publié",
+    "published": "Le gagnant a été publié",
+    "publishedVotes": "Publié avec {count} voix",
+    "teamResults": "Comment chaque équipe a voté",
+    "anonymousNote": "Ce sondage est anonyme, les détails par question ne sont donc pas disponibles. Le lien entre une personne et sa réponse n'est pas conservé."
+  },
+  "team": {
+    "heading": "Vote d'équipe",
+    "resolution": {
+      "plurality": "le plus de réponses",
+      "tie_broken_by_captain": "le capitaine a tranché",
+      "no_consensus": "sans consensus",
+      "captain_override": "fixé par le capitaine",
+      "below_quorum": "quorum non atteint"
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "title": "Enquetes",
+  "subtitle": "Prêmios e enquetes da comunidade. Entre na sua conta para votar naquelas em que você pode participar.",
+  "tabs": {
+    "all": "Todas",
+    "awards": "Prêmios",
+    "community": "Enquetes da comunidade"
+  },
+  "empty": {
+    "all": "Ainda não há enquetes para mostrar.",
+    "awards": "Nenhum resultado de premiação foi publicado ainda.",
+    "community": "Nenhuma enquete da comunidade está acontecendo agora."
+  },
+  "card": {
+    "questions": "{count, plural, =1 {# pergunta} other {# perguntas}}",
+    "responses": "{count, plural, =1 {# resposta} other {# respostas}}",
+    "open": "Aberta para votação",
+    "closed": "Encerrada",
+    "notOpenYet": "Ainda não aberta",
+    "results": "Resultados",
+    "view": "Ver",
+    "vote": "Votar"
+  },
+  "detail": {
+    "back": "Todas as enquetes",
+    "closesOn": "Encerra",
+    "opensOn": "Abre",
+    "closedOn": "Encerrada em",
+    "loading": "Carregando enquete",
+    "notFound": "Não foi possível encontrar essa enquete.",
+    "anonymousNote": "Suas respostas não ficam ligadas à sua conta. Ninguém, nem os administradores da AFC, consegue ver o que você respondeu.",
+    "anonymousEditableNote": "Como esta enquete também deixa você mudar a resposta, o site precisa conseguir encontrá-la de novo. Nenhum administrador consegue vê-la.",
+    "anonymousFinalNote": "Depois de enviar, nem nós conseguimos saber que foi você.",
+    "editableNote": "Você pode mudar sua resposta até a enquete encerrar.",
+    "finalNote": "Sua primeira resposta é definitiva. Você não vai poder mudá-la.",
+    "previewOnly": "Esta enquete é uma prévia. Você pode ler, mas ela não está recebendo respostas."
+  },
+  "requirements": {
+    "headingAll": "Quem pode votar nesta enquete",
+    "subtitleAll": "Você precisa atender a todos estes requisitos.",
+    "subtitleAny": "Você precisa atender a pelo menos um destes requisitos.",
+    "yours": "O seu",
+    "eligible": "Você pode votar nesta enquete",
+    "notEligible": "Você não pode votar nesta enquete",
+    "notEligibleBody": "Veja o que esta enquete pede e como está a sua situação em cada ponto.",
+    "undecided": "Entre na sua conta para verificar",
+    "notSet": "Não preenchido"
+  },
+  "ballot": {
+    "pick": "Escolha uma opção",
+    "pickUpTo": "Escolha até {count} opções",
+    "required": "Obrigatória",
+    "submit": "Enviar minhas respostas",
+    "submitting": "Salvando",
+    "update": "Atualizar minhas respostas",
+    "saved": "Suas respostas foram salvas",
+    "failed": "Não foi possível salvar suas respostas",
+    "answered": "Você votou nesta enquete",
+    "answeredOn": "Respondida em",
+    "changeAnswer": "Mudar minha resposta",
+    "signInToVote": "Entre na sua conta para votar",
+    "selectSomething": "Escolha uma resposta primeiro",
+    "rankHint": "Coloque em ordem. Sua primeira escolha vem primeiro.",
+    "ratingHint": "Escolha um número.",
+    "textHint": "Escreva sua resposta.",
+    "moveUp": "Mover para cima",
+    "moveDown": "Mover para baixo",
+    "remove": "Remover",
+    "addToRanking": "Adicionar",
+    "notifyMe": "Me avise se isso mudar",
+    "watchingOn": "Vamos avisar você se isso mudar",
+    "watchOn": "Vamos avisar você se isso mudar",
+    "watchOff": "Você não será avisado sobre esta enquete"
+  },
+  "results": {
+    "heading": "Resultados",
+    "winner": "Vencedor",
+    "votes": "{count, plural, =1 {# voto} other {# votos}}",
+    "hidden": "Os resultados desta enquete não são publicados.",
+    "hiddenUntilClose": "Os resultados são publicados quando a enquete encerra.",
+    "tooFew": "Menos de 5 respostas até agora, então os números ficam ocultos.",
+    "totalResponses": "{count, plural, =1 {# resposta} other {# respostas}}",
+    "publishedNote": "Resultado publicado",
+    "viewProfile": "Ver perfil"
+  },
+  "team": {
+    "heading": "Como a {team} está votando",
+    "captain": "Capitão",
+    "rollupHidden": "A contagem da sua equipe fica oculta até a enquete encerrar.",
+    "answered": "{answered} de {players} jogadores responderam.",
+    "staffNote": "Técnicos, gerentes e analistas não contam para o quórum, então {staff} do seu elenco não entram na conta.",
+    "teamAnswer": "A resposta da sua equipe",
+    "overrideHint": "Como capitão, você pode definir a resposta da equipe. Seu elenco verá que você fez isso.",
+    "overrideSaved": "A resposta da equipe foi definida",
+    "overrideFailed": "Não foi possível definir a resposta da equipe",
+    "resolution": {
+      "plurality": "mais respostas",
+      "tie_broken_by_captain": "empate, então o capitão decidiu",
+      "no_consensus": "Empate, e o capitão ainda não respondeu, então ainda não há voto da equipe",
+      "captain_override": "definida pelo capitão",
+      "below_quorum": "Ainda não responderam membros suficientes da equipe"
+    }
+  }
+}

@@ -1,0 +1,232 @@
+{
+  "title": "Enquetes",
+  "subtitle": "Enquetes da comunidade e cédulas de premiação, junto com as temporadas que as agrupam.",
+  "loadFailed": "Não foi possível carregar isso.",
+  "notFound": "Esta enquete não foi encontrada.",
+  "backToList": "Todas as enquetes",
+  "viewPublic": "Ver a página pública",
+  "tabs": {
+    "polls": "Enquetes",
+    "editions": "Temporadas de prêmios",
+    "basics": "Básico",
+    "questions": "Perguntas",
+    "audience": "Quem pode votar",
+    "branching": "Ramificações",
+    "results": "Resultados"
+  },
+  "empty": {
+    "polls": "Ainda não há enquetes. Crie a primeira.",
+    "editions": "Ainda não há temporadas de prêmios."
+  },
+  "kind": {
+    "award": "Cédula de premiação",
+    "standard": "Enquete"
+  },
+  "subject": {
+    "individual": "Uma pessoa, um voto",
+    "team": "A equipe vota como uma só"
+  },
+  "visibility": {
+    "draft": "Rascunho",
+    "public": "Pública",
+    "link_only": "Somente por link",
+    "preview_only": "Somente prévia"
+  },
+  "resultsVisibility": {
+    "admins_only": "Somente admins",
+    "after_close": "Todos, depois de encerrar",
+    "after_announcement": "Todos, quando os vencedores forem anunciados",
+    "always": "Todos, sempre"
+  },
+  "phase": {
+    "auto": "Segue as datas",
+    "announced": "Indicados anunciados",
+    "voting": "Votação aberta",
+    "counting": "Apuração",
+    "winners": "Vencedores anunciados",
+    "archived": "Arquivada"
+  },
+  "quorum": {
+    "any": "Qualquer um dos membros",
+    "half": "Mais da metade dos jogadores",
+    "all": "Todos os jogadores"
+  },
+  "tiePolicy": {
+    "captain": "A resposta do capitão vence",
+    "none": "Sem voto da equipe, registrado como sem consenso",
+    "earliest": "A resposta que chegou primeiro"
+  },
+  "answerType": {
+    "single_choice": "Escolher uma",
+    "multiple_choice": "Escolher várias",
+    "rating": "Nota",
+    "ranking": "Colocar em ordem",
+    "short_text": "Resposta curta",
+    "long_text": "Resposta longa"
+  },
+  "seasonTier": {
+    "0": "Elite",
+    "1": "Competitivo",
+    "2": "Em ascensão",
+    "3": "Iniciante"
+  },
+  "teamRole": {
+    "team_captain": "Capitão",
+    "vice_captain": "Vice-capitão",
+    "member": "Jogador",
+    "coach": "Técnico",
+    "manager": "Gerente",
+    "analyst": "Analista"
+  },
+  "profileField": {
+    "uid": "UID no jogo",
+    "country": "País"
+  },
+  "table": {
+    "poll": "Enquete",
+    "kind": "Tipo",
+    "state": "Situação",
+    "responses": "Respostas",
+    "closes": "Encerra",
+    "edition": "Temporada",
+    "phase": "Em que ponto está",
+    "ballots": "Cédulas",
+    "announced": "Vencedores anunciados"
+  },
+  "fields": {
+    "title": "Título",
+    "description": "Descrição",
+    "kind": "Tipo",
+    "subject": "Quem responde",
+    "subjectHint": "Uma enquete de equipe é respondida pelos membros do elenco e vira uma única resposta da equipe.",
+    "edition": "Temporada de prêmios",
+    "noEdition": "Fora de temporada",
+    "year": "Ano",
+    "order": "Ordem",
+    "tagline": "Frase de efeito",
+    "visibility": "Quem pode ver",
+    "resultsVisibility": "Quem pode ver os resultados",
+    "afterAnnouncementHint": "O encerramento da votação e o anúncio dos vencedores são momentos diferentes. A data do anúncio fica na temporada.",
+    "opensAt": "Abre",
+    "opensHint": "Uma enquete sem horário de abertura nunca aceita respostas, e é isso que mantém resultados publicados legíveis mas fechados.",
+    "closesAt": "Encerra",
+    "quorum": "Quantos precisam responder",
+    "quorumHint": "Só jogadores contam. Técnicos, gerentes e analistas estão no elenco mas não no quórum.",
+    "tiePolicy": "Se a equipe empatar",
+    "nominations_close": "Fim das indicações",
+    "voting_opens_at": "Votação abre",
+    "voting_closes_at": "Votação encerra",
+    "winners_announced_at": "Vencedores anunciados",
+    "datesHint": "Todos os horários aparecem no fuso de cada visitante. Deixe a data em branco se ainda não estiver definida."
+  },
+  "switches": {
+    "allowEdit": "Deixar mudar a resposta",
+    "allowEditHint": "Ligado, a pessoa pode voltar e mudar de ideia até encerrar. Desligado, a primeira resposta é final.",
+    "anonymous": "Respostas anônimas",
+    "anonymousHint": "Ninguém, nem os admins da AFC, consegue ver como alguém respondeu. Não dá para desligar depois que alguém responder.",
+    "anonymousLocked": "Alguém já respondeu, então isso não pode mais mudar.",
+    "anonymousEditableCaveat": "Anônima e editável ao mesmo tempo significa que o site ainda precisa achar a resposta de novo. Nenhum admin a vê, mas não é indecifrável em princípio. Desligue a edição para isso.",
+    "voterList": "Publicar quem votou em quê",
+    "voterListHint": "Os nomes aparecem embaixo de cada opção. As pessoas respondem diferente quando o nome fica junto, e isso não dá para desfazer depois.",
+    "voterListBlocked": "Indisponível em uma enquete anônima.",
+    "captainOverride": "Deixar o capitão definir a resposta da equipe",
+    "captainOverrideHint": "Desligado por padrão. Quando usado, o elenco sempre vê, com a contagem deles do lado.",
+    "showRollup": "Mostrar à equipe a contagem em andamento",
+    "showRollupHint": "Desligue se ver a contagem mudaria como o resto do elenco responde."
+  },
+  "create": {
+    "button": "Criar enquete",
+    "heading": "Criar enquete",
+    "created": "Enquete criada",
+    "failed": "Não foi possível salvar.",
+    "saving": "Salvando",
+    "titleRequired": "Dê um título primeiro.",
+    "editionButton": "Criar temporada",
+    "editionHeading": "Criar temporada de prêmios",
+    "editionCreated": "Temporada criada"
+  },
+  "edit": {
+    "button": "Salvar",
+    "saved": "Salvo",
+    "failed": "Não foi possível salvar."
+  },
+  "questions": {
+    "save": "Salvar as perguntas",
+    "saved": "Perguntas salvas",
+    "addQuestion": "Adicionar pergunta",
+    "addOption": "Adicionar opção",
+    "required": "Obrigatória",
+    "maxChoices": "Máx. escolhas",
+    "scalePoints": "Pontos da escala",
+    "promptPlaceholder": "O que você está perguntando?",
+    "helpPlaceholder": "Uma linha menor embaixo da pergunta (opcional)",
+    "optionPlaceholder": "Uma opção para escolher",
+    "locked": "Perguntas travadas",
+    "lockedHint": "Já responderam esta enquete, então as perguntas não podem mudar. Editá-las mudaria em silêncio o que foi perguntado a essas pessoas."
+  },
+  "audience": {
+    "everyone": "Todo mundo com conta na AFC",
+    "everyoneHint": "Deixe ligado para uma enquete da comunidade. Desligue para restringir.",
+    "countries": "País",
+    "teamTiers": "Nível da equipe",
+    "teamTiersHint": "O nível definido à mão por um admin. Nível 1 é o mais forte.",
+    "seasonTiers": "Nível da temporada",
+    "seasonTiersHint": "O nível que o ranking calculou neste trimestre. Elite é o mais forte. Congelado quando a enquete abre, para ninguém ver a cédula e ser recusado depois.",
+    "scopeTeam": "O nível de temporada da equipe deles",
+    "scopePlayer": "O nível de temporada deles",
+    "teamRoles": "Função na equipe",
+    "teamRolesHint": "Capitão conta de qualquer jeito que a equipe registre.",
+    "intersectWarning": "Escolher os dois sistemas de nível exige que os DOIS sejam verdadeiros, o que pode ser um grupo bem menor que cada um sozinho.",
+    "beforeTheyVote": "Antes de poder votar",
+    "beforeTheyVoteHint": "Isso não restringe o público. Quem estiver faltando um item continua convidado, só precisa preencher antes, e recebe um link que resolve.",
+    "preview": "Contar",
+    "count": "{count} pessoas podem votar",
+    "noCount": "Toque em contar para ver quantas pessoas são."
+  },
+  "branching": {
+    "intro": "Ramificação é uma lista de frases. Cada uma observa uma resposta e mostra ou esconde uma pergunta.",
+    "watchable": "Só perguntas de escolher uma, escolher várias e nota podem ser observadas. Texto livre não é algo que uma regra consiga ler com segurança.",
+    "addRule": "Adicionar regra",
+    "save": "Salvar as regras",
+    "remove": "Remover",
+    "when": "Quando esta pergunta",
+    "operator": "For",
+    "answer": "Estas respostas",
+    "rating": "Este número",
+    "action": "Então",
+    "target": "Esta pergunta",
+    "show": "Mostrar",
+    "hide": "Esconder",
+    "pickQuestion": "Escolher uma pergunta",
+    "op": {
+      "is": "for",
+      "is_not": "não for",
+      "is_any_of": "for qualquer uma de",
+      "gte": "for pelo menos",
+      "lte": "for no máximo"
+    }
+  },
+  "results": {
+    "responses": "Respostas",
+    "eligible": "Pessoas que podiam votar",
+    "turnout": "Participação",
+    "announce": "Anunciar esta enquete",
+    "announced": "Anunciada para {count} pessoas",
+    "publishWinner": "Publicar como vencedor",
+    "isWinner": "Vencedor publicado",
+    "published": "O vencedor foi publicado",
+    "publishedVotes": "Publicado com {count} votos",
+    "teamResults": "Como cada equipe votou",
+    "anonymousNote": "Esta enquete é anônima, então os detalhes por pergunta não ficam disponíveis. O vínculo entre a pessoa e a resposta não é guardado."
+  },
+  "team": {
+    "heading": "Votação por equipe",
+    "resolution": {
+      "plurality": "mais respostas",
+      "tie_broken_by_captain": "o capitão decidiu",
+      "no_consensus": "sem consenso",
+      "captain_override": "definido pelo capitão",
+      "below_quorum": "abaixo do quórum"
+    }
+  }
+}

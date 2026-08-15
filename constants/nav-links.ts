@@ -133,6 +133,17 @@ export const homeNavLinksMobile: NavLinks[] = [
     newLink: true,
     addedAt: "2026-01-10",
   },
+  // Polls sits directly under Awards because an award ballot IS a poll in the new engine
+  // (backend/afc_polls), and the two pages link to each other. Without an entry here the whole
+  // section was reachable only by typing the URL: nothing on the site pointed at it.
+  {
+    slug: "/polls",
+    label: "Polls",
+    navKey: "polls",
+    icon: IconChartBarPopular,
+    newLink: true,
+    addedAt: "2026-08-16",
+  },
   { slug: "/about", label: "About Us", navKey: "about", icon: IconInfoCircle },
   { slug: "/contact", label: "Contact", navKey: "contact", icon: IconMessage },
   // Glossary sits under Contact in the hamburger menu (owner request 2026-06-10).
@@ -323,10 +334,15 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconShoppingCart,
     allowedRoles: ["head_admin", "shop_admin"],
   },
+  // Polls replaces Votes. One engine, with award ballots as a preset of it (an award category
+  // IS a single-choice question whose options are the nominees), so /a/votes redirects here
+  // rather than running a second system beside it. See backend/afc_polls and
+  // WEBSITE/tasks/polls-spec.md. Event organizers reach their own event-scoped polls through the
+  // organizer portal; this entry is the AFC-staff one, matching the old Votes gate.
   {
-    label: "Votes",
-    navKey: "votes",
-    slug: "/a/votes",
+    label: "Polls",
+    navKey: "polls",
+    slug: "/a/polls",
     icon: Award,
     allowedRoles: ["head_admin"],
   },
