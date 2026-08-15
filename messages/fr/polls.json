@@ -1,0 +1,104 @@
+{
+  "title": "Sondages",
+  "subtitle": "Les récompenses et les sondages de la communauté. Connectez-vous pour voter dans ceux auxquels vous êtes éligible.",
+  "tabs": {
+    "all": "Tous",
+    "awards": "Récompenses",
+    "community": "Sondages communautaires"
+  },
+  "empty": {
+    "all": "Il n'y a encore aucun sondage à afficher.",
+    "awards": "Aucun résultat de récompense n'a encore été publié.",
+    "community": "Aucun sondage communautaire n'est en cours pour le moment."
+  },
+  "card": {
+    "questions": "{count, plural, =1 {# question} other {# questions}}",
+    "responses": "{count, plural, =1 {# réponse} other {# réponses}}",
+    "open": "Ouvert au vote",
+    "closed": "Clôturé",
+    "notOpenYet": "Pas encore ouvert",
+    "results": "Résultats",
+    "view": "Voir",
+    "vote": "Voter"
+  },
+  "detail": {
+    "back": "Tous les sondages",
+    "closesOn": "Clôture",
+    "opensOn": "Ouverture",
+    "closedOn": "Clôturé le",
+    "loading": "Chargement du sondage",
+    "notFound": "Ce sondage est introuvable.",
+    "anonymousNote": "Vos réponses ne sont pas liées à votre compte. Personne, y compris les administrateurs AFC, ne peut voir ce que vous avez répondu.",
+    "anonymousEditableNote": "Comme ce sondage vous permet aussi de modifier votre réponse, le site doit pouvoir la retrouver. Aucun administrateur ne peut la voir.",
+    "anonymousFinalNote": "Une fois votre réponse envoyée, même nous ne pouvons plus savoir qu'elle vient de vous.",
+    "editableNote": "Vous pouvez modifier votre réponse jusqu'à la clôture du sondage.",
+    "finalNote": "Votre première réponse est définitive. Vous ne pourrez pas la modifier.",
+    "previewOnly": "Ce sondage est un aperçu. Vous pouvez le lire, mais il n'accepte pas de réponses."
+  },
+  "requirements": {
+    "headingAll": "Qui peut voter dans ce sondage",
+    "subtitleAll": "Vous devez remplir toutes ces conditions.",
+    "subtitleAny": "Vous devez remplir au moins une de ces conditions.",
+    "yours": "Vous",
+    "eligible": "Vous pouvez voter dans ce sondage",
+    "notEligible": "Vous ne pouvez pas voter dans ce sondage",
+    "notEligibleBody": "Voici ce que ce sondage demande, et où vous en êtes pour chaque point.",
+    "undecided": "Connectez-vous pour vérifier",
+    "notSet": "Non renseigné"
+  },
+  "ballot": {
+    "pick": "Choisissez une réponse",
+    "pickUpTo": "Choisissez jusqu'à {count} réponses",
+    "required": "Obligatoire",
+    "submit": "Envoyer mes réponses",
+    "submitting": "Enregistrement",
+    "update": "Modifier mes réponses",
+    "saved": "Vos réponses ont été enregistrées",
+    "failed": "Vos réponses n'ont pas pu être enregistrées",
+    "answered": "Vous avez voté dans ce sondage",
+    "answeredOn": "Répondu le",
+    "changeAnswer": "Modifier ma réponse",
+    "signInToVote": "Connectez-vous pour voter",
+    "selectSomething": "Choisissez d'abord une réponse",
+    "rankHint": "Classez-les. Votre premier choix arrive en tête.",
+    "ratingHint": "Choisissez un chiffre.",
+    "textHint": "Écrivez votre réponse.",
+    "moveUp": "Monter",
+    "moveDown": "Descendre",
+    "remove": "Retirer",
+    "addToRanking": "Ajouter",
+    "notifyMe": "Prévenez-moi si cela change",
+    "watchingOn": "Nous vous préviendrons si cela change",
+    "watchOn": "Nous vous ferons signe si cela change",
+    "watchOff": "Vous ne serez pas prévenu pour ce sondage"
+  },
+  "results": {
+    "heading": "Résultats",
+    "winner": "Gagnant",
+    "votes": "{count, plural, =1 {# vote} other {# votes}}",
+    "hidden": "Les résultats ne sont pas publiés pour ce sondage.",
+    "hiddenUntilClose": "Les résultats seront publiés à la clôture du sondage.",
+    "tooFew": "Moins de 5 réponses pour l'instant, les chiffres restent donc masqués.",
+    "totalResponses": "{count, plural, =1 {# réponse} other {# réponses}}",
+    "publishedNote": "Résultat publié",
+    "viewProfile": "Voir le profil"
+  },
+  "team": {
+    "heading": "Comment {team} vote",
+    "captain": "Capitaine",
+    "rollupHidden": "Le décompte de votre équipe reste caché jusqu'à la clôture du sondage.",
+    "answered": "{answered} joueurs sur {players} ont répondu.",
+    "staffNote": "Les coachs, managers et analystes ne comptent pas dans le quorum, donc {staff} membres de votre effectif ne sont pas inclus.",
+    "teamAnswer": "La réponse de votre équipe",
+    "overrideHint": "En tant que capitaine, vous pouvez fixer la réponse de l'équipe. Votre effectif verra que vous l'avez fait.",
+    "overrideSaved": "La réponse de l'équipe a été enregistrée",
+    "overrideFailed": "La réponse de l'équipe n'a pas pu être enregistrée",
+    "resolution": {
+      "plurality": "le plus de réponses",
+      "tie_broken_by_captain": "égalité, le capitaine a tranché",
+      "no_consensus": "Égalité, et le capitaine n'a pas répondu, donc pas encore de vote d'équipe",
+      "captain_override": "fixée par le capitaine",
+      "below_quorum": "Pas assez de membres de l'équipe ont répondu"
+    }
+  }
+}

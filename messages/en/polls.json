@@ -1,0 +1,104 @@
+{
+  "title": "Polls",
+  "subtitle": "Community awards and polls. Sign in to vote in the ones you are eligible for.",
+  "tabs": {
+    "all": "All",
+    "awards": "Awards",
+    "community": "Community polls"
+  },
+  "empty": {
+    "all": "There are no polls to show yet.",
+    "awards": "No award results have been published yet.",
+    "community": "No community polls are running right now."
+  },
+  "card": {
+    "questions": "{count, plural, =1 {# question} other {# questions}}",
+    "responses": "{count, plural, =1 {# response} other {# responses}}",
+    "open": "Open for voting",
+    "closed": "Closed",
+    "notOpenYet": "Not open yet",
+    "results": "Results",
+    "view": "View",
+    "vote": "Vote"
+  },
+  "detail": {
+    "back": "All polls",
+    "closesOn": "Closes",
+    "opensOn": "Opens",
+    "closedOn": "Closed",
+    "loading": "Loading poll",
+    "notFound": "That poll could not be found.",
+    "anonymousNote": "Your answers are not linked to your account. Nobody, including AFC admins, can see how you answered.",
+    "anonymousEditableNote": "Because this poll also lets you change your answer, the site has to be able to find your answer again. No admin can see it.",
+    "anonymousFinalNote": "Once you submit, even we cannot tell it was you.",
+    "editableNote": "You can change your answer until the poll closes.",
+    "finalNote": "Your first answer is final. You will not be able to change it.",
+    "previewOnly": "This poll is a preview. You can read it, but it is not taking answers."
+  },
+  "requirements": {
+    "headingAll": "Who can vote in this poll",
+    "subtitleAll": "You need to meet all of these.",
+    "subtitleAny": "You need to meet any one of these.",
+    "yours": "Yours",
+    "eligible": "You can vote in this poll",
+    "notEligible": "You cannot vote in this poll",
+    "notEligibleBody": "Here is what this poll asks for, and where you stand on each.",
+    "undecided": "Sign in to check",
+    "notSet": "Not set"
+  },
+  "ballot": {
+    "pick": "Pick one",
+    "pickUpTo": "Pick up to {count}",
+    "required": "Required",
+    "submit": "Submit my answers",
+    "submitting": "Saving",
+    "update": "Update my answers",
+    "saved": "Your answers were saved",
+    "failed": "Your answers could not be saved",
+    "answered": "You have voted in this poll",
+    "answeredOn": "Answered",
+    "changeAnswer": "Change my answer",
+    "signInToVote": "Sign in to vote",
+    "selectSomething": "Pick an answer first",
+    "rankHint": "Put them in order. Your top pick goes first.",
+    "ratingHint": "Pick a number.",
+    "textHint": "Type your answer.",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "remove": "Remove",
+    "addToRanking": "Add",
+    "notifyMe": "Tell me if this changes",
+    "watchingOn": "We will tell you if this changes",
+    "watchOn": "We will let you know if this changes",
+    "watchOff": "You will not be told about this poll"
+  },
+  "results": {
+    "heading": "Results",
+    "winner": "Winner",
+    "votes": "{count, plural, =1 {# vote} other {# votes}}",
+    "hidden": "Results are not published for this poll.",
+    "hiddenUntilClose": "Results are published when the poll closes.",
+    "tooFew": "Fewer than 5 answers so far, so the numbers stay hidden.",
+    "totalResponses": "{count, plural, =1 {# response} other {# responses}}",
+    "publishedNote": "Published result",
+    "viewProfile": "View profile"
+  },
+  "team": {
+    "heading": "How {team} is voting",
+    "captain": "Captain",
+    "rollupHidden": "Your team's running count is hidden until this poll closes.",
+    "answered": "{answered} of {players} players have answered.",
+    "staffNote": "Coaches, managers and analysts do not count toward the quorum, so {staff} of your roster are not included.",
+    "teamAnswer": "Your team's answer",
+    "overrideHint": "As captain you can set the team's answer directly. Your roster will see that you did.",
+    "overrideSaved": "The team's answer was set",
+    "overrideFailed": "The team's answer could not be set",
+    "resolution": {
+      "plurality": "most answers",
+      "tie_broken_by_captain": "tied, so the captain decided",
+      "no_consensus": "Tied, and the captain has not answered, so no team vote yet",
+      "captain_override": "set by the captain",
+      "below_quorum": "Not enough of the team has answered yet"
+    }
+  }
+}

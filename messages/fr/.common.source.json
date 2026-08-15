@@ -170,5 +170,8 @@
   "teamRoles.member": "Player",
   "teamRoles.coach": "Coach",
   "teamRoles.manager": "Manager",
-  "teamRoles.analyst": "Analyst"
+  "teamRoles.analyst": "Analyst",
+  "nav": {
+    "polls": "Polls"
+  }
 }
