@@ -19,9 +19,18 @@
 // CRUD the LeaderboardDesignsManager card writes to, so a design added there shows up here.
 //
 // Design: AFC constants - shadcn Dialog + Select, outline buttons, sonner toasts. No em/en dashes.
+//
+// i18n (owner override: admin surfaces ARE in scope): every string here resolves through the
+// "adminDesignEditor" namespace, the SAME one DesignFieldsEditor and LeaderboardDesignsManager use.
+// One namespace for the whole design library, because this dialog is the door out of it (pick a
+// design, download the graphic) and splitting it off would translate the editor but not its exits.
+// English is authored in messages/en/adminDesignEditor.json; fr and pt are hand-written and pinned
+// by their .adminDesignEditor.source.json sidecars so a later `pnpm i18n:translate` cannot overwrite
+// them.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +72,10 @@ export function ExportGraphicButton({
   // Prefills the title field (the leaderboard name). The user can edit or clear it.
   defaultTitle: string;
 }) {
+  // Every user-facing string in this dialog. Scoped straight to the sub-block so the calls below
+  // read t("button") rather than t("exportGraphic.button").
+  const t = useTranslations("adminDesignEditor.exportGraphic");
+
   const [open, setOpen] = useState(false);
   const [designs, setDesigns] = useState<LeaderboardDesign[]>([]);
   const [loadingDesigns, setLoadingDesigns] = useState(false);
@@ -85,12 +98,14 @@ export function ExportGraphicButton({
       setDesignId(def ? String(def.id) : AUTO);
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to load designs.",
+        err?.response?.data?.message || t("loadFailed"),
       );
     } finally {
       setLoadingDesigns(false);
     }
-  }, [organizationId]);
+    // `t` is memoised by use-intl, so adding it keeps this callback's identity stable (the
+    // open-transition effect below depends on it).
+  }, [organizationId, t]);
 
   // Reset + load ONLY on the false->true open transition (a prevOpen ref), not on every
   // defaultTitle/loadDesigns change - otherwise a parent re-render with a new leaderboard name
@@ -147,15 +162,15 @@ export function ExportGraphicButton({
           saveBlob(blob, `${safe}-${size}-page${p}.png`);
           if (p < pageCount) await new Promise((r) => setTimeout(r, 400));
         }
-        toast.success(`Downloaded ${pageCount} images.`);
+        toast.success(t("downloadedPages", { count: pageCount }));
       } else {
         const blob = await leaderboardDesignsApi.downloadGraphic(lbId, baseOpts);
         saveBlob(blob, `${safe}-${size}.png`);
-        toast.success("Graphic downloaded.");
+        toast.success(t("downloaded"));
       }
     } catch (err: any) {
       // A blob error response needs decoding to read the message the API put in JSON.
-      let message = "Failed to export the graphic.";
+      let message = t("downloadFailed");
       const data = err?.response?.data;
       if (data instanceof Blob) {
         try {
@@ -179,59 +194,52 @@ export function ExportGraphicButton({
   return (
     <>
       <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-        <IconDownload className="size-4" /> Export graphic
+        <IconDownload className="size-4" /> {t("button")}
       </Button>
 
       <Dialog open={open} onOpenChange={(o) => !downloading && setOpen(o)}>
         <DialogContent className="sm:max-w-[460px]">
           <DialogHeader>
-            <DialogTitle>Export leaderboard graphic</DialogTitle>
-            <DialogDescription>
-              Render the current standings onto a branded design and download it as
-              an image.
-            </DialogDescription>
+            <DialogTitle>{t("title")}</DialogTitle>
+            <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             {/* Design picker - the library + an "Auto" fallback (library default). */}
             <div className="space-y-2">
-              <Label>Design</Label>
+              <Label>{t("design")}</Label>
               <Select value={designId} onValueChange={setDesignId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a design" />
+                  <SelectValue placeholder={t("designPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={AUTO}>Default / plain background</SelectItem>
+                  <SelectItem value={AUTO}>{t("auto")}</SelectItem>
                   {designs.map((d) => (
                     <SelectItem key={d.id} value={String(d.id)}>
                       {d.name}
-                      {d.is_default ? " (default)" : ""}
+                      {d.is_default ? ` ${t("defaultSuffix")}` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {loadingDesigns ? (
-                <p className="text-xs text-muted-foreground">Loading designs...</p>
+                <p className="text-xs text-muted-foreground">{t("loading")}</p>
               ) : designs.length === 0 ? (
                 <p className="flex items-center gap-1 text-xs text-muted-foreground">
                   <IconPhoto className="size-3" />
-                  No designs yet. Add one in the Leaderboard designs section to brand
-                  the export.
+                  {t("empty")}
                 </p>
               ) : null}
               {/* Note shown when the selected design has multiple pages: the export is a ZIP. */}
               {(designs.find((d) => String(d.id) === designId)?.pages?.length ?? 0) >
                 1 && (
-                <p className="text-xs text-muted-foreground">
-                  This design has multiple pages. Each page downloads as its own
-                  image.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("multiPage")}</p>
               )}
             </div>
 
             {/* Size picker - Instagram portrait vs YouTube landscape. */}
             <div className="space-y-2">
-              <Label>Size</Label>
+              <Label>{t("size")}</Label>
               <Select
                 value={size}
                 onValueChange={(v) => setSize(v as GraphicSize)}
@@ -240,10 +248,8 @@ export function ExportGraphicButton({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="instagram">
-                    Instagram (1080 x 1350)
-                  </SelectItem>
-                  <SelectItem value="youtube">YouTube (1920 x 1080)</SelectItem>
+                  <SelectItem value="instagram">{t("sizeInstagram")}</SelectItem>
+                  <SelectItem value="youtube">{t("sizeYoutube")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -259,7 +265,7 @@ export function ExportGraphicButton({
               disabled={downloading}
               onClick={() => setOpen(false)}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button disabled={downloading} onClick={onDownload}>
               {downloading ? (
@@ -267,7 +273,7 @@ export function ExportGraphicButton({
               ) : (
                 <IconDownload className="mr-1 size-4" />
               )}
-              Download
+              {t("download")}
             </Button>
           </DialogFooter>
         </DialogContent>
