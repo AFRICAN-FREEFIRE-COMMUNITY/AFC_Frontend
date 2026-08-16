@@ -64,6 +64,13 @@ import {
   useRef,
   useState,
 } from "react";
+// i18n (owner override: admin surfaces ARE in scope): every user-facing string in this editor
+// resolves through the "adminDesignEditor" namespace (messages/{en,fr,pt}/adminDesignEditor.json).
+// English is authored there; fr and pt are hand-written and pinned by their .source.json sidecars
+// so a later `pnpm i18n:translate` run cannot overwrite them. Column-type labels are looked up
+// dynamically as fields.<field_type> and guarded with t.has(), the same idiom StageModal.tsx and
+// Step1EventDetails.tsx use for backend-derived key fragments.
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -140,6 +147,15 @@ type EditSize = "instagram" | "youtube";
 const MAX_CANVAS_H = 520;
 
 // All available connected field types with friendly display labels (mirrors backend FIELD_CHOICES).
+//
+// i18n: these English values are now the FALLBACK only. The label actually rendered comes from
+// t(`fields.<field_type>`) via the component's fieldLabel() helper, so the palette, the drag-handle
+// badge and the style-panel heading follow the viewer's language. Keeping the map means a field type
+// added here without a matching message key still shows readable text instead of a raw key path.
+//
+// NOT the same thing as COLUMN_HEADER_LABELS (lib/leaderboardDesigns.ts): that set is the header text
+// STAMPED ONTO the exported PNG and the live overlay, a port of the server-side renderer, and it stays
+// English in every locale because it is output, not interface.
 const FIELD_LABELS: Record<FieldType, string> = {
   pos: "POS",
   team_name: "TEAM NAME",
@@ -363,6 +379,107 @@ function mockBooyahCellValue(slotIndex: number, field: FieldType): string {
   }
 }
 
+// ── MVP / TOP-KILLER preview mock (owner 2026-08-08) ─────────────────────────────────────────────
+// A player board's rows are RANKED PLAYERS, not teams, so previewing one against the 16 mock teams
+// would show team names in a block the operator meant for players. The real row list
+// (afc_tournament_and_scrims.views_mvp.build_player_design_rows) is one row per player ordered by
+// rank, and how many of them appear is decided by the DESIGN: a column group of one row starting at
+// rank 1 is the MVP alone (the moment), a group of ten rows is the whole board. The first two mock
+// players are TEAMMATES on purpose - that is the normal case, and it is what the operator should see
+// while judging whether their team column is worth placing twice.
+// [in-game name, team, kills, damage, assists, map MVPs won, maps played]
+const MOCK_BOARD_PLAYERS: [string, string, number, number, number, number, number][] = [
+  ["V-ENT ALPHA", "V-ENT ESPORTS", 41, 9820, 14, 5, 8],
+  ["V-ENT BLAZE", "V-ENT ESPORTS", 37, 8940, 11, 3, 8],
+  ["NG CIPHER", "NEXT GAMERS", 34, 8150, 17, 3, 8],
+  ["RTD DRIFT", "RATED ESPORTS", 31, 7710, 9, 2, 8],
+  ["UHG ECHO", "UNHOLYGODS", 28, 6980, 12, 2, 8],
+  ["LGN FLUX", "LGN E-SPORT", 26, 6440, 8, 1, 8],
+  ["TLC GHOST", "TL COSA NOSTRA", 23, 5910, 15, 1, 8],
+  ["DIV HALO", "DIVISION", 21, 5320, 7, 1, 7],
+  ["OX IRIS", "OREX SCRIM", 18, 4760, 10, 0, 7],
+  ["KNT JOLT", "KNIGHTS E-SPORTS", 16, 4180, 6, 0, 7],
+];
+
+// Mock cell for rank `rankIndex` (0-based) of an MVP / top-killer design.
+function mockPlayerBoardCellValue(rankIndex: number, field: FieldType): string {
+  const p = MOCK_BOARD_PLAYERS[rankIndex];
+  if (!p) return "";
+  const [name, team, kills, damage, assists, mvps, maps] = p;
+  switch (field) {
+    case "pos": return String(rankIndex + 1);
+    case "player_name": return name;
+    case "team_name": return team;
+    case "kills": return String(kills);
+    case "damage": return String(damage);
+    case "assists": return String(assists);
+    case "mvp_count": return String(mvps);
+    case "matches": return String(maps);
+    // Team point columns belong to a team standings row; a player row carries none of them, which is
+    // exactly what the live board does with them.
+    default: return "";
+  }
+}
+
+// ── HEAD-TO-HEAD preview mock (owner 2026-08-08) ─────────────────────────────────────────────────
+// A head-to-head board is ONE ROW PER SIDE: slot 1 is the first competitor, slot 2 the second, slot 3
+// the optional third. So the two sides are two column groups of ONE row each, given the same
+// row_start_pct, with their columns placed at left-hand and right-hand x - the same mechanism the
+// two-column Dynasty leaderboard already uses. The mock fills BOTH the team columns and the player
+// columns for every side, because one design can serve a team comparison or a player one and the
+// operator picks which columns to place; on air only the columns for the overlay's mode fill.
+// [team, player, kills, total points, booyahs, damage, assists, maps]
+const MOCK_H2H_SIDES: [string, string, number, number, number, number, number, number][] = [
+  ["V-ENT ESPORTS", "V-ENT ALPHA", 41, 99, 3, 9820, 14, 8],
+  ["NEXT GAMERS", "NG CIPHER", 34, 92, 2, 8150, 17, 8],
+  ["RATED ESPORTS", "RTD DRIFT", 31, 85, 2, 7710, 9, 8],
+];
+const MOCK_H2H_SLOTS = MOCK_H2H_SIDES.length;
+
+// Mock cell for slot `slotIndex` (0-based) of a head-to-head design.
+function mockH2hCellValue(slotIndex: number, field: FieldType): string {
+  const side = MOCK_H2H_SIDES[slotIndex];
+  if (!side) return "";
+  const [team, player, kills, points, booyahs, damage, assists, maps] = side;
+  switch (field) {
+    case "pos": return String(slotIndex + 1);
+    case "team_name": return team;
+    case "player_name": return player;
+    case "kills": return String(kills);
+    case "total_points": return String(points);
+    case "booyah": return String(booyahs);
+    case "damage": return String(damage);
+    case "assists": return String(assists);
+    case "matches": return String(maps);
+    default: return "";
+  }
+}
+
+// ── Which mock a design previews against, by design type (owner 2026-08-08) ──────────────────────
+// Every design is authored with the same tools; what differs is what its ROWS are on air. These two
+// helpers keep that difference in one place so the canvas below stays a single expression, and so a
+// new scene type is two lines here rather than a branch threaded through the preview.
+const MOCK_ROW_COUNT: Record<string, number> = {
+  booyah: MOCK_BOOYAH_SLOTS,
+  mvp: MOCK_BOARD_PLAYERS.length,
+  top_killers: MOCK_BOARD_PLAYERS.length,
+  h2h: MOCK_H2H_SLOTS,
+};
+
+function mockCellValueForType(
+  designType: string,
+  rowIndex: number,
+  field: FieldType,
+): string {
+  switch (designType) {
+    case "booyah": return mockBooyahCellValue(rowIndex, field);
+    case "mvp":
+    case "top_killers": return mockPlayerBoardCellValue(rowIndex, field);
+    case "h2h": return mockH2hCellValue(rowIndex, field);
+    default: return mockCellValue(rowIndex, field);
+  }
+}
+
 // Default column group when a design has none yet (matches Dynasty Cup two-column layout split 1+2).
 const DEFAULT_GROUP: DesignColumnGroup = {
   row_start_pct: 33.0,
@@ -451,6 +568,20 @@ export function DesignFieldsEditor({
   open,
   onOpenChange,
 }: DesignFieldsEditorProps) {
+  // ── i18n ──────────────────────────────────────────────────────────────────
+  // Everything the operator reads in this dialog comes from this one namespace.
+  const t = useTranslations("adminDesignEditor");
+
+  // Display label for a column type. `field_type` is a backend enum value, so the key is built at
+  // runtime and t.has()-guarded; a type with no message key falls back to the English FIELD_LABELS
+  // entry rather than rendering "adminDesignEditor.fields.<type>". Memoised on `t` (which use-intl
+  // memoises itself) so the []-deps drag callbacks below keep a stable identity.
+  const fieldLabel = useCallback(
+    (ft: FieldType): string =>
+      t.has(`fields.${ft}`) ? t(`fields.${ft}`) : FIELD_LABELS[ft],
+    [t],
+  );
+
   // ── Draft state (deep-cloned from design on open) ─────────────────────────
   const [fields, setFields] = useState<FieldDraft[]>([]);
   const [texts, setTexts] = useState<TextDraft[]>([]);
@@ -500,6 +631,12 @@ export function DesignFieldsEditor({
   // the type changes here is the PREVIEW data: slot 1 is the winning team and slots 2+ are its
   // players, not 16 standings rows. See mockBooyahCellValue.
   const dsTypeIsBooyah = dsType === "booyah";
+  // The same is true of the three SCENE types added 2026-08-08: no new tools, only different rows.
+  //   mvp / top_killers - ranked PLAYERS, so the design's column groups decide how many show
+  //   h2h               - one row per SIDE, so two sides are two one-row groups at the same Y
+  // See mockPlayerBoardCellValue / mockH2hCellValue and the layout hints under the canvas.
+  const dsTypeIsPlayerBoard = dsType === "mvp" || dsType === "top_killers";
+  const dsTypeIsH2h = dsType === "h2h";
 
   const saveDesignSettings = async (patch: Record<string, string | Blob>) => {
     if (!canManage) return;
@@ -509,7 +646,7 @@ export function DesignFieldsEditor({
       await leaderboardDesignsApi.update(design.id, fd);
       onSaved?.();
     } catch {
-      toast.error("Could not save the design settings.");
+      toast.error(t("settings.saveFailed"));
     }
   };
 
@@ -523,7 +660,7 @@ export function DesignFieldsEditor({
       fd.append("versus_config", JSON.stringify({ stat_keys: statKeys, slots }));
       await leaderboardDesignsApi.update(design.id, fd);
     } catch {
-      toast.error("Could not save the versus layout.");
+      toast.error(t("versus.saveFailed"));
     }
   };
   const [currentPageId, setCurrentPageId] = useState<number | null>(null);
@@ -740,23 +877,26 @@ export function DesignFieldsEditor({
         const x = roundPct(yt ? (f.x_pct_youtube ?? f.x_pct) : f.x_pct);
         persist(
           () => leaderboardDesignsApi.updateField(did, fid, { x_pct: x, size: sz }),
-          `Failed to save the ${FIELD_LABELS[f.field_type]} column position.`,
+          t("errors.fieldPosition", { field: fieldLabel(f.field_type) }),
         );
       }
     } else {
-      const t = textsRef.current.find((x) => x.draftId === drag.draftId);
-      if (t && t.id != null && !t.pending) {
+      // Named `txt` (not `t`) so it does not shadow the useTranslations translator.
+      const txt = textsRef.current.find((x) => x.draftId === drag.draftId);
+      if (txt && txt.id != null && !txt.pending) {
         const did = design.id;
-        const tid = t.id;
-        const x = roundPct(yt ? (t.x_pct_youtube ?? t.x_pct) : t.x_pct);
-        const y = roundPct(yt ? (t.y_pct_youtube ?? t.y_pct) : t.y_pct);
+        const tid = txt.id;
+        const x = roundPct(yt ? (txt.x_pct_youtube ?? txt.x_pct) : txt.x_pct);
+        const y = roundPct(yt ? (txt.y_pct_youtube ?? txt.y_pct) : txt.y_pct);
         persist(
           () => leaderboardDesignsApi.updateText(did, tid, { x_pct: x, y_pct: y, size: sz }),
-          "Failed to save the text position.",
+          t("errors.textPosition"),
         );
       }
     }
-  }, [onPointerMove, persist, design.id]);
+    // `t` and `fieldLabel` are both memoised, so adding them keeps this callback's identity stable
+    // (the drag listeners registered in startDrag rely on that).
+  }, [onPointerMove, persist, design.id, t, fieldLabel]);
 
   // Detach listeners on unmount.
   useEffect(() => {
@@ -1055,7 +1195,7 @@ export function DesignFieldsEditor({
               columnGroups: currentGroups,
               size: sz,
             }),
-          "Failed to save the column group layout.",
+          t("groups.layoutSaveFailed"),
         );
       } else {
         // Legacy / design-level: save the column layout onto the design.
@@ -1064,11 +1204,11 @@ export function DesignFieldsEditor({
         fd.append("size", sz);
         persist(
           () => leaderboardDesignsApi.update(design.id, fd),
-          "Failed to save the column group layout.",
+          t("groups.layoutSaveFailed"),
         );
       }
     }, 500);
-  }, [persist, design.id, currentPageId]);
+  }, [persist, design.id, currentPageId, t]);
 
   const addGroup = () => {
     const lastGroup = groups[groups.length - 1];
@@ -1095,7 +1235,7 @@ export function DesignFieldsEditor({
         const fid = f.id;
         persist(
           () => leaderboardDesignsApi.deleteField(design.id, fid),
-          "Failed to remove a column.",
+          t("groups.removeColumnFailed"),
         );
       }
     }
@@ -1172,9 +1312,9 @@ export function DesignFieldsEditor({
       // Switch to the newly created page (the page-switch effect re-scopes the canvas to it).
       setCurrentPageId(newPage.id);
       onSaved(); // refresh the parent list so the design shows the updated page count
-      toast.success(`Page ${newPage.page_number} added.`);
+      toast.success(t("pages.added", { number: newPage.page_number }));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to add page.");
+      toast.error(err?.response?.data?.message || t("pages.addFailed"));
     } finally {
       setAddingPage(false);
     }
@@ -1187,12 +1327,7 @@ export function DesignFieldsEditor({
   // is a belt-and-suspenders check). Consumed by the per-tab × button in the page tabs bar.
   const handleDeletePage = async (pageId: number) => {
     if (!canManage || pages.length <= 1) return;
-    if (
-      !window.confirm(
-        "Delete this page? Its fields and text elements will also be removed.",
-      )
-    )
-      return;
+    if (!window.confirm(t("pages.confirmDelete"))) return;
     setDeletingPageId(pageId);
     try {
       await leaderboardDesignsApi.deletePage(design.id, pageId);
@@ -1208,9 +1343,9 @@ export function DesignFieldsEditor({
         setCurrentPageId(remaining[0]?.id ?? null);
       }
       onSaved(); // refresh the parent list so the design shows the updated page count
-      toast.success("Page deleted.");
+      toast.success(t("pages.deleted"));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to delete page.");
+      toast.error(err?.response?.data?.message || t("pages.deleteFailed"));
     } finally {
       setDeletingPageId(null);
     }
@@ -1232,11 +1367,14 @@ export function DesignFieldsEditor({
       // Splice the updated page into local state so `bgUrl` (which reads from `pages`) refreshes.
       setPages((prev) => prev.map((p) => (p.id === currentPageId ? res.page : p)));
       onSaved();
+      // {size} is the platform's own brand name, so it stays untranslated in every locale.
       toast.success(
-        `Background (${size === "instagram" ? "Instagram" : "YouTube"}) uploaded for this page.`,
+        t("backgrounds.uploaded", {
+          size: size === "instagram" ? "Instagram" : "YouTube",
+        }),
       );
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to upload background.");
+      toast.error(err?.response?.data?.message || t("backgrounds.uploadFailed"));
     } finally {
       setUploadingBg(false);
     }
@@ -1262,9 +1400,9 @@ export function DesignFieldsEditor({
       if (applyAllIgInputRef.current) applyAllIgInputRef.current.value = "";
       if (applyAllYtInputRef.current) applyAllYtInputRef.current.value = "";
       onSaved();
-      toast.success("Background applied to all pages.");
+      toast.success(t("backgrounds.appliedToAll"));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to apply background to all pages.");
+      toast.error(err?.response?.data?.message || t("backgrounds.applyToAllFailed"));
     } finally {
       setApplyingAll(false);
     }
@@ -1357,7 +1495,7 @@ export function DesignFieldsEditor({
           f.draftId === draftId ? { ...f, id: res.field.id, pending: false } : f,
         ),
       );
-    }, `Failed to add the ${FIELD_LABELS[fieldType]} column.`);
+    }, t("errors.addField", { field: fieldLabel(fieldType) }));
   };
 
   // Palette "x" (owner 2026-07-05, audit complaint A): remove the column FROM THE SIZE BEING EDITED
@@ -1389,7 +1527,7 @@ export function DesignFieldsEditor({
       const fid = f.id;
       persist(
         () => leaderboardDesignsApi.deleteField(design.id, fid),
-        "Failed to remove the column.",
+        t("errors.removeColumn"),
       );
     }
   };
@@ -1411,7 +1549,7 @@ export function DesignFieldsEditor({
     );
     persist(async () => {
       await leaderboardDesignsApi.applyFieldEnablementToAll(design.id, fid);
-    }, "Failed to apply the column to all sizes.");
+    }, t("errors.applyToAllSizes"));
   };
 
   // Local merge + persist the changed keys (PATCH). The size slider is debounced so a drag of the
@@ -1450,7 +1588,7 @@ export function DesignFieldsEditor({
     const send = () =>
       persist(
         () => leaderboardDesignsApi.updateField(design.id, fid, body),
-        "Failed to save the column.",
+        t("errors.saveColumn"),
       );
     if ("font_size_pct" in patch) {
       const t = fieldSizeTimers.current.get(draftId);
@@ -1498,18 +1636,19 @@ export function DesignFieldsEditor({
           t.draftId === draftId ? { ...t, id: res.text.id, pending: false } : t,
         ),
       );
-    }, "Failed to add the text element.");
+    }, t("errors.addText"));
   };
 
   const removeText = (draftId: string) => {
-    const t = textsRef.current.find((x) => x.draftId === draftId);
+    // Named `txt` (not `t`) so it does not shadow the useTranslations translator.
+    const txt = textsRef.current.find((x) => x.draftId === draftId);
     setTexts((prev) => prev.filter((x) => x.draftId !== draftId));
     if (selected?.type === "text" && selected.draftId === draftId) setSelected(null);
-    if (t && t.id != null) {
-      const tid = t.id;
+    if (txt && txt.id != null) {
+      const tid = txt.id;
       persist(
         () => leaderboardDesignsApi.deleteText(design.id, tid),
-        "Failed to remove the text.",
+        t("errors.removeText"),
       );
     }
   };
@@ -1533,9 +1672,10 @@ export function DesignFieldsEditor({
         return { ...t, ...patch };
       }),
     );
-    const t = textsRef.current.find((x) => x.draftId === draftId);
-    if (!t || t.id == null || t.pending) return;
-    const tid = t.id;
+    // Named `txt` (not `t`) so it does not shadow the useTranslations translator.
+    const txt = textsRef.current.find((x) => x.draftId === draftId);
+    if (!txt || txt.id == null || txt.pending) return;
+    const tid = txt.id;
     const body: Record<string, unknown> = {};
     if ("text" in patch) body.text = patch.text;
     if ("x_pct" in patch) body.x_pct = roundPct(patch.x_pct as number);
@@ -1549,7 +1689,7 @@ export function DesignFieldsEditor({
     const send = () =>
       persist(
         () => leaderboardDesignsApi.updateText(design.id, tid, body),
-        "Failed to save the text.",
+        t("errors.saveText"),
       );
     // Debounce free-typing the content + the size slider; persist discrete changes at once.
     if ("text" in patch || "font_size_pct" in patch) {
@@ -1574,7 +1714,7 @@ export function DesignFieldsEditor({
   const handleFontUpload = async (file?: File) => {
     if (!file) return;
     if (!file.name.match(/\.(ttf|otf)$/i)) {
-      toast.error("Only TTF or OTF font files are supported.");
+      toast.error(t("fonts.invalidType"));
       return;
     }
     setUploadingFont(true);
@@ -1583,9 +1723,9 @@ export function DesignFieldsEditor({
         organizationId: organizationId ?? undefined,
       });
       setFonts((prev) => [...prev, res.font]);
-      toast.success(`Font "${res.font.name}" uploaded.`);
+      toast.success(t("fonts.uploaded", { name: res.font.name }));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to upload font.");
+      toast.error(err?.response?.data?.message || t("fonts.uploadFailed"));
     } finally {
       setUploadingFont(false);
     }
@@ -1602,9 +1742,9 @@ export function DesignFieldsEditor({
       setTexts((prev) =>
         prev.map((t) => (t.font_id === font.id ? { ...t, font_id: null } : t)),
       );
-      toast.success(`Font "${font.name}" deleted.`);
+      toast.success(t("fonts.deleted", { name: font.name }));
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to delete font.");
+      toast.error(err?.response?.data?.message || t("fonts.deleteFailed"));
     }
   };
 
@@ -1673,17 +1813,12 @@ export function DesignFieldsEditor({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconLayoutColumns className="size-5 text-primary" />
-            Edit fields and text
+            {t("title")}
             <span className="text-sm font-normal text-muted-foreground">
-              {" "}({design.name})
+              {" "}{t("titleFor", { name: design.name })}
             </span>
           </DialogTitle>
-          <DialogDescription>
-            Add, position, and style connected data columns and freeform text on
-            the canvas. Drag field handles (green bars) horizontally to set their
-            X position; drag text elements freely. Select an element to edit its
-            style in the panel on the right.
-          </DialogDescription>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
 
         {/* ── Edit-size toggle (owner 2026-06-15): Instagram and YouTube are INDEPENDENT layouts.
@@ -1691,7 +1826,7 @@ export function DesignFieldsEditor({
             background, and changes which size's field/text positions + column-group geometry are
             edited & saved. Instagram is canonical; YouTube falls back to it until a YT layout is set. */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-medium text-foreground">Editing layout:</span>
+          <span className="font-medium text-foreground">{t("size.label")}</span>
           <div className="inline-flex rounded-md border bg-muted p-0.5">
             {(["instagram", "youtube"] as EditSize[]).map((s) => (
               <button
@@ -1704,14 +1839,12 @@ export function DesignFieldsEditor({
                     : "rounded px-3 py-1 text-muted-foreground hover:text-foreground"
                 }
               >
-                {s === "instagram" ? "Instagram (1080×1350)" : "YouTube (1920×1080)"}
+                {s === "instagram" ? t("size.instagram") : t("size.youtube")}
               </button>
             ))}
           </div>
           <span className="text-[11px] text-muted-foreground">
-            {isYT
-              ? "YouTube positions are independent of Instagram (unset = falls back to Instagram)."
-              : "The canonical layout - YouTube falls back to this until you give it its own."}
+            {isYT ? t("size.youtubeHint") : t("size.instagramHint")}
           </span>
         </div>
 
@@ -1738,7 +1871,7 @@ export function DesignFieldsEditor({
                   }
                 >
                   <IconFile className="size-3" />
-                  Page {p.page_number}
+                  {t("pages.tab", { number: p.page_number })}
                 </button>
                 {/* Delete this page - hidden when only 1 page exists (can't delete the last page).
                     Disabled while any delete is already in flight. */}
@@ -1754,8 +1887,8 @@ export function DesignFieldsEditor({
                         ? "border-primary bg-background shadow-sm"
                         : "border-transparent",
                     ].join(" ")}
-                    aria-label={`Delete page ${p.page_number}`}
-                    title={`Delete page ${p.page_number}`}
+                    aria-label={t("pages.delete", { number: p.page_number })}
+                    title={t("pages.delete", { number: p.page_number })}
                   >
                     {deletingPageId === p.id ? (
                       <IconLoader2 className="size-4 animate-spin" />
@@ -1779,7 +1912,7 @@ export function DesignFieldsEditor({
               ) : (
                 <IconPlus className="mr-1 size-3" />
               )}
-              Add page
+              {t("pages.add")}
             </Button>
           </div>
         )}
@@ -1798,7 +1931,7 @@ export function DesignFieldsEditor({
               ) : (
                 <IconPlus className="mr-1 size-3" />
               )}
-              Add page
+              {t("pages.add")}
             </Button>
           </div>
         )}
@@ -1815,10 +1948,10 @@ export function DesignFieldsEditor({
             Edit-design modal held, now living where you SEE the result. Instant-saves. ── */}
         {canManage && (
           <div className="rounded-md border bg-card p-3 space-y-3">
-            <p className="text-xs font-medium text-foreground">Design settings</p>
+            <p className="text-xs font-medium text-foreground">{t("settings.heading")}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="col-span-2 space-y-1">
-                <Label className="text-[0.65rem]">Name</Label>
+                <Label className="text-[0.65rem]">{t("settings.name")}</Label>
                 <Input
                   value={dsName}
                   onChange={(e) => setDsName(e.target.value)}
@@ -1828,7 +1961,7 @@ export function DesignFieldsEditor({
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[0.65rem]">Design type</Label>
+                <Label className="text-[0.65rem]">{t("settings.designType")}</Label>
                 <Select
                   value={dsType}
                   onValueChange={(v) => {
@@ -1840,8 +1973,8 @@ export function DesignFieldsEditor({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="leaderboard">Leaderboard</SelectItem>
-                    <SelectItem value="versus">Versus (head-to-head)</SelectItem>
+                    <SelectItem value="leaderboard">{t("settings.typeLeaderboard")}</SelectItem>
+                    <SelectItem value="versus">{t("settings.typeVersus")}</SelectItem>
                     {/* Booyah (owner 2026-08-06): a design laid out for the winner moment. Same
                         tools, different rows - see the hint under the canvas.
                         NEW tag: this is a new OPTION in an existing picker, exactly the case the
@@ -1850,15 +1983,40 @@ export function DesignFieldsEditor({
                         shipped); the pill removes itself 5 days on. */}
                     <SelectItem value="booyah">
                       <span className="flex items-center gap-2">
-                        Booyah (winner moment)
+                        {t("settings.typeBooyah")}
                         <NewBadge since="2026-08-07" />
+                      </span>
+                    </SelectItem>
+                    {/* The other three live scenes (owner 2026-08-08), on the same terms as booyah:
+                        no new tools, only different rows, and the type is what lets that scene's
+                        overlay render THROUGH the design instead of through its built-in layout.
+                        NEW tags for the same reason booyah carries one - these are new OPTIONS in a
+                        picker a designer already knows, so nothing would draw the eye to them.
+                        Live 2026-08-16, the day it ships rather than the day it was written;
+                        the pills remove themselves 5 days on. */}
+                    <SelectItem value="mvp">
+                      <span className="flex items-center gap-2">
+                        {t("settings.typeMvp")}
+                        <NewBadge since="2026-08-16" />
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="top_killers">
+                      <span className="flex items-center gap-2">
+                        {t("settings.typeTopKillers")}
+                        <NewBadge since="2026-08-16" />
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="h2h">
+                      <span className="flex items-center gap-2">
+                        {t("settings.typeH2h")}
+                        <NewBadge since="2026-08-16" />
                       </span>
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[0.65rem]">Max rows</Label>
+                <Label className="text-[0.65rem]">{t("settings.maxRows")}</Label>
                 <Input
                   type="number" min={1} max={50}
                   value={dsMaxRows}
@@ -1868,7 +2026,7 @@ export function DesignFieldsEditor({
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[0.65rem]">Text colour</Label>
+                <Label className="text-[0.65rem]">{t("settings.textColour")}</Label>
                 <Input
                   type="color"
                   value={dsTextColor}
@@ -1878,7 +2036,7 @@ export function DesignFieldsEditor({
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[0.65rem]">Accent colour</Label>
+                <Label className="text-[0.65rem]">{t("settings.accentColour")}</Label>
                 <Input
                   type="color"
                   value={dsAccentColor}
@@ -1888,7 +2046,7 @@ export function DesignFieldsEditor({
                 />
               </div>
               <div className="col-span-2 flex items-center justify-between">
-                <Label className="text-[0.65rem]">Set as default (auto-selected on export)</Label>
+                <Label className="text-[0.65rem]">{t("settings.setDefault")}</Label>
                 <Switch
                   checked={dsDefault}
                   onCheckedChange={(v: boolean) => {
@@ -1898,7 +2056,7 @@ export function DesignFieldsEditor({
                 />
               </div>
               <div className="col-span-2 flex items-center justify-between">
-                <Label className="text-[0.65rem]">Transparent background (live overlay)</Label>
+                <Label className="text-[0.65rem]">{t("settings.transparent")}</Label>
                 <Switch
                   checked={dsTransparent}
                   onCheckedChange={(v: boolean) => {
@@ -1912,7 +2070,7 @@ export function DesignFieldsEditor({
                   and rules; turn them on for a plain backdrop. Each one shows up immediately on the
                   preview canvas, the live overlay and the downloaded PNG. */}
               <div className="col-span-2 flex items-center justify-between">
-                <Label className="text-[0.65rem]">Column headers (MP, BOOYAH, TOTAL POINTS ...)</Label>
+                <Label className="text-[0.65rem]">{t("settings.columnHeaders")}</Label>
                 <Switch
                   checked={dsColumnHeaders}
                   onCheckedChange={(v: boolean) => {
@@ -1922,7 +2080,7 @@ export function DesignFieldsEditor({
                 />
               </div>
               <div className="col-span-2 flex items-center justify-between">
-                <Label className="text-[0.65rem]">Grid lines (rows and columns)</Label>
+                <Label className="text-[0.65rem]">{t("settings.gridLines")}</Label>
                 <Switch
                   checked={dsGrid}
                   onCheckedChange={(v: boolean) => {
@@ -1932,7 +2090,7 @@ export function DesignFieldsEditor({
                 />
               </div>
               <div className="col-span-2 flex items-center justify-between">
-                <Label className="text-[0.65rem]">Event name header + stage sub-header</Label>
+                <Label className="text-[0.65rem]">{t("settings.boardHeader")}</Label>
                 <Switch
                   checked={dsBoardHeader}
                   onCheckedChange={(v: boolean) => {
@@ -1946,7 +2104,7 @@ export function DesignFieldsEditor({
                   {/* Single-page designs upload their design-level backgrounds here (multi-page
                       designs use the Page backgrounds card below instead). */}
                   <div className="space-y-1">
-                    <Label className="text-[0.65rem]">Background (YouTube 16:9)</Label>
+                    <Label className="text-[0.65rem]">{t("settings.backgroundYoutube")}</Label>
                     <input
                       type="file" accept="image/*" className="w-full text-[0.65rem]"
                       onChange={(e) => {
@@ -1956,7 +2114,7 @@ export function DesignFieldsEditor({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[0.65rem]">Background (Instagram 4:5)</Label>
+                    <Label className="text-[0.65rem]">{t("settings.backgroundInstagram")}</Label>
                     <input
                       type="file" accept="image/*" className="w-full text-[0.65rem]"
                       onChange={(e) => {
@@ -1977,18 +2135,34 @@ export function DesignFieldsEditor({
             canvas already shows the real shape (mockBooyahCellValue); this spells it out. ── */}
         {dsTypeIsBooyah && canManage && (
           <div className="rounded-md border bg-card p-3 space-y-2">
-            <p className="text-xs font-medium text-foreground">Booyah layout</p>
-            <p className="text-[0.65rem] text-muted-foreground">
-              This design fills with the winner of a map, not a standings table. Row slot 1 is the
-              winning TEAM, and its numbers come straight from the leaderboard. Slots 2 and up are
-              that team&apos;s PLAYERS, with the stats they got in the map they just won.
-            </p>
-            <p className="text-[0.65rem] text-muted-foreground">
-              So build it with two column groups: one group of 1 row starting at rank 1 for the team
-              (team name, team logo, map, total points), then a second group starting at rank 2 for
-              the squad (player name, player image, kills, damage). Add the big &quot;BOOYAH!&quot;
-              word as a text element.
-            </p>
+            <p className="text-xs font-medium text-foreground">{t("booyah.heading")}</p>
+            <p className="text-[0.65rem] text-muted-foreground">{t("booyah.body1")}</p>
+            <p className="text-[0.65rem] text-muted-foreground">{t("booyah.body2")}</p>
+          </div>
+        )}
+
+        {/* ── MVP / top-killer layout hint (owner 2026-08-08). Same reasoning as the booyah hint
+            above: the tools are unchanged, so what the operator has to be told is what the ROWS are.
+            The important half is that the design's column groups, not a server setting, decide how
+            much of the ranking appears - which is how one editor serves both "the MVP, big" and
+            "the top ten". The preview canvas already shows it (mockPlayerBoardCellValue). ── */}
+        {dsTypeIsPlayerBoard && canManage && (
+          <div className="rounded-md border bg-card p-3 space-y-2">
+            <p className="text-xs font-medium text-foreground">{t("playerBoard.heading")}</p>
+            <p className="text-[0.65rem] text-muted-foreground">{t("playerBoard.body1")}</p>
+            <p className="text-[0.65rem] text-muted-foreground">{t("playerBoard.body2")}</p>
+          </div>
+        )}
+
+        {/* ── Head-to-head layout hint (owner 2026-08-08). The one that needs explaining, because a
+            column group tiles rows DOWNWARD and two opposing sides read left and right: the answer
+            is two groups of ONE row at the same height, with each group's columns dragged to its own
+            side of the canvas. Says so plainly, since nothing on screen would suggest it. ── */}
+        {dsTypeIsH2h && canManage && (
+          <div className="rounded-md border bg-card p-3 space-y-2">
+            <p className="text-xs font-medium text-foreground">{t("h2h.heading")}</p>
+            <p className="text-[0.65rem] text-muted-foreground">{t("h2h.body1")}</p>
+            <p className="text-[0.65rem] text-muted-foreground">{t("h2h.body2")}</p>
           </div>
         )}
 
@@ -1997,7 +2171,7 @@ export function DesignFieldsEditor({
         {dsTypeIsVersus && canManage && (
           <div className="rounded-md border bg-card p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-foreground">Versus layout</p>
+              <p className="text-xs font-medium text-foreground">{t("versus.heading")}</p>
               <div className="flex gap-1">
                 {versusSlots.length < 3 && (
                   <Button
@@ -2008,7 +2182,7 @@ export function DesignFieldsEditor({
                       saveVersusConfig(next, versusStatKeys);
                     }}
                   >
-                    + Slot
+                    {t("versus.addSlot")}
                   </Button>
                 )}
                 {versusSlots.length > 0 && (
@@ -2020,22 +2194,19 @@ export function DesignFieldsEditor({
                       saveVersusConfig(next, versusStatKeys);
                     }}
                   >
-                    Remove last
+                    {t("versus.removeLast")}
                   </Button>
                 )}
               </div>
             </div>
-            <p className="text-[0.65rem] text-muted-foreground">
-              Drag the numbered boxes on the canvas - the head-to-head places each competitor card
-              exactly there. Tick the stat rows every card shows (in this order).
-            </p>
+            <p className="text-[0.65rem] text-muted-foreground">{t("versus.hint")}</p>
             <div className="grid grid-cols-2 gap-1.5">
+              {/* The stat KEYS are the versus_config contract (saved verbatim); only the label the
+                  operator reads is translated, via versus.stats.<key>. */}
               {[
-                ["kills", "Kills"], ["points", "Points"], ["booyahs", "Booyahs"],
-                ["matches", "Matches"], ["damage", "Damage (players)"],
-                ["assists", "Assists (players)"], ["deaths", "Deaths (3D room)"],
-                ["headshots", "Headshots (3D room)"], ["survival_seconds", "Survival (3D room)"],
-              ].map(([key, label]) => (
+                "kills", "points", "booyahs", "matches", "damage",
+                "assists", "deaths", "headshots", "survival_seconds",
+              ].map((key) => (
                 <label key={key} className="flex cursor-pointer items-center gap-2 text-xs">
                   <Checkbox
                     checked={versusStatKeys.includes(key)}
@@ -2047,7 +2218,7 @@ export function DesignFieldsEditor({
                       saveVersusConfig(versusSlots, next);
                     }}
                   />
-                  {label}
+                  {t(`versus.stats.${key}`)}
                 </label>
               ))}
             </div>
@@ -2056,13 +2227,17 @@ export function DesignFieldsEditor({
 
         {pages.length > 0 && canManage && (
           <div className="rounded-md border bg-card p-3">
-            <p className="mb-2 text-xs font-medium text-foreground">Page backgrounds</p>
+            <p className="mb-2 text-xs font-medium text-foreground">{t("backgrounds.heading")}</p>
             <div className="flex flex-wrap items-start gap-4">
 
               {/* ── Per-page upload: uploads a bg to the currently active page only ── */}
               <div className="space-y-1">
                 <p className="text-[11px] text-muted-foreground">
-                  This page (page {pages.find((p) => p.id === currentPageId)?.page_number ?? "?"})
+                  {t("backgrounds.thisPage", {
+                    number:
+                      pages.find((p) => p.id === currentPageId)?.page_number ??
+                      t("backgrounds.unknownPage"),
+                  })}
                 </p>
                 <div className="flex gap-1.5">
                   <Button
@@ -2072,14 +2247,14 @@ export function DesignFieldsEditor({
                     disabled={uploadingBg}
                     onClick={() => bgIgInputRef.current?.click()}
                     className="h-7 text-xs"
-                    title="Upload Instagram background (1080x1350) for this page only"
+                    title={t("backgrounds.uploadIgTitle")}
                   >
                     {uploadingBg ? (
                       <IconLoader2 className="mr-1 size-3 animate-spin" />
                     ) : (
                       <IconUpload className="mr-1 size-3" />
                     )}
-                    Upload IG bg
+                    {t("backgrounds.uploadIg")}
                   </Button>
                   <Button
                     type="button"
@@ -2088,14 +2263,14 @@ export function DesignFieldsEditor({
                     disabled={uploadingBg}
                     onClick={() => bgYtInputRef.current?.click()}
                     className="h-7 text-xs"
-                    title="Upload YouTube background (1920x1080) for this page only"
+                    title={t("backgrounds.uploadYtTitle")}
                   >
                     {uploadingBg ? (
                       <IconLoader2 className="mr-1 size-3 animate-spin" />
                     ) : (
                       <IconUpload className="mr-1 size-3" />
                     )}
-                    Upload YT bg
+                    {t("backgrounds.uploadYt")}
                   </Button>
                 </div>
                 {/* Hidden inputs: per-page IG and YT background upload */}
@@ -2128,7 +2303,7 @@ export function DesignFieldsEditor({
 
               {/* ── Apply-to-all: stage IG + YT files, then broadcast to every page at once ── */}
               <div className="space-y-1">
-                <p className="text-[11px] text-muted-foreground">Apply to all pages</p>
+                <p className="text-[11px] text-muted-foreground">{t("backgrounds.applyToAllHeading")}</p>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {/* IG file picker - border turns primary when a file is staged */}
                   <Button
@@ -2141,12 +2316,12 @@ export function DesignFieldsEditor({
                       "h-7 text-xs",
                       applyAllIgFile ? "border-primary text-primary" : "",
                     ].join(" ")}
-                    title="Select the Instagram background to apply to all pages"
+                    title={t("backgrounds.igFileTitle")}
                   >
                     <IconUpload className="mr-1 size-3" />
                     {applyAllIgFile
                       ? applyAllIgFile.name.slice(0, 12) + "..."
-                      : "IG bg"}
+                      : t("backgrounds.igFile")}
                   </Button>
                   {/* YT file picker */}
                   <Button
@@ -2159,12 +2334,12 @@ export function DesignFieldsEditor({
                       "h-7 text-xs",
                       applyAllYtFile ? "border-primary text-primary" : "",
                     ].join(" ")}
-                    title="Select the YouTube background to apply to all pages"
+                    title={t("backgrounds.ytFileTitle")}
                   >
                     <IconUpload className="mr-1 size-3" />
                     {applyAllYtFile
                       ? applyAllYtFile.name.slice(0, 12) + "..."
-                      : "YT bg"}
+                      : t("backgrounds.ytFile")}
                   </Button>
                   {/* Apply button - enabled only when at least one file is staged */}
                   <Button
@@ -2174,14 +2349,14 @@ export function DesignFieldsEditor({
                     disabled={applyingAll || (!applyAllIgFile && !applyAllYtFile)}
                     onClick={handleApplyBackgroundToAll}
                     className="h-7 text-xs border-primary/40 text-primary hover:bg-primary/10"
-                    title="Apply staged background(s) to every page of this design"
+                    title={t("backgrounds.applyToAllTitle")}
                   >
                     {applyingAll ? (
                       <IconLoader2 className="mr-1 size-3 animate-spin" />
                     ) : (
                       <IconCheck className="mr-1 size-3" />
                     )}
-                    Apply to all
+                    {t("backgrounds.applyToAll")}
                   </Button>
                   {/* Clear staged file selections */}
                   {(applyAllIgFile || applyAllYtFile) && !applyingAll && (
@@ -2195,7 +2370,7 @@ export function DesignFieldsEditor({
                       }}
                       className="text-[11px] text-muted-foreground hover:text-foreground"
                     >
-                      Clear
+                      {t("backgrounds.clear")}
                     </button>
                   )}
                 </div>
@@ -2229,7 +2404,7 @@ export function DesignFieldsEditor({
             <div className="rounded-md border bg-card p-3">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-medium text-foreground">
-                  Connected columns
+                  {t("palette.heading")}
                 </p>
                 <Button
                   type="button"
@@ -2240,7 +2415,7 @@ export function DesignFieldsEditor({
                   disabled={!canManage}
                 >
                   <IconTextSize className="mr-1 size-3" />
-                  + Add text
+                  {t("palette.addText")}
                 </Button>
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -2255,7 +2430,7 @@ export function DesignFieldsEditor({
                           : "inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs text-muted-foreground"
                       }
                     >
-                      <span className="font-medium">{FIELD_LABELS[ft]}</span>
+                      <span className="font-medium">{fieldLabel(ft)}</span>
                       {placed ? (
                         <button
                           type="button"
@@ -2270,7 +2445,7 @@ export function DesignFieldsEditor({
                           }}
                           disabled={!canManage}
                           className="flex size-5 items-center justify-center rounded-full bg-muted p-0.5 hover:bg-destructive hover:text-destructive-foreground"
-                          aria-label={`Remove ${FIELD_LABELS[ft]}`}
+                          aria-label={t("palette.remove", { field: fieldLabel(ft) })}
                         >
                           <IconX className="size-2.5" />
                         </button>
@@ -2280,7 +2455,7 @@ export function DesignFieldsEditor({
                           onClick={() => addField(ft)}
                           disabled={!canManage}
                           className="font-bold text-primary px-1.5 py-0.5 -my-0.5 leading-none hover:text-primary/80"
-                          aria-label={`Add ${FIELD_LABELS[ft]}`}
+                          aria-label={t("palette.add", { field: fieldLabel(ft) })}
                         >
                           +
                         </button>
@@ -2291,8 +2466,7 @@ export function DesignFieldsEditor({
               </div>
               {fields.length === 0 && (
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Click + on a stat to add it as a column. Drag the green handle
-                  on the canvas to set its X position per column group.
+                  {t("palette.empty")}
                 </p>
               )}
             </div>
@@ -2354,12 +2528,12 @@ export function DesignFieldsEditor({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={bgUrl}
-                    alt="Design background"
+                    alt={t("canvas.backgroundAlt")}
                     className="pointer-events-none absolute inset-0 size-full object-cover"
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
-                    No background uploaded
+                    {t("canvas.noBackground")}
                   </div>
                 )}
 
@@ -2379,8 +2553,8 @@ export function DesignFieldsEditor({
                 ) : null}
                 {dsBoardHeader ? (
                   <BoardHeaderText
-                    title="EVENT NAME"
-                    subtitle="STAGE NAME"
+                    title={t("canvas.eventNamePlaceholder")}
+                    subtitle={t("canvas.stageNamePlaceholder")}
                     canvasH={canvasDims.h}
                     titleStyle={design.title_style}
                     subtitleStyle={design.subtitle_style}
@@ -2436,7 +2610,7 @@ export function DesignFieldsEditor({
                             zIndex: 10,
                             touchAction: "none",
                           }}
-                          title={`${FIELD_LABELS[field.field_type]} (group ${gi + 1})`}
+                          title={t("canvas.handleTitle", { field: fieldLabel(field.field_type), number: gi + 1 })}
                         >
                           {/* Thin 2px visual bar, centred inside the wide touch target. */}
                           <span
@@ -2456,18 +2630,17 @@ export function DesignFieldsEditor({
                               whiteSpace: "nowrap",
                             }}
                           >
-                            {FIELD_LABELS[field.field_type]}
+                            {fieldLabel(field.field_type)}
                           </span>
                         </div>
 
                         {/* Mock data cells (one per group row). */}
                         {Array.from({ length: grp.row_count }).map((_, ri) => {
                           const rankIdx = grp.start_rank - 1 + ri;
-                          // A booyah design previews its OWN row set (team then squad), so it is
-                          // bounded by the booyah slot count rather than the 16 mock teams.
-                          const mockLen = dsTypeIsBooyah
-                            ? MOCK_BOOYAH_SLOTS
-                            : MOCK_TEAMS.length;
+                          // A SCENE design previews its OWN row set - the booyah's team then squad,
+                          // a player board's ranked players, a head to head's two or three sides - so
+                          // it is bounded by that scene's slot count rather than the 16 mock teams.
+                          const mockLen = MOCK_ROW_COUNT[dsType] ?? MOCK_TEAMS.length;
                           if (rankIdx >= mockLen) return null;
                           const topPct =
                             grp.row_start_pct + ri * grp.row_height_pct;
@@ -2502,9 +2675,8 @@ export function DesignFieldsEditor({
                               />
                             );
                           }
-                          const cellText = dsTypeIsBooyah
-                            ? mockBooyahCellValue(rankIdx, field.field_type)
-                            : mockCellValue(rankIdx, field.field_type);
+                          const cellText = mockCellValueForType(
+                            dsType, rankIdx, field.field_type);
                           return (
                             <span
                               key={`${field.draftId}-r${ri}`}
@@ -2561,7 +2733,7 @@ export function DesignFieldsEditor({
                           : "1px dashed rgba(245,196,81,0.4)",
                         outlineOffset: 3,
                       }}
-                      title="Drag to reposition"
+                      title={t("canvas.dragText")}
                     >
                       {txt.text || "TEXT"}
                     </span>
@@ -2572,11 +2744,16 @@ export function DesignFieldsEditor({
 
             {/* ── §C Column groups editor ── */}
             <div className="rounded-md border bg-card p-3">
-              <div className="mb-2 flex items-center justify-between">
+              {/* flex-wrap (i18n, 2026-08-08): the heading sits beside two nowrap buttons, and in
+                  French/Portuguese ("Predefinição de 2 colunas" + "Adicionar grupo") that row needs
+                  398px against the 357px a 390px phone gives, which pushed the whole dialog into a
+                  horizontal scroll. Wrapping the row is the same idiom the size toggle and the page
+                  tabs above already use. English is unaffected: it still fits on one line. */}
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs font-medium text-foreground">
-                  Column groups
+                  {t("groups.heading")}
                   <span className="ml-1.5 text-muted-foreground">
-                    (row layout per group)
+                    {t("groups.subheading")}
                   </span>
                 </p>
                 <div className="flex items-center gap-1.5">
@@ -2587,9 +2764,9 @@ export function DesignFieldsEditor({
                     onClick={applyTwoGroupPreset}
                     disabled={!canManage}
                     className="h-7 text-xs"
-                    title="Apply Dynasty Cup 2-column preset (ranks 1-8 and 9-16)"
+                    title={t("groups.presetTitle")}
                   >
-                    2-column preset
+                    {t("groups.preset")}
                   </Button>
                   <Button
                     type="button"
@@ -2599,7 +2776,7 @@ export function DesignFieldsEditor({
                     disabled={!canManage}
                     className="h-7 text-xs"
                   >
-                    <IconPlus className="size-3" /> Add group
+                    <IconPlus className="size-3" /> {t("groups.add")}
                   </Button>
                 </div>
               </div>
@@ -2614,15 +2791,19 @@ export function DesignFieldsEditor({
                     >
                       <div className="mb-1.5 flex items-center justify-between">
                         <span className="font-medium text-foreground">
-                          Group {gi + 1}
-                          {gi === 0 ? " (green handles)" : gi === 1 ? " (gold handles)" : " (blue handles)"}
+                          {t("groups.name", { number: gi + 1 })}{" "}
+                          {gi === 0
+                            ? t("groups.handles.green")
+                            : gi === 1
+                            ? t("groups.handles.gold")
+                            : t("groups.handles.blue")}
                         </span>
                         {groups.length > 1 && canManage && (
                           <button
                             type="button"
                             onClick={() => removeGroup(gi)}
                             className="text-destructive hover:text-destructive/80"
-                            aria-label={`Remove group ${gi + 1}`}
+                            aria-label={t("groups.remove", { number: gi + 1 })}
                           >
                             <IconX className="size-3.5" />
                           </button>
@@ -2636,7 +2817,7 @@ export function DesignFieldsEditor({
                         <div className="mb-2 space-y-1.5">
                           <div className="flex items-center gap-2">
                             <span className="w-28 text-[11px] text-muted-foreground">
-                              All columns colour
+                              {t("groups.allColour")}
                             </span>
                             <input
                               type="color"
@@ -2647,19 +2828,19 @@ export function DesignFieldsEditor({
                               }
                               onChange={(e) => setGroupColor(gi, e.target.value)}
                               className="h-7 w-9 cursor-pointer rounded-md border bg-transparent p-1"
-                              aria-label={`Set colour for all columns in group ${gi + 1}`}
+                              aria-label={t("groups.allColourAria", { number: gi + 1 })}
                             />
                             <button
                               type="button"
                               onClick={() => setGroupColor(gi, "")}
                               className="text-[11px] text-muted-foreground hover:text-foreground"
                             >
-                              Reset
+                              {t("groups.reset")}
                             </button>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="w-28 text-[11px] text-muted-foreground">
-                              All columns font
+                              {t("groups.allFont")}
                             </span>
                             <Select
                               value={(() => {
@@ -2680,12 +2861,12 @@ export function DesignFieldsEditor({
                                     fields.find((f) => f.column_group === gi)?.font_id ?? null,
                                   ),
                                 }}
-                                aria-label={`Set font for all columns in group ${gi + 1}`}
+                                aria-label={t("groups.allFontAria", { number: gi + 1 })}
                               >
-                                <SelectValue placeholder="Default" />
+                                <SelectValue placeholder={t("style.fontDefault")} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="__default__">Default</SelectItem>
+                                <SelectItem value="__default__">{t("style.fontDefault")}</SelectItem>
                                 {/* Each option in its own typeface = a live preview of the font. */}
                                 {fonts.map((ft) => (
                                   <SelectItem
@@ -2708,7 +2889,7 @@ export function DesignFieldsEditor({
                       {gi >= 1 && (
                         <div className="mb-2">
                           <p className="mb-1 text-[11px] text-muted-foreground">
-                            Columns in this group
+                            {t("groups.columnsInGroup")}
                           </p>
                           <div className="flex flex-wrap gap-1">
                             {FIELD_ORDER.map((ft) => {
@@ -2723,7 +2904,7 @@ export function DesignFieldsEditor({
                                   }
                                 >
                                   <span className="font-medium">
-                                    {FIELD_LABELS[ft]}
+                                    {fieldLabel(ft)}
                                   </span>
                                   {placed ? (
                                     <button
@@ -2739,7 +2920,7 @@ export function DesignFieldsEditor({
                                       }}
                                       disabled={!canManage}
                                       className="flex size-5 items-center justify-center rounded-full bg-muted p-0.5 hover:bg-destructive hover:text-destructive-foreground"
-                                      aria-label={`Remove ${FIELD_LABELS[ft]} from group ${gi + 1}`}
+                                      aria-label={t("groups.removeFromGroup", { field: fieldLabel(ft), number: gi + 1 })}
                                     >
                                       <IconX className="size-2.5" />
                                     </button>
@@ -2749,7 +2930,7 @@ export function DesignFieldsEditor({
                                       onClick={() => addField(ft, gi)}
                                       disabled={!canManage}
                                       className="font-bold text-primary px-1.5 py-0.5 -my-0.5 leading-none hover:text-primary/80"
-                                      aria-label={`Add ${FIELD_LABELS[ft]} to group ${gi + 1}`}
+                                      aria-label={t("groups.addToGroup", { field: fieldLabel(ft), number: gi + 1 })}
                                     >
                                       +
                                     </button>
@@ -2763,7 +2944,7 @@ export function DesignFieldsEditor({
                       <div className="grid grid-cols-2 gap-x-3 gap-y-2">
                         {/* Start rank */}
                         <div>
-                          <label className="text-muted-foreground">Start rank</label>
+                          <label className="text-muted-foreground">{t("groups.startRank")}</label>
                           <Input
                             type="number"
                             min={1}
@@ -2779,7 +2960,7 @@ export function DesignFieldsEditor({
                         </div>
                         {/* Row count */}
                         <div>
-                          <label className="text-muted-foreground">Row count</label>
+                          <label className="text-muted-foreground">{t("groups.rowCount")}</label>
                           <Input
                             type="number"
                             min={1}
@@ -2797,7 +2978,7 @@ export function DesignFieldsEditor({
                         {/* First row Y */}
                         <div className="col-span-2">
                           <div className="flex items-center justify-between">
-                            <label className="text-muted-foreground">First row Y</label>
+                            <label className="text-muted-foreground">{t("groups.firstRowY")}</label>
                             <span className="tabular-nums text-muted-foreground">
                               {grp.row_start_pct.toFixed(1)}%
                             </span>
@@ -2818,7 +2999,7 @@ export function DesignFieldsEditor({
                         {/* Row height */}
                         <div className="col-span-2">
                           <div className="flex items-center justify-between">
-                            <label className="text-muted-foreground">Row height</label>
+                            <label className="text-muted-foreground">{t("groups.rowHeight")}</label>
                             <span className="tabular-nums text-muted-foreground">
                               {grp.row_height_pct.toFixed(2)}%
                             </span>
@@ -2851,16 +3032,15 @@ export function DesignFieldsEditor({
             <div className="rounded-md border bg-card p-3">
               <p className="mb-2 text-xs font-medium text-foreground">
                 {selectedField
-                  ? `Style: ${FIELD_LABELS[selectedField.field_type]}`
+                  ? t("style.headingField", { field: fieldLabel(selectedField.field_type) })
                   : selectedText
-                  ? "Style: text element"
-                  : "Style panel"}
+                  ? t("style.headingText")
+                  : t("style.heading")}
               </p>
 
               {!selected && (
                 <p className="text-xs text-muted-foreground">
-                  Click a field handle or text element on the canvas to select
-                  and edit its style.
+                  {t("style.empty")}
                 </p>
               )}
 
@@ -2869,7 +3049,7 @@ export function DesignFieldsEditor({
                 <div className="space-y-3">
                   {/* Column group assignment */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Column group</Label>
+                    <Label className="text-xs">{t("style.columnGroup")}</Label>
                     <Select
                       value={String(selectedField.column_group)}
                       disabled={!canManage}
@@ -2885,7 +3065,7 @@ export function DesignFieldsEditor({
                       <SelectContent>
                         {groups.map((_, gi) => (
                           <SelectItem key={gi} value={String(gi)}>
-                            Group {gi + 1}
+                            {t("groups.name", { number: gi + 1 })}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -2894,7 +3074,7 @@ export function DesignFieldsEditor({
 
                   {/* Align */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Alignment</Label>
+                    <Label className="text-xs">{t("style.alignment")}</Label>
                     <div className="flex gap-1">
                       {(["left", "center", "right"] as TextAlign[]).map((a) => (
                         <button
@@ -2910,7 +3090,7 @@ export function DesignFieldsEditor({
                               : "flex-1 rounded-md border border-border py-1 text-xs text-muted-foreground hover:bg-muted"
                           }
                         >
-                          {a.charAt(0).toUpperCase() + a.slice(1)}
+                          {t(`style.align.${a}`)}
                         </button>
                       ))}
                     </div>
@@ -2918,7 +3098,7 @@ export function DesignFieldsEditor({
 
                   {/* Font */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Font</Label>
+                    <Label className="text-xs">{t("style.font")}</Label>
                     <Select
                       value={selectedField.font_id != null ? String(selectedField.font_id) : "__default__"}
                       disabled={!canManage || fontsLoading}
@@ -2934,10 +3114,10 @@ export function DesignFieldsEditor({
                         className="h-8 text-xs"
                         style={{ fontFamily: fontName(selectedField.font_id) }}
                       >
-                        <SelectValue placeholder="Default" />
+                        <SelectValue placeholder={t("style.fontDefault")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__default__">Default</SelectItem>
+                        <SelectItem value="__default__">{t("style.fontDefault")}</SelectItem>
                         {fonts.map((f) => (
                           <SelectItem
                             key={f.id}
@@ -2954,7 +3134,7 @@ export function DesignFieldsEditor({
                   {/* Font size (% of canvas height) */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs">Font size</Label>
+                      <Label className="text-xs">{t("style.fontSize")}</Label>
                       <span className="text-xs tabular-nums text-muted-foreground">
                         {(selectedField.font_size_pct ?? 2.1).toFixed(1)}%
                       </span>
@@ -2976,9 +3156,9 @@ export function DesignFieldsEditor({
                   {/* Colour (empty = design default) */}
                   <div className="space-y-1.5">
                     <Label className="text-xs">
-                      Colour
+                      {t("style.colour")}
                       <span className="ml-1 text-muted-foreground">
-                        (blank = design default)
+                        {t("style.colourBlank")}
                       </span>
                     </Label>
                     <div className="flex items-center gap-2">
@@ -2992,7 +3172,7 @@ export function DesignFieldsEditor({
                           })
                         }
                         className="h-8 w-10 cursor-pointer rounded-md border bg-transparent p-1"
-                        aria-label="Field colour"
+                        aria-label={t("style.fieldColourAria")}
                       />
                       <Button
                         type="button"
@@ -3004,14 +3184,14 @@ export function DesignFieldsEditor({
                           updateField(selectedField.draftId, { color: "" })
                         }
                       >
-                        Reset
+                        {t("style.reset")}
                       </Button>
                     </div>
                   </div>
 
                   {/* X position readout (drag handle is canonical; number input for fine-tuning) */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">X position (%)</Label>
+                    <Label className="text-xs">{t("style.xPosition")}</Label>
                     <Input
                       type="number"
                       min={0}
@@ -3035,10 +3215,10 @@ export function DesignFieldsEditor({
                       one click via apply-field-enablement-to-all. */}
                   <div className="space-y-2 rounded-md border border-border bg-muted/30 p-2.5">
                     <p className="text-[0.7rem] font-medium text-foreground">
-                      Shown on (per size)
+                      {t("style.shownOn")}
                     </p>
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs">Instagram</Label>
+                      <Label className="text-xs">{t("style.instagram")}</Label>
                       <Switch
                         checked={selectedField.show_instagram}
                         disabled={!canManage}
@@ -3048,7 +3228,7 @@ export function DesignFieldsEditor({
                       />
                     </div>
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs">YouTube</Label>
+                      <Label className="text-xs">{t("style.youtube")}</Label>
                       <Switch
                         checked={selectedField.show_youtube}
                         disabled={!canManage}
@@ -3065,9 +3245,9 @@ export function DesignFieldsEditor({
                         className="h-7 w-full text-xs"
                         disabled={selectedField.pending}
                         onClick={() => applyFieldToAll(selectedField.draftId)}
-                        title="Show this column on both Instagram and YouTube (and on every page)"
+                        title={t("style.applyToAllTitle")}
                       >
-                        Apply to all
+                        {t("style.applyToAll")}
                       </Button>
                     )}
                   </div>
@@ -3082,7 +3262,7 @@ export function DesignFieldsEditor({
                       onClick={() => removeField(selectedField.draftId)}
                     >
                       <IconTrash className="mr-1 size-3.5" />
-                      Remove column
+                      {t("style.removeColumn")}
                     </Button>
                   )}
                 </div>
@@ -3093,21 +3273,21 @@ export function DesignFieldsEditor({
                 <div className="space-y-3">
                   {/* Content */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Text content</Label>
+                    <Label className="text-xs">{t("style.textContent")}</Label>
                     <Input
                       value={selectedText.text}
                       disabled={!canManage}
                       onChange={(e) =>
                         updateText(selectedText.draftId, { text: e.target.value })
                       }
-                      placeholder="Type your text..."
+                      placeholder={t("style.textPlaceholder")}
                       className="h-8 text-xs"
                     />
                   </div>
 
                   {/* Align */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Alignment</Label>
+                    <Label className="text-xs">{t("style.alignment")}</Label>
                     <div className="flex gap-1">
                       {(["left", "center", "right"] as TextAlign[]).map((a) => (
                         <button
@@ -3123,7 +3303,7 @@ export function DesignFieldsEditor({
                               : "flex-1 rounded-md border border-border py-1 text-xs text-muted-foreground hover:bg-muted"
                           }
                         >
-                          {a.charAt(0).toUpperCase() + a.slice(1)}
+                          {t(`style.align.${a}`)}
                         </button>
                       ))}
                     </div>
@@ -3131,7 +3311,7 @@ export function DesignFieldsEditor({
 
                   {/* Font */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Font</Label>
+                    <Label className="text-xs">{t("style.font")}</Label>
                     <Select
                       value={selectedText.font_id != null ? String(selectedText.font_id) : "__default__"}
                       disabled={!canManage || fontsLoading}
@@ -3147,10 +3327,10 @@ export function DesignFieldsEditor({
                         className="h-8 text-xs"
                         style={{ fontFamily: fontName(selectedText.font_id) }}
                       >
-                        <SelectValue placeholder="Default" />
+                        <SelectValue placeholder={t("style.fontDefault")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__default__">Default</SelectItem>
+                        <SelectItem value="__default__">{t("style.fontDefault")}</SelectItem>
                         {fonts.map((f) => (
                           <SelectItem
                             key={f.id}
@@ -3167,7 +3347,7 @@ export function DesignFieldsEditor({
                   {/* Font size */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs">Font size</Label>
+                      <Label className="text-xs">{t("style.fontSize")}</Label>
                       <span className="text-xs tabular-nums text-muted-foreground">
                         {(selectedText.font_size_pct ?? 5).toFixed(1)}%
                       </span>
@@ -3188,7 +3368,7 @@ export function DesignFieldsEditor({
 
                   {/* Colour */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Colour</Label>
+                    <Label className="text-xs">{t("style.colour")}</Label>
                     <input
                       type="color"
                       value={selectedText.color || "#ffffff"}
@@ -3197,14 +3377,14 @@ export function DesignFieldsEditor({
                         updateText(selectedText.draftId, { color: e.target.value })
                       }
                       className="h-8 w-10 cursor-pointer rounded-md border bg-transparent p-1"
-                      aria-label="Text colour"
+                      aria-label={t("style.textColourAria")}
                     />
                   </div>
 
                   {/* Position readouts */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">X (%)</Label>
+                      <Label className="text-xs">{t("style.x")}</Label>
                       <Input
                         type="number"
                         min={0}
@@ -3221,7 +3401,7 @@ export function DesignFieldsEditor({
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Y (%)</Label>
+                      <Label className="text-xs">{t("style.y")}</Label>
                       <Input
                         type="number"
                         min={0}
@@ -3249,7 +3429,7 @@ export function DesignFieldsEditor({
                       onClick={() => removeText(selectedText.draftId)}
                     >
                       <IconTrash className="mr-1 size-3.5" />
-                      Delete text
+                      {t("style.deleteText")}
                     </Button>
                   )}
                 </div>
@@ -3261,7 +3441,7 @@ export function DesignFieldsEditor({
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-medium text-foreground">
                   <IconTypography className="mr-1 inline-block size-3.5" />
-                  Fonts
+                  {t("fonts.heading")}
                 </p>
                 {canManage && (
                   <Button
@@ -3277,7 +3457,7 @@ export function DesignFieldsEditor({
                     ) : (
                       <IconUpload className="mr-1 size-3" />
                     )}
-                    Upload
+                    {t("fonts.upload")}
                   </Button>
                 )}
                 <input
@@ -3292,11 +3472,10 @@ export function DesignFieldsEditor({
                 />
               </div>
               {fontsLoading ? (
-                <p className="text-xs text-muted-foreground">Loading fonts...</p>
+                <p className="text-xs text-muted-foreground">{t("fonts.loading")}</p>
               ) : fonts.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  No custom fonts yet. Upload a TTF or OTF file to use it in
-                  field columns and text elements.
+                  {t("fonts.empty")}
                 </p>
               ) : (
                 <div className="space-y-1">
@@ -3313,7 +3492,7 @@ export function DesignFieldsEditor({
                           type="button"
                           onClick={() => handleFontDelete(f)}
                           className="ml-2 text-muted-foreground hover:text-destructive"
-                          aria-label={`Delete font ${f.name}`}
+                          aria-label={t("fonts.delete", { name: f.name })}
                         >
                           <IconX className="size-3.5" />
                         </button>
@@ -3333,17 +3512,17 @@ export function DesignFieldsEditor({
             {saveStatus === "saving" && (
               <>
                 <IconLoader2 className="mr-1 inline size-3 animate-spin" />
-                Saving...
+                {t("save.saving")}
               </>
             )}
-            {saveStatus === "saved" && "All changes saved"}
+            {saveStatus === "saved" && t("save.saved")}
             {saveStatus === "error" && (
-              <span className="text-destructive">Save failed. It retries on your next change.</span>
+              <span className="text-destructive">{t("save.failed")}</span>
             )}
-            {saveStatus === "idle" && "Changes save automatically"}
+            {saveStatus === "idle" && t("save.idle")}
           </span>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {t("close")}
           </Button>
         </DialogFooter>
       </DialogContent>

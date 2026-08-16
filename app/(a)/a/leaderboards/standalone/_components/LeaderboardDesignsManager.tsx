@@ -25,6 +25,13 @@
 //
 // Design: AFC constants - rounded-md card, text-xs table, outline rounded-full badges, sonner toasts.
 // No em/en dashes.
+//
+// i18n (owner override: admin surfaces ARE in scope): every string here resolves through the
+// "adminDesignEditor" namespace, the SAME one DesignFieldsEditor uses. One namespace for the whole
+// design library on purpose - this card is the DOOR into that editor, and translating the editor
+// while its door stayed English is exactly the half-done state this pass closes. English is authored
+// in messages/en/adminDesignEditor.json; fr and pt are hand-written and pinned by their
+// .adminDesignEditor.source.json sidecars so a later `pnpm i18n:translate` cannot overwrite them.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -34,6 +41,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -85,6 +93,10 @@ import {
 } from "@tabler/icons-react";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Loader } from "@/components/Loader";
+// The shared self-expiring NEW tag. Used on the design-TYPE options that appear in this dialog's
+// picker for the first time on 2026-08-16 (the shipping date, not the day the code was written);
+// it removes itself 5 days later with nothing to clean up.
+import { NewBadge } from "@/components/NewBadge";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; the design LIBRARY LIST re-fetches
 // on each tick (and on tab return). Only the read-only table refreshes - the create/edit
 // dialog and the fields editor keep their own working state, so nothing mid-edit is touched.
@@ -175,6 +187,16 @@ export function LeaderboardDesignsManager({
   // (member without can_submit_designs) sees the list but no mutation buttons.
   canManage: boolean;
 }) {
+  // Everything this card shows. Scoped to the "manager" sub-block so the calls read t("add") rather
+  // than t("manager.add"); the design-TYPE labels are shared with the editor's own picker, so those
+  // few come from the namespace root via `tRoot` below instead of being written twice.
+  const t = useTranslations("adminDesignEditor.manager");
+  const tRoot = useTranslations("adminDesignEditor");
+  // The create/edit dialog and the delete confirmation each get their own scope, so a long JSX
+  // block reads tDlg("preview") instead of t("dialog.preview").
+  const tDlg = useTranslations("adminDesignEditor.manager.dialog");
+  const tDel = useTranslations("adminDesignEditor.manager.deleteDialog");
+
   const [designs, setDesigns] = useState<LeaderboardDesign[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -224,12 +246,14 @@ export function LeaderboardDesignsManager({
       setDesigns(res?.results ?? []);
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to load leaderboard designs.",
+        err?.response?.data?.message || t("loadFailed"),
       );
     } finally {
       setLoading(false);
     }
-  }, [organizationId]);
+    // `t` is memoised by use-intl, so adding it keeps this callback's identity stable (the live-tick
+    // effect below re-runs on it).
+  }, [organizationId, t]);
 
   // Live refresh (owner 2026-07-02): re-run the read-only list fetch on the site-wide tick
   // (tick 0 = the normal first load with the loading state).
@@ -354,7 +378,7 @@ export function LeaderboardDesignsManager({
   const handleBgFile = (size: "ig" | "yt", file?: File) => {
     if (!file) return;
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      toast.error("Only PNG, JPG, JPEG, or WEBP files are supported.");
+      toast.error(t("invalidImage"));
       return;
     }
     const url = URL.createObjectURL(file);
@@ -371,7 +395,7 @@ export function LeaderboardDesignsManager({
   const handleLogoFile = (file?: File) => {
     if (!file) return;
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      toast.error("Only PNG, JPG, JPEG, or WEBP files are supported.");
+      toast.error(t("invalidImage"));
       return;
     }
     const draft: LogoDraft = {
@@ -403,7 +427,7 @@ export function LeaderboardDesignsManager({
   // it never re-POSTs an already-created logo or re-creates the design (which would duplicate).
   const onSubmit = () => {
     if (!form.name.trim()) {
-      toast.error("A design name is required.");
+      toast.error(t("nameRequired"));
       return;
     }
     startSave(async () => {
@@ -495,7 +519,7 @@ export function LeaderboardDesignsManager({
 
         // success: reclaim any staged blobs, reset, reload.
         revokeFormBlobs(form);
-        toast.success(editing ? "Design updated." : "Design created.");
+        toast.success(editing ? t("updated") : t("created"));
         setDialogOpen(false);
         setEditing(null);
         setForm(EMPTY_FORM);
@@ -506,7 +530,7 @@ export function LeaderboardDesignsManager({
         setEditing(createdEditing);
         originalLogosRef.current = original;
         toast.error(
-          err?.response?.data?.message || "Failed to save the design.",
+          err?.response?.data?.message || t("saveFailed"),
         );
       }
     });
@@ -524,11 +548,11 @@ export function LeaderboardDesignsManager({
     setCreatingDefault(preset);
     try {
       const res = await leaderboardDesignsApi.createDefault(preset, organizationId);
-      toast.success(`Created "${res.design.name}".`);
+      toast.success(t("defaultCreated", { name: res.design.name }));
       load();
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to create the default design.",
+        err?.response?.data?.message || t("defaultCreateFailed"),
       );
     } finally {
       setCreatingDefault(null);
@@ -541,12 +565,12 @@ export function LeaderboardDesignsManager({
     setDeleting(true);
     try {
       await leaderboardDesignsApi.remove(deleteTarget.id);
-      toast.success(`Deleted "${deleteTarget.name}".`);
+      toast.success(t("deleted", { name: deleteTarget.name }));
       setDeleteTarget(null);
       load();
     } catch (err: any) {
       toast.error(
-        err?.response?.data?.message || "Failed to delete the design.",
+        err?.response?.data?.message || t("deleteFailed"),
       );
     } finally {
       setDeleting(false);
@@ -561,11 +585,8 @@ export function LeaderboardDesignsManager({
       <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
         <CardTitle className="flex items-center text-base">
           <IconPalette className="mr-1.5 size-4" />
-          Leaderboard designs
-          <InfoTip
-            text="Branded backgrounds for exported leaderboards. Upload Instagram and YouTube backgrounds, set colours, and drag logos onto the design. When you export a leaderboard you pick one of these; the default is selected automatically."
-            className="ml-1.5"
-          />
+          {t("heading")}
+          <InfoTip text={t("info")} className="ml-1.5" />
         </CardTitle>
         {canManage && (
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -574,7 +595,7 @@ export function LeaderboardDesignsManager({
                 refreshes the list. Handy starting point that stays fully editable afterwards. */}
             <div className="flex items-center gap-1.5">
               <span className="hidden text-xs text-muted-foreground sm:inline">
-                Create default AFC design
+                {t("createDefault")}
               </span>
               {([12, 15, 24] as const).map((preset) => (
                 <Button
@@ -585,10 +606,10 @@ export function LeaderboardDesignsManager({
                   onClick={() => handleCreateDefault(preset)}
                   title={
                     preset === 24
-                      ? "AFC default: more than 15 teams (two 12-row columns, 24 capacity)"
-                      : `AFC default: ${preset} teams (one column)`
+                      ? t("createDefaultTitleLarge")
+                      : t("createDefaultTitle", { count: preset })
                   }
-                  aria-label={`Create AFC default design for ${preset} teams`}
+                  aria-label={t("createDefaultAria", { count: preset })}
                 >
                   {creatingDefault === preset ? (
                     <IconLoader2 className="size-4 animate-spin" />
@@ -599,7 +620,7 @@ export function LeaderboardDesignsManager({
               ))}
             </div>
             <Button size="sm" onClick={openCreate}>
-              <IconPlus className="size-4" /> Add design
+              <IconPlus className="size-4" /> {t("add")}
             </Button>
           </div>
         )}
@@ -607,19 +628,17 @@ export function LeaderboardDesignsManager({
       <CardContent>
         {loading ? (
           <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
-            Loading designs...
+            {t("loading")}
           </div>
         ) : designs.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
             <div className="flex size-12 items-center justify-center rounded-md bg-primary/10 text-primary">
               <IconPhoto className="size-6" />
             </div>
-            <p className="text-sm text-muted-foreground">
-              No designs yet. Add one to brand your exported leaderboards.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("empty")}</p>
             {canManage && (
               <Button variant="outline" size="sm" onClick={openCreate}>
-                Add your first design
+                {t("addFirst")}
               </Button>
             )}
           </div>
@@ -628,10 +647,10 @@ export function LeaderboardDesignsManager({
             <Table>
               <TableHeader>
                 <TableRow className="h-10">
-                  <TableHead className="p-2 text-xs text-foreground">Name</TableHead>
-                  <TableHead className="p-2 text-xs text-foreground">Sizes</TableHead>
-                  <TableHead className="p-2 text-xs text-foreground">Logos</TableHead>
-                  <TableHead className="p-2 text-xs text-foreground">Colours</TableHead>
+                  <TableHead className="p-2 text-xs text-foreground">{t("columnName")}</TableHead>
+                  <TableHead className="p-2 text-xs text-foreground">{t("columnSizes")}</TableHead>
+                  <TableHead className="p-2 text-xs text-foreground">{t("columnLogos")}</TableHead>
+                  <TableHead className="p-2 text-xs text-foreground">{t("columnColours")}</TableHead>
                   <TableHead className="p-2 text-xs text-foreground"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -646,7 +665,7 @@ export function LeaderboardDesignsManager({
                             variant="outline"
                             className="rounded-full border-primary px-2 py-0.5 text-xs text-primary"
                           >
-                            <IconStar className="mr-0.5 size-3" /> Default
+                            <IconStar className="mr-0.5 size-3" /> {t("defaultBadge")}
                           </Badge>
                         )}
                       </div>
@@ -661,7 +680,7 @@ export function LeaderboardDesignsManager({
                               : "rounded-full border-muted-foreground px-2 py-0.5 text-xs text-muted-foreground"
                           }
                         >
-                          IG {d.background_instagram ? "set" : "none"}
+                          {d.background_instagram ? t("igSet") : t("igNone")}
                         </Badge>
                         <Badge
                           variant="outline"
@@ -671,7 +690,7 @@ export function LeaderboardDesignsManager({
                               : "rounded-full border-muted-foreground px-2 py-0.5 text-xs text-muted-foreground"
                           }
                         >
-                          YT {d.background_youtube ? "set" : "none"}
+                          {d.background_youtube ? t("ytSet") : t("ytNone")}
                         </Badge>
                       </div>
                     </TableCell>
@@ -684,12 +703,12 @@ export function LeaderboardDesignsManager({
                         <span
                           className="inline-block size-4 rounded-full border"
                           style={{ backgroundColor: d.text_color }}
-                          title={`Text ${d.text_color}`}
+                          title={t("textSwatch", { colour: d.text_color })}
                         />
                         <span
                           className="inline-block size-4 rounded-full border"
                           style={{ backgroundColor: d.accent_color }}
-                          title={`Accent ${d.accent_color}`}
+                          title={t("accentSwatch", { colour: d.accent_color })}
                         />
                       </div>
                     </TableCell>
@@ -704,14 +723,14 @@ export function LeaderboardDesignsManager({
                           <Button
                             variant="outline"
                             size="sm"
-                            aria-label={`Duplicate ${d.name}`}
+                            aria-label={t("duplicate", { name: d.name })}
                             onClick={async () => {
                               try {
                                 const copy = await leaderboardDesignsApi.duplicate(d.id);
-                                toast.success(`Duplicated as "${copy.name}".`);
+                                toast.success(t("duplicated", { name: copy.name }));
                                 load();
                               } catch {
-                                toast.error("Could not duplicate the design.");
+                                toast.error(t("duplicateFailed"));
                               }
                             }}
                           >
@@ -722,8 +741,8 @@ export function LeaderboardDesignsManager({
                             variant="outline"
                             size="sm"
                             onClick={() => setFieldsEditorDesign(d)}
-                            aria-label={`Edit fields and text for ${d.name}`}
-                            title="Edit fields and text"
+                            aria-label={t("editFieldsFor", { name: d.name })}
+                            title={t("editFields")}
                           >
                             <IconTableColumn className="size-4" />
                           </Button>
@@ -732,7 +751,7 @@ export function LeaderboardDesignsManager({
                             size="sm"
                             className="text-destructive hover:text-destructive"
                             onClick={() => setDeleteTarget(d)}
-                            aria-label={`Delete ${d.name}`}
+                            aria-label={t("delete", { name: d.name })}
                           >
                             <IconTrash className="size-4" />
                           </Button>
@@ -766,19 +785,17 @@ export function LeaderboardDesignsManager({
           style={{ maxWidth: "min(920px, calc(100% - 2rem))" }}
         >
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit design" : "Add design"}</DialogTitle>
-            <DialogDescription>
-              Upload a background per size, set the colours, and drag your logos onto
-              the preview. The standings, title, and stage/group line render on top
-              when you export a leaderboard.
-            </DialogDescription>
+            <DialogTitle>
+              {editing ? tDlg("titleEdit") : tDlg("titleAdd")}
+            </DialogTitle>
+            <DialogDescription>{tDlg("description")}</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-5 md:grid-cols-2">
             {/* ── Left: live preview + logo controls ── */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label>Preview</Label>
+                <Label>{tDlg("preview")}</Label>
                 {/* Size toggle: positions are percent-based so they carry across both. */}
                 <div className="flex overflow-hidden rounded-md border text-xs">
                   {(["instagram", "youtube"] as GraphicSize[]).map((s) => (
@@ -811,14 +828,15 @@ export function LeaderboardDesignsManager({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={previewBg}
-                    alt="Background preview"
+                    alt={tDlg("backgroundAlt")}
                     className="pointer-events-none absolute inset-0 size-full object-cover"
                   />
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center px-3 text-center text-xs text-muted-foreground">
-                    No {previewSize === "instagram" ? "Instagram" : "YouTube"}{" "}
-                    background uploaded. Logos still position over a plain dark
-                    background.
+                    {/* {size} is the platform's own brand name, so it stays untranslated. */}
+                    {tDlg("noBackground", {
+                      size: previewSize === "instagram" ? "Instagram" : "YouTube",
+                    })}
                   </div>
                 )}
 
@@ -838,12 +856,12 @@ export function LeaderboardDesignsManager({
                         height: px,
                         transform: "translate(-50%, -50%)",
                       }}
-                      title="Drag to position"
+                      title={tDlg("dragLogo")}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={lg.url}
-                        alt="Logo"
+                        alt={tDlg("logoAlt")}
                         className="pointer-events-none size-full object-contain"
                       />
                     </div>
@@ -856,9 +874,9 @@ export function LeaderboardDesignsManager({
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs">
-                    Logos{" "}
+                    {tDlg("logos")}{" "}
                     <span className="text-muted-foreground">
-                      (drag on the preview to position)
+                      {tDlg("logosHint")}
                     </span>
                   </Label>
                   <Button
@@ -867,13 +885,12 @@ export function LeaderboardDesignsManager({
                     size="sm"
                     onClick={() => logoInputRef.current?.click()}
                   >
-                    <IconPlus className="size-4" /> Add logo
+                    <IconPlus className="size-4" /> {tDlg("addLogo")}
                   </Button>
                 </div>
                 {form.logos.length === 0 ? (
                   <p className="text-xs text-muted-foreground">
-                    No logos yet. Add one to brand the design; if you add none, the
-                    org logo is used top-left by default.
+                    {tDlg("noLogos")}
                   </p>
                 ) : (
                   <div className="space-y-1.5">
@@ -886,7 +903,7 @@ export function LeaderboardDesignsManager({
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={lg.url}
-                            alt="Logo"
+                            alt={tDlg("logoAlt")}
                             className="size-full object-contain"
                           />
                         </div>
@@ -898,9 +915,9 @@ export function LeaderboardDesignsManager({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="small">Small</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="large">Large</SelectItem>
+                            <SelectItem value="small">{tDlg("logoSmall")}</SelectItem>
+                            <SelectItem value="medium">{tDlg("logoMedium")}</SelectItem>
+                            <SelectItem value="large">{tDlg("logoLarge")}</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button
@@ -909,7 +926,7 @@ export function LeaderboardDesignsManager({
                           size="sm"
                           className="text-destructive hover:text-destructive"
                           onClick={() => removeLogo(lg.key)}
-                          aria-label="Remove logo"
+                          aria-label={tDlg("removeLogo")}
                         >
                           <IconX className="size-4" />
                         </Button>
@@ -934,22 +951,22 @@ export function LeaderboardDesignsManager({
             <div className="space-y-4">
               {/* Name (required). */}
               <div className="space-y-2">
-                <Label htmlFor="design-name">Name</Label>
+                <Label htmlFor="design-name">{tDlg("name")}</Label>
                 <Input
                   id="design-name"
                   value={form.name}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, name: e.target.value }))
                   }
-                  placeholder="e.g. Season 3 theme"
+                  placeholder={tDlg("namePlaceholder")}
                 />
               </div>
 
               {/* Backgrounds. */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <BackgroundField
-                  label="Instagram background"
-                  hint="1080 x 1350"
+                  label={tDlg("backgroundInstagram")}
+                  hint={tDlg("backgroundInstagramHint")}
                   aspectClass="aspect-[4/5]"
                   preview={form.igPreview}
                   inputRef={igInputRef}
@@ -962,8 +979,8 @@ export function LeaderboardDesignsManager({
                   }
                 />
                 <BackgroundField
-                  label="YouTube background"
-                  hint="1920 x 1080"
+                  label={tDlg("backgroundYoutube")}
+                  hint={tDlg("backgroundYoutubeHint")}
                   aspectClass="aspect-video"
                   preview={form.ytPreview}
                   inputRef={ytInputRef}
@@ -980,7 +997,7 @@ export function LeaderboardDesignsManager({
               {/* Colours. */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Text colour</Label>
+                  <Label>{tDlg("textColour")}</Label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -989,7 +1006,7 @@ export function LeaderboardDesignsManager({
                         setForm((f) => ({ ...f, textColor: e.target.value }))
                       }
                       className="h-9 w-12 cursor-pointer rounded-md border bg-transparent p-1"
-                      aria-label="Text colour"
+                      aria-label={tDlg("textColour")}
                     />
                     <span className="text-xs text-muted-foreground">
                       {form.textColor}
@@ -997,7 +1014,7 @@ export function LeaderboardDesignsManager({
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Accent colour</Label>
+                  <Label>{tDlg("accentColour")}</Label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -1006,7 +1023,7 @@ export function LeaderboardDesignsManager({
                         setForm((f) => ({ ...f, accentColor: e.target.value }))
                       }
                       className="h-9 w-12 cursor-pointer rounded-md border bg-transparent p-1"
-                      aria-label="Accent colour"
+                      aria-label={tDlg("accentColour")}
                     />
                     <span className="text-xs text-muted-foreground">
                       {form.accentColor}
@@ -1017,7 +1034,7 @@ export function LeaderboardDesignsManager({
 
               {/* Max rows. */}
               <div className="space-y-2">
-                <Label htmlFor="design-rows">Max rows</Label>
+                <Label htmlFor="design-rows">{tDlg("maxRows")}</Label>
                 <Input
                   id="design-rows"
                   type="number"
@@ -1043,9 +1060,9 @@ export function LeaderboardDesignsManager({
                     elements in the fields editor for headers (WYSIWYG, full styling). */}
                 <div className="flex items-center justify-between">
                   <Label htmlFor="design-default" className="font-normal">
-                    Set as default
+                    {tDlg("setDefault")}
                     <span className="ml-1 text-xs text-muted-foreground">
-                      (auto-selected on export)
+                      {tDlg("setDefaultHint")}
                     </span>
                   </Label>
                   <Switch
@@ -1063,9 +1080,9 @@ export function LeaderboardDesignsManager({
                     design.transparent_background. */}
                 <div className="flex items-center justify-between">
                   <Label htmlFor="design-transparent" className="font-normal">
-                    Transparent background
+                    {tDlg("transparent")}
                     <span className="ml-1 text-xs text-muted-foreground">
-                      (for live overlay)
+                      {tDlg("transparentHint")}
                     </span>
                   </Label>
                   <Switch
@@ -1081,9 +1098,9 @@ export function LeaderboardDesignsManager({
                     stat rows each competitor slot shows (design.versus_config.stat_keys). */}
                 <div className="flex items-center justify-between gap-3">
                   <Label className="font-normal">
-                    Design type
+                    {tDlg("designType")}
                     <span className="ml-1 text-xs text-muted-foreground">
-                      (leaderboard or head-to-head)
+                      {tDlg("designTypeHint")}
                     </span>
                   </Label>
                   <Select
@@ -1094,17 +1111,57 @@ export function LeaderboardDesignsManager({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="leaderboard">Leaderboard</SelectItem>
-                      <SelectItem value="versus">Versus (head-to-head)</SelectItem>
+                      {/* The SAME six types the fields editor offers, and the same labels, read
+                          from the namespace root so the two pickers cannot drift apart. This list
+                          used to stop at "versus", so a design meant for a live scene had to be
+                          created here and then re-typed inside the editor. Backed by
+                          afc_organizers.views_leaderboard_design.DESIGN_TYPES; anything outside
+                          that set falls back to "leaderboard" server-side.
+                          NEW tags: four options appear in THIS picker for the first time on
+                          2026-08-16 (booyah included, because it was only ever offered inside the
+                          editor before) and nothing else on the row would draw the eye to them.
+                          They remove themselves 5 days on. */}
+                      <SelectItem value="leaderboard">
+                        {tRoot("settings.typeLeaderboard")}
+                      </SelectItem>
+                      <SelectItem value="versus">
+                        {tRoot("settings.typeVersus")}
+                      </SelectItem>
+                      <SelectItem value="booyah">
+                        <span className="flex items-center gap-2">
+                          {tRoot("settings.typeBooyah")}
+                          <NewBadge since="2026-08-16" />
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="mvp">
+                        <span className="flex items-center gap-2">
+                          {tRoot("settings.typeMvp")}
+                          <NewBadge since="2026-08-16" />
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="top_killers">
+                        <span className="flex items-center gap-2">
+                          {tRoot("settings.typeTopKillers")}
+                          <NewBadge since="2026-08-16" />
+                        </span>
+                      </SelectItem>
+                      <SelectItem value="h2h">
+                        <span className="flex items-center gap-2">
+                          {tRoot("settings.typeH2h")}
+                          <NewBadge since="2026-08-16" />
+                        </span>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+                {/* Where a non-leaderboard type actually gets laid out. "versus" keeps its own
+                    wording because it is the odd one out: its slots and stat rows are a separate
+                    control set, whereas the four scene types are laid out with the ordinary
+                    columns. Both point at the same place, the fields and text editor. */}
                 {form.designType === "versus" ? (
-                  <p className="text-xs text-muted-foreground">
-                    Place the competitor slots and pick the stat rows in the fields &amp; text
-                    editor (the pencil-canvas button on the design card) - everything visual now
-                    lives there, on the full-size canvas.
-                  </p>
+                  <p className="text-xs text-muted-foreground">{tDlg("versusHint")}</p>
+                ) : form.designType !== "leaderboard" ? (
+                  <p className="text-xs text-muted-foreground">{tDlg("sceneHint")}</p>
                 ) : null}
               </div>
             </div>
@@ -1116,15 +1173,15 @@ export function LeaderboardDesignsManager({
               disabled={saving}
               onClick={() => setDialogOpen(false)}
             >
-              Cancel
+              {tDlg("cancel")}
             </Button>
             <Button disabled={saving || !form.name.trim()} onClick={onSubmit}>
               {saving ? (
-                <Loader text="Saving..." />
+                <Loader text={tDlg("saving")} />
               ) : editing ? (
-                "Save changes"
+                tDlg("saveChanges")
               ) : (
-                "Create design"
+                tDlg("create")
               )}
             </Button>
           </DialogFooter>
@@ -1160,11 +1217,9 @@ export function LeaderboardDesignsManager({
         onOpenChange={(o) => !deleting && !o && setDeleteTarget(null)}
       >
         <DialogContent className="sm:max-w-[420px]">
-          <DialogTitle>Delete this design?</DialogTitle>
+          <DialogTitle>{tDel("title")}</DialogTitle>
           <DialogDescription>
-            {deleteTarget
-              ? `"${deleteTarget.name}" will be permanently removed. Leaderboards that used it will fall back to the default or a plain background. This cannot be undone.`
-              : ""}
+            {deleteTarget ? tDel("body", { name: deleteTarget.name }) : ""}
           </DialogDescription>
           <DialogFooter>
             <Button
@@ -1172,7 +1227,7 @@ export function LeaderboardDesignsManager({
               disabled={deleting}
               onClick={() => setDeleteTarget(null)}
             >
-              Cancel
+              {tDel("cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -1180,7 +1235,7 @@ export function LeaderboardDesignsManager({
               onClick={handleDelete}
             >
               {deleting && <IconLoader2 className="mr-1 size-4 animate-spin" />}
-              Delete
+              {tDel("confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1209,6 +1264,9 @@ function BackgroundField({
   onPick: (file?: File) => void;
   onClear: () => void;
 }) {
+  // `label` and `hint` arrive already translated from the caller (they name WHICH size this
+  // dropzone is for); only this component's own chrome is resolved here.
+  const t = useTranslations("adminDesignEditor.manager.dialog");
   return (
     <div className="space-y-2">
       <Label className="text-xs">
@@ -1224,9 +1282,9 @@ function BackgroundField({
             <IconPhoto size={16} className="text-primary" />
           </div>
           <p className="text-xs text-muted-foreground">
-            Drop or{" "}
+            {t("dropOr")}{" "}
             <span className="font-medium text-primary hover:underline">
-              browse
+              {t("browse")}
             </span>
           </p>
         </div>
@@ -1238,7 +1296,7 @@ function BackgroundField({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={preview}
-              alt={`${label} preview`}
+              alt={t("previewAlt", { label })}
               className="size-full object-cover"
             />
           </div>
@@ -1250,7 +1308,7 @@ function BackgroundField({
               className="flex-1"
               onClick={onClear}
             >
-              <IconX size={14} className="mr-1" /> Remove
+              <IconX size={14} className="mr-1" /> {t("remove")}
             </Button>
             <Button
               type="button"
@@ -1259,7 +1317,7 @@ function BackgroundField({
               className="flex-1"
               onClick={() => inputRef.current?.click()}
             >
-              <IconUpload size={14} className="mr-1" /> Replace
+              <IconUpload size={14} className="mr-1" /> {t("replace")}
             </Button>
           </div>
         </div>
