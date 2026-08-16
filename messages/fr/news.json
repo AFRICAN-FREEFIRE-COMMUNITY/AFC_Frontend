@@ -39,5 +39,40 @@
     "syncFailed": "Échec de la synchronisation des données d'actualités",
     "loginToVote": "Veuillez vous connecter pour voter",
     "actionFailed": "L'action a échoué"
+  },
+  "transfers": {
+    "categoryLabel": "Transferts",
+    "heading": "Transferts de joueurs",
+    "intro": "Les arrivées et les départs des joueurs, enregistrés automatiquement au fil des mouvements.",
+    "teamFilter": {
+      "all": "Toutes les équipes",
+      "placeholder": "Filtrer par équipe"
+    },
+    "entry": {
+      "joined": "<pl>{playerName}</pl> a rejoint <tm>{teamName}</tm>",
+      "left": "<pl>{playerName}</pl> a quitté <tm>{teamName}</tm>",
+      "asRole": "en tant que {role}"
+    },
+    "roles": {
+      "team_captain": "Capitaine d'équipe",
+      "vice_captain": "Vice-capitaine",
+      "member": "Joueur",
+      "coach": "Coach",
+      "manager": "Manager",
+      "analyst": "Analyste"
+    },
+    "window": {
+      "outside": "Période fermée",
+      "outsideHint": "Les changements d'effectif sont normalement gelés lorsque la période de transfert est fermée : ce mouvement sort donc de l'ordinaire.",
+      "inside": "Période de transfert"
+    },
+    "empty": {
+      "title": "Aucun transfert pour le moment",
+      "body": "Les mouvements apparaissent ici d'eux-mêmes, au fur et à mesure que des joueurs rejoignent ou quittent des équipes ayant déjà participé à une compétition.",
+      "bodyForTeam": "Cette équipe n'a encore aucun mouvement enregistré."
+    },
+    "loadMore": "Afficher plus",
+    "loading": "Chargement des transferts...",
+    "error": "Échec du chargement des transferts"
   }
 }
