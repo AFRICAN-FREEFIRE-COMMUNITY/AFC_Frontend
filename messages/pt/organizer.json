@@ -1470,7 +1470,16 @@
     "booyahDesignsGroup": "Designs booyah",
     "bannerDesignsGroup": "Outros designs (banner integrado)",
     "booyahDesignDriven": "Este design comanda toda a sobreposição. O que aparece é o que colocou nele, preenchido com a equipa vencedora e os seus jogadores.",
-    "booyahDesignHint": "Este design apenas define o fundo e as cores do banner integrado. Escolha um design booyah para controlar toda a disposição."
+    "booyahDesignHint": "Este design apenas define o fundo e as cores do banner integrado. Escolha um design booyah para controlar toda a disposição.",
+    "mvpDesignsGroup": "Designs MVP",
+    "topKillersDesignsGroup": "Designs dos melhores matadores",
+    "h2hDesignsGroup": "Designs de confronto direto",
+    "builtInDesignsGroup": "Outros designs (disposição integrada)",
+    "playerBoardDesignDriven": "Este design comanda toda a sobreposição. O que aparece é o que colocou nele, preenchido com os jogadores classificados, e as suas linhas decidem quantos deles aparecem.",
+    "playerBoardDesignHint": "Este design apenas define o fundo e as cores do quadro integrado. Escolha um design do mesmo tipo deste quadro para controlar toda a disposição.",
+    "h2hDesignDriven": "Este design comanda toda a sobreposição. O que aparece é o que colocou nele, preenchido com os concorrentes que escolheu, uma linha por lado.",
+    "h2hDesignHint": "Este design apenas define o fundo e as cores dos cartões integrados. Escolha um design de confronto direto para controlar toda a disposição.",
+    "h2hDesignBracket": "O modo chave desenha sempre a chave da fase, por isso este design apenas define o seu fundo e as suas cores."
   },
   "mediaAudit": {
     "title": "Meios de comunicação social",

@@ -81,6 +81,26 @@ export interface OverlayBooyahBoard {
   size: OverlaySize;
 }
 
+// ── Design-driven SCENE boards: MVP, top killers, head to head (owner 2026-08-08) ────────────────
+// The same move the booyah scene made on 2026-08-06, for the other three: instead of a hard-coded
+// layout, the poll ships the whole DESIGN plus the rows to pour into it, and the FE renders both
+// through DesignBoard - the very same component the live leaderboard overlay uses, so a scene board
+// and the leaderboard can never drift apart.
+//
+// This is field-for-field what OverlayBooyahBoard above carries; the two are kept as separate names
+// deliberately, because the container is the boring half. What actually differs per scene is what a
+// ROW IS, and that is documented on each payload's own `board` field rather than in one shared
+// comment nobody would find. Produced by views_overlays._scene_board.
+export interface OverlaySceneBoard {
+  // The full design, identical in shape to OverlayFeed.design (afc_organizers._serialize_design).
+  design: LeaderboardDesign;
+  // The scene's rows, keyed by design field_type. See the `board` field on PlayerBoardPayload and on
+  // OverlayConfigFeed["h2h"] for what one row means in each scene.
+  rows: OverlayStandingRow[];
+  // The canvas the design renders at. Always "youtube": an OBS browser source is 1920x1080.
+  size: OverlaySize;
+}
+
 // The board identity line (which stage/group + the title/subtitle text the design may render).
 export interface OverlayBoard {
   stage_id?: number | null;
@@ -470,6 +490,17 @@ export interface OverlayConfigFeed {
     // Present only for mode "bracket": the resolved stage bracket tree (same shape the public
     // bracket GET returns, head_to_head_views._bracket_payload). null when no CS stage/bracket yet.
     bracket?: H2HBracketData | null;
+    // DESIGN-DRIVEN head to head (owner 2026-08-08): set ONLY when the bound design's type is "h2h".
+    // ONE ROW PER SIDE - `slot` 1 is the first competitor, 2 the second, 3 the optional third - so a
+    // design lays two opposing sides out as two column groups of ONE row each, given the same
+    // row_start_pct with their columns placed at left-hand and right-hand x. That is the same
+    // mechanism the two-column Dynasty leaderboard uses, which is why this needed no new concept in
+    // the design system. Team rows carry team_name / team_logo / team_country + kills / total_points
+    // / booyah / matches; player rows carry player_name / esports_image + kills / damage / assists /
+    // deaths / headshots / survival_time. null/absent => the built-in competitor cards draw from
+    // `competitors` + `design` below (every h2h overlay configured before this change, and bracket
+    // mode always, since a bracket is a tree rather than rows). views_overlays._h2h_board.
+    board?: OverlaySceneBoard | null;
     design: {
       background: string | null;
       text_color: string;
@@ -534,6 +565,16 @@ export interface PlayerBoardPayload {
   top: PlayerBoardRow | null;
   combine: { group_ids: number[] | null; combined: boolean };
   design: PlayerBoardDesignLook | null;
+  // DESIGN-DRIVEN player board (owner 2026-08-08): set ONLY when the bound design's type matches this
+  // board's kind ("mvp" / "top_killers"). The rows are `players` above with a stable per-player
+  // `row_key` added - REQUIRED, not cosmetic, because DesignBoard identifies a row by
+  // row_key ?? team_name and a player board is full of teammates, which would otherwise collapse onto
+  // one React key. There is deliberately NO `slot`: a player board is a ranked list, so `pos` is the
+  // slot, which is what lets the DESIGN alone decide how much of the ranking shows - a column group
+  // of one row starting at rank 1 is the MVP alone (the moment), a group of ten rows is the top ten.
+  // null/absent => the built-in list draws from `players` + `design` (every board configured before
+  // this change). views_overlays._mvp_payload / _top_killers_payload -> _player_board_rows.
+  board?: OverlaySceneBoard | null;
 }
 
 // The saved config for an mvp / top_killers EventOverlay. design_id binds the look; scope + group_ids +
