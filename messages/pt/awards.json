@@ -1,0 +1,73 @@
+{
+  "index": {
+    "loading": "Carregando os prêmios...",
+    "empty": {
+      "title": "Ainda não há temporada de prêmios",
+      "body": "Quando uma temporada de prêmios abrir, os indicados, a votação e os vencedores aparecem aqui."
+    },
+    "otherEditions": "Outros anos",
+    "backToAwards": "Todos os prêmios"
+  },
+  "notFound": "Esta temporada de prêmios não foi encontrada.",
+  "phaseLabel": "Etapa dos prêmios: {phase, select, announced {indicados anunciados} voting {votação aberta} counting {apuração em andamento} winners {vencedores anunciados} archived {arquivado} other {em andamento}}",
+  "phase": {
+    "announced": "Indicados",
+    "voting": "Votação",
+    "counting": "Apuração",
+    "winners": "Vencedores"
+  },
+  "countdown": {
+    "votingOpens": "A votação abre em",
+    "votingCloses": "A votação fecha em",
+    "winnersAnnounced": "Vencedores anunciados em",
+    "unit": {
+      "days": "{count, plural, =1 {dia} other {dias}}",
+      "hours": "{count, plural, =1 {hora} other {horas}}",
+      "minutes": "{count, plural, =1 {minuto} other {minutos}}",
+      "seconds": "{count, plural, =1 {segundo} other {segundos}}"
+    }
+  },
+  "notifyMeOpens": "Me avise quando a votação abrir",
+  "notifyMeWinners": "Me avise quando os vencedores saírem",
+  "watchingOn": "Você será avisado",
+  "watchOn": "Vamos te avisar.",
+  "watchFailed": "Não foi possível ativar esse aviso.",
+  "nomineeCount": "{count, plural, =1 {# indicado} other {# indicados}}",
+  "progress": "Você votou em {answered} de {total} categorias.",
+  "progressHint": "Você não precisa preencher todas. Responda as que importam para você e salve.",
+  "pickSomething": "Escolha pelo menos um indicado antes de salvar.",
+  "saving": "Salvando...",
+  "submitBallot": "Salvar minhas escolhas em {poll}",
+  "ballotSaved": "Suas escolhas foram salvas.",
+  "ballotFailed": "Não foi possível salvar suas escolhas.",
+  "counting": {
+    "heading": "A votação está encerrada e os votos estão sendo apurados",
+    "body": "A apuração leva alguns dias. Os vencedores são anunciados separadamente, então não há nada para ver aqui até lá.",
+    "comeBack": "Volte no dia"
+  },
+  "stats": {
+    "categories": "Categorias",
+    "winningVotes": "Votos vencedores",
+    "ballots": "Votações",
+    "mostDecorated": "Mais premiado"
+  },
+  "ceremony": {
+    "start": "Reproduzir a cerimônia",
+    "stop": "Parar a cerimônia",
+    "reducedMotion": "Seu aparelho pede menos animações, então a cerimônia fica desligada. Todos os vencedores já estão na página."
+  },
+  "winner": "Vencedor",
+  "viewProfile": "Ver perfil",
+  "votes": "{count, plural, =1 {# voto} other {# votos}}",
+  "fullResult": "Mostrar o resultado completo",
+  "hideFullResult": "Ocultar o resultado completo",
+  "archive": {
+    "heading": "Galeria dos campeões",
+    "search": "Buscar um vencedor ou uma categoria",
+    "clear": "Limpar a busca",
+    "all": "Tudo",
+    "empty": "Nada corresponde a essa busca.",
+    "honours": "Mais premiado",
+    "wins": "{count, plural, =1 {# vitória} other {# vitórias}}"
+  }
+}

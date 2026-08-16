@@ -15,23 +15,22 @@
  *   they are user-generated content and go through the backend translate-on-read layer
  *   (afc_auth/translation.py). Only the static chrome on this page reads messages/<locale>/polls.json.
  *
- * THE LEGACY ANCHOR MAP (spec 7.3)
- *   /awards used to be one page with two tabs, addressed as #content-creators and #esports-awards.
- *   /awards is now a permanent redirect to /polls (next.config.ts), and a browser CARRIES THE
- *   FRAGMENT ACROSS a redirect, so those visitors land here with the old hash still attached. A
- *   server-side redirect can never see a fragment, so the mapping has to happen here, on mount.
- *   Without it a year of shared links would land on a listing rather than on the winners they
- *   named.
+ * THE LEGACY ANCHOR MAP (spec 7.3) LIVES ON /awards, NOT HERE
+ *   /awards used to be one page with two tabs, shared for a year as /awards#content-creators and
+ *   /awards#esports-awards. This file used to carry the map that rescues those links, on the
+ *   assumption that /awards would become a redirect to /polls. It never did, and /awards is now the
+ *   grand awards surface in its own right, so those visitors never reach this page and the map here
+ *   could not fire. It now sits in app/(user)/awards/page.tsx, on the page the old links actually
+ *   land on.
  *
  * DESIGN NOTE
- *   Deliberately plain. The owner wants the awards section to feel like a major event and that
- *   treatment is being designed separately; this page keeps the DATA and the RENDERING separable
- *   so that design can be built on top of it without touching anything above.
+ *   Deliberately plain, and it stays that way. The occasion treatment the owner asked for is
+ *   app/(user)/awards, built on the same endpoints; this page is the plain index of EVERY ballot
+ *   and community poll, which is a different job from celebrating one season.
  */
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { IconAward, IconChartBar, IconChevronRight } from "@tabler/icons-react";
 
 import { PageHeader } from "@/components/PageHeader";
@@ -58,26 +57,10 @@ type PollCard = {
   response_count: number | null;
 };
 
-// The old /awards tab anchors, and the poll slug each one became. Kept next to the effect that
-// uses it so the pair cannot drift: adding an award edition means adding its anchor here only if
-// that anchor was ever public.
-const LEGACY_ANCHORS: Record<string, string> = {
-  "content-creators": "nfca-2025-content-creators",
-  "esports-awards": "nfca-2025-esports",
-};
-
 export default function PollsPage() {
   const t = useTranslations("polls");
-  const router = useRouter();
   const [polls, setPolls] = useState<PollCard[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Legacy anchor map. Runs before the fetch matters, because it navigates away.
-  useEffect(() => {
-    const hash = window.location.hash.replace("#", "");
-    const target = LEGACY_ANCHORS[hash];
-    if (target) router.replace(`/polls/${target}`);
-  }, [router]);
 
   useEffect(() => {
     const load = async () => {
@@ -106,7 +89,7 @@ export default function PollsPage() {
         title={
           <span className="flex items-center gap-2">
             {t("title")}
-            <NewBadge since="2026-08-08" />
+            <NewBadge since="2026-08-16" />
           </span>
         }
         description={t("subtitle")}
