@@ -95,7 +95,7 @@ export default function AdminPollsPage() {
         title={
           <span className="flex items-center gap-2">
             {t("title")}
-            <NewBadge since="2026-08-08" />
+            <NewBadge since="2026-08-16" />
           </span>
         }
         description={t("subtitle")}
