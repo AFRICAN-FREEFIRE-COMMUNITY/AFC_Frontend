@@ -1470,7 +1470,16 @@
     "booyahDesignsGroup": "Designs booyah",
     "bannerDesignsGroup": "Autres designs (bannière intégrée)",
     "booyahDesignDriven": "Ce design pilote toute la superposition. Ce qui s'affiche est ce que vous y avez placé, rempli avec l'équipe gagnante et ses joueurs.",
-    "booyahDesignHint": "Ce design ne définit que l'arrière-plan et les couleurs de la bannière intégrée. Choisissez un design booyah pour contrôler vous-même toute la mise en page."
+    "booyahDesignHint": "Ce design ne définit que l'arrière-plan et les couleurs de la bannière intégrée. Choisissez un design booyah pour contrôler vous-même toute la mise en page.",
+    "mvpDesignsGroup": "Designs MVP",
+    "topKillersDesignsGroup": "Designs des meilleurs éliminateurs",
+    "h2hDesignsGroup": "Designs face à face",
+    "builtInDesignsGroup": "Autres designs (mise en page intégrée)",
+    "playerBoardDesignDriven": "Ce design pilote toute la superposition. Ce qui s'affiche est ce que vous y avez placé, rempli avec les joueurs classés, et ses lignes décident du nombre de joueurs affichés.",
+    "playerBoardDesignHint": "Ce design ne définit que l'arrière-plan et les couleurs du tableau intégré. Choisissez un design du même type que ce tableau pour contrôler vous-même toute la mise en page.",
+    "h2hDesignDriven": "Ce design pilote toute la superposition. Ce qui s'affiche est ce que vous y avez placé, rempli avec les concurrents que vous avez choisis, une ligne par camp.",
+    "h2hDesignHint": "Ce design ne définit que l'arrière-plan et les couleurs des cartes intégrées. Choisissez un design face à face pour contrôler vous-même toute la mise en page.",
+    "h2hDesignBracket": "Le mode arbre dessine toujours l'arbre de la phase, donc ce design ne définit que son arrière-plan et ses couleurs."
   },
   "mediaAudit": {
     "title": "Médias de diffusion",

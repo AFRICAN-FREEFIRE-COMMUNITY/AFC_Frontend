@@ -189,7 +189,16 @@ export interface LeaderboardDesign {
   // but its rows are slot 1 = the winning team (numbers from the leaderboard) and slots 2+ = that
   // team's players. The type is the marker the booyah overlay checks before rendering a design
   // instead of its legacy banner. See views_overlays._booyah_board + BooyahView.
-  design_type?: "leaderboard" | "versus" | "booyah";
+  // "mvp" / "top_killers" / "h2h" (owner 2026-08-08) do the same for the other three live scenes.
+  // The type is ALWAYS just a marker - every design is built with the identical editor tools - and
+  // it says which scene may render THROUGH this design instead of through its built-in layout:
+  //   mvp / top_killers - ranked PLAYER rows; the design's column groups decide how many show, so a
+  //                       one-row group is the MVP alone and a ten-row group is the whole board
+  //   h2h               - one row per SIDE, so two opposing sides are two column groups of one row
+  //                       at the same Y with their columns at left-hand and right-hand x
+  // Rendered by PlayerBoardView / H2HView off the payload's `board` key (lib/overlay.OverlaySceneBoard).
+  // Mirrored by the backend gate afc_organizers.views_leaderboard_design.DESIGN_TYPES.
+  design_type?: "leaderboard" | "versus" | "booyah" | "mvp" | "top_killers" | "h2h";
   versus_config?: { stat_keys?: string[]; slots?: { x_pct: number; y_pct: number }[] };
   // Title/subtitle styling (owner 2026-07-02): position/size/color/font/align for the header text
   // when show_title/show_subtitle are on. {} = the legacy fixed top-center header.

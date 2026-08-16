@@ -1470,7 +1470,16 @@
     "booyahDesignsGroup": "Booyah designs",
     "bannerDesignsGroup": "Other designs (built-in banner)",
     "booyahDesignDriven": "This design drives the whole overlay. What shows is what you placed on it, filled with the winning team and its players.",
-    "booyahDesignHint": "This design only sets the background and colours of the built-in banner. Pick a booyah design to control the whole layout yourself."
+    "booyahDesignHint": "This design only sets the background and colours of the built-in banner. Pick a booyah design to control the whole layout yourself.",
+    "mvpDesignsGroup": "MVP designs",
+    "topKillersDesignsGroup": "Top killer designs",
+    "h2hDesignsGroup": "Head to head designs",
+    "builtInDesignsGroup": "Other designs (built-in layout)",
+    "playerBoardDesignDriven": "This design drives the whole overlay. What shows is what you placed on it, filled with the ranked players, and its rows decide how many of them appear.",
+    "playerBoardDesignHint": "This design only sets the background and colours of the built-in board. Pick a design of this board's own type to control the whole layout yourself.",
+    "h2hDesignDriven": "This design drives the whole overlay. What shows is what you placed on it, filled with the competitors you picked, one row per side.",
+    "h2hDesignHint": "This design only sets the background and colours of the built-in cards. Pick a head to head design to control the whole layout yourself.",
+    "h2hDesignBracket": "Bracket mode always draws the stage bracket, so this design only sets its background and colours."
   },
   "mediaAudit": {
     "title": "Broadcast media",

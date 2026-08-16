@@ -140,6 +140,17 @@ function OverlayCard({
   const booyahDesigns = designs.filter((d) => d.design_type === "booyah");
   const otherDesigns = designs.filter((d) => d.design_type !== "booyah");
   const usesBooyahDesign = booyahDesigns.some((d) => d.id === Number(cfg.design_id));
+  // ── Design-driven MVP / top-killer / head-to-head (owner 2026-08-08) ──
+  // The same split as the booyah card above, for the other three scenes: a design whose type matches
+  // this card's KIND drives the whole overlay (BE views_overlays._mvp_payload / _top_killers_payload /
+  // _h2h_payload -> the `board` key -> FE PlayerBoardView / H2HView -> DesignBoard), while any other
+  // design only lends its background + colours to the built-in layout, which is what every overlay
+  // configured before this change does and keeps doing. Split so the picker can say which is which,
+  // and so the card can explain what the current pick actually means. Keyed off row.kind rather than
+  // written out three times, because the three cards behave identically here.
+  const sceneDesigns = designs.filter((d) => d.design_type === row.kind);
+  const nonSceneDesigns = designs.filter((d) => d.design_type !== row.kind);
+  const usesSceneDesign = sceneDesigns.some((d) => d.id === Number(cfg.design_id));
   // H2H competitor options (owner 2026-07-02): teams OR players of this event, from the media-audit
   // endpoint (it already lists both, gated). Only fetched for h2h cards.
   const [h2hPlayers, setH2hPlayers] = useState<
@@ -214,6 +225,66 @@ function OverlayCard({
 
   // Merge one config change into the FULL config (the backend replaces config wholesale).
   const saveCfg = (patch: Record<string, unknown>) => save({ config: { ...cfg, ...patch } });
+
+  // ── The design picker shared by the MVP, top-killer and head-to-head cards (owner 2026-08-08) ──
+  // Modelled on the booyah card's picker: designs of THIS card's kind first, under a labelled group,
+  // then every other design under a second label, and a line saying what the current pick does. Both
+  // groups stay selectable so nobody mid-season loses the board they configured.
+  //
+  // A render FUNCTION rather than a nested component on purpose: a component declared inside another
+  // component is a new type on every render, so the studio's row refresh would remount the <Select>
+  // and shut an open dropdown mid-pick. Inlining the JSX keeps the element identity stable.
+  const renderSceneDesignPicker = (
+    sceneGroupLabel: string,
+    drivenHint: string,
+    fallbackHint: string,
+  ) => (
+    <div className="col-span-2 space-y-1">
+      <Label className="text-xs">{t("studio.design")}</Label>
+      <Select
+        value={String(cfg.design_id ?? "")}
+        onValueChange={(v) => saveCfg({ design_id: Number(v) })}
+      >
+        <SelectTrigger className="h-8 w-full text-xs">
+          <SelectValue placeholder={t("studio.pickDesign")} />
+        </SelectTrigger>
+        <SelectContent>
+          {sceneDesigns.length > 0 ? (
+            <SelectGroup>
+              {/* NEW tag on the GROUP label, not on each design: the new thing here is that designs
+                  of this scene's own type are offered at all (they draw the whole board instead of
+                  the built-in one), while the designs listed under it are the organizer's own and
+                  are not themselves new. Live 2026-08-16 (the day it ships, not the day it was
+                  written); the pill removes itself 5 days on. */}
+              <SelectLabel className="flex items-center gap-2 text-[0.65rem]">
+                {sceneGroupLabel}
+                <NewBadge since="2026-08-16" />
+              </SelectLabel>
+              {sceneDesigns.map((d) => (
+                <SelectItem key={d.id} value={String(d.id)}>
+                  {d.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          ) : null}
+          <SelectGroup>
+            <SelectLabel className="text-[0.65rem]">
+              {t("studio.builtInDesignsGroup")}
+            </SelectLabel>
+            {nonSceneDesigns.map((d) => (
+              <SelectItem key={d.id} value={String(d.id)}>
+                {d.name}
+                {d.is_default ? ` ${t("studio.defaultSuffix")}` : ""}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      <p className="text-[11px] text-muted-foreground">
+        {usesSceneDesign ? drivenHint : fallbackHint}
+      </p>
+    </div>
+  );
 
   const copy = async () => {
     try {
@@ -676,27 +747,22 @@ function OverlayCard({
            through the bound design (the mvp / top_killers branches in the view page). Always render
            (no trigger) - so no Trigger/Hide here, mirroring the leaderboard kind. The single-scope
            picker writes the plural stage_ids/group_ids arrays (never a bare singular), so "one group"
-           does not implicitly pull in its whole stage on the backend. */
+           does not implicitly pull in its whole stage on the backend.
+
+           DESIGN-DRIVEN (owner 2026-08-08): binding a design whose type is this card's kind makes the
+           overlay render THROUGH it - the ranked players poured into whatever columns were placed,
+           with the design's column groups deciding how many of them show (a one-row group is the MVP
+           alone, a ten-row group is the whole board). Any other design keeps the built-in list and
+           only lends it a background + colours, which is what every board configured before this
+           change does and keeps doing. */
         <div className="grid grid-cols-2 gap-2">
-          <div className="col-span-2 space-y-1">
-            <Label className="text-xs">{t("studio.design")}</Label>
-            <Select
-              value={String(cfg.design_id ?? "")}
-              onValueChange={(v) => saveCfg({ design_id: Number(v) })}
-            >
-              <SelectTrigger className="h-8 w-full text-xs">
-                <SelectValue placeholder={t("studio.pickDesign")} />
-              </SelectTrigger>
-              <SelectContent>
-                {designs.map((d) => (
-                  <SelectItem key={d.id} value={String(d.id)}>
-                    {d.name}
-                    {d.is_default ? ` ${t("studio.defaultSuffix")}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {renderSceneDesignPicker(
+            row.kind === "mvp"
+              ? t("studio.mvpDesignsGroup")
+              : t("studio.topKillersDesignsGroup"),
+            t("studio.playerBoardDesignDriven"),
+            t("studio.playerBoardDesignHint"),
+          )}
 
           {/* Standings SCOPE: a single whole stage / one group, or COMBINE many. Same shape + copy as
               the leaderboard card. */}
@@ -845,9 +911,14 @@ function OverlayCard({
       ) : row.kind === "h2h" ? (
         /* Head-to-head controls (owner 2026-07-02, v1): 2-3 teams OR players compared on their
            this-event stats; the picked design drives the bg + colors. Every change saves - the
-           same link updates. */
+           same link updates.
+
+           DESIGN-DRIVEN (owner 2026-08-08): binding a design whose type is "h2h" makes the overlay
+           render THROUGH it instead of through the built-in cards - one row per side, so the design
+           puts the two competitors wherever it placed them. Bracket mode is the exception and always
+           draws the stage bracket, because a bracket is a tree and cannot be expressed as rows. */
         <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
+          <div className="col-span-2 space-y-1">
             <Label className="text-xs">{t("studio.h2hMode")}</Label>
             <Select
               value={String(cfg.mode || "team")}
@@ -864,24 +935,13 @@ function OverlayCard({
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1">
-            <Label className="text-xs">{t("studio.design")}</Label>
-            <Select
-              value={String(cfg.design_id ?? "")}
-              onValueChange={(v) => saveCfg({ design_id: Number(v) })}
-            >
-              <SelectTrigger className="h-8 w-full text-xs">
-                <SelectValue placeholder={t("studio.pickDesign")} />
-              </SelectTrigger>
-              <SelectContent>
-                {designs.map((d) => (
-                  <SelectItem key={d.id} value={String(d.id)}>
-                    {d.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {renderSceneDesignPicker(
+            t("studio.h2hDesignsGroup"),
+            cfg.mode === "bracket"
+              ? t("studio.h2hDesignBracket")
+              : t("studio.h2hDesignDriven"),
+            t("studio.h2hDesignHint"),
+          )}
           {/* Bracket mode (P1#6): pick which Clash Squad stage's bracket to show. No competitor
               slots - the bracket is the whole stage. The backend falls back to the event's first
               CS stage if none is picked, and renders nothing for a non-CS stage. */}

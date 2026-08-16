@@ -22,8 +22,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { env } from "@/lib/env";
-// The leaderboard overlay's board renderer, reused verbatim by the design-driven booyah scene
-// (owner 2026-08-06) so a booyah design and a leaderboard design are drawn by ONE implementation.
+// The leaderboard overlay's board renderer, reused verbatim by every design-driven scene - the
+// booyah moment (owner 2026-08-06) and the MVP / top-killer / head-to-head boards (owner 2026-08-08) -
+// so a scene design and a leaderboard design are drawn by ONE implementation and cannot drift apart.
 import {
   DesignBoard,
   type OverlayAnim,
@@ -470,7 +471,24 @@ function H2HBracketOverlay({
 
 function H2HView({ feed }: { feed: OverlayConfigFeed }) {
   const h2h = feed.h2h;
+  const cfg = feed.config as { anim?: OverlayAnim; reveal?: OverlayReveal };
   if (!feed.active || !h2h) return null;
+  // ── Design-driven path (owner 2026-08-08). The overlay's bound design is design_type "h2h", so
+  //    the comparison renders THROUGH that design via DesignBoard, the same component the live
+  //    leaderboard overlay uses: one row per side, `slot` saying which side, so two column groups of
+  //    one row each at the same Y put the two competitors left and right. Whatever the organizer
+  //    placed is what shows. Absent => every branch below runs exactly as it did before. ──
+  if (h2h.board) {
+    return (
+      <DesignBoard
+        design={h2h.board.design}
+        standings={h2h.board.rows}
+        size={h2h.board.size}
+        anim={cfg?.anim || "fade"}
+        reveal={cfg?.reveal || "staggered"}
+      />
+    );
+  }
   // Clash Squad bracket mode (P1#6): render the stage bracket instead of the versus cards.
   if (h2h.mode === "bracket") {
     if (!h2h.bracket || !h2h.bracket.generated) return null;
@@ -629,10 +647,36 @@ function H2HView({ feed }: { feed: OverlayConfigFeed }) {
 // Always render (no trigger), so it renders whenever the overlay is active. Styled in the AFC house look
 // like BooyahView / H2HView (the design LOOK sets bg + colors); the full field-placement render is the
 // through-a-design PNG export path (events/<id>/player-board-graphic/).
+//
+// TWO renderers live here from 2026-08-08, and the payload decides which one runs, exactly as it does
+// in BooyahView:
+//   • payload.board present -> the bound design's type matches this board's kind ("mvp" /
+//     "top_killers"), so the ranking renders THROUGH that design via DesignBoard. The design's column
+//     groups decide how much of it shows: one row starting at rank 1 is the MVP alone (the moment),
+//     ten rows are the top ten, two groups of five are two side-by-side columns.
+//   • otherwise -> the built-in list below, unchanged. That is what every MVP / top-killer overlay
+//     configured before this change keeps rendering, because none of them is bound to a design of its
+//     own type. Binding one in the studio is how an operator opts in; picking another design opts out.
 function PlayerBoardView({ feed }: { feed: OverlayConfigFeed }) {
   const isMvp = feed.kind === "mvp";
   const payload = isMvp ? feed.mvp : feed.top_killers;
+  const cfg = feed.config as { anim?: OverlayAnim; reveal?: OverlayReveal };
   if (!feed.active || !payload || !payload.players?.length) return null;
+
+  // ── Design-driven path. Not keyed on anything: these boards have no trigger and no "moment", so
+  //    they re-render in place across polls, which is what lets DesignBoard glide a player to a new
+  //    rank and count their numbers up rather than snapping the whole board. ──
+  if (payload.board) {
+    return (
+      <DesignBoard
+        design={payload.board.design}
+        standings={payload.board.rows}
+        size={payload.board.size}
+        anim={cfg?.anim || "fade"}
+        reveal={cfg?.reveal || "staggered"}
+      />
+    );
+  }
 
   const design = payload.design;
   const text = design?.text_color || "#ffffff";
