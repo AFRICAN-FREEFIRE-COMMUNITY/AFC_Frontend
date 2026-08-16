@@ -1,0 +1,88 @@
+{
+  "list": {
+    "title": "Gerenciamento de Notícias",
+    "createNew": "Criar Nova",
+    "searchPlaceholder": "Pesquisar notícias por título, conteúdo ou autor...",
+    "categoryPlaceholder": "Selecionar categoria",
+    "statusPlaceholder": "Filtrar por status",
+    "status": {
+      "all": "Todos os status",
+      "published": "Publicada",
+      "scheduled": "Agendada",
+      "draft": "Rascunho",
+      "archived": "Arquivada"
+    },
+    "empty": {
+      "title": "Nenhum artigo encontrado",
+      "filtered": "Tente ajustar sua pesquisa ou os filtros",
+      "none": "Nenhum artigo disponível no momento",
+      "clear": "Limpar todos os filtros"
+    },
+    "card": {
+      "unknownAuthor": "Desconhecido",
+      "scheduledFor": "Agendada para",
+      "pinnedUntil": "Fixada na página inicial até",
+      "view": "Ver",
+      "edit": "Editar",
+      "copyLink": "Copiar link"
+    },
+    "showing": "Mostrando {from}-{to} de {total} artigos",
+    "linkCopied": "Link copiado para a área de transferência.",
+    "copyFailed": "Não foi possível copiar o link.",
+    "resultsCount": "Mostrando {shown} de {total} artigos"
+  },
+  "form": {
+    "createTitle": "Criar Notícia",
+    "editTitle": "Editar notícia: {title}",
+    "detailsHeading": "Detalhes da notícia",
+    "title": "Título",
+    "titlePlaceholder": "Digite o título da notícia",
+    "content": "Conteúdo",
+    "category": "Categoria",
+    "categoryPlaceholder": "Selecionar categoria",
+    "relatedEvents": "Eventos relacionados (opcional)",
+    "images": "Imagens",
+    "author": "Autor",
+    "authorPlaceholder": "Digite seu nome",
+    "image": {
+      "dropPrompt": "Solte sua imagem aqui, ou",
+      "browse": "procure",
+      "supports": "Formatos aceitos: PNG, JPG, JPEG, WEBP",
+      "invalidType": "Somente arquivos PNG, JPG, JPEG ou WEBP são aceitos.",
+      "alt": "Imagem de destaque",
+      "remove": "Remover",
+      "replace": "Substituir"
+    },
+    "schedule": {
+      "label": "Agendar publicação (opcional)",
+      "hint": "Deixe em branco para publicar imediatamente. Escolha uma data e hora futuras para publicar este artigo automaticamente.",
+      "hintScheduled": "Este artigo será publicado automaticamente no horário acima."
+    },
+    "pin": {
+      "label": "Fixar na página inicial",
+      "hint": "Mostra esta publicação no bloco de Avisos no topo da página inicial até a data abaixo. Até 3 aparecem por vez, as mais recentes primeiro.",
+      "untilLabel": "Fixada até",
+      "untilHint": "O aviso sai sozinho nesse momento. O artigo continua publicado e disponível em Notícias."
+    },
+    "cancel": "Cancelar",
+    "saving": "Salvando...",
+    "schedulePublish": "Agendar",
+    "publish": "Publicar",
+    "serverError": "Erro interno do servidor"
+  },
+  "changes": {
+    "title": "Título",
+    "category": "Categoria",
+    "relatedEvents": "Eventos relacionados",
+    "author": "Autor",
+    "content": "Conteúdo",
+    "image": "Imagem",
+    "schedule": "Agendamento",
+    "pinned": "Fixada na página inicial",
+    "previous": "(anterior)",
+    "updated": "(atualizado)",
+    "publishNow": "Publicar agora",
+    "notPinned": "Não fixada",
+    "none": "-"
+  }
+}

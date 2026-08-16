@@ -35,6 +35,7 @@ import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -75,6 +76,12 @@ function localPinDefaultForInput() {
 export default function EditNewsForm({ params }: { params: Params }) {
   const { slug } = use(params);
 
+  // Admin surfaces are in scope for i18n (owner override 2026-07-13). Namespace "adminNews", the
+  // SAME one the create form and the news list read, so the two forms cannot end up describing the
+  // same field with different words. `changes.*` names the fields listed in the save-confirmation
+  // dialog, which is why those labels are translated too: an editor reading a confirmation in
+  // English on an otherwise French screen would not know what they were agreeing to.
+  const t = useTranslations("adminNews");
   const router = useRouter();
   const { user, token } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -182,14 +189,14 @@ export default function EditNewsForm({ params }: { params: Params }) {
     if (newsDetails) {
       if (data.title !== (newsDetails.news_title || ""))
         changes.push({
-          label: "Title",
-          from: newsDetails.news_title || "-",
+          label: t("changes.title"),
+          from: newsDetails.news_title || t("changes.none"),
           to: data.title,
         });
       if (data.category !== (newsDetails.category || ""))
         changes.push({
-          label: "Category",
-          from: newsDetails.category || "-",
+          label: t("changes.category"),
+          from: newsDetails.category || t("changes.none"),
           to: data.category,
         });
       // Related events changed? Compare the selected event names against the article's current set
@@ -202,22 +209,26 @@ export default function EditNewsForm({ params }: { params: Params }) {
         .join(", ");
       if (nextEvents !== origEvents)
         changes.push({
-          label: "Related Events",
-          from: origEvents || "-",
-          to: nextEvents || "-",
+          label: t("changes.relatedEvents"),
+          from: origEvents || t("changes.none"),
+          to: nextEvents || t("changes.none"),
         });
       if (data.author !== (newsDetails.author || ""))
         changes.push({
-          label: "Author",
-          from: newsDetails.author || "-",
+          label: t("changes.author"),
+          from: newsDetails.author || t("changes.none"),
           to: data.author,
         });
       if (data.content !== (newsDetails.content || ""))
-        changes.push({ label: "Content", from: "(previous)", to: "(updated)" });
+        changes.push({
+          label: t("changes.content"),
+          from: t("changes.previous"),
+          to: t("changes.updated"),
+        });
       if (selectedFile)
         changes.push({
-          label: "Image",
-          from: "(previous)",
+          label: t("changes.image"),
+          from: t("changes.previous"),
           to: selectedFile.name,
         });
       // Schedule change: compare the picker against the article's current schedule (blank = live now).
@@ -227,13 +238,13 @@ export default function EditNewsForm({ params }: { params: Params }) {
           : "";
       if (scheduledPublishAt !== originalSchedule)
         changes.push({
-          label: "Schedule",
+          label: t("changes.schedule"),
           from: originalSchedule
             ? new Date(originalSchedule).toLocaleString()
-            : "Publish now",
+            : t("changes.publishNow"),
           to: scheduledPublishAt
             ? new Date(scheduledPublishAt).toLocaleString()
-            : "Publish now",
+            : t("changes.publishNow"),
         });
       // Pin change, shown in the confirm modal like every other field: pinning and unpinning both
       // change what the whole community sees on the home page, so neither should happen silently.
@@ -243,9 +254,11 @@ export default function EditNewsForm({ params }: { params: Params }) {
       const nextPin = pinToHomepage && pinnedUntil ? pinnedUntil : "";
       if (nextPin !== originalPin)
         changes.push({
-          label: "Pinned to homepage",
-          from: originalPin ? new Date(originalPin).toLocaleString() : "Not pinned",
-          to: nextPin ? new Date(nextPin).toLocaleString() : "Not pinned",
+          label: t("changes.pinned"),
+          from: originalPin
+            ? new Date(originalPin).toLocaleString()
+            : t("changes.notPinned"),
+          to: nextPin ? new Date(nextPin).toLocaleString() : t("changes.notPinned"),
         });
     }
 
@@ -313,7 +326,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
         setConfirmOpen(false);
         router.back();
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Internal server error");
+        toast.error(error?.response?.data?.message || t("form.serverError"));
       }
     });
   }
@@ -336,7 +349,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
         // Title is a ReactNode so the page-level ⓘ can sit right after it.
         title={
           <span className="inline-flex items-center">
-            Edit News: {newsDetails?.news_title}
+            {t("form.editTitle", { title: newsDetails?.news_title || "" })}
             <InfoTip id="news.edit._page" className="ml-1.5" />
           </span>
         }
@@ -354,9 +367,9 @@ export default function EditNewsForm({ params }: { params: Params }) {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>{t("form.title")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter news title" {...field} />
+                      <Input placeholder={t("form.titlePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -367,7 +380,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Content</FormLabel>
+                    <FormLabel>{t("form.content")}</FormLabel>
                     <FormControl>
                       <RichTextEditor field={field} />
                     </FormControl>
@@ -390,7 +403,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue placeholder={t("form.categoryPlaceholder")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -441,7 +454,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                 name="images"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Images</FormLabel>
+                    <FormLabel>{t("form.images")}</FormLabel>
                     <FormControl>
                       <div className="space-y-4">
                         {!previewUrl ? (
@@ -468,7 +481,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                                   ].includes(file.type)
                                 ) {
                                   toast.error(
-                                    "Only PNG, JPG, JPEG, or WEBP files are supported.",
+                                    t("form.image.invalidType"),
                                   );
                                   return;
                                 }
@@ -508,7 +521,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                                 width={1000}
                                 height={1000}
                                 src={previewUrl}
-                                alt="Featured image"
+                                alt={t("form.image.alt")}
                                 className="aspect-video size-full object-cover"
                               />
                             </div>
@@ -562,7 +575,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                               ].includes(file.type)
                             ) {
                               toast.error(
-                                "Only PNG, JPG, JPEG, or WEBP files are supported.",
+                                t("form.image.invalidType"),
                               );
                               return;
                             }
@@ -582,10 +595,10 @@ export default function EditNewsForm({ params }: { params: Params }) {
                 name="author"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Author</FormLabel>
+                    <FormLabel>{t("form.author")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter your name"
+                        placeholder={t("form.authorPlaceholder")}
                         {...field}
                         readOnly
                       />
@@ -599,7 +612,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                   article; blank for a live one. Future time => auto-release later, blank => publish now. */}
               <div className="space-y-2">
                 <FormLabel htmlFor="news-schedule">
-                  Schedule publish (optional)
+                  {t("form.schedule.label")}
                 </FormLabel>
                 <Input
                   id="news-schedule"
@@ -611,8 +624,8 @@ export default function EditNewsForm({ params }: { params: Params }) {
                 />
                 <p className="text-xs text-muted-foreground">
                   {scheduledPublishAt
-                    ? "This article will publish automatically at the time above."
-                    : "Leave blank to publish immediately. Pick a future date and time to release it automatically."}
+                    ? t("form.schedule.hintScheduled")
+                    : t("form.schedule.hint")}
                 </p>
               </div>
 
@@ -622,11 +635,9 @@ export default function EditNewsForm({ params }: { params: Params }) {
               <div className="space-y-2 rounded-md border p-4">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <FormLabel htmlFor="news-pin">Pin to homepage</FormLabel>
+                    <FormLabel htmlFor="news-pin">{t("form.pin.label")}</FormLabel>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Shows this post in the Notices block at the top of the home
-                      page until the date below. Up to 3 show at once, newest
-                      first.
+                      {t("form.pin.hint")}
                     </p>
                   </div>
                   <Switch
@@ -640,7 +651,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                 </div>
                 {pinToHomepage && (
                   <div className="space-y-2 pt-2">
-                    <FormLabel htmlFor="news-pin-until">Pinned until</FormLabel>
+                    <FormLabel htmlFor="news-pin-until">{t("form.pin.untilLabel")}</FormLabel>
                     <Input
                       id="news-pin-until"
                       type="datetime-local"
@@ -650,8 +661,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                       className="w-full md:w-auto"
                     />
                     <p className="text-xs text-muted-foreground">
-                      The notice removes itself at this time. The article stays
-                      published and readable in News afterwards.
+                      {t("form.pin.untilHint")}
                     </p>
                   </div>
                 )}
@@ -664,14 +674,14 @@ export default function EditNewsForm({ params }: { params: Params }) {
                   className="flex-1"
                   variant="outline"
                 >
-                  <Link href="/a/news">Cancel</Link>
+                  <Link href="/a/news">{t("form.cancel")}</Link>
                 </Button>
                 <Button type="submit" className="flex-1" disabled={pendingEdit}>
                   {pendingEdit
-                    ? "Saving..."
+                    ? t("form.saving")
                     : scheduledPublishAt
-                      ? "Schedule"
-                      : "Publish"}
+                      ? t("form.schedulePublish")
+                      : t("form.publish")}
                 </Button>
               </div>
             </form>

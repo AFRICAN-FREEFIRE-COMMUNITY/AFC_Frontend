@@ -1,0 +1,88 @@
+{
+  "list": {
+    "title": "News Management",
+    "createNew": "Create New",
+    "searchPlaceholder": "Search news by title, content, or author...",
+    "categoryPlaceholder": "Select category",
+    "statusPlaceholder": "Filter by status",
+    "status": {
+      "all": "All Status",
+      "published": "Published",
+      "scheduled": "Scheduled",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "empty": {
+      "title": "No articles found",
+      "filtered": "Try adjusting your search terms or filters",
+      "none": "No articles available at the moment",
+      "clear": "Clear all filters"
+    },
+    "card": {
+      "unknownAuthor": "Unknown",
+      "scheduledFor": "Scheduled for",
+      "pinnedUntil": "Pinned to homepage until",
+      "view": "View",
+      "edit": "Edit",
+      "copyLink": "Copy link"
+    },
+    "showing": "Showing {from}-{to} of {total} articles",
+    "linkCopied": "Link copied to clipboard!",
+    "copyFailed": "Failed to copy link",
+    "resultsCount": "Showing {shown} of {total} articles"
+  },
+  "form": {
+    "createTitle": "Create News",
+    "editTitle": "Edit News: {title}",
+    "detailsHeading": "News Details",
+    "title": "Title",
+    "titlePlaceholder": "Enter news title",
+    "content": "Content",
+    "category": "Category",
+    "categoryPlaceholder": "Select category",
+    "relatedEvents": "Related Events (Optional)",
+    "images": "Images",
+    "author": "Author",
+    "authorPlaceholder": "Enter your name",
+    "image": {
+      "dropPrompt": "Drop your image here, or",
+      "browse": "browse",
+      "supports": "Supports: PNG, JPG, JPEG, WEBP",
+      "invalidType": "Only PNG, JPG, JPEG, or WEBP files are supported.",
+      "alt": "Featured image",
+      "remove": "Remove",
+      "replace": "Replace"
+    },
+    "schedule": {
+      "label": "Schedule publish (optional)",
+      "hint": "Leave blank to publish immediately. Pick a future date and time to release this article automatically.",
+      "hintScheduled": "This article will publish automatically at the time above."
+    },
+    "pin": {
+      "label": "Pin to homepage",
+      "hint": "Shows this post in the Notices block at the top of the home page until the date below. Up to 3 show at once, newest first.",
+      "untilLabel": "Pinned until",
+      "untilHint": "The notice removes itself at this time. The article stays published and readable in News afterwards."
+    },
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "schedulePublish": "Schedule",
+    "publish": "Publish",
+    "serverError": "Internal server error"
+  },
+  "changes": {
+    "title": "Title",
+    "category": "Category",
+    "relatedEvents": "Related Events",
+    "author": "Author",
+    "content": "Content",
+    "image": "Image",
+    "schedule": "Schedule",
+    "pinned": "Pinned to homepage",
+    "previous": "(previous)",
+    "updated": "(updated)",
+    "publishNow": "Publish now",
+    "notPinned": "Not pinned",
+    "none": "-"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "list": {
+    "title": "Gestion des actualités",
+    "createNew": "Créer",
+    "searchPlaceholder": "Rechercher par titre, contenu ou auteur...",
+    "categoryPlaceholder": "Choisir une catégorie",
+    "statusPlaceholder": "Filtrer par statut",
+    "status": {
+      "all": "Tous les statuts",
+      "published": "Publié",
+      "scheduled": "Programmé",
+      "draft": "Brouillon",
+      "archived": "Archivé"
+    },
+    "empty": {
+      "title": "Aucun article trouvé",
+      "filtered": "Essayez de modifier votre recherche ou vos filtres",
+      "none": "Aucun article disponible pour le moment",
+      "clear": "Effacer tous les filtres"
+    },
+    "card": {
+      "unknownAuthor": "Inconnu",
+      "scheduledFor": "Programmé pour le",
+      "pinnedUntil": "Épinglé à l'accueil jusqu'au",
+      "view": "Voir",
+      "edit": "Modifier",
+      "copyLink": "Copier le lien"
+    },
+    "showing": "Affichage de {from} à {to} sur {total} articles",
+    "linkCopied": "Lien copié dans le presse-papiers.",
+    "copyFailed": "Le lien n'a pas pu être copié.",
+    "resultsCount": "Affichage de {shown} sur {total} articles"
+  },
+  "form": {
+    "createTitle": "Créer une actualité",
+    "editTitle": "Modifier l'actualité : {title}",
+    "detailsHeading": "Détails de l'actualité",
+    "title": "Titre",
+    "titlePlaceholder": "Saisissez le titre",
+    "content": "Contenu",
+    "category": "Catégorie",
+    "categoryPlaceholder": "Choisir une catégorie",
+    "relatedEvents": "Événements liés (facultatif)",
+    "images": "Images",
+    "author": "Auteur",
+    "authorPlaceholder": "Saisissez votre nom",
+    "image": {
+      "dropPrompt": "Déposez votre image ici, ou",
+      "browse": "parcourez",
+      "supports": "Formats acceptés : PNG, JPG, JPEG, WEBP",
+      "invalidType": "Seuls les fichiers PNG, JPG, JPEG et WEBP sont acceptés.",
+      "alt": "Image à la une",
+      "remove": "Retirer",
+      "replace": "Remplacer"
+    },
+    "schedule": {
+      "label": "Programmer la publication (facultatif)",
+      "hint": "Laissez vide pour publier tout de suite. Choisissez une date et une heure à venir pour publier cet article automatiquement.",
+      "hintScheduled": "Cet article sera publié automatiquement à l'heure indiquée ci-dessus."
+    },
+    "pin": {
+      "label": "Épingler à l'accueil",
+      "hint": "Affiche cet article dans le bloc Annonces en haut de la page d'accueil jusqu'à la date ci-dessous. Trois au maximum à la fois, les plus récents d'abord.",
+      "untilLabel": "Épinglé jusqu'au",
+      "untilHint": "L'annonce disparaît d'elle-même à ce moment-là. L'article reste publié et consultable dans les actualités."
+    },
+    "cancel": "Annuler",
+    "saving": "Enregistrement...",
+    "schedulePublish": "Programmer",
+    "publish": "Publier",
+    "serverError": "Erreur interne du serveur"
+  },
+  "changes": {
+    "title": "Titre",
+    "category": "Catégorie",
+    "relatedEvents": "Événements liés",
+    "author": "Auteur",
+    "content": "Contenu",
+    "image": "Image",
+    "schedule": "Programmation",
+    "pinned": "Épinglé à l'accueil",
+    "previous": "(précédent)",
+    "updated": "(modifié)",
+    "publishNow": "Publier tout de suite",
+    "notPinned": "Non épinglé",
+    "none": "-"
+  }
+}
