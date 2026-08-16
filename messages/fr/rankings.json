@@ -752,20 +752,31 @@
         "prize": "Cagnotte",
         "teams": "Équipes inscrites",
         "players": "Joueurs inscrits",
-        "format": "Format"
+        "format": "Format",
+        "weaponSkins": "Skins d'armes",
+        "blueZone": "Zone bleue",
+        "unlimitedAmmo": "Munitions illimitées"
       },
       "ops": {
         "gte": "est au moins de (≥)",
         "lte": "est au plus de (≤)",
         "isLan": "a une phase physique / LAN",
-        "isVirtual": "est entièrement virtuel"
+        "isVirtual": "est entièrement virtuel",
+        "isOn": "étaient activés",
+        "isOff": "étaient désactivés"
       },
       "cond": {
         "prize": "cagnotte",
         "teams": "équipes",
         "players": "joueurs",
         "lan": "a une phase physique/LAN",
-        "virtual": "est entièrement virtuel"
+        "virtual": "est entièrement virtuel",
+        "weaponSkinsOn": "skins d'armes activés",
+        "weaponSkinsOff": "skins d'armes désactivés",
+        "blueZoneOn": "zone bleue activée",
+        "blueZoneOff": "zone bleue désactivée",
+        "unlimitedAmmoOn": "munitions illimitées",
+        "unlimitedAmmoOff": "munitions limitées"
       },
       "a11y": {
         "dragToReorder": "Faites glisser pour réorganiser",
