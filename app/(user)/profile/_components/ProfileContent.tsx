@@ -766,9 +766,15 @@ export const ProfileContent = () => {
                   out to remove. What is left is genuinely only here. */}
               <TabsContent value="overview">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-5">
+                  {/* These two now mean EVENTS PLAYED, not events signed up for (owner ruling
+                      2026-08-08). GET /auth/get-user-profile/ counts only events holding a
+                      match line with a score assigned to this user, through the one shared
+                      backend rule the public player page also reads
+                      (afc_tournament_and_scrims/participation.py), so the labels say
+                      "played". */}
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      {t("overview.tournaments")}
+                      {t("overview.tournamentsPlayed")}
                     </p>
                     <p className="mt-0.5 text-sm">
                       {user.stats.total_tournaments_played}
@@ -776,7 +782,7 @@ export const ProfileContent = () => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      {t("overview.scrims")}
+                      {t("overview.scrimsPlayed")}
                     </p>
                     <p className="mt-0.5 text-sm">
                       {user.stats.total_scrims_played}
