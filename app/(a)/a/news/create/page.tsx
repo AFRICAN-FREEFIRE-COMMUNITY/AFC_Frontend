@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   CreateNewsFormSchema,
   CreateNewsFormSchemaType,
@@ -51,6 +52,18 @@ function localNowForInput() {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 
+// Default life of a homepage pin when the admin flips the switch on without picking a date, so the
+// common case is one click. Mirrors DEFAULT_PIN_DAYS in backend afc_auth/views.py; the admin can
+// still change the date before saving.
+const DEFAULT_PIN_DAYS = 7;
+
+function localPinDefaultForInput() {
+  const d = new Date();
+  d.setDate(d.getDate() + DEFAULT_PIN_DAYS);
+  d.setSeconds(0, 0);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 function page() {
   const router = useRouter();
   const { user, token } = useAuth();
@@ -62,6 +75,14 @@ function page() {
   // datetime here is sent to create-news as `scheduled_publish_at`; the backend then creates the post
   // hidden and the publish_scheduled_news Celery beat task flips it live at that time.
   const [scheduledPublishAt, setScheduledPublishAt] = useState("");
+
+  // Pin to homepage (backlog item 22). Plain state like the schedule above, not part of the zod
+  // form. `pinnedUntil` is the ONLY thing sent to the backend - the switch is UI sugar over "is
+  // there a date", which is why the model has one field and cannot end up in a pinned-but-expired
+  // state. Turning the switch on fills in a default expiry; turning it off clears the date, which
+  // is what unpins. Unpinning never deletes the article.
+  const [pinToHomepage, setPinToHomepage] = useState(false);
+  const [pinnedUntil, setPinnedUntil] = useState("");
 
   const [pending, startTransition] = useTransition();
 
@@ -112,6 +133,13 @@ function page() {
             "scheduled_publish_at",
             new Date(scheduledPublishAt).toISOString(),
           );
+        }
+
+        // Homepage pin (optional). Sent as a UTC ISO string, same as the schedule. Omitted when the
+        // switch is off, which create_news reads as "not pinned". A date already in the past is
+        // also treated as not pinned server-side (see _resolve_pinned_until).
+        if (pinToHomepage && pinnedUntil) {
+          formData.append("pinned_until", new Date(pinnedUntil).toISOString());
         }
 
         const response = await axios.post(
@@ -426,6 +454,50 @@ function page() {
                   Leave blank to publish immediately. Pick a future date and time
                   to release this article automatically.
                 </p>
+              </div>
+
+              {/* Pin to homepage (backlog item 22). A notice IS a news post: this is the only
+                  place notices are published from, so there is no second admin screen to keep in
+                  step. The expiry is required by design - a pin that never lapses is a pin
+                  somebody has to remember to remove, and that one is still there in March. */}
+              <div className="space-y-2 rounded-md border p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <FormLabel htmlFor="news-pin">Pin to homepage</FormLabel>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Shows this post in the Notices block at the top of the home
+                      page until the date below. Up to 3 show at once, newest
+                      first.
+                    </p>
+                  </div>
+                  <Switch
+                    id="news-pin"
+                    checked={pinToHomepage}
+                    onCheckedChange={(on) => {
+                      setPinToHomepage(on);
+                      // Turning it on pre-fills a sensible expiry so the common case is one click;
+                      // turning it off clears the date, which is what actually unpins.
+                      setPinnedUntil(on ? pinnedUntil || localPinDefaultForInput() : "");
+                    }}
+                  />
+                </div>
+                {pinToHomepage && (
+                  <div className="space-y-2 pt-2">
+                    <FormLabel htmlFor="news-pin-until">Pinned until</FormLabel>
+                    <Input
+                      id="news-pin-until"
+                      type="datetime-local"
+                      min={localNowForInput()}
+                      value={pinnedUntil}
+                      onChange={(e) => setPinnedUntil(e.target.value)}
+                      className="w-full md:w-auto"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      The notice removes itself at this time. The article stays
+                      published and readable in News afterwards.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-4">

@@ -477,5 +477,10 @@
       "rejected": "Rejected successfully!",
       "updateFailed": "Failed to update status."
     }
+  },
+  "notices": {
+    "title": "Notices",
+    "subtitle": "Important announcements from AFC.",
+    "readMore": "Read more"
   }
 }

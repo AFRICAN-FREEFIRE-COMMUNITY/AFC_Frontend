@@ -33,6 +33,8 @@ import {
 } from "@/components/text-editor/RenderDescription";
 import {
   IconCalendar,
+  // Homepage-pin marker on a news card (backlog item 22).
+  IconPinned,
   IconCirclePlus,
   IconEye,
   IconPencil,
@@ -464,6 +466,20 @@ const page = () => {
                         </span>
                       </div>
                     )}
+                  {/* Homepage pin (backlog item 22). `is_pinned` is the backend's derived answer
+                      (pinned_until set, still in the future, and published), so this row can never
+                      disagree with what /home actually shows. It is here rather than only on the
+                      edit form so an editor can see at a glance how many notices are live - the
+                      home block shows at most 3 at a time, newest first. */}
+                  {newsDetails.is_pinned && newsDetails.pinned_until && (
+                    <div className="flex items-center gap-1.5 mb-3 text-xs font-medium text-primary">
+                      <IconPinned size={14} />
+                      <span>
+                        Pinned to homepage until{" "}
+                        {formatDate(newsDetails.pinned_until, true)}
+                      </span>
+                    </div>
+                  )}
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-3 break-words overflow-hidden flex-grow">
                     {truncateText(extractTiptapText(newsDetails.content), 150)}
                   </p>

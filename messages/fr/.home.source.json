@@ -295,5 +295,8 @@
   "reviewApplication.toast.shortlisted": "Shortlisted successfully!",
   "reviewApplication.toast.invited": "Invited to trial successfully!",
   "reviewApplication.toast.rejected": "Rejected successfully!",
-  "reviewApplication.toast.updateFailed": "Failed to update status."
+  "reviewApplication.toast.updateFailed": "Failed to update status.",
+  "notices.title": "Notices",
+  "notices.subtitle": "Important announcements from AFC.",
+  "notices.readMore": "Read more"
 }

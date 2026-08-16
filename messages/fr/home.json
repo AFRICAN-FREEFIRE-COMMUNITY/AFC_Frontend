@@ -477,5 +477,10 @@
       "rejected": "Rejeté avec succès !",
       "updateFailed": "Échec de la mise à jour du statut."
     }
+  },
+  "notices": {
+    "title": "Avis",
+    "subtitle": "Annonces importantes de l'AFC.",
+    "readMore": "Lire la suite"
   }
 }
