@@ -22,7 +22,6 @@ import { FullLoader } from "@/components/Loader";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
-import { formatDate } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { DeleteNewsModal } from "./_components/DeleteNewsModal";
@@ -51,6 +50,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslations } from "next-intl";
+// Dates in the VIEWER's timezone and language (the backend is UTC). See components/LocalTime.tsx.
+import { LocalTime } from "@/components/LocalTime";
 import React from "react";
 import {
   Pagination,
@@ -62,7 +64,14 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-const page = () => {
+const NewsAdminPage = () => {
+  // Admin surfaces are in scope for i18n (owner override 2026-07-13). Namespace "adminNews", shared
+  // with the create and edit forms.
+  const t = useTranslations("adminNews");
+  // The CATEGORY labels are read from the PUBLIC "news" namespace instead of being repeated here.
+  // They name the same five categories the public news page names, off the same backend
+  // News.CATEGORY_CHOICES keys, so a second copy would only be somewhere for the wording to drift.
+  const tNews = useTranslations("news");
   const { token } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -75,13 +84,13 @@ const page = () => {
 
   // Admin list filter + the per-row category badge (getCategoryLabel below). Same keys and same
   // order as `newsCategories` in @/constants (the create/edit picker) and News.CATEGORY_CHOICES
-  // on the backend. English labels: the admin News area is operated in English.
+  // on the backend; the labels come from the public news namespace, see tNews above.
   const categories = [
-    { value: "all", label: "All Categories" },
-    { value: "general", label: "General News" },
-    { value: "tournament", label: "Tournament Updates" },
-    { value: "education", label: "Education Updates" },
-    { value: "bans", label: "Banned Player/Team Updates" },
+    { value: "all", label: tNews("categories.all") },
+    { value: "general", label: tNews("categories.general") },
+    { value: "tournament", label: tNews("categories.tournament") },
+    { value: "education", label: tNews("categories.education") },
+    { value: "bans", label: tNews("categories.bans") },
   ];
 
   const getCategoryLabel = (category: string) => {
@@ -214,9 +223,9 @@ const page = () => {
     try {
       const url = `${env.NEXT_PUBLIC_URL}/news/${slug}`;
       await navigator.clipboard.writeText(url);
-      toast.success("Link copied to clipboard!");
+      toast.success(t("list.linkCopied"));
     } catch (error) {
-      toast.error("Failed to copy link");
+      toast.error(t("list.copyFailed"));
     }
   };
 
@@ -229,7 +238,7 @@ const page = () => {
           // Title is a ReactNode so the page-level ⓘ can sit right after it.
           title={
             <span className="inline-flex items-center">
-              News Management
+              {t("list.title")}
               <InfoTip id="news._page" className="ml-1.5" />
             </span>
           }
@@ -238,10 +247,14 @@ const page = () => {
         <div className="flex w-full items-center gap-1 md:w-auto">
           {/* data-tour="orgs-misc-news-create": admin-tour anchor (orgs-misc area).
               On the asChild Link so the attribute lands on the rendered anchor element. */}
-          <Button className="w-full md:w-auto" asChild>
+          {/* flex-1, not w-full: `w-full` is 100% of the row REGARDLESS of the ⓘ sitting beside
+              it, so on a phone the button filled the row and pushed the tip 9px past the right
+              edge, scrolling the whole admin page sideways. flex-1 fills whatever is left after
+              its sibling. Same trap as the sponsors page (2026-08-15), same fix. */}
+          <Button className="flex-1 md:w-auto md:flex-none" asChild>
             <Link href="/a/news/create" data-tour="orgs-misc-news-create">
               <IconCirclePlus />
-              Create New
+              {t("list.createNew")}
             </Link>
           </Button>
           <InfoTip id="news.create" />
@@ -257,7 +270,7 @@ const page = () => {
             <Input
               data-tour="orgs-misc-news-search"
               type="search"
-              placeholder="Search news by title, content, or author..."
+              placeholder={t("list.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 bg-background/50 backdrop-blur-sm"
@@ -286,7 +299,7 @@ const page = () => {
                 data-tour="orgs-misc-news-category-filter"
                 className="w-full md:w-[200px]"
               >
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder={t("list.categoryPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
@@ -303,15 +316,15 @@ const page = () => {
                 data-tour="orgs-misc-news-status-filter"
                 className="w-full md:w-[150px]"
               >
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder={t("list.statusPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="all">{t("list.status.all")}</SelectItem>
+                <SelectItem value="published">{t("list.status.published")}</SelectItem>
                 {/* Scheduled = not yet public; backend returns status "scheduled" for these. */}
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
+                <SelectItem value="scheduled">{t("list.status.scheduled")}</SelectItem>
+                <SelectItem value="draft">{t("list.status.draft")}</SelectItem>
+                <SelectItem value="archived">{t("list.status.archived")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -359,7 +372,10 @@ const page = () => {
 
             {/* Results count */}
             <div className="hidden md:block text-sm text-muted-foreground">
-              Showing {filteredNews.length} of {news?.length || 0} articles
+              {t("list.resultsCount", {
+                shown: filteredNews.length,
+                total: news?.length || 0,
+              })}
             </div>
           </div>
         </div>
@@ -370,21 +386,21 @@ const page = () => {
         <div className="text-center py-12">
           <div className="max-w-md mx-auto">
             <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No articles found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("list.empty.title")}</h3>
             <p className="text-muted-foreground mb-4">
               {searchQuery ||
               dateFilter ||
               filterCategory !== "all" ||
               filterStatus !== "all"
-                ? "Try adjusting your search terms or filters"
-                : "No articles available at the moment"}
+                ? t("list.empty.filtered")
+                : t("list.empty.none")}
             </p>
             {(searchQuery ||
               dateFilter ||
               filterCategory !== "all" ||
               filterStatus !== "all") && (
               <Button variant="outline" onClick={clearFilters}>
-                Clear all filters
+                {t("list.empty.clear")}
               </Button>
             )}
           </div>
@@ -425,7 +441,14 @@ const page = () => {
                           : ""
                       }`}
                     >
-                      {newsDetails.status || "Published"}
+                      {/* The backend sends "published" / "scheduled" as a KEY, so the badge is
+                          translated through the same list the status filter uses rather than
+                          printing the raw value. t.has() guards it, because the backend's status
+                          set can grow ahead of this catalogue and an unknown value must show
+                          itself rather than crash the whole list. */}
+                      {t.has(`list.status.${newsDetails.status || "published"}`)
+                        ? t(`list.status.${newsDetails.status || "published"}`)
+                        : newsDetails.status || t("list.status.published")}
                     </Badge>
                   </div>
                 </Link>
@@ -446,23 +469,28 @@ const page = () => {
                         {newsDetails.author?.[0] || "?"}
                       </AvatarFallback>
                     </Avatar>
-                    <span>{newsDetails.author || "Unknown"}</span>
+                    <span>{newsDetails.author || t("list.card.unknownAuthor")}</span>
                     <span>•</span>
-                    <span>
-                      {formatDate(
-                        newsDetails.published_at || newsDetails.created_at,
-                      )}
-                    </span>
+                    {/* The viewer's own timezone and language, never a hardcoded en-US
+                        format: formatDate() writes English ordinals ("August 16th") and a
+                        12-hour en-US clock whatever the admin's language is. */}
+                    <LocalTime
+                      value={newsDetails.published_at || newsDetails.created_at}
+                      mode="date"
+                    />
                   </div>
-                  {/* Auto-release time for a not-yet-published (scheduled) article. Rendered in the
-                      admin's local timezone via formatDate(..., true); the Celery task flips it live then. */}
+                  {/* Auto-release time for a not-yet-published (scheduled) article, in the
+                      admin's own timezone and language; the Celery task flips it live then. */}
                   {newsDetails.status === "scheduled" &&
                     newsDetails.scheduled_publish_at && (
                       <div className="flex items-center gap-1.5 mb-3 text-xs font-medium text-amber-600 dark:text-amber-400">
                         <IconCalendar size={14} />
                         <span>
-                          Scheduled for{" "}
-                          {formatDate(newsDetails.scheduled_publish_at, true)}
+                          {t("list.card.scheduledFor")}{" "}
+                          <LocalTime
+                            value={newsDetails.scheduled_publish_at}
+                            mode="datetime"
+                          />
                         </span>
                       </div>
                     )}
@@ -475,8 +503,8 @@ const page = () => {
                     <div className="flex items-center gap-1.5 mb-3 text-xs font-medium text-primary">
                       <IconPinned size={14} />
                       <span>
-                        Pinned to homepage until{" "}
-                        {formatDate(newsDetails.pinned_until, true)}
+                        {t("list.card.pinnedUntil")}{" "}
+                        <LocalTime value={newsDetails.pinned_until} mode="datetime" />
                       </span>
                     </div>
                   )}
@@ -501,13 +529,13 @@ const page = () => {
                     <Button className="flex-auto" variant="outline" asChild>
                       <Link href={`/a/news/${newsDetails.slug}`}>
                         <IconEye />
-                        View
+                        {t("list.card.view")}
                       </Link>
                     </Button>
                     <Button className="flex-auto" variant="outline" asChild>
                       <Link href={`/a/news/${newsDetails.slug}/edit`}>
                         <IconPencil />
-                        Edit
+                        {t("list.card.edit")}
                       </Link>
                     </Button>
 
@@ -529,7 +557,7 @@ const page = () => {
                             <IconShare />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Copy link</TooltipContent>
+                        <TooltipContent>{t("list.card.copyLink")}</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
@@ -540,9 +568,14 @@ const page = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <p className="hidden md:block text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-
-                {Math.min(currentPage * ITEMS_PER_PAGE, filteredNews.length)} of{" "}
-                {filteredNews.length} articles
+                {t("list.showing", {
+                  from: (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                  to: Math.min(
+                    currentPage * ITEMS_PER_PAGE,
+                    filteredNews.length,
+                  ),
+                  total: filteredNews.length,
+                })}
               </p>
               <Pagination className="w-full md:w-auto mx-0">
                 <PaginationContent>
@@ -603,4 +636,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default NewsAdminPage;

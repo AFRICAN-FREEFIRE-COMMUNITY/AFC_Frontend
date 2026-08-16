@@ -38,6 +38,7 @@ import Link from "next/link";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import Image from "next/image";
@@ -64,7 +65,12 @@ function localPinDefaultForInput() {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 
-function page() {
+function CreateNewsPage() {
+  // Admin surfaces are in scope for i18n (owner override 2026-07-13). Namespace "adminNews"
+  // (messages/{en,fr,pt}/adminNews.json) is shared by this form, the edit form and the news list,
+  // because the three screens say the same words about the same fields and splitting them would let
+  // the wording drift between "create" and "edit".
+  const t = useTranslations("adminNews");
   const router = useRouter();
   const { user, token } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -155,7 +161,7 @@ function page() {
         toast.success(response.data.message);
         router.push(`/a/news`);
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || "Internal server error");
+        toast.error(error?.response?.data?.message || t("form.serverError"));
         return;
       }
     });
@@ -172,14 +178,14 @@ function page() {
           // Title is a ReactNode so the page-level ⓘ can sit right after it.
           title={
             <span className="inline-flex items-center">
-              Create News
+              {t("form.createTitle")}
               <InfoTip id="news.create._page" className="ml-1.5" />
             </span>
           }
         />
         <Card>
           <CardHeader>
-            <CardTitle>News Details</CardTitle>
+            <CardTitle>{t("form.detailsHeading")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <form
@@ -191,9 +197,9 @@ function page() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>{t("form.title")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter news title" {...field} />
+                      <Input placeholder={t("form.titlePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -204,7 +210,7 @@ function page() {
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Content</FormLabel>
+                    <FormLabel>{t("form.content")}</FormLabel>
                     <FormControl>
                       <RichTextEditor field={field} />
                     </FormControl>
@@ -218,7 +224,7 @@ function page() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Category
+                      {t("form.category")}
                       <InfoTip id="news.category" className="ml-1" />
                     </FormLabel>
                     <Select
@@ -227,7 +233,7 @@ function page() {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue placeholder={t("form.categoryPlaceholder")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -261,7 +267,7 @@ function page() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Related Events (Optional)
+                      {t("form.relatedEvents")}
                       <InfoTip id="news.related_event" className="ml-1" />
                     </FormLabel>
                     <FormControl>
@@ -280,7 +286,7 @@ function page() {
                 name="images"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Images</FormLabel>
+                    <FormLabel>{t("form.images")}</FormLabel>
                     <FormControl>
                       <div className="space-y-4">
                         {!previewUrl ? (
@@ -306,9 +312,7 @@ function page() {
                                     "image/webp",
                                   ].includes(file.type)
                                 ) {
-                                  toast.error(
-                                    "Only PNG, JPG, JPEG, or WEBP files are supported."
-                                  );
+                                  toast.error(t("form.image.invalidType"));
                                   return;
                                 }
                                 setSelectedFile(file);
@@ -330,13 +334,13 @@ function page() {
                                 />
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                Drop your image here, or{" "}
+                                {t("form.image.dropPrompt")}{" "}
                                 <span className="text-primary font-medium hover:underline">
-                                  browse
+                                  {t("form.image.browse")}
                                 </span>
                               </p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                Supports: PNG, JPG, JPEG, WEBP
+                                {t("form.image.supports")}
                               </p>
                             </div>
                           </div>
@@ -347,7 +351,7 @@ function page() {
                                 width={1000}
                                 height={1000}
                                 src={previewUrl}
-                                alt="Featured image"
+                                alt={t("form.image.alt")}
                                 className="aspect-video size-full object-cover"
                               />
                             </div>
@@ -367,7 +371,7 @@ function page() {
                                 }}
                               >
                                 <IconX size={16} className="mr-2" />
-                                Remove
+                                {t("form.image.remove")}
                               </Button>
 
                               <Button
@@ -377,7 +381,7 @@ function page() {
                                 onClick={() => fileInputRef.current?.click()}
                               >
                                 <IconUpload size={16} className="mr-2" />
-                                Replace
+                                {t("form.image.replace")}
                               </Button>
                             </div>
                           </div>
@@ -400,9 +404,7 @@ function page() {
                                 "image/webp",
                               ].includes(file.type)
                             ) {
-                              toast.error(
-                                "Only PNG, JPG, JPEG, or WEBP files are supported."
-                              );
+                              toast.error(t("form.image.invalidType"));
                               return;
                             }
 
@@ -421,10 +423,10 @@ function page() {
                 name="author"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Author</FormLabel>
+                    <FormLabel>{t("form.author")}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Enter your name"
+                        placeholder={t("form.authorPlaceholder")}
                         {...field}
                         readOnly
                       />
@@ -440,7 +442,7 @@ function page() {
                   own timezone and is converted to UTC on submit. */}
               <div className="space-y-2">
                 <FormLabel htmlFor="news-schedule">
-                  Schedule publish (optional)
+                  {t("form.schedule.label")}
                 </FormLabel>
                 <Input
                   id="news-schedule"
@@ -451,8 +453,7 @@ function page() {
                   className="w-full md:w-auto"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Leave blank to publish immediately. Pick a future date and time
-                  to release this article automatically.
+                  {t("form.schedule.hint")}
                 </p>
               </div>
 
@@ -463,11 +464,9 @@ function page() {
               <div className="space-y-2 rounded-md border p-4">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <FormLabel htmlFor="news-pin">Pin to homepage</FormLabel>
+                    <FormLabel htmlFor="news-pin">{t("form.pin.label")}</FormLabel>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Shows this post in the Notices block at the top of the home
-                      page until the date below. Up to 3 show at once, newest
-                      first.
+                      {t("form.pin.hint")}
                     </p>
                   </div>
                   <Switch
@@ -483,7 +482,7 @@ function page() {
                 </div>
                 {pinToHomepage && (
                   <div className="space-y-2 pt-2">
-                    <FormLabel htmlFor="news-pin-until">Pinned until</FormLabel>
+                    <FormLabel htmlFor="news-pin-until">{t("form.pin.untilLabel")}</FormLabel>
                     <Input
                       id="news-pin-until"
                       type="datetime-local"
@@ -493,8 +492,7 @@ function page() {
                       className="w-full md:w-auto"
                     />
                     <p className="text-xs text-muted-foreground">
-                      The notice removes itself at this time. The article stays
-                      published and readable in News afterwards.
+                      {t("form.pin.untilHint")}
                     </p>
                   </div>
                 )}
@@ -507,14 +505,14 @@ function page() {
                   asChild
                   variant="outline"
                 >
-                  <Link href="/a/news">Cancel</Link>
+                  <Link href="/a/news">{t("form.cancel")}</Link>
                 </Button>
                 <Button type="submit" disabled={pending} className="flex-1">
                   {pending
-                    ? "Saving..."
+                    ? t("form.saving")
                     : scheduledPublishAt
-                      ? "Schedule"
-                      : "Publish"}
+                      ? t("form.schedulePublish")
+                      : t("form.publish")}
                 </Button>
               </div>
             </form>
@@ -525,4 +523,4 @@ function page() {
   );
 }
 
-export default page;
+export default CreateNewsPage;
