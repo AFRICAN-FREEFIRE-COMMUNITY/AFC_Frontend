@@ -47,7 +47,6 @@
   },
   "stats": {
     "categories": "Catégories",
-    "winningVotes": "Votes gagnants",
     "ballots": "Bulletins",
     "mostDecorated": "Le plus récompensé"
   },
@@ -58,9 +57,6 @@
   },
   "winner": "Lauréat",
   "viewProfile": "Voir le profil",
-  "votes": "{count, plural, =1 {# vote} other {# votes}}",
-  "fullResult": "Afficher le résultat complet",
-  "hideFullResult": "Masquer le résultat complet",
   "archive": {
     "heading": "Panthéon",
     "search": "Rechercher un lauréat ou une catégorie",

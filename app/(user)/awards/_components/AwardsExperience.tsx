@@ -23,8 +23,9 @@
  *      Everything else stays at the site's compact defaults, because occasion reads as the
  *      CONTRAST between the two, not as everything getting bigger.
  *   2. AIR. A winner band is alone across the full column width with 2rem of internal padding.
- *   3. GOLD, rationed harder. Gold appears on a winner band exactly three times: the ring, the
- *      category eyebrow, and the vote count. Nowhere else. Nominees and runners-up stay neutral.
+ *   3. GOLD, rationed harder. Gold appears on a winner band exactly twice: the ring and the
+ *      category eyebrow. Nowhere else. Nominees stay neutral. (It was three until the vote counts
+ *      came off - owner, 2026-08-16: the award is the story, not the margin.)
  *   4. FACES. Player photos and team logos carry the wall, the ballot and the reveal.
  *   5. TIME. A ticking countdown and a four-stage timeline. Nothing says "event" like a clock.
  *   6. SEQUENCE. Ceremony mode, because the difference between a results page and an awards night
@@ -566,6 +567,9 @@ type WinnerRow = {
   pollTitle: string;
   question: PollQuestion;
   winner: PollOption;
+  /** The published count. CARRIED, NOT SHOWN (owner, 2026-08-16): the awards surface displays the
+   *  winner and not the margin. The number stays on the row, and in the database, because it is the
+   *  published historical record and dropping it would mean it could not come back. */
   votes: number | null;
 };
 
@@ -664,15 +668,11 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
     return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
   }, [winners]);
 
-  // "Winning votes", not "total votes": the losing nominees' counts were never published, so the
-  // source cannot support the second claim. Naming it honestly is the whole point.
-  const winningVotes = winners.reduce((sum, row) => sum + (row.votes || 0), 0);
 
   return (
     <div className="mt-10 space-y-8">
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatTile label={t("stats.categories")} value={winners.length.toLocaleString(locale)} />
-        <StatTile label={t("stats.winningVotes")} value={winningVotes.toLocaleString(locale)} />
         <StatTile label={t("stats.ballots")} value={data.polls.length.toLocaleString(locale)} />
         <StatTile
           label={t("stats.mostDecorated")}
@@ -773,11 +773,6 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
                     <p className="truncate text-sm font-semibold text-foreground">
                       {row.winner.label}
                     </p>
-                    {row.votes != null && (
-                      <p className="text-xs tabular-nums text-muted-foreground">
-                        {t("votes", { count: row.votes })}
-                      </p>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -812,13 +807,6 @@ function WinnerBand({
   innerRef: (element: HTMLElement | null) => void;
 }) {
   const t = useTranslations("awards");
-  const locale = useLocale();
-  const [expanded, setExpanded] = useState(false);
-  const runnersUp = row.question.options.filter(
-    (option) => option.option_id !== row.winner.option_id,
-  );
-  const hasTally = runnersUp.some((option) => (option.votes || 0) > 0);
-  const top = Math.max(row.votes || 0, ...row.question.options.map((o) => o.votes || 0), 1);
 
   return (
     <article
@@ -833,7 +821,7 @@ function WinnerBand({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <Portrait option={row.winner} size={92} gold />
         <div className="min-w-0 flex-1">
-          {/* Gold use 2 of 3: the category eyebrow. */}
+          {/* Gold use 2 of 2: the category eyebrow. */}
           <p className="text-xs font-semibold uppercase tracking-wide text-gold">
             {row.question.prompt}
           </p>
@@ -866,49 +854,8 @@ function WinnerBand({
             )}
           </div>
         </div>
-        {/* Gold use 3 of 3: the vote count. On mobile the winner's own count stays ABOVE the
-            runner-up bars, which is why it lives in this row rather than in the expander. */}
-        {row.votes != null && (
-          <p className="shrink-0 text-3xl font-bold tabular-nums text-gold sm:text-4xl">
-            {row.votes.toLocaleString(locale)}
-          </p>
-        )}
       </div>
 
-      {hasTally && (
-        <div className="mt-4">
-          <button
-            type="button"
-            onClick={() => setExpanded((value) => !value)}
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            {expanded ? t("hideFullResult") : t("fullResult")}
-          </button>
-          {expanded && (
-            <div className="mt-2 space-y-1.5">
-              {[row.winner, ...runnersUp].map((option) => (
-                <div key={option.option_id} className="flex items-center gap-2 text-xs">
-                  <span className="w-32 shrink-0 truncate text-muted-foreground">
-                    {option.label}
-                  </span>
-                  <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                    <span
-                      className={cn(
-                        "block h-full",
-                        option.option_id === row.winner.option_id ? "bg-gold" : "bg-muted-foreground/40",
-                      )}
-                      style={{ width: `${((option.votes || 0) / top) * 100}%` }}
-                    />
-                  </span>
-                  <span className="w-10 shrink-0 text-right tabular-nums text-muted-foreground">
-                    {option.votes || 0}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </article>
   );
 }
