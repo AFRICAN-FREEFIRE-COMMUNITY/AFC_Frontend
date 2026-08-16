@@ -47,7 +47,6 @@
   },
   "stats": {
     "categories": "Categories",
-    "winningVotes": "Winning votes",
     "ballots": "Ballots",
     "mostDecorated": "Most decorated"
   },
@@ -58,9 +57,6 @@
   },
   "winner": "Winner",
   "viewProfile": "View profile",
-  "votes": "{count, plural, =1 {# vote} other {# votes}}",
-  "fullResult": "Show the full result",
-  "hideFullResult": "Hide the full result",
   "archive": {
     "heading": "Hall of fame",
     "search": "Search a winner or a category",

@@ -47,7 +47,6 @@
   },
   "stats": {
     "categories": "Categorias",
-    "winningVotes": "Votos vencedores",
     "ballots": "Votações",
     "mostDecorated": "Mais premiado"
   },
@@ -58,9 +57,6 @@
   },
   "winner": "Vencedor",
   "viewProfile": "Ver perfil",
-  "votes": "{count, plural, =1 {# voto} other {# votos}}",
-  "fullResult": "Mostrar o resultado completo",
-  "hideFullResult": "Ocultar o resultado completo",
   "archive": {
     "heading": "Galeria dos campeões",
     "search": "Buscar um vencedor ou uma categoria",
