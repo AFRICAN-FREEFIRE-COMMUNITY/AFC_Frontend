@@ -215,6 +215,14 @@ interface PublicPlayer {
   tournaments_kills: number;
   scrims_wins: number;
   tournaments_wins: number;
+  // Events this player actually PLAYED, split by competition_type (owner ruling 2026-08-08:
+  // "count events played, matches they participated in where a score was assigned to them").
+  // Served by GET/POST /player/get-public-player-stats/ from the ONE shared rule in
+  // backend afc_tournament_and_scrims/participation.py, which is also what the owner's own
+  // profile shows, so the two pages cannot describe two different careers for one person.
+  // Optional so an older backend that omits them degrades to a dash instead of "0".
+  tournaments_played?: number;
+  scrims_played?: number;
   // The record of the TEAMS this player was rostered on: every match those teams played,
   // whether or not the player was fielded. This is what the old total_wins silently measured.
   team_matches: number;
@@ -438,7 +446,10 @@ export function PlayerClient({ username }: { username: string }) {
   // Headline career cards, computed from the filtered slice (real numbers only).
   const headline = useMemo(() => {
     const evs = filteredEvents;
-    const tournaments = evs.length;
+    // Named `events`, not `tournaments`: per_event carries scrims as well, so this is the
+    // count of EVENTS with a recorded match line in the window (owner ruling 2026-08-08).
+    // The tournaments-played / scrims-played split is the all-time pair the backend serves.
+    const events = evs.length;
     const kills = evs.reduce((a, e) => a + e.kills, 0);
     const matches = evs.reduce((a, e) => a + e.matches_played, 0);
     const mvps = evs.reduce((a, e) => a + e.mvps, 0);
@@ -452,9 +463,9 @@ export function PlayerClient({ username }: { username: string }) {
         placed.length
       : null;
     const killsPerMatch = matches > 0 ? kills / matches : 0;
-    const winRate = tournaments > 0 ? (wins / tournaments) * 100 : 0;
+    const winRate = events > 0 ? (wins / events) * 100 : 0;
     return {
-      tournaments,
+      events,
       kills,
       matches,
       mvps,
@@ -594,10 +605,27 @@ export function PlayerClient({ username }: { username: string }) {
       {/* ── IDENTITY CARD (mirrors own-profile + admin player card) ─────────── */}
       <Card>
         <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* min-w-0 here is THE fix for the 85px of horizontal page scroll this page had at
+              390px. shadcn's CardHeader is a CSS GRID, and a grid item - exactly like a flex
+              item - defaults to `min-width: auto`, meaning "never shrink below your own
+              min-content width". CardHeader itself was correctly 354px wide inside the phone
+              viewport, but this child measured its content (avatar + esport thumbnail + the
+              name/UID/badges column) at 438px and simply overflowed its parent, dragging the
+              whole document sideways. Constraining it here is what lets the min-w-0 further
+              down actually take effect; without this line those inner ones do nothing, because
+              their parent was never short of room in the first place. */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 min-w-0">
             {/* identity: avatar + name + @handle + UID + role/team/tier badges */}
-            <div className="flex items-center gap-4">
-              <Avatar className="w-20 h-20 border-4 border-primary">
+            {/* min-w-0 on the ROW as well as on the text block below: a flex item's default
+                min-width is `auto`, which means "never shrink below your content", and that
+                default applies at every level of a nested flex tree. Without it this row was
+                438px wide inside a 390px phone (85px of horizontal page scroll), because the
+                fixed-size avatar cluster plus the unshrinkable name/UID/badges block added up
+                to more than the viewport and pushed the whole document sideways. */}
+            <div className="flex items-center gap-4 min-w-0">
+              {/* shrink-0 so the avatar keeps its size and the TEXT gives way instead: without
+                  it, letting the row shrink would squash the avatar into an oval. */}
+              <Avatar className="w-20 h-20 border-4 border-primary shrink-0">
                 <AvatarImage
                   src={avatarSrc}
                   alt={player.username}
@@ -615,6 +643,7 @@ export function PlayerClient({ username }: { username: string }) {
                   target="_blank"
                   rel="noreferrer"
                   title={t("playerProfile.esportImage")}
+                  className="shrink-0"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -624,7 +653,10 @@ export function PlayerClient({ username }: { username: string }) {
                   />
                 </a>
               ) : null}
-              <div>
+              {/* min-w-0 is what actually lets this block shrink, and break-words lets a long
+                  IGN or UID wrap instead of forming one unbreakable line. This is the widest
+                  content in the row, so it is the piece that has to give. */}
+              <div className="min-w-0 break-words">
                 <CardTitle className="text-2xl md:text-3xl">
                   {player.username}
                 </CardTitle>
@@ -678,7 +710,14 @@ export function PlayerClient({ username }: { username: string }) {
                   <FanHater
                     subjectType="player"
                     targetId={player.user_id}
-                    className="mt-3"
+                    /* flex-wrap: the two reaction buttons are whitespace-nowrap, so side by
+                       side they set a min-content width the column cannot go below and they
+                       were the last thing pushing this page past 390px. Letting them wrap onto
+                       a second line on a narrow phone costs nothing and removes the overflow.
+                       Passed from here rather than edited into FanHater, whose root already
+                       merges className, so the shared component (also used on team pages) is
+                       left untouched. */
+                    className="mt-3 flex-wrap"
                   />
                 )}
               </div>
@@ -876,6 +915,20 @@ export function PlayerClient({ username }: { username: string }) {
                       label={t("player.avgDamage")}
                       value={Math.round(player.avg_damage)}
                     />
+                    {/* Events actually PLAYED, all time (owner ruling 2026-08-08). These sit
+                        in the career snapshot rather than in the range-filtered headline on
+                        the Stats tab because they come straight from the endpoint, from the
+                        same shared backend rule the owner's own profile reads, so the two
+                        surfaces show the same pair for the same person. A number here means
+                        "a score was assigned to you in this event", never "you signed up". */}
+                    <StatBox
+                      label={t("player.tournamentsPlayed")}
+                      value={player.tournaments_played ?? 0}
+                    />
+                    <StatBox
+                      label={t("player.scrimsPlayed")}
+                      value={player.scrims_played ?? 0}
+                    />
                     <StatBox
                       label={t("player.currentTier")}
                       value={currentTier?.tier_label ?? t("player.unranked")}
@@ -1030,9 +1083,15 @@ export function PlayerClient({ username }: { username: string }) {
 
               {/* headline career cards (recompute from the filtered slice) */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* "Events", not "Tournaments" (owner ruling 2026-08-08). This box counts the
+                    per_event rows inside the selected date window, and those rows are every
+                    event with a recorded match line, scrims included, so calling it
+                    "Tournaments" made it read as the tournaments-played number while quietly
+                    reporting something wider. The tournaments-played / scrims-played pair is
+                    the all-time one in the career snapshot on the Overview tab. */}
                 <StatBox
-                  label={t("player.tournaments")}
-                  value={headline.tournaments}
+                  label={t("player.events")}
+                  value={headline.events}
                   sub={t("player.inRange")}
                 />
                 <StatBox
