@@ -1,0 +1,31 @@
+{
+  "title": "Ligue Fantasy",
+  "subtitle": "Composez une équipe à partir d'un vrai événement AFC et marquez des points sur ce que les joueurs font réellement.",
+  "comingSoon": "Bientôt disponible",
+  "headline": "Ligue Fantasy Free Fire",
+  "blurb": "Nous préparons une ligue fantasy qui suivra les événements AFC. Elle n'est pas encore en ligne. Si vous y joueriez, cochez la case ci-dessous et nous saurons que cela vaut la peine de la terminer.",
+  "how": {
+    "pick": {
+      "title": "Composez votre équipe",
+      "body": "Choisissez des joueurs parmi les équipes d'un vrai événement AFC, avant le premier match."
+    },
+    "score": {
+      "title": "Ils jouent, vous marquez",
+      "body": "Votre équipe marque des points selon ce que ces joueurs font vraiment en match, éliminations et victoires comprises."
+    },
+    "win": {
+      "title": "Montez au classement",
+      "body": "Tous les participants à cet événement figurent sur un même classement. Le meilleur score l'emporte."
+    }
+  },
+  "interest": {
+    "label": "Je jouerais à ça",
+    "hint": "Une coche par personne. Vous pouvez la retirer à tout moment.",
+    "count": "{count, plural, =0 {Personne ne s'est encore manifesté} one {# personne intéressée} other {# personnes intéressées}}"
+  },
+  "thanks": "C'est noté. Merci.",
+  "failed": "Cela n'a pas pu être enregistré.",
+  "signInFirst": "Connectez-vous pour indiquer votre intérêt.",
+  "signInPrompt": "Il faut un compte pour que cela compte.",
+  "signInLink": "Se connecter"
+}

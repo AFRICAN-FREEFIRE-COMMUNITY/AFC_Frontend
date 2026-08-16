@@ -4,6 +4,7 @@ import {
   IconBuilding,
   IconCalendar,
   IconChartBarPopular,
+  IconTrophy,
   IconFolder,
   IconHelpCircle,
   IconHome,
@@ -141,6 +142,17 @@ export const homeNavLinksMobile: NavLinks[] = [
     label: "Polls",
     navKey: "polls",
     icon: IconChartBarPopular,
+    newLink: true,
+    addedAt: "2026-08-16",
+  },
+  // Fantasy sits beside Polls because both are "play along with an event" rather than "read about
+  // one". The page says COMING SOON and asks whether people want it; without a menu entry the only
+  // people who would answer are those already sent the URL, which is the least useful sample.
+  {
+    slug: "/fantasy",
+    label: "Fantasy",
+    navKey: "fantasy",
+    icon: IconTrophy,
     newLink: true,
     addedAt: "2026-08-16",
   },

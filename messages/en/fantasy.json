@@ -1,0 +1,31 @@
+{
+  "title": "Fantasy League",
+  "subtitle": "Pick a squad from a real AFC event and score points from what they actually do.",
+  "comingSoon": "Coming soon",
+  "headline": "Free Fire Fantasy League",
+  "blurb": "We are building a fantasy league that runs alongside AFC events. It is not live yet. If you would play it, tick the box below and we will know it is worth finishing.",
+  "how": {
+    "pick": {
+      "title": "Pick your squad",
+      "body": "Choose players from the teams in a real AFC event, before the first match starts."
+    },
+    "score": {
+      "title": "They play, you score",
+      "body": "Your squad earns points from what those players actually do in their matches, kills and wins included."
+    },
+    "win": {
+      "title": "Climb the table",
+      "body": "Everyone who entered that event is on one table. Highest score at the end takes it."
+    }
+  },
+  "interest": {
+    "label": "I would play this",
+    "hint": "One tick per person. Untick any time.",
+    "count": "{count, plural, =0 {Nobody has said so yet} =1 {# person wants this} other {# people want this}}"
+  },
+  "thanks": "Noted. Thanks.",
+  "failed": "That could not be saved.",
+  "signInFirst": "Sign in to register your interest.",
+  "signInPrompt": "You need an account for this to count.",
+  "signInLink": "Sign in"
+}
