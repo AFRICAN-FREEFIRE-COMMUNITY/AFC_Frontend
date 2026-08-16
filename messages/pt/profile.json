@@ -302,9 +302,9 @@
     },
     "whatsapp": {
       "numberLabel": "Número do WhatsApp",
-      "numberDescription": "Adicione o seu número do WhatsApp (com o código do país) para receber os detalhes da sala do torneio diretamente no seu WhatsApp.",
+      "numberDescription": "Adicione o seu número do WhatsApp (com o código do país) para receber os detalhes da sala do torneio diretamente no seu WhatsApp, e para poder recuperar a sua conta se algum dia perder o acesso ao seu e-mail.",
       "numberPlaceholder": "+234 801 234 5678",
-      "optInLabel": "Envia-me os IDs das salas e as palavras-passe pelo WhatsApp"
+      "optInLabel": "Envia-me pelo WhatsApp os IDs das salas, as palavras-passe e os códigos de recuperação da conta"
     },
     "changeEmail": {
       "button": "Alterar e-mail",

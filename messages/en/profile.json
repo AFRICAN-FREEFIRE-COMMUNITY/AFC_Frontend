@@ -302,9 +302,9 @@
     },
     "whatsapp": {
       "numberLabel": "WhatsApp number",
-      "numberDescription": "Add your WhatsApp number (with country code) to get tournament room details sent straight to your WhatsApp.",
+      "numberDescription": "Add your WhatsApp number (with country code) to get tournament room details sent straight to your WhatsApp, and to be able to get back into your account if you ever lose access to your email.",
       "numberPlaceholder": "+234 801 234 5678",
-      "optInLabel": "Send me room IDs and passwords on WhatsApp"
+      "optInLabel": "Send me room IDs, passwords and account recovery codes on WhatsApp"
     },
     "changeEmail": {
       "button": "Change email",
