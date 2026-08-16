@@ -595,6 +595,14 @@ export default function TournamentTiersPage() {
   // on screen, so the tier is hidden while this is set.
   const [testError, setTestError] = useState<string | null>(null);
 
+  // The rule the last test matched, or undefined once it has been deleted or its id changed.
+  // Derived rather than stored, so it cannot go stale on its own, and it is the ONLY place the
+  // matched rule is looked up: the panel below used to repeat this find() three times with a
+  // non-null assertion on each, which is what crashed the page when the rule was removed.
+  const matchedRule = result.ruleId
+    ? rules.find((r) => r.id === result.ruleId)
+    : undefined;
+
   const sortableId = useId();
   const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}));
   const ids = useMemo<UniqueIdentifier[]>(() => rules.map((r) => r.id), [rules]);
@@ -1069,14 +1077,20 @@ export default function TournamentTiersPage() {
                   {/* The AND / OR joiner is a translated word, so the surrounding spaces are added
                       here rather than baked into the message (leading/trailing spaces in a
                       catalog value get lost in translation tooling). */}
-                  {result.ruleId
+                  {/* Resolved ONCE, and without a non-null assertion. `result` is a snapshot of
+                      the last test run, so the rule it matched can be deleted while the result is
+                      still on screen - which is exactly what happened: deleting the rule wearing
+                      the "matches test" badge made this lookup return undefined, the `!` let it
+                      through the compiler, and reading .conditions on undefined took the whole
+                      page down with "This page couldn't load". A stale result now falls back to
+                      the no-match line until the next test is run. */}
+                  {matchedRule
                     ? t("test.matched", {
-                        n: rules.findIndex((r) => r.id === result.ruleId) + 1,
-                        conditions: rules
-                          .find((r) => r.id === result.ruleId)!
-                          .conditions.map((c) => condText(c, t))
+                        n: rules.indexOf(matchedRule) + 1,
+                        conditions: matchedRule.conditions
+                          .map((c) => condText(c, t))
                           .join(
-                            rules.find((r) => r.id === result.ruleId)!.match === "all"
+                            matchedRule.match === "all"
                               ? ` ${t("test.joinAnd")} `
                               : ` ${t("test.joinOr")} `,
                           ),
