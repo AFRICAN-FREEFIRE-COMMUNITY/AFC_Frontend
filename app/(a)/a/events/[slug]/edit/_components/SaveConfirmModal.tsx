@@ -55,7 +55,10 @@ export function SaveConfirmModal({
               </p>
               <div className="rounded-md border divide-y max-h-64 overflow-y-auto">
                 {changes.map((c, i) => (
-                  <div key={i} className="px-3 py-2 text-sm">
+                  // break-words: a value can be a long free-text field (a description, a country
+                  // list). The builder already truncates, but an unbroken 120-character string
+                  // would still push the dialog past the edge of a phone screen without this.
+                  <div key={i} className="px-3 py-2 text-sm break-words">
                     <span className="font-medium">{c.label}:</span>{" "}
                     <span className="line-through text-muted-foreground">
                       {c.from || "-"}
