@@ -5,8 +5,8 @@
       "title": "Aucune saison de trophées pour le moment",
       "body": "Dès qu'une saison de trophées ouvre, les nommés, le bulletin de vote et les lauréats apparaissent ici."
     },
-    "otherEditions": "Autres années",
-    "backToAwards": "Tous les trophées"
+    "backToAwards": "Tous les trophées",
+    "seasonLabel": "Saison"
   },
   "notFound": "Cette saison de trophées est introuvable.",
   "phaseLabel": "Étape des trophées : {phase, select, announced {nommés annoncés} voting {vote ouvert} counting {dépouillement en cours} winners {lauréats annoncés} archived {archivé} other {en cours}}",

@@ -5,8 +5,8 @@
       "title": "Ainda não há temporada de prêmios",
       "body": "Quando uma temporada de prêmios abrir, os indicados, a votação e os vencedores aparecem aqui."
     },
-    "otherEditions": "Outros anos",
-    "backToAwards": "Todos os prêmios"
+    "backToAwards": "Todos os prêmios",
+    "seasonLabel": "Temporada"
   },
   "notFound": "Esta temporada de prêmios não foi encontrada.",
   "phaseLabel": "Etapa dos prêmios: {phase, select, announced {indicados anunciados} voting {votação aberta} counting {apuração em andamento} winners {vencedores anunciados} archived {arquivado} other {em andamento}}",

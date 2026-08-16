@@ -12,20 +12,27 @@
  *   PollQuestion.slug, rendered by AwardsExperience on both the ballot cards and the winner bands).
  *
  * The whole surface is AwardsExperience, the same component /awards renders. Only the edition it
- * is pointed at differs, so a season can never look like two different pages.
+ * is pointed at differs, so a season can never look like two different pages. The season picker is
+ * shared too, so somebody who landed here on a shared link can move between years without going
+ * back to /awards first.
  *
  * WHAT IT TALKS TO
- *   GET {BACKEND}/polls/editions/<slug>/ -> afc_polls.views.edition_detail, inside AwardsExperience.
+ *   GET {BACKEND}/polls/editions/         -> the season list behind the picker
+ *   GET {BACKEND}/polls/editions/<slug>/  -> the season itself, inside AwardsExperience
  *   A slug that does not exist answers 404, and the component renders its own "not found" card
  *   rather than an error wall.
  */
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { IconChevronLeft } from "@tabler/icons-react";
 
+import { pollsApi, type AwardsEdition } from "@/lib/polls";
+
 import { AwardsExperience } from "../_components/AwardsExperience";
+import { SeasonPicker } from "../_components/SeasonPicker";
 
 export default function AwardsEditionPage() {
   // Namespace "awards" (messages/{en,fr,pt}/awards.json), shared with /awards and the experience.
@@ -34,6 +41,24 @@ export default function AwardsEditionPage() {
   // useParams gives string | string[]; this segment is never catch-all, but the guard keeps a
   // malformed URL from being handed to the API as "slug1,slug2".
   const slug = Array.isArray(params.edition) ? params.edition[0] : params.edition;
+
+  // The season list feeds the picker only. A failure leaves the picker hidden rather than blocking
+  // the season itself, which loads independently inside AwardsExperience.
+  const [editions, setEditions] = useState<AwardsEdition[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    pollsApi
+      .listEditions()
+      .then((res) => {
+        if (!cancelled) setEditions(res.results || []);
+      })
+      .catch(() => {
+        if (!cancelled) setEditions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div>
@@ -47,6 +72,7 @@ export default function AwardsEditionPage() {
         {t("index.backToAwards")}
       </Link>
 
+      <SeasonPicker editions={editions} activeSlug={slug} />
       <AwardsExperience editionSlug={slug} />
     </div>
   );
