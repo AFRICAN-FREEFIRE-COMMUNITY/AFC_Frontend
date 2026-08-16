@@ -60,6 +60,9 @@ import {
   PhoneInput,
 } from "@/components/PhoneNumberInput";
 import { PageHeader } from "@/components/PageHeader";
+// The dated NEW tag on the WhatsApp block, which changed meaning on 2026-08-08 (it is now an
+// account-recovery factor, not only a room-details channel). Expires by itself after 5 days.
+import { NewBadge } from "@/components/NewBadge";
 // Verified change-email flow (owner 2026-07-09, bug #1): the email field is read-only; changing it
 // goes through this dialog (re-auth + code to the new address). See ChangeEmailDialog.tsx.
 import { ChangeEmailDialog } from "@/app/(user)/profile/_components/ChangeEmailDialog";
@@ -645,15 +648,31 @@ const Page = () => {
                   Number + explicit opt-in for tournament room details on WhatsApp. Both live on
                   UserProfile; sent in the same FormData; get-user-profile echoes them so this
                   form reflects truth on reload. Opt-in is REQUIRED consent (Meta policy) - the
-                  backend only messages users with opt-in true AND a number set. */}
+                  backend only messages users with opt-in true AND a number set.
+
+                  ACCOUNT RECOVERY (owner 2026-08-08): this number is now also the way back into
+                  the account if the email address ever stops working (/recover-account ->
+                  auth/recovery/whatsapp/*), which is why the description below says so and why
+                  the block wears a NEW badge. It also means the OPT-OUT below now costs more than
+                  room details: switching it off means no recovery code can be sent either, and
+                  the toggle copy states that rather than leaving it as a surprise.
+
+                  STILL OPTIONAL, and still validated. The country code is compulsory when a number
+                  is given, enforced BOTH by the RPNInput control here and independently by the
+                  backend (afc_whatsapp.phone.require_international), which now stores it
+                  normalised to E.164 instead of as typed. */}
               <FormField
                 control={form.control}
                 name="whatsapp_number"
                 render={({ field }) => (
                   <FormItem>
                     <div className="space-y-2 rounded-lg border p-4">
-                      <Label htmlFor="whatsapp-number" className="text-sm font-medium">
+                      <Label
+                        htmlFor="whatsapp-number"
+                        className="flex flex-wrap items-center gap-2 text-sm font-medium"
+                      >
                         {t("edit.whatsapp.numberLabel")}
+                        <NewBadge since="2026-08-16" />
                       </Label>
                       <p className="text-xs text-muted-foreground">
                         {t("edit.whatsapp.numberDescription")}
