@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { EditNewsFormSchema, EditNewsFormSchemaType } from "@/lib/zodSchemas";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -60,6 +61,17 @@ function isoToLocalInput(iso?: string | null) {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 }
 
+// Default life of a homepage pin when the switch is flipped on without a date (backlog item 22).
+// Mirrors DEFAULT_PIN_DAYS in backend afc_auth/views.py and the create form.
+const DEFAULT_PIN_DAYS = 7;
+
+function localPinDefaultForInput() {
+  const d = new Date();
+  d.setDate(d.getDate() + DEFAULT_PIN_DAYS);
+  d.setSeconds(0, 0);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 export default function EditNewsForm({ params }: { params: Params }) {
   const { slug } = use(params);
 
@@ -72,6 +84,12 @@ export default function EditNewsForm({ params }: { params: Params }) {
   // for a not-yet-published (scheduled) article; blank for an already-live one so re-saving it does
   // NOT accidentally re-hide it. Sent to edit-news as `scheduled_publish_at` (UTC ISO) on save.
   const [scheduledPublishAt, setScheduledPublishAt] = useState("");
+
+  // Pin to homepage (backlog item 22), pre-filled below from the article's current pin. Only
+  // `pinnedUntil` reaches the backend; the switch is UI sugar over "is there a date". Both are
+  // ALWAYS sent on save (an empty value unpins), which is why turning the switch off is enough.
+  const [pinToHomepage, setPinToHomepage] = useState(false);
+  const [pinnedUntil, setPinnedUntil] = useState("");
 
   const [previewUrl, setPreviewUrl] = useState<string>(
     newsDetails?.images_url ? newsDetails.images_url : "",
@@ -120,6 +138,13 @@ export default function EditNewsForm({ params }: { params: Params }) {
           setScheduledPublishAt(
             isoToLocalInput(res?.data?.news?.scheduled_publish_at),
           );
+        }
+        // Pre-fill the pin from `is_pinned` (the derived "showing right now" answer), NOT from a
+        // bare pinned_until: a date that has already lapsed means not pinned, and pre-filling the
+        // switch from it would show a stale pin as live and re-pin the post on the next save.
+        if (res?.data?.news?.is_pinned) {
+          setPinToHomepage(true);
+          setPinnedUntil(isoToLocalInput(res?.data?.news?.pinned_until));
         }
       } catch (error: any) {
         toast.error(error.response.data.message);
@@ -210,6 +235,18 @@ export default function EditNewsForm({ params }: { params: Params }) {
             ? new Date(scheduledPublishAt).toLocaleString()
             : "Publish now",
         });
+      // Pin change, shown in the confirm modal like every other field: pinning and unpinning both
+      // change what the whole community sees on the home page, so neither should happen silently.
+      const originalPin = newsDetails.is_pinned
+        ? isoToLocalInput(newsDetails.pinned_until)
+        : "";
+      const nextPin = pinToHomepage && pinnedUntil ? pinnedUntil : "";
+      if (nextPin !== originalPin)
+        changes.push({
+          label: "Pinned to homepage",
+          from: originalPin ? new Date(originalPin).toLocaleString() : "Not pinned",
+          to: nextPin ? new Date(nextPin).toLocaleString() : "Not pinned",
+        });
     }
 
     setConfirmChanges(changes);
@@ -247,6 +284,15 @@ export default function EditNewsForm({ params }: { params: Params }) {
         formData.append(
           "scheduled_publish_at",
           scheduledPublishAt ? new Date(scheduledPublishAt).toISOString() : "",
+        );
+
+        // Always send the pin field so the backend acts on it: a future datetime pins until then,
+        // an EMPTY value unpins. edit_news only touches the pin when the field is present, so an
+        // absent field would mean "leave it alone" - which is why this is unconditional here and
+        // why turning the switch off is enough to take a notice down. Unpinning deletes nothing.
+        formData.append(
+          "pinned_until",
+          pinToHomepage && pinnedUntil ? new Date(pinnedUntil).toISOString() : "",
         );
 
         if (selectedFile) {
@@ -568,6 +614,47 @@ export default function EditNewsForm({ params }: { params: Params }) {
                     ? "This article will publish automatically at the time above."
                     : "Leave blank to publish immediately. Pick a future date and time to release it automatically."}
                 </p>
+              </div>
+
+              {/* Pin to homepage (backlog item 22) - mirrors the create form. Turning it off
+                  unpins: the article stays published and readable in News, it just leaves the
+                  Notices block. Nothing is deleted. */}
+              <div className="space-y-2 rounded-md border p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <FormLabel htmlFor="news-pin">Pin to homepage</FormLabel>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Shows this post in the Notices block at the top of the home
+                      page until the date below. Up to 3 show at once, newest
+                      first.
+                    </p>
+                  </div>
+                  <Switch
+                    id="news-pin"
+                    checked={pinToHomepage}
+                    onCheckedChange={(on) => {
+                      setPinToHomepage(on);
+                      setPinnedUntil(on ? pinnedUntil || localPinDefaultForInput() : "");
+                    }}
+                  />
+                </div>
+                {pinToHomepage && (
+                  <div className="space-y-2 pt-2">
+                    <FormLabel htmlFor="news-pin-until">Pinned until</FormLabel>
+                    <Input
+                      id="news-pin-until"
+                      type="datetime-local"
+                      min={localNowForInput()}
+                      value={pinnedUntil}
+                      onChange={(e) => setPinnedUntil(e.target.value)}
+                      className="w-full md:w-auto"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      The notice removes itself at this time. The article stays
+                      published and readable in News afterwards.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-4">
