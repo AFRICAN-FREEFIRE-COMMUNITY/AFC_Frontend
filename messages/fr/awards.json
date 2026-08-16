@@ -1,0 +1,73 @@
+{
+  "index": {
+    "loading": "Chargement des trophées...",
+    "empty": {
+      "title": "Aucune saison de trophées pour le moment",
+      "body": "Dès qu'une saison de trophées ouvre, les nommés, le bulletin de vote et les lauréats apparaissent ici."
+    },
+    "otherEditions": "Autres années",
+    "backToAwards": "Tous les trophées"
+  },
+  "notFound": "Cette saison de trophées est introuvable.",
+  "phaseLabel": "Étape des trophées : {phase, select, announced {nommés annoncés} voting {vote ouvert} counting {dépouillement en cours} winners {lauréats annoncés} archived {archivé} other {en cours}}",
+  "phase": {
+    "announced": "Nommés",
+    "voting": "Vote",
+    "counting": "Dépouillement",
+    "winners": "Lauréats"
+  },
+  "countdown": {
+    "votingOpens": "Le vote ouvre dans",
+    "votingCloses": "Le vote ferme dans",
+    "winnersAnnounced": "Lauréats annoncés dans",
+    "unit": {
+      "days": "{count, plural, =1 {jour} other {jours}}",
+      "hours": "{count, plural, =1 {heure} other {heures}}",
+      "minutes": "{count, plural, =1 {minute} other {minutes}}",
+      "seconds": "{count, plural, =1 {seconde} other {secondes}}"
+    }
+  },
+  "notifyMeOpens": "Prévenez-moi à l'ouverture du vote",
+  "notifyMeWinners": "Prévenez-moi à l'annonce des lauréats",
+  "watchingOn": "Vous serez prévenu",
+  "watchOn": "Nous vous préviendrons.",
+  "watchFailed": "Ce rappel n'a pas pu être activé.",
+  "nomineeCount": "{count, plural, =1 {# nommé} other {# nommés}}",
+  "progress": "Vous avez voté dans {answered} catégories sur {total}.",
+  "progressHint": "Vous n'êtes pas obligé de toutes les remplir. Répondez à celles qui vous tiennent à cœur, puis enregistrez.",
+  "pickSomething": "Choisissez au moins un nommé avant d'enregistrer.",
+  "saving": "Enregistrement...",
+  "submitBallot": "Enregistrer mes choix dans {poll}",
+  "ballotSaved": "Vos choix sont enregistrés.",
+  "ballotFailed": "Vos choix n'ont pas pu être enregistrés.",
+  "counting": {
+    "heading": "Le vote est clos et le dépouillement est en cours",
+    "body": "Le dépouillement prend quelques jours. Les lauréats sont annoncés séparément, il n'y a donc rien à voir ici avant cette date.",
+    "comeBack": "Revenez le"
+  },
+  "stats": {
+    "categories": "Catégories",
+    "winningVotes": "Votes gagnants",
+    "ballots": "Bulletins",
+    "mostDecorated": "Le plus récompensé"
+  },
+  "ceremony": {
+    "start": "Lancer la cérémonie",
+    "stop": "Arrêter la cérémonie",
+    "reducedMotion": "Votre appareil demande moins d'animations, la cérémonie reste donc désactivée. Tous les lauréats sont déjà sur la page."
+  },
+  "winner": "Lauréat",
+  "viewProfile": "Voir le profil",
+  "votes": "{count, plural, =1 {# vote} other {# votes}}",
+  "fullResult": "Afficher le résultat complet",
+  "hideFullResult": "Masquer le résultat complet",
+  "archive": {
+    "heading": "Panthéon",
+    "search": "Rechercher un lauréat ou une catégorie",
+    "clear": "Effacer la recherche",
+    "all": "Tout",
+    "empty": "Aucun résultat pour cette recherche.",
+    "honours": "Le plus récompensé",
+    "wins": "{count, plural, =1 {# victoire} other {# victoires}}"
+  }
+}

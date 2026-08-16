@@ -1,0 +1,73 @@
+{
+  "index": {
+    "loading": "Loading the awards...",
+    "empty": {
+      "title": "No awards season yet",
+      "body": "When an awards season opens, the nominees, the ballot and the winners all appear here."
+    },
+    "otherEditions": "Other years",
+    "backToAwards": "All awards"
+  },
+  "notFound": "This awards season could not be found.",
+  "phaseLabel": "Awards stage: {phase, select, announced {nominees announced} voting {voting is open} counting {votes are being counted} winners {winners announced} archived {archived} other {in progress}}",
+  "phase": {
+    "announced": "Nominees",
+    "voting": "Voting",
+    "counting": "Counting",
+    "winners": "Winners"
+  },
+  "countdown": {
+    "votingOpens": "Voting opens in",
+    "votingCloses": "Voting closes in",
+    "winnersAnnounced": "Winners announced in",
+    "unit": {
+      "days": "{count, plural, =1 {day} other {days}}",
+      "hours": "{count, plural, =1 {hour} other {hours}}",
+      "minutes": "{count, plural, =1 {minute} other {minutes}}",
+      "seconds": "{count, plural, =1 {second} other {seconds}}"
+    }
+  },
+  "notifyMeOpens": "Tell me when voting opens",
+  "notifyMeWinners": "Tell me when the winners land",
+  "watchingOn": "You will be told",
+  "watchOn": "We will let you know.",
+  "watchFailed": "That reminder could not be set.",
+  "nomineeCount": "{count, plural, =1 {# nominee} other {# nominees}}",
+  "progress": "You have voted in {answered} of {total} categories.",
+  "progressHint": "You do not have to fill in all of them. Answer the ones you care about and save.",
+  "pickSomething": "Pick at least one nominee before saving.",
+  "saving": "Saving...",
+  "submitBallot": "Save my picks in {poll}",
+  "ballotSaved": "Your picks are saved.",
+  "ballotFailed": "Your picks could not be saved.",
+  "counting": {
+    "heading": "Voting is closed and the votes are being counted",
+    "body": "Counting takes a few days. The winners are announced separately, so there is nothing to see here until then.",
+    "comeBack": "Come back on"
+  },
+  "stats": {
+    "categories": "Categories",
+    "winningVotes": "Winning votes",
+    "ballots": "Ballots",
+    "mostDecorated": "Most decorated"
+  },
+  "ceremony": {
+    "start": "Play the ceremony",
+    "stop": "Stop the ceremony",
+    "reducedMotion": "Your device asks for reduced motion, so the ceremony stays off. Every winner is on the page already."
+  },
+  "winner": "Winner",
+  "viewProfile": "View profile",
+  "votes": "{count, plural, =1 {# vote} other {# votes}}",
+  "fullResult": "Show the full result",
+  "hideFullResult": "Hide the full result",
+  "archive": {
+    "heading": "Hall of fame",
+    "search": "Search a winner or a category",
+    "clear": "Clear the search",
+    "all": "All",
+    "empty": "Nothing matches that search.",
+    "honours": "Most decorated",
+    "wins": "{count, plural, =1 {# win} other {# wins}}"
+  }
+}
