@@ -5,6 +5,11 @@ import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 // Shared, self-expiring NEW tag (owner rule: a new option in a picker wears one for 5 days).
 import { NewBadge } from "@/components/NewBadge";
+// The automatic transfer feed (backlog item 21). It is a CATEGORY of this page rather than a
+// separate top-level section: picking "Transfers" swaps the article grid for the feed. Its data
+// comes from GET /team/transfers/ and its entries are written by a backend signal, so there is
+// nothing editorial to keep in step here. See components/news/TransferFeed.tsx.
+import { TransferFeed } from "@/components/news/TransferFeed";
 import {
   extractTiptapText,
   truncateText,
@@ -59,6 +64,10 @@ import { toast } from "sonner";
 // (articles + reaction counts) so the feed stays current without a manual reload.
 import { useLiveTick } from "@/hooks/useLiveTick";
 
+// The category picker's value for the automatic transfer feed. Not a News category (see the
+// categories array below) - it is a view switch for this page only.
+const TRANSFERS_CATEGORY = "transfers";
+
 const page = () => {
   // Localized strings for the news list chrome (titles, filters, empty states,
   // toasts, card buttons). Article body text stays backend-supplied.
@@ -86,7 +95,32 @@ const page = () => {
   const { user } = useAuth();
   const userRole = user?.role;
 
+  // ── the picked category is mirrored in the URL as ?category= ────────────────────────────────
+  // Without this the page has exactly one address, /news showing everything, so there is no way to
+  // send somebody straight to a category - the transfer feed in particular, which people will want
+  // to link to.
+  //
+  // Read AFTER mount from window.location rather than through useSearchParams(): that hook forces
+  // this page under a Suspense boundary, and seeding useState from the query string would make the
+  // server render "all" while the first client render says "transfers" - a hydration mismatch on a
+  // conditionally-rendered subtree. An effect sidesteps both; the one extra render is invisible
+  // because the list is still loading at that point anyway.
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get("category");
+    if (fromUrl) setSelectedCategory(fromUrl);
+  }, []);
+
+  // Writes the choice back with replaceState, not push: paging Back through every filter somebody
+  // tried is not what a Back button is for.
+  const changeCategory = (value: string) => {
+    setSelectedCategory(value);
+    const url = new URL(window.location.href);
+    if (value === "all") url.searchParams.delete("category");
+    else url.searchParams.set("category", value);
+    window.history.replaceState(null, "", url.toString());
+  };
 
   // Category options drive both the filter dropdown and the card badge label
   // (via getCategoryLabel). Labels are localized from messages/en/news.json
@@ -100,7 +134,19 @@ const page = () => {
     { value: "tournament", label: t("categories.tournament") },
     { value: "education", label: t("categories.education"), newSince: "2026-08-07" },
     { value: "bans", label: t("categories.bans") },
+    // "Transfers" is a PSEUDO-category: no News row ever carries it, and it is deliberately NOT in
+    // the backend's News.CATEGORY_CHOICES (an admin must not be able to file an article under it).
+    // Picking it swaps the article grid below for the automatic transfer feed. It sits last because
+    // it is a different KIND of thing from the four editorial categories above it.
+    // newSince is the day the surface goes LIVE, not the day it was built. It was written on
+    // 2026-08-08 but sat unshipped, so that date would have expired before a single reader saw
+    // it, which is the one thing a self-expiring badge must not do.
+    { value: TRANSFERS_CATEGORY, label: t("transfers.categoryLabel"), newSince: "2026-08-16" },
   ];
+
+  // Picking Transfers replaces the article grid, so the article-only controls (free-text search and
+  // the date picker, which both operate on News fields) are hidden rather than left dead on screen.
+  const showTransfers = selectedCategory === TRANSFERS_CATEGORY;
 
   // Filter and search news
   const filteredNews = useMemo(() => {
@@ -287,7 +333,10 @@ const page = () => {
 
       {/* Search and Filter Section */}
       <div className="mb-6 space-y-4">
-        <div className="flex flex-col md:flex-row gap-4">
+        {/* Article-only controls: both search the News fields, so they are hidden when the
+            Transfers feed is showing instead of the article grid (the feed has its own team
+            filter). */}
+        <div className={cn("flex flex-col md:flex-row gap-4", showTransfers && "hidden")}>
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
@@ -312,7 +361,7 @@ const page = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Select value={selectedCategory} onValueChange={changeCategory}>
             <SelectTrigger className="w-full ">
               <SelectValue placeholder={t("search.categoryPlaceholder")} />
             </SelectTrigger>
@@ -333,8 +382,11 @@ const page = () => {
         </div>
       </div>
 
-      {/* Results */}
-      {filteredNews.length === 0 ? (
+      {/* Results. "Transfers" is not an article category, so it renders the automatic feed here
+          instead of the news grid; every other value falls through to the grid unchanged. */}
+      {showTransfers ? (
+        <TransferFeed />
+      ) : filteredNews.length === 0 ? (
         <div className="text-center py-12">
           <div className="max-w-md mx-auto">
             <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

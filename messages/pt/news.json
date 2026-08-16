@@ -39,5 +39,40 @@
     "syncFailed": "Falha ao sincronizar dados de notícias",
     "loginToVote": "Por favor, faça login para votar",
     "actionFailed": "Ação falhou"
+  },
+  "transfers": {
+    "categoryLabel": "Transferências",
+    "heading": "Transferências de jogadores",
+    "intro": "Jogadores entrando e saindo de equipes, registrado automaticamente conforme acontece.",
+    "teamFilter": {
+      "all": "Todas as equipes",
+      "placeholder": "Filtrar por equipe"
+    },
+    "entry": {
+      "joined": "<pl>{playerName}</pl> entrou para <tm>{teamName}</tm>",
+      "left": "<pl>{playerName}</pl> saiu de <tm>{teamName}</tm>",
+      "asRole": "como {role}"
+    },
+    "roles": {
+      "team_captain": "Capitão da Equipe",
+      "vice_captain": "Vice-Capitão",
+      "member": "Jogador",
+      "coach": "Treinador",
+      "manager": "Gerente",
+      "analyst": "Analista"
+    },
+    "window": {
+      "outside": "Janela fechada",
+      "outsideHint": "As mudanças no elenco normalmente ficam bloqueadas enquanto a janela de transferências está fechada, então esta foge do comum.",
+      "inside": "Janela de transferências"
+    },
+    "empty": {
+      "title": "Nenhuma transferência ainda",
+      "body": "Os movimentos aparecem aqui sozinhos, conforme jogadores entram e saem de equipes que já competiram.",
+      "bodyForTeam": "Esta equipe ainda não tem movimentos registrados."
+    },
+    "loadMore": "Carregar mais",
+    "loading": "Carregando transferências...",
+    "error": "Falha ao carregar as transferências"
   }
 }

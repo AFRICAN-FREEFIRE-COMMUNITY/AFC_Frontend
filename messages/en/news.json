@@ -39,5 +39,40 @@
     "syncFailed": "Failed to sync news data",
     "loginToVote": "Please login to vote",
     "actionFailed": "Action failed"
+  },
+  "transfers": {
+    "categoryLabel": "Transfers",
+    "heading": "Player transfers",
+    "intro": "Players joining and leaving teams, recorded automatically as it happens.",
+    "teamFilter": {
+      "all": "All teams",
+      "placeholder": "Filter by team"
+    },
+    "entry": {
+      "joined": "<pl>{playerName}</pl> joined <tm>{teamName}</tm>",
+      "left": "<pl>{playerName}</pl> left <tm>{teamName}</tm>",
+      "asRole": "as {role}"
+    },
+    "roles": {
+      "team_captain": "Team Captain",
+      "vice_captain": "Vice Captain",
+      "member": "Player",
+      "coach": "Coach",
+      "manager": "Manager",
+      "analyst": "Analyst"
+    },
+    "window": {
+      "outside": "Window closed",
+      "outsideHint": "Roster moves are normally frozen while the transfer window is closed, so this one is out of the ordinary.",
+      "inside": "Transfer window"
+    },
+    "empty": {
+      "title": "No transfers yet",
+      "body": "Moves appear here on their own as players join and leave teams that have competed.",
+      "bodyForTeam": "This team has no recorded moves yet."
+    },
+    "loadMore": "Load more",
+    "loading": "Loading transfers...",
+    "error": "Failed to load transfers"
   }
 }
