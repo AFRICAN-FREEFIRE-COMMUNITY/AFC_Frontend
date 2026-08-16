@@ -39,7 +39,10 @@ import {
   IconMessageOff,
   IconStarFilled,
 } from "@tabler/icons-react";
-import { formatDate } from "@/lib/utils";
+// Comment timestamps in the VIEWER's timezone and language. formatDate writes English
+// ordinals and a 12-hour en-US clock whatever the reader's language is; LocalTime is the
+// JSX form and is mount-gated, which is what a standalone date wants.
+import { LocalTime } from "@/components/LocalTime";
 import { organizersApi } from "@/lib/organizers";
 
 // ── Shapes (mirror the organizer reviews page) ───────────────────────────────
@@ -191,7 +194,7 @@ export function EventReviewsCard({ eventId }: EventReviewsCardProps) {
                       {c.text}
                     </p>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      {c.created_at ? formatDate(c.created_at) : "-"}
+                      {c.created_at ? <LocalTime value={c.created_at} mode="date" /> : "-"}
                     </p>
                   </li>
                 ))}
