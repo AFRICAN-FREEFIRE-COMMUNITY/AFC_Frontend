@@ -752,20 +752,31 @@
         "prize": "Prize pool",
         "teams": "Registered teams",
         "players": "Registered players",
-        "format": "Format"
+        "format": "Format",
+        "weaponSkins": "Weapon skins",
+        "blueZone": "Blue zone",
+        "unlimitedAmmo": "Unlimited ammo"
       },
       "ops": {
         "gte": "is at least (≥)",
         "lte": "is at most (≤)",
         "isLan": "has a physical / LAN stage",
-        "isVirtual": "is fully virtual"
+        "isVirtual": "is fully virtual",
+        "isOn": "were on",
+        "isOff": "were off"
       },
       "cond": {
         "prize": "prize",
         "teams": "teams",
         "players": "players",
         "lan": "has physical/LAN stage",
-        "virtual": "is fully virtual"
+        "virtual": "is fully virtual",
+        "weaponSkinsOn": "weapon skins on",
+        "weaponSkinsOff": "weapon skins off",
+        "blueZoneOn": "blue zone on",
+        "blueZoneOff": "blue zone off",
+        "unlimitedAmmoOn": "unlimited ammo",
+        "unlimitedAmmoOff": "limited ammo"
       },
       "a11y": {
         "dragToReorder": "Drag to reorder",

@@ -752,20 +752,31 @@
         "prize": "Prémio total",
         "teams": "Equipas inscritas",
         "players": "Jogadores inscritos",
-        "format": "Formato"
+        "format": "Formato",
+        "weaponSkins": "Skins de armas",
+        "blueZone": "Zona azul",
+        "unlimitedAmmo": "Munição ilimitada"
       },
       "ops": {
         "gte": "é pelo menos (≥)",
         "lte": "é no máximo (≤)",
         "isLan": "tem uma fase física / LAN",
-        "isVirtual": "é totalmente virtual"
+        "isVirtual": "é totalmente virtual",
+        "isOn": "estavam ligados",
+        "isOff": "estavam desligados"
       },
       "cond": {
         "prize": "prémio",
         "teams": "equipas",
         "players": "jogadores",
         "lan": "tem fase física/LAN",
-        "virtual": "é totalmente virtual"
+        "virtual": "é totalmente virtual",
+        "weaponSkinsOn": "skins de armas ligadas",
+        "weaponSkinsOff": "skins de armas desligadas",
+        "blueZoneOn": "zona azul ligada",
+        "blueZoneOff": "zona azul desligada",
+        "unlimitedAmmoOn": "munição ilimitada",
+        "unlimitedAmmoOff": "munição limitada"
       },
       "a11y": {
         "dragToReorder": "Arraste para reorganizar",

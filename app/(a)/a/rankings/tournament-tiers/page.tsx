@@ -95,8 +95,11 @@ import {
  */
 
 type Tier = 1 | 2 | 3;
-type Field = "prize" | "teams" | "players" | "format";
-type Op = "gte" | "lte" | "is_lan" | "is_virtual";
+// "How the room was set up" fields (owner 2026-08-16). Each is a yes/no read from the room
+// settings saved against the event, so they share one pair of operators.
+type RoomFlagField = "weapon_skins" | "blue_zone" | "unlimited_ammo";
+type Field = "prize" | "teams" | "players" | "format" | RoomFlagField;
+type Op = "gte" | "lte" | "is_lan" | "is_virtual" | "is_on" | "is_off";
 type Condition = {
   id: number;
   field: Field;
@@ -135,7 +138,14 @@ const FIELDS: { value: Field; labelKey: string; numeric: boolean }[] = [
   { value: "teams", labelKey: "fields.teams", numeric: true },
   { value: "players", labelKey: "fields.players", numeric: true },
   { value: "format", labelKey: "fields.format", numeric: false },
+  // Read from the room settings saved on the event. A rule using one of these does NOT fire for an
+  // event whose room was never filled in, which is why they sit below the always-known fields.
+  { value: "weapon_skins", labelKey: "fields.weaponSkins", numeric: false },
+  { value: "blue_zone", labelKey: "fields.blueZone", numeric: false },
+  { value: "unlimited_ammo", labelKey: "fields.unlimitedAmmo", numeric: false },
 ];
+const ROOM_FLAG_FIELDS: Field[] = ["weapon_skins", "blue_zone", "unlimited_ammo"];
+const isRoomFlag = (f: Field) => ROOM_FLAG_FIELDS.includes(f);
 const NUMERIC_OPS: { value: Op; labelKey: string }[] = [
   { value: "gte", labelKey: "ops.gte" },
   { value: "lte", labelKey: "ops.lte" },
@@ -144,7 +154,11 @@ const FORMAT_OPS: { value: Op; labelKey: string }[] = [
   { value: "is_lan", labelKey: "ops.isLan" },
   { value: "is_virtual", labelKey: "ops.isVirtual" },
 ];
-const isNumeric = (f: Field) => f !== "format";
+const ROOM_FLAG_OPS: { value: Op; labelKey: string }[] = [
+  { value: "is_on", labelKey: "ops.isOn" },
+  { value: "is_off", labelKey: "ops.isOff" },
+];
+const isNumeric = (f: Field) => f !== "format" && !isRoomFlag(f);
 const ngn = (n: number) => "₦" + Math.round(n).toLocaleString();
 
 // The currency every prize threshold is COMPARED in, whatever it was authored in. Mirrors
@@ -278,6 +292,10 @@ function TierPill({ tier }: { tier: Tier }) {
 // and the format phrases are words; ≥ / ≤ and the value are symbols/numbers, so they stay put.
 function condText(c: Condition, t: (key: string) => string) {
   if (c.field === "format") return c.op === "is_lan" ? t("cond.lan") : t("cond.virtual");
+  if (isRoomFlag(c.field)) {
+    return t(`cond.${c.field === "weapon_skins" ? "weaponSkins"
+      : c.field === "blue_zone" ? "blueZone" : "unlimitedAmmo"}${c.op === "is_on" ? "On" : "Off"}`);
+  }
   const f = c.field === "prize" ? t("cond.prize") : c.field === "teams" ? t("cond.teams") : t("cond.players");
   // A prize threshold prints in ITS OWN currency (thresholdText), not a blanket naira sign: this
   // line explains which rule matched, so quoting "₦1,000" for a $1,000 bar would misdescribe the
@@ -330,7 +348,7 @@ function SortableRule({
 
   const setField = (cidv: number, field: Field) => {
     // switching numeric <-> format needs a compatible operator
-    const op: Op = isNumeric(field) ? "gte" : "is_lan";
+    const op: Op = isNumeric(field) ? "gte" : isRoomFlag(field) ? "is_on" : "is_lan";
     const value = field === "prize" ? 100_000 : 0;
     // Reset to naira when a condition BECOMES a prize threshold: the number is being replaced too,
     // so carrying a currency over from whatever this row used to be would be meaningless.
@@ -450,7 +468,11 @@ function SortableRule({
             <Select value={c.op} onValueChange={(v) => patchCond(c.id, { op: v as Op })}>
               <SelectTrigger className="h-8 w-[210px] text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {(isNumeric(c.field) ? NUMERIC_OPS : FORMAT_OPS).map((o) => (
+                {(isNumeric(c.field)
+                  ? NUMERIC_OPS
+                  : isRoomFlag(c.field)
+                    ? ROOM_FLAG_OPS
+                    : FORMAT_OPS).map((o) => (
                   <SelectItem key={o.value} value={o.value}>{t(o.labelKey)}</SelectItem>
                 ))}
               </SelectContent>
