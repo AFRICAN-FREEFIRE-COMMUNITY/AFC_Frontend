@@ -5,8 +5,8 @@
       "title": "No awards season yet",
       "body": "When an awards season opens, the nominees, the ballot and the winners all appear here."
     },
-    "otherEditions": "Other years",
-    "backToAwards": "All awards"
+    "backToAwards": "All awards",
+    "seasonLabel": "Season"
   },
   "notFound": "This awards season could not be found.",
   "phaseLabel": "Awards stage: {phase, select, announced {nominees announced} voting {voting is open} counting {votes are being counted} winners {winners announced} archived {archived} other {in progress}}",

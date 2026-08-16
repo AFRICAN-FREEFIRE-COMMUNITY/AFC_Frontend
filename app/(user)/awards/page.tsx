@@ -43,7 +43,6 @@
  */
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
@@ -52,6 +51,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { pollsApi, type AwardsEdition } from "@/lib/polls";
 
 import { AwardsExperience } from "./_components/AwardsExperience";
+import { SeasonPicker } from "./_components/SeasonPicker";
 
 // Old hash -> the poll that section became. Both slugs are created by the
 // `import_awards_winners` management command, so they are stable rather than incidental.
@@ -114,30 +114,15 @@ export default function AwardsPage() {
     );
   }
 
-  const [leading, ...rest] = editions;
+  const [leading] = editions;
 
   return (
     <div>
+      {/* The season filter sits ABOVE the marquee, and shows even when there is only one season,
+          so a reader can see WHICH season they are looking at rather than assuming the page is
+          everything AFC has ever awarded. See _components/SeasonPicker.tsx. */}
+      <SeasonPicker editions={editions} activeSlug={leading.slug} />
       <AwardsExperience editionSlug={leading.slug} />
-
-      {/* Earlier seasons, only once there IS an earlier season. Links rather than a client-side
-          switcher, so every year keeps a URL somebody can share. */}
-      {rest.length > 0 && (
-        <section className="mt-10 border-t border-border pt-6">
-          <h2 className="text-sm font-semibold text-foreground">{t("index.otherEditions")}</h2>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {rest.map((edition) => (
-              <Link
-                key={edition.slug}
-                href={`/awards/${edition.slug}`}
-                className="rounded-full border border-input px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
-              >
-                {edition.title}
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   );
 }
