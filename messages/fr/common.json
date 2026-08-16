@@ -40,7 +40,8 @@
     "rules": "Règles",
     "myOrders": "Mes commandes",
     "about": "À propos de nous",
-    "contact": "Contact"
+    "contact": "Contact",
+    "fantasy": "Fantasy"
   },
   "states": {
     "empty": "Rien ici pour l'instant",
