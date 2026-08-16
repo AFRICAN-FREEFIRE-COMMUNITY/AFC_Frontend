@@ -38,7 +38,11 @@ import {
 } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDate } from "@/lib/utils";
+// Dates render in the VIEWER's timezone and language (the backend is UTC), never the
+// hardcoded en-US shape lib/utils.formatDate produces. formatLocalTime is the string form,
+// which is what these three sites need: two are t() parameters inside a sentence and the
+// third is returned by a plain helper function that cannot render JSX.
+import { formatLocalTime } from "@/lib/i18n/time";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -49,7 +53,7 @@ import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 import { useLiveTick } from "@/hooks/useLiveTick";
 // i18n (next-intl): this page is fully localized under the "pmApplication" namespace
 // (messages/en|fr|pt/pmApplication.json). Client component -> useTranslations.
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -225,9 +229,9 @@ function TrialCountdown({ expiryDate }: { expiryDate: string }) {
   );
 }
 
-// Relative "sent at" label. `t` is threaded in from the page component (this is a
-// plain helper, not a component, so it cannot call useTranslations itself).
-function formatMessageTime(dateString: string, t: TFn) {
+// Relative "sent at" label. `t` and `locale` are threaded in from the page component (this is a
+// plain helper, not a component, so it cannot call useTranslations or useLocale itself).
+function formatMessageTime(dateString: string, t: TFn, locale: string) {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -236,7 +240,7 @@ function formatMessageTime(dateString: string, t: TFn) {
   if (diffMins < 60) return t("time.minsAgo", { n: diffMins });
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours < 24) return t("time.hoursAgo", { n: diffHours });
-  return formatDate(dateString);
+  return formatLocalTime(dateString, "date", locale);
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -251,6 +255,8 @@ export default function ApplicationDetailPage({
   const router = useRouter();
   // i18n translator for every user-facing string on this page.
   const t = useTranslations("pmApplication");
+  // Passed to every formatLocalTime call below so month names follow the page's language.
+  const locale = useLocale();
 
   // Localized display labels for backend enum values. Each falls back to the raw
   // value when a key is missing, mirroring the old `MAP[x] ?? x` behavior.
@@ -541,7 +547,7 @@ export default function ApplicationDetailPage({
                 <div>
                   <p className="text-muted-foreground">{t("post.expiry")}</p>
                   <p className="font-medium">
-                    {formatDate(details.post.expiry)}
+                    {formatLocalTime(details.post.expiry, "date", locale)}
                   </p>
                 </div>
               </div>
@@ -833,7 +839,7 @@ export default function ApplicationDetailPage({
                         {msg.message}
                       </div>
                       <p className="text-[10px] text-muted-foreground px-1">
-                        {formatMessageTime(msg.sent_at, t)}
+                        {formatMessageTime(msg.sent_at, t, locale)}
                       </p>
                     </div>
                   </div>
@@ -891,7 +897,9 @@ export default function ApplicationDetailPage({
         <PageHeader
           back
           title={t("header.title", { id: details.id })}
-          description={t("header.applied", { date: formatDate(details.applied_at) })}
+          description={t("header.applied", {
+            date: formatLocalTime(details.applied_at, "date", locale),
+          })}
         />
         <div className="ml-auto">
           {getStatusBadge(details.status, statusLabel(details.status))}

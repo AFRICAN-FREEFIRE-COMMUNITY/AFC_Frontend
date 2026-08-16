@@ -75,7 +75,7 @@ import {
   IconId,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 // Type-to-search phone picker (curated list + free-text "Other") for the Current Mobile Device
 // field. Feature 1 of the "Player Available Post" set (owner 2026-06-29).
 import { PhoneCombobox } from "@/components/ui/phone-combobox";
@@ -83,7 +83,12 @@ import { DEFAULT_PROFILE_PICTURE, countries } from "@/constants";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDate } from "@/lib/utils";
+// Dates render in the VIEWER's timezone and language (the backend is UTC), never the
+// hardcoded en-US shape lib/utils.formatDate produces. formatLocalTime is the STRING form,
+// used because every date on this page is a t() parameter inside a sentence rather than
+// standalone JSX; components/LocalTime.tsx is the JSX form for the standalone cases.
+import { formatLocalTime } from "@/lib/i18n/time";
+import { LocalTime } from "@/components/LocalTime";
 // Shared search matcher: punctuation/space/accent-insensitive + folds stylized
 // "fancy font" unicode so a normal-keyboard query finds stylized IGNs ("ve" -> "V-E").
 import { matchesSearch } from "@/lib/search";
@@ -550,6 +555,10 @@ function PlayerMarketPage() {
   // i18n for the NEW "Player Available Post" strings (phone picker, screenshots, location,
   // UID, state filter). Author English lives in messages/en/playerMarket.json.
   const t = useTranslations("playerMarket");
+  // The active UI locale, passed to every formatLocalTime call below so month names follow the
+  // language the rest of the page is in. Every date on this page is an expiry, an applied-at or a
+  // sent-at: dates people make decisions against, so they must read in the viewer's own timezone.
+  const locale = useLocale();
 
   // Localized role/tier/commitment/availability LABELS. The wording is authored once in the
   // shared pmPost.* namespace (reused by the /player-markets/[id] detail page) so "Sniper",
@@ -1686,7 +1695,7 @@ function PlayerMarketPage() {
                           )}
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          {t("common.expires", { date: formatDate(team.expiry) })}
+                          {t("common.expires", { date: formatLocalTime(team.expiry, "date", locale) })}
                         </p>
                       </div>
                     </div>
@@ -1942,7 +1951,7 @@ function PlayerMarketPage() {
                           <PlayerLink name={player.player} />
                         </h3>
                         <p className="text-xs text-muted-foreground">
-                          {t("common.expires", { date: formatDate(player.expiry) })}
+                          {t("common.expires", { date: formatLocalTime(player.expiry, "date", locale) })}
                         </p>
                       </div>
                     </div>
@@ -2152,7 +2161,7 @@ function PlayerMarketPage() {
                         <div>
                           <h3 className="font-semibold">{invite.team}</h3>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {t("invitesTab.sent", { date: formatDate(invite.created_at) })}
+                            {t("invitesTab.sent", { date: formatLocalTime(invite.created_at, "date", locale) })}
                           </p>
                         </div>
                         <Badge
@@ -2179,7 +2188,7 @@ function PlayerMarketPage() {
                             {isExpired
                               ? t("invitesTab.expired")
                               : t("common.expires", {
-                                  date: formatDate(invite.expires_at),
+                                  date: formatLocalTime(invite.expires_at, "date", locale),
                                 })}
                           </p>
                         )}
@@ -2278,7 +2287,7 @@ function PlayerMarketPage() {
                             <PlayerLink name={app.player} />
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {t("common.applied", { date: formatDate(app.applied_at) })}
+                            {t("common.applied", { date: formatLocalTime(app.applied_at, "date", locale) })}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -2374,7 +2383,7 @@ function PlayerMarketPage() {
                         <div>
                           <h3 className="font-semibold">{app.team}</h3>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {t("common.applied", { date: formatDate(app.applied_at) })}
+                            {t("common.applied", { date: formatLocalTime(app.applied_at, "date", locale) })}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -2421,7 +2430,7 @@ function PlayerMarketPage() {
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <IconCalendar className="h-3 w-3" />
                           {t("myAppsTab.inviteExpires", {
-                            date: formatDate(app.invite_expires_at),
+                            date: formatLocalTime(app.invite_expires_at, "date", locale),
                           })}
                         </p>
                       )}
@@ -2497,7 +2506,7 @@ function PlayerMarketPage() {
                       <span className="flex items-center gap-1">
                         <IconCalendar className="h-3 w-3" />
                         {t("myTeamTab.founded", {
-                          date: formatDate(currentTeam.creation_date),
+                          date: formatLocalTime(currentTeam.creation_date, "date", locale),
                         })}
                       </span>
                     </div>
@@ -2538,7 +2547,11 @@ function PlayerMarketPage() {
                       {t("myTeamTab.joined")}
                     </p>
                     <p className="text-sm font-medium mt-0.5">
-                      {formatDate(currentTeam.join_date)}
+                      {/* Standalone date, so the JSX form: LocalTime is mount-gated and renders a
+                          server-safe placeholder first, which the string form cannot do. The
+                          string form is still correct everywhere else on this page, where the date
+                          is a t() parameter inside a sentence and cannot be a component. */}
+                      <LocalTime value={currentTeam.join_date} mode="date" />
                     </p>
                   </div>
                   {currentTeam.in_game_role && (
@@ -2624,7 +2637,7 @@ function PlayerMarketPage() {
                                 {post.team ?? t("common.unknownTeam")}
                               </h3>
                               <p className="text-xs text-muted-foreground">
-                                {t("common.expires", { date: formatDate(post.expiry) })}
+                                {t("common.expires", { date: formatLocalTime(post.expiry, "date", locale) })}
                               </p>
                             </div>
                           </div>
@@ -2740,7 +2753,7 @@ function PlayerMarketPage() {
                                 <PlayerLink name={post.player} />
                               </h3>
                               <p className="text-xs text-muted-foreground">
-                                {t("common.expires", { date: formatDate(post.expiry) })}
+                                {t("common.expires", { date: formatLocalTime(post.expiry, "date", locale) })}
                               </p>
                             </div>
                           </div>
