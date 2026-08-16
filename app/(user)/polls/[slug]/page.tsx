@@ -239,7 +239,7 @@ export default function PollDetailPage() {
         title={
           <span className="flex items-center gap-2">
             {poll.title}
-            <NewBadge since="2026-08-08" />
+            <NewBadge since="2026-08-16" />
           </span>
         }
         description={poll.description}
