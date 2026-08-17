@@ -833,6 +833,19 @@
         "reasonLogged": "Logged to the ranking audit trail.",
         "cancel": "Cancel",
         "saving": "Saving…"
+      },
+      "competition": {
+        "tournament": "Tournaments",
+        "scrims": "Scrims",
+        "hint": {
+          "tournament": "These rules decide the tier of tournaments only.",
+          "scrims": "These rules decide the tier of scrims only. Nothing here affects tournaments."
+        },
+        "saveFirst": "Save or reset your changes before switching.",
+        "emptyMeaning": "With no rules here, every scrim goes to the default tier (Tier {tier}). Copy the tournament rules to start from what scrims were tiered by before.",
+        "copyFromTournaments": "Copy the tournament rules",
+        "copied": "Copied {count, plural, =0 {no rules} one {# rule} other {# rules}}. The two sets are separate from now on.",
+        "copyFailed": "Could not copy the rules."
       }
     }
   }

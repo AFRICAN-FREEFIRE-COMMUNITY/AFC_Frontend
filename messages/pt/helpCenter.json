@@ -657,11 +657,11 @@
     },
     "rk-tierRules": {
       "label": "Regras de nível",
-      "does": "Uma lista ordenada de regras que classificam um torneio. A primeira regra que um torneio cumpre define o seu nível, por isso a ordem conta. Arraste para reordenar."
+      "does": "Uma lista ordenada de regras que classificam um evento. A primeira regra que um evento cumpre define o nível, por isso a ordem importa. Arraste para reordenar. Os torneios e os scrims têm listas separadas: escolha a que está a editar com o seletor acima, e nada do que alterar numa afeta a outra."
     },
     "rk-tierTest": {
       "label": "Testar um torneio",
-      "does": "Escreva um prémio, um número de equipas e um número de jogadores e veja que regra corresponde e que nível o torneio teria. Não altera nada."
+      "does": "Introduza um prémio, um número de equipas e um número de jogadores para ver que regra corresponde e que nível o evento receberia. O teste usa o conjunto mostrado pelo seletor, por isso um exemplo de scrim é avaliado pelas regras dos scrims. Não altera nada."
     },
     "rk-markerFlags": {
       "label": "Indicadores de contagem",
@@ -1194,6 +1194,10 @@
     "wt-promote": {
       "label": "Promover da lista de espera",
       "does": "Passa uma equipa ou um jogador da lista de espera para o evento quando abre uma vaga. Promover o próximo escolhe quem estiver à frente na fila."
+    },
+    "rk-tierCompetition": {
+      "label": "Seletor Torneios / Scrims",
+      "does": "Escolhe o conjunto de regras de nível que está a ver. Os dois conjuntos são totalmente separados, cada um com o seu próprio nível predefinido. Guarde ou reponha as suas alterações antes de mudar, porque mudar recarrega a página. Se um conjunto não tiver regras, cada evento desse tipo recebe o nível predefinido: uma lista vazia não é neutra."
     }
   },
   "walkthroughs": {

@@ -657,11 +657,11 @@
     },
     "rk-tierRules": {
       "label": "Tier rules",
-      "does": "An ordered list of rules that classify a tournament. The first rule a tournament matches sets its tier, so order matters. Drag to reorder."
+      "does": "An ordered list of rules that classify an event. The first rule an event matches sets its tier, so order matters. Drag to reorder. Tournaments and scrims have separate lists: pick which one you are editing with the switch above, and nothing you change in one affects the other."
     },
     "rk-tierTest": {
       "label": "Test a tournament",
-      "does": "Type in a prize, team count and player count and see which rule matches and what tier the tournament would get. It changes nothing."
+      "does": "Type in a prize, team count and player count and see which rule matches and what tier the event would get. It tests against the set the switch is showing, so a scrim sample is judged by the scrims rules. It changes nothing."
     },
     "rk-markerFlags": {
       "label": "Counting flags",
@@ -1194,6 +1194,10 @@
     "wt-promote": {
       "label": "Promote from waitlist",
       "does": "Moves a waitlisted team or player into the event when a spot opens. Promote next takes whoever is at the front of the queue."
+    },
+    "rk-tierCompetition": {
+      "label": "Tournaments / Scrims switch",
+      "does": "Chooses which set of tier rules you are looking at. The two sets are completely separate, each with its own fall-through tier. Save or reset your edits before switching, because switching reloads. If a set has no rules at all, every event of that kind gets the fall-through tier, so an empty list is not neutral."
     }
   },
   "walkthroughs": {
