@@ -1,9 +1,6 @@
 {
   "title": "Fantasy League",
   "subtitle": "Pick a squad from a real AFC event and score points from what they actually do.",
-  "comingSoon": "Coming soon",
-  "headline": "Free Fire Fantasy League",
-  "blurb": "We are building a fantasy league that runs alongside AFC events. It is not live yet. If you would play it, tick the box below and we will know it is worth finishing.",
   "how": {
     "pick": {
       "title": "Pick your squad",
@@ -18,14 +15,253 @@
       "body": "Everyone who entered that event is on one table. Highest score at the end takes it."
     }
   },
-  "interest": {
-    "label": "I would play this",
-    "hint": "One tick per person. Untick any time.",
-    "count": "{count, plural, =0 {Nobody has said so yet} =1 {# person wants this} other {# people want this}}"
+  "empty": {
+    "title": "No league is running right now.",
+    "body": "When one opens on an AFC event, it will show up here."
   },
-  "thanks": "Noted. Thanks.",
-  "failed": "That could not be saved.",
-  "signInFirst": "Sign in to register your interest.",
-  "signInPrompt": "You need an account for this to count.",
-  "signInLink": "Sign in"
+  "state": {
+    "open": "Open",
+    "locked": "Picks final",
+    "settled": "Finished"
+  },
+  "entry": {
+    "free": "Free to enter",
+    "sponsored": "Sponsored prize",
+    "paid": "Entry fee"
+  },
+  "card": {
+    "entries": "{count, plural, =0 {No entries yet} one {# entry} other {# entries}}",
+    "enter": "Play",
+    "mySquad": "My squad",
+    "view": "View",
+    "locksOn": "Picks close",
+    "lockedOn": "Picks closed"
+  },
+  "cta": {
+    "enter": "Pick your squad",
+    "mySquad": "My squad"
+  },
+  "closed": {
+    "locked": "Picks are final for this league. Scores update as the matches are played.",
+    "notEligible": "This league is not open to your account.",
+    "signedOut": "You need an account to enter this league.",
+    "signIn": "Sign in"
+  },
+  "rules": {
+    "squadSize": "Players to pick",
+    "maxPerTeam": "Max from one team",
+    "captain": "Captain scores",
+    "budget": "Your budget",
+    "seeds": "{n} AFC SEEDS",
+    "freePick": "Free pick"
+  },
+  "table": {
+    "title": "The table",
+    "rank": "Rank",
+    "squad": "Squad",
+    "matches": "Matches",
+    "points": "Points",
+    "you": "you",
+    "notStarted": "Nothing scored yet. The table fills in once the matches are played.",
+    "noScoresYet": "No results have been entered for this event yet.",
+    "liveNote": "Scores are worked out from the current match results, so the table can change if a result is corrected."
+  },
+  "builder": {
+    "title": "Build your squad",
+    "yourSquad": "Your squad",
+    "players": "Players",
+    "namePlaceholder": "Name your squad",
+    "searchPlaceholder": "Search a player or team",
+    "remaining": "Left to spend",
+    "nothingPicked": "Pick players from the list to start.",
+    "noPlayers": "Nobody matches that search.",
+    "noTeam": "No team",
+    "unproven": "Unproven",
+    "makeCaptain": "Make captain",
+    "remove": "Remove from squad",
+    "save": "Save squad",
+    "saved": "Squad saved.",
+    "saveFailed": "That squad could not be saved."
+  },
+  "notFound": {
+    "title": "League not found",
+    "body": "This fantasy league does not exist, or it is not open yet."
+  },
+  "guide": {
+    "title": "How the Fantasy League works",
+    "subtitle": "Everything, in plain words: how you play, how points are worked out, and what things cost.",
+    "seeLeagues": "See the leagues",
+    "what": {
+      "title": "What this actually is",
+      "p1": "AFC runs real tournaments with real players. A fantasy league lets you pick a small group of those real players before a tournament starts. When they go and play their actual matches, you earn points from what they do.",
+      "p2": "You do not play Free Fire. You do not need to be good at the game. You pick, then you watch.",
+      "p3": "Everyone who entered is on one table. Whoever has the most points at the end wins."
+    },
+    "steps": {
+      "title": "How to play, step by step",
+      "find": {
+        "title": "Find a league",
+        "body": "Leagues run on AFC events. Open the Fantasy page and pick one that is still open."
+      },
+      "pick": {
+        "title": "Pick your players",
+        "body": "You get a list of everyone playing in that event, each with a price. Pick your squad without going over your budget."
+      },
+      "captain": {
+        "title": "Choose a captain",
+        "body": "One of your picks is the captain. Their points are multiplied, so this is the choice that makes your squad different from somebody else's."
+      },
+      "lock": {
+        "title": "Picks close",
+        "body": "When the event starts, picks close. Nobody can change anything after that, including you. The page tells you the exact time."
+      },
+      "watch": {
+        "title": "Watch the matches",
+        "body": "Your players play. As results come in, your score goes up on its own. There is nothing to do and nothing to claim."
+      },
+      "finish": {
+        "title": "See where you finished",
+        "body": "The table updates through the event. When it ends, the top of the table wins."
+      }
+    },
+    "squad": {
+      "title": "The rules for building a squad",
+      "intro": "Three rules, and each one exists for a reason:",
+      "colRule": "Rule",
+      "colUsual": "Usually",
+      "colWhy": "Why",
+      "size": {
+        "rule": "How many players you pick",
+        "usual": "5",
+        "why": "A Free Fire squad is four players. If you only picked four, you could just copy one real team and never make a decision. Five forces a choice."
+      },
+      "perTeam": {
+        "rule": "Most from any one team",
+        "usual": "2",
+        "why": "Without this, everyone picks the same four or five stars from the best team and every squad is identical. This is the rule that makes you go and find somebody good on a weaker team."
+      },
+      "captain": {
+        "rule": "What the captain multiplies by",
+        "usual": "2x",
+        "why": "It is the one pick that can win or lose it for you, and it costs nothing to change your mind before picks close."
+      },
+      "perLeague": "These are the usual settings. Every league can set its own, and every league prints its own on its page, so check there before you pick."
+    },
+    "points": {
+      "title": "How points are worked out",
+      "intro": "Every match your players are in, they earn you points. This is the whole list:",
+      "colWhat": "What your player did",
+      "colPoints": "Points",
+      "rows": {
+        "kill": {
+          "what": "Each kill",
+          "points": "2"
+        },
+        "booyah": {
+          "what": "Their team wins the match (booyah)",
+          "points": "5"
+        },
+        "top3": {
+          "what": "Their team finishes 2nd or 3rd",
+          "points": "2"
+        },
+        "mvp": {
+          "what": "They are MVP of the map",
+          "points": "5"
+        },
+        "played": {
+          "what": "They played the match at all",
+          "points": "1"
+        }
+      },
+      "captainTitle": "Your captain scores double.",
+      "captainBody": "Everything above, doubled, for that one player. Not just their kills, the whole lot. A big game from your captain is the single biggest swing in the league.",
+      "examplesTitle": "Two worked examples",
+      "big": {
+        "title": "A big game from your captain",
+        "l1": "6 kills, at 2 points each = 12",
+        "l2": "their team won the match = 5",
+        "l3": "they were MVP = 5",
+        "l4": "they played = 1",
+        "total": "23 points, doubled for captain = 46"
+      },
+      "small": {
+        "title": "A quiet game from a cheap pick",
+        "l1": "2 kills, at 2 points each = 4",
+        "l2": "they played, their team came 5th = 1",
+        "total": "5 points"
+      },
+      "whyThese": "Why these numbers: kills are worth 2 because they are the thing we record most reliably. A team win is worth 5 so that picking somebody from a strong team is worth something even on a quiet night for them, otherwise everyone would only ever pick big fraggers on weak teams. Playing at all is worth 1 so that a player who was benched scores less than one who played and did nothing.",
+      "onlyWhatWeRecord": "One honest limit: we score on kills, MVP, whether the team won or finished top three, and whether the player was fielded. Those are the things AFC records for every player in every match. Damage and assists have columns but are mostly empty, and scoring on something an organiser only sometimes fills in would mean your score depended on how busy they were that day."
+    },
+    "prices": {
+      "title": "Prices and AFC SEEDS",
+      "intro": "AFC SEEDS are the pretend money you build a squad with. Everyone gets the same amount, usually 100. They are not real money, you cannot buy them, and you cannot cash them out.",
+      "why": "Better players cost more. That is the whole game: you cannot afford all the best players, so you have to decide which ones are worth it and find somebody cheap who will do well.",
+      "colSquad": "If you pick",
+      "colCost": "It costs",
+      "colCan": "Can you?",
+      "best5": {
+        "squad": "The five best players",
+        "cost": "about 180",
+        "can": "No, and that is on purpose. That squad should not exist."
+      },
+      "two": {
+        "squad": "The two best, then three cheap ones",
+        "cost": "about 100",
+        "can": "Yes, but your other three will be below average. That is the trade."
+      },
+      "average": {
+        "squad": "Five average players",
+        "cost": "exactly 100",
+        "can": "Yes. The safe squad."
+      },
+      "cheap": {
+        "squad": "The five cheapest",
+        "cost": "about 40",
+        "can": "Yes, and you waste 60. Nobody does this."
+      },
+      "team": "The team a player is on affects their price too. Somebody on a strong team scores twice over: their own kills, and the points for their team winning. So players on teams that usually finish high cost a little more, based on where that team actually finishes, not on any label.",
+      "unproven": "Some players are marked Unproven. That means we do not have enough recorded matches to judge them yet, so they sit at the middle price. They are not cheap and they are not expensive, because guessing either way would be unfair on a player making their debut.",
+      "checkable": "Every price shows the reason underneath it, like 1.9 kills per map over 12 maps. If you think a price is wrong, you can check it yourself, and an admin can change any price before a league opens."
+    },
+    "lock": {
+      "title": "When picks close, and why it matters",
+      "p1": "Picks close when the event starts. After that nobody can change a squad, including admins. The league page shows the exact time in your own timezone.",
+      "p2": "This is the whole reason the game is fair. If picks stayed open you could wait until somebody had a huge first match and then pick them, which is not a prediction, it is copying an answer."
+    },
+    "faq": {
+      "title": "Questions people actually ask",
+      "notPlay": {
+        "q": "What if a player I picked never plays?",
+        "a": "They score you nothing. Their team might be knocked out early, or they might be benched. That is part of the decision: before you pick somebody, it is worth asking how many matches their team is likely to get."
+      },
+      "corrected": {
+        "q": "A result was corrected. Did my score change?",
+        "a": "Yes, and that is deliberate. Your score is always worked out from the current results, so if a kill count is fixed or a team is disqualified, the table updates to match. It can go down as well as up. The alternative would be a table that disagreed with the results page."
+      },
+      "sameSquad": {
+        "q": "What stops everyone picking the same squad?",
+        "a": "Two things. The limit on how many you can take from one team, and the budget. Together they mean you cannot just take the best team's stars and be done."
+      },
+      "rename": {
+        "q": "A player changed their name. Is my squad broken?",
+        "a": "No. Your squad remembers the person, not the name they were using when you picked them."
+      },
+      "twoAccounts": {
+        "q": "Can someone enter twice?",
+        "a": "No. One squad per account per league."
+      },
+      "cost": {
+        "q": "Does it cost real money?",
+        "a": "Usually no. Most leagues are free to enter. If a league does charge, its page says so clearly before you enter anything."
+      }
+    },
+    "prizes": {
+      "title": "Prizes",
+      "intro": "A league is one of three kinds, and its page says which:",
+      "body": "Free means bragging rights and a place on the table. Sponsored means entry is still free and a sponsor or AFC has put up the prize. Entry fee means the prize pot is built from what entrants pay. Whichever it is, it is stated on the league page before you enter."
+    },
+    "readGuide": "How it all works"
+  }
 }
