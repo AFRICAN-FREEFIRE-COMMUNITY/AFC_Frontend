@@ -833,6 +833,19 @@
         "reasonLogged": "Consigné dans le journal d'audit des classements.",
         "cancel": "Annuler",
         "saving": "Enregistrement…"
+      },
+      "competition": {
+        "tournament": "Tournois",
+        "scrims": "Scrims",
+        "hint": {
+          "tournament": "Ces règles décident du niveau des tournois uniquement.",
+          "scrims": "Ces règles décident du niveau des scrims uniquement. Rien ici n'affecte les tournois."
+        },
+        "saveFirst": "Enregistrez ou annulez vos modifications avant de changer.",
+        "emptyMeaning": "Sans règle ici, chaque scrim reçoit le niveau par défaut (Niveau {tier}). Copiez les règles des tournois pour partir de ce qui classait les scrims auparavant.",
+        "copyFromTournaments": "Copier les règles des tournois",
+        "copied": "{count, plural, =0 {Aucune règle copiée} one {# règle copiée} other {# règles copiées}}. Les deux ensembles sont séparés désormais.",
+        "copyFailed": "Impossible de copier les règles."
       }
     }
   }

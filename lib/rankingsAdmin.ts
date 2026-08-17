@@ -112,8 +112,17 @@ export const rankingsAdminApi = {
   saveScoringConfig: (body: any) => aPost("scoring-config/", body),
 
   // ── Tournament tier rules + classifier ───────────────────────────────────
-  tierRules: () => aGet("event-tier-rules/"),
+  // TWO SETS (owner 2026-08-16): tournaments and scrims keep separate rules, chosen by the
+  // `competition_type` the caller passes ("tournament" | "scrims"). Omitting it means tournaments
+  // on the server too, so every call written before the split still means what it always did.
+  // The page passes it on EVERY call, because a write that silently lands in the other set is the
+  // one failure mode here that would be invisible until an event was tiered wrongly.
+  tierRules: (competitionType?: string) =>
+    aGet("event-tier-rules/", competitionType ? { competition_type: competitionType } : undefined),
   createTierRule: (body: any) => aPost("event-tier-rules/", body),
+  // Seeds an EMPTY set from a full one, once. 400 if the target already has rules - it is a
+  // starting point, not a sync. body = { competition_type, source, reason }.
+  copyTierRules: (body: any) => aPost("event-tier-rules/copy-from/", body),
   updateTierRule: (ruleId: number, body: any) => aPatch(`event-tier-rules/${ruleId}/`, body),
   deleteTierRule: (ruleId: number, body: any) => aDelete(`event-tier-rules/${ruleId}/`, body),
   reorderTierRules: (body: any) => aPost("event-tier-rules/reorder/", body),

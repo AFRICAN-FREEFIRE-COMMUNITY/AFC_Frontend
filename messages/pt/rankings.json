@@ -833,6 +833,19 @@
         "reasonLogged": "Registado no histórico de auditoria das classificações.",
         "cancel": "Cancelar",
         "saving": "A guardar…"
+      },
+      "competition": {
+        "tournament": "Torneios",
+        "scrims": "Scrims",
+        "hint": {
+          "tournament": "Estas regras decidem o nível apenas dos torneios.",
+          "scrims": "Estas regras decidem o nível apenas dos scrims. Nada aqui afeta os torneios."
+        },
+        "saveFirst": "Guarde ou reponha as suas alterações antes de mudar.",
+        "emptyMeaning": "Sem regras aqui, cada scrim recebe o nível predefinido (Nível {tier}). Copie as regras dos torneios para começar do que classificava os scrims antes.",
+        "copyFromTournaments": "Copiar as regras dos torneios",
+        "copied": "{count, plural, =0 {Nenhuma regra copiada} one {# regra copiada} other {# regras copiadas}}. Os dois conjuntos são separados a partir de agora.",
+        "copyFailed": "Não foi possível copiar as regras."
       }
     }
   }

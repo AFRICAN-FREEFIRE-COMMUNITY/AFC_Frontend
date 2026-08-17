@@ -657,11 +657,11 @@
     },
     "rk-tierRules": {
       "label": "Règles de niveau",
-      "does": "Une liste ordonnée de règles qui classent un tournoi. La première règle qu'un tournoi satisfait fixe son niveau, l'ordre compte donc. Glissez pour réordonner."
+      "does": "Une liste ordonnée de règles qui classent un événement. La première règle satisfaite fixe le niveau, donc l'ordre compte. Glissez pour réorganiser. Les tournois et les scrims ont des listes séparées : choisissez celle que vous modifiez avec le sélecteur ci-dessus, et rien de ce que vous changez dans l'une n'affecte l'autre."
     },
     "rk-tierTest": {
       "label": "Tester un tournoi",
-      "does": "Saisissez une dotation, un nombre d'équipes et un nombre de joueurs et voyez quelle règle correspond et quel niveau le tournoi obtiendrait. Cela ne change rien."
+      "does": "Saisissez une dotation, un nombre d'équipes et un nombre de joueurs pour voir quelle règle correspond et quel niveau l'événement recevrait. Le test utilise l'ensemble affiché par le sélecteur, donc un exemple de scrim est jugé par les règles des scrims. Cela ne modifie rien."
     },
     "rk-markerFlags": {
       "label": "Indicateurs de comptage",
@@ -1194,6 +1194,10 @@
     "wt-promote": {
       "label": "Promouvoir depuis la liste d'attente",
       "does": "Fait entrer une équipe ou un joueur en liste d'attente dans l'événement quand une place se libère. Promouvoir le suivant prend celui qui est en tête de file."
+    },
+    "rk-tierCompetition": {
+      "label": "Sélecteur Tournois / Scrims",
+      "does": "Choisit l'ensemble de règles de niveau que vous consultez. Les deux ensembles sont totalement séparés, chacun avec son propre niveau par défaut. Enregistrez ou annulez vos modifications avant de changer, car le changement recharge la page. Si un ensemble n'a aucune règle, chaque événement de ce type reçoit le niveau par défaut : une liste vide n'est donc pas neutre."
     }
   },
   "walkthroughs": {

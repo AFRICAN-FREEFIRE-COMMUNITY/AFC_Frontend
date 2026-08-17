@@ -345,6 +345,9 @@ export const HELP_CONTROLS: HelpControl[] = [
   { id: "rk-scoringScales", screen: "rkScoring", kind: "field", roles: ["metrics_admin"] },
   { id: "rk-scoringSave", screen: "rkScoring", kind: "action", roles: ["metrics_admin"], destructive: true },
   { id: "rk-scoringReset", screen: "rkScoring", kind: "action", roles: ["metrics_admin"] },
+  // Listed FIRST for this screen because it decides what every other control on the page is
+  // editing: tournaments and scrims keep separate tier rules (owner 2026-08-16).
+  { id: "rk-tierCompetition", screen: "rkTiers", kind: "toggle", roles: ["metrics_admin"] },
   { id: "rk-tierRules", screen: "rkTiers", kind: "field", roles: ["metrics_admin"] },
   { id: "rk-tierTest", screen: "rkTiers", kind: "action", roles: ["metrics_admin"] },
   { id: "rk-markerFlags", screen: "rkResults", kind: "toggle", roles: ["metrics_admin"] },

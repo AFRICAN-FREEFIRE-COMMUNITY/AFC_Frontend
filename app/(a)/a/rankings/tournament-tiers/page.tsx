@@ -23,6 +23,9 @@ import { CSS } from "@dnd-kit/utilities";
 // because components/rankings/TierBadge already renders it there, so both surfaces agree.
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
+// The self-expiring NEW tag on the scrims switch: dated, so it disappears on its own five days
+// after the split went live rather than waiting for somebody to remember to delete it.
+import { NewBadge } from "@/components/NewBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +41,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   IconStack2, IconGripVertical, IconPlus, IconX, IconTrash, IconArrowRight,
-  IconDeviceFloppy, IconInfoCircle, IconFlask, IconRestore, IconAlertTriangle,
+  IconDeviceFloppy, IconInfoCircle, IconFlask, IconRestore, IconAlertTriangle, IconCopy,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -95,6 +98,16 @@ import {
  */
 
 type Tier = 1 | 2 | 3;
+
+/**
+ * The two rule sets (owner 2026-08-16: "there should be a place we control rules for scrims like we
+ * do for tournaments"). A scrim and a tournament are not the same competition, so one list of rules
+ * could only ever be right for one of them. Matches EventTierRule.COMPETITION_CHOICES on the
+ * backend; "tournament" is the default at BOTH ends, which is what keeps every rule written before
+ * the split meaning exactly what it always did.
+ */
+type Competition = "tournament" | "scrims";
+const COMPETITIONS: Competition[] = ["tournament", "scrims"];
 // "How the room was set up" fields (owner 2026-08-16). Each is a yes/no read from the room
 // settings saved against the event, so they share one pair of operators.
 type RoomFlagField = "weapon_skins" | "blue_zone" | "unlimited_ammo";
@@ -380,8 +393,13 @@ function SortableRule({
         !rule.enabled && "opacity-60",
       )}
     >
-      {/* header row */}
-      <div className="flex items-center gap-2 border-b px-3 py-2">
+      {/* header row
+          flex-wrap (2026-08-16): the row holds a drag handle, the rule number, two ⓘ, the ALL/ANY
+          toggle and a warning pill before `ml-auto` pushes the enable switch and delete button
+          right. On a 390px phone that added up past the viewport and put BOTH controls off-screen
+          with no way to scroll to them - the page has no horizontal scroll, so they were simply
+          unreachable. Wrapping drops the actions onto their own line, still right-aligned. */}
+      <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2">
         <button
           {...attributes} {...listeners}
           className="cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
@@ -557,8 +575,23 @@ function SortableRule({
 export default function TournamentTiersPage() {
   const t = useTranslations("rankings.admin.tournamentTiers");
   const tTier = useTranslations("rankings");
+  // ── which rule set is on screen (owner 2026-08-16) ──────────────────────────────────────────
+  // Tournaments and scrims keep separate rules, and the two never see each other: a scrims rule
+  // cannot classify a tournament, cannot shadow a tournament rule, and does not appear in the
+  // tournament contradiction report. This ONE piece of state decides which set every read and every
+  // write on this page addresses, which is why it is passed explicitly on each call rather than
+  // relying on the server default - a write that silently landed in the other set would not show up
+  // until an event was tiered wrongly.
+  const [competition, setCompetition] = useState<Competition>("tournament");
   const [rules, setRules] = useState<Rule[]>([]);
   const [defaultTier, setDefaultTier] = useState<Tier>(3);
+  // True while the empty scrims set is being seeded from the tournament rules.
+  const [copying, setCopying] = useState(false);
+  // Has the page loaded ONCE? Switching sets re-fetches, and the whole-page loader below would
+  // otherwise replace the switch with a spinner the instant it is pressed - so the control the
+  // admin just used vanishes under their finger, which on a phone reads as a mis-tap. The spinner
+  // is for arriving at the page; a switch keeps the page and dims the part that is changing.
+  const loadedOnce = useRef(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -611,7 +644,7 @@ export default function TournamentTiersPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await rankingsAdminApi.tierRules();
+      const res = await rankingsAdminApi.tierRules(competition);
       const loaded: Rule[] = (res?.results ?? []).map(fromServerRule);
       const dt = ([1, 2, 3].includes(res?.default_tier) ? res.default_tier : 3) as Tier;
       setRules(loaded);
@@ -624,13 +657,20 @@ export default function TournamentTiersPage() {
         defaultTier: dt,
       };
       setDirty(false);
+      loadedOnce.current = true;
     } catch (err: any) {
       toast.error(err?.response?.data?.message || t("loadFailed"));
+      // A failed switch has still "arrived": showing the full-page spinner forever would hide the
+      // switch that could take them back to a set that does load.
+      loadedOnce.current = true;
     } finally {
       setLoading(false);
     }
+    // `competition` IS a real dependency: switching sets has to re-fetch, or the page would show
+    // one set's rules while writing to the other. `t` stays out for the same reason as elsewhere
+    // here (fresh identity every render).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [competition]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -656,6 +696,9 @@ export default function TournamentTiersPage() {
           // Omitted means naira server-side, but it is sent explicitly so the request says what it
           // means and the preview never depends on a default agreeing at both ends.
           prize_currency: test.prizeCurrency,
+          // Same set the page is showing. Previewing a scrim sample against tournament rules would
+          // answer confidently about the wrong table.
+          competition_type: competition,
         })
         .then((r: any) => {
           const tier = ([1, 2, 3].includes(r?.tier) ? r.tier : defaultTier) as Tier;
@@ -686,7 +729,7 @@ export default function TournamentTiersPage() {
     // changes. It is only read inside the catch, for a fallback message. Same reasoning as the
     // exhaustive-deps exemption on `load` above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [test, rules, defaultTier, loading]);
+  }, [test, rules, defaultTier, loading, competition]);
 
   const mutate = (next: Rule[]) => { setRules(next); setDirty(true); };
 
@@ -727,6 +770,29 @@ export default function TournamentTiersPage() {
     }],
   }]);
 
+  // ── seed an empty set from the other one ──────────────────────────────────
+  // Only reachable from the empty state. A set with no rules classifies NOTHING, so every event of
+  // that kind falls through to the default tier - copying the tournament rules across is the
+  // starting point that makes scrims behave as they did before they had their own rules. One-way
+  // and one-time: the backend refuses a set that already has rules, so this cannot resync or
+  // duplicate later (admin_tournament_tiers.copy_rule_set).
+  const seedFromTournaments = async () => {
+    setCopying(true);
+    try {
+      const res = await rankingsAdminApi.copyTierRules({
+        competition_type: competition,
+        source: "tournament",
+        reason: DEFAULT_REASON,
+      });
+      toast.success(t("competition.copied", { count: res?.copied ?? 0 }));
+      await load();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("competition.copyFailed"));
+    } finally {
+      setCopying(false);
+    }
+  };
+
   // ── reset → revert to the last loaded server snapshot ─────────────────────
   const reset = () => {
     const snap = snapshotRef.current;
@@ -757,7 +823,7 @@ export default function TournamentTiersPage() {
       // 2) UPDATE existing rules whose content changed; CREATE new (unsaved) rules.
       for (const r of rules) {
         if (r.serverId == null) {
-          absorbContradictions(await rankingsAdminApi.createTierRule({ ...toWritePayload(r), reason: auditReason }));
+          absorbContradictions(await rankingsAdminApi.createTierRule({ ...toWritePayload(r), competition_type: competition, reason: auditReason }));
         } else {
           const prev = snapById.get(r.serverId);
           if (!prev || ruleSignature(prev) !== ruleSignature(r)) {
@@ -768,12 +834,12 @@ export default function TournamentTiersPage() {
 
       // 3) DEFAULT TIER - only if changed.
       if (defaultTier !== snap.defaultTier) {
-        absorbContradictions(await rankingsAdminApi.updateTierConfig({ default_tier: defaultTier, reason: auditReason }));
+        absorbContradictions(await rankingsAdminApi.updateTierConfig({ default_tier: defaultTier, competition_type: competition, reason: auditReason }));
       }
 
       // 4) REORDER - re-fetch first to learn the ids of any rules we just created, then send
       //    the full priority order matching the current on-screen sequence.
-      const fresh = await rankingsAdminApi.tierRules();
+      const fresh = await rankingsAdminApi.tierRules(competition);
       absorbContradictions(fresh);
       const freshRules: Rule[] = (fresh?.results ?? []).map(fromServerRule);
       if (freshRules.length > 1) {
@@ -808,7 +874,7 @@ export default function TournamentTiersPage() {
         if (orderChanged) {
           // Reordering is the write most likely to CREATE or CLEAR an unreachable rule, since
           // shadowing depends entirely on which rule is checked first.
-          absorbContradictions(await rankingsAdminApi.reorderTierRules({ order: desiredOrder, reason: auditReason }));
+          absorbContradictions(await rankingsAdminApi.reorderTierRules({ order: desiredOrder, competition_type: competition, reason: auditReason }));
         }
       }
 
@@ -825,7 +891,7 @@ export default function TournamentTiersPage() {
     }
   };
 
-  if (loading) return <FullLoader text={t("loading")} />;
+  if (loading && !loadedOnce.current) return <FullLoader text={t("loading")} />;
 
   return (
     <div className="space-y-4">
@@ -859,6 +925,42 @@ export default function TournamentTiersPage() {
           </div>
         }
       />
+
+      {/* ── which set of rules ── (owner 2026-08-16)
+          Two independent rule sets on one page rather than two pages: the editor, the warnings and
+          the test panel are identical for both, and a second page would be the same 1,100 lines
+          maintained twice. The switch is the FIRST thing under the title because everything below
+          it - every rule, the default tier, the test result - belongs to the set it selects, and a
+          control placed lower would be read after the thing it governs.
+
+          Disabled while there are unsaved edits: switching re-fetches, which would throw those
+          edits away without asking. Saying so beats silently discarding them. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="inline-flex h-9 items-center rounded-md bg-muted p-1">
+          {COMPETITIONS.map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setCompetition(value)}
+              disabled={dirty || saving || loading}
+              aria-pressed={competition === value}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-sm px-3 py-1 text-xs font-medium transition-colors",
+                "disabled:cursor-not-allowed disabled:opacity-60",
+                competition === value
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t(`competition.${value}`)}
+              {value === "scrims" && <NewBadge since="2026-08-16" />}
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {dirty ? t("competition.saveFirst") : t(`competition.hint.${competition}`)}
+        </span>
+      </div>
 
       {/* status strip */}
       <div className="grid grid-cols-1 gap-2 md:grid-cols-2 2xl:grid-cols-4">
@@ -919,15 +1021,35 @@ export default function TournamentTiersPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-4 transition-opacity lg:grid-cols-3",
+          loading && "pointer-events-none opacity-50",
+        )}
+        aria-busy={loading}
+      >
         {/* rules list
             data-tour anchor: tournament-tiers tour "Tier rules" step. Anchors the stable
             left column (holds the drag-to-reorder rule cards, the default-tier row, and the
             add-rule button) so the highlight stays put whether or not any rules exist yet. */}
         <div data-tour="tournament-tiers-rules" className="space-y-3 lg:col-span-2">
           {rules.length === 0 ? (
-            <div className="rounded-md border border-dashed bg-muted/20 px-3 py-10 text-center text-sm text-muted-foreground">
-              {t("emptyRules")}
+            <div className="space-y-3 rounded-md border border-dashed bg-muted/20 px-3 py-10 text-center text-sm text-muted-foreground">
+              <p>{t("emptyRules")}</p>
+              {/* A set with no rules is not neutral - it sends EVERY event of this kind to the
+                  default tier. Said plainly here, with the one-click way out, because the scrims
+                  set starts empty and an admin who does not know that would read a blank list as
+                  "nothing to do". */}
+              {competition !== "tournament" && (
+                <>
+                  <p className="mx-auto max-w-md text-xs">
+                    {t("competition.emptyMeaning", { tier: String(defaultTier) })}
+                  </p>
+                  <Button variant="outline" size="sm" disabled={copying} onClick={seedFromTournaments}>
+                    <IconCopy className="mr-1.5 size-4" /> {t("competition.copyFromTournaments")}
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <DndContext
