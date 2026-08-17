@@ -259,6 +259,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return response;
       },
       (error) => {
+        // ── NORMALISE THE BACKEND'S TWO ERROR KEYS (bug, owner 2026-08-17) ──────────────────
+        // The API answers a refusal as either {"message": "..."} or {"error": "..."} depending on
+        // which endpoint you hit: afc_team/views.py alone has 26 responses using "error", and
+        // afc_tournament_and_scrims another 9. Meanwhile 436 call sites across the app read
+        // `err.response.data.message` and fall back to a generic string.
+        //
+        // The effect was that a refusal with a real, actionable reason showed the user nothing but
+        // "Failed to update roster". The reported case: a roster save refused because the transfer
+        // window was shut, with the endpoint returning the exact sentence explaining that and when
+        // it reopens, and the user seeing none of it.
+        //
+        // Copying `error` into `message` when `message` is absent fixes every one of those call
+        // sites at once and changes nothing anywhere else: a site reading `message` was getting
+        // undefined before, and a response carrying both keys keeps its own `message`. This is the
+        // only global axios interceptor in the app (contexts/AuthContext), so it covers bare
+        // `axios.post` calls as well as the typed clients.
+        const body = error.response?.data;
+        if (body && typeof body === "object" && !body.message && typeof body.error === "string") {
+          body.message = body.error;
+        }
+
         // Skip interceptor for auth endpoints (login, register, etc.)
         const requestUrl = error.config?.url || "";
         const isAuthEndpoint =
