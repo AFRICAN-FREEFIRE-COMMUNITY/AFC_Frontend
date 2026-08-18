@@ -24,5 +24,6 @@
   "vendorDashboard": "Tableau de bord des fournisseurs",
   "backToUserDashboard": "Retour au tableau de bord de l'utilisateur",
   "helpCenter": "Centre d'aide",
-  "polls": "Sondages"
+  "polls": "Sondages",
+  "bot": "Bot"
 }

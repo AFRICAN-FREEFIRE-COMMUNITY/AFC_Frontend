@@ -1,0 +1,75 @@
+{
+  "title": "AFC Bot",
+  "description": "Manage the Discord bot without touching the server.",
+  "loading": "Reading the bot...",
+  "saved": "Done.",
+  "saveFailed": "Could not save that.",
+  "unreachable": {
+    "title": "The bot is not answering",
+    "body": "We could not reach the bot. It may be offline, restarting, or the control API may not be configured on this server.",
+    "hint": "Everything else on the site is unaffected. If it stays like this, check that the bot process is running and that BOT_CONTROL_URL and BOT_CONTROL_TOKEN are set."
+  },
+  "action": {
+    "refresh": "Refresh",
+    "retry": "Try again",
+    "save": "Save settings"
+  },
+  "tab": {
+    "status": "Status",
+    "knowledge": "Knowledge",
+    "settings": "Settings",
+    "approvals": "Approvals"
+  },
+  "status": {
+    "online": "Online",
+    "offline": "Offline",
+    "account": "Signed in as",
+    "uptime": "Up for",
+    "knowledge": "Knowledge loaded",
+    "chars": "{n, number} characters",
+    "listening": "Listening in",
+    "channels": "{channels, plural, one {# channel} other {# channels}}, {categories, plural, one {# category} other {# categories}}",
+    "providers": "Which AI is answering",
+    "providersHint": "The bot tries these in order. If the first is out of quota it fails over to the next, and a reply from a fallback looks exactly the same in Discord, so this is the only place you would notice.",
+    "loops": "Background jobs",
+    "loopsHint": "These poll the AFC website for new tournaments, news and bans. A job that has not run in a long time is why announcements go quiet.",
+    "loop": "Job",
+    "lastRun": "Last run",
+    "cycles": "Cycles",
+    "errors": "Errors",
+    "never": "Not yet",
+    "noLoopsYet": "No job has completed a cycle since the bot started."
+  },
+  "knowledge": {
+    "title": "What the bot knows",
+    "hint": "Documents the bot answers from. It reads them live, so a new file is used on the very next reply with no restart. The website scrape is separate and refreshes itself every 3 hours.",
+    "addPublic": "Add document",
+    "addStaff": "Add staff document",
+    "rescrape": "Re-read the website now",
+    "rescraped": "Re-read the website.",
+    "document": "Document",
+    "scope": "Who it answers",
+    "updated": "Updated",
+    "everyone": "Everyone",
+    "staffOnly": "Staff only",
+    "empty": "No documents yet. Add one to teach the bot something the website does not say."
+  },
+  "settings": {
+    "title": "Channels, roles and timing",
+    "hint": "Saving applies immediately, with no restart. These decide where announcements land, so change them deliberately.",
+    "changed": "Changed",
+    "reset": "Reset",
+    "default": "Default: {value}.",
+    "idsHint": "Discord IDs, separated by commas.",
+    "idHint": "A single Discord ID.",
+    "rangeHint": "Between {low} and {high}.",
+    "nothingChanged": "Nothing to save yet."
+  },
+  "approvals": {
+    "title": "Waiting for a decision",
+    "hint": "New tournaments and scrims are held here until somebody approves them. Approving posts the announcement to Discord immediately, exactly as the buttons in the mods channel do.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "empty": "Nothing is waiting. New tournaments and scrims will appear here as they are created."
+  }
+}
