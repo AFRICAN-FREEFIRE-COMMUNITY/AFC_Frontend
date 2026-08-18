@@ -10,6 +10,7 @@ import {
   IconHome,
   IconInfoCircle,
   IconMessage,
+  IconRobot,
   IconNews,
   IconPlugConnected,
   IconScan,
@@ -304,6 +305,18 @@ export const adminNavLinks: AdminNavLink[] = [
     slug: "/a/overlays",
     icon: IconBroadcast,
     allowedRoles: ["head_admin", "event_admin"],
+  },
+  {
+    // The Discord bot (backlog item 31). HEAD ADMINS ONLY, narrower than the surfaces around it:
+    // these settings decide where room IDs, ban notices and every announcement are delivered, so
+    // somebody who can edit them can silently redirect all of it. The backend enforces the same
+    // gate (afc_bot.permissions.can_manage_bot); this only hides the menu entry.
+    label: "Bot",
+    navKey: "bot",
+    slug: "/a/bot",
+    icon: IconRobot,
+    allowedRoles: ["head_admin"],
+    newSince: "2026-08-18",
   },
   {
     label: "Admin News",

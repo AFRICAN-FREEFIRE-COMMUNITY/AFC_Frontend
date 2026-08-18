@@ -1,0 +1,75 @@
+{
+  "title": "Bot AFC",
+  "description": "Gérez le bot Discord sans toucher au serveur.",
+  "loading": "Lecture du bot...",
+  "saved": "Terminé.",
+  "saveFailed": "Impossible d'enregistrer.",
+  "unreachable": {
+    "title": "Le bot ne répond pas",
+    "body": "Nous n'avons pas pu joindre le bot. Il est peut-être hors ligne, en cours de redémarrage, ou l'API de contrôle n'est pas configurée sur ce serveur.",
+    "hint": "Le reste du site n'est pas affecté. Si cela persiste, vérifiez que le processus du bot tourne et que BOT_CONTROL_URL et BOT_CONTROL_TOKEN sont renseignés."
+  },
+  "action": {
+    "refresh": "Actualiser",
+    "retry": "Réessayer",
+    "save": "Enregistrer les réglages"
+  },
+  "tab": {
+    "status": "État",
+    "knowledge": "Connaissances",
+    "settings": "Réglages",
+    "approvals": "Approbations"
+  },
+  "status": {
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "account": "Connecté en tant que",
+    "uptime": "En ligne depuis",
+    "knowledge": "Connaissances chargées",
+    "chars": "{n} caractères",
+    "listening": "À l'écoute dans",
+    "channels": "{channels} salons, {categories} catégories",
+    "providers": "Quelle IA répond",
+    "providersHint": "Le bot les essaie dans cet ordre. Si la première est à court de quota, il bascule sur la suivante, et une réponse venue d'une IA de secours est identique dans Discord : c'est le seul endroit où cela se voit.",
+    "loops": "Tâches de fond",
+    "loopsHint": "Elles interrogent le site AFC pour les nouveaux tournois, actualités et bannissements. Une tâche qui n'a pas tourné depuis longtemps explique un silence des annonces.",
+    "loop": "Tâche",
+    "lastRun": "Dernier passage",
+    "cycles": "Cycles",
+    "errors": "Erreurs",
+    "never": "Pas encore",
+    "noLoopsYet": "Aucune tâche n'a terminé un cycle depuis le démarrage du bot."
+  },
+  "knowledge": {
+    "title": "Ce que le bot sait",
+    "hint": "Les documents à partir desquels le bot répond. Il les lit en direct : un nouveau fichier sert dès la réponse suivante, sans redémarrage. L'analyse du site est séparée et se rafraîchit toutes les 3 heures.",
+    "addPublic": "Ajouter un document",
+    "addStaff": "Ajouter un document staff",
+    "rescrape": "Relire le site maintenant",
+    "rescraped": "Site relu.",
+    "document": "Document",
+    "scope": "Pour qui",
+    "updated": "Mis à jour",
+    "everyone": "Tout le monde",
+    "staffOnly": "Staff uniquement",
+    "empty": "Aucun document. Ajoutez-en un pour apprendre au bot ce que le site ne dit pas."
+  },
+  "settings": {
+    "title": "Salons, rôles et fréquences",
+    "hint": "L'enregistrement s'applique immédiatement, sans redémarrage. Ces réglages décident où arrivent les annonces : modifiez-les délibérément.",
+    "changed": "Modifié",
+    "reset": "Réinitialiser",
+    "default": "Par défaut : {value}.",
+    "idsHint": "Identifiants Discord, séparés par des virgules.",
+    "idHint": "Un seul identifiant Discord.",
+    "rangeHint": "Entre {low} et {high}.",
+    "nothingChanged": "Rien à enregistrer pour le moment."
+  },
+  "approvals": {
+    "title": "En attente d'une décision",
+    "hint": "Les nouveaux tournois et scrims attendent ici qu'on les approuve. Approuver publie l'annonce sur Discord immédiatement, exactement comme les boutons du salon des modérateurs.",
+    "approve": "Approuver",
+    "reject": "Refuser",
+    "empty": "Rien en attente. Les nouveaux tournois et scrims apparaîtront ici à leur création."
+  }
+}

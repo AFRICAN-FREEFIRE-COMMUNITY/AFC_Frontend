@@ -24,5 +24,6 @@
   "organizerDashboard": "Organizer Dashboard",
   "vendorDashboard": "Vendor Dashboard",
   "backToUserDashboard": "Back to user dashboard",
-  "polls": "Polls"
+  "polls": "Polls",
+  "bot": "Bot"
 }

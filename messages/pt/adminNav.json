@@ -24,5 +24,6 @@
   "vendorDashboard": "Painel do fornecedor",
   "backToUserDashboard": "Voltar ao painel do utilizador",
   "helpCenter": "Centro de ajuda",
-  "polls": "Enquetes"
+  "polls": "Enquetes",
+  "bot": "Bot"
 }
