@@ -1543,7 +1543,13 @@ const StageResultsTable: React.FC<{
                   // competitor__user__username, SQUAD rows carry tournament_team__team__team_name.
                   // Reading only the solo keys made every TEAM event's standings fall back to
                   // "Player N" (owner 2026-06-23 bug). Read both (mirrors TournamentStructure.rowName).
+                  // competitor_name FIRST (owner 2026-08-20): it is COALESCEd over the ghost in
+                  // the backend standings query, so an external competitor with no AFC team shows
+                  // its real name. tournament_team__team__team_name traverses the REAL team and is
+                  // null for a ghost, which is how imported teams used to fall through to the
+                  // "Player <id>" placeholder below while real teams beside them rendered fine.
                   const username =
+                    row.competitor_name ||
                     row.username ||
                     row.team_name ||
                     row.competitor__user__username ||
