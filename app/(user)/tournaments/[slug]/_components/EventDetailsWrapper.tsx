@@ -88,6 +88,7 @@ import {
   IconPlayerPlay,
 } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
+import { NewBadge } from "@/components/NewBadge";
 import { TournamentTierBadge } from "@/components/TournamentTierBadge";
 import {
   Select,
@@ -5499,8 +5500,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             no glow, matching the notice styling used elsewhere on this page. */}
         {eventDetails?.results_imported && (
           <div className="mb-3 rounded-md bg-muted/60 px-3 py-2">
-            <p className="text-xs font-semibold text-foreground">
+            <p className="flex items-center gap-2 text-xs font-semibold text-foreground">
               {t("importedResults.badge")}
+              {/* Dated NEW badge, per the project rule that any surface a returning user would
+                  not otherwise notice wears one for 5 days and then expires BY ITSELF. `since`
+                  is the day the imported results actually landed, so an event imported months
+                  ago never wears it, and nobody has to remember to take it off. */}
+              {eventDetails?.results_imported_at && (
+                <NewBadge since={String(eventDetails.results_imported_at).slice(0, 10)} />
+              )}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {t("importedResults.explainer")}
