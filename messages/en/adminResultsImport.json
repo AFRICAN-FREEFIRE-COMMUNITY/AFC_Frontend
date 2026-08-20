@@ -1,0 +1,38 @@
+{
+  "title": "Import results",
+  "explainer": "Bring an external tournament's published results into this event. Use this when the matches were played somewhere else and the organiser published a standings table rather than match-by-match results.",
+  "step1": {
+    "title": "1. Download the template",
+    "body": "The file already contains this event's stages, groups and registered teams, so the column names and the team spellings cannot be wrong when you send it back.",
+    "action": "Download template",
+    "working": "Preparing..."
+  },
+  "step2": {
+    "title": "2. Check what it will do",
+    "body": "Nothing is written yet. You get a report of what was read and what would be created.",
+    "action": "Check the file",
+    "working": "Reading..."
+  },
+  "step3": {
+    "title": "3. Import",
+    "body": "Writes the results. Running this again replaces what was imported before and never touches a result entered by hand.",
+    "action": "Import results",
+    "working": "Importing..."
+  },
+  "report": {
+    "title": "What this file will do",
+    "counts": "{rows} rows read. {matched} matched an existing team, {created} will be added as unclaimed competitors.",
+    "summed": "summed standings, {rows} teams",
+    "perMatch": "match by match, {rows} rows",
+    "willCreate": "(will be added)",
+    "matched": "(matched)",
+    "nearMiss": "similar to {names}",
+    "warnings": "Worth checking"
+  },
+  "imported": "Imported {rows} results, {created} new competitors added.",
+  "errors": {
+    "template": "The template could not be prepared.",
+    "preview": "That file could not be read.",
+    "commit": "The import did not finish."
+  }
+}

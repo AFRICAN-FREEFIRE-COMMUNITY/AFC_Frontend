@@ -17,7 +17,8 @@
     "linkedEvents": "Linked Events",
     "actions": "Event Actions",
     "sponsor": "Sponsor",
-    "waitlist": "Waitlist"
+    "waitlist": "Waitlist",
+    "resultsImport": "Import results"
   },
   "participant": {
     "teams": "teams",

@@ -1,0 +1,38 @@
+{
+  "title": "Importer des resultats",
+  "explainer": "Integrez a cet evenement les resultats publies d'un tournoi externe. A utiliser quand les matchs ont ete joues ailleurs et que l'organisateur a publie un classement plutot que des resultats match par match.",
+  "step1": {
+    "title": "1. Telecharger le modele",
+    "body": "Le fichier contient deja les phases, les groupes et les equipes inscrites de cet evenement, donc les noms de colonnes et l'orthographe des equipes ne peuvent pas etre faux au retour.",
+    "action": "Telecharger le modele",
+    "working": "Preparation..."
+  },
+  "step2": {
+    "title": "2. Verifier ce que cela fera",
+    "body": "Rien n'est encore enregistre. Vous obtenez un rapport de ce qui a ete lu et de ce qui serait cree.",
+    "action": "Verifier le fichier",
+    "working": "Lecture..."
+  },
+  "step3": {
+    "title": "3. Importer",
+    "body": "Enregistre les resultats. Relancer remplace ce qui a ete importe avant et ne touche jamais un resultat saisi a la main.",
+    "action": "Importer les resultats",
+    "working": "Import en cours..."
+  },
+  "report": {
+    "title": "Ce que ce fichier va faire",
+    "counts": "{rows} lignes lues. {matched} correspondent a une equipe existante, {created} seront ajoutees comme competiteurs non reclames.",
+    "summed": "classement cumule, {rows} equipes",
+    "perMatch": "match par match, {rows} lignes",
+    "willCreate": "(sera ajoutee)",
+    "matched": "(correspondance)",
+    "nearMiss": "proche de {names}",
+    "warnings": "A verifier"
+  },
+  "imported": "{rows} resultats importes, {created} nouveaux competiteurs ajoutes.",
+  "errors": {
+    "template": "Le modele n'a pas pu etre prepare.",
+    "preview": "Ce fichier n'a pas pu etre lu.",
+    "commit": "L'import ne s'est pas termine."
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Importar resultados",
+  "explainer": "Traga para este evento os resultados publicados de um torneio externo. Use quando as partidas foram jogadas em outro lugar e o organizador publicou uma tabela de classificacao em vez de resultados partida a partida.",
+  "step1": {
+    "title": "1. Baixar o modelo",
+    "body": "O arquivo ja contem as fases, os grupos e as equipes inscritas deste evento, entao os nomes das colunas e a grafia das equipes nao podem estar errados quando voce enviar de volta.",
+    "action": "Baixar modelo",
+    "working": "Preparando..."
+  },
+  "step2": {
+    "title": "2. Conferir o que sera feito",
+    "body": "Nada e gravado ainda. Voce recebe um relatorio do que foi lido e do que seria criado.",
+    "action": "Conferir o arquivo",
+    "working": "Lendo..."
+  },
+  "step3": {
+    "title": "3. Importar",
+    "body": "Grava os resultados. Executar de novo substitui o que foi importado antes e nunca altera um resultado inserido manualmente.",
+    "action": "Importar resultados",
+    "working": "Importando..."
+  },
+  "report": {
+    "title": "O que este arquivo vai fazer",
+    "counts": "{rows} linhas lidas. {matched} corresponderam a uma equipe existente, {created} serao adicionadas como competidores nao reivindicados.",
+    "summed": "classificacao somada, {rows} equipes",
+    "perMatch": "partida a partida, {rows} linhas",
+    "willCreate": "(sera adicionada)",
+    "matched": "(correspondeu)",
+    "nearMiss": "parecida com {names}",
+    "warnings": "Vale conferir"
+  },
+  "imported": "{rows} resultados importados, {created} novos competidores adicionados.",
+  "errors": {
+    "template": "O modelo nao pode ser preparado.",
+    "preview": "Esse arquivo nao pode ser lido.",
+    "commit": "A importacao nao foi concluida."
+  }
+}

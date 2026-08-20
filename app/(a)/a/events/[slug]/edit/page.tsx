@@ -43,6 +43,7 @@ import {
 } from "@/lib/eventChangeSummary";
 import axios from "axios";
 import { FullLoader } from "@/components/Loader";
+import ResultsImportTab from "./_components/ResultsImportTab";
 import { SeedStageModal } from "../../_components/SeedStageModal";
 import { ConfirmStartTournamentModal } from "../../_components/ConfirmStartTournamentModal";
 
@@ -2093,6 +2094,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   infoTipId: "events.edit.waitlist._section",
                   dot: waitlistForm.is_waitlist_enabled ? "active" : null,
                 },
+                // Results import (owner 2026-08-20): for a tournament AFC did not run, whose
+                // organiser published a standings table rather than match-by-match results. The
+                // dot marks an event whose results already came from an import.
+                {
+                  value: "results_import",
+                  label: t("tabs.resultsImport"),
+                  dot: eventDetails?.results_imported ? "active" : null,
+                },
               ]}
             />
 
@@ -2240,6 +2249,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 eventDetails={eventDetails}
                 eventId={eventDetails.event_id}
                 onRefresh={fetchEventDetails}
+              />
+            </TabsContent>
+
+            <TabsContent value="results_import">
+              <ResultsImportTab
+                slug={slug}
+                token={token || ""}
+                apiBase={env.NEXT_PUBLIC_BACKEND_API_URL}
               />
             </TabsContent>
           </Tabs>

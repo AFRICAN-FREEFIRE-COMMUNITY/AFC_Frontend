@@ -17,7 +17,8 @@
     "linkedEvents": "Eventos relacionados",
     "actions": "Ações do evento",
     "sponsor": "Patrocinador",
-    "waitlist": "Lista de espera"
+    "waitlist": "Lista de espera",
+    "resultsImport": "Importar resultados"
   },
   "participant": {
     "teams": "equipas",
