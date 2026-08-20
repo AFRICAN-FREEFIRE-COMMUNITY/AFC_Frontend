@@ -5488,6 +5488,25 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             </div>
           )}
         </div>
+        {/* ── Imported results provenance (owner 2026-08-20) ──────────────────────────────────
+            AFC carries tournaments it did not run, and their results come from the organiser's
+            published standings rather than from matches played here. Saying so plainly is the
+            honest thing to do, and it stops a reader assuming AFC observed these games.
+
+            Driven off `results_imported`, which the backend derives from Event.results_imported_at,
+            so it needs no switch of its own and cannot drift out of step with whether an import
+            actually happened. A filled surface with a left-aligned label, no hairline border and
+            no glow, matching the notice styling used elsewhere on this page. */}
+        {eventDetails?.results_imported && (
+          <div className="mb-3 rounded-md bg-muted/60 px-3 py-2">
+            <p className="text-xs font-semibold text-foreground">
+              {t("importedResults.badge")}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {t("importedResults.explainer")}
+            </p>
+          </div>
+        )}
         {/* ── Organized by (F4, owner 2026-06-19) ── attribution to the owning organization.
             Links to the org's public page (/organizations/<slug>) when present; for native AFC
             events (no organization) it falls back to AFC branding and is not a link. Logo avatar

@@ -746,5 +746,12 @@
     "step6": "Tap the join icon when you see the room.",
     "step7": "Enter your team name, team tag and then the password.",
     "step8": "Make sure you are using the correct account registered on the AFC website. If you are not, your results will not count and your team could be penalized or even banned."
+  },
+  "importedResults": {
+    "badge": "Imported results",
+    "explainer": "These results come from the organiser's published standings, not from matches played on AFC.",
+    "aggregateNote": "This stage is recorded as one summed total per team, so there are no individual match results behind it.",
+    "ghostBadge": "Unclaimed",
+    "ghostExplainer": "This team appears here because of an imported result and has not been claimed on AFC yet."
   }
 }
