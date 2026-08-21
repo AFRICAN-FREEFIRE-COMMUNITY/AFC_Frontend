@@ -131,6 +131,11 @@ interface Props {
 // Pull a competitor's display name from a leaderboard row regardless of solo/squad shape.
 function rowName(row: any, idx: number): string {
   return (
+    // competitor_name FIRST (owner 2026-08-21): the backend COALESCEs it over the ghost, so an
+    // imported competitor resolves to its real name here. Every other key below traverses the REAL
+    // team and is null for a ghost, which is how imported teams rendered as the "#1" / "#5"
+    // placement placeholder in this view while the real teams beside them showed names.
+    row.competitor_name ||
     row.username ||
     row.team_name ||
     row.competitor__user__username ||
@@ -144,7 +149,13 @@ function rowName(row: any, idx: number): string {
 // reads both shapes). Solo rows have no team, so this returns undefined and no flag renders. The value
 // is an ISO-2 code OR a full country name; countryToIso2 (inside TeamLink) resolves either.
 const rowCountry = (row: any): string | undefined =>
-  row.team_country ?? row.tournament_team__team__country ?? undefined;
+  // competitor_country first, for the same reason competitor_name comes first above: it is the
+  // only one of the three that resolves for an imported competitor.
+  row.competitor_country ?? row.team_country ?? row.tournament_team__team__country ?? undefined;
+// A GHOST competitor is one imported from an external tournament's published results: it has a
+// name and a country but no Team row, so /teams/<name> does not exist for it. competitor_ghost_id
+// is the ghost's own UUID and is null for a real team, so its presence is the test.
+const rowIsGhost = (row: any): boolean => Boolean(row?.competitor_ghost_id);
 const rowKills = (row: any) => row.total_kills ?? row.kills ?? 0;
 // Summed placement points for the row. Backend returns it as `placement_sum` on the overall
 // standings (single-map stats expose `placement_points`); always renders a number, 0 when none.
@@ -768,14 +779,28 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                                   {/* Competitor name links to the public profile:
                                       solo events list players, squad events list teams. */}
                                   {participantType === "solo" ? (
-                                    <PlayerLink name={rowName(row, idx)} />
+                                    <PlayerLink name={rowName(row, idx)} isGhost={rowIsGhost(row)} />
                                   ) : (
                                     // Squad rows show the team's country flag before the name
                                     // (owner 2026-06-20); TeamLink renders it when rowCountry resolves.
                                     <TeamLink
                                       name={rowName(row, idx)}
                                       country={rowCountry(row)}
+                                      isGhost={rowIsGhost(row)}
                                     />
+                                  )}
+                                  {/* Same "Unclaimed" marker the Results tab shows, so the two
+                                      tabs of one page do not describe the same competitor
+                                      differently. Filled (secondary), never outline, per the
+                                      no-hairline-borders rule. */}
+                                  {rowIsGhost(row) && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-normal align-middle"
+                                      title={t("importedResults.ghostExplainer")}
+                                    >
+                                      {t("importedResults.ghostBadge")}
+                                    </Badge>
                                   )}
                                 </td>
                                 <td className="px-3 py-2.5 text-center border-t border-border/60">

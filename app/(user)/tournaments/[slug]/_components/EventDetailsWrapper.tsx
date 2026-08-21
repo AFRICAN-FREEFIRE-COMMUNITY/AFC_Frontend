@@ -88,6 +88,7 @@ import {
   IconPlayerPlay,
 } from "@tabler/icons-react";
 import { Badge } from "@/components/ui/badge";
+import { NewBadge } from "@/components/NewBadge";
 import { TournamentTierBadge } from "@/components/TournamentTierBadge";
 import {
   Select,
@@ -362,6 +363,13 @@ function streamLinkLabel(url: string): string {
 }
 
 interface EventDetails {
+  // EXTERNAL RESULTS IMPORT (owner 2026-08-21). Set by afc_results_import when an admin brings an
+  // outside tournament's published standings into this event. results_imported is the flag the
+  // provenance notice renders on; results_imported_at is when the most recent import ran, shown so a
+  // reader can tell how current the numbers are. Both are absent on every normally-run event, hence
+  // optional. Backend: Event.results_imported_at / results_imported_by.
+  results_imported?: boolean;
+  results_imported_at?: string | null;
   event_id: number;
   competition_type: string;
   participant_type: string;
@@ -1543,7 +1551,13 @@ const StageResultsTable: React.FC<{
                   // competitor__user__username, SQUAD rows carry tournament_team__team__team_name.
                   // Reading only the solo keys made every TEAM event's standings fall back to
                   // "Player N" (owner 2026-06-23 bug). Read both (mirrors TournamentStructure.rowName).
+                  // competitor_name FIRST (owner 2026-08-20): it is COALESCEd over the ghost in
+                  // the backend standings query, so an external competitor with no AFC team shows
+                  // its real name. tournament_team__team__team_name traverses the REAL team and is
+                  // null for a ghost, which is how imported teams used to fall through to the
+                  // "Player <id>" placeholder below while real teams beside them rendered fine.
                   const username =
+                    row.competitor_name ||
                     row.username ||
                     row.team_name ||
                     row.competitor__user__username ||
@@ -1561,6 +1575,13 @@ const StageResultsTable: React.FC<{
                     row.team_country ??
                     row.tournament_team__team__country ??
                     undefined;
+                  // GHOST competitor (owner 2026-08-21). competitor_ghost_id is the ghost's own
+                  // UUID and is null for a real team, so its presence IS the ghost test. A ghost
+                  // has no Team row, and TeamLink/PlayerLink route by NAME (/teams/<name>), so
+                  // linking one produced a dead link for every competitor brought in by a results
+                  // import. Passing isGhost renders the name as plain text, matching the treatment
+                  // the rankings ladder already uses for ghost rows.
+                  const isGhostRow = Boolean(row.competitor_ghost_id);
 
                   return (
                     <TableRow
@@ -1576,9 +1597,21 @@ const StageResultsTable: React.FC<{
                         {/* Competitor name links to the public team or player
                             profile depending on the event's participant type. */}
                         {participantType === "squad" ? (
-                          <TeamLink name={username} country={teamCountry} />
+                          <TeamLink name={username} country={teamCountry} isGhost={isGhostRow} />
                         ) : (
-                          <PlayerLink name={username} />
+                          <PlayerLink name={username} isGhost={isGhostRow} />
+                        )}
+                        {/* Says WHY this competitor is not clickable, rather than leaving a name
+                            that silently behaves differently from the ones around it. Filled
+                            (secondary) rather than outline, per the no-hairline-borders rule. */}
+                        {isGhostRow && (
+                          <Badge
+                            variant="secondary"
+                            className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-normal align-middle"
+                            title={t("importedResults.ghostExplainer")}
+                          >
+                            {t("importedResults.ghostBadge")}
+                          </Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-center group-hover:text-white font-medium">
@@ -5482,6 +5515,32 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             </div>
           )}
         </div>
+        {/* ── Imported results provenance (owner 2026-08-20) ──────────────────────────────────
+            AFC carries tournaments it did not run, and their results come from the organiser's
+            published standings rather than from matches played here. Saying so plainly is the
+            honest thing to do, and it stops a reader assuming AFC observed these games.
+
+            Driven off `results_imported`, which the backend derives from Event.results_imported_at,
+            so it needs no switch of its own and cannot drift out of step with whether an import
+            actually happened. A filled surface with a left-aligned label, no hairline border and
+            no glow, matching the notice styling used elsewhere on this page. */}
+        {eventDetails?.results_imported && (
+          <div className="mb-3 rounded-md bg-muted/60 px-3 py-2">
+            <p className="flex items-center gap-2 text-xs font-semibold text-foreground">
+              {t("importedResults.badge")}
+              {/* Dated NEW badge, per the project rule that any surface a returning user would
+                  not otherwise notice wears one for 5 days and then expires BY ITSELF. `since`
+                  is the day the imported results actually landed, so an event imported months
+                  ago never wears it, and nobody has to remember to take it off. */}
+              {eventDetails?.results_imported_at && (
+                <NewBadge since={String(eventDetails.results_imported_at).slice(0, 10)} />
+              )}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {t("importedResults.explainer")}
+            </p>
+          </div>
+        )}
         {/* ── Organized by (F4, owner 2026-06-19) ── attribution to the owning organization.
             Links to the org's public page (/organizations/<slug>) when present; for native AFC
             events (no organization) it falls back to AFC branding and is not a link. Logo avatar

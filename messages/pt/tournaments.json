@@ -746,5 +746,12 @@
     "step6": "Toque no ícone de entrar quando vir a sala.",
     "step7": "Introduza o nome da equipa, a tag da equipa e depois a palavra-passe.",
     "step8": "Certifique-se de que está a usar a conta correta, a que está registada no site da AFC. Caso contrário, os seus resultados não contam e a sua equipa pode ser penalizada ou mesmo banida."
+  },
+  "importedResults": {
+    "badge": "Resultados importados",
+    "explainer": "Estes resultados vem da classificacao publicada pelo organizador, nao de partidas jogadas na AFC.",
+    "aggregateNote": "Esta fase e registrada como um total somado por equipe, entao nao ha resultados de partidas individuais por tras dela.",
+    "ghostBadge": "Nao reivindicada",
+    "ghostExplainer": "Esta equipe aparece aqui por causa de um resultado importado e ainda nao foi reivindicada na AFC."
   }
 }

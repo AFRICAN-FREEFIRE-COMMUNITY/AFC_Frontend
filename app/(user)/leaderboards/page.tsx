@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -24,7 +25,6 @@ import { InfoTip } from "@/components/ui/info-tip";
 import { Label } from "@/components/ui/label";
 import { env } from "@/lib/env";
 import { FullLoader } from "@/components/Loader";
-import { useAuth } from "@/contexts/AuthContext";
 import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 // Live refresh (owner 2026-07-02): site-wide heartbeat - re-pulls the selected
@@ -35,12 +35,14 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 import { useTranslations } from "next-intl";
 
 const LeaderboardPage = () => {
-  const { token } = useAuth();
+  // No token is read here any more: every fetch on this page is a PUBLIC endpoint, which is the
+  // whole point of the change above. useAuth stays out of it so a signed-out visitor sees exactly
+  // what a signed-in one does.
   const t = useTranslations("leaderboardsPublic");
 
   // States
   const [eventsList, setEventsList] = useState<any[]>([]); // List from /get-all-events/
-  const [eventDetails, setEventDetails] = useState<any>(null); // Details from /get-all-leaderboard-details-for-event/
+  const [eventDetails, setEventDetails] = useState<any>(null); // Details from /get-event-details-not-logged-in/
   const [loading, setLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
@@ -93,18 +95,7 @@ const LeaderboardPage = () => {
       }
       if (!selectedEventId) return;
       try {
-        const res = await fetch(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboard-details-for-event/`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ event_id: selectedEventId }),
-          }
-        );
-        const data = await res.json();
+        const data = await fetchPublicLeaderboard(selectedEventId);
         // Only swap in fresh data when it still carries stages - a transient
         // error/empty payload must not blank out the standings on screen.
         if (data && data.stages && data.stages.length > 0) {
@@ -119,6 +110,37 @@ const LeaderboardPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick]);
 
+  // The PUBLIC leaderboard read (owner 2026-08-21).
+  //
+  // This page used to POST to events/get-all-leaderboard-details-for-event/, which is the ADMIN
+  // results-management surface: it requires an AFC event admin or an org member holding
+  // can_upload_results. So it 400d for a signed-out visitor and 403d for an ordinary player, and
+  // the catch below turned every one of those into "No leaderboard configuration exists for this
+  // event yet." That message names the wrong cause, and it appeared on events with perfectly good
+  // leaderboards. The page is public, so it now reads the PUBLIC endpoint the public event page
+  // already uses. That endpoint is keyed by SLUG rather than event_id, returns the same
+  // stages -> groups -> overall_leaderboard / matches[].stats shape this page already renders, and
+  // respects results_published (it returns an empty leaderboard while results are hidden), so
+  // unpublished results cannot leak through it.
+  const slugForEvent = (eventId: string): string | undefined =>
+    eventsList.find((e: any) => String(e.event_id) === String(eventId))?.slug;
+
+  const fetchPublicLeaderboard = async (eventId: string) => {
+    const slug = slugForEvent(eventId);
+    if (!slug) return null;
+    const res = await fetch(
+      `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-event-details-not-logged-in/`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      },
+    );
+    const json = await res.json();
+    // The public endpoint nests the payload under event_details; the admin one returned it flat.
+    return json?.event_details ?? null;
+  };
+
   // 2. Fetch specific Leaderboard details when an event is selected
   const handleEventSelect = async (eventId: string) => {
     setSelectedEventId(eventId);
@@ -126,19 +148,7 @@ const LeaderboardPage = () => {
     setEventDetails(null); // Reset UI while loading
 
     try {
-      const res = await fetch(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-leaderboard-details-for-event/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ event_id: eventId }),
-        }
-      );
-
-      const data = await res.json();
+      const data = await fetchPublicLeaderboard(eventId);
 
       // Validate if leaderboard data exists in the response
       if (data && data.stages && data.stages.length > 0) {
@@ -352,6 +362,10 @@ const LeaderboardPage = () => {
                         // squad events list teams, solo events list players, so
                         // link the competitor name to the matching public profile.
                         isTeam={eventDetails.participant_type === "squad"}
+                        // A GHOST competitor (imported from an external tournament's published
+                        // results) has no Team/Player row, so /teams/<name> does not exist and a
+                        // link would be dead. competitor_ghost_id is null for a real competitor.
+                        isGhost={Boolean(row.competitor_ghost_id)}
                         kills={row.kills || row.total_kills || 0}
                         points={row.total_pts || row.total_points || 0}
                       />
@@ -376,15 +390,29 @@ const LeaderboardPage = () => {
   );
 };
 
-const RankingRow = ({ rank, name, kills, points, isTeam }: any) => (
+const RankingRow = ({ rank, name, kills, points, isTeam, isGhost }: any) => {
+  const t = useTranslations("leaderboardsPublic");
+  return (
   <TableRow>
     <TableCell>#{rank}</TableCell>
     <TableCell className="font-medium">
-      {/* Competitor name links to the public team or player profile. */}
+      {/* Competitor name links to the public team or player profile. A ghost has no such
+          profile, so isGhost renders it as plain text instead of a dead link. */}
       {isTeam ? (
-        <TeamLink name={name} />
+        <TeamLink name={name} isGhost={isGhost} />
       ) : (
-        <PlayerLink name={name} />
+        <PlayerLink name={name} isGhost={isGhost} />
+      )}
+      {/* The same marker the event page's three standings tabs show, so a competitor that is not
+          clickable here says why rather than just behaving differently from its neighbours. */}
+      {isGhost && (
+        <Badge
+          variant="secondary"
+          className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-normal align-middle"
+          title={t("ghostExplainer")}
+        >
+          {t("ghostBadge")}
+        </Badge>
       )}
     </TableCell>
     <TableCell>{kills}</TableCell>
@@ -392,6 +420,7 @@ const RankingRow = ({ rank, name, kills, points, isTeam }: any) => (
       {parseFloat(points).toFixed(1)}
     </TableCell>
   </TableRow>
-);
+  );
+};
 
 export default LeaderboardPage;

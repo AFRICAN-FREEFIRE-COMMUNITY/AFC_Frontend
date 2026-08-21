@@ -746,5 +746,12 @@
     "step6": "Appuyez sur l'icône rejoindre lorsque vous voyez la salle.",
     "step7": "Saisissez le nom de votre équipe, le tag de l'équipe, puis le mot de passe.",
     "step8": "Assurez-vous d'utiliser le bon compte, celui enregistré sur le site AFC. Sinon, vos résultats ne compteront pas et votre équipe pourrait être pénalisée, voire bannie."
+  },
+  "importedResults": {
+    "badge": "Resultats importes",
+    "explainer": "Ces resultats proviennent du classement publie par l'organisateur, et non de matchs joues sur AFC.",
+    "aggregateNote": "Cette phase est enregistree comme un total cumule par equipe, il n'y a donc pas de resultats de matchs individuels derriere.",
+    "ghostBadge": "Non reclamee",
+    "ghostExplainer": "Cette equipe figure ici a cause d'un resultat importe et n'a pas encore ete reclamee sur AFC."
   }
 }

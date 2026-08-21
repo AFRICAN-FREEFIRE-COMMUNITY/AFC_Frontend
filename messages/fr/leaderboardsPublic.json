@@ -15,5 +15,7 @@
   "kills": "Éliminations",
   "points": "Points",
   "playerFallback": "{id} des joueurs",
-  "noData": "Aucune donnée n'a été enregistrée pour cette sélection."
+  "noData": "Aucune donnée n'a été enregistrée pour cette sélection.",
+  "ghostBadge": "Non reclamee",
+  "ghostExplainer": "Cette equipe apparait ici a cause d'un resultat importe et n'a pas encore ete reclamee sur AFC."
 }

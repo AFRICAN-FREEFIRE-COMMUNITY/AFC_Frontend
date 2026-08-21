@@ -1,0 +1,71 @@
+{
+  "title": "Import results",
+  "explainer": "Bring an external tournament's published results into this event. Use this when the matches were played somewhere else and the organiser published a standings table rather than match-by-match results.",
+  "step1": {
+    "title": "1. Download the template",
+    "body": "The file already contains this event's stages, groups and registered teams, so the column names and the team spellings cannot be wrong when you send it back.",
+    "action": "Download template",
+    "working": "Preparing..."
+  },
+  "step2": {
+    "title": "2. Check what it will do",
+    "body": "Nothing is written yet. You get a report of what was read and what would be created.",
+    "action": "Check the file",
+    "working": "Reading..."
+  },
+  "step3": {
+    "title": "3. Import",
+    "body": "Writes the results. Running this again replaces what was imported before and never touches a result entered by hand.",
+    "action": "Import results",
+    "working": "Importing..."
+  },
+  "report": {
+    "title": "What this file will do",
+    "counts": "{rows} rows read. {matched} matched an existing team, {created} will be added as unclaimed competitors.",
+    "summed": "summed standings, {rows} teams",
+    "perMatch": "match by match, {rows} rows",
+    "willCreate": "(will be added)",
+    "matched": "(matched)",
+    "nearMiss": "similar to {names}",
+    "warnings": "Worth checking",
+    "perPlayer": "{rows} player rows"
+  },
+  "imported": "Imported {rows} results, {created} new competitors added.",
+  "errors": {
+    "template": "The template could not be prepared.",
+    "preview": "That file could not be read.",
+    "commit": "The import did not finish."
+  },
+  "settings": {
+    "title": "What these results count towards",
+    "body": "An import is somebody else's tournament, so none of this is assumed. Each answer is yours to give, and you can change any of them later.",
+    "visible": "Show this event on team profiles",
+    "visibleHelp": "The event appears in a team's list of tournaments. It does not change any number.",
+    "stats": "Include its numbers in team totals",
+    "statsHelp": "Matches played, kills and best placement on a real team's public profile change when this is on.",
+    "rankings": "Count towards the rankings ladder",
+    "rankingsHelp": "Off by default for an imported event, because it moves real teams up and down a public ranking. Turn it on and this event scores like any other, weighted by its tier. AFC event admins only.",
+    "tier": "Tier",
+    "tierHelp": "Tier is the weight applied to these results, not a label. Setting it here locks it, so the automatic classifier will not re-derive it from a prize pool nobody imported. AFC event admins only.",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "loadFailed": "Could not load these settings.",
+    "saveFailed": "Could not save these settings.",
+    "tier_1": "Tier 1",
+    "tier_2": "Tier 2",
+    "tier_3": "Tier 3",
+    "sourcePlacement": "Placement points for this event come from the organiser's published totals, because a standings table records those rather than each map's finish. Kills, bonuses and the tier weighting still use your own scoring config."
+  },
+  "shape": {
+    "title": "What does your source have?",
+    "body": "Pick this first. It decides which template you get, and what the results can be used for.",
+    "summed": "A standings table",
+    "summedHelp": "One row per team: matches played, Booyahs, points, total, position. This is what most organisers publish. It can count towards the rankings and tiers like any other event, using the placement points the organiser published, because a standings table records those totals rather than each map's finish.",
+    "perMatch": "Match-by-match results",
+    "perMatchHelp": "One row per team per map: which match, which map, where they finished, how many eliminations. Placement points are worked out from each finish using your own scoring config, exactly like a match played on AFC.",
+    "playersNote": "Only the shapes above can be read. If your source has something else, the nearest one that fits is usually match-by-match: team scores are complete even when the per-player detail is missing.",
+    "perPlayer": "Match-by-match with individual player kills",
+    "perPlayerHelp": "One row per player per map. The team's line is rebuilt from its players' rows, so the totals and the breakdown always agree. Players with no AFC account are recorded as unclaimed, and their kills follow them if they later claim the name."
+  }
+}

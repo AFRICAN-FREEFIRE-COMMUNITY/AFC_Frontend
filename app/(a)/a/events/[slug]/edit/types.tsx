@@ -311,6 +311,17 @@ export interface AdvancementRuleEcho {
 }
 
 export interface EventDetails {
+  /**
+   * Results provenance (owner 2026-08-20). True when this event's results came from an external
+   * organiser's published standings via afc_results_import, rather than from matches played on AFC.
+   * Derived on the backend from Event.results_imported_at, so it needs no switch of its own and
+   * cannot drift out of step with whether an import actually happened.
+   *
+   * Read by: the Results Import tab dot on this page, and the provenance notice on the public
+   * event page (EventDetailsWrapper).
+   */
+  results_imported?: boolean;
+  results_imported_at?: string | null;
   event_id: number;
   competition_type: string;
   participant_type: string;

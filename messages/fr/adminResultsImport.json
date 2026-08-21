@@ -1,0 +1,71 @@
+{
+  "title": "Importer des resultats",
+  "explainer": "Integrez a cet evenement les resultats publies d'un tournoi externe. A utiliser quand les matchs ont ete joues ailleurs et que l'organisateur a publie un classement plutot que des resultats match par match.",
+  "step1": {
+    "title": "1. Telecharger le modele",
+    "body": "Le fichier contient deja les phases, les groupes et les equipes inscrites de cet evenement, donc les noms de colonnes et l'orthographe des equipes ne peuvent pas etre faux au retour.",
+    "action": "Telecharger le modele",
+    "working": "Preparation..."
+  },
+  "step2": {
+    "title": "2. Verifier ce que cela fera",
+    "body": "Rien n'est encore enregistre. Vous obtenez un rapport de ce qui a ete lu et de ce qui serait cree.",
+    "action": "Verifier le fichier",
+    "working": "Lecture..."
+  },
+  "step3": {
+    "title": "3. Importer",
+    "body": "Enregistre les resultats. Relancer remplace ce qui a ete importe avant et ne touche jamais un resultat saisi a la main.",
+    "action": "Importer les resultats",
+    "working": "Import en cours..."
+  },
+  "report": {
+    "title": "Ce que ce fichier va faire",
+    "counts": "{rows} lignes lues. {matched} correspondent a une equipe existante, {created} seront ajoutees comme competiteurs non reclames.",
+    "summed": "classement cumule, {rows} equipes",
+    "perMatch": "match par match, {rows} lignes",
+    "willCreate": "(sera ajoutee)",
+    "matched": "(correspondance)",
+    "nearMiss": "proche de {names}",
+    "warnings": "A verifier",
+    "perPlayer": "{rows} lignes de joueurs"
+  },
+  "imported": "{rows} resultats importes, {created} nouveaux competiteurs ajoutes.",
+  "errors": {
+    "template": "Le modele n'a pas pu etre prepare.",
+    "preview": "Ce fichier n'a pas pu etre lu.",
+    "commit": "L'import ne s'est pas termine."
+  },
+  "settings": {
+    "title": "Ce que ces resultats comptent",
+    "body": "Un import est le tournoi de quelqu'un d'autre, donc rien n'est suppose ici. Chaque reponse vous appartient et vous pouvez toutes les changer plus tard.",
+    "visible": "Afficher cet evenement sur les profils d'equipe",
+    "visibleHelp": "L'evenement apparait dans la liste des tournois d'une equipe. Cela ne change aucun chiffre.",
+    "stats": "Inclure ses chiffres dans les totaux d'equipe",
+    "statsHelp": "Les matchs joues, les eliminations et le meilleur classement sur le profil public d'une vraie equipe changent quand ceci est active.",
+    "rankings": "Compter pour le classement general",
+    "rankingsHelp": "Desactive par defaut pour un evenement importe, car cela fait monter ou descendre de vraies equipes dans un classement public. Activez-le et cet evenement compte comme un autre, pondere par son niveau. Reserve aux admins evenement AFC.",
+    "tier": "Niveau",
+    "tierHelp": "Le niveau est le poids applique a ces resultats, pas une etiquette. Le definir ici le verrouille, afin que le classement automatique ne le recalcule pas a partir d'une dotation que personne n'a importee. Reserve aux admins evenement AFC.",
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "saved": "Enregistre",
+    "loadFailed": "Impossible de charger ces parametres.",
+    "saveFailed": "Impossible d'enregistrer ces parametres.",
+    "tier_1": "Niveau 1",
+    "tier_2": "Niveau 2",
+    "tier_3": "Niveau 3",
+    "sourcePlacement": "Les points de placement de cet evenement proviennent des totaux publies par l'organisateur, car un tableau de classement enregistre ceux-ci plutot que la position sur chaque carte. Les eliminations, les bonus et la ponderation par niveau utilisent toujours votre propre configuration."
+  },
+  "shape": {
+    "title": "Que contient votre source ?",
+    "body": "Choisissez ceci en premier. Cela decide du modele que vous recevez et de ce a quoi les resultats peuvent servir.",
+    "summed": "Un tableau de classement",
+    "summedHelp": "Une ligne par equipe : matchs joues, Booyahs, points, total, position. C'est ce que publient la plupart des organisateurs. Cela peut compter pour le classement general et les niveaux comme tout autre evenement, en utilisant les points de placement publies par l'organisateur, car un tableau de classement enregistre ces totaux plutot que la position sur chaque carte.",
+    "perMatch": "Resultats match par match",
+    "perMatchHelp": "Une ligne par equipe et par carte : quel match, quelle carte, quelle position, combien d'eliminations. Les points de placement sont calcules a partir de chaque position avec votre propre configuration de scores, exactement comme un match joue sur AFC.",
+    "playersNote": "Seules les formes ci-dessus peuvent etre lues. Si votre source contient autre chose, la plus proche est en general match par match : les scores d'equipe restent complets meme sans le detail par joueur.",
+    "perPlayer": "Match par match avec les eliminations par joueur",
+    "perPlayerHelp": "Une ligne par joueur et par carte. La ligne de l'equipe est reconstruite a partir des lignes de ses joueurs, donc les totaux et le detail concordent toujours. Les joueurs sans compte AFC sont enregistres comme non reclames, et leurs eliminations les suivent s'ils reclament le nom plus tard."
+  }
+}

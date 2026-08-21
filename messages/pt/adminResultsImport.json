@@ -1,0 +1,71 @@
+{
+  "title": "Importar resultados",
+  "explainer": "Traga para este evento os resultados publicados de um torneio externo. Use quando as partidas foram jogadas em outro lugar e o organizador publicou uma tabela de classificacao em vez de resultados partida a partida.",
+  "step1": {
+    "title": "1. Baixar o modelo",
+    "body": "O arquivo ja contem as fases, os grupos e as equipes inscritas deste evento, entao os nomes das colunas e a grafia das equipes nao podem estar errados quando voce enviar de volta.",
+    "action": "Baixar modelo",
+    "working": "Preparando..."
+  },
+  "step2": {
+    "title": "2. Conferir o que sera feito",
+    "body": "Nada e gravado ainda. Voce recebe um relatorio do que foi lido e do que seria criado.",
+    "action": "Conferir o arquivo",
+    "working": "Lendo..."
+  },
+  "step3": {
+    "title": "3. Importar",
+    "body": "Grava os resultados. Executar de novo substitui o que foi importado antes e nunca altera um resultado inserido manualmente.",
+    "action": "Importar resultados",
+    "working": "Importando..."
+  },
+  "report": {
+    "title": "O que este arquivo vai fazer",
+    "counts": "{rows} linhas lidas. {matched} corresponderam a uma equipe existente, {created} serao adicionadas como competidores nao reivindicados.",
+    "summed": "classificacao somada, {rows} equipes",
+    "perMatch": "partida a partida, {rows} linhas",
+    "willCreate": "(sera adicionada)",
+    "matched": "(correspondeu)",
+    "nearMiss": "parecida com {names}",
+    "warnings": "Vale conferir",
+    "perPlayer": "{rows} linhas de jogadores"
+  },
+  "imported": "{rows} resultados importados, {created} novos competidores adicionados.",
+  "errors": {
+    "template": "O modelo nao pode ser preparado.",
+    "preview": "Esse arquivo nao pode ser lido.",
+    "commit": "A importacao nao foi concluida."
+  },
+  "settings": {
+    "title": "Para que contam estes resultados",
+    "body": "Uma importacao e o torneio de outra pessoa, por isso nada aqui e assumido. Cada resposta e sua e pode alterar qualquer uma mais tarde.",
+    "visible": "Mostrar este evento nos perfis de equipa",
+    "visibleHelp": "O evento aparece na lista de torneios de uma equipa. Nao altera nenhum numero.",
+    "stats": "Incluir os seus numeros nos totais da equipa",
+    "statsHelp": "As partidas jogadas, as eliminacoes e a melhor classificacao no perfil publico de uma equipa real mudam quando isto esta ativo.",
+    "rankings": "Contar para o ranking geral",
+    "rankingsHelp": "Desativado por predefinicao num evento importado, porque faz equipas reais subir e descer num ranking publico. Ative-o e este evento pontua como qualquer outro, ponderado pelo seu nivel. Apenas para administradores de eventos da AFC.",
+    "tier": "Nivel",
+    "tierHelp": "O nivel e o peso aplicado a estes resultados, nao um rotulo. Defini-lo aqui bloqueia-o, para que o classificador automatico nao o volte a derivar de um premio que ninguem importou. Apenas para administradores de eventos da AFC.",
+    "save": "Guardar",
+    "saving": "A guardar...",
+    "saved": "Guardado",
+    "loadFailed": "Nao foi possivel carregar estas definicoes.",
+    "saveFailed": "Nao foi possivel guardar estas definicoes.",
+    "tier_1": "Nivel 1",
+    "tier_2": "Nivel 2",
+    "tier_3": "Nivel 3",
+    "sourcePlacement": "Os pontos de classificacao deste evento vem dos totais publicados pelo organizador, porque uma tabela classificativa regista esses e nao a posicao em cada mapa. As eliminacoes, os bonus e a ponderacao por nivel continuam a usar a sua propria configuracao."
+  },
+  "shape": {
+    "title": "O que tem a sua fonte?",
+    "body": "Escolha isto primeiro. Decide que modelo recebe e para que podem servir os resultados.",
+    "summed": "Uma tabela classificativa",
+    "summedHelp": "Uma linha por equipa: partidas jogadas, Booyahs, pontos, total, posicao. E o que a maioria dos organizadores publica. Pode contar para o ranking geral e para os niveis como qualquer outro evento, usando os pontos de classificacao publicados pelo organizador, porque uma tabela classificativa regista esses totais e nao a posicao em cada mapa.",
+    "perMatch": "Resultados partida a partida",
+    "perMatchHelp": "Uma linha por equipa e por mapa: que partida, que mapa, em que posicao terminou, quantas eliminacoes. Os pontos de classificacao sao calculados a partir de cada posicao com a sua propria configuracao de pontuacao, tal como uma partida jogada na AFC.",
+    "playersNote": "So as formas acima podem ser lidas. Se a sua fonte tiver outra coisa, a mais proxima costuma ser partida a partida: as pontuacoes de equipa ficam completas mesmo sem o detalhe por jogador.",
+    "perPlayer": "Partida a partida com eliminacoes por jogador",
+    "perPlayerHelp": "Uma linha por jogador e por mapa. A linha da equipa e reconstruida a partir das linhas dos seus jogadores, por isso os totais e o detalhe concordam sempre. Jogadores sem conta AFC ficam registados como nao reivindicados, e as suas eliminacoes seguem-nos se mais tarde reivindicarem o nome."
+  }
+}
