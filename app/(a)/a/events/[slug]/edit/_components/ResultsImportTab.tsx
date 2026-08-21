@@ -63,6 +63,10 @@ type ImportSettings = {
   counts_toward_rankings: boolean;
   tournament_tier: string;
   results_imported_at: string | null;
+  /** True when this event's placement points come from the organiser's published totals rather
+   *  than being worked out from each map's finish, which is the case for a standings-table
+   *  import. Sent by the settings endpoint when rankings are switched on for such an event. */
+  placement_points_from_source?: boolean;
 };
 
 type Props = {
@@ -428,6 +432,14 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
                   <span className="block text-xs text-muted-foreground">
                     {t("settings.rankingsHelp")}
                   </span>
+                  {/* Says WHERE the placement points came from, for a standings-table import.
+                      Shown only once counting is on, because until then it changes nothing. */}
+                  {settings.counts_toward_rankings &&
+                    settings.placement_points_from_source && (
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        {t("settings.sourcePlacement")}
+                      </span>
+                    )}
                 </span>
               </label>
 

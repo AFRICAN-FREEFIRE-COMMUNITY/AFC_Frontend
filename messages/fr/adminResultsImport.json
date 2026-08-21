@@ -44,7 +44,7 @@
     "stats": "Inclure ses chiffres dans les totaux d'equipe",
     "statsHelp": "Les matchs joues, les eliminations et le meilleur classement sur le profil public d'une vraie equipe changent quand ceci est active.",
     "rankings": "Compter pour le classement general",
-    "rankingsHelp": "Desactive par defaut pour un evenement importe, car cela fait monter ou descendre de vraies equipes dans un classement public. Reserve aux admins evenement AFC.",
+    "rankingsHelp": "Desactive par defaut pour un evenement importe, car cela fait monter ou descendre de vraies equipes dans un classement public. Activez-le et cet evenement compte comme un autre, pondere par son niveau. Reserve aux admins evenement AFC.",
     "tier": "Niveau",
     "tierHelp": "Le niveau est le poids applique a ces resultats, pas une etiquette. Le definir ici le verrouille, afin que le classement automatique ne le recalcule pas a partir d'une dotation que personne n'a importee. Reserve aux admins evenement AFC.",
     "save": "Enregistrer",
@@ -54,15 +54,16 @@
     "saveFailed": "Impossible d'enregistrer ces parametres.",
     "tier_1": "Niveau 1",
     "tier_2": "Niveau 2",
-    "tier_3": "Niveau 3"
+    "tier_3": "Niveau 3",
+    "sourcePlacement": "Les points de placement de cet evenement proviennent des totaux publies par l'organisateur, car un tableau de classement enregistre ceux-ci plutot que la position sur chaque carte. Les eliminations, les bonus et la ponderation par niveau utilisent toujours votre propre configuration."
   },
   "shape": {
     "title": "Que contient votre source ?",
     "body": "Choisissez ceci en premier. Cela decide du modele que vous recevez et de ce a quoi les resultats peuvent servir.",
     "summed": "Un tableau de classement",
-    "summedHelp": "Une ligne par equipe : matchs joues, Booyahs, points, total, position. C'est ce que publient la plupart des organisateurs. Cela ne peut pas compter pour le classement general, car les regles attribuent les points de placement selon la position de l'equipe sur chaque carte, ce qu'un tableau de classement n'enregistre pas.",
+    "summedHelp": "Une ligne par equipe : matchs joues, Booyahs, points, total, position. C'est ce que publient la plupart des organisateurs. Cela peut compter pour le classement general et les niveaux comme tout autre evenement, en utilisant les points de placement publies par l'organisateur, car un tableau de classement enregistre ces totaux plutot que la position sur chaque carte.",
     "perMatch": "Resultats match par match",
-    "perMatchHelp": "Une ligne par equipe et par carte : quel match, quelle carte, quelle position, combien d'eliminations. Cela peut compter pour le classement general, car chaque position est presente et le calcul passe par votre propre configuration de scores, exactement comme un match joue sur AFC.",
+    "perMatchHelp": "Une ligne par equipe et par carte : quel match, quelle carte, quelle position, combien d'eliminations. Les points de placement sont calcules a partir de chaque position avec votre propre configuration de scores, exactement comme un match joue sur AFC.",
     "playersNote": "Seules les formes ci-dessus peuvent etre lues. Si votre source contient autre chose, la plus proche est en general match par match : les scores d'equipe restent complets meme sans le detail par joueur.",
     "perPlayer": "Match par match avec les eliminations par joueur",
     "perPlayerHelp": "Une ligne par joueur et par carte. La ligne de l'equipe est reconstruite a partir des lignes de ses joueurs, donc les totaux et le detail concordent toujours. Les joueurs sans compte AFC sont enregistres comme non reclames, et leurs eliminations les suivent s'ils reclament le nom plus tard."

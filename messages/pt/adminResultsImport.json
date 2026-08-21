@@ -44,7 +44,7 @@
     "stats": "Incluir os seus numeros nos totais da equipa",
     "statsHelp": "As partidas jogadas, as eliminacoes e a melhor classificacao no perfil publico de uma equipa real mudam quando isto esta ativo.",
     "rankings": "Contar para o ranking geral",
-    "rankingsHelp": "Desativado por predefinicao num evento importado, porque faz equipas reais subir e descer num ranking publico. Apenas para administradores de eventos da AFC.",
+    "rankingsHelp": "Desativado por predefinicao num evento importado, porque faz equipas reais subir e descer num ranking publico. Ative-o e este evento pontua como qualquer outro, ponderado pelo seu nivel. Apenas para administradores de eventos da AFC.",
     "tier": "Nivel",
     "tierHelp": "O nivel e o peso aplicado a estes resultados, nao um rotulo. Defini-lo aqui bloqueia-o, para que o classificador automatico nao o volte a derivar de um premio que ninguem importou. Apenas para administradores de eventos da AFC.",
     "save": "Guardar",
@@ -54,15 +54,16 @@
     "saveFailed": "Nao foi possivel guardar estas definicoes.",
     "tier_1": "Nivel 1",
     "tier_2": "Nivel 2",
-    "tier_3": "Nivel 3"
+    "tier_3": "Nivel 3",
+    "sourcePlacement": "Os pontos de classificacao deste evento vem dos totais publicados pelo organizador, porque uma tabela classificativa regista esses e nao a posicao em cada mapa. As eliminacoes, os bonus e a ponderacao por nivel continuam a usar a sua propria configuracao."
   },
   "shape": {
     "title": "O que tem a sua fonte?",
     "body": "Escolha isto primeiro. Decide que modelo recebe e para que podem servir os resultados.",
     "summed": "Uma tabela classificativa",
-    "summedHelp": "Uma linha por equipa: partidas jogadas, Booyahs, pontos, total, posicao. E o que a maioria dos organizadores publica. Nao pode contar para o ranking geral, porque as regras atribuem pontos de classificacao a partir da posicao da equipa em cada mapa, o que uma tabela classificativa nao regista.",
+    "summedHelp": "Uma linha por equipa: partidas jogadas, Booyahs, pontos, total, posicao. E o que a maioria dos organizadores publica. Pode contar para o ranking geral e para os niveis como qualquer outro evento, usando os pontos de classificacao publicados pelo organizador, porque uma tabela classificativa regista esses totais e nao a posicao em cada mapa.",
     "perMatch": "Resultados partida a partida",
-    "perMatchHelp": "Uma linha por equipa e por mapa: que partida, que mapa, em que posicao terminou, quantas eliminacoes. Isto pode contar para o ranking geral, porque todas as posicoes estao la e o calculo passa pela sua propria configuracao de pontuacao, tal como uma partida jogada na AFC.",
+    "perMatchHelp": "Uma linha por equipa e por mapa: que partida, que mapa, em que posicao terminou, quantas eliminacoes. Os pontos de classificacao sao calculados a partir de cada posicao com a sua propria configuracao de pontuacao, tal como uma partida jogada na AFC.",
     "playersNote": "So as formas acima podem ser lidas. Se a sua fonte tiver outra coisa, a mais proxima costuma ser partida a partida: as pontuacoes de equipa ficam completas mesmo sem o detalhe por jogador.",
     "perPlayer": "Partida a partida com eliminacoes por jogador",
     "perPlayerHelp": "Uma linha por jogador e por mapa. A linha da equipa e reconstruida a partir das linhas dos seus jogadores, por isso os totais e o detalhe concordam sempre. Jogadores sem conta AFC ficam registados como nao reivindicados, e as suas eliminacoes seguem-nos se mais tarde reivindicarem o nome."
