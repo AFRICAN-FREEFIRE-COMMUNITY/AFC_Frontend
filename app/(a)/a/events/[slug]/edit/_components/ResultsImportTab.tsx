@@ -26,7 +26,7 @@
  * this event's imported rows rather than appending, and never touches a result entered by hand.
  */
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -56,6 +56,15 @@ type PreviewPayload = {
   to_create: number;
 };
 
+/** The four decisions an admin makes ABOUT an imported event (results-import/settings/). */
+type ImportSettings = {
+  visible_on_profiles: boolean;
+  count_in_profile_stats: boolean;
+  counts_toward_rankings: boolean;
+  tournament_tier: string;
+  results_imported_at: string | null;
+};
+
 type Props = {
   slug: string;
   /** Bearer token for the admin API, same one every other tab on this page uses. */
@@ -71,7 +80,53 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
   const [preview, setPreview] = useState<PreviewPayload | null>(null);
   const [busy, setBusy] = useState<"template" | "preview" | "commit" | null>(null);
 
+  // ── The four switches. Loaded on mount so the screen shows the CURRENT answers rather than
+  // defaults, which matters because a re-import must not look like it reset them.
+  const [settings, setSettings] = useState<ImportSettings | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+
   const auth = { Authorization: `Bearer ${token}` };
+
+  const loadSettings = useCallback(async () => {
+    const res = await fetch(
+      `${apiBase}/results-import/settings/?slug=${encodeURIComponent(slug)}`,
+      { headers: auth },
+    );
+    if (!res.ok) {
+      toast.error(t("settings.loadFailed"));
+      return;
+    }
+    setSettings(await res.json());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiBase, slug, token]);
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  /** Send ONE changed field. The endpoint is tri-state: a field it is not sent keeps its value, so
+   *  two admins editing different switches cannot clobber each other. */
+  async function saveSetting(patch: Partial<ImportSettings>) {
+    setSavingSettings(true);
+    try {
+      const res = await fetch(`${apiBase}/results-import/settings/`, {
+        method: "POST",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, ...patch }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        // The backend explains a refusal in a sentence written for a person (for example that the
+        // rankings and tier halves need an AFC event admin), so show that, not a generic failure.
+        toast.error(json?.message || t("settings.saveFailed"));
+        return;
+      }
+      setSettings(json);
+      toast.success(t("settings.saved"));
+    } finally {
+      setSavingSettings(false);
+    }
+  }
 
   async function downloadTemplate() {
     setBusy("template");
@@ -266,6 +321,98 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
           </div>
         </CardContent>
       </Card>
+
+      {/* ── WHAT THESE RESULTS COUNT TOWARDS ────────────────────────────────────────────────
+          A separate card because these are not part of importing a file: an admin revisits them
+          long after the import, and they are the answers the owner asked to be able to give.
+          Filled surfaces and spacing carry the grouping, no hairline boxes. */}
+      {settings && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t("settings.title")}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">{t("settings.body")}</p>
+
+            {/* The two PROFILE answers. The second one changes numbers on a real team's public
+                page, which is why its help text says so plainly. */}
+            <div className="space-y-3 rounded-md bg-muted/50 p-3">
+              <label className="flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 size-4 shrink-0 accent-primary"
+                  checked={settings.visible_on_profiles}
+                  disabled={savingSettings}
+                  onChange={(e) => saveSetting({ visible_on_profiles: e.target.checked })}
+                />
+                <span>
+                  <span className="block text-sm font-medium">{t("settings.visible")}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {t("settings.visibleHelp")}
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 size-4 shrink-0 accent-primary"
+                  checked={settings.count_in_profile_stats}
+                  disabled={savingSettings}
+                  onChange={(e) => saveSetting({ count_in_profile_stats: e.target.checked })}
+                />
+                <span>
+                  <span className="block text-sm font-medium">{t("settings.stats")}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {t("settings.statsHelp")}
+                  </span>
+                </span>
+              </label>
+            </div>
+
+            {/* The two RANKINGS answers, kept in their own surface because they are the ones that
+                reach other teams. The backend refuses these for anyone who is not an AFC event
+                admin and explains why, so a non-admin gets a real sentence rather than a control
+                that silently does nothing. */}
+            <div className="space-y-3 rounded-md bg-muted/50 p-3">
+              <label className="flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 size-4 shrink-0 accent-primary"
+                  checked={settings.counts_toward_rankings}
+                  disabled={savingSettings}
+                  onChange={(e) => saveSetting({ counts_toward_rankings: e.target.checked })}
+                />
+                <span>
+                  <span className="block text-sm font-medium">{t("settings.rankings")}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {t("settings.rankingsHelp")}
+                  </span>
+                </span>
+              </label>
+
+              <div className="flex items-start gap-2.5">
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">{t("settings.tier")}</span>
+                  <span className="block text-xs text-muted-foreground">
+                    {t("settings.tierHelp")}
+                  </span>
+                  <select
+                    className="mt-2 h-9 rounded-md bg-background px-2 text-sm"
+                    value={settings.tournament_tier}
+                    disabled={savingSettings}
+                    onChange={(e) => saveSetting({ tournament_tier: e.target.value })}
+                  >
+                    <option value="tier_1">{t("settings.tier_1")}</option>
+                    <option value="tier_2">{t("settings.tier_2")}</option>
+                    <option value="tier_3">{t("settings.tier_3")}</option>
+                  </select>
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

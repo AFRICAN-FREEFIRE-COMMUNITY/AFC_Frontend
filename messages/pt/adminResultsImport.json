@@ -34,5 +34,25 @@
     "template": "O modelo nao pode ser preparado.",
     "preview": "Esse arquivo nao pode ser lido.",
     "commit": "A importacao nao foi concluida."
+  },
+  "settings": {
+    "title": "Para que contam estes resultados",
+    "body": "Uma importacao e o torneio de outra pessoa, por isso nada aqui e assumido. Cada resposta e sua e pode alterar qualquer uma mais tarde.",
+    "visible": "Mostrar este evento nos perfis de equipa",
+    "visibleHelp": "O evento aparece na lista de torneios de uma equipa. Nao altera nenhum numero.",
+    "stats": "Incluir os seus numeros nos totais da equipa",
+    "statsHelp": "As partidas jogadas, as eliminacoes e a melhor classificacao no perfil publico de uma equipa real mudam quando isto esta ativo.",
+    "rankings": "Contar para o ranking geral",
+    "rankingsHelp": "Desativado por predefinicao num evento importado, porque faz equipas reais subir e descer num ranking publico. Apenas para administradores de eventos da AFC.",
+    "tier": "Nivel",
+    "tierHelp": "O nivel e o peso aplicado a estes resultados, nao um rotulo. Defini-lo aqui bloqueia-o, para que o classificador automatico nao o volte a derivar de um premio que ninguem importou. Apenas para administradores de eventos da AFC.",
+    "save": "Guardar",
+    "saving": "A guardar...",
+    "saved": "Guardado",
+    "loadFailed": "Nao foi possivel carregar estas definicoes.",
+    "saveFailed": "Nao foi possivel guardar estas definicoes.",
+    "tier_1": "Nivel 1",
+    "tier_2": "Nivel 2",
+    "tier_3": "Nivel 3"
   }
 }

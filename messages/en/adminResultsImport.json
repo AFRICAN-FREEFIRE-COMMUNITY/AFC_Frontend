@@ -34,5 +34,25 @@
     "template": "The template could not be prepared.",
     "preview": "That file could not be read.",
     "commit": "The import did not finish."
+  },
+  "settings": {
+    "title": "What these results count towards",
+    "body": "An import is somebody else's tournament, so none of this is assumed. Each answer is yours to give, and you can change any of them later.",
+    "visible": "Show this event on team profiles",
+    "visibleHelp": "The event appears in a team's list of tournaments. It does not change any number.",
+    "stats": "Include its numbers in team totals",
+    "statsHelp": "Matches played, kills and best placement on a real team's public profile change when this is on.",
+    "rankings": "Count towards the rankings ladder",
+    "rankingsHelp": "Off by default for an imported event, because it moves real teams up and down a public ranking. AFC event admins only.",
+    "tier": "Tier",
+    "tierHelp": "Tier is the weight applied to these results, not a label. Setting it here locks it, so the automatic classifier will not re-derive it from a prize pool nobody imported. AFC event admins only.",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "loadFailed": "Could not load these settings.",
+    "saveFailed": "Could not save these settings.",
+    "tier_1": "Tier 1",
+    "tier_2": "Tier 2",
+    "tier_3": "Tier 3"
   }
 }

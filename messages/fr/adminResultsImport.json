@@ -34,5 +34,25 @@
     "template": "Le modele n'a pas pu etre prepare.",
     "preview": "Ce fichier n'a pas pu etre lu.",
     "commit": "L'import ne s'est pas termine."
+  },
+  "settings": {
+    "title": "Ce que ces resultats comptent",
+    "body": "Un import est le tournoi de quelqu'un d'autre, donc rien n'est suppose ici. Chaque reponse vous appartient et vous pouvez toutes les changer plus tard.",
+    "visible": "Afficher cet evenement sur les profils d'equipe",
+    "visibleHelp": "L'evenement apparait dans la liste des tournois d'une equipe. Cela ne change aucun chiffre.",
+    "stats": "Inclure ses chiffres dans les totaux d'equipe",
+    "statsHelp": "Les matchs joues, les eliminations et le meilleur classement sur le profil public d'une vraie equipe changent quand ceci est active.",
+    "rankings": "Compter pour le classement general",
+    "rankingsHelp": "Desactive par defaut pour un evenement importe, car cela fait monter ou descendre de vraies equipes dans un classement public. Reserve aux admins evenement AFC.",
+    "tier": "Niveau",
+    "tierHelp": "Le niveau est le poids applique a ces resultats, pas une etiquette. Le definir ici le verrouille, afin que le classement automatique ne le recalcule pas a partir d'une dotation que personne n'a importee. Reserve aux admins evenement AFC.",
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "saved": "Enregistre",
+    "loadFailed": "Impossible de charger ces parametres.",
+    "saveFailed": "Impossible d'enregistrer ces parametres.",
+    "tier_1": "Niveau 1",
+    "tier_2": "Niveau 2",
+    "tier_3": "Niveau 3"
   }
 }
