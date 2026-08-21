@@ -79,6 +79,10 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<PreviewPayload | null>(null);
   const [busy, setBusy] = useState<"template" | "preview" | "commit" | null>(null);
+  // WHICH SHAPE the source document has. Asked BEFORE the template is downloaded, because it
+  // decides both the columns in that template and what the results can be used for: only a
+  // per-match import carries the per-map finishes the ranking rules score from.
+  const [shape, setShape] = useState<"summed" | "per_match">("summed");
 
   // ── The four switches. Loaded on mount so the screen shows the CURRENT answers rather than
   // defaults, which matters because a re-import must not look like it reset them.
@@ -132,7 +136,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
     setBusy("template");
     try {
       const res = await fetch(
-        `${apiBase}/results-import/template/?slug=${encodeURIComponent(slug)}`,
+        `${apiBase}/results-import/template/?slug=${encodeURIComponent(slug)}&kind=${shape}`,
         { headers: auth },
       );
       if (!res.ok) {
@@ -144,7 +148,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${slug}-results.xlsx`;
+      a.download = `${slug}-${shape}-results.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -217,6 +221,39 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">{t("explainer")}</p>
+
+          {/* STEP 0 - which shape, asked before anything is downloaded. */}
+          <div className="rounded-md bg-muted/50 p-3">
+            <p className="text-sm font-semibold">{t("shape.title")}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("shape.body")}</p>
+
+            <div className="mt-3 space-y-3">
+              {(
+                [
+                  ["summed", "shape.summed", "shape.summedHelp"],
+                  ["per_match", "shape.perMatch", "shape.perMatchHelp"],
+                ] as const
+              ).map(([value, label, help]) => (
+                <label key={value} className="flex items-start gap-2.5">
+                  <input
+                    type="radio"
+                    name="import-shape"
+                    className="mt-0.5 size-4 shrink-0 accent-primary"
+                    checked={shape === value}
+                    onChange={() => setShape(value)}
+                  />
+                  <span>
+                    <span className="block text-sm font-medium">{t(label)}</span>
+                    <span className="block text-xs text-muted-foreground">{t(help)}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            {/* Said plainly rather than offered as a third option that would not work. A control
+                that cannot do what it says is worse than an absent one. */}
+            <p className="mt-3 text-xs text-muted-foreground">{t("shape.playersNote")}</p>
+          </div>
 
           {/* STEP 1 */}
           <div className="rounded-md bg-muted/50 p-3">

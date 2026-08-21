@@ -54,5 +54,14 @@
     "tier_1": "Nivel 1",
     "tier_2": "Nivel 2",
     "tier_3": "Nivel 3"
+  },
+  "shape": {
+    "title": "O que tem a sua fonte?",
+    "body": "Escolha isto primeiro. Decide que modelo recebe e para que podem servir os resultados.",
+    "summed": "Uma tabela classificativa",
+    "summedHelp": "Uma linha por equipa: partidas jogadas, Booyahs, pontos, total, posicao. E o que a maioria dos organizadores publica. Nao pode contar para o ranking geral, porque as regras atribuem pontos de classificacao a partir da posicao da equipa em cada mapa, o que uma tabela classificativa nao regista.",
+    "perMatch": "Resultados partida a partida",
+    "perMatchHelp": "Uma linha por equipa e por mapa: que partida, que mapa, em que posicao terminou, quantas eliminacoes. Isto pode contar para o ranking geral, porque todas as posicoes estao la e o calculo passa pela sua propria configuracao de pontuacao, tal como uma partida jogada na AFC.",
+    "playersNote": "As eliminacoes por jogador ainda nao podem ser importadas. Uma linha de jogador tem de apontar para uma conta AFC real e um torneio externo nao tem nenhuma, por isso falta dar aos jogadores importados o mesmo tratamento de nao reivindicado e depois reivindicado que as equipas importadas ja tem. Use partida a partida entretanto: as pontuacoes de equipa ficam completas, apenas falta o detalhe por jogador."
   }
 }

@@ -54,5 +54,14 @@
     "tier_1": "Niveau 1",
     "tier_2": "Niveau 2",
     "tier_3": "Niveau 3"
+  },
+  "shape": {
+    "title": "Que contient votre source ?",
+    "body": "Choisissez ceci en premier. Cela decide du modele que vous recevez et de ce a quoi les resultats peuvent servir.",
+    "summed": "Un tableau de classement",
+    "summedHelp": "Une ligne par equipe : matchs joues, Booyahs, points, total, position. C'est ce que publient la plupart des organisateurs. Cela ne peut pas compter pour le classement general, car les regles attribuent les points de placement selon la position de l'equipe sur chaque carte, ce qu'un tableau de classement n'enregistre pas.",
+    "perMatch": "Resultats match par match",
+    "perMatchHelp": "Une ligne par equipe et par carte : quel match, quelle carte, quelle position, combien d'eliminations. Cela peut compter pour le classement general, car chaque position est presente et le calcul passe par votre propre configuration de scores, exactement comme un match joue sur AFC.",
+    "playersNote": "Les eliminations par joueur ne peuvent pas encore etre importees. Une ligne de joueur doit pointer vers un vrai compte AFC et un tournoi externe n'en a aucun ; il faut donc donner aux joueurs importes le meme traitement non reclame puis reclame que les equipes importees. Utilisez match par match en attendant : les scores d'equipe sont complets, seul le detail par joueur manque."
   }
 }
