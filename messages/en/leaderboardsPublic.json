@@ -15,5 +15,7 @@
   "kills": "Kills",
   "points": "Points",
   "playerFallback": "Player {id}",
-  "noData": "No data recorded for this selection."
+  "noData": "No data recorded for this selection.",
+  "ghostBadge": "Unclaimed",
+  "ghostExplainer": "This team appears here because of an imported result and has not been claimed on AFC yet."
 }

@@ -15,5 +15,7 @@
   "kills": "Abates",
   "points": "Pontos",
   "playerFallback": "Jogador{id}",
-  "noData": "Não existem dados registados para esta seleção."
+  "noData": "Não existem dados registados para esta seleção.",
+  "ghostBadge": "Nao reivindicada",
+  "ghostExplainer": "Esta equipa aparece aqui devido a um resultado importado e ainda nao foi reivindicada na AFC."
 }
