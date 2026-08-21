@@ -43,7 +43,7 @@ type PreviewCompetitor = {
 
 type PreviewSheet = {
   sheet: string;
-  kind: "summed" | "per_match" | null;
+  kind: "summed" | "per_match" | "per_match_players" | null;
   row_count: number;
   competitors: PreviewCompetitor[];
 };
@@ -82,7 +82,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
   // WHICH SHAPE the source document has. Asked BEFORE the template is downloaded, because it
   // decides both the columns in that template and what the results can be used for: only a
   // per-match import carries the per-map finishes the ranking rules score from.
-  const [shape, setShape] = useState<"summed" | "per_match">("summed");
+  const [shape, setShape] = useState<"summed" | "per_match" | "per_match_players">("summed");
 
   // ── The four switches. Loaded on mount so the screen shows the CURRENT answers rather than
   // defaults, which matters because a re-import must not look like it reset them.
@@ -232,6 +232,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
                 [
                   ["summed", "shape.summed", "shape.summedHelp"],
                   ["per_match", "shape.perMatch", "shape.perMatchHelp"],
+                  ["per_match_players", "shape.perPlayer", "shape.perPlayerHelp"],
                 ] as const
               ).map(([value, label, help]) => (
                 <label key={value} className="flex items-start gap-2.5">
@@ -311,7 +312,9 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
                     <span className="ml-2 font-normal text-muted-foreground">
                       {sheet.kind === "summed"
                         ? t("report.summed", { rows: sheet.row_count })
-                        : t("report.perMatch", { rows: sheet.row_count })}
+                        : sheet.kind === "per_match_players"
+                          ? t("report.perPlayer", { rows: sheet.row_count })
+                          : t("report.perMatch", { rows: sheet.row_count })}
                     </span>
                   </p>
                   <ul className="mt-1 space-y-0.5">

@@ -27,7 +27,8 @@
     "willCreate": "(sera adicionada)",
     "matched": "(correspondeu)",
     "nearMiss": "parecida com {names}",
-    "warnings": "Vale conferir"
+    "warnings": "Vale conferir",
+    "perPlayer": "{rows} linhas de jogadores"
   },
   "imported": "{rows} resultados importados, {created} novos competidores adicionados.",
   "errors": {
@@ -62,6 +63,8 @@
     "summedHelp": "Uma linha por equipa: partidas jogadas, Booyahs, pontos, total, posicao. E o que a maioria dos organizadores publica. Nao pode contar para o ranking geral, porque as regras atribuem pontos de classificacao a partir da posicao da equipa em cada mapa, o que uma tabela classificativa nao regista.",
     "perMatch": "Resultados partida a partida",
     "perMatchHelp": "Uma linha por equipa e por mapa: que partida, que mapa, em que posicao terminou, quantas eliminacoes. Isto pode contar para o ranking geral, porque todas as posicoes estao la e o calculo passa pela sua propria configuracao de pontuacao, tal como uma partida jogada na AFC.",
-    "playersNote": "As eliminacoes por jogador ainda nao podem ser importadas. Uma linha de jogador tem de apontar para uma conta AFC real e um torneio externo nao tem nenhuma, por isso falta dar aos jogadores importados o mesmo tratamento de nao reivindicado e depois reivindicado que as equipas importadas ja tem. Use partida a partida entretanto: as pontuacoes de equipa ficam completas, apenas falta o detalhe por jogador."
+    "playersNote": "So as formas acima podem ser lidas. Se a sua fonte tiver outra coisa, a mais proxima costuma ser partida a partida: as pontuacoes de equipa ficam completas mesmo sem o detalhe por jogador.",
+    "perPlayer": "Partida a partida com eliminacoes por jogador",
+    "perPlayerHelp": "Uma linha por jogador e por mapa. A linha da equipa e reconstruida a partir das linhas dos seus jogadores, por isso os totais e o detalhe concordam sempre. Jogadores sem conta AFC ficam registados como nao reivindicados, e as suas eliminacoes seguem-nos se mais tarde reivindicarem o nome."
   }
 }

@@ -27,7 +27,8 @@
     "willCreate": "(will be added)",
     "matched": "(matched)",
     "nearMiss": "similar to {names}",
-    "warnings": "Worth checking"
+    "warnings": "Worth checking",
+    "perPlayer": "{rows} player rows"
   },
   "imported": "Imported {rows} results, {created} new competitors added.",
   "errors": {
@@ -62,6 +63,8 @@
     "summedHelp": "One row per team: matches played, Booyahs, points, total, position. This is what most organisers publish. It cannot count towards the rankings, because the ranking rules award placement points from a team's finish in each map and a standings table does not record those.",
     "perMatch": "Match-by-match results",
     "perMatchHelp": "One row per team per map: which match, which map, where they finished, how many eliminations. This can count towards the rankings, because every finish is there and it scores through your own scoring config exactly like a match played on AFC.",
-    "playersNote": "Individual player kills cannot be imported yet. A player row has to point at a real AFC account and an external tournament has none, so the work is to give imported players the same unclaimed-then-claimed treatment imported teams already have. Use match-by-match in the meantime: team scores are complete, only the per-player breakdown is missing."
+    "playersNote": "Only the shapes above can be read. If your source has something else, the nearest one that fits is usually match-by-match: team scores are complete even when the per-player detail is missing.",
+    "perPlayer": "Match-by-match with individual player kills",
+    "perPlayerHelp": "One row per player per map. The team's line is rebuilt from its players' rows, so the totals and the breakdown always agree. Players with no AFC account are recorded as unclaimed, and their kills follow them if they later claim the name."
   }
 }
