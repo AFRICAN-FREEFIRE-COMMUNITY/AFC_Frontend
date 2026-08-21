@@ -45,18 +45,26 @@ type EntityLinkProps = {
   // Stop click/navigation from bubbling to a clickable parent (row onClick, etc.)
   // so wrapping the name in a link never double-fires the parent handler.
   stopPropagation?: boolean;
+  // GHOST competitors (owner 2026-08-21). A ghost is an unclaimed competitor imported from an
+  // external tournament's published results: it has a name and a country but NO Team row, so
+  // there is no /teams/<name> page for it and linking one produces a dead link. The rankings
+  // ladder already established this treatment (see (user)/rankings/page.tsx) - render the name
+  // as plain text, never as a link. Passing isGhost here keeps that decision in ONE place
+  // instead of every table re-deriving it. Set by the standings tables from the backend's
+  // competitor_ghost_id, which is null for a real team.
+  isGhost?: boolean;
 };
 
 // Internal builder shared by both helpers. `hrefFor` maps a (decoded) name to the
 // destination path; we encode here so callers never have to remember to.
 function buildLink(
   prefix: "players" | "teams",
-  { name, children, className, stopPropagation }: EntityLinkProps,
+  { name, children, className, stopPropagation, isGhost }: EntityLinkProps,
 ) {
   const label = children ?? name;
-  // No usable name (empty) or a synthetic placeholder -> render plain text so we
-  // never produce an empty/dead link.
-  if (!name || isPlaceholderName(name)) return <>{label}</>;
+  // No usable name (empty), a synthetic placeholder, or a ghost competitor with no profile
+  // page -> render plain text so we never produce an empty/dead link.
+  if (!name || isPlaceholderName(name) || isGhost) return <>{label}</>;
 
   return (
     <Link

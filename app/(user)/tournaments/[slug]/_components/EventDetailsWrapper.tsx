@@ -363,6 +363,13 @@ function streamLinkLabel(url: string): string {
 }
 
 interface EventDetails {
+  // EXTERNAL RESULTS IMPORT (owner 2026-08-21). Set by afc_results_import when an admin brings an
+  // outside tournament's published standings into this event. results_imported is the flag the
+  // provenance notice renders on; results_imported_at is when the most recent import ran, shown so a
+  // reader can tell how current the numbers are. Both are absent on every normally-run event, hence
+  // optional. Backend: Event.results_imported_at / results_imported_by.
+  results_imported?: boolean;
+  results_imported_at?: string | null;
   event_id: number;
   competition_type: string;
   participant_type: string;
@@ -1568,6 +1575,13 @@ const StageResultsTable: React.FC<{
                     row.team_country ??
                     row.tournament_team__team__country ??
                     undefined;
+                  // GHOST competitor (owner 2026-08-21). competitor_ghost_id is the ghost's own
+                  // UUID and is null for a real team, so its presence IS the ghost test. A ghost
+                  // has no Team row, and TeamLink/PlayerLink route by NAME (/teams/<name>), so
+                  // linking one produced a dead link for every competitor brought in by a results
+                  // import. Passing isGhost renders the name as plain text, matching the treatment
+                  // the rankings ladder already uses for ghost rows.
+                  const isGhostRow = Boolean(row.competitor_ghost_id);
 
                   return (
                     <TableRow
@@ -1583,9 +1597,21 @@ const StageResultsTable: React.FC<{
                         {/* Competitor name links to the public team or player
                             profile depending on the event's participant type. */}
                         {participantType === "squad" ? (
-                          <TeamLink name={username} country={teamCountry} />
+                          <TeamLink name={username} country={teamCountry} isGhost={isGhostRow} />
                         ) : (
-                          <PlayerLink name={username} />
+                          <PlayerLink name={username} isGhost={isGhostRow} />
+                        )}
+                        {/* Says WHY this competitor is not clickable, rather than leaving a name
+                            that silently behaves differently from the ones around it. Filled
+                            (secondary) rather than outline, per the no-hairline-borders rule. */}
+                        {isGhostRow && (
+                          <Badge
+                            variant="secondary"
+                            className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-normal align-middle"
+                            title={t("importedResults.ghostExplainer")}
+                          >
+                            {t("importedResults.ghostBadge")}
+                          </Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-center group-hover:text-white font-medium">

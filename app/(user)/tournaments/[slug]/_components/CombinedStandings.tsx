@@ -95,9 +95,17 @@ interface CombinedResponse {
 // combined endpoint returns flat keys (team_name/kills/placement_points/booyah/total_points),
 // so the fallbacks are simpler than TournamentStructure's, but the intent is the same.
 const rowName = (row: CombinedRow, idx: number): string =>
-  row.team_name || `#${idx + 1}`;
+  // team_name is COALESCEd over the ghost in _aggregate_team_standings, so it already resolves for
+  // an imported competitor; competitor_name is accepted too so this helper keeps working if the
+  // combined endpoint is ever fed from the same .values() shape the other standings tables use.
+  row.team_name || (row as any).competitor_name || `#${idx + 1}`;
 const rowCountry = (row: CombinedRow): string | undefined =>
-  row.team_country ?? undefined;
+  row.team_country ?? (row as any).competitor_country ?? undefined;
+// A GHOST competitor is one imported from an external tournament's published results: it has a
+// name and a country but no Team row, so /teams/<name> does not exist for it. competitor_ghost_id
+// is the ghost's own UUID and is null for a real team, so its presence is the test. Mirrors
+// TournamentStructure + EventDetailsWrapper so all three standings tables agree.
+const rowIsGhost = (row: CombinedRow): boolean => Boolean((row as any).competitor_ghost_id);
 const rowKills = (row: CombinedRow): number => row.kills ?? 0;
 const rowPlacementPts = (row: CombinedRow): number => row.placement_points ?? 0;
 const rowBooyah = (row: CombinedRow): number => row.booyah ?? 0;
@@ -409,7 +417,18 @@ export function CombinedStandings({
                             <TeamLink
                               name={rowName(row, idx)}
                               country={rowCountry(row)}
+                              isGhost={rowIsGhost(row)}
                             />
+                            {/* Same "Unclaimed" marker the other two standings tabs show. */}
+                            {rowIsGhost(row) && (
+                              <Badge
+                                variant="secondary"
+                                className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-normal align-middle"
+                                title={t("importedResults.ghostExplainer")}
+                              >
+                                {t("importedResults.ghostBadge")}
+                              </Badge>
+                            )}
                           </span>
                         </td>
                         <td className="px-3 py-2.5 text-center border-t border-border/60">

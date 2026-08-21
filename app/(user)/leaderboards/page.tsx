@@ -352,6 +352,10 @@ const LeaderboardPage = () => {
                         // squad events list teams, solo events list players, so
                         // link the competitor name to the matching public profile.
                         isTeam={eventDetails.participant_type === "squad"}
+                        // A GHOST competitor (imported from an external tournament's published
+                        // results) has no Team/Player row, so /teams/<name> does not exist and a
+                        // link would be dead. competitor_ghost_id is null for a real competitor.
+                        isGhost={Boolean(row.competitor_ghost_id)}
                         kills={row.kills || row.total_kills || 0}
                         points={row.total_pts || row.total_points || 0}
                       />
@@ -376,15 +380,16 @@ const LeaderboardPage = () => {
   );
 };
 
-const RankingRow = ({ rank, name, kills, points, isTeam }: any) => (
+const RankingRow = ({ rank, name, kills, points, isTeam, isGhost }: any) => (
   <TableRow>
     <TableCell>#{rank}</TableCell>
     <TableCell className="font-medium">
-      {/* Competitor name links to the public team or player profile. */}
+      {/* Competitor name links to the public team or player profile. A ghost has no such
+          profile, so isGhost renders it as plain text instead of a dead link. */}
       {isTeam ? (
-        <TeamLink name={name} />
+        <TeamLink name={name} isGhost={isGhost} />
       ) : (
-        <PlayerLink name={name} />
+        <PlayerLink name={name} isGhost={isGhost} />
       )}
     </TableCell>
     <TableCell>{kills}</TableCell>
