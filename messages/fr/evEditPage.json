@@ -18,7 +18,7 @@
     "actions": "Actions sur l'événement",
     "sponsor": "Sponsor",
     "waitlist": "Liste d'attente",
-    "resultsImport": "Importer des resultats"
+    "results": "Resultats"
   },
   "participant": {
     "teams": "équipes",
@@ -135,5 +135,30 @@
     "allowTeamResults": "Les équipes envoient leurs résultats",
     "minLetterAvatars": "Avatars-lettres minimum",
     "waitlistMode": "Ordre de la liste d’attente"
+  },
+  "results": {
+    "title": "Resultats",
+    "explainer": "Toutes les facons d'ajouter des resultats a cet evenement. Choisissez selon la maniere dont les chiffres vous sont parvenus, pas selon l'ecran dont vous vous souvenez.",
+    "routes": {
+      "manual": {
+        "title": "Quelqu'un les saisit",
+        "body": "Saisissez et corrigez les resultats carte par carte, et voyez le classement obtenu.",
+        "action": "Ouvrir l'editeur"
+      },
+      "ocr": {
+        "title": "Vous avez les captures de l'organisateur",
+        "body": "Lisez les chiffres sur les images de resultats et verifiez-les avant qu'ils comptent.",
+        "action": "Lire les captures"
+      },
+      "teams": {
+        "title": "Les equipes les ont envoyes",
+        "body": "Examinez ce que chaque equipe a envoye. Rien n'atteint le classement avant votre validation.",
+        "action": "Ouvrir la file"
+      },
+      "import": {
+        "title": "Un autre tournoi les a publies",
+        "body": "Importez un evenement externe complet depuis un tableur. Les trois etapes sont ci-dessous."
+      }
+    }
   }
 }

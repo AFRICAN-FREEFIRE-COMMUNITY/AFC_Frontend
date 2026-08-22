@@ -18,7 +18,7 @@
     "actions": "Ações do evento",
     "sponsor": "Patrocinador",
     "waitlist": "Lista de espera",
-    "resultsImport": "Importar resultados"
+    "results": "Resultados"
   },
   "participant": {
     "teams": "equipas",
@@ -135,5 +135,30 @@
     "allowTeamResults": "As equipas enviam os seus resultados",
     "minLetterAvatars": "Mínimo de avatares-letra",
     "waitlistMode": "Ordem da lista de espera"
+  },
+  "results": {
+    "title": "Resultados",
+    "explainer": "Todas as formas de adicionar resultados a este evento. Escolha pela maneira como os numeros chegaram ate si, nao pelo ecra de que se lembra.",
+    "routes": {
+      "manual": {
+        "title": "Alguem os introduz",
+        "body": "Introduza e corrija resultados mapa a mapa e veja a classificacao que produzem.",
+        "action": "Abrir editor"
+      },
+      "ocr": {
+        "title": "Tem as capturas do organizador",
+        "body": "Leia os numeros a partir das imagens de resultados e confirme-os antes de contarem.",
+        "action": "Ler capturas"
+      },
+      "teams": {
+        "title": "As equipas enviaram-nos",
+        "body": "Reveja o que cada equipa enviou. Nada chega a classificacao sem a sua aprovacao.",
+        "action": "Abrir fila"
+      },
+      "import": {
+        "title": "Outro torneio publicou-os",
+        "body": "Importe um evento externo completo a partir de uma folha de calculo. Os tres passos estao abaixo."
+      }
+    }
   }
 }

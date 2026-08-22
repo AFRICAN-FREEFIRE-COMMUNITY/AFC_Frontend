@@ -18,7 +18,7 @@
     "actions": "Event Actions",
     "sponsor": "Sponsor",
     "waitlist": "Waitlist",
-    "resultsImport": "Import results"
+    "results": "Results"
   },
   "participant": {
     "teams": "teams",
@@ -135,5 +135,30 @@
     "allowTeamResults": "Teams submit their own results",
     "minLetterAvatars": "Minimum letter avatars",
     "waitlistMode": "Waitlist order"
+  },
+  "results": {
+    "title": "Results",
+    "explainer": "Every way results get into this event. Pick by how the numbers reached you, not by which screen you remember.",
+    "routes": {
+      "manual": {
+        "title": "Somebody types them in",
+        "body": "Enter and correct results map by map, and see the standings they produce.",
+        "action": "Open editor"
+      },
+      "ocr": {
+        "title": "You have the organiser's screenshots",
+        "body": "Read the numbers off result images and check them before they count.",
+        "action": "Read screenshots"
+      },
+      "teams": {
+        "title": "The teams filed them",
+        "body": "Review what each team sent in. Nothing reaches the standings until you approve it.",
+        "action": "Review queue"
+      },
+      "import": {
+        "title": "Another tournament published them",
+        "body": "Bring in a whole external event from a spreadsheet. The three steps are below."
+      }
+    }
   }
 }

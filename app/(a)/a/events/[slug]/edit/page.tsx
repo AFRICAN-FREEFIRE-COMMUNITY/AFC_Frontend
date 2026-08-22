@@ -43,7 +43,7 @@ import {
 } from "@/lib/eventChangeSummary";
 import axios from "axios";
 import { FullLoader } from "@/components/Loader";
-import ResultsImportTab from "./_components/ResultsImportTab";
+import ResultsTab from "./_components/ResultsTab";
 import { SeedStageModal } from "../../_components/SeedStageModal";
 import { ConfirmStartTournamentModal } from "../../_components/ConfirmStartTournamentModal";
 
@@ -218,9 +218,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   // step instead of jumping back to Basic Info (owner 2026-06-20). setCurrentTab is
   // wrapped (selectTab) to mirror the change into the URL; the raw setter is still
   // used for the programmatic jumps to a tab that has validation errors.
-  const [currentTab, setCurrentTab] = useState(
-    searchParams.get("tab") || "basic_info",
-  );
+  // Tabs that have been renamed keep their OLD ?tab= value working. A bookmark, a link in a
+  // handover doc, or a browser history entry pointing at ?tab=results_import must land on the tab
+  // that absorbed it rather than silently falling back to Basic Info, which looks like the deep
+  // link was ignored (owner 2026-08-22, the Results reshape).
+  const TAB_ALIASES: Record<string, string> = { results_import: "results" };
+  const [currentTab, setCurrentTab] = useState(() => {
+    const asked = searchParams.get("tab") || "basic_info";
+    return TAB_ALIASES[asked] || asked;
+  });
   const selectTab = (v: string) => {
     setCurrentTab(v);
     const params = new URLSearchParams(searchParams.toString());
@@ -2094,12 +2100,15 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   infoTipId: "events.edit.waitlist._section",
                   dot: waitlistForm.is_waitlist_enabled ? "active" : null,
                 },
-                // Results import (owner 2026-08-20): for a tournament AFC did not run, whose
-                // organiser published a standings table rather than match-by-match results. The
-                // dot marks an event whose results already came from an import.
+                // RESULTS (owner 2026-08-22). Was "Import results", a tab for one of the four
+                // ways results reach an event. The other three lived on separate pages and one of
+                // them was linked from nowhere at all, so an admin had to know which screen to go
+                // to before they could look for it. This tab is now every route, labelled by how
+                // the numbers arrived. The dot still marks an event whose results came from an
+                // import, because that is the case where the standings did not happen here.
                 {
-                  value: "results_import",
-                  label: t("tabs.resultsImport"),
+                  value: "results",
+                  label: t("tabs.results"),
                   dot: eventDetails?.results_imported ? "active" : null,
                 },
               ]}
@@ -2252,11 +2261,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               />
             </TabsContent>
 
-            <TabsContent value="results_import">
-              <ResultsImportTab
+            <TabsContent value="results">
+              <ResultsTab
                 slug={slug}
                 token={token || ""}
                 apiBase={env.NEXT_PUBLIC_BACKEND_API_URL}
+                eventDetails={eventDetails}
               />
             </TabsContent>
           </Tabs>
