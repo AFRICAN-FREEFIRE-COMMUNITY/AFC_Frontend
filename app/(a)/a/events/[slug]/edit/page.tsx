@@ -44,6 +44,7 @@ import {
 import axios from "axios";
 import { FullLoader } from "@/components/Loader";
 import ResultsTab from "./_components/ResultsTab";
+import PrivateEventInvitesCard from "./_components/PrivateEventInvitesCard";
 import { SeedStageModal } from "../../_components/SeedStageModal";
 import { ConfirmStartTournamentModal } from "../../_components/ConfirmStartTournamentModal";
 
@@ -2191,6 +2192,14 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 </div>
               ) : null}
                           </section>
+              {/* Invites decide WHO CAN REGISTER, so they belong with the teams rather than on a
+                  read-only page. Renders nothing for a public event. */}
+              <PrivateEventInvitesCard
+                eventId={eventDetails.event_id}
+                token={token || ""}
+                isPublic={Boolean(eventDetails.is_public)}
+              />
+
               <section className="space-y-2">
                 <h3 className="text-sm font-semibold">{t("sections.waitlist")}</h3>
               <WaitlistTab
