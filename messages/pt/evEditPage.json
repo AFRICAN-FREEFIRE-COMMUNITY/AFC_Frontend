@@ -10,15 +10,12 @@
     "body": "Não conseguimos encontrar esse evento em <strong>{org}</strong>. Pode pertencer a uma organização diferente ou ter sido removido."
   },
   "tabs": {
-    "basicInfo": "Informações básicas",
-    "registeredTeams": "Equipas inscritas",
-    "stagesGroups": "Etapas e Grupos",
-    "prizeRules": "Prémio e Regulamento",
-    "linkedEvents": "Eventos relacionados",
-    "actions": "Ações do evento",
-    "sponsor": "Patrocinador",
-    "waitlist": "Lista de espera",
-    "results": "Resultados"
+    "results": "Resultados",
+    "setup": "Configuracao",
+    "teams": "Equipas",
+    "structure": "Estrutura",
+    "prizes": "Premios",
+    "comms": "Comunicacao"
   },
   "participant": {
     "teams": "equipas",
@@ -160,5 +157,12 @@
         "body": "Importe um evento externo completo a partir de uma folha de calculo. Os tres passos estao abaixo."
       }
     }
+  },
+  "sections": {
+    "basicInfo": "Informacoes",
+    "linkedEvents": "Eventos ligados",
+    "sponsor": "Patrocinadores",
+    "registered": "Equipas inscritas",
+    "waitlist": "Lista de espera"
   }
 }

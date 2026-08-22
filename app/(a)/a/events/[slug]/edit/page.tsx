@@ -222,7 +222,17 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   // handover doc, or a browser history entry pointing at ?tab=results_import must land on the tab
   // that absorbed it rather than silently falling back to Basic Info, which looks like the deep
   // link was ignored (owner 2026-08-22, the Results reshape).
-  const TAB_ALIASES: Record<string, string> = { results_import: "results" };
+  const TAB_ALIASES: Record<string, string> = {
+    results_import: "results",
+    basic_info: "setup",
+    linked_events: "setup",
+    sponsor: "setup",
+    registered_teams: "teams",
+    waitlist: "teams",
+    stages_groups: "structure",
+    prize_rules: "prizes",
+    actions: "comms",
+  };
   const [currentTab, setCurrentTab] = useState(() => {
     const asked = searchParams.get("tab") || "basic_info";
     return TAB_ALIASES[asked] || asked;
@@ -1722,7 +1732,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     if (!validation.isValid) {
       showValidationErrors(validation.errors, (stageIndex) => {
-        setCurrentTab("stages_groups");
+        setCurrentTab("structure");
         if (stageIndex !== undefined) openAddStageModalLogic(stageIndex);
       });
       return;
@@ -1767,7 +1777,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     const stageValidation = validateStageData(currentStages);
     if (!stageValidation.isValid) {
       showValidationErrors(stageValidation.errors, (stageIndex) => {
-        setCurrentTab("stages_groups");
+        setCurrentTab("structure");
         if (stageIndex !== undefined) openAddStageModalLogic(stageIndex);
       });
       return;
@@ -1780,23 +1790,23 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
 
     if (eventStart > eventEnd) {
       toast.error(t("toast.startAfterEnd"));
-      setCurrentTab("basic_info");
+      setCurrentTab("setup");
       return;
     }
     if (regOpen > regClose) {
       toast.error(t("toast.regOpenAfterClose"));
-      setCurrentTab("basic_info");
+      setCurrentTab("setup");
       return;
     }
     if (regClose > eventStart) {
       toast.error(t("toast.regCloseBeforeStart"));
-      setCurrentTab("basic_info");
+      setCurrentTab("setup");
       return;
     }
     // Mirror the backend 400: require_discord=true demands a non-empty invite link.
     if (data.require_discord && !data.discord_invite_link?.trim()) {
       toast.error(t("toast.discordLinkRequired"));
-      setCurrentTab("basic_info");
+      setCurrentTab("setup");
       return;
     }
 
@@ -2053,68 +2063,63 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               value={currentTab}
               onValueChange={selectTab}
               sections={[
+                // SIX SECTIONS (owner 2026-08-22, Option A). Nine tabs became six by putting
+                // things that are one job back together: Linked Events and Sponsor were separate
+                // tabs describing the same event, and Waitlist was a separate tab describing the
+                // same competitors as Registered Teams. Each merged tab STACKS the existing
+                // components under headings rather than rewriting them, so every save button keeps
+                // its own form and its own state. Old ?tab= values still resolve, via TAB_ALIASES.
                 {
-                  value: "basic_info",
-                  label: t("tabs.basicInfo"),
+                  value: "setup",
+                  label: t("tabs.setup"),
                   infoTipId: "events.edit.basic_info._section",
                   triggerTourAttr: "event-edit-basic",
                   dot: tabErrors.basic_info ? "error" : null,
                 },
                 {
-                  value: "registered_teams",
-                  label: t("tabs.registeredTeams"),
+                  value: "teams",
+                  label: t("tabs.teams"),
                   infoTipId: "events.edit.registered_teams._section",
-                  dot: tabErrors.registered_teams ? "error" : null,
+                  dot: tabErrors.registered_teams
+                    ? "error"
+                    : waitlistForm.is_waitlist_enabled
+                      ? "active"
+                      : null,
                 },
                 {
-                  value: "stages_groups",
-                  label: t("tabs.stagesGroups"),
+                  value: "structure",
+                  label: t("tabs.structure"),
                   infoTipId: "events.edit.stages_groups._section",
                   triggerTourAttr: "event-edit-stages",
                   dot: tabErrors.stages_groups ? "error" : null,
                 },
-                {
-                  value: "prize_rules",
-                  label: t("tabs.prizeRules"),
-                  infoTipId: "events.edit.prize_rules._section",
-                  triggerTourAttr: "event-edit-prizes",
-                  dot: tabErrors.prize_rules ? "error" : null,
-                },
-                // Linked Events (owner 2026-06-29): no InfoTip id, no error-dot (self-managed).
-                { value: "linked_events", label: t("tabs.linkedEvents") },
-                {
-                  value: "actions",
-                  label: t("tabs.actions"),
-                  infoTipId: "events.edit.actions._section",
-                  triggerTourAttr: "event-edit-actions",
-                },
-                {
-                  value: "sponsor",
-                  label: t("tabs.sponsor"),
-                  infoTipId: "events.edit.sponsor._section",
-                  dot: sponsorForm.is_sponsored ? "active" : null,
-                },
-                {
-                  value: "waitlist",
-                  label: t("tabs.waitlist"),
-                  infoTipId: "events.edit.waitlist._section",
-                  dot: waitlistForm.is_waitlist_enabled ? "active" : null,
-                },
-                // RESULTS (owner 2026-08-22). Was "Import results", a tab for one of the four
-                // ways results reach an event. The other three lived on separate pages and one of
-                // them was linked from nowhere at all, so an admin had to know which screen to go
-                // to before they could look for it. This tab is now every route, labelled by how
-                // the numbers arrived. The dot still marks an event whose results came from an
-                // import, because that is the case where the standings did not happen here.
+                // RESULTS (owner 2026-08-22). Was "Import results", one of the FOUR ways results
+                // reach an event; the other three lived on separate pages and one was linked from
+                // nowhere at all. Now every route, labelled by how the numbers arrived. The dot
+                // still marks results that came from an import, because those did not happen here.
                 {
                   value: "results",
                   label: t("tabs.results"),
                   dot: eventDetails?.results_imported ? "active" : null,
                 },
+                {
+                  value: "prizes",
+                  label: t("tabs.prizes"),
+                  infoTipId: "events.edit.prize_rules._section",
+                  triggerTourAttr: "event-edit-prizes",
+                  dot: tabErrors.prize_rules ? "error" : null,
+                },
+                {
+                  value: "comms",
+                  label: t("tabs.comms"),
+                  infoTipId: "events.edit.actions._section",
+                  triggerTourAttr: "event-edit-actions",
+                },
               ]}
             />
-
-            <TabsContent value="basic_info">
+            <TabsContent value="setup" className="space-y-6">
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">{t("sections.basicInfo")}</h3>
               <BasicInfoTab
                 eventDetails={eventDetails}
                 // Registration-requirement toggles moved to Basic Info (owner 2026-06-22)
@@ -2138,9 +2143,38 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 loadingEvent={loadingEvent}
                 pendingSubmit={pendingSubmit}
               />
+                          </section>
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">{t("sections.linkedEvents")}</h3>
+              <LinkedEventsCard
+                eventId={eventDetails.event_id}
+                stages={(eventDetails.stages ?? []).map((s: any) => ({
+                  id: s.stage_id ?? s.id,
+                  stage_name: s.stage_name,
+                }))}
+              />
+                          </section>
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">{t("sections.sponsor")}</h3>
+              {/* eventId powers the new sponsorship builder (P2): SponsorTab loads
+                  sponsorsApi.forEvent(eventId) and diff-saves attach/detach/configure.
+                  The legacy free-text fields still save through saveSponsorRequirement. */}
+              <SponsorTab
+                slug={slug}
+                // Display-only sponsor logos (owner 2026-08-05, item 26). Both public detail
+                // builders return them on the event payload, so there is nothing to fetch.
+                publicSponsors={(eventDetails as any)?.public_sponsors ?? []}
+                sponsorForm={sponsorForm}
+                setSponsorForm={setSponsorForm}
+                onSave={saveSponsorRequirement}
+                saving={savingSponsor}
+                eventId={eventDetails.event_id}
+              />
+                          </section>
             </TabsContent>
-
-            <TabsContent value="registered_teams">
+            <TabsContent value="teams" className="space-y-6">
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">{t("sections.registered")}</h3>
               <RegisteredTeamsTab
                 eventDetails={eventDetails}
                 updateCompetitorStatus={updateCompetitorStatus}
@@ -2156,9 +2190,23 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                   <MediaAuditCard eventId={eventDetails.event_id} />
                 </div>
               ) : null}
+                          </section>
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">{t("sections.waitlist")}</h3>
+              <WaitlistTab
+                waitlistForm={waitlistForm}
+                setWaitlistForm={setWaitlistForm}
+                onSave={saveWaitlistSettings}
+                saving={savingWaitlist}
+                eventDetails={eventDetails}
+                eventId={eventDetails.event_id}
+                onRefresh={fetchEventDetails}
+              />
+                          </section>
             </TabsContent>
 
-            <TabsContent value="stages_groups">
+
+            <TabsContent value="structure">
               <StagesGroupsTab
                 eventDetails={eventDetails}
                 stageNames={stageNames}
@@ -2184,7 +2232,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               />
             </TabsContent>
 
-            <TabsContent value="prize_rules">
+            <TabsContent value="prizes">
               <PrizeRulesTab
                 rulesInputMethod={rulesInputMethod}
                 setRulesInputMethod={setRulesInputMethod}
@@ -2206,17 +2254,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 from the event DETAIL page. eventId + stages drive its create dialog; everything else
                 (load + create/fire/cancel/decide + refresh) is self-contained in the card. Stages map
                 to { id, stage_name } using the server stage_id (mirrors the detail-page mount). */}
-            <TabsContent value="linked_events">
-              <LinkedEventsCard
-                eventId={eventDetails.event_id}
-                stages={(eventDetails.stages ?? []).map((s: any) => ({
-                  id: s.stage_id ?? s.id,
-                  stage_name: s.stage_name,
-                }))}
-              />
-            </TabsContent>
 
-            <TabsContent value="actions" className="space-y-4">
+            <TabsContent value="comms" className="space-y-4">
               <ActionsTab
                 eventDetails={eventDetails}
                 onStartTournament={() =>
@@ -2229,35 +2268,6 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               <CoOrganizersPanel
                 eventId={eventDetails.event_id}
                 primaryOrgSlug={(eventDetails as any).organization_slug}
-              />
-            </TabsContent>
-
-            <TabsContent value="sponsor">
-              {/* eventId powers the new sponsorship builder (P2): SponsorTab loads
-                  sponsorsApi.forEvent(eventId) and diff-saves attach/detach/configure.
-                  The legacy free-text fields still save through saveSponsorRequirement. */}
-              <SponsorTab
-                slug={slug}
-                // Display-only sponsor logos (owner 2026-08-05, item 26). Both public detail
-                // builders return them on the event payload, so there is nothing to fetch.
-                publicSponsors={(eventDetails as any)?.public_sponsors ?? []}
-                sponsorForm={sponsorForm}
-                setSponsorForm={setSponsorForm}
-                onSave={saveSponsorRequirement}
-                saving={savingSponsor}
-                eventId={eventDetails.event_id}
-              />
-            </TabsContent>
-
-            <TabsContent value="waitlist">
-              <WaitlistTab
-                waitlistForm={waitlistForm}
-                setWaitlistForm={setWaitlistForm}
-                onSave={saveWaitlistSettings}
-                saving={savingWaitlist}
-                eventDetails={eventDetails}
-                eventId={eventDetails.event_id}
-                onRefresh={fetchEventDetails}
               />
             </TabsContent>
 

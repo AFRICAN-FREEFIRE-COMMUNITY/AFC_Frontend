@@ -10,15 +10,12 @@
     "body": "We could not find that event under <strong>{org}</strong>. It may belong to a different organization, or it may have been removed."
   },
   "tabs": {
-    "basicInfo": "Basic Info",
-    "registeredTeams": "Registered Teams",
-    "stagesGroups": "Stages & Groups",
-    "prizeRules": "Prize & Rules",
-    "linkedEvents": "Linked Events",
-    "actions": "Event Actions",
-    "sponsor": "Sponsor",
-    "waitlist": "Waitlist",
-    "results": "Results"
+    "results": "Results",
+    "setup": "Setup",
+    "teams": "Teams",
+    "structure": "Structure",
+    "prizes": "Prizes",
+    "comms": "Comms"
   },
   "participant": {
     "teams": "teams",
@@ -160,5 +157,12 @@
         "body": "Bring in a whole external event from a spreadsheet. The three steps are below."
       }
     }
+  },
+  "sections": {
+    "basicInfo": "Basic info",
+    "linkedEvents": "Linked events",
+    "sponsor": "Sponsors",
+    "registered": "Registered teams",
+    "waitlist": "Waitlist"
   }
 }

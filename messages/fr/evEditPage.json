@@ -10,15 +10,12 @@
     "body": "Nous n'avons pas trouvé cet événement sur <strong>{org}</strong>. Il appartient peut-être à une autre organisation, ou il a peut-être été supprimé."
   },
   "tabs": {
-    "basicInfo": "Informations générales",
-    "registeredTeams": "Équipes inscrites",
-    "stagesGroups": "Phases et groupes",
-    "prizeRules": "Prix et règlement",
-    "linkedEvents": "Événements associés",
-    "actions": "Actions sur l'événement",
-    "sponsor": "Sponsor",
-    "waitlist": "Liste d'attente",
-    "results": "Resultats"
+    "results": "Resultats",
+    "setup": "Configuration",
+    "teams": "Equipes",
+    "structure": "Structure",
+    "prizes": "Recompenses",
+    "comms": "Communication"
   },
   "participant": {
     "teams": "équipes",
@@ -160,5 +157,12 @@
         "body": "Importez un evenement externe complet depuis un tableur. Les trois etapes sont ci-dessous."
       }
     }
+  },
+  "sections": {
+    "basicInfo": "Informations",
+    "linkedEvents": "Evenements lies",
+    "sponsor": "Sponsors",
+    "registered": "Equipes inscrites",
+    "waitlist": "Liste d'attente"
   }
 }
