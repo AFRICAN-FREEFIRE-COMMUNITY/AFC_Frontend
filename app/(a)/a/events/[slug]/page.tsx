@@ -34,6 +34,7 @@ import { TabsContent } from "@radix-ui/react-tabs";
 import {
   IconCalendar,
   IconChartBar,
+  IconClipboardCheck,
   IconCurrencyDollar,
   IconExternalLink,
   IconLoader2,
@@ -106,6 +107,11 @@ type Params = {
 };
 
 interface EventDetails {
+  // Whether this event accepts results filed by the TEAMS themselves. Drives the Team Results
+  // button, which opens the organizer's review queue. Set on the edit form's Basic Info tab and
+  // returned by get-event-details (afc_tournament_and_scrims/views.py). Optional because it is
+  // absent on older payloads, and an absent flag correctly hides the button.
+  allow_team_result_submissions?: boolean;
   event_id: number;
   competition_type: string;
   participant_type: string;
@@ -930,8 +936,14 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             widths and pushed the whole page to a 484px scroll width at 375px, so the header (and
             everything under it) slid sideways. A 2-column grid wraps them into rows instead, which
             also gives each one a full-width tap target. From lg up it is the original single row.
-            (owner report 2026-08-14) */}
-        <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:w-auto">
+            (owner report 2026-08-14)
+
+            lg:flex-wrap added 2026-08-22 with the seventh control (Team Results): the lg row was a
+            fixed single line, so the extra button pushed the page to a 1519px scroll width at
+            1440 and the whole header slid sideways again - the same failure this grid was added to
+            fix, one breakpoint up. Wrapping keeps one row while they fit and folds onto a second
+            when they do not, so the next button added here cannot reintroduce it. */}
+        <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:flex-wrap lg:w-auto">
           {/* ZIP of every registered team's logo + every rostered player's esport image
               (owner 2026-06-12). Backend: events/download-esport-media/ {event_id}. */}
           <DownloadEventMediaButton eventId={eventDetails.event_id} size="md" />
@@ -957,6 +969,24 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               <Link href={`/a/leaderboards/${eventDetails.event_id}/edit`}>
                 <IconChartBar />
                 Leaderboard
+              </Link>
+            </Button>
+          )}
+          {/* TEAM-SUBMITTED RESULTS QUEUE (owner 2026-08-22).
+              This page existed and NOTHING linked to it. The whole feature therefore did not work
+              end to end: an organizer switched on allow_team_result_submissions, teams filed their
+              rows, and no screen ever surfaced the queue, so the submissions sat unreviewed forever
+              and never reached the standings. It was reachable only by typing the URL.
+
+              Shown only when the event actually accepts submissions, because on every other event
+              the queue is guaranteed empty and a permanent dead-end button is its own kind of
+              clutter. Sits beside OCR Results deliberately: both are "sit down and review results
+              somebody else produced", and the two screens are built to mirror each other. */}
+          {eventDetails.allow_team_result_submissions && (
+            <Button className="flex-1 lg:flex-none" asChild variant="outline">
+              <Link href={`/a/events/${slug}/team-results`}>
+                <IconClipboardCheck />
+                Team Results
               </Link>
             </Button>
           )}
