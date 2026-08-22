@@ -106,6 +106,33 @@ type Params = {
   slug: string;
 };
 
+/**
+ * "Edit these" - the missing half of a read-only tab.
+ *
+ * WHY: this page and /edit BOTH carry tabs for the same five concepts (Details/Basic Info,
+ * Registrations/Registered Teams, Waitlist, Stages/Stages & Groups, Prizes/Prize & Rules). Which of
+ * the pair holds the control you want is not predictable, which is the "takes time to get to"
+ * complaint. Three of these tabs are purely read-only (0 interactive controls: waitlist, stages,
+ * prizes), so from those the answer is always "the other page" - and now it is one click, deep
+ * linked to the matching edit tab via the ?tab= param that page already reads.
+ *
+ * Not added to Details or Registrations: those two view tabs carry 21 and 27 controls of their own,
+ * so "go elsewhere to edit" would be false there. That inconsistency is the real structural
+ * problem and is a separate decision, not something to paper over with a link.
+ */
+function EditTheseLink({ slug, tab, label }: { slug: string; tab: string; label: string }) {
+  return (
+    <div className="flex justify-end">
+      <Button variant="ghost" size="sm" asChild>
+        <Link href={`/a/events/${slug}/edit?tab=${tab}`}>
+          <IconPencil className="size-3.5" />
+          {label}
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
 interface EventDetails {
   // Whether this event accepts results filed by the TEAMS themselves. Drives the Team Results
   // button, which opens the organizer's review queue. Set on the edit form's Basic Info tab and
@@ -2021,6 +2048,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
         {/* --- Waitlist Tab --- */}
         <TabsContent value="waitlist" className="mt-4 space-y-4">
+          <EditTheseLink slug={slug} tab="waitlist" label="Manage waitlist" />
           <Card className="gap-0">
             <CardHeader className="border-b">
               <CardTitle>
@@ -2109,6 +2137,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
         {/* --- Stages Tab --- */}
         <TabsContent value="stages" className="mt-4 space-y-4">
+          <EditTheseLink slug={slug} tab="stages_groups" label="Edit stages and groups" />
           {adminDetails.stages.length > 0 ? (
             adminDetails.stages.map((stage) => {
               const now = new Date().toISOString().split("T")[0];
@@ -2255,6 +2284,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
         </TabsContent>
 
         <TabsContent value="prizes" className="mt-4 space-y-4">
+          <EditTheseLink slug={slug} tab="prize_rules" label="Edit prizes and rules" />
           <Card>
             <CardHeader>
               <CardTitle>Prize Distribution - ${formattedPrizepool}</CardTitle>
