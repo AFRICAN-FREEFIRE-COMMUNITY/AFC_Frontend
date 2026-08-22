@@ -39,6 +39,7 @@ import { DownloadLeaderboardButton } from "./DownloadLeaderboardButton";
 // (get_all_leaderboard_details_for_event) and is carried onto the player rows below. The PNG/canvas
 // export path (DownloadLeaderboardButton) is design-driven and intentionally left untouched.
 import { CountryFlag } from "@/lib/countryFlag";
+import { readJson } from "@/lib/readJson";
 
 // ── Canvas helpers ─────────────────────────────────────────────────────────────
 
@@ -353,7 +354,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
         },
       );
 
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok)
         throw new Error(
           data.message || data.detail || "Failed to fetch leaderboard",

@@ -146,6 +146,7 @@ import { ScoringConfigPanel } from "../../_components/ScoringConfigPanel";
 // English the tab always shipped (admin surface is i18n-exempt). Zero behaviour change.
 import { MatchResultsGrid } from "@/components/leaderboards/MatchResultsGrid";
 import { MatchEvidencePanel } from "@/components/leaderboards/MatchEvidencePanel";
+import { readJson } from "@/lib/readJson";
 
 type Params = { id: string };
 
@@ -440,7 +441,7 @@ export default function EditLeaderboardPage({
           body: JSON.stringify({ event_id: id }),
         },
       );
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(data.message || data.detail || "Failed to fetch data");
       }
@@ -1043,7 +1044,7 @@ export default function EditLeaderboardPage({
           body: JSON.stringify({ team_name: teamName }),
         },
       );
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(data.message || data.detail || "Failed to load team");
       }
@@ -1091,7 +1092,7 @@ export default function EditLeaderboardPage({
           }),
         },
       );
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(
           data.message || data.detail || "Failed to add player to roster",

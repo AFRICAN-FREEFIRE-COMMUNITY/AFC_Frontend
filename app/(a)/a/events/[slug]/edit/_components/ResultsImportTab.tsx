@@ -32,6 +32,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { readJson } from "@/lib/readJson";
 
 type PreviewCompetitor = {
   name: string;
@@ -122,7 +123,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
         headers: { ...auth, "Content-Type": "application/json" },
         body: JSON.stringify({ slug, ...patch }),
       });
-      const json = await res.json();
+      const json = await readJson(res);
       if (!res.ok) {
         // The backend explains a refusal in a sentence written for a person (for example that the
         // rankings and tier halves need an AFC event admin), so show that, not a generic failure.
@@ -172,7 +173,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
         headers: auth,
         body,
       });
-      const json = await res.json();
+      const json = await readJson(res);
       if (!res.ok) {
         // The backend explains a refusal in a sentence written for a person, so show that rather
         // than a generic failure.
@@ -198,7 +199,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
         headers: auth,
         body,
       });
-      const json = await res.json();
+      const json = await readJson(res);
       if (!res.ok) {
         toast.error(json?.message || t("errors.commit"));
         return;

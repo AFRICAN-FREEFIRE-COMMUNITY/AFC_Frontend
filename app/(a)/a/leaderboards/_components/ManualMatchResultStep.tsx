@@ -17,6 +17,7 @@ import { Loader } from "@/components/Loader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+import { readJson } from "@/lib/readJson";
 // Absent-vs-zero for the manual score boxes (owner bug 2026-08-06). A blank placement stays null
 // so the backend rejects it instead of scoring 0; a blank kills box collapses to 0. Rendering also
 // goes through here so a typed 0 stays visible instead of redrawing as an empty box.
@@ -380,7 +381,7 @@ export function ManualMatchResultStep({
           body: JSON.stringify({ team_name: team.team_name }),
         },
       );
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(data.message || data.detail || "Failed to load team");
       }
@@ -424,7 +425,7 @@ export function ManualMatchResultStep({
           }),
         },
       );
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(
           data.message || data.detail || "Failed to add player to roster",

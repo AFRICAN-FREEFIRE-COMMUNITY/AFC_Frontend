@@ -55,6 +55,7 @@ import {
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { env } from "@/lib/env";
+import { readJson } from "@/lib/readJson";
 import { toast } from "sonner";
 
 export interface MatchOption {
@@ -203,7 +204,7 @@ export function MultiMapLogPanel({
       headers: { Authorization: `Bearer ${token}` },
       body: fd,
     });
-    const data = await res.json();
+    const data = await readJson(res);
     if (!res.ok)
       throw new Error(
         data.message || data.detail || t("uploadSteps.logUpload.uploadFailed"),
