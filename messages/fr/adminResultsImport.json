@@ -34,7 +34,8 @@
   "errors": {
     "template": "Le modele n'a pas pu etre prepare.",
     "preview": "Ce fichier n'a pas pu etre lu.",
-    "commit": "L'import ne s'est pas termine."
+    "commit": "L'import ne s'est pas termine.",
+    "pair": "Echec de l association de ce nom."
   },
   "settings": {
     "title": "Ce que ces resultats comptent",
@@ -67,5 +68,11 @@
     "playersNote": "Seules les formes ci-dessus peuvent etre lues. Si votre source contient autre chose, la plus proche est en general match par match : les scores d'equipe restent complets meme sans le detail par joueur.",
     "perPlayer": "Match par match avec les eliminations par joueur",
     "perPlayerHelp": "Une ligne par joueur et par carte. La ligne de l'equipe est reconstruite a partir des lignes de ses joueurs, donc les totaux et le detail concordent toujours. Les joueurs sans compte AFC sont enregistres comme non reclames, et leurs eliminations les suivent s'ils reclament le nom plus tard."
+  },
+  "pair": {
+    "cta": "Associer",
+    "placeholder": "Rechercher une equipe AFC par nom ou tag",
+    "cancel": "Annuler",
+    "done": "Associe. Relancez l importation pour l appliquer."
   }
 }

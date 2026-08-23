@@ -34,7 +34,8 @@
   "errors": {
     "template": "O modelo nao pode ser preparado.",
     "preview": "Esse arquivo nao pode ser lido.",
-    "commit": "A importacao nao foi concluida."
+    "commit": "A importacao nao foi concluida.",
+    "pair": "Nao foi possivel associar esse nome."
   },
   "settings": {
     "title": "Para que contam estes resultados",
@@ -67,5 +68,11 @@
     "playersNote": "So as formas acima podem ser lidas. Se a sua fonte tiver outra coisa, a mais proxima costuma ser partida a partida: as pontuacoes de equipa ficam completas mesmo sem o detalhe por jogador.",
     "perPlayer": "Partida a partida com eliminacoes por jogador",
     "perPlayerHelp": "Uma linha por jogador e por mapa. A linha da equipa e reconstruida a partir das linhas dos seus jogadores, por isso os totais e o detalhe concordam sempre. Jogadores sem conta AFC ficam registados como nao reivindicados, e as suas eliminacoes seguem-nos se mais tarde reivindicarem o nome."
+  },
+  "pair": {
+    "cta": "Associar",
+    "placeholder": "Procurar equipas AFC por nome ou tag",
+    "cancel": "Cancelar",
+    "done": "Associado. Execute a importacao novamente para aplicar."
   }
 }
