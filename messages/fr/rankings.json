@@ -847,6 +847,139 @@
         "copied": "{count, plural, =0 {Aucune règle copiée} one {# règle copiée} other {# règles copiées}}. Les deux ensembles sont séparés désormais.",
         "copyFailed": "Impossible de copier les règles."
       }
+    },
+    "ghostTeams": {
+      "title": "Equipes fantomes",
+      "description": "Equipes relevees dans un tournoi externe qui n'ont pas encore de profil AFC. Une vraie equipe peut en reclamer une pour reprendre son historique.",
+      "loading": "Chargement des equipes fantomes",
+      "loadFailed": "Echec du chargement des equipes fantomes.",
+      "search": "Rechercher par nom, pays ou identifiant externe",
+      "createCta": "Ajouter une equipe fantome",
+      "status": {
+        "unclaimed": "Non reclamee",
+        "pending": "Demande en cours",
+        "claimed": "Reclamee"
+      },
+      "tabs": {
+        "all": "Toutes",
+        "pending": "Demandes en attente"
+      },
+      "stats": {
+        "active": "Non reclamees",
+        "activeSub": "Aucune equipe AFC ne les a encore reprises",
+        "pending": "A examiner",
+        "pendingSub": "Une equipe a demande a les reclamer",
+        "claimed": "Reclamees",
+        "claimedSub": "L'historique est desormais sur une vraie equipe AFC",
+        "total": "Equipes fantomes",
+        "totalSub": "Relevees dans des tournois externes"
+      },
+      "table": {
+        "colName": "Equipe",
+        "colCountry": "Pays",
+        "colPlayers": "Joueurs",
+        "colExternalId": "Identifiant externe",
+        "colStatus": "Statut",
+        "colClaimedBy": "Reclamee par",
+        "colCreatedBy": "Ajoutee par",
+        "colCreated": "Ajoutee",
+        "colActions": "Actions",
+        "empty": "Aucune equipe fantome pour l'instant. Elles apparaissent ici lors de l'import d'un tournoi externe, ou vous pouvez en ajouter une a la main.",
+        "emptyPending": "Aucune demande a examiner.",
+        "noMatch": "Aucune equipe fantome ne correspond a \"{q}\".",
+        "noPlayers": "Aucun joueur releve",
+        "none": "Non renseigne",
+        "system": "Systeme",
+        "teamId": "Equipe n{id}",
+        "userId": "Utilisateur n{id}"
+      },
+      "actions": {
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "approveClaim": "Approuver la demande",
+        "revoke": "Refuser la demande",
+        "revokeClaim": "Annuler la reclamation"
+      },
+      "common": {
+        "cancel": "Annuler",
+        "goBack": "Retour",
+        "required": "Obligatoire",
+        "optional": "Facultatif",
+        "reasonLabel": "Motif",
+        "reasonPlaceholder": "Pourquoi faites-vous cela ? Enregistre dans le journal admin.",
+        "reasonRequired": "Indiquez un motif avant de continuer.",
+        "minChars": "{count} caracteres sur {min}"
+      },
+      "form": {
+        "nameLabel": "Nom de l'equipe",
+        "namePlaceholder": "Le nom exactement tel que l'organisateur l'a publie",
+        "countryLabel": "Pays",
+        "countryPlaceholder": "Choisissez un pays",
+        "externalIdLabel": "Identifiant externe",
+        "externalIdPlaceholder": "L'identifiant de l'organisateur pour cette equipe, s'il en a publie un",
+        "nameCountryRequired": "Le nom de l'equipe et le pays sont tous deux obligatoires.",
+        "needsOnePlayer": "Ajoutez au moins un joueur.",
+        "addOnePlayer": "Ajoutez au moins un joueur avant d'enregistrer.",
+        "reasonTooShort": "Le motif doit compter au moins {min} caracteres."
+      },
+      "roster": {
+        "label": "Joueurs",
+        "hint": "Ajoutez les joueurs listes par l'organisateur. Vous pourrez les modifier plus tard.",
+        "playerPlaceholder": "Joueur {n}",
+        "addPlayer": "Ajouter un joueur",
+        "removePlayer": "Retirer le joueur {n}",
+        "atLeastOne": "Gardez au moins un joueur."
+      },
+      "createDialog": {
+        "title": "Ajouter une equipe fantome",
+        "desc": "Relevez une equipe d'un tournoi externe pour que ses resultats puissent lui etre attribues. Aucun compte AFC n'est cree.",
+        "cta": "Ajouter l'equipe",
+        "success": "{name} ajoutee avec {count} joueur(s).",
+        "failed": "Echec de l'ajout de l'equipe fantome."
+      },
+      "editDialog": {
+        "title": "Modifier l'equipe fantome",
+        "desc": "Corrigez le nom, le pays ou l'effectif. Cela ne deplace aucun resultat.",
+        "cta": "Enregistrer",
+        "success": "{name} enregistree avec {count} joueur(s).",
+        "failed": "Echec de l'enregistrement."
+      },
+      "deleteDialog": {
+        "title": "Supprimer {name} ?",
+        "desc": "L'equipe fantome et les joueurs releves sont supprimes.",
+        "warning": "Tout resultat deja attribue a ce fantome est supprime avec lui. Action irreversible.",
+        "cta": "Supprimer l'equipe",
+        "success": "{name} supprimee.",
+        "failed": "Echec de la suppression de l'equipe fantome."
+      },
+      "approveDialog": {
+        "title": "Approuver la demande sur {name} ?",
+        "descCaptain": "Un representant d'equipe a demande a reclamer cette equipe fantome.",
+        "descCaptainForTeam": "Un representant de {team} a demande a reclamer cette equipe fantome.",
+        "descUser": "{user} a demande a reclamer cette equipe fantome.",
+        "descUserForTeam": "{user} a demande a reclamer cette equipe fantome pour {team}.",
+        "warning": "L'approbation deplace les points, le rang et le palier de ce fantome vers la vraie equipe, pour chaque mois et chaque saison ou il apparait.",
+        "cta": "Approuver la demande",
+        "success": "{name} est desormais reclamee.",
+        "failed": "Echec de l'approbation de la demande."
+      },
+      "revokeRequestDialog": {
+        "title": "Refuser la demande sur {name} ?",
+        "desc": "La demande est rejetee et le fantome reste non reclame.",
+        "descFromUser": "La demande de {user} est rejetee et le fantome reste non reclame.",
+        "cta": "Refuser la demande",
+        "success": "Demande sur {name} refusee.",
+        "failed": "Echec du refus de la demande."
+      },
+      "revokeClaimDialog": {
+        "title": "Annuler la reclamation sur {name} ?",
+        "desc": "Le fantome redevient non reclame.",
+        "descFromTeam": "Le fantome est repris a {team} et redevient non reclame.",
+        "warning": "Les points, le rang et le palier deplaces par cette reclamation reviennent au fantome. A faire uniquement si la reclamation etait erronee.",
+        "cta": "Annuler la reclamation",
+        "success": "Reclamation sur {name} annulee.",
+        "failed": "Echec de l'annulation de la reclamation."
+      }
     }
   }
 }

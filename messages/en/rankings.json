@@ -847,6 +847,139 @@
         "copied": "Copied {count, plural, =0 {no rules} one {# rule} other {# rules}}. The two sets are separate from now on.",
         "copyFailed": "Could not copy the rules."
       }
+    },
+    "ghostTeams": {
+      "title": "Ghost teams",
+      "description": "Teams recorded from an external tournament that have no AFC profile yet. A real team can claim one to take over its history.",
+      "loading": "Loading ghost teams",
+      "loadFailed": "Could not load ghost teams.",
+      "search": "Search by name, country or external ID",
+      "createCta": "Add ghost team",
+      "status": {
+        "unclaimed": "Unclaimed",
+        "pending": "Claim pending",
+        "claimed": "Claimed"
+      },
+      "tabs": {
+        "all": "All",
+        "pending": "Pending claims"
+      },
+      "stats": {
+        "active": "Unclaimed",
+        "activeSub": "No AFC team has taken these over yet",
+        "pending": "Awaiting review",
+        "pendingSub": "A team has asked to claim these",
+        "claimed": "Claimed",
+        "claimedSub": "History now sits on a real AFC team",
+        "total": "Ghost teams",
+        "totalSub": "Recorded from external tournaments"
+      },
+      "table": {
+        "colName": "Team",
+        "colCountry": "Country",
+        "colPlayers": "Players",
+        "colExternalId": "External ID",
+        "colStatus": "Status",
+        "colClaimedBy": "Claimed by",
+        "colCreatedBy": "Added by",
+        "colCreated": "Added",
+        "colActions": "Actions",
+        "empty": "No ghost teams yet. They appear here when an external tournament is imported, or you can add one by hand.",
+        "emptyPending": "No claims waiting for review.",
+        "noMatch": "No ghost team matches \"{q}\".",
+        "noPlayers": "No players recorded",
+        "none": "Not set",
+        "system": "System",
+        "teamId": "Team #{id}",
+        "userId": "User #{id}"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "approveClaim": "Approve claim",
+        "revoke": "Reject claim",
+        "revokeClaim": "Undo claim"
+      },
+      "common": {
+        "cancel": "Cancel",
+        "goBack": "Go back",
+        "required": "Required",
+        "optional": "Optional",
+        "reasonLabel": "Reason",
+        "reasonPlaceholder": "Why are you doing this? Saved to the admin log.",
+        "reasonRequired": "Give a reason before continuing.",
+        "minChars": "{count} of {min} characters"
+      },
+      "form": {
+        "nameLabel": "Team name",
+        "namePlaceholder": "Name exactly as the organiser published it",
+        "countryLabel": "Country",
+        "countryPlaceholder": "Pick a country",
+        "externalIdLabel": "External ID",
+        "externalIdPlaceholder": "The organiser's own ID for this team, if they published one",
+        "nameCountryRequired": "Team name and country are both required.",
+        "needsOnePlayer": "Add at least one player.",
+        "addOnePlayer": "Add at least one player before saving.",
+        "reasonTooShort": "The reason needs at least {min} characters."
+      },
+      "roster": {
+        "label": "Players",
+        "hint": "Add the players the organiser listed. You can edit these later.",
+        "playerPlaceholder": "Player {n}",
+        "addPlayer": "Add player",
+        "removePlayer": "Remove player {n}",
+        "atLeastOne": "Keep at least one player."
+      },
+      "createDialog": {
+        "title": "Add ghost team",
+        "desc": "Record a team from an external tournament so its results can be attributed. No AFC account is created.",
+        "cta": "Add team",
+        "success": "Added {name} with {count} player(s).",
+        "failed": "Could not add the ghost team."
+      },
+      "editDialog": {
+        "title": "Edit ghost team",
+        "desc": "Correct the name, country or roster. This does not move any results.",
+        "cta": "Save changes",
+        "success": "Saved {name} with {count} player(s).",
+        "failed": "Could not save the changes."
+      },
+      "deleteDialog": {
+        "title": "Delete {name}?",
+        "desc": "The ghost team and its recorded players are removed.",
+        "warning": "Any results already attributed to this ghost are removed with it. This cannot be undone.",
+        "cta": "Delete team",
+        "success": "Deleted {name}.",
+        "failed": "Could not delete the ghost team."
+      },
+      "approveDialog": {
+        "title": "Approve the claim on {name}?",
+        "descCaptain": "A team representative asked to claim this ghost team.",
+        "descCaptainForTeam": "A representative of {team} asked to claim this ghost team.",
+        "descUser": "{user} asked to claim this ghost team.",
+        "descUserForTeam": "{user} asked to claim this ghost team for {team}.",
+        "warning": "Approving moves this ghost's points, rank and tier onto the real team, for every month and season it appears in.",
+        "cta": "Approve claim",
+        "success": "{name} is now claimed.",
+        "failed": "Could not approve the claim."
+      },
+      "revokeRequestDialog": {
+        "title": "Reject the claim on {name}?",
+        "desc": "The request is turned down and the ghost stays unclaimed.",
+        "descFromUser": "The request from {user} is turned down and the ghost stays unclaimed.",
+        "cta": "Reject claim",
+        "success": "Rejected the claim on {name}.",
+        "failed": "Could not reject the claim."
+      },
+      "revokeClaimDialog": {
+        "title": "Undo the claim on {name}?",
+        "desc": "The ghost goes back to unclaimed.",
+        "descFromTeam": "The ghost is taken back from {team} and goes back to unclaimed.",
+        "warning": "The points, rank and tier this claim moved are returned to the ghost. Do this only if the claim was wrong.",
+        "cta": "Undo claim",
+        "success": "Undid the claim on {name}.",
+        "failed": "Could not undo the claim."
+      }
     }
   }
 }
