@@ -898,7 +898,8 @@
         "delete": "Eliminar",
         "approveClaim": "Aprovar pedido",
         "revoke": "Recusar pedido",
-        "revokeClaim": "Anular reclamacao"
+        "revokeClaim": "Anular reclamacao",
+        "attribute": "Atribuir"
       },
       "common": {
         "cancel": "Cancelar",
@@ -979,6 +980,23 @@
         "cta": "Anular reclamacao",
         "success": "Reclamacao sobre {name} anulada.",
         "failed": "Nao foi possivel anular a reclamacao."
+      },
+      "attributeDialog": {
+        "title": "Atribuir {name}",
+        "desc": "Indique qual o perfil AFC a que esta equipa corresponde. Nao precisa de esperar que a equipa peca.",
+        "teamLabel": "Perfil de equipa AFC",
+        "teamPlaceholder": "Procurar equipas por nome ou tag",
+        "teamHint": "A procura abrange o nome da equipa e a tag curta.",
+        "historyLabel": "O que deve acontecer aos resultados?",
+        "moveTitle": "Mover o historico",
+        "moveDesc": "Os pontos, a posicao e o escalao passam para o perfil AFC, em todos os meses e epocas.",
+        "linkTitle": "Apenas ligar",
+        "linkDesc": "Os dois ficam ligados, mas os resultados permanecem no fantasma e a tabela continua a inclui-lo.",
+        "moveWarning": "Mover o historico nao pode ser anulado a partir deste ecra. Use Anular reclamacao depois, se estiver errado.",
+        "applyToAllLabel": "Usar a mesma resposta para as outras {count} equipas por reclamar e deixar de perguntar.",
+        "cta": "Atribuir equipa",
+        "success": "{ghost} e agora {team}.",
+        "failed": "Nao foi possivel atribuir a equipa."
       }
     }
   }

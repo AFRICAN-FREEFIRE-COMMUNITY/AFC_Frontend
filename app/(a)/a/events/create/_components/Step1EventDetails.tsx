@@ -38,6 +38,8 @@ import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { countries, REGIONS_MAP } from "@/constants";
 import { InfoTip } from "@/components/ui/info-tip";
+// Shared "require letter avatars" control, also rendered by the edit form (BasicInfoTab).
+import { LetterAvatarRequirement } from "./LetterAvatarRequirement";
 import CountryPaymentRulesEditor from "@/components/CountryPaymentRulesEditor";
 import { type HelpId } from "@/lib/help-content";
 import { EventFormType, REGISTRATION_FEE_CURRENCIES } from "./types";
@@ -902,64 +904,29 @@ export function Step1EventDetails({
           {/* ── Require letter avatars (feature #7, owner 2026-06-29) ──────────────────────────
               Block registration until a team/player has at least N Free Fire letter avatars (A-Z)
               AVAILABLE. A team's available letters are the live union of its members' owned letters
-              plus the team's manual extras; a solo player's are their own. The Switch turns the gate
-              on/off and reveals a 1-26 count input; both write the single number field
+              plus the team's manual extras; a solo player's are their own. The control is the SHARED
+              LetterAvatarRequirement (also rendered by the edit form's BasicInfoTab), which owns the
+              on/off Switch and the 1-26 count input; both write the single number field
               min_letter_avatars (0 = off). Sent by the create/edit pages to create_event/edit_event;
-              enforced in register_for_event; rehydrated from get_event_details. Admin (a)/ surface =
-              i18n-exempt (English copy, inline InfoTip text). Mirrors the require_* toggles above. */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="require-letter-avatars">
-                {t("requireLetterAvatars")}
-                <InfoTip
-                  text={t("requireLetterAvatarsTip")}
-                  className="ml-1"
+              enforced in register_for_event; rehydrated from get_event_details. Mirrors the
+              require_* toggles above. */}
+          <FormField
+            // @ts-ignore - shared optional field
+            control={form.control}
+            name={"min_letter_avatars" as never}
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <LetterAvatarRequirement
+                  id="require-letter-avatars"
+                  value={field.value as unknown as number}
+                  onChange={(next) => field.onChange(next)}
+                  label={t("requireLetterAvatars")}
+                  description={t("requireLetterAvatarsDesc")}
+                  infoTipText={t("requireLetterAvatarsTip")}
                 />
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                {t("requireLetterAvatarsDesc")}
-              </p>
-            </div>
-            <FormField
-              // @ts-ignore - shared optional field
-              control={form.control}
-              name={"min_letter_avatars" as never}
-              render={({ field }) => {
-                // 0 (or unset) = OFF. Any value > 0 = the required minimum (the gate is on).
-                const current = Number((field.value as unknown as number) ?? 0) || 0;
-                const enabled = current > 0;
-                return (
-                  <FormItem className="flex items-center gap-3 space-y-0">
-                    {/* Count input only when the gate is on. Clamped 1-26 (26 letters exist). */}
-                    {enabled && (
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={26}
-                          value={current}
-                          onChange={(e) =>
-                            field.onChange(
-                              Math.max(1, Math.min(26, Number(e.target.value) || 1)),
-                            )
-                          }
-                          className="w-20"
-                        />
-                      </FormControl>
-                    )}
-                    <FormControl>
-                      <Switch
-                        id="require-letter-avatars"
-                        checked={enabled}
-                        // Toggling on seeds a sensible default of 1; off clears to 0.
-                        onCheckedChange={(on) => field.onChange(on ? 1 : 0)}
-                      />
-                    </FormControl>
-                  </FormItem>
-                );
-              }}
-            />
-          </div>
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* ── Discord registration gate ──────────────────────────────────────────

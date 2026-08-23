@@ -2,6 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+// Admin-initiated attribution (owner 2026-08-24): the admin says which real profile a ghost is,
+// without waiting for that team to file a claim. See the component header for why.
+import AttributeGhostDialog from "./_components/AttributeGhostDialog";
+import { NewBadge } from "@/components/NewBadge";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -276,6 +280,11 @@ export default function GhostTeamsAdminPage() {
 
   // reason dialogs, keyed by the target row + action
   const [approve, setApprove] = useState<GhostTeam | null>(null);
+  // The ghost currently being attributed, and the history answer the admin chose to reuse.
+  // stickyHistory lives HERE rather than in the dialog so it survives the dialog unmounting
+  // between rows, which is the whole point of "stop asking me".
+  const [attribute, setAttribute] = useState<GhostTeam | null>(null);
+  const [stickyHistory, setStickyHistory] = useState<boolean | null>(null);
   const [revoke, setRevoke] = useState<GhostTeam | null>(null);
   const [revokeClaimed, setRevokeClaimed] = useState<GhostTeam | null>(null);
   const [del, setDel] = useState<GhostTeam | null>(null);
@@ -519,6 +528,7 @@ export default function GhostTeamsAdminPage() {
                     <div className="flex justify-end gap-2">
                       {(r.claim_status === "unclaimed" || r.claim_status === "revoked") && (
                         <>
+                          <Button size="sm" onClick={() => setAttribute(r)}>{t("actions.attribute")}</Button>
                           <Button size="sm" variant="outline" onClick={() => openEdit(r)}>{t("actions.edit")}</Button>
                           <Button
                             size="sm"
@@ -569,6 +579,9 @@ export default function GhostTeamsAdminPage() {
         title={
           <span data-tour="ghost-teams-title" className="inline-flex items-center">
             {t("title")}
+            {/* Attributing a ghost to a real profile is new here (owner 2026-08-24). Date-driven,
+                so it disappears by itself after 5 days and never needs deleting. */}
+            <NewBadge since="2026-08-24" />
             <InfoTip id="rankings.ghost._page" className="ml-1.5" />
           </span>
         }
@@ -786,6 +799,20 @@ export default function GhostTeamsAdminPage() {
         warning={t("approveDialog.warning")}
         confirmLabel={t("approveDialog.cta")}
         onConfirm={doApprove}
+      />
+
+      {/* ── Admin-initiated attribution (owner 2026-08-24) ───────────────────────────────────────
+          Opened from the Attribute button on any unclaimed row. remainingCount drives the
+          "use this answer for the rest" affordance, which is hidden when there is nothing else it
+          could apply to. stickyHistory is owned here so it outlives the dialog between rows. */}
+      <AttributeGhostDialog
+        ghost={attribute ? { id: attribute.id, team_name: attribute.team_name } : null}
+        remainingCount={Math.max(0, counts.active - 1)}
+        open={attribute != null}
+        onOpenChange={(v) => { if (!v) setAttribute(null); }}
+        stickyHistory={stickyHistory}
+        onStickyHistory={setStickyHistory}
+        onDone={load}
       />
 
       {/* revoke pending request (mandatory reason) */}

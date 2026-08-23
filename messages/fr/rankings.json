@@ -898,7 +898,8 @@
         "delete": "Supprimer",
         "approveClaim": "Approuver la demande",
         "revoke": "Refuser la demande",
-        "revokeClaim": "Annuler la reclamation"
+        "revokeClaim": "Annuler la reclamation",
+        "attribute": "Attribuer"
       },
       "common": {
         "cancel": "Annuler",
@@ -979,6 +980,23 @@
         "cta": "Annuler la reclamation",
         "success": "Reclamation sur {name} annulee.",
         "failed": "Echec de l'annulation de la reclamation."
+      },
+      "attributeDialog": {
+        "title": "Attribuer {name}",
+        "desc": "Indiquez de quel profil AFC il s''agit reellement. Vous n''avez pas besoin d''attendre que l''equipe le demande.",
+        "teamLabel": "Profil d'equipe AFC",
+        "teamPlaceholder": "Rechercher une equipe par nom ou par tag",
+        "teamHint": "La recherche porte sur le nom de l'equipe et sur le tag court.",
+        "historyLabel": "Que faire de ses resultats ?",
+        "moveTitle": "Deplacer l'historique",
+        "moveDesc": "Les points, le rang et le palier passent sur le profil AFC, pour chaque mois et chaque saison.",
+        "linkTitle": "Lier seulement",
+        "linkDesc": "Les deux sont lies, mais les resultats restent sur le fantome et le classement continue de l'afficher.",
+        "moveWarning": "Le deplacement de l'historique ne s'annule pas depuis cet ecran. Utilisez Annuler la reclamation ensuite si c'etait une erreur.",
+        "applyToAllLabel": "Utiliser la meme reponse pour les {count} autres equipes non reclamees, et ne plus poser la question.",
+        "cta": "Attribuer l'equipe",
+        "success": "{ghost} est desormais {team}.",
+        "failed": "Echec de l''attribution de l''equipe."
       }
     }
   }

@@ -898,7 +898,8 @@
         "delete": "Delete",
         "approveClaim": "Approve claim",
         "revoke": "Reject claim",
-        "revokeClaim": "Undo claim"
+        "revokeClaim": "Undo claim",
+        "attribute": "Attribute"
       },
       "common": {
         "cancel": "Cancel",
@@ -979,6 +980,23 @@
         "cta": "Undo claim",
         "success": "Undid the claim on {name}.",
         "failed": "Could not undo the claim."
+      },
+      "attributeDialog": {
+        "title": "Attribute {name}",
+        "desc": "Say which AFC profile this team really is. You do not need to wait for the team to ask.",
+        "teamLabel": "AFC team profile",
+        "teamPlaceholder": "Search teams by name or tag",
+        "teamHint": "Search matches the team name and the short tag.",
+        "historyLabel": "What should happen to its results?",
+        "moveTitle": "Move the history",
+        "moveDesc": "Points, rank and tier move onto the AFC profile, for every month and season.",
+        "linkTitle": "Link only",
+        "linkDesc": "The two are linked, but the results stay on the ghost and the ladder still lists it.",
+        "moveWarning": "Moving the history cannot be undone from here. Use Undo claim afterwards if it was wrong.",
+        "applyToAllLabel": "Use this same answer for the other {count} unclaimed teams, and stop asking.",
+        "cta": "Attribute team",
+        "success": "{ghost} is now {team}.",
+        "failed": "Could not attribute the team."
       }
     }
   }

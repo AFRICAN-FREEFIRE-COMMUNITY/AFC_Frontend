@@ -49,6 +49,8 @@ import Image from "next/image";
 import { Loader } from "@/components/Loader";
 import { countries, REGIONS_MAP } from "@/constants";
 import { InfoTip } from "@/components/ui/info-tip";
+// Shared "require letter avatars" control, also rendered by the create wizard (Step1EventDetails).
+import { LetterAvatarRequirement } from "@/app/(a)/a/events/create/_components/LetterAvatarRequirement";
 import type { EventFormType, EventDetails } from "../types";
 // Single source of truth for the paid-registration currency options (defined with the
 // create-flow form constants); reused here so create + edit can't drift.
@@ -507,63 +509,22 @@ export default function BasicInfoTab({
           ))}
           {/* ── Require letter avatars (feature #7, owner 2026-06-29) ──────────────────────────
               UNLIKE the four boolean toggles above, this gate is a NUMBER: 0 = off, 1-26 = the
-              required minimum. Mirrors the create wizard's Step1EventDetails control. Backed by the
-              SAME requirementsForm (the edit page's waitlistForm) state + saved by saveWaitlistSettings,
+              required minimum. The control itself is the SHARED LetterAvatarRequirement, also used
+              by the create wizard's Step1EventDetails, so the two behave identically (it was
+              duplicated inline in both, and both carried the same mobile bug). Backed by the SAME
+              requirementsForm (the edit page's waitlistForm) state + saved by saveWaitlistSettings,
               which appends min_letter_avatars to edit_event. Blocks registration until a team/player
               has at least N Free Fire letter avatars available (enforced in register_for_event). */}
-          {(() => {
-            // 0 (or unset) = OFF. Any value > 0 reveals the 1-26 count input and turns the gate on.
-            const current = Number(requirementsForm.min_letter_avatars ?? 0) || 0;
-            const enabled = current > 0;
-            return (
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="req-min-letter-avatars">
-                    {t("basicInfo.requireLettersLabel")}
-                    <InfoTip
-                      text={t("basicInfo.requireLettersInfoTip")}
-                      className="ml-1"
-                    />
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    {t("basicInfo.requireLettersHelp")}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  {/* Count input only when the gate is on. Clamped 1-26 (26 letters exist). */}
-                  {enabled && (
-                    <Input
-                      type="number"
-                      min={1}
-                      max={26}
-                      value={current}
-                      onChange={(e) =>
-                        setRequirementsForm((p: any) => ({
-                          ...p,
-                          min_letter_avatars: Math.max(
-                            1,
-                            Math.min(26, Number(e.target.value) || 1),
-                          ),
-                        }))
-                      }
-                      className="w-20"
-                    />
-                  )}
-                  <Switch
-                    id="req-min-letter-avatars"
-                    checked={enabled}
-                    // Toggling on seeds a sensible default of 1; off clears to 0.
-                    onCheckedChange={(on) =>
-                      setRequirementsForm((p: any) => ({
-                        ...p,
-                        min_letter_avatars: on ? 1 : 0,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            );
-          })()}
+          <LetterAvatarRequirement
+            id="req-min-letter-avatars"
+            value={requirementsForm.min_letter_avatars}
+            onChange={(next) =>
+              setRequirementsForm((p: any) => ({ ...p, min_letter_avatars: next }))
+            }
+            label={t("basicInfo.requireLettersLabel")}
+            description={t("basicInfo.requireLettersHelp")}
+            infoTipText={t("basicInfo.requireLettersInfoTip")}
+          />
         </div>
 
         {/* ── Discord registration gate (per-event) ────────────────────────────────

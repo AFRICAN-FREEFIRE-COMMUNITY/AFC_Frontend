@@ -79,6 +79,23 @@ export const rankingsAdminApi = {
   approveClaim: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/approve-claim/`, body),
   revokeClaim: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/revoke-claim/`, body),
 
+  // ── ADMIN-INITIATED ATTRIBUTION (owner 2026-08-24) ────────────────────────────────────────────
+  // "This ghost IS this real team", decided by the admin WITHOUT the team filing a claim first.
+  // request-claim is deliberately not an admin action, so before these an admin could only approve
+  // somebody else's request - unworkable for an import that creates ~150 ghosts at once.
+  //   body { team_id, reason (>=10), move_history }
+  // move_history TRUE moves points/rank/tier onto the real profile via the same
+  // claims.reattribute_ghost_team path an approved claim uses; FALSE links the two and leaves the
+  // ghost's own rows alone. The question is asked per team on screen.
+  // Backend: afc_rankings.admin_ghost.ghost_attribute.
+  attributeGhost: (ghostId: string, body: any) => aPost(`ghost-teams/${ghostId}/attribute/`, body),
+  // The batch form (the "apply to all" answer): ONE move_history choice for every item.
+  //   body { items: [{ghost_team_id, team_id}], reason, move_history }
+  // Returns { attributed, failed, moved_history }. Deliberately not one transaction, so one bad row
+  // does not cost the rest; `failed` names each one with its reason.
+  // Backend: afc_rankings.admin_ghost.ghost_attribute_bulk.
+  attributeGhostsBulk: (body: any) => aPost("ghost-teams/attribute-bulk/", body),
+
   // ── Admin CLAIM-REQUEST QUEUE (pending ghost-team + ghost-player claims awaiting review) ──
   // The combined queue on /a/rankings (Claim requests section) fetches BOTH pending lists and
   // renders one table, then approves/rejects each row. All Bearer-gated (head_admin |
