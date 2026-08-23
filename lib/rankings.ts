@@ -309,6 +309,49 @@ function userAuthHeaders() {
 }
 
 export const rankingsClaimApi = {
+  /**
+   * BROWSE / SEARCH unclaimed ghost profiles (owner 2026-08-24).
+   *
+   * WHY: a ghost used to be reachable ONLY from the rankings ladder, because that is where the
+   * Claim button lived. A ghost that is not on a ladder - which is most of them right after an
+   * import - could not be found at all, and the owner reported exactly that: "even searching for
+   * ghost teams doesn't bring them up".
+   *
+   * browse=1 makes an EMPTY query list unclaimed profiles instead of returning nothing, so a
+   * person does not have to guess a search term before anything appears. The typeahead contract is
+   * unchanged for every existing caller: without browse, a query under 2 characters still returns
+   * an empty list.
+   *
+   * Backend: afc_leaderboard.views.search_ghost_teams / search_ghost_players.
+   */
+  browseGhostTeams: async (q: string, limit = 24) => {
+    const res = await axios.get(`${BASE}/leaderboards/standalone/search-ghost-teams/`, {
+      params: { q, browse: 1, unclaimed_only: 1, limit },
+      headers: userAuthHeaders(),
+    });
+    return res.data as {
+      results: {
+        ghost_team_id: string; team_name: string; country?: string;
+        players_count?: number; claim_status?: string;
+      }[];
+      total_count: number;
+    };
+  },
+
+  browseGhostPlayers: async (q: string, limit = 24) => {
+    const res = await axios.get(`${BASE}/leaderboards/standalone/search-ghost-players/`, {
+      params: { q, browse: 1, unclaimed_only: 1, limit },
+      headers: userAuthHeaders(),
+    });
+    return res.data as {
+      results: {
+        ghost_player_id: number; ign: string;
+        ghost_team_id?: string | null; ghost_team_name?: string | null;
+      }[];
+      total_count: number;
+    };
+  },
+
   // The user's current team, populates the team-claim dropdown. Hits afc_team
   // get-user-current-team (POST, Bearer). Returns null when the user has no team (the
   // endpoint 404s with "not currently a member of any team"), which the dialog treats as
