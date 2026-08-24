@@ -64,7 +64,11 @@
     "inGameRole": "Rôle en jeu",
     "viewFullTeam": "Voir l'équipe complète",
     "notInTeam": "Vous ne faites actuellement partie d'aucune équipe.",
-    "roleMember": "Membre"
+    "roleMember": "Membre",
+    "tabMostActive": "Les plus actives",
+    "mostActiveTitle": "Equipes les plus actives",
+    "mostActiveDescription": "Classees selon les evenements reellement joues, pas selon les inscriptions.",
+    "activityLine": "{events} evenements joues, {matches} matchs"
   },
   "teamCreate": {
     "pageTitle": "Créer une nouvelle équipe",
