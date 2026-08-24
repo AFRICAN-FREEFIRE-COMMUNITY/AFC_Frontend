@@ -998,6 +998,215 @@
         "success": "{ghost} est desormais {team}.",
         "failed": "Echec de l''attribution de l''equipe."
       }
+    },
+    "audit": {
+      "title": "Journal des modifications de classement",
+      "description": "Chaque modification apportee aux classements par un admin, et le motif indique.",
+      "loading": "Chargement du journal",
+      "loadFailed": "Echec du chargement du journal.",
+      "adminsOnly": "Seuls les head admins et les metrics admins peuvent consulter ceci.",
+      "rawViewerCta": "Consulter les points bruts",
+      "filters": {
+        "title": "Filtres",
+        "objectTypePlaceholder": "Tout type de modification",
+        "allObjectTypes": "Tous les types",
+        "searchReason": "Rechercher dans les motifs",
+        "fromDate": "Du",
+        "toDate": "Au",
+        "clear": "Effacer les filtres",
+        "count": "{shown} sur {total} affiches"
+      },
+      "table": {
+        "title": "Modifications",
+        "colTime": "Quand",
+        "colBy": "Admin",
+        "colType": "Type",
+        "colAction": "Action",
+        "colRef": "Enregistrement",
+        "colReason": "Motif",
+        "empty": "Aucune modification ne correspond a ces filtres."
+      },
+      "raw": {
+        "title": "Points bruts",
+        "titleWithSubject": "Points bruts de {name}",
+        "desc": "Le detail des points derriere un total d'equipe ou de joueur, avant tout ajustement.",
+        "adminsOnly": "Seuls les head admins et les metrics admins peuvent consulter ceci.",
+        "chipLabel": "{label}",
+        "season": "Saison",
+        "team": "Equipe",
+        "player": "Joueur",
+        "pickTeam": "Choisir une equipe",
+        "pickPlayer": "Choisir un joueur",
+        "searchTeam": "Rechercher une equipe",
+        "searchPlayer": "Rechercher un joueur",
+        "load": "Afficher les points",
+        "loading": "Chargement",
+        "loadingData": "Chargement du detail des points",
+        "loadFailed": "Echec du chargement du detail des points.",
+        "colComponent": "Composante",
+        "colPoints": "Points",
+        "total": "Total",
+        "emptyTeam": "Cette equipe n'a aucun point enregistre pour la saison choisie.",
+        "emptyPlayer": "Ce joueur n'a aucun point enregistre pour la saison choisie.",
+        "note": "Ce sont les composantes enregistrees. Un ajustement eventuel s'applique par-dessus et figure dans le journal ci-dessus.",
+        "close": "Fermer"
+      },
+      "objectTypes": {
+        "tournament_result": "Resultat de tournoi",
+        "scrim_result": "Resultat de scrim",
+        "prize_money": "Gains",
+        "social_media": "Audience sociale",
+        "roster": "Effectif",
+        "ghost_claim": "Reclamation de fantome",
+        "tier_override": "Ajustement de palier",
+        "ban_zeroing": "Mise a zero pour bannissement",
+        "transfer_window": "Periode de transfert",
+        "season": "Saison",
+        "evaluation": "Evaluation"
+      }
+    },
+    "prize": {
+      "title": "Gains",
+      "description": "Les gains comptabilises dans les revenus d'une equipe. Les montants automatiques viennent des resultats; vous pouvez en ajouter un a la main.",
+      "loading": "Chargement des gains",
+      "addCta": "Ajouter un versement",
+      "summary": {
+        "totalTitle": "Total verse",
+        "acrossPayouts": "Sur {count} versements"
+      },
+      "common": {
+        "amountLabel": "Montant",
+        "reasonLabel": "Motif",
+        "cancel": "Annuler",
+        "goBack": "Retour",
+        "minChars": "{count} caracteres sur {min}"
+      },
+      "table": {
+        "cardTitle": "Versements",
+        "colTeam": "Equipe",
+        "colEvent": "Evenement",
+        "colAmount": "Montant",
+        "colAwarded": "Attribue",
+        "colActions": "Actions",
+        "auto": "Depuis les resultats",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "empty": "Aucun gain enregistre pour le moment."
+      },
+      "addDialog": {
+        "title": "Ajouter un versement",
+        "desc": "Enregistrez un gain verse a une equipe. Il compte immediatement dans ses revenus.",
+        "teamLabel": "Equipe",
+        "teamPlaceholder": "Rechercher une equipe",
+        "eventLabel": "Evenement",
+        "eventPlaceholder": "Rechercher un evenement",
+        "noMatches": "Aucun resultat pour cette recherche.",
+        "reasonPlaceholder": "Pourquoi ajoutez-vous ceci ? Enregistre dans le journal admin.",
+        "adding": "Ajout en cours"
+      },
+      "editDialog": {
+        "title": "Modifier le versement",
+        "was": "Etait {amount}",
+        "reasonPlaceholder": "Pourquoi modifiez-vous ceci ? Enregistre dans le journal admin.",
+        "saveCta": "Enregistrer",
+        "saving": "Enregistrement"
+      },
+      "deleteDialog": {
+        "title": "Supprimer ce versement ?",
+        "desc": "{amount} attribue a {name} pour {event} est retire de ses revenus.",
+        "descNoTeam": "{amount} attribue pour {event} est supprime.",
+        "reasonPlaceholder": "Pourquoi supprimez-vous ceci ? Enregistre dans le journal admin.",
+        "cta": "Supprimer le versement",
+        "deleting": "Suppression"
+      },
+      "toasts": {
+        "added": "{amount} ajoute.",
+        "addFailed": "Echec de l'ajout du versement.",
+        "updated": "Versement de {name} mis a jour.",
+        "updatedFallback": "Versement mis a jour.",
+        "updateFailed": "Echec de la mise a jour du versement.",
+        "deleted": "Versement de {name} supprime.",
+        "deletedFallback": "Versement supprime.",
+        "deleteFailed": "Echec de la suppression du versement.",
+        "loadFailed": "Echec du chargement des gains.",
+        "loadOptionsFailed": "Echec du chargement des listes d'equipes et d'evenements.",
+        "loadSeasonsFailed": "Echec du chargement des saisons."
+      }
+    },
+    "social": {
+      "title": "Audience sociale",
+      "description": "Points gagnes par une equipe pour son audience verifiee. Un admin controle les chiffres avant qu'ils comptent.",
+      "loading": "Chargement de l'audience sociale",
+      "verifyAll": "Tout verifier",
+      "brackets": {
+        "title": "Comment les abonnes deviennent des points",
+        "points": "{count} points",
+        "range": "De {from} a {to}",
+        "plus": "{from} et plus"
+      },
+      "stats": {
+        "connected": "Connectees",
+        "connectedSub": "Equipes ayant lie un compte",
+        "verified": "Verifiees",
+        "verifiedSub": "Controlees par un admin et comptabilisees",
+        "pending": "A controler",
+        "pendingSub": "Connectees mais pas encore verifiees",
+        "points": "Points attribues",
+        "pointsSub": "Sur un maximum de {max}"
+      },
+      "table": {
+        "cardTitle": "Equipes",
+        "cardTitleWithSeason": "Equipes, {season}",
+        "search": "Rechercher une equipe",
+        "colTeam": "Equipe",
+        "colConnection": "Comptes",
+        "colCombined": "Abonnes",
+        "colPoints": "Points",
+        "colVerification": "Verification",
+        "colActions": "Actions",
+        "connected": "Connectee",
+        "notConnected": "Non connectee",
+        "waitingConnect": "En attente de la connexion d'un compte par l'equipe",
+        "verified": "Verifiee",
+        "pending": "Non verifiee",
+        "verify": "Verifier",
+        "reverify": "Verifier a nouveau",
+        "unverify": "Retirer la verification",
+        "saveVerify": "Enregistrer",
+        "unsaved": "Non enregistre",
+        "verifiedByLine": "Verifie le {date} par {by}",
+        "empty": "Aucune equipe n'a encore connecte de compte social.",
+        "noMatch": "Aucune equipe ne correspond a \"{q}\"."
+      },
+      "dialog": {
+        "reasonLabel": "Motif",
+        "minChars": "{count} caracteres sur {min}",
+        "combined": "Total des abonnes",
+        "points": "Points",
+        "pointsAfterUnverify": "Points apres retrait de la verification",
+        "verifyTitle": "Verifier {team}",
+        "reverifyTitle": "Verifier a nouveau {team}",
+        "reverifyDesc": "Les nombres d'abonnes sont relus et les points recalcules.",
+        "reverifyPlaceholder": "Pourquoi cette nouvelle verification ? Enregistre dans le journal admin.",
+        "confirmReverify": "Verifier a nouveau",
+        "unverifyTitle": "Retirer la verification de {team} ?",
+        "unverifyDesc": "L'equipe garde ses comptes connectes mais cesse de gagner ces points.",
+        "unverifyPlaceholder": "Pourquoi la retirez-vous ? Enregistre dans le journal admin.",
+        "confirmUnverify": "Retirer la verification",
+        "goBack": "Retour"
+      },
+      "toasts": {
+        "verified": "{team} verifiee : {followers} abonnes, {points} points.",
+        "reverified": "{team} verifiee a nouveau : {followers} abonnes, {points} points.",
+        "unverified": "Verification retiree de {team}.",
+        "verifiedBulk": "{count} equipes verifiees.",
+        "nothingToVerify": "Rien n'attend d'etre verifie.",
+        "verifyFailed": "Echec de la verification de cette equipe.",
+        "verifyAllFailed": "Echec de la verification globale.",
+        "updateFailed": "Echec de l'enregistrement de cette modification.",
+        "loadFailed": "Echec du chargement de l'audience sociale.",
+        "loadSeasonFailed": "Echec du chargement de la saison."
+      }
     }
   }
 }

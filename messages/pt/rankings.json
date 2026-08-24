@@ -998,6 +998,215 @@
         "success": "{ghost} e agora {team}.",
         "failed": "Nao foi possivel atribuir a equipa."
       }
+    },
+    "audit": {
+      "title": "Registo de alteracoes das classificacoes",
+      "description": "Todas as alteracoes feitas por um administrador as classificacoes, e o motivo indicado.",
+      "loading": "A carregar o registo",
+      "loadFailed": "Nao foi possivel carregar o registo.",
+      "adminsOnly": "Apenas head admins e metrics admins podem consultar isto.",
+      "rawViewerCta": "Consultar pontos em bruto",
+      "filters": {
+        "title": "Filtros",
+        "objectTypePlaceholder": "Qualquer tipo de alteracao",
+        "allObjectTypes": "Todos os tipos",
+        "searchReason": "Procurar no texto do motivo",
+        "fromDate": "De",
+        "toDate": "Ate",
+        "clear": "Limpar filtros",
+        "count": "A mostrar {shown} de {total}"
+      },
+      "table": {
+        "title": "Alteracoes",
+        "colTime": "Quando",
+        "colBy": "Administrador",
+        "colType": "Tipo",
+        "colAction": "Accao",
+        "colRef": "Registo",
+        "colReason": "Motivo",
+        "empty": "Nenhuma alteracao corresponde a estes filtros."
+      },
+      "raw": {
+        "title": "Pontos em bruto",
+        "titleWithSubject": "Pontos em bruto de {name}",
+        "desc": "As componentes individuais por tras do total de uma equipa ou jogador, antes de qualquer ajuste.",
+        "adminsOnly": "Apenas head admins e metrics admins podem consultar isto.",
+        "chipLabel": "{label}",
+        "season": "Epoca",
+        "team": "Equipa",
+        "player": "Jogador",
+        "pickTeam": "Escolher uma equipa",
+        "pickPlayer": "Escolher um jogador",
+        "searchTeam": "Procurar equipas",
+        "searchPlayer": "Procurar jogadores",
+        "load": "Mostrar pontos",
+        "loading": "A carregar",
+        "loadingData": "A carregar o detalhe dos pontos",
+        "loadFailed": "Nao foi possivel carregar o detalhe dos pontos.",
+        "colComponent": "Componente",
+        "colPoints": "Pontos",
+        "total": "Total",
+        "emptyTeam": "Esta equipa nao tem pontos registados na epoca escolhida.",
+        "emptyPlayer": "Este jogador nao tem pontos registados na epoca escolhida.",
+        "note": "Estas sao as componentes guardadas. Um ajuste, se existir, e aplicado por cima e consta do registo acima.",
+        "close": "Fechar"
+      },
+      "objectTypes": {
+        "tournament_result": "Resultado de torneio",
+        "scrim_result": "Resultado de scrim",
+        "prize_money": "Premios",
+        "social_media": "Audiencia social",
+        "roster": "Plantel",
+        "ghost_claim": "Reclamacao de fantasma",
+        "tier_override": "Ajuste de escalao",
+        "ban_zeroing": "Zeragem por banimento",
+        "transfer_window": "Janela de transferencias",
+        "season": "Epoca",
+        "evaluation": "Avaliacao"
+      }
+    },
+    "prize": {
+      "title": "Premios",
+      "description": "Premios que contam para os ganhos de uma equipa. Os automaticos vem dos resultados; pode adicionar um manualmente.",
+      "loading": "A carregar os premios",
+      "addCta": "Adicionar pagamento",
+      "summary": {
+        "totalTitle": "Total pago",
+        "acrossPayouts": "Em {count} pagamentos"
+      },
+      "common": {
+        "amountLabel": "Montante",
+        "reasonLabel": "Motivo",
+        "cancel": "Cancelar",
+        "goBack": "Voltar",
+        "minChars": "{count} de {min} caracteres"
+      },
+      "table": {
+        "cardTitle": "Pagamentos",
+        "colTeam": "Equipa",
+        "colEvent": "Evento",
+        "colAmount": "Montante",
+        "colAwarded": "Atribuido",
+        "colActions": "Accoes",
+        "auto": "A partir dos resultados",
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "empty": "Ainda nao ha premios registados."
+      },
+      "addDialog": {
+        "title": "Adicionar pagamento",
+        "desc": "Registe um premio pago a uma equipa. Conta de imediato para os seus ganhos.",
+        "teamLabel": "Equipa",
+        "teamPlaceholder": "Procurar equipas",
+        "eventLabel": "Evento",
+        "eventPlaceholder": "Procurar eventos",
+        "noMatches": "Nada corresponde a essa procura.",
+        "reasonPlaceholder": "Porque esta a adicionar isto? Guardado no registo de administracao.",
+        "adding": "A adicionar"
+      },
+      "editDialog": {
+        "title": "Editar pagamento",
+        "was": "Era {amount}",
+        "reasonPlaceholder": "Porque esta a alterar isto? Guardado no registo de administracao.",
+        "saveCta": "Guardar alteracoes",
+        "saving": "A guardar"
+      },
+      "deleteDialog": {
+        "title": "Eliminar este pagamento?",
+        "desc": "{amount} atribuido a {name} por {event} e removido dos seus ganhos.",
+        "descNoTeam": "{amount} atribuido por {event} e removido.",
+        "reasonPlaceholder": "Porque esta a eliminar isto? Guardado no registo de administracao.",
+        "cta": "Eliminar pagamento",
+        "deleting": "A eliminar"
+      },
+      "toasts": {
+        "added": "{amount} adicionado.",
+        "addFailed": "Nao foi possivel adicionar o pagamento.",
+        "updated": "Pagamento de {name} actualizado.",
+        "updatedFallback": "Pagamento actualizado.",
+        "updateFailed": "Nao foi possivel actualizar o pagamento.",
+        "deleted": "Pagamento de {name} eliminado.",
+        "deletedFallback": "Pagamento eliminado.",
+        "deleteFailed": "Nao foi possivel eliminar o pagamento.",
+        "loadFailed": "Nao foi possivel carregar os premios.",
+        "loadOptionsFailed": "Nao foi possivel carregar as listas de equipas e eventos.",
+        "loadSeasonsFailed": "Nao foi possivel carregar as epocas."
+      }
+    },
+    "social": {
+      "title": "Audiencia nas redes sociais",
+      "description": "Pontos que uma equipa ganha pela audiencia verificada. Um administrador confirma os numeros antes de contarem.",
+      "loading": "A carregar a audiencia",
+      "verifyAll": "Verificar todas as elegiveis",
+      "brackets": {
+        "title": "Como os seguidores se tornam pontos",
+        "points": "{count} pontos",
+        "range": "De {from} a {to}",
+        "plus": "{from} ou mais"
+      },
+      "stats": {
+        "connected": "Ligadas",
+        "connectedSub": "Equipas que ligaram uma conta",
+        "verified": "Verificadas",
+        "verifiedSub": "Confirmadas por um administrador e a contar",
+        "pending": "A aguardar confirmacao",
+        "pendingSub": "Ligadas mas ainda nao verificadas",
+        "points": "Pontos atribuidos",
+        "pointsSub": "De um maximo de {max}"
+      },
+      "table": {
+        "cardTitle": "Equipas",
+        "cardTitleWithSeason": "Equipas, {season}",
+        "search": "Procurar equipas",
+        "colTeam": "Equipa",
+        "colConnection": "Contas",
+        "colCombined": "Seguidores",
+        "colPoints": "Pontos",
+        "colVerification": "Verificacao",
+        "colActions": "Accoes",
+        "connected": "Ligada",
+        "notConnected": "Nao ligada",
+        "waitingConnect": "A aguardar que a equipa ligue uma conta",
+        "verified": "Verificada",
+        "pending": "Nao verificada",
+        "verify": "Verificar",
+        "reverify": "Verificar de novo",
+        "unverify": "Retirar verificacao",
+        "saveVerify": "Guardar",
+        "unsaved": "Por guardar",
+        "verifiedByLine": "Verificado a {date} por {by}",
+        "empty": "Nenhuma equipa ligou ainda uma conta social.",
+        "noMatch": "Nenhuma equipa corresponde a \"{q}\"."
+      },
+      "dialog": {
+        "reasonLabel": "Motivo",
+        "minChars": "{count} de {min} caracteres",
+        "combined": "Total de seguidores",
+        "points": "Pontos",
+        "pointsAfterUnverify": "Pontos depois de retirar a verificacao",
+        "verifyTitle": "Verificar {team}",
+        "reverifyTitle": "Verificar de novo {team}",
+        "reverifyDesc": "Os numeros de seguidores sao lidos outra vez e os pontos recalculados.",
+        "reverifyPlaceholder": "Porque esta a verificar de novo? Guardado no registo de administracao.",
+        "confirmReverify": "Verificar de novo",
+        "unverifyTitle": "Retirar a verificacao de {team}?",
+        "unverifyDesc": "A equipa mantem as contas ligadas mas deixa de ganhar estes pontos.",
+        "unverifyPlaceholder": "Porque a esta a retirar? Guardado no registo de administracao.",
+        "confirmUnverify": "Retirar verificacao",
+        "goBack": "Voltar"
+      },
+      "toasts": {
+        "verified": "{team} verificada: {followers} seguidores, {points} pontos.",
+        "reverified": "{team} verificada de novo: {followers} seguidores, {points} pontos.",
+        "unverified": "Verificacao retirada de {team}.",
+        "verifiedBulk": "{count} equipas verificadas.",
+        "nothingToVerify": "Nao ha nada a aguardar verificacao.",
+        "verifyFailed": "Nao foi possivel verificar essa equipa.",
+        "verifyAllFailed": "Nao foi possivel verificar todas.",
+        "updateFailed": "Nao foi possivel guardar essa alteracao.",
+        "loadFailed": "Nao foi possivel carregar a audiencia.",
+        "loadSeasonFailed": "Nao foi possivel carregar a epoca."
+      }
     }
   }
 }
