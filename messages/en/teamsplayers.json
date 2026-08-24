@@ -559,7 +559,9 @@
     "submitClaim": "Submit claim",
     "submitSuccess": "Claim submitted for admin review",
     "submitFailed": "Failed to submit the claim. Please try again.",
-    "ghost": "Ghost"
+    "ghost": "Ghost",
+    "fileTooLarge": "That image is larger than 5MB. Please pick a smaller one.",
+    "fileChosen": "Attached: {name}"
   },
   "glossary": {
     "pageTitle": "Glossary",

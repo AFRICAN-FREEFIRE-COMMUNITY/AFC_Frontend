@@ -559,7 +559,9 @@
     "submitClaim": "Soumettre la revendication",
     "submitSuccess": "Revendication soumise pour examen par l'administrateur",
     "submitFailed": "Échec de la soumission de la revendication. Veuillez réessayer.",
-    "ghost": "Fantôme"
+    "ghost": "Fantôme",
+    "fileTooLarge": "Cette image depasse 5 Mo. Choisissez-en une plus petite.",
+    "fileChosen": "Joint : {name}"
   },
   "glossary": {
     "pageTitle": "Glossaire",

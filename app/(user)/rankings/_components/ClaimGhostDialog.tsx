@@ -42,6 +42,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { IconGhost2, IconUsersGroup, IconUser, IconAlertTriangle } from "@tabler/icons-react";
 import { toast } from "sonner";
@@ -78,12 +79,18 @@ export function ClaimGhostDialog({
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
   const [evidence, setEvidence] = useState("");
+  // The OPTIONAL screenshot (owner 2026-08-24). This dialog has always invited one in its own
+  // placeholder while offering nowhere to put it.
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Reset the form each time the dialog opens, and (team mode) fetch the user's team for the dropdown.
   useEffect(() => {
     if (!open) return;
     setEvidence("");
+    setEvidenceFile(null);
+    setFileError(null);
     setSubmitting(false);
     setSelectedTeamId("");
     setTeams([]);
@@ -114,10 +121,12 @@ export function ClaimGhostDialog({
           String(target.ghostId),
           Number(selectedTeamId),
           evidence.trim() || undefined,
+          evidenceFile,
         );
       } else {
         // POST ghost-players/<int>/request-claim/ { evidence }
-        await rankingsClaimApi.requestPlayerClaim(Number(target.ghostId), evidence.trim() || undefined);
+        await rankingsClaimApi.requestPlayerClaim(
+          Number(target.ghostId), evidence.trim() || undefined, evidenceFile);
       }
       toast.success(t("claimGhost.submitSuccess"));
       onOpenChange(false);
@@ -220,6 +229,32 @@ export function ClaimGhostDialog({
               placeholder={t("claimGhost.evidencePlaceholder")}
               className="min-h-24"
             />
+            {/* The upload the placeholder above has always promised. Checked here as well as on
+                the server so a 6MB photo is refused before it is sent, not after. */}
+            <div className="space-y-1.5">
+              <Input
+                id="claim-evidence-file"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  if (f && f.size > 5 * 1024 * 1024) {
+                    setFileError(t("claimGhost.fileTooLarge"));
+                    setEvidenceFile(null);
+                    return;
+                  }
+                  setFileError(null);
+                  setEvidenceFile(f);
+                }}
+                className="cursor-pointer text-xs"
+              />
+              {evidenceFile && !fileError && (
+                <p className="text-[11px] text-muted-foreground">
+                  {t("claimGhost.fileChosen", { name: evidenceFile.name })}
+                </p>
+              )}
+              {fileError && <p className="text-[11px] text-destructive">{fileError}</p>}
+            </div>
             <p className="text-[11px] text-muted-foreground">
               {t("claimGhost.evidenceNote")}
             </p>

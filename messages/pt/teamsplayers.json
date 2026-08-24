@@ -559,7 +559,9 @@
     "submitClaim": "Enviar reivindicação",
     "submitSuccess": "Reivindicação enviada para revisão do administrador",
     "submitFailed": "Falha ao enviar a reivindicação. Por favor, tente novamente.",
-    "ghost": "Fantasma"
+    "ghost": "Fantasma",
+    "fileTooLarge": "Essa imagem tem mais de 5MB. Escolha uma mais pequena.",
+    "fileChosen": "Anexado: {name}"
   },
   "glossary": {
     "pageTitle": "Glossário",
