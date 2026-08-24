@@ -730,6 +730,15 @@ const Page = ({ params }: { params: Params }) => {
                     <CountryFlag country={teamDetails?.country} />
                     {t("teamDetail.country", { country: teamDetails?.country })}
                   </p>
+                  {/* The team's own description (owner 2026-08-24). get-team-details has always
+                      returned team_description and NO public surface rendered it, so every team
+                      wrote a blurb that only its own owner could ever see, on the My Team panel.
+                      Capped at 200 chars by the backend, so it needs no clamp here. */}
+                  {teamDetails?.team_description && (
+                    <p className="mt-2 max-w-prose text-sm text-muted-foreground">
+                      {teamDetails.team_description}
+                    </p>
+                  )}
                   {teamDetails?.is_banned && (
                     <Badge variant="destructive" className="mt-2">
                       {t("teamDetail.banned")}

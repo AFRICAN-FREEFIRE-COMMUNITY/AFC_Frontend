@@ -70,6 +70,8 @@ function page() {
   const [myTeam, setMyTeam] = useState<any>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [appliedTeams, setAppliedTeams] = useState<Set<number>>(new Set());
+  // Which list the All/Most-active pair is showing. Held here because the page owns pagination.
+  const [tab, setTab] = useState<string>("all-teams");
 
   // Filter teams by the search box. Uses the shared matchesSearch (lib/search.ts) so the match is
   // punctuation/space/accent-insensitive AND folds stylized "fancy font" names: typing "ve" now finds
@@ -78,15 +80,54 @@ function page() {
     matchesSearch([team.team_name, team.team_tag, team.team_owner], search),
   );
 
-  const totalPages = Math.ceil(filteredTeams.length / ITEMS_PER_PAGE);
-  const paginatedTeams = filteredTeams.slice(
+  // ── ORDER (owner 2026-08-24) ────────────────────────────────────────────────────────────────
+  // "by name, teams that start with numbers, then letter a then b etc". The list previously had NO
+  // sort at all and rendered whatever order the API happened to return, which was newest-first by
+  // team_id, so a name was impossible to find by eye.
+  //
+  // A plain localeCompare is not enough: it has to put DIGITS ahead of letters, and it has to sort
+  // "10" after "9" rather than between "1" and "2". So each name gets a bucket (digit / letter /
+  // anything else) and ties inside a bucket fall to a numeric-aware collator. Anything starting
+  // with a symbol goes last: the owner did not specify, and burying punctuation is the readable
+  // choice when the point is to find a name alphabetically.
+  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+  const nameBucket = (name: string) => {
+    const c = (name || "").trim().charAt(0);
+    if (/[0-9]/.test(c)) return 0;
+    if (/[a-z]/i.test(c)) return 1;
+    return 2;
+  };
+  const byName = (a: any, b: any) => {
+    const ba = nameBucket(a.team_name), bb = nameBucket(b.team_name);
+    if (ba !== bb) return ba - bb;
+    return collator.compare(a.team_name || "", b.team_name || "");
+  };
+  // Most active = events actually PLAYED, which the backend defines as a scored match line rather
+  // than a registration, so this agrees with the number on the team's own page. Matches break a
+  // tie, then the name, so the order is total and paging cannot repeat or drop a row.
+  const byActivity = (a: any, b: any) =>
+    (b.events_played ?? 0) - (a.events_played ?? 0) ||
+    (b.matches_played ?? 0) - (a.matches_played ?? 0) ||
+    byName(a, b);
+
+  const sortedAll = [...filteredTeams].sort(byName);
+  // The active tab lists only teams that have actually played. A team with nothing played is not
+  // "least active", it is absent from this question, and padding the list with zeros would bury
+  // the answer.
+  const activeTeams = [...filteredTeams]
+    .filter((tm) => (tm.events_played ?? 0) > 0)
+    .sort(byActivity);
+
+  const listForTab = tab === "active" ? activeTeams : sortedAll;
+  const totalPages = Math.ceil(listForTab.length / ITEMS_PER_PAGE);
+  const paginatedTeams = listForTab.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, tab]);
 
   useEffect(() => {
     startTransition(async () => {
@@ -185,9 +226,18 @@ function page() {
 
       {/* data-tour anchor (guided welcome tour): the teams browse + join list.
           Targeted by guided-tour-stops.ts -> teams stop -> "teams-list". */}
-      <Tabs defaultValue="all-teams" className="space-y-4" data-tour="teams-list">
-        <TabsList className="w-full">
+      <Tabs value={tab} onValueChange={setTab} className="space-y-4" data-tour="teams-list">
+        {/* WRAPS on a phone (owner 2026-08-24). Four tabs on one 390px row measured 421px and
+            scrolled the whole page sideways. Wrapping to two rows is chosen over an overflow-x
+            strip because all four stay visible: a tab a thumb has to discover by swiping is a tab
+            most people never find, and "Most active" and "Unclaimed profiles" are the two new ones.
+            h-auto because the shadcn TabsList is a fixed-height single row by default. */}
+        <TabsList className="flex h-auto w-full flex-wrap gap-1">
           <TabsTrigger value="all-teams">{t("teamsList.tabAllTeams")}</TabsTrigger>
+          <TabsTrigger value="active" className="gap-1.5">
+            {t("teamsList.tabMostActive")}
+            <NewBadge since="2026-08-24" />
+          </TabsTrigger>
           <TabsTrigger value="my-team">{t("teamsList.tabMyTeam")}</TabsTrigger>
           <TabsTrigger value="unclaimed" className="gap-1.5">
             {tu("tabLabel")}
@@ -195,12 +245,19 @@ function page() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="all-teams" className="space-y-4">
+        {/* One panel serves BOTH the all-teams and most-active tabs: the card grid is identical and
+            only the ordering and the heading differ, so duplicating ~150 lines of JSX to change a
+            sort would be the worse trade. `listForTab` above decides which list is paginated. */}
+        <TabsContent value={tab === "active" ? "active" : "all-teams"} className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>{t("teamsList.allTeamsTitle")}</CardTitle>
+              <CardTitle>
+                {tab === "active" ? t("teamsList.mostActiveTitle") : t("teamsList.allTeamsTitle")}
+              </CardTitle>
               <CardDescription>
-                {t("teamsList.allTeamsDescription")}
+                {tab === "active"
+                  ? t("teamsList.mostActiveDescription")
+                  : t("teamsList.allTeamsDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -235,10 +292,29 @@ function page() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="text-sm md:text-base">
+                        {/* The team's own description, which the public could not see anywhere
+                            (owner 2026-08-24): it rendered only on the owner's My Team panel and
+                            on no public surface at all, so every team's blurb was written and then
+                            hidden. Clamped to two lines so a long one cannot stretch the card. */}
+                        {team.team_description && (
+                          <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">
+                            {team.team_description}
+                          </p>
+                        )}
                         <p>
                           {t("teamsList.members", { count: team.member_count ? team.member_count : 0 })}
                         </p>
                         <p>{t("teamsList.tier", { tier: team.team_tier })}</p>
+                        {/* On the Most active tab, show WHY the team is on it. A rank with no
+                            number behind it is a claim the reader cannot check. */}
+                        {tab === "active" && (
+                          <p className="text-xs text-muted-foreground">
+                            {t("teamsList.activityLine", {
+                              events: team.events_played ?? 0,
+                              matches: team.matches_played ?? 0,
+                            })}
+                          </p>
+                        )}
                         <div className="flex gap-2 justify-between mt-6">
                           <Button
                             variant={"gradient"}

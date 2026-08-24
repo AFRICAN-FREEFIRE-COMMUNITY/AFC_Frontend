@@ -962,7 +962,9 @@
         "warning": "Approving moves this ghost's points, rank and tier onto the real team, for every month and season it appears in.",
         "cta": "Approve claim",
         "success": "{name} is now claimed.",
-        "failed": "Could not approve the claim."
+        "failed": "Could not approve the claim.",
+        "evidenceTitle": "What the claimant sent",
+        "evidenceAlt": "Evidence the claimant uploaded"
       },
       "revokeRequestDialog": {
         "title": "Reject the claim on {name}?",

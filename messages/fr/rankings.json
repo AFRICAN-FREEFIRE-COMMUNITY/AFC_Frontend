@@ -962,7 +962,9 @@
         "warning": "L'approbation deplace les points, le rang et le palier de ce fantome vers la vraie equipe, pour chaque mois et chaque saison ou il apparait.",
         "cta": "Approuver la demande",
         "success": "{name} est desormais reclamee.",
-        "failed": "Echec de l'approbation de la demande."
+        "failed": "Echec de l'approbation de la demande.",
+        "evidenceTitle": "Ce que le demandeur a envoye",
+        "evidenceAlt": "Preuve envoyee par le demandeur"
       },
       "revokeRequestDialog": {
         "title": "Refuser la demande sur {name} ?",

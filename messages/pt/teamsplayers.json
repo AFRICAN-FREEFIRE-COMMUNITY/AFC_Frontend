@@ -64,7 +64,11 @@
     "inGameRole": "Função no Jogo",
     "viewFullTeam": "Ver Equipe Completa",
     "notInTeam": "Você não faz parte de nenhuma equipe atualmente.",
-    "roleMember": "Membro"
+    "roleMember": "Membro",
+    "tabMostActive": "Mais activas",
+    "mostActiveTitle": "Equipas mais activas",
+    "mostActiveDescription": "Ordenadas pelos eventos realmente jogados, nao pelas inscricoes.",
+    "activityLine": "{events} eventos jogados, {matches} partidas"
   },
   "teamCreate": {
     "pageTitle": "Criar Nova Equipe",
@@ -555,7 +559,9 @@
     "submitClaim": "Enviar reivindicação",
     "submitSuccess": "Reivindicação enviada para revisão do administrador",
     "submitFailed": "Falha ao enviar a reivindicação. Por favor, tente novamente.",
-    "ghost": "Fantasma"
+    "ghost": "Fantasma",
+    "fileTooLarge": "Essa imagem tem mais de 5MB. Escolha uma mais pequena.",
+    "fileChosen": "Anexado: {name}"
   },
   "glossary": {
     "pageTitle": "Glossário",

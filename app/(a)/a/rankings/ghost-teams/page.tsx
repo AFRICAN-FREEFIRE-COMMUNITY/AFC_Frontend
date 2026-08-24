@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { matchesSearch } from "@/lib/search";
 import { InfoTip } from "@/components/ui/info-tip";
+import { env } from "@/lib/env";
 
 // Backend (afc_rankings/admin_ghost.py serialize_ghost) can return any of these four;
 // `revoked` is reset to `unclaimed` server-side on revoke, so it's rare but handled.
@@ -53,6 +54,10 @@ interface GhostTeam {
   is_active: boolean;
   claim_status: ClaimStatus;
   claim_requested_by: number | null; // User id (or null)
+  // What the claimant wrote, and the screenshot they attached (owner 2026-08-24). Both are how an
+  // admin decides; a claim queue that hides the proof is a queue that gets rubber-stamped.
+  claim_note: string | null;
+  claim_evidence: string | null;      // media URL, or null when nothing was attached
   claimed_by: number | null;          // afc_team.Team id (or null)
   created_by: number | null;          // User id (or null)
   created_at: string;
@@ -70,6 +75,8 @@ function toRow(g: any): GhostTeam {
     is_active: !!g.is_active,
     claim_status: (g.claim_status ?? "unclaimed") as ClaimStatus,
     claim_requested_by: g.claim_requested_by ?? null,
+    claim_note: g.claim_note ?? null,
+    claim_evidence: g.claim_evidence ?? null,
     claimed_by: g.claimed_by ?? null,
     created_by: g.created_by ?? null,
     // Keep the FULL instant - <LocalTime/> converts it to the viewer's day at render time.
@@ -132,15 +139,24 @@ function StatCard({ icon, title, value, sub, tone }: any) {
 
 const MIN_REASON = 10;
 
+// claim_evidence comes back as a site-relative /media/... path, so it needs the API origin in front
+// of it: the frontend is served from a different host and would otherwise 404 on its own origin.
+// Same reason get_all_teams builds an absolute URL for team_logo.
+const API_BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
+
 /** Mandatory-reason confirm dialog (approve / revoke / delete). */
 function ReasonDialog({
-  open, onOpenChange, title, description, warning, confirmLabel, confirmVariant, onConfirm,
+  open, onOpenChange, title, description, warning, extra, confirmLabel, confirmVariant, onConfirm,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   title: string;
   description?: string;
   warning?: string;
+  /** Extra content between the warning and the reason box. Used by approve to show the claimant's
+      own words and the screenshot they attached, because a claim queue that hides the proof is a
+      queue that gets rubber-stamped. */
+  extra?: React.ReactNode;
   confirmLabel: string;
   confirmVariant?: "default" | "destructive";
   onConfirm: (reason: string) => void;
@@ -171,6 +187,8 @@ function ReasonDialog({
             <span>{warning}</span>
           </div>
         )}
+
+        {extra}
 
         <div className="space-y-2">
           <Label htmlFor="reason">
@@ -797,6 +815,34 @@ export default function GhostTeamsAdminPage() {
             : undefined
         }
         warning={t("approveDialog.warning")}
+        extra={
+          (approve?.claim_note || approve?.claim_evidence) ? (
+            <div className="space-y-2 rounded-md bg-muted/50 p-3">
+              <p className="text-xs font-semibold">{t("approveDialog.evidenceTitle")}</p>
+              {approve?.claim_note && (
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  {approve.claim_note}
+                </p>
+              )}
+              {approve?.claim_evidence && (
+                <a
+                  href={`${API_BASE}${approve.claim_evidence}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block"
+                >
+                  {/* The screenshot itself, not just a link: an admin deciding a claim should see
+                      the proof without leaving the dialog. Click opens it full size. */}
+                  <img
+                    src={`${API_BASE}${approve.claim_evidence}`}
+                    alt={t("approveDialog.evidenceAlt")}
+                    className="max-h-40 w-full rounded-md object-contain"
+                  />
+                </a>
+              )}
+            </div>
+          ) : null
+        }
         confirmLabel={t("approveDialog.cta")}
         onConfirm={doApprove}
       />

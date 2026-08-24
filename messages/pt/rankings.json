@@ -962,7 +962,9 @@
         "warning": "Aprovar move os pontos, a posicao e o escalao deste fantasma para a equipa real, em todos os meses e epocas em que aparece.",
         "cta": "Aprovar pedido",
         "success": "{name} esta agora reclamada.",
-        "failed": "Nao foi possivel aprovar o pedido."
+        "failed": "Nao foi possivel aprovar o pedido.",
+        "evidenceTitle": "O que o requerente enviou",
+        "evidenceAlt": "Prova enviada pelo requerente"
       },
       "revokeRequestDialog": {
         "title": "Recusar o pedido sobre {name}?",

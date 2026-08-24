@@ -375,9 +375,25 @@ export const rankingsClaimApi = {
 
   // Request to claim a ghost TEAM for `teamId`. The backend 403s if the user does not run that
   // team (owner/captain/manager) and 400s if the ghost is not unclaimed or a conflict exists.
-  requestTeamClaim: async (ghostTeamId: string, teamId: number, evidence?: string) => {
+  // evidenceFile is the OPTIONAL screenshot (owner 2026-08-24). The form has always said
+  // "Links, screenshots, or anything that helps an admin confirm this is you" while offering only a
+  // textarea, so proof could be described and never attached. Sent as multipart only when a file is
+  // picked, so the plain-text path keeps its existing JSON shape and every current caller is
+  // untouched. Content-Type is left unset on purpose: the browser must set the multipart boundary.
+  requestTeamClaim: async (
+    ghostTeamId: string, teamId: number, evidence?: string, evidenceFile?: File | null,
+  ) => {
+    const url = `${BASE}/rankings/ghost-teams/${ghostTeamId}/request-claim/`;
+    if (evidenceFile) {
+      const fd = new FormData();
+      fd.append("team_id", String(teamId));
+      fd.append("evidence", evidence ?? "");
+      fd.append("evidence_file", evidenceFile);
+      const res = await axios.post(url, fd, { headers: userAuthHeaders() });
+      return res.data;
+    }
     const res = await axios.post(
-      `${BASE}/rankings/ghost-teams/${ghostTeamId}/request-claim/`,
+      url,
       { team_id: teamId, evidence: evidence ?? "" },
       { headers: userAuthHeaders() },
     );
@@ -385,9 +401,19 @@ export const rankingsClaimApi = {
   },
 
   // Request to claim a ghost PLAYER as the logged-in user themselves (no team_id, a self-claim).
-  requestPlayerClaim: async (ghostPlayerId: number, evidence?: string) => {
+  requestPlayerClaim: async (
+    ghostPlayerId: number, evidence?: string, evidenceFile?: File | null,
+  ) => {
+    const url = `${BASE}/rankings/ghost-players/${ghostPlayerId}/request-claim/`;
+    if (evidenceFile) {
+      const fd = new FormData();
+      fd.append("evidence", evidence ?? "");
+      fd.append("evidence_file", evidenceFile);
+      const res = await axios.post(url, fd, { headers: userAuthHeaders() });
+      return res.data;
+    }
     const res = await axios.post(
-      `${BASE}/rankings/ghost-players/${ghostPlayerId}/request-claim/`,
+      url,
       { evidence: evidence ?? "" },
       { headers: userAuthHeaders() },
     );

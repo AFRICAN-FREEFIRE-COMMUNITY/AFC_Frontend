@@ -64,7 +64,11 @@
     "inGameRole": "In-Game Role",
     "viewFullTeam": "View Full Team",
     "notInTeam": "You are not currently part of any team.",
-    "roleMember": "Member"
+    "roleMember": "Member",
+    "tabMostActive": "Most active",
+    "mostActiveTitle": "Most active teams",
+    "mostActiveDescription": "Ranked by events actually played, not by events entered.",
+    "activityLine": "{events} events played, {matches} matches"
   },
   "teamCreate": {
     "pageTitle": "Create a New Team",
@@ -555,7 +559,9 @@
     "submitClaim": "Submit claim",
     "submitSuccess": "Claim submitted for admin review",
     "submitFailed": "Failed to submit the claim. Please try again.",
-    "ghost": "Ghost"
+    "ghost": "Ghost",
+    "fileTooLarge": "That image is larger than 5MB. Please pick a smaller one.",
+    "fileChosen": "Attached: {name}"
   },
   "glossary": {
     "pageTitle": "Glossary",
