@@ -1012,7 +1012,7 @@ export default function AdminPlayerMarketPage() {
         // Title is a ReactNode so the page-level ⓘ can sit right after it.
         title={
           // data-tour anchor: player-markets tour title step.
-          <span data-tour="market-title" className="inline-flex items-center">
+          <span data-tour="market-title" className="inline-flex flex-wrap items-center">
             {t("title")}
             <InfoTip id="player_market._page" className="ml-1.5" />
           </span>

@@ -694,7 +694,7 @@ function RankingsView() {
                     <React.Fragment key={id}>
                       <TableRow className="cursor-pointer" onClick={() => setOpen(isOpen ? null : id)}>
                         <TableCell className="font-semibold text-muted-foreground">
-                          <span className="inline-flex items-center"><IconHash className="size-3" />{r._rank ?? r.rank}</span>
+                          <span className="inline-flex flex-wrap items-center"><IconHash className="size-3" />{r._rank ?? r.rank}</span>
                         </TableCell>
                         <TableCell className="font-medium">
                           {/* Ghost rows (is_ghost) have NO public profile, so they must

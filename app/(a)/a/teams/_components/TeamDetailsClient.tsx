@@ -339,7 +339,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
         <PageHeader
           // Title is a ReactNode so the page-level ⓘ can sit right after it.
           title={
-            <span className="inline-flex items-center">
+            <span className="inline-flex flex-wrap items-center">
               {teamDetails.team_name} Details
               <InfoTip id="teams.detail._page" className="ml-1.5" />
             </span>

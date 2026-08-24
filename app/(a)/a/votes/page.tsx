@@ -885,7 +885,7 @@ export default function Page() {
       {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
       <PageHeader
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             Voting Analytics Dashboard
             <InfoTip id="votes._page" className="ml-1.5" />
           </span>

@@ -211,7 +211,7 @@ export const LeaderboardsAdminContent = () => {
         back
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             Leaderboards Management
             <InfoTip id="leaderboards._page" className="ml-1.5" />
           </span>

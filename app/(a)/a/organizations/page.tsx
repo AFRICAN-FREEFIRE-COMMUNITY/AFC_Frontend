@@ -251,7 +251,7 @@ export default function OrganizationsAdminPage() {
         <PageHeader
           // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
           title={
-            <span className="inline-flex items-center">
+            <span className="inline-flex flex-wrap items-center">
               Organizations
               <InfoTip id="organizations._page" className="ml-1.5" />
             </span>

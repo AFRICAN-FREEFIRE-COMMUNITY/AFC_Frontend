@@ -221,7 +221,7 @@ function BracketTable({
                 <React.Fragment key={`${group}-${i}`}>
                   <TableRow className={cn(rowIssues.some((x) => x.severity === "error") && "bg-destructive/5")}>
                     <TableCell className="p-2">
-                      <div className="flex items-center gap-1">
+                      <div className="flex min-w-0 items-center gap-1">
                         {open ? (
                           <span className="inline-flex h-8 flex-1 items-center gap-1 rounded-md border border-dashed px-2 text-[11px] text-muted-foreground">
                             <IconInfinity className="size-3.5" />
@@ -567,7 +567,7 @@ export default function ScoringConfigPage() {
       <PageHeader
         back
         title={
-          <span data-tour="scoring-config-title" className="inline-flex items-center">
+          <span data-tour="scoring-config-title" className="inline-flex flex-wrap items-center">
             {t("admin.scoringConfig.title")}
             <InfoTip id="rankings.scoring._page" className="ml-1.5" />
           </span>
@@ -575,16 +575,16 @@ export default function ScoringConfigPage() {
         description={t("admin.scoringConfig.description")}
         action={
           <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
-            <div className="flex items-center gap-1">
+            <div className="flex min-w-0 items-center gap-1">
               <Button data-tour="scoring-config-reset" variant="outline"
-                className="w-full sm:w-auto" onClick={resetDefaults}>
+                className="min-w-0 flex-1 sm:w-auto sm:flex-none" onClick={resetDefaults}>
                 <IconRotateClockwise2 className="mr-1.5 size-4" />
                 {t("admin.scoringConfig.resetDefaults")}
               </Button>
               <InfoTip id="rankings.scoring.reset_defaults" />
             </div>
-            <div className="flex items-center gap-1">
-              <Button data-tour="scoring-config-save" className="w-full sm:w-auto"
+            <div className="flex min-w-0 items-center gap-1">
+              <Button data-tour="scoring-config-save" className="min-w-0 flex-1 sm:w-auto sm:flex-none"
                 onClick={() => setSaveOpen(true)} disabled={dirtyCount === 0}>
                 <IconDeviceFloppy className="mr-1.5 size-4" />
                 {t("admin.scoringConfig.saveChanges")}

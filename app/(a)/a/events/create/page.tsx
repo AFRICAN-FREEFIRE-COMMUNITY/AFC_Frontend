@@ -1292,7 +1292,7 @@ export default function CreateEventPage() {
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         // data-tour anchor: admin tour "Create new event" step (events-lb area, create sub-page).
         title={
-          <span data-tour="event-create-title" className="inline-flex items-center">
+          <span data-tour="event-create-title" className="inline-flex flex-wrap items-center">
             {duplicateSlug ? t("header.titleDuplicate") : t("header.title")}
             <InfoTip id="events.create._page" className="ml-1.5" />
           </span>

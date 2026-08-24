@@ -114,7 +114,7 @@ const page = ({ params }: { params: Params }) => {
               </>
             }
             title={
-              <span className="inline-flex items-center">
+              <span className="inline-flex flex-wrap items-center">
                 {newsDetails.news_title} Details
                 {/* Page-level ⓘ for the news detail/admin view. */}
                 <InfoTip id="news._page" className="ml-1.5" />

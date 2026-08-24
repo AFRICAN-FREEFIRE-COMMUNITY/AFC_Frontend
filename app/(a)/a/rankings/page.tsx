@@ -252,7 +252,7 @@ export default function AdminRankingsPage() {
         // data-tour anchor: rankings tour "the Rankings workspace" step (admin-tour-steps.ts
         // → ADMIN_TOUR_STEPS.rankings). It introduces the sub-nav row of detail pages above.
         title={
-          <span data-tour="rankings-header" className="inline-flex items-center">
+          <span data-tour="rankings-header" className="inline-flex flex-wrap items-center">
             {t("title")}
             <InfoTip id="rankings._page" className="ml-1.5" />
           </span>
@@ -468,7 +468,7 @@ export default function AdminRankingsPage() {
                 // sibling rankings/results/page.tsx renames its translator. Do not rename back.
                 <TableRow key={row.team_id}>
                   <TableCell className="font-semibold text-muted-foreground">
-                    <span className="inline-flex items-center"><IconHash className="size-3" />{row.rank}</span>
+                    <span className="inline-flex flex-wrap items-center"><IconHash className="size-3" />{row.rank}</span>
                   </TableCell>
                   {/* Ghost teams have no profile. The admin table already shows the name as
                       plain text (no TeamLink), and the backend prefixes it "[Ghost] ...", so we

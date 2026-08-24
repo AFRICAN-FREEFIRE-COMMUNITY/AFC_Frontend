@@ -449,7 +449,7 @@ export default function OrganizationDetailPage({
         back
         // Wrap the title so the page-level ⓘ sits right after the org name (PageHeader takes a ReactNode).
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             {organization.name}
             <InfoTip id="organizations.detail._page" className="ml-1.5" />
           </span>
@@ -692,7 +692,7 @@ export default function OrganizationDetailPage({
                     <TableHead>Role</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>
-                      <span className="inline-flex items-center">
+                      <span className="inline-flex flex-wrap items-center">
                         Permissions
                         <InfoTip id="organizations.member_permissions" className="ml-1" />
                       </span>

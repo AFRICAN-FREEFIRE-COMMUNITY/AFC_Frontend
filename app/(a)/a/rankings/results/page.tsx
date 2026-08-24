@@ -618,7 +618,7 @@ export default function ResultMarkersPage() {
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         // data-tour anchor: result-markers tour "Result Markers control" step.
         title={
-          <span data-tour="result-markers-title" className="inline-flex items-center">
+          <span data-tour="result-markers-title" className="inline-flex flex-wrap items-center">
             {tr("title")}
             <InfoTip id="rankings.results._page" className="ml-1.5" />
           </span>

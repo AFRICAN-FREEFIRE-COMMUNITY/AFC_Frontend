@@ -146,7 +146,7 @@ const page = () => {
           title={
             // data-tour anchor: first dashboard tour step (the AdminTour guide,
             // see app/(a)/a/_components/admin-tour-steps.ts → "dashboard").
-            <span data-tour="dashboard-title" className="inline-flex items-center">
+            <span data-tour="dashboard-title" className="inline-flex flex-wrap items-center">
               Admin dashboard
               <InfoTip id="dashboard._page" className="ml-1.5" />
             </span>

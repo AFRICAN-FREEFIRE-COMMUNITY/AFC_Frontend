@@ -331,7 +331,7 @@ const Page = ({ params }: { params: Params }) => {
           back
           // Title is a ReactNode so the inventory-page ⓘ can sit right after it.
           title={
-            <span className="inline-flex items-center">
+            <span className="inline-flex flex-wrap items-center">
               Edit: {productDetails.name}
               <InfoTip id="shop.inventory._page" className="ml-1.5" />
             </span>

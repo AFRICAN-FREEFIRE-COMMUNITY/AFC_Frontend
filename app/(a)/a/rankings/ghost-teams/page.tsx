@@ -577,7 +577,7 @@ export default function GhostTeamsAdminPage() {
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         // data-tour anchor: ghost-teams tour "Ghost Teams creation" step.
         title={
-          <span data-tour="ghost-teams-title" className="inline-flex items-center">
+          <span data-tour="ghost-teams-title" className="inline-flex flex-wrap items-center">
             {t("title")}
             {/* Attributing a ghost to a real profile is new here (owner 2026-08-24). Date-driven,
                 so it disappears by itself after 5 days and never needs deleting. */}

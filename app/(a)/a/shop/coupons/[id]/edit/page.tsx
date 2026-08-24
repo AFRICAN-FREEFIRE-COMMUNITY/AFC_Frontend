@@ -230,7 +230,7 @@ const Page = ({ params }: { params: Params }) => {
           back
           // Title is a ReactNode so the inventory-coupon ⓘ can sit right after it.
           title={
-            <span className="inline-flex items-center">
+            <span className="inline-flex flex-wrap items-center">
               Edit: {couponDetails?.code}
               <InfoTip id="shop.coupons._section" className="ml-1.5" />
             </span>

@@ -2046,7 +2046,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         // data-tour anchor (event-edit-title): admin tour "Edit event" step (events-lb area).
         title={
-          <span data-tour="event-edit-title" className="inline-flex items-center">
+          <span data-tour="event-edit-title" className="inline-flex flex-wrap items-center">
             {eventTitle}
             <InfoTip id="events.edit._page" className="ml-1.5" />
           </span>

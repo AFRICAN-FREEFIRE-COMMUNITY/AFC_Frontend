@@ -365,7 +365,7 @@ export default function CreateSponsorPage() {
       <PageHeader
         back
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             Create Sponsor Account
             <InfoTip id="sponsors.create._page" className="ml-1.5" />
           </span>

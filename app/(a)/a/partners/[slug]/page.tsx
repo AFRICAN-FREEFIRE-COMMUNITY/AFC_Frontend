@@ -588,7 +588,7 @@ export default function PartnerDetailPage({
         back
         // Wrap the title so the page-level ⓘ sits right after the partner name.
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             {detail.name}
             <InfoTip id="partners.detail._page" className="ml-1.5" />
           </span>
@@ -714,7 +714,7 @@ export default function PartnerDetailPage({
           {/* ── Scope: which events the partner may read ── */}
           <Card>
             <CardHeader className="border-b">
-              <CardTitle className="inline-flex items-center">
+              <CardTitle className="inline-flex flex-wrap items-center">
                 {t("detail.scope.cardTitle")}
                 <InfoTip id="partners.scope_grants._section" className="ml-1" />
               </CardTitle>
@@ -745,7 +745,7 @@ export default function PartnerDetailPage({
                   (same idiom as the sponsors create-wizard event picker). */}
               {/* data-tour="orgs-misc-partners-allowed-events": admin-tour anchor (orgs-misc area). */}
               <div data-tour="orgs-misc-partners-allowed-events" className="space-y-2">
-                <Label className="inline-flex items-center">
+                <Label className="inline-flex flex-wrap items-center">
                   {t("detail.scope.allowedEvents")}
                   <InfoTip id="partners.allowed_events" className="ml-1" />
                   {allowedEventIds.length > 0 && (
@@ -800,7 +800,7 @@ export default function PartnerDetailPage({
 
               {/* allowed_organizations multiselect - grants ALL of an org's events */}
               <div className="space-y-2">
-                <Label className="inline-flex items-center">
+                <Label className="inline-flex flex-wrap items-center">
                   {t("detail.scope.allowedOrgs")}
                   <InfoTip id="partners.allowed_organizations" className="ml-1" />
                   {allowedOrgIds.length > 0 && (
@@ -941,7 +941,7 @@ export default function PartnerDetailPage({
           {/* ── Resource toggles - which endpoints respond ── */}
           <Card>
             <CardHeader className="border-b">
-              <CardTitle className="inline-flex items-center">
+              <CardTitle className="inline-flex flex-wrap items-center">
                 {t("detail.toggleGroups.resource")}
                 <InfoTip id="partners.resource_toggles._section" className="ml-1" />
               </CardTitle>
@@ -974,7 +974,7 @@ export default function PartnerDetailPage({
           {/* ── Field toggles - which fields appear inside a readable resource ── */}
           <Card>
             <CardHeader className="border-b">
-              <CardTitle className="inline-flex items-center">
+              <CardTitle className="inline-flex flex-wrap items-center">
                 {t("detail.toggleGroups.field")}
                 <InfoTip id="partners.field_toggles._section" className="ml-1" />
               </CardTitle>
@@ -1145,7 +1145,7 @@ export default function PartnerDetailPage({
           <Card className="gap-0">
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
-                <CardTitle className="inline-flex items-center">
+                <CardTitle className="inline-flex flex-wrap items-center">
                   {t("detail.keys.title")}
                   <InfoTip id="partners.keys_table._section" className="ml-1" />
                 </CardTitle>
@@ -1348,7 +1348,7 @@ export default function PartnerDetailPage({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="key-rate" className="inline-flex items-center">
+                  <Label htmlFor="key-rate" className="inline-flex flex-wrap items-center">
                     {t("detail.issue.rateLimit")}
                     <InfoTip id="partners.rate_limit" className="ml-1" />
                   </Label>

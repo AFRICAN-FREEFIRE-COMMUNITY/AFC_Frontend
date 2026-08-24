@@ -348,7 +348,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
       <PageHeader
         // Title is a ReactNode so the page-level ⓘ can sit right after it.
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             {t("form.editTitle", { title: newsDetails?.news_title || "" })}
             <InfoTip id="news.edit._page" className="ml-1.5" />
           </span>

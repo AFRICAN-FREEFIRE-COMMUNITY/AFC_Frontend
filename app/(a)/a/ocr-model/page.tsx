@@ -327,7 +327,7 @@ export default function OcrModelPage() {
           in lib/help-content.ts for this one-off explainer. No em/en dashes in the copy. */}
       <PageHeader
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             OCR Model
             <InfoTip
               className="ml-1.5"

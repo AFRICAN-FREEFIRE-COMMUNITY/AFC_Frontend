@@ -323,7 +323,7 @@ export default function SocialVerificationPage() {
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         // data-tour anchor: social tour "Social media verification" step.
         title={
-          <span data-tour="social-title" className="inline-flex items-center">
+          <span data-tour="social-title" className="inline-flex flex-wrap items-center">
             {t("title")}
             <InfoTip id="rankings.social._page" className="ml-1.5" />
           </span>
@@ -331,8 +331,11 @@ export default function SocialVerificationPage() {
         description={t("description")}
         action={
           // ⓘ sits beside the verify-all button (sibling, not nested).
-          <div className="flex w-full items-center gap-1 md:w-auto">
-            <Button className="w-full md:w-auto" onClick={handleVerifyAll} disabled={submitting}>
+          // min-w-0 + flex-1 rather than w-full on the button: a w-full button plus the 14px ⓘ and
+          // its gap is wider than the row that holds them, which pushed the icon 8px past a 390px
+          // viewport and scrolled the whole page sideways.
+          <div className="flex w-full min-w-0 items-center gap-1 md:w-auto">
+            <Button className="min-w-0 flex-1 md:w-auto md:flex-none" onClick={handleVerifyAll} disabled={submitting}>
               <IconShieldCheck className="mr-1.5 size-4" /> {t("verifyAll")}
             </Button>
             <InfoTip id="rankings.social.verify_all" />
