@@ -49,10 +49,16 @@ import { TransferWindowBanner } from "@/components/rankings/TransferWindowBanner
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 // Shared search matcher: punctuation/accent-insensitive + folds stylized "fancy font" IGNs.
 import { matchesSearch } from "@/lib/search";
+// Browse + claim ghost profiles WITHOUT going through the rankings ladder (owner 2026-08-24).
+// A ghost that is not on a ladder previously had no row anywhere, so no claim was reachable.
+import UnclaimedProfiles from "./_components/UnclaimedProfiles";
+import { NewBadge } from "@/components/NewBadge";
 
 function page() {
   // i18n: teams browse list copy (messages/en/teamsplayers.json -> "teamsList").
   const t = useTranslations("teamsplayers");
+  // Scoped separately so the new block owns its own keys rather than widening the shared one.
+  const tu = useTranslations("teamsplayers.unclaimed");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [applicationMessage, setApplicationMessage] = useState("");
@@ -183,6 +189,10 @@ function page() {
         <TabsList className="w-full">
           <TabsTrigger value="all-teams">{t("teamsList.tabAllTeams")}</TabsTrigger>
           <TabsTrigger value="my-team">{t("teamsList.tabMyTeam")}</TabsTrigger>
+          <TabsTrigger value="unclaimed" className="gap-1.5">
+            {tu("tabLabel")}
+            <NewBadge since="2026-08-24" />
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="all-teams" className="space-y-4">
@@ -532,6 +542,14 @@ function page() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        {/* ── Unclaimed profiles (owner 2026-08-24) ──────────────────────────────────────────
+            Ghost teams and players from tournaments AFC did not run. Previously reachable only
+            from a ghost ROW on the rankings ladder, so anything not on a ladder could not be
+            claimed at all. Same ClaimGhostDialog, reached without the ladder. */}
+        <TabsContent value="unclaimed" className="space-y-4">
+          <UnclaimedProfiles />
         </TabsContent>
       </Tabs>
     </div>

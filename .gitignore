@@ -46,3 +46,5 @@ _frontend.log
 # committed; ignore anything else that lands in that folder (build scratch, other binaries).
 public/downloads/*
 !public/downloads/AFC-Capture.exe
+_fe_ghost.log
+_be_ghost.log

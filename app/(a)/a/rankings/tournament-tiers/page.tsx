@@ -900,7 +900,7 @@ export default function TournamentTiersPage() {
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         // data-tour anchor: tournament-tiers tour "Tournament Tiers classification" step.
         title={
-          <span data-tour="tournament-tiers-title" className="inline-flex items-center">
+          <span data-tour="tournament-tiers-title" className="inline-flex flex-wrap items-center">
             {t("title")}
             <InfoTip id="rankings.tiers._page" className="ml-1.5" />
           </span>

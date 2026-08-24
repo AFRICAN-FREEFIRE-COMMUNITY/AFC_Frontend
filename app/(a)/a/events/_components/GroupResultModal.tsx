@@ -53,6 +53,8 @@ export const GroupResultModal = ({
 }: GroupResultModalProps) => {
   const [loading, setLoading] = useState(false);
   const [viewMatchId, setViewMatchId] = useState<string>("overall");
+  // Controlled so the fetch can be gated on it (see the useEffect below).
+  const [open, setOpen] = useState(false);
 
   // This will store ONLY the specific group data found in the big API response
   const [groupDetails, setGroupDetails] = useState<any>(null);
@@ -84,7 +86,9 @@ export const GroupResultModal = ({
       if (foundGroup) {
         setGroupDetails(foundGroup);
       } else {
-        toast.error("Group data not found in leaderboard");
+        // A group with nothing in it yet is an ordinary state, not a failure: the event may simply
+        // not have been played. Render the empty view rather than shouting at the admin.
+        setGroupDetails(null);
       }
     } catch (error: any) {
       toast.error("Failed to load leaderboard details");
@@ -93,10 +97,19 @@ export const GroupResultModal = ({
     }
   };
 
-  // Trigger fetch when modal is likely to be interacted with or activeGroup changes
+  // FETCH ON OPEN, NOT ON MOUNT (bug, owner 2026-08-24).
+  //
+  // This modal is rendered once per GROUP inside the Stages & Groups tab, so on an event the size
+  // of FFWS (16 groups) mounting the tab fired 16 identical POSTs of the WHOLE event payload for
+  // modals nobody had opened, and every one that failed to find its group raised a toast. That is
+  // the "Group data not found in leaderboard" the owner saw just from opening the tab.
+  //
+  // Gating on `open` means one request, for the group actually being looked at, when it is looked
+  // at. activeGroup?.group_id stays in the deps so switching groups while open refetches.
   useEffect(() => {
+    if (!open) return;
     fetchLeaderboard();
-  }, [activeGroup?.group_id]);
+  }, [open, activeGroup?.group_id]);
 
   const getStandings = () => {
     if (!groupDetails) return [];
@@ -149,7 +162,7 @@ export const GroupResultModal = ({
   const tableStandings = getStandings();
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant="secondary"

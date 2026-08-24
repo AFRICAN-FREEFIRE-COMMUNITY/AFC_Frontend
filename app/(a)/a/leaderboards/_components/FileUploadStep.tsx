@@ -42,6 +42,7 @@ import { IconEye, IconCheck } from "@tabler/icons-react";
 // or cross-team player's kills inline via the SAME PATCH the <FlaggedKillsPanel/> uses
 // (events/flagged-kills/flag/). No new endpoint: flaggedKillsApi.setFlag(flag_id, count, token).
 import { flaggedKillsApi } from "@/lib/flaggedKills";
+import { readJson } from "@/lib/readJson";
 
 interface Props {
   match: { match_id: number; match_name: string };
@@ -340,7 +341,7 @@ export function FileUploadStep({
         body: formPayload,
       });
 
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(data.message || data.detail || "Upload failed");
       }

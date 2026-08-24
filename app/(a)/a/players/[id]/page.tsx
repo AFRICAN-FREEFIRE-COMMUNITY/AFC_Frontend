@@ -312,7 +312,7 @@ const Page = ({ params }: Props) => {
           back
           // Title is a ReactNode so the page-level ⓘ can sit right after it.
           title={
-            <span className="inline-flex items-center">
+            <span className="inline-flex flex-wrap items-center">
               {player.name}
               <InfoTip id="players.detail._page" className="ml-1.5" />
             </span>

@@ -254,7 +254,7 @@ export default function EditSponsorPage({
       <PageHeader
         back
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             Edit Sponsor: {sponsorUsername}
             <InfoTip id="sponsors.edit._page" className="ml-1.5" />
           </span>

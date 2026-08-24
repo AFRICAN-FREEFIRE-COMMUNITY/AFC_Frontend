@@ -177,7 +177,7 @@ function CreateNewsPage() {
           back
           // Title is a ReactNode so the page-level ⓘ can sit right after it.
           title={
-            <span className="inline-flex items-center">
+            <span className="inline-flex flex-wrap items-center">
               {t("form.createTitle")}
               <InfoTip id="news.create._page" className="ml-1.5" />
             </span>

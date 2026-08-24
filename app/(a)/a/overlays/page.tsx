@@ -87,6 +87,22 @@ export default function AdminLiveOverlaysPage() {
       : events;
   }, [events, q]);
 
+  // PAGING (owner report 2026-08-22: "the live overlays page doesn't even have pagination").
+  // Every event was rendered in one list. That is fine at 28 events and a wall at 300, and it is
+  // the only admin list without paging, so it also behaved differently from every other one.
+  // ITEMS_PER_PAGE matches the other admin lists so the whole area feels the same.
+  const ITEMS_PER_PAGE = 20;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  // A search that shortens the list must not strand the reader on a page that no longer exists.
+  useEffect(() => {
+    setPage(1);
+  }, [q]);
+  const pageItems = useMemo(
+    () => filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE),
+    [filtered, page],
+  );
+
   if (loading) return <FullLoader />;
 
   return (
@@ -164,7 +180,7 @@ export default function AdminLiveOverlaysPage() {
                 No events found.
               </p>
             ) : (
-              filtered.map((e) => {
+              pageItems.map((e) => {
                 return (
                   <div
                     key={e.event_id}
@@ -196,6 +212,40 @@ export default function AdminLiveOverlaysPage() {
               })
             )}
           </div>
+
+          {/* Only shown when there is more than one page: a control that can never do anything is
+              worse than none, and at 28 events most installs will never see this. Filled surfaces
+              and a count, matching the other admin lists. */}
+          {totalPages > 1 && (
+            <div className="mt-3 flex flex-col items-center justify-between gap-3 sm:flex-row">
+              <p className="text-muted-foreground text-xs">
+                Showing {(page - 1) * ITEMS_PER_PAGE + 1}
+                {"-"}
+                {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of {filtered.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-muted-foreground text-xs tabular-nums">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

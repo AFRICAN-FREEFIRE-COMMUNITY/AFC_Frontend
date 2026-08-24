@@ -720,5 +720,22 @@
   },
   "playerProfile": {
     "esportImage": "Esport image"
+  },
+  "unclaimed": {
+    "title": "Unclaimed profiles",
+    "description": "Teams and players recorded from tournaments run elsewhere. If one of these is you, claim it and its results become part of your profile.",
+    "tabTeams": "Teams",
+    "tabPlayers": "Players",
+    "searchTeams": "Search unclaimed teams by name",
+    "searchPlayers": "Search unclaimed players by in-game name",
+    "claimCta": "Claim this",
+    "empty": "Nothing is waiting to be claimed right now.",
+    "noMatch": "Nothing unclaimed matches \"{q}\".",
+    "loadFailed": "Could not load unclaimed profiles.",
+    "retry": "Try again",
+    "countryUnknown": "Country not recorded",
+    "playerCount": "{count} players",
+    "noTeam": "No team recorded",
+    "tabLabel": "Unclaimed profiles"
   }
 }

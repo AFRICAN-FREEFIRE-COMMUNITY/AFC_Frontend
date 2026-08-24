@@ -720,5 +720,22 @@
   },
   "playerProfile": {
     "esportImage": "Image liée à l'e-sport"
+  },
+  "unclaimed": {
+    "title": "Profils non reclames",
+    "description": "Equipes et joueurs releves dans des tournois organises ailleurs. Si l'un d'eux est le votre, reclamez-le et ses resultats rejoignent votre profil.",
+    "tabTeams": "Equipes",
+    "tabPlayers": "Joueurs",
+    "searchTeams": "Rechercher une equipe non reclamee par nom",
+    "searchPlayers": "Rechercher un joueur non reclame par pseudo",
+    "claimCta": "Reclamer",
+    "empty": "Rien n'attend d'etre reclame pour le moment.",
+    "noMatch": "Aucun profil non reclame ne correspond a \"{q}\".",
+    "loadFailed": "Echec du chargement des profils non reclames.",
+    "retry": "Reessayer",
+    "countryUnknown": "Pays non renseigne",
+    "playerCount": "{count} joueurs",
+    "noTeam": "Aucune equipe relevee",
+    "tabLabel": "Profils non reclames"
   }
 }

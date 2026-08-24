@@ -325,7 +325,7 @@ const page = () => {
       <PageHeader
         back
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             Drafts
             <InfoTip id="drafts._page" className="ml-1.5" />
           </span>

@@ -29,9 +29,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { TeamSearchSelect } from "@/components/ui/team-search-select";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { readJson } from "@/lib/readJson";
 
 type PreviewCompetitor = {
   name: string;
@@ -76,6 +78,94 @@ type Props = {
   /** Absolute backend origin, e.g. process.env.NEXT_PUBLIC_BACKEND_API_URL. */
   apiBase: string;
 };
+
+/**
+ * PAIR ONE NAME (owner 2026-08-24).
+ *
+ * WHY THIS EXISTS: the preview has always printed "X will be created as a new competitor, but AFC
+ * already has Y. Pair them if they are the same club." The backend endpoint to DO that
+ * (results-import/pair/) shipped at the same time and was fully working. Nothing in the frontend
+ * ever called it, so the sentence pointed at a control that did not exist.
+ *
+ * WHAT PAIRING IS: it records what a name in THIS file means, so the next import reads it as the
+ * team you picked. It is not a merge and not a ghost claim: no roster moves and no history is
+ * rewritten, which is why it needs no approval and is undone by simply pairing it differently.
+ * (Claiming a ghost's ranked history is the other tool, on /a/rankings/ghost-teams.)
+ *
+ * The picked team may be one that has never entered this event; the endpoint registers it, which is
+ * exactly what the import would have done had the spelling matched.
+ *
+ * After pairing, the preview is re-run so the row flips from "will be created" to matched, because
+ * an admin should see the correction take effect before committing anything.
+ */
+function PairRow({
+  slug, apiBase, token, sourceName, onPaired,
+}: {
+  slug: string;
+  apiBase: string;
+  token: string;
+  sourceName: string;
+  onPaired: () => void;
+}) {
+  const t = useTranslations("adminResultsImport");
+  const [open, setOpen] = useState(false);
+  const [teamId, setTeamId] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function pair(id: number) {
+    setSaving(true);
+    try {
+      const res = await fetch(`${apiBase}/results-import/pair/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, source_name: sourceName, team_id: id }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(json?.message || t("errors.pair"));
+        return;
+      }
+      toast.success(json?.message || t("pair.done"));
+      setOpen(false);
+      setTeamId(null);
+      onPaired();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="ml-1 rounded bg-muted px-1.5 py-0.5 text-[11px] font-medium text-foreground hover:bg-muted/70"
+      >
+        {t("pair.cta")}
+      </button>
+    );
+  }
+
+  return (
+    <span className="mt-1 flex flex-wrap items-center gap-2">
+      <span className="min-w-52 flex-1">
+        <TeamSearchSelect
+          value={teamId}
+          onChange={(id) => { setTeamId(id); if (id != null) pair(id); }}
+          placeholder={t("pair.placeholder")}
+          disabled={saving}
+        />
+      </span>
+      <button
+        type="button"
+        onClick={() => { setOpen(false); setTeamId(null); }}
+        className="rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground hover:bg-muted/70"
+      >
+        {t("pair.cancel")}
+      </button>
+    </span>
+  );
+}
 
 export default function ResultsImportTab({ slug, token, apiBase }: Props) {
   const t = useTranslations("adminResultsImport");
@@ -122,7 +212,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
         headers: { ...auth, "Content-Type": "application/json" },
         body: JSON.stringify({ slug, ...patch }),
       });
-      const json = await res.json();
+      const json = await readJson(res);
       if (!res.ok) {
         // The backend explains a refusal in a sentence written for a person (for example that the
         // rankings and tier halves need an AFC event admin), so show that, not a generic failure.
@@ -172,7 +262,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
         headers: auth,
         body,
       });
-      const json = await res.json();
+      const json = await readJson(res);
       if (!res.ok) {
         // The backend explains a refusal in a sentence written for a person, so show that rather
         // than a generic failure.
@@ -198,7 +288,7 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
         headers: auth,
         body,
       });
-      const json = await res.json();
+      const json = await readJson(res);
       if (!res.ok) {
         toast.error(json?.message || t("errors.commit"));
         return;
@@ -329,6 +419,18 @@ export default function ResultsImportTab({ slug, token, apiBase }: Props) {
                         {c.near_misses?.length
                           ? ` ${t("report.nearMiss", { names: c.near_misses.join(", ") })}`
                           : null}
+                        {/* The cure for the near-miss warning, on the row that carries it. Offered
+                            for anything the import WOULD create, not only near misses, because a
+                            renamed club often has no name similar enough to be flagged. */}
+                        {c.will_create && (
+                          <PairRow
+                            slug={slug}
+                            apiBase={apiBase}
+                            token={token}
+                            sourceName={c.name}
+                            onPaired={runPreview}
+                          />
+                        )}
                       </li>
                     ))}
                   </ul>

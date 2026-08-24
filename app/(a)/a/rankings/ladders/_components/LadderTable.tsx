@@ -44,7 +44,7 @@ function RankCell({ rank }: { rank: number | null }) {
       {rank == null ? (
         "-"
       ) : (
-        <span className="inline-flex items-center"><IconHash className="size-3" />{rank}</span>
+        <span className="inline-flex flex-wrap items-center"><IconHash className="size-3" />{rank}</span>
       )}
     </TableCell>
   );

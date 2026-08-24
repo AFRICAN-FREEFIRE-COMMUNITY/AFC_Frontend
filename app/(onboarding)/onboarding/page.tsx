@@ -276,11 +276,14 @@ export default function OnboardingPage() {
         )}
 
         {/* ── Footer controls ───────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between pt-2">
+        {/* Wraps rather than overflowing: at 390px "Skip this step" plus the step's own action
+            button ran 2px past the viewport and scrolled the whole page sideways. gap-y keeps the
+            two rows apart once they do wrap. */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
           <Button variant="ghost" onClick={goBack} disabled={step === 0 || busy}>
             {t("back")}
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               onClick={step === total - 1 ? exitOnboarding : goNext}

@@ -233,7 +233,7 @@ export default function OrgReportsAdminPage() {
           // data-tour="orgs-misc-org-reports-title": admin-tour anchor (orgs-misc area).
           <span
             data-tour="orgs-misc-org-reports-title"
-            className="inline-flex items-center"
+            className="inline-flex flex-wrap items-center"
           >
             Org Reports
             <InfoTip id="organizations.reports._page" className="ml-1.5" />

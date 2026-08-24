@@ -211,7 +211,7 @@ export default function SeasonsAdminPage() {
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         // data-tour anchor: seasons tour "Seasons management" step.
         title={
-          <span data-tour="seasons-title" className="inline-flex items-center">
+          <span data-tour="seasons-title" className="inline-flex flex-wrap items-center">
             {t("title")}
             <InfoTip id="rankings.seasons._page" className="ml-1.5" />
           </span>

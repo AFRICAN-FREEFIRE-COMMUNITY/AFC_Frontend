@@ -32,6 +32,7 @@ import { toast } from "sonner";
 // 2026-07-03). team_country rides on each stat / overall row (get_all_leaderboard_details_for_event)
 // and is threaded onto EditRow below. Solo/blank -> CountryFlag renders nothing.
 import { CountryFlag } from "@/lib/countryFlag";
+import { readJson } from "@/lib/readJson";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -144,7 +145,7 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
         },
       );
 
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(
           data.message || data.detail || "Failed to fetch leaderboard",

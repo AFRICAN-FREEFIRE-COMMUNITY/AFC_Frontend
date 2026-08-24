@@ -720,5 +720,22 @@
   },
   "playerProfile": {
     "esportImage": "Imagem de desporto eletrónico"
+  },
+  "unclaimed": {
+    "title": "Perfis por reclamar",
+    "description": "Equipas e jogadores registados a partir de torneios organizados noutro lado. Se um deles for o seu, reclame-o e os resultados passam a fazer parte do seu perfil.",
+    "tabTeams": "Equipas",
+    "tabPlayers": "Jogadores",
+    "searchTeams": "Procurar equipas por reclamar pelo nome",
+    "searchPlayers": "Procurar jogadores por reclamar pelo nome de jogo",
+    "claimCta": "Reclamar",
+    "empty": "Nao ha nada a aguardar reclamacao neste momento.",
+    "noMatch": "Nenhum perfil por reclamar corresponde a \"{q}\".",
+    "loadFailed": "Nao foi possivel carregar os perfis por reclamar.",
+    "retry": "Tentar novamente",
+    "countryUnknown": "Pais nao registado",
+    "playerCount": "{count} jogadores",
+    "noTeam": "Sem equipa registada",
+    "tabLabel": "Perfis por reclamar"
   }
 }

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { InfoTip } from "@/components/ui/info-tip";
+import { readJson } from "@/lib/readJson";
 
 type RankEntry = { id: number; val: string };
 
@@ -257,7 +258,7 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
         },
       );
 
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(data.message || data.detail || "Failed to create leaderboard");
       }

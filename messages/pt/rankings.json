@@ -847,6 +847,366 @@
         "copied": "{count, plural, =0 {Nenhuma regra copiada} one {# regra copiada} other {# regras copiadas}}. Os dois conjuntos são separados a partir de agora.",
         "copyFailed": "Não foi possível copiar as regras."
       }
+    },
+    "ghostTeams": {
+      "title": "Equipas fantasma",
+      "description": "Equipas registadas num torneio externo que ainda nao tem perfil AFC. Uma equipa real pode reclamar uma para assumir o seu historico.",
+      "loading": "A carregar as equipas fantasma",
+      "loadFailed": "Nao foi possivel carregar as equipas fantasma.",
+      "search": "Procurar por nome, pais ou ID externo",
+      "createCta": "Adicionar equipa fantasma",
+      "status": {
+        "unclaimed": "Por reclamar",
+        "pending": "Pedido pendente",
+        "claimed": "Reclamada"
+      },
+      "tabs": {
+        "all": "Todas",
+        "pending": "Pedidos pendentes"
+      },
+      "stats": {
+        "active": "Por reclamar",
+        "activeSub": "Nenhuma equipa AFC as assumiu ainda",
+        "pending": "A aguardar analise",
+        "pendingSub": "Uma equipa pediu para as reclamar",
+        "claimed": "Reclamadas",
+        "claimedSub": "O historico esta agora numa equipa AFC real",
+        "total": "Equipas fantasma",
+        "totalSub": "Registadas a partir de torneios externos"
+      },
+      "table": {
+        "colName": "Equipa",
+        "colCountry": "Pais",
+        "colPlayers": "Jogadores",
+        "colExternalId": "ID externo",
+        "colStatus": "Estado",
+        "colClaimedBy": "Reclamada por",
+        "colCreatedBy": "Adicionada por",
+        "colCreated": "Adicionada",
+        "colActions": "Accoes",
+        "empty": "Ainda nao ha equipas fantasma. Aparecem aqui quando um torneio externo e importado, ou pode adicionar uma manualmente.",
+        "emptyPending": "Nao ha pedidos a aguardar analise.",
+        "noMatch": "Nenhuma equipa fantasma corresponde a \"{q}\".",
+        "noPlayers": "Sem jogadores registados",
+        "none": "Nao definido",
+        "system": "Sistema",
+        "teamId": "Equipa n.{id}",
+        "userId": "Utilizador n.{id}"
+      },
+      "actions": {
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "approveClaim": "Aprovar pedido",
+        "revoke": "Recusar pedido",
+        "revokeClaim": "Anular reclamacao",
+        "attribute": "Atribuir"
+      },
+      "common": {
+        "cancel": "Cancelar",
+        "goBack": "Voltar",
+        "required": "Obrigatorio",
+        "optional": "Opcional",
+        "reasonLabel": "Motivo",
+        "reasonPlaceholder": "Porque esta a fazer isto? Guardado no registo de administracao.",
+        "reasonRequired": "Indique um motivo antes de continuar.",
+        "minChars": "{count} de {min} caracteres"
+      },
+      "form": {
+        "nameLabel": "Nome da equipa",
+        "namePlaceholder": "O nome exactamente como o organizador o publicou",
+        "countryLabel": "Pais",
+        "countryPlaceholder": "Escolha um pais",
+        "externalIdLabel": "ID externo",
+        "externalIdPlaceholder": "O ID do organizador para esta equipa, se tiver publicado algum",
+        "nameCountryRequired": "O nome da equipa e o pais sao ambos obrigatorios.",
+        "needsOnePlayer": "Adicione pelo menos um jogador.",
+        "addOnePlayer": "Adicione pelo menos um jogador antes de guardar.",
+        "reasonTooShort": "O motivo precisa de pelo menos {min} caracteres."
+      },
+      "roster": {
+        "label": "Jogadores",
+        "hint": "Adicione os jogadores listados pelo organizador. Pode edita-los mais tarde.",
+        "playerPlaceholder": "Jogador {n}",
+        "addPlayer": "Adicionar jogador",
+        "removePlayer": "Remover o jogador {n}",
+        "atLeastOne": "Mantenha pelo menos um jogador."
+      },
+      "createDialog": {
+        "title": "Adicionar equipa fantasma",
+        "desc": "Registe uma equipa de um torneio externo para que os seus resultados possam ser atribuidos. Nao e criada nenhuma conta AFC.",
+        "cta": "Adicionar equipa",
+        "success": "{name} adicionada com {count} jogador(es).",
+        "failed": "Nao foi possivel adicionar a equipa fantasma."
+      },
+      "editDialog": {
+        "title": "Editar equipa fantasma",
+        "desc": "Corrija o nome, o pais ou o plantel. Isto nao move nenhum resultado.",
+        "cta": "Guardar alteracoes",
+        "success": "{name} guardada com {count} jogador(es).",
+        "failed": "Nao foi possivel guardar as alteracoes."
+      },
+      "deleteDialog": {
+        "title": "Eliminar {name}?",
+        "desc": "A equipa fantasma e os jogadores registados sao removidos.",
+        "warning": "Qualquer resultado ja atribuido a este fantasma e removido com ele. Nao pode ser anulado.",
+        "cta": "Eliminar equipa",
+        "success": "{name} eliminada.",
+        "failed": "Nao foi possivel eliminar a equipa fantasma."
+      },
+      "approveDialog": {
+        "title": "Aprovar o pedido sobre {name}?",
+        "descCaptain": "Um representante da equipa pediu para reclamar esta equipa fantasma.",
+        "descCaptainForTeam": "Um representante de {team} pediu para reclamar esta equipa fantasma.",
+        "descUser": "{user} pediu para reclamar esta equipa fantasma.",
+        "descUserForTeam": "{user} pediu para reclamar esta equipa fantasma para {team}.",
+        "warning": "Aprovar move os pontos, a posicao e o escalao deste fantasma para a equipa real, em todos os meses e epocas em que aparece.",
+        "cta": "Aprovar pedido",
+        "success": "{name} esta agora reclamada.",
+        "failed": "Nao foi possivel aprovar o pedido."
+      },
+      "revokeRequestDialog": {
+        "title": "Recusar o pedido sobre {name}?",
+        "desc": "O pedido e recusado e o fantasma continua por reclamar.",
+        "descFromUser": "O pedido de {user} e recusado e o fantasma continua por reclamar.",
+        "cta": "Recusar pedido",
+        "success": "Pedido sobre {name} recusado.",
+        "failed": "Nao foi possivel recusar o pedido."
+      },
+      "revokeClaimDialog": {
+        "title": "Anular a reclamacao sobre {name}?",
+        "desc": "O fantasma volta a estar por reclamar.",
+        "descFromTeam": "O fantasma e retirado a {team} e volta a estar por reclamar.",
+        "warning": "Os pontos, a posicao e o escalao que esta reclamacao moveu voltam para o fantasma. Faca isto apenas se a reclamacao estava errada.",
+        "cta": "Anular reclamacao",
+        "success": "Reclamacao sobre {name} anulada.",
+        "failed": "Nao foi possivel anular a reclamacao."
+      },
+      "attributeDialog": {
+        "title": "Atribuir {name}",
+        "desc": "Indique qual o perfil AFC a que esta equipa corresponde. Nao precisa de esperar que a equipa peca.",
+        "teamLabel": "Perfil de equipa AFC",
+        "teamPlaceholder": "Procurar equipas por nome ou tag",
+        "teamHint": "A procura abrange o nome da equipa e a tag curta.",
+        "historyLabel": "O que deve acontecer aos resultados?",
+        "moveTitle": "Mover o historico",
+        "moveDesc": "Os pontos, a posicao e o escalao passam para o perfil AFC, em todos os meses e epocas.",
+        "linkTitle": "Apenas ligar",
+        "linkDesc": "Os dois ficam ligados, mas os resultados permanecem no fantasma e a tabela continua a inclui-lo.",
+        "moveWarning": "Mover o historico nao pode ser anulado a partir deste ecra. Use Anular reclamacao depois, se estiver errado.",
+        "applyToAllLabel": "Usar a mesma resposta para as outras {count} equipas por reclamar e deixar de perguntar.",
+        "cta": "Atribuir equipa",
+        "success": "{ghost} e agora {team}.",
+        "failed": "Nao foi possivel atribuir a equipa."
+      }
+    },
+    "audit": {
+      "title": "Registo de alteracoes das classificacoes",
+      "description": "Todas as alteracoes feitas por um administrador as classificacoes, e o motivo indicado.",
+      "loading": "A carregar o registo",
+      "loadFailed": "Nao foi possivel carregar o registo.",
+      "adminsOnly": "Apenas head admins e metrics admins podem consultar isto.",
+      "rawViewerCta": "Consultar pontos em bruto",
+      "filters": {
+        "title": "Filtros",
+        "objectTypePlaceholder": "Qualquer tipo de alteracao",
+        "allObjectTypes": "Todos os tipos",
+        "searchReason": "Procurar no texto do motivo",
+        "fromDate": "De",
+        "toDate": "Ate",
+        "clear": "Limpar filtros",
+        "count": "A mostrar {shown} de {total}"
+      },
+      "table": {
+        "title": "Alteracoes",
+        "colTime": "Quando",
+        "colBy": "Administrador",
+        "colType": "Tipo",
+        "colAction": "Accao",
+        "colRef": "Registo",
+        "colReason": "Motivo",
+        "empty": "Nenhuma alteracao corresponde a estes filtros."
+      },
+      "raw": {
+        "title": "Pontos em bruto",
+        "titleWithSubject": "Pontos em bruto de {name}",
+        "desc": "As componentes individuais por tras do total de uma equipa ou jogador, antes de qualquer ajuste.",
+        "adminsOnly": "Apenas head admins e metrics admins podem consultar isto.",
+        "chipLabel": "{label}",
+        "season": "Epoca",
+        "team": "Equipa",
+        "player": "Jogador",
+        "pickTeam": "Escolher uma equipa",
+        "pickPlayer": "Escolher um jogador",
+        "searchTeam": "Procurar equipas",
+        "searchPlayer": "Procurar jogadores",
+        "load": "Mostrar pontos",
+        "loading": "A carregar",
+        "loadingData": "A carregar o detalhe dos pontos",
+        "loadFailed": "Nao foi possivel carregar o detalhe dos pontos.",
+        "colComponent": "Componente",
+        "colPoints": "Pontos",
+        "total": "Total",
+        "emptyTeam": "Esta equipa nao tem pontos registados na epoca escolhida.",
+        "emptyPlayer": "Este jogador nao tem pontos registados na epoca escolhida.",
+        "note": "Estas sao as componentes guardadas. Um ajuste, se existir, e aplicado por cima e consta do registo acima.",
+        "close": "Fechar"
+      },
+      "objectTypes": {
+        "tournament_result": "Resultado de torneio",
+        "scrim_result": "Resultado de scrim",
+        "prize_money": "Premios",
+        "social_media": "Audiencia social",
+        "roster": "Plantel",
+        "ghost_claim": "Reclamacao de fantasma",
+        "tier_override": "Ajuste de escalao",
+        "ban_zeroing": "Zeragem por banimento",
+        "transfer_window": "Janela de transferencias",
+        "season": "Epoca",
+        "evaluation": "Avaliacao"
+      }
+    },
+    "prize": {
+      "title": "Premios",
+      "description": "Premios que contam para os ganhos de uma equipa. Os automaticos vem dos resultados; pode adicionar um manualmente.",
+      "loading": "A carregar os premios",
+      "addCta": "Adicionar pagamento",
+      "summary": {
+        "totalTitle": "Total pago",
+        "acrossPayouts": "Em {count} pagamentos"
+      },
+      "common": {
+        "amountLabel": "Montante",
+        "reasonLabel": "Motivo",
+        "cancel": "Cancelar",
+        "goBack": "Voltar",
+        "minChars": "{count} de {min} caracteres"
+      },
+      "table": {
+        "cardTitle": "Pagamentos",
+        "colTeam": "Equipa",
+        "colEvent": "Evento",
+        "colAmount": "Montante",
+        "colAwarded": "Atribuido",
+        "colActions": "Accoes",
+        "auto": "A partir dos resultados",
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "empty": "Ainda nao ha premios registados."
+      },
+      "addDialog": {
+        "title": "Adicionar pagamento",
+        "desc": "Registe um premio pago a uma equipa. Conta de imediato para os seus ganhos.",
+        "teamLabel": "Equipa",
+        "teamPlaceholder": "Procurar equipas",
+        "eventLabel": "Evento",
+        "eventPlaceholder": "Procurar eventos",
+        "noMatches": "Nada corresponde a essa procura.",
+        "reasonPlaceholder": "Porque esta a adicionar isto? Guardado no registo de administracao.",
+        "adding": "A adicionar"
+      },
+      "editDialog": {
+        "title": "Editar pagamento",
+        "was": "Era {amount}",
+        "reasonPlaceholder": "Porque esta a alterar isto? Guardado no registo de administracao.",
+        "saveCta": "Guardar alteracoes",
+        "saving": "A guardar"
+      },
+      "deleteDialog": {
+        "title": "Eliminar este pagamento?",
+        "desc": "{amount} atribuido a {name} por {event} e removido dos seus ganhos.",
+        "descNoTeam": "{amount} atribuido por {event} e removido.",
+        "reasonPlaceholder": "Porque esta a eliminar isto? Guardado no registo de administracao.",
+        "cta": "Eliminar pagamento",
+        "deleting": "A eliminar"
+      },
+      "toasts": {
+        "added": "{amount} adicionado.",
+        "addFailed": "Nao foi possivel adicionar o pagamento.",
+        "updated": "Pagamento de {name} actualizado.",
+        "updatedFallback": "Pagamento actualizado.",
+        "updateFailed": "Nao foi possivel actualizar o pagamento.",
+        "deleted": "Pagamento de {name} eliminado.",
+        "deletedFallback": "Pagamento eliminado.",
+        "deleteFailed": "Nao foi possivel eliminar o pagamento.",
+        "loadFailed": "Nao foi possivel carregar os premios.",
+        "loadOptionsFailed": "Nao foi possivel carregar as listas de equipas e eventos.",
+        "loadSeasonsFailed": "Nao foi possivel carregar as epocas."
+      }
+    },
+    "social": {
+      "title": "Audiencia nas redes sociais",
+      "description": "Pontos que uma equipa ganha pela audiencia verificada. Um administrador confirma os numeros antes de contarem.",
+      "loading": "A carregar a audiencia",
+      "verifyAll": "Verificar todas as elegiveis",
+      "brackets": {
+        "title": "Como os seguidores se tornam pontos",
+        "points": "{count} pontos",
+        "range": "De {from} a {to}",
+        "plus": "{from} ou mais"
+      },
+      "stats": {
+        "connected": "Ligadas",
+        "connectedSub": "Equipas que ligaram uma conta",
+        "verified": "Verificadas",
+        "verifiedSub": "Confirmadas por um administrador e a contar",
+        "pending": "A aguardar confirmacao",
+        "pendingSub": "Ligadas mas ainda nao verificadas",
+        "points": "Pontos atribuidos",
+        "pointsSub": "De um maximo de {max}"
+      },
+      "table": {
+        "cardTitle": "Equipas",
+        "cardTitleWithSeason": "Equipas, {season}",
+        "search": "Procurar equipas",
+        "colTeam": "Equipa",
+        "colConnection": "Contas",
+        "colCombined": "Seguidores",
+        "colPoints": "Pontos",
+        "colVerification": "Verificacao",
+        "colActions": "Accoes",
+        "connected": "Ligada",
+        "notConnected": "Nao ligada",
+        "waitingConnect": "A aguardar que a equipa ligue uma conta",
+        "verified": "Verificada",
+        "pending": "Nao verificada",
+        "verify": "Verificar",
+        "reverify": "Verificar de novo",
+        "unverify": "Retirar verificacao",
+        "saveVerify": "Guardar",
+        "unsaved": "Por guardar",
+        "verifiedByLine": "Verificado a {date} por {by}",
+        "empty": "Nenhuma equipa ligou ainda uma conta social.",
+        "noMatch": "Nenhuma equipa corresponde a \"{q}\"."
+      },
+      "dialog": {
+        "reasonLabel": "Motivo",
+        "minChars": "{count} de {min} caracteres",
+        "combined": "Total de seguidores",
+        "points": "Pontos",
+        "pointsAfterUnverify": "Pontos depois de retirar a verificacao",
+        "verifyTitle": "Verificar {team}",
+        "reverifyTitle": "Verificar de novo {team}",
+        "reverifyDesc": "Os numeros de seguidores sao lidos outra vez e os pontos recalculados.",
+        "reverifyPlaceholder": "Porque esta a verificar de novo? Guardado no registo de administracao.",
+        "confirmReverify": "Verificar de novo",
+        "unverifyTitle": "Retirar a verificacao de {team}?",
+        "unverifyDesc": "A equipa mantem as contas ligadas mas deixa de ganhar estes pontos.",
+        "unverifyPlaceholder": "Porque a esta a retirar? Guardado no registo de administracao.",
+        "confirmUnverify": "Retirar verificacao",
+        "goBack": "Voltar"
+      },
+      "toasts": {
+        "verified": "{team} verificada: {followers} seguidores, {points} pontos.",
+        "reverified": "{team} verificada de novo: {followers} seguidores, {points} pontos.",
+        "unverified": "Verificacao retirada de {team}.",
+        "verifiedBulk": "{count} equipas verificadas.",
+        "nothingToVerify": "Nao ha nada a aguardar verificacao.",
+        "verifyFailed": "Nao foi possivel verificar essa equipa.",
+        "verifyAllFailed": "Nao foi possivel verificar todas.",
+        "updateFailed": "Nao foi possivel guardar essa alteracao.",
+        "loadFailed": "Nao foi possivel carregar a audiencia.",
+        "loadSeasonFailed": "Nao foi possivel carregar a epoca."
+      }
     }
   }
 }

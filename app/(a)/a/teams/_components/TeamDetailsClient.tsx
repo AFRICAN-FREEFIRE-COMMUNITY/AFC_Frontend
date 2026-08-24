@@ -49,6 +49,7 @@ import { InfoTip } from "@/components/ui/info-tip";
 import { NothingFound } from "@/components/NothingFound";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { readJson } from "@/lib/readJson";
 import {
   IconUserMinus,
   IconUserPlus,
@@ -216,7 +217,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
         headers: { "Content-Type": "application/json", ...authHeader },
         body: JSON.stringify({ team_id: teamDetails.team_id, member_id: removeTarget.id }),
       });
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) throw new Error(data.message);
       toast.success(data.message);
       setRemoveTarget(null);
@@ -242,7 +243,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
         headers: { "Content-Type": "application/json", ...authHeader },
         body: JSON.stringify(body),
       });
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) throw new Error(data.message);
       toast.success(data.message);
       closeAddDialog();
@@ -259,7 +260,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
         headers: { "Content-Type": "application/json", ...authHeader },
         body: JSON.stringify({ team_id: teamDetails.team_id, tier: tierValue }),
       });
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) throw new Error(data.message);
       toast.success(data.message);
       setTierConfirmOpen(false);
@@ -276,7 +277,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
         headers: { "Content-Type": "application/json", ...authHeader },
         body: JSON.stringify({ team_id: teamDetails.team_id, new_owner_id: transferTarget }),
       });
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) throw new Error(data.message);
       toast.success(data.message);
       setTransferConfirmOpen(false);
@@ -338,7 +339,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
         <PageHeader
           // Title is a ReactNode so the page-level ⓘ can sit right after it.
           title={
-            <span className="inline-flex items-center">
+            <span className="inline-flex flex-wrap items-center">
               {teamDetails.team_name} Details
               <InfoTip id="teams.detail._page" className="ml-1.5" />
             </span>

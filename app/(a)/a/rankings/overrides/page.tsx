@@ -696,7 +696,7 @@ export default function OverridesAndBansPage() {
         // Wrap the title so the page-level ⓘ sits right after it (PageHeader takes a ReactNode).
         // data-tour anchor: overrides tour "Manual tier and score overrides" step.
         title={
-          <span data-tour="overrides-title" className="inline-flex items-center">
+          <span data-tour="overrides-title" className="inline-flex flex-wrap items-center">
             {t("title")}
             <InfoTip id="rankings.overrides._page" className="ml-1.5" />
           </span>
@@ -799,7 +799,7 @@ export default function OverridesAndBansPage() {
                     return (
                       <TableRow key={t2.team_id} className={cn(t2.is_zeroed && "bg-destructive/5")}>
                         <TableCell className="font-semibold text-muted-foreground">
-                          <span className="inline-flex items-center"><IconHash className="size-3" />{i + 1}</span>
+                          <span className="inline-flex flex-wrap items-center"><IconHash className="size-3" />{i + 1}</span>
                         </TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">

@@ -310,7 +310,7 @@ export default function PartnersAdminPage() {
         // sidebar entry. It now covers BOTH partner programs (see the file header), so the
         // description follows the active tab rather than always counting data-API keys.
         title={
-          <span className="inline-flex items-center">
+          <span className="inline-flex flex-wrap items-center">
             {tp("list.title")}
             <InfoTip id="partners._page" className="ml-1.5" />
           </span>
@@ -414,7 +414,7 @@ export default function PartnersAdminPage() {
                         <TableHead>{tp("list.colStatus")}</TableHead>
                         {/* data-tour="orgs-misc-partners-active-keys": admin-tour anchor (orgs-misc area). */}
                         <TableHead data-tour="orgs-misc-partners-active-keys">
-                          <span className="inline-flex items-center">
+                          <span className="inline-flex flex-wrap items-center">
                             {tp("list.colActiveKeys")}
                             <InfoTip id="partners.active_keys" className="ml-1" />
                           </span>

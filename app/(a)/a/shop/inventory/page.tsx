@@ -341,7 +341,7 @@ export default function InventoryManagementPage() {
           back
           // Title is a ReactNode so the page-level ⓘ can sit right after it.
           title={
-            <span className="inline-flex items-center">
+            <span className="inline-flex flex-wrap items-center">
               Inventory Management
               <InfoTip id="shop.inventory._page" className="ml-1.5" />
             </span>

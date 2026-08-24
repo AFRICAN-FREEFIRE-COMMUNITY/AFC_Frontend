@@ -257,6 +257,7 @@ import {
   type ScoreValue,
 } from "@/lib/scoreInput";
 import { watchlistApi } from "@/lib/watchlist";
+import { readJson } from "@/lib/readJson";
 
 type Params = { slug: string };
 // The match-edit sub-views, mirroring the admin [id] page's MatchView union.
@@ -957,7 +958,7 @@ export default function OrganizerEventLeaderboardPage({
           body: JSON.stringify({ team_name: teamName }),
         },
       );
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(
           data.message ||
@@ -1020,7 +1021,7 @@ export default function OrganizerEventLeaderboardPage({
           }),
         },
       );
-      const data = await res.json();
+      const data = await readJson(res);
       if (!res.ok) {
         throw new Error(
           data.message || data.detail || t("eventLeaderboard.addPlayer.error"),

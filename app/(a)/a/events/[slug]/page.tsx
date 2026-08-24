@@ -34,6 +34,7 @@ import { TabsContent } from "@radix-ui/react-tabs";
 import {
   IconCalendar,
   IconChartBar,
+  IconClipboardCheck,
   IconCurrencyDollar,
   IconExternalLink,
   IconLoader2,
@@ -105,7 +106,39 @@ type Params = {
   slug: string;
 };
 
+/**
+ * "Edit these" - the missing half of a read-only tab.
+ *
+ * WHY: this page and /edit BOTH carry tabs for the same five concepts (Details/Basic Info,
+ * Registrations/Registered Teams, Waitlist, Stages/Stages & Groups, Prizes/Prize & Rules). Which of
+ * the pair holds the control you want is not predictable, which is the "takes time to get to"
+ * complaint. Three of these tabs are purely read-only (0 interactive controls: waitlist, stages,
+ * prizes), so from those the answer is always "the other page" - and now it is one click, deep
+ * linked to the matching edit tab via the ?tab= param that page already reads.
+ *
+ * Not added to Details or Registrations: those two view tabs carry 21 and 27 controls of their own,
+ * so "go elsewhere to edit" would be false there. That inconsistency is the real structural
+ * problem and is a separate decision, not something to paper over with a link.
+ */
+function EditTheseLink({ slug, tab, label }: { slug: string; tab: string; label: string }) {
+  return (
+    <div className="flex justify-end">
+      <Button variant="ghost" size="sm" asChild>
+        <Link href={`/a/events/${slug}/edit?tab=${tab}`}>
+          <IconPencil className="size-3.5" />
+          {label}
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
 interface EventDetails {
+  // Whether this event accepts results filed by the TEAMS themselves. Drives the Team Results
+  // button, which opens the organizer's review queue. Set on the edit form's Basic Info tab and
+  // returned by get-event-details (afc_tournament_and_scrims/views.py). Optional because it is
+  // absent on older payloads, and an absent flag correctly hides the button.
+  allow_team_result_submissions?: boolean;
   event_id: number;
   competition_type: string;
   participant_type: string;
@@ -930,8 +963,14 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             widths and pushed the whole page to a 484px scroll width at 375px, so the header (and
             everything under it) slid sideways. A 2-column grid wraps them into rows instead, which
             also gives each one a full-width tap target. From lg up it is the original single row.
-            (owner report 2026-08-14) */}
-        <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:w-auto">
+            (owner report 2026-08-14)
+
+            lg:flex-wrap added 2026-08-22 with the seventh control (Team Results): the lg row was a
+            fixed single line, so the extra button pushed the page to a 1519px scroll width at
+            1440 and the whole header slid sideways again - the same failure this grid was added to
+            fix, one breakpoint up. Wrapping keeps one row while they fit and folds onto a second
+            when they do not, so the next button added here cannot reintroduce it. */}
+        <div className="grid grid-cols-2 gap-2 w-full lg:flex lg:flex-wrap lg:w-auto">
           {/* ZIP of every registered team's logo + every rostered player's esport image
               (owner 2026-06-12). Backend: events/download-esport-media/ {event_id}. */}
           <DownloadEventMediaButton eventId={eventDetails.event_id} size="md" />
@@ -957,6 +996,24 @@ const Page = ({ params }: { params: Promise<Params> }) => {
               <Link href={`/a/leaderboards/${eventDetails.event_id}/edit`}>
                 <IconChartBar />
                 Leaderboard
+              </Link>
+            </Button>
+          )}
+          {/* TEAM-SUBMITTED RESULTS QUEUE (owner 2026-08-22).
+              This page existed and NOTHING linked to it. The whole feature therefore did not work
+              end to end: an organizer switched on allow_team_result_submissions, teams filed their
+              rows, and no screen ever surfaced the queue, so the submissions sat unreviewed forever
+              and never reached the standings. It was reachable only by typing the URL.
+
+              Shown only when the event actually accepts submissions, because on every other event
+              the queue is guaranteed empty and a permanent dead-end button is its own kind of
+              clutter. Sits beside OCR Results deliberately: both are "sit down and review results
+              somebody else produced", and the two screens are built to mirror each other. */}
+          {eventDetails.allow_team_result_submissions && (
+            <Button className="flex-1 lg:flex-none" asChild variant="outline">
+              <Link href={`/a/events/${slug}/team-results`}>
+                <IconClipboardCheck />
+                Team Results
               </Link>
             </Button>
           )}
@@ -1657,222 +1714,11 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </Card>
           </div>
 
-          {/* Private Event Invites Section */}
-          {!is_public && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex gap-4 flex-col md:flex-row items-start md:items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <IconLink className="size-4" />
-                    Private Event Invites
-                  </span>
-                  <div className="flex gap-2 flex-wrap">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={inviteLinks.length === 0 || loadingInvites}
-                        >
-                          <IconExternalLink className="size-4 mr-1" />
-                          Download
-                          <IconChevronDown className="size-3 ml-1" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => downloadInvites("xlsx")}
-                        >
-                          Download as Excel (.xlsx)
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => downloadInvites("csv")}
-                        >
-                          Download as CSV (.csv)
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    {/* ONE reusable first-come-first-serve link for the whole group.
-                        Backend creates it with is_shared:true so it is never consumed;
-                        the event's capacity cap closes it once the slots fill. */}
-                    <Button
-                      size="sm"
-                      onClick={generateSharedInvite}
-                      disabled={generatingInvite}
-                    >
-                      Generate shared invite link (first come, first serve)
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={generateSingleInvite}
-                      disabled={generatingInvite}
-                    >
-                      Generate Single Invite
-                    </Button>
-                    <Dialog
-                      open={showBulkDialog}
-                      onOpenChange={setShowBulkDialog}
-                    >
-                      <DialogTrigger asChild>
-                        <Button size="sm" disabled={generatingInvite}>
-                          Generate Bulk Invites
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Generate Bulk Invites</DialogTitle>
-                          <DialogDescription>
-                            How many invite links would you like to generate?
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="count">Number of Invites</Label>
-                            <Input
-                              id="count"
-                              type="number"
-                              min="1"
-                              max="100"
-                              value={bulkCount}
-                              onChange={(e) => setBulkCount(e.target.value)}
-                              placeholder="Enter number (1-100)"
-                            />
-                          </div>
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              onClick={() => setShowBulkDialog(false)}
-                            >
-                              Cancel
-                            </Button>
-                            <Button
-                              onClick={generateBulkInvites}
-                              disabled={generatingInvite}
-                            >
-                              Generate
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="max-h-96 overflow-y-auto space-y-2">
-                {/* Explainer: how the shared FCFS link behaves vs single-use links. */}
-                <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
-                  <p>
-                    <span className="font-medium text-foreground">
-                      Shared link (first come, first serve):
-                    </span>{" "}
-                    one link you share with the whole group. The first{" "}
-                    {eventDetails.max_teams_or_players ?? "max"} to register
-                    through it take the slots, in registration order, then the
-                    event is full and the link stops working. The same link can
-                    be used by many people.
-                  </p>
-                  <p className="mt-1">
-                    <span className="font-medium text-foreground">
-                      Single-use link:
-                    </span>{" "}
-                    works for one registration only, then it is closed.
-                  </p>
-                </div>
-                {loadingInvites ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Loading invite links...
-                  </div>
-                ) : inviteLinks.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No invite links generated yet. Click the button above to
-                    create one.
-                  </div>
-                ) : (
-                  inviteLinks.map((invite, index) => (
-                    <Card
-                      key={index}
-                      className={`${
-                        // A shared link is always live (never consumed), so it keeps the
-                        // active highlight. A single-use link greys out once used.
-                        !invite.is_shared && invite.is_used
-                          ? "bg-muted/50 opacity-60"
-                          : "bg-primary/10"
-                      }`}
-                    >
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <Input value={invite.invite_link} readOnly />
-                            </div>
-                            <Button
-                              size="icon"
-                              onClick={() =>
-                                copyToClipboard(invite.invite_link)
-                              }
-                              // Copy stays enabled for a shared link even after it has
-                              // been used: it is meant to be shared with many people.
-                              disabled={!invite.is_shared && invite.is_used}
-                            >
-                              {copiedLinks.has(invite.invite_link) ? (
-                                <IconCheck />
-                              ) : (
-                                <IconCopy />
-                              )}
-                            </Button>
-                          </div>
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                            <span>Created by: {invite.created_by}</span>
-                            <span className="hidden sm:inline">•</span>
-                            <span>{formatDate(invite.created_at)}</span>
-                            {invite.is_shared ? (
-                              <>
-                                {/* The reusable FCFS link. Outline badge per AFC design. */}
-                                <span className="hidden sm:inline">•</span>
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs rounded-full border-primary text-primary"
-                                >
-                                  Shared (first come, first serve)
-                                </Badge>
-                                {invite.expires_at && (
-                                  <>
-                                    <span className="hidden sm:inline">•</span>
-                                    <span>
-                                      Expires {formatDate(invite.expires_at)}
-                                    </span>
-                                  </>
-                                )}
-                              </>
-                            ) : invite.is_used ? (
-                              <>
-                                <span className="hidden sm:inline">•</span>
-                                <Badge
-                                  variant="destructive"
-                                  className="text-xs"
-                                >
-                                  Used by {invite.used_by} on{" "}
-                                  {formatDate(invite.used_at!)}
-                                </Badge>
-                              </>
-                            ) : (
-                              <>
-                                <span className="hidden sm:inline">•</span>
-                                <Badge variant="secondary" className="text-xs">
-                                  Active
-                                </Badge>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {/* The Private Event Invites block MOVED to the edit page's Teams tab
+              (PrivateEventInvitesCard) on 2026-08-22. Invites decide who can register, which is
+              part of managing an event's teams, and keeping the only two interactive things on
+              this page was what forced an admin to bounce between two pages to do one job. This
+              page is now something you read. */}
 
           <Card className="gap-0">
             <CardHeader className="border-b">
@@ -1991,6 +1837,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
         {/* --- Waitlist Tab --- */}
         <TabsContent value="waitlist" className="mt-4 space-y-4">
+          <EditTheseLink slug={slug} tab="waitlist" label="Manage waitlist" />
           <Card className="gap-0">
             <CardHeader className="border-b">
               <CardTitle>
@@ -2079,6 +1926,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
         {/* --- Stages Tab --- */}
         <TabsContent value="stages" className="mt-4 space-y-4">
+          <EditTheseLink slug={slug} tab="stages_groups" label="Edit stages and groups" />
           {adminDetails.stages.length > 0 ? (
             adminDetails.stages.map((stage) => {
               const now = new Date().toISOString().split("T")[0];
@@ -2225,6 +2073,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
         </TabsContent>
 
         <TabsContent value="prizes" className="mt-4 space-y-4">
+          <EditTheseLink slug={slug} tab="prize_rules" label="Edit prizes and rules" />
           <Card>
             <CardHeader>
               <CardTitle>Prize Distribution - ${formattedPrizepool}</CardTitle>
