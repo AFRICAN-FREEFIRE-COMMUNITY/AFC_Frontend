@@ -163,7 +163,9 @@ export default function RegisteredTeamsTab({
   // refreshed after a grant or revoke, so the row can say "Waived by <admin>" instead of leaving
   // an admin guessing why a team that fails a requirement is sitting in the list.
   const [waivers, setWaivers] = useState<Waiver[]>([]);
-  const [waiveFor, setWaiveFor] = useState<{ id: number; name: string } | null>(null);
+  const [waiveFor, setWaiveFor] = useState<
+    { id: number; name: string; isSolo: boolean } | null
+  >(null);
 
   const loadWaivers = useCallback(async () => {
     if (!token) return;
@@ -180,8 +182,12 @@ export default function RegisteredTeamsTab({
     void loadWaivers();
   }, [loadWaivers]);
 
-  const waiverForTeam = (teamId: number) =>
-    waivers.find((w) => w.team_id === teamId) ?? null;
+  // A SOLO event's waivers name a USER, a team event's name a TEAM (owner 2026-08-26). One lookup
+  // that knows which key this event uses, so the row code below reads the same for both.
+  const waiverForEntrant = (entrantId: number) =>
+    waivers.find((w) =>
+      isTeamEvent ? w.team_id === entrantId : w.user_id === entrantId,
+    ) ?? null;
 
   const [noShowBusy, setNoShowBusy] = useState<number | null>(null);
   const markNoShow = async (
@@ -692,6 +698,54 @@ export default function RegisteredTeamsTab({
                         >
                           {(comp as any).is_no_show ? etT("registeredTeams.noShowDone") : etT("registeredTeams.noShow")}
                         </Button>
+                        {/* Requirement waivers for a SOLO entrant (owner 2026-08-26). The same
+                            control the team rows carry: an invited player is judged by the same
+                            gates as a self-registering one, so excusing them is a decision with a
+                            reason and a name on it. `player_id` IS the user id here, which is what
+                            the waiver names. */}
+                        {(() => {
+                          const existing = waiverForEntrant(comp.player_id);
+                          return (
+                            <>
+                              {existing ? (
+                                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                                  {wvT("waivedBy", { admin: existing.created_by })}
+                                </span>
+                              ) : null}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  setWaiveFor({
+                                    id: comp.player_id,
+                                    name: comp.username,
+                                    isSolo: true,
+                                  })
+                                }
+                              >
+                                {wvT("action")}
+                              </Button>
+                              {existing ? (
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={async () => {
+                                    if (!token) return;
+                                    try {
+                                      await revokeWaiver(token, existing.waiver_id);
+                                      toast.success(wvT("revoked"));
+                                      void loadWaivers();
+                                    } catch {
+                                      toast.error(wvT("revokeFailed"));
+                                    }
+                                  }}
+                                >
+                                  {wvT("revoke")}
+                                </Button>
+                              ) : null}
+                            </>
+                          );
+                        })()}
                         {comp.status === "registered" ? (
                           <DisqualifyModal
                             competitor_id={comp.player_id}
@@ -901,8 +955,11 @@ export default function RegisteredTeamsTab({
                             a reason and a name attached, not a silent bypass. A team that already
                             has one says so, with who granted it and when. */}
                         {(() => {
-                          const teamId = team.team_id || team.player_id;
-                          const existing = waiverForTeam(teamId);
+                          // On a solo event this row is a PLAYER, and player_id is their user id.
+                          const entrantId = isTeamEvent
+                            ? team.team_id
+                            : team.player_id || team.team_id;
+                          const existing = waiverForEntrant(entrantId);
                           return (
                             <div className="flex items-center gap-2">
                               {existing ? (
@@ -915,7 +972,11 @@ export default function RegisteredTeamsTab({
                                 size="sm"
                                 variant="outline"
                                 onClick={() =>
-                                  setWaiveFor({ id: teamId, name: team.team_name })
+                                  setWaiveFor({
+                                    id: entrantId,
+                                    name: team.team_name,
+                                    isSolo: !isTeamEvent,
+                                  })
                                 }
                               >
                                 {existing ? wvT("action") : wvT("action")}
@@ -1164,16 +1225,17 @@ export default function RegisteredTeamsTab({
 
     {/* ── Team invitations (owner backlog item 34) ──────────────────────────────────────
         The ASK-first sibling of the Add-Teams button above: instead of force-registering a
-        team, invite it and let it accept or decline. Team events only (a solo event has no
-        teams to invite, and the backend refuses that case). Sits in THIS shared tab so the
+        team or player, invite them and let them accept or decline. Sits in THIS shared tab so the
         admin event-edit page and the organizer one both get it from one component. */}
-    {isTeamEvent && (
-      <EventTeamInvitesCard
-        eventId={eventDetails.event_id}
-        eventName={eventDetails.event_name}
-        registeredTeamIds={eventDetails.tournament_teams.map((t: any) => t.team_id)}
-      />
-    )}
+    {/* Rendered for BOTH shapes now (owner 2026-08-26): a team event invites teams, a solo event
+        invites players. Before this a solo event could not invite anybody, because the backend
+        refused the case outright. */}
+    <EventTeamInvitesCard
+      eventId={eventDetails.event_id}
+      eventName={eventDetails.event_name}
+      solo={!isTeamEvent}
+      registeredTeamIds={eventDetails.tournament_teams.map((t: any) => t.team_id)}
+    />
       {/* One dialog for the whole table: opened with whichever team the admin picked. */}
       {waiveFor ? (
         <WaiverDialog
@@ -1182,9 +1244,10 @@ export default function RegisteredTeamsTab({
             if (!open) setWaiveFor(null);
           }}
           eventId={eventDetails.event_id}
-          teamId={waiveFor.id}
+          teamId={waiveFor.isSolo ? null : waiveFor.id}
+          userId={waiveFor.isSolo ? waiveFor.id : null}
           teamName={waiveFor.name}
-          preselected={waiverForTeam(waiveFor.id)?.waived_codes ?? []}
+          preselected={waiverForEntrant(waiveFor.id)?.waived_codes ?? []}
           onSaved={() => void loadWaivers()}
         />
       ) : null}

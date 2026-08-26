@@ -63,7 +63,11 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eventId: number;
-  teamId: number;
+  /** The team being excused, for a duo/squad event. Exactly one of teamId / userId is set. */
+  teamId?: number | null;
+  /** The player being excused, for a SOLO event (owner 2026-08-26). */
+  userId?: number | null;
+  /** What to call the invitee in the title: a team name or a username. */
   teamName: string;
   /** Codes to tick on open, e.g. the ones a bulk-add refusal reported. */
   preselected?: string[];
@@ -74,7 +78,8 @@ export function WaiverDialog({
   open,
   onOpenChange,
   eventId,
-  teamId,
+  teamId = null,
+  userId = null,
   teamName,
   preselected = [],
   onSaved,
@@ -98,9 +103,11 @@ export function WaiverDialog({
     }
     setSaving(true);
     try {
+      // Exactly one of these is sent. The backend refuses a waiver naming neither, and naming both
+      // would be ambiguous about who was actually excused.
       await grantWaiver(token, {
         event_id: eventId,
-        team_id: teamId,
+        ...(userId ? { user_id: userId } : { team_id: teamId }),
         codes,
         reason: reason.trim(),
       });
