@@ -27,5 +27,41 @@
   "toast": {
     "revoked": "{name} foi desligada.",
     "revokeFailed": "Não foi possível desligar {name}. Tente novamente."
+  },
+  "accounts": {
+    "title": "As suas contas ligadas",
+    "subtitle": "Inicie sessão mais depressa e cumpra os requisitos dos eventos que as exigem",
+    "appsSectionTitle": "Aplicações que podem iniciar a sua sessão",
+    "connect": "Ligar",
+    "disconnect": "Desligar",
+    "notConnected": "Não ligada",
+    "connectedOn": "Ligada em",
+    "loadError": "Não foi possível carregar as suas contas ligadas. Tente novamente.",
+    "retry": "Tentar novamente",
+    "empty": "Não há contas para ligar de momento.",
+    "provider": {
+      "discord": "Discord",
+      "google": "Google",
+      "vent": "v-ent.co"
+    },
+    "lastCredential": {
+      "description": "Esta é a única forma de iniciar sessão na AFC. Defina primeiro uma palavra-passe e só depois poderá desligar {provider}."
+    },
+    "confirm": {
+      "title": "Desligar {provider}?",
+      "description": "Pode voltar a ligá-la quando quiser. Os eventos que exigem {provider} deixarão de aceitar as suas inscrições até o fazer.",
+      "cancel": "Cancelar",
+      "confirm": "Desligar"
+    },
+    "toast": {
+      "connected": "{provider} ligada.",
+      "disconnected": "{provider} desligada.",
+      "connectFailed": "Não foi possível iniciar a ligação a {provider}. Tente novamente.",
+      "disconnectFailed": "Não foi possível desligar {provider}. Tente novamente.",
+      "errorExpired": "Demorou demasiado tempo. Tente ligar novamente.",
+      "errorCancelled": "Ligação cancelada.",
+      "errorProvider": "A {provider} não conseguiu confirmar a sua conta. Tente novamente.",
+      "errorAlreadyLinked": "Essa conta {provider} já está ligada a outra conta AFC."
+    }
   }
 }

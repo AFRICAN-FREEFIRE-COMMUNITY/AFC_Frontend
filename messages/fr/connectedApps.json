@@ -27,5 +27,41 @@
   "toast": {
     "revoked": "{name} a été déconnectée.",
     "revokeFailed": "Impossible de déconnecter {name}. Veuillez réessayer."
+  },
+  "accounts": {
+    "title": "Vos comptes connectés",
+    "subtitle": "Connectez-vous plus vite, et remplissez les conditions des événements qui les exigent",
+    "appsSectionTitle": "Applications qui peuvent vous connecter",
+    "connect": "Connecter",
+    "disconnect": "Déconnecter",
+    "notConnected": "Non connecté",
+    "connectedOn": "Connecté le",
+    "loadError": "Nous n'avons pas pu charger vos comptes connectés. Veuillez réessayer.",
+    "retry": "Réessayer",
+    "empty": "Aucun compte ne peut être connecté pour le moment.",
+    "provider": {
+      "discord": "Discord",
+      "google": "Google",
+      "vent": "v-ent.co"
+    },
+    "lastCredential": {
+      "description": "C'est votre seule façon de vous connecter à AFC. Définissez d'abord un mot de passe, puis vous pourrez déconnecter {provider}."
+    },
+    "confirm": {
+      "title": "Déconnecter {provider} ?",
+      "description": "Vous pouvez le reconnecter à tout moment. Les événements qui exigent {provider} n'accepteront plus vos inscriptions tant que ce n'est pas fait.",
+      "cancel": "Annuler",
+      "confirm": "Déconnecter"
+    },
+    "toast": {
+      "connected": "{provider} connecté.",
+      "disconnected": "{provider} déconnecté.",
+      "connectFailed": "Nous n'avons pas pu commencer la connexion à {provider}. Veuillez réessayer.",
+      "disconnectFailed": "Nous n'avons pas pu déconnecter {provider}. Veuillez réessayer.",
+      "errorExpired": "Cela a pris trop de temps. Veuillez réessayer de vous connecter.",
+      "errorCancelled": "Connexion annulée.",
+      "errorProvider": "{provider} n'a pas pu confirmer votre compte. Veuillez réessayer.",
+      "errorAlreadyLinked": "Ce compte {provider} est déjà lié à un autre compte AFC."
+    }
   }
 }

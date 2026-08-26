@@ -16,7 +16,8 @@
     "disconnect": "Déconnexion - {username}",
     "esportsImageEmpty": "Il n'y a pas encore d'image relative à l'e-sport",
     "esportsImageHint": "Ajouter un élément depuis « Modifier le profil »",
-    "esportImage": "Image liée à l'e-sport"
+    "esportImage": "Image liée à l'e-sport",
+    "manageConnections": "Gérer les connexions"
   },
   "discord": {
     "disconnectTitle": "Êtes-vous absolument sûr ?",
