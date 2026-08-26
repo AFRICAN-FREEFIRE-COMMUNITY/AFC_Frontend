@@ -37,6 +37,7 @@ import {
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import Image from "next/image";
 import { countries, REGIONS_MAP } from "@/constants";
+import { RequiredConnectionsPicker } from "@/components/events/RequiredConnectionsPicker";
 import { InfoTip } from "@/components/ui/info-tip";
 // Shared "require letter avatars" control, also rendered by the edit form (BasicInfoTab).
 import { LetterAvatarRequirement } from "./LetterAvatarRequirement";
@@ -901,6 +902,32 @@ export function Step1EventDetails({
               )}
             />
           </div>
+          {/* ── Required connected accounts (owner 2026-08-26) ─────────────────────────────────
+              Blocks registration until every registering player has the selected outside accounts
+              linked to their AFC profile (afc_auth.ConnectedAccount). The choices come from the
+              BACKEND registry, so an organizer cannot require a provider this deployment has no
+              credentials for. Discord is NOT offered here: require_discord above is its own switch
+              and means more (connected AND a member of the event's server).
+              Written into RHF as required_connections (string[]), hand-appended to the create
+              payload by BOTH create pages exactly like require_whatsapp above, stored on
+              Event.required_connections, enforced in register_for_event via
+              _missing_registration_assets, and shown to players by EventRequirementsCard + the
+              roster-requirements panel. */}
+          <FormField
+            // @ts-ignore - shared optional field, same pattern as require_whatsapp above
+            control={form.control}
+            name={"required_connections" as never}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <RequiredConnectionsPicker
+                    value={(field.value as unknown as string[]) ?? []}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           {/* ── Require letter avatars (feature #7, owner 2026-06-29) ──────────────────────────
               Block registration until a team/player has at least N Free Fire letter avatars (A-Z)
               AVAILABLE. A team's available letters are the live union of its members' owned letters

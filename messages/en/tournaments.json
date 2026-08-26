@@ -345,7 +345,8 @@
         "esportsImage": "Esport image",
         "profileImage": "Profile image",
         "whatsapp": "WhatsApp number",
-        "teamLogo": "Team logo"
+        "teamLogo": "Team logo",
+        "connection": "{provider} account connected"
       }
     },
     "selfEdit": {
@@ -622,7 +623,8 @@
     "whatsapp": "A WhatsApp number on each player's profile, so room details can reach them",
     "sponsorTitle": "Sponsor requirement",
     "sponsorTitleNamed": "Sponsor requirement ({sponsor})",
-    "sponsorField": "You will be asked to provide: {field}"
+    "sponsorField": "You will be asked to provide: {field}",
+    "connection": "{provider} account connected"
   },
   "sponsorRequirements": {
     "title": "Sponsor Requirements",

@@ -384,6 +384,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     require_player_profile_image: false,
     // WhatsApp number gate (owner 2026-08-03): same shape as the four above.
     require_whatsapp: false,
+    // Required connected accounts (owner 2026-08-26): a LIST of provider slugs, not a bool.
+    // Edited on Basic Info by the shared RequiredConnectionsPicker and saved by the waitlist save
+    // -> edit_event, the same route min_letter_avatars takes.
+    required_connections: [] as string[],
     // Teams filing their own map results (owner backlog item 6, 2026-08-04). NOT a registration
     // requirement like the toggles above, it is a capability the organizer switches on for this
     // event, but it rides the same waitlistForm state and the same save so an organizer does not
@@ -780,6 +784,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           require_player_uid: ed.require_player_uid ?? false,
           require_player_profile_image: ed.require_player_profile_image ?? false,
           require_whatsapp: ed.require_whatsapp ?? false,
+          // Rehydrate the list so a reopened form shows what is stored, not an empty picker.
+          required_connections: ed.required_connections ?? [],
           allow_team_result_submissions: ed.allow_team_result_submissions ?? false,
           // Letter-avatars gate (feature #7): rehydrate the count from the event (0 = off). Coerced
           // to a clean 0-or-positive number so the BasicInfoTab control reads a real value.
@@ -1597,6 +1603,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       );
       // WhatsApp number gate (owner 2026-08-03), saved with the requirements above.
       formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
+      // Required connected accounts (owner 2026-08-26): a LIST, so it travels as JSON because
+      // multipart FormData can only carry strings. edit_event coerces it with _as_list and
+      // validates every slug against the provider registry.
+      formData.append(
+        "required_connections",
+        JSON.stringify(waitlistForm.required_connections ?? []),
+      );
       // Teams filing their own map results (item 6). Read by edit_event, which flips
       // Event.allow_team_result_submissions; the submit endpoint refuses when it is off.
       formData.append(
@@ -1640,6 +1653,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
               require_player_uid: waitlistForm.require_player_uid,
               require_player_profile_image: waitlistForm.require_player_profile_image,
               require_whatsapp: waitlistForm.require_whatsapp,
+              // Mirror the saved list so a reopened Basic Info reflects it without a refetch.
+              required_connections: waitlistForm.required_connections,
               // Letter-avatars gate (feature #7): mirror the saved count into the cached event so the
               // RegisteredTeamsTab letter UI + a reopened Basic Info reflect it without a refetch.
               min_letter_avatars: waitlistForm.min_letter_avatars,
@@ -1873,6 +1888,13 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
         formData.append("require_player_profile_image", waitlistForm.require_player_profile_image ? "True" : "False");
         formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
+        // Required connected accounts (owner 2026-08-26): a LIST, so it travels as JSON because
+        // multipart FormData can only carry strings. edit_event coerces it with _as_list and
+        // validates every slug against the provider registry.
+        formData.append(
+          "required_connections",
+          JSON.stringify(waitlistForm.required_connections ?? []),
+        );
         formData.append(
           "allow_team_result_submissions",
           waitlistForm.allow_team_result_submissions ? "True" : "False",

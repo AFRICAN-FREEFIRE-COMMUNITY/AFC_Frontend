@@ -158,6 +158,15 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 // redirect. Keyed by payment_id; the success page reads `${PAID_REG_KEY_PREFIX}${payment_id}`.
 const PAID_REG_KEY_PREFIX = "afc_evt_reg_";
 
+/** A missing-requirement key to a human label. Keys arrive from register_for_event's 403 body.
+ *  A required CONNECTED ACCOUNT arrives prefixed, as "connection:<slug>", so a provider named like
+ *  a future asset field can never collide with one and this map needs no new entry per provider.
+ *  Unknown keys fall back to themselves rather than rendering blank. */
+const CONNECTION_PREFIX = "connection:";
+const connectionProviderLabel = (slug: string) =>
+  ({ discord: "Discord", google: "Google", vent: "v-ent.co" })[slug] ?? slug;
+
+
 // Currencies charged in WHOLE units (no minor unit) - mirrors the backend _ZERO_DECIMAL set in
 // event_payments.py so a per-country override in e.g. XOF/XAF (CFA francs, the Francophone-Africa
 // audience this feature targets) renders "XOF 5,000" not "XOF 5,000.00" (owner 2026-06-24).
@@ -493,6 +502,9 @@ interface EventDetails {
   // Enforced server-side by the same _missing_registration_assets helper as the flags above; shown
   // in the INFO-step requirements callout and as a per-player badge in the roster panel.
   require_whatsapp?: boolean;
+  // Event.required_connections (owner 2026-08-26): provider slugs every registering player must
+  // have linked. Returned by all three event serializers.
+  required_connections?: string[];
   // ── Discord registration gate (per-event) ── echoed by get-event-details/. When
   // require_discord is true, the event shows a "Discord required" badge in the header
   // and register-for-event/ rejects participants who aren't Discord-connected + in the
@@ -665,7 +677,12 @@ function MemberRequirementBadges({
       esports_image: t("register.rosterRequirements.req.esportsImage"),
       profile_image: t("register.rosterRequirements.req.profileImage"),
       whatsapp: t("register.rosterRequirements.req.whatsapp"),
-    })[k] ?? k;
+    })[k] ??
+    (k.startsWith(CONNECTION_PREFIX)
+      ? t("register.rosterRequirements.req.connection", {
+          provider: connectionProviderLabel(k.slice(CONNECTION_PREFIX.length)),
+        })
+      : k);
 
   if (hardMissing.length === 0 && !discordUnverified) {
     return (
@@ -2333,7 +2350,15 @@ const RegistrationModals: React.FC<ModalProps> = ({
             discord: t("register.rosterRequirements.req.discord"),
             esports_image: t("register.rosterRequirements.req.esportsImage"),
             profile_image: t("register.rosterRequirements.req.profileImage"),
-          })[f] ?? f;
+            // whatsapp was missing here while its sibling map above had it, so a missing WhatsApp
+            // number rendered the RAW KEY in this panel. Added with the connection case below.
+            whatsapp: t("register.rosterRequirements.req.whatsapp"),
+          })[f] ??
+          (f.startsWith(CONNECTION_PREFIX)
+            ? t("register.rosterRequirements.req.connection", {
+                provider: connectionProviderLabel(f.slice(CONNECTION_PREFIX.length)),
+              })
+            : f);
         // Nothing left to show (everything was fixed, or a stale draft reopened this step): say so
         // plainly and offer the way forward instead of an empty box with a Close button - the exact
         // dead end the owner reported on 2026-08-02.
@@ -5788,6 +5813,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 requirePlayerUid={eventDetails.require_player_uid}
                 requirePlayerProfileImage={eventDetails.require_player_profile_image}
                 requireWhatsapp={eventDetails.require_whatsapp}
+                requiredConnections={eventDetails.required_connections}
                 isSponsored={eventDetails.is_sponsored}
                 sponsorName={eventDetails.sponsor_name}
                 sponsorRequirementDescription={eventDetails.sponsor_requirement_description}

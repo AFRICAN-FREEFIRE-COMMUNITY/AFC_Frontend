@@ -427,6 +427,10 @@ export default function OrganizerEditEventPage({
     require_player_profile_image: false,
     // WhatsApp number gate (owner 2026-08-03): same shape as the four above.
     require_whatsapp: false,
+    // Required connected accounts (owner 2026-08-26): a LIST of provider slugs, not a bool.
+    // Edited on Basic Info by the shared RequiredConnectionsPicker, prefilled below, and saved by
+    // the waitlist save -> edit_event, same route as min_letter_avatars.
+    required_connections: [] as string[],
     // Letter-avatars gate (feature #7, owner 2026-06-29): a NUMBER (0 = off, 1-26 = required min),
     // not a bool. Edited on Basic Info (BasicInfoTab) alongside the require_* toggles, prefilled from
     // ed.min_letter_avatars below and persisted by the waitlist save -> edit_event (admin parity).
@@ -839,6 +843,9 @@ export default function OrganizerEditEventPage({
           require_player_uid: ed.require_player_uid ?? false,
           require_player_profile_image: ed.require_player_profile_image ?? false,
           require_whatsapp: ed.require_whatsapp ?? false,
+          // Required connected accounts (owner 2026-08-26): rehydrate the list so a reopened form
+          // shows what is actually stored rather than an empty picker.
+          required_connections: ed.required_connections ?? [],
           // Letter-avatars gate (feature #7): rehydrate the count from the event (0 = off). Coerced
           // to a clean 0-or-positive number so the BasicInfoTab control reads a real value.
           min_letter_avatars: Number(ed.min_letter_avatars ?? 0) || 0,
@@ -1603,6 +1610,14 @@ export default function OrganizerEditEventPage({
       );
       // WhatsApp number gate (owner 2026-08-03), saved with the requirements above.
       formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
+      // Required connected accounts (owner 2026-08-26): a LIST, so it travels as JSON because
+      // multipart FormData can only carry strings. edit_event coerces it back with _as_list and
+      // validates each slug against the provider registry. Without this append, editing the
+      // selection would never reach the API, which is the bug min_letter_avatars had.
+      formData.append(
+        "required_connections",
+        JSON.stringify(waitlistForm.required_connections ?? []),
+      );
       // Letter-avatars gate (feature #7): a NUMBER (0-26), not a bool. edit_event re-parses + clamps
       // it (_parse_min_letter_avatars). Without this append, editing the count never reached the API.
       formData.append(
@@ -1631,6 +1646,9 @@ export default function OrganizerEditEventPage({
               require_player_uid: waitlistForm.require_player_uid,
               require_player_profile_image: waitlistForm.require_player_profile_image,
               require_whatsapp: waitlistForm.require_whatsapp,
+              // Mirror the saved list into the cached event so a reopened Basic Info reflects it
+              // without a refetch.
+              required_connections: waitlistForm.required_connections,
               // Letter-avatars gate (feature #7): mirror the saved count into the cached event so the
               // RegisteredTeamsTab letter UI + a reopened Basic Info reflect it without a refetch.
               min_letter_avatars: waitlistForm.min_letter_avatars,

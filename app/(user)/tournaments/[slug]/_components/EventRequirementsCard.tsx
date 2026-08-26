@@ -29,11 +29,21 @@ interface EventRequirementsCardProps {
   // Event.require_whatsapp (owner 2026-08-03): every registering player needs a WhatsApp number on
   // their profile, because this event sends room details there. Same shape as the flags above.
   requireWhatsapp?: boolean;
+  // Event.required_connections (owner 2026-08-26): provider slugs every registering player must
+  // have linked to their AFC profile. A LIST rather than a flag, so a new provider needs no change
+  // to this component.
+  requiredConnections?: string[];
   isSponsored?: boolean;
   sponsorName?: string | null;
   sponsorRequirementDescription?: string | null;
   sponsorFieldLabel?: string | null;
 }
+
+/** Provider slug to a human label. Deliberately local rather than fetched: this card renders for
+ *  signed-out visitors too, and the providers endpoint requires a session. An unknown slug falls
+ *  back to itself, which is still readable, rather than rendering nothing. */
+const providerLabel = (slug: string) =>
+  ({ discord: "Discord", google: "Google", vent: "v-ent.co" })[slug] ?? slug;
 
 export function EventRequirementsCard({
   requireTeamLogo,
@@ -41,6 +51,7 @@ export function EventRequirementsCard({
   requirePlayerUid,
   requirePlayerProfileImage,
   requireWhatsapp,
+  requiredConnections,
   isSponsored,
   sponsorName,
   sponsorRequirementDescription,
@@ -55,6 +66,11 @@ export function EventRequirementsCard({
   if (requirePlayerUid) assetItems.push(t("requirements.uid"));
   if (requirePlayerProfileImage) assetItems.push(t("requirements.profileImage"));
   if (requireWhatsapp) assetItems.push(t("requirements.whatsapp"));
+  // Required connected accounts (owner 2026-08-26). Rendered in the SAME list as the asset
+  // requirements above, so a player reads one list rather than two kinds of rule.
+  for (const slug of requiredConnections ?? []) {
+    assetItems.push(t("requirements.connection", { provider: providerLabel(slug) }));
+  }
 
   const hasSponsorReq =
     !!isSponsored && !!(sponsorRequirementDescription || sponsorFieldLabel);

@@ -51,6 +51,7 @@ import { countries, REGIONS_MAP } from "@/constants";
 import { InfoTip } from "@/components/ui/info-tip";
 // Shared "require letter avatars" control, also rendered by the create wizard (Step1EventDetails).
 import { LetterAvatarRequirement } from "@/app/(a)/a/events/create/_components/LetterAvatarRequirement";
+import { RequiredConnectionsPicker } from "@/components/events/RequiredConnectionsPicker";
 import type { EventFormType, EventDetails } from "../types";
 // Single source of truth for the paid-registration currency options (defined with the
 // create-flow form constants); reused here so create + edit can't drift.
@@ -524,6 +525,20 @@ export default function BasicInfoTab({
             label={t("basicInfo.requireLettersLabel")}
             description={t("basicInfo.requireLettersHelp")}
             infoTipText={t("basicInfo.requireLettersInfoTip")}
+          />
+          {/* ── Required connected accounts (owner 2026-08-26) ───────────────────────────────
+              UNLIKE the boolean toggles above this is a LIST of provider slugs. The control is the
+              SHARED RequiredConnectionsPicker, also rendered by the create wizard's
+              Step1EventDetails, so create and edit cannot drift. Backed by the SAME requirementsForm
+              (the edit page's waitlistForm) state and saved by saveWaitlistSettings, which appends
+              required_connections to edit_event. Blocks registration until every registering player
+              has those accounts linked (enforced in register_for_event via
+              _missing_registration_assets). Discord is not offered here: it has its own gate below. */}
+          <RequiredConnectionsPicker
+            value={requirementsForm.required_connections ?? []}
+            onChange={(next) =>
+              setRequirementsForm((p: any) => ({ ...p, required_connections: next }))
+            }
           />
         </div>
 
