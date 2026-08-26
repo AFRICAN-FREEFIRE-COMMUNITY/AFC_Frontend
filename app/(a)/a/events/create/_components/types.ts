@@ -283,6 +283,12 @@ export const StageSchema = z.object({
 export const EventFormSchema = z
   .object({
     event_name: z.string().min(1, "Event name required"),
+    // What the tournament IS, in the organizer's words (owner 2026-08-05, item 26; missing from
+    // the CREATE wizard until 2026-08-26, so a description could only be added by creating the
+    // event and then editing it). Optional, exactly as on the edit form: an event with no
+    // description simply does not render the public About block. Deliberately NOT event_rules,
+    // which answers a different question and is capped at 200 characters.
+    event_description: z.string().optional(),
     competition_type: z.string().min(1, "Competition type required"),
     participant_type: z.string().min(1, "Participant type required"),
     event_type: z.string().min(1, "Event type required"),

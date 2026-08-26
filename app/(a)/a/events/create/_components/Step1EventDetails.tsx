@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -131,6 +132,39 @@ export function Step1EventDetails({
             <FormItem>
               <FormLabel>{t("eventName")}</FormLabel>
               <Input placeholder={t("eventNamePlaceholder")} {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* ── What the tournament IS, in the organizer's words ─────────────────────────────
+            Mirrors the edit form's control exactly (edit/_components/BasicInfoTab.tsx): same
+            Textarea, same rows, same optional-ness, so the field somebody meets when creating an
+            event is the field they meet again when editing it. It was absent here until
+            2026-08-26, which meant the only way to describe an event was to create it and then go
+            and edit it (owner report).
+            Written into RHF as event_description and hand-appended to the create FormData by BOTH
+            create pages, admin and organizer. create_event stores it on Event.event_description
+            (views.py:2269), the public tournament page renders it as the About block, and the
+            translate-on-read layer serves it in the reader's own language. */}
+        <FormField
+          // @ts-ignore
+          control={form.control}
+          name={"event_description" as never}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("eventDescription")}</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  value={(field.value as string) ?? ""}
+                  rows={5}
+                  placeholder={t("eventDescriptionPlaceholder")}
+                />
+              </FormControl>
+              <p className="text-xs text-muted-foreground">
+                {t("eventDescriptionHelp")}
+              </p>
               <FormMessage />
             </FormItem>
           )}
