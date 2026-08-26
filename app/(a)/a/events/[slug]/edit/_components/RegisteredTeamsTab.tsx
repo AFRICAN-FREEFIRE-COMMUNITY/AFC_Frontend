@@ -67,6 +67,11 @@ import { EventTeamInvitesCard } from "../../../_components/EventTeamInvitesCard"
 // Admin roster corrector: lets staff fix a registered team's event lineup (even after
 // registration closes) by POSTing /events/edit-roster/. Reopens the team for sponsor
 // re-approval when the roster changes. See EditRosterModal.tsx for the full contract.
+// Requirement waivers (owner 2026-08-26): the admin control for excusing ONE team from named
+// event requirements, on the record. See components/events/WaiverDialog.tsx and lib/waivers.ts.
+import { WaiverDialog } from "@/components/events/WaiverDialog";
+import { LocalTime } from "@/components/LocalTime";
+import { listWaivers, revokeWaiver, type Waiver } from "@/lib/waivers";
 import { EditRosterModal } from "../../../_components/EditRosterModal";
 
 // The 26 letter-avatar options (A-Z) for the per-team Assign Select (feature #7). Built once at
@@ -124,9 +129,9 @@ export default function RegisteredTeamsTab({
   // tournament_team_id (falls back to team_id) so each team toggles independently.
   // Lets an admin see the PLAYERS inside each registered team, not just the team name
   // (owner request 2026-06-09); the players come from team.members on get_event_details.
-  const [expandedTeams, setExpandedTeams] = useState<Record<number, boolean>>(
-    {},
-  );
+  const [expandedTeams, setExpandedTeams] = useState<Record<number, boolean>>({});
+
+
   const toggleTeam = (key: number) =>
     setExpandedTeams((prev) => ({ ...prev, [key]: !prev[key] }));
 
@@ -142,6 +147,8 @@ export default function RegisteredTeamsTab({
   // shadow the existing `(t: any) => ...` team-row closures below; evT stays for the two search
   // placeholders that already live in the "events" namespace.
   const etT = useTranslations("evEditTabs");
+  // Requirement-waiver copy (messages/*/waivers.json).
+  const wvT = useTranslations("waivers");
   const [search, setSearch] = useState("");
   const query = search.trim().toLowerCase();
   const matchesQuery = (name?: string | null) =>
@@ -150,6 +157,32 @@ export default function RegisteredTeamsTab({
   // No-show toggle (owner 2026-06-17): mark an active competitor absent so a waitlist team can take
   // the slot (Promote on the Waitlist tab). value flips the current is_no_show. Refreshes after.
   const { token } = useAuth();
+
+  // ── Requirement waivers (owner 2026-08-26) ─────────────────────────────────────────────────
+  // Which teams in THIS event have been excused, and from what. Loaded once per event and
+  // refreshed after a grant or revoke, so the row can say "Waived by <admin>" instead of leaving
+  // an admin guessing why a team that fails a requirement is sitting in the list.
+  const [waivers, setWaivers] = useState<Waiver[]>([]);
+  const [waiveFor, setWaiveFor] = useState<{ id: number; name: string } | null>(null);
+
+  const loadWaivers = useCallback(async () => {
+    if (!token) return;
+    try {
+      setWaivers(await listWaivers(token, eventDetails.event_id));
+    } catch {
+      // A waiver list that will not load must not break the registrations table: the table is the
+      // primary job here and the waiver badge is extra information.
+      setWaivers([]);
+    }
+  }, [token, eventDetails.event_id]);
+
+  useEffect(() => {
+    void loadWaivers();
+  }, [loadWaivers]);
+
+  const waiverForTeam = (teamId: number) =>
+    waivers.find((w) => w.team_id === teamId) ?? null;
+
   const [noShowBusy, setNoShowBusy] = useState<number | null>(null);
   const markNoShow = async (
     opts: { competitorId?: number; tournamentTeamId?: number; current?: boolean; key: number },
@@ -863,6 +896,51 @@ export default function RegisteredTeamsTab({
                         >
                           {teamWindowOpen(team) ? etT("registeredTeams.rosterEdit") : etT("registeredTeams.allowRosterEdit")}
                         </Button>
+                        {/* Requirement waivers (owner 2026-08-26). An invited team is judged by
+                            the same gates as everyone else, so excusing one is a real decision with
+                            a reason and a name attached, not a silent bypass. A team that already
+                            has one says so, with who granted it and when. */}
+                        {(() => {
+                          const teamId = team.team_id || team.player_id;
+                          const existing = waiverForTeam(teamId);
+                          return (
+                            <div className="flex items-center gap-2">
+                              {existing ? (
+                                <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                                  {wvT("waivedBy", { admin: existing.created_by })}{" "}
+                                  <LocalTime value={existing.created_at} mode="date" />
+                                </span>
+                              ) : null}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  setWaiveFor({ id: teamId, name: team.team_name })
+                                }
+                              >
+                                {existing ? wvT("action") : wvT("action")}
+                              </Button>
+                              {existing ? (
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={async () => {
+                                    if (!token) return;
+                                    try {
+                                      await revokeWaiver(token, existing.waiver_id);
+                                      toast.success(wvT("revoked"));
+                                      void loadWaivers();
+                                    } catch {
+                                      toast.error(wvT("revokeFailed"));
+                                    }
+                                  }}
+                                >
+                                  {wvT("revoke")}
+                                </Button>
+                              ) : null}
+                            </div>
+                          );
+                        })()}
                         <EditRosterModal
                           event_id={eventDetails.event_id}
                           team_id={team.team_id || team.player_id}
@@ -1096,6 +1174,20 @@ export default function RegisteredTeamsTab({
         registeredTeamIds={eventDetails.tournament_teams.map((t: any) => t.team_id)}
       />
     )}
+      {/* One dialog for the whole table: opened with whichever team the admin picked. */}
+      {waiveFor ? (
+        <WaiverDialog
+          open={!!waiveFor}
+          onOpenChange={(open) => {
+            if (!open) setWaiveFor(null);
+          }}
+          eventId={eventDetails.event_id}
+          teamId={waiveFor.id}
+          teamName={waiveFor.name}
+          preselected={waiverForTeam(waiveFor.id)?.waived_codes ?? []}
+          onSaved={() => void loadWaivers()}
+        />
+      ) : null}
     </div>
   );
 }

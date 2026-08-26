@@ -1,0 +1,31 @@
+{
+  "title": "Lever les conditions pour {team}",
+  "description": "Cette équipe pourra s'inscrire même si elle ne remplit pas les conditions cochées. Les bannissements et le paiement ne peuvent jamais être levés.",
+  "reasonLabel": "Pourquoi (obligatoire)",
+  "reasonPlaceholder": "Invitée par AFC, logo à venir",
+  "reasonMissing": "Veuillez indiquer pourquoi cette équipe est dispensée.",
+  "save": "Enregistrer la levée",
+  "cancel": "Annuler",
+  "revoke": "Retirer la levée",
+  "action": "Lever les conditions",
+  "waivedBadge": "Levée par AFC",
+  "waivedBy": "Levée par {admin}",
+  "saved": "Levée enregistrée.",
+  "saveFailed": "Nous n'avons pas pu enregistrer la levée. Veuillez réessayer.",
+  "revoked": "Levée retirée.",
+  "revokeFailed": "Nous n'avons pas pu retirer la levée. Veuillez réessayer.",
+  "codes": {
+    "team_logo_required": "Logo de l'équipe",
+    "registration_requirements_unmet": "Conditions du profil joueur",
+    "letter_avatars_required": "Avatars lettres",
+    "discord_required": "Discord",
+    "roster_size": "Taille de l'effectif",
+    "country_restricted": "Restriction par pays",
+    "capacity_full": "Capacité de l'événement",
+    "sponsor_submission_invalid": "Condition du sponsor"
+  },
+  "warning": {
+    "capacity_full": "Cela ajoute une équipe supplémentaire à un événement dont les phases ont été dimensionnées pour un nombre fixe.",
+    "roster_size": "Cela admet une équipe qui ne peut pas aligner un effectif complet."
+  }
+}

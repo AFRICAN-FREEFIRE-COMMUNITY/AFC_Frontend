@@ -505,6 +505,18 @@ interface EventDetails {
   // Event.required_connections (owner 2026-08-26): provider slugs every registering player must
   // have linked. Returned by all three event serializers.
   required_connections?: string[];
+  /**
+   * The VIEWER's own active requirement waiver on this event, or null. Not every waiver on the
+   * event: a team has no business reading which other teams were excused. Used to render a waived
+   * requirement as "waived by AFC" instead of a red blocker the team cannot clear but which will
+   * not actually stop them registering.
+   */
+  my_waiver?: {
+    waived_codes: string[];
+    reason: string;
+    created_by: string;
+    created_at: string | null;
+  } | null;
   // ── Discord registration gate (per-event) ── echoed by get-event-details/. When
   // require_discord is true, the event shows a "Discord required" badge in the header
   // and register-for-event/ rejects participants who aren't Discord-connected + in the
@@ -614,22 +626,33 @@ function memberMissingRequirements(
     | "require_player_profile_image"
     | "require_whatsapp"
   > | null,
+  // Requirement codes AFC has excused for this viewer's competitor (owner 2026-08-26). A waived
+  // requirement must not be drawn as a red blocker: the team WILL be allowed to register, and a
+  // panel that says otherwise teaches players it cannot be trusted.
+  waivedCodes: string[] = [],
 ): RequirementKey[] {
+  const assetsWaived = waivedCodes.includes("registration_requirements_unmet");
   const missing: RequirementKey[] = [];
-  if (event?.require_player_uid && !member.uid?.trim()) missing.push("uid");
+  if (!assetsWaived && event?.require_player_uid && !member.uid?.trim()) missing.push("uid");
   // Discord here = NOT CONNECTED (no discord_id). The backend also requires actual guild membership
   // (check_discord_membership_in_guild), which the FE can't see from get-team-details - so a member
   // who IS connected is handled separately as an "advisory" (see MemberRequirementBadges) rather
   // than being claimed fully ready. A connected member is therefore NOT a hard "missing" here.
-  if (event?.require_discord && !member.discord_id) missing.push("discord");
-  if (event?.require_esport_images && !member.has_esports_image)
+  if (
+    !waivedCodes.includes("discord_required")
+    && event?.require_discord
+    && !member.discord_id
+  )
+    missing.push("discord");
+  if (!assetsWaived && event?.require_esport_images && !member.has_esports_image)
     missing.push("esports_image");
-  if (event?.require_player_profile_image && !member.has_profile_image)
+  if (!assetsWaived && event?.require_player_profile_image && !member.has_profile_image)
     missing.push("profile_image");
   // WhatsApp number (owner 2026-08-03): unlike Discord this IS fully verifiable client-side, because
   // get-team-details echoes a has_whatsapp boolean straight off UserProfile.whatsapp_number - so a
   // miss here is a hard red badge, never an advisory.
-  if (event?.require_whatsapp && !member.has_whatsapp) missing.push("whatsapp");
+  if (!assetsWaived && event?.require_whatsapp && !member.has_whatsapp)
+    missing.push("whatsapp");
   return missing;
 }
 
@@ -658,6 +681,10 @@ function MemberRequirementBadges({
   event: EventDetails | null;
 }) {
   const t = useTranslations("tournaments");
+  const wvT = useTranslations("waivers");
+  // Requirement waivers (owner 2026-08-26): read straight off the event payload so every call site
+  // inherits the behaviour without threading a prop through each one.
+  const waivedCodes = event?.my_waiver?.waived_codes ?? [];
   const anyReq =
     event?.require_player_uid ||
     event?.require_discord ||
@@ -666,7 +693,7 @@ function MemberRequirementBadges({
     event?.require_whatsapp;
   if (!anyReq) return null;
 
-  const hardMissing = memberMissingRequirements(member, event);
+  const hardMissing = memberMissingRequirements(member, event, waivedCodes);
   // Connected but server-membership unverifiable client-side -> advisory, not a guarantee.
   const discordUnverified = !!event?.require_discord && !!member.discord_id;
 
@@ -685,6 +712,15 @@ function MemberRequirementBadges({
       : k);
 
   if (hardMissing.length === 0 && !discordUnverified) {
+    // A team cleared BY A WAIVER is told so, rather than shown a plain "Ready" that hides why a
+    // requirement it does not meet is not stopping it.
+    if (waivedCodes.length > 0) {
+      return (
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+          {wvT("waivedBadge")}
+        </span>
+      );
+    }
     return (
       <Badge variant="outline" className="border-primary text-primary">
         <CheckCircle />
