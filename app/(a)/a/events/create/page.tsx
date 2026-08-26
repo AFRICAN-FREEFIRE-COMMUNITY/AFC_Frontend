@@ -119,6 +119,7 @@ export default function CreateEventPage() {
     resolver: zodResolver(EventFormSchema),
     defaultValues: {
       event_name: "",
+      event_description: "",
       competition_type: "",
       participant_type: "",
       event_type: "",
@@ -1012,6 +1013,11 @@ export default function CreateEventPage() {
           formData.append("uploaded_rules", selectedRuleFile);
 
         formData.append("event_name", data.event_name);
+        // The organizer's own description of the event (owner report 2026-08-26: the create
+        // wizard had no place to put one, so it could only be added by editing the event
+        // afterwards). Optional, so an empty string is sent and stored as empty; create_event
+        // reads it at views.py:2269 and the public page renders it as the About block.
+        formData.append("event_description", data.event_description ?? "");
         formData.append("competition_type", data.competition_type);
         formData.append("participant_type", data.participant_type);
         formData.append("event_type", data.event_type);
