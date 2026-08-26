@@ -1,0 +1,31 @@
+{
+  "title": "Dispensar requisitos para {team}",
+  "description": "Esta equipa poderá inscrever-se mesmo sem cumprir os requisitos assinalados. Banimentos e pagamento nunca podem ser dispensados.",
+  "reasonLabel": "Porquê (obrigatório)",
+  "reasonPlaceholder": "Convidada pela AFC, logoótipo a chegar depois",
+  "reasonMissing": "Indique porque esta equipa está a ser dispensada.",
+  "save": "Guardar dispensa",
+  "cancel": "Cancelar",
+  "revoke": "Remover dispensa",
+  "action": "Dispensar requisitos",
+  "waivedBadge": "Dispensado pela AFC",
+  "waivedBy": "Dispensado por {admin}",
+  "saved": "Dispensa guardada.",
+  "saveFailed": "Não foi possível guardar a dispensa. Tente novamente.",
+  "revoked": "Dispensa removida.",
+  "revokeFailed": "Não foi possível remover a dispensa. Tente novamente.",
+  "codes": {
+    "team_logo_required": "Logoótipo da equipa",
+    "registration_requirements_unmet": "Requisitos do perfil do jogador",
+    "letter_avatars_required": "Avatares de letras",
+    "discord_required": "Discord",
+    "roster_size": "Tamanho do plantel",
+    "country_restricted": "Restrição por país",
+    "capacity_full": "Capacidade do evento",
+    "sponsor_submission_invalid": "Requisito do patrocinador"
+  },
+  "warning": {
+    "capacity_full": "Isto coloca uma equipa a mais num evento cujas fases foram dimensionadas para um número fixo.",
+    "roster_size": "Isto admite uma equipa que não consegue apresentar um plantel completo."
+  }
+}

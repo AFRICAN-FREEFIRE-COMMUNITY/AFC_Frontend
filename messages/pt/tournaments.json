@@ -345,7 +345,8 @@
         "esportsImage": "Imagem de desporto eletrónico",
         "profileImage": "Imagem de perfil",
         "whatsapp": "Número de WhatsApp",
-        "teamLogo": "Logótipo da equipa"
+        "teamLogo": "Logótipo da equipa",
+        "connection": "Conta {provider} ligada"
       }
     },
     "selfEdit": {
@@ -622,7 +623,8 @@
     "whatsapp": "Um número de WhatsApp no perfil de cada jogador, para que os detalhes da sala os possam alcançar",
     "sponsorTitle": "Requisitos para os patrocinadores",
     "sponsorTitleNamed": "Requisitos para patrocinadores ({sponsor})",
-    "sponsorField": "Ser-lhe-á pedido que forneça: {field}"
+    "sponsorField": "Ser-lhe-á pedido que forneça: {field}",
+    "connection": "Conta {provider} ligada"
   },
   "sponsorRequirements": {
     "title": "Requisitos do Patrocinador",

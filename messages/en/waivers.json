@@ -1,0 +1,31 @@
+{
+  "title": "Waive requirements for {team}",
+  "description": "This team will be able to register even though it does not meet the ticked requirements. Bans and payment can never be waived.",
+  "reasonLabel": "Why (required)",
+  "reasonPlaceholder": "Invited by AFC, logo coming later",
+  "reasonMissing": "Please say why this team is being excused.",
+  "save": "Save waiver",
+  "cancel": "Cancel",
+  "revoke": "Remove waiver",
+  "action": "Waive requirements",
+  "waivedBadge": "Waived by AFC",
+  "waivedBy": "Waived by {admin}",
+  "saved": "Waiver saved.",
+  "saveFailed": "We could not save the waiver. Please try again.",
+  "revoked": "Waiver removed.",
+  "revokeFailed": "We could not remove the waiver. Please try again.",
+  "codes": {
+    "team_logo_required": "Team logo",
+    "registration_requirements_unmet": "Player profile requirements",
+    "letter_avatars_required": "Letter avatars",
+    "discord_required": "Discord",
+    "roster_size": "Roster size",
+    "country_restricted": "Country restriction",
+    "capacity_full": "Event capacity",
+    "sponsor_submission_invalid": "Sponsor requirement"
+  },
+  "warning": {
+    "capacity_full": "This puts an extra team into an event whose stages were sized for a fixed number.",
+    "roster_size": "This admits a team that cannot field a full squad."
+  }
+}

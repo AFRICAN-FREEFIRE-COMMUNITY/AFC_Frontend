@@ -15,12 +15,15 @@
   "kind": {
     "per_team": "Une par équipe",
     "fcfs": "Premier arrivé, premier servi",
-    "bulk": "Une invitation générale"
+    "bulk": "Une invitation générale",
+    "per_player": "Une par joueur"
   },
   "kindHint": {
     "per_team": "Chaque équipe reçoit sa propre invitation. Toutes celles que vous choisissez peuvent accepter.",
     "fcfs": "Invitez plus d'équipes que vous n'avez de places. Celles qui acceptent en premier les prennent.",
-    "bulk": "Une seule invitation ouverte. Toute équipe que vous prévenez peut prendre une place tant qu'il en reste."
+    "bulk": "Une seule invitation ouverte. Toute équipe que vous prévenez peut prendre une place tant qu'il en reste.",
+    "per_player": "Chaque joueur reçoit sa propre invitation. Tous ceux que vous choisissez peuvent accepter.",
+    "fcfs_solo": "Invitez plus de joueurs que vous n'avez de places. Les premiers à accepter les prennent."
   },
   "channel": {
     "push": "Notification dans le site",
@@ -95,7 +98,9 @@
     "toastClosed": "Invitation fermée.",
     "toastCloseFailed": "Impossible de fermer l'invitation.",
     "toastSentBulk": "Invitation ouverte envoyée à {count} équipe(s).",
-    "toastDelivered": "{recipients} personnes touchées : {pushed} dans le site, {emailed} par e-mail, {whatsapp} sur WhatsApp."
+    "toastDelivered": "{recipients} personnes touchées : {pushed} dans le site, {emailed} par e-mail, {whatsapp} sur WhatsApp.",
+    "searchPlayersPlaceholder": "Rechercher un joueur par son nom...",
+    "noPlayersPicked": "Aucun joueur choisi pour l'instant. Recherchez un nom ci-dessus."
   },
   "team": {
     "title": "Invitations à des événements",

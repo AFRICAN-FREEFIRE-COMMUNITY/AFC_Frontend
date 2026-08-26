@@ -15,12 +15,15 @@
   "kind": {
     "per_team": "One per team",
     "fcfs": "First come, first served",
-    "bulk": "One general invitation"
+    "bulk": "One general invitation",
+    "per_player": "One per player"
   },
   "kindHint": {
     "per_team": "Each team gets its own invitation. Everyone you pick can accept.",
     "fcfs": "Ask more teams than you have places for. The ones who accept first take them.",
-    "bulk": "A single open invitation. Any team you tell about it can take a place while they last."
+    "bulk": "A single open invitation. Any team you tell about it can take a place while they last.",
+    "per_player": "Each player gets their own invitation. Everyone you pick can accept.",
+    "fcfs_solo": "Ask more players than you have places for. The ones who accept first take them."
   },
   "channel": {
     "push": "In-app notification",
@@ -95,7 +98,9 @@
     "toastClosed": "Invitation closed.",
     "toastCloseFailed": "Could not close the invitation.",
     "toastSentBulk": "Open invitation sent to {count} team(s).",
-    "toastDelivered": "Reached {recipients} people: {pushed} in-app, {emailed} by email, {whatsapp} on WhatsApp."
+    "toastDelivered": "Reached {recipients} people: {pushed} in-app, {emailed} by email, {whatsapp} on WhatsApp.",
+    "searchPlayersPlaceholder": "Search a player by name...",
+    "noPlayersPicked": "No players picked yet. Search for a name above."
   },
   "team": {
     "title": "Event invitations",

@@ -16,7 +16,8 @@
     "disconnect": "Disconnect - {username}",
     "esportsImageEmpty": "No esports image yet",
     "esportsImageHint": "Add one from Edit Profile",
-    "esportImage": "Esport image"
+    "esportImage": "Esport image",
+    "manageConnections": "Manage connections"
   },
   "discord": {
     "disconnectTitle": "Are you absolutely sure?",

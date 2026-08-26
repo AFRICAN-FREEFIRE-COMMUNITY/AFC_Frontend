@@ -37,6 +37,8 @@
 // 2026-08-03 override), resolved through useTranslations("eventInvites").
 
 import { useCallback, useEffect, useState } from "react";
+// SOLO events pick PLAYERS with the shared typeahead rather than listing every team.
+import { UserSearchSelect } from "@/components/ui/user-search-select";
 import axios from "axios";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -77,10 +79,13 @@ import { LocalTime } from "@/components/LocalTime";
 // are the BACKEND's: `kind` matches EventInvitationCampaign.KIND_CHOICES and the channel tokens are
 // afc_auth.audience's, comma-joined into the `delivery` field. Kept as literal unions so a typo is
 // a compile error here rather than a 400 at send time.
-type InviteKind = "per_team" | "fcfs" | "bulk";
+type InviteKind = "per_team" | "per_player" | "fcfs" | "bulk";
 type Channel = "push" | "email" | "whatsapp";
 
 const KINDS: InviteKind[] = ["per_team", "fcfs", "bulk"];
+// A SOLO event invites PLAYERS, so its "one each" kind is per_player. The other two mean the same
+// thing for either shape, so only the first entry differs.
+const SOLO_KINDS: InviteKind[] = ["per_player", "fcfs", "bulk"];
 const CHANNELS: Channel[] = ["push", "email", "whatsapp"];
 
 // One row of /events/team-invitations/ (event_invites._serialize).
@@ -140,6 +145,13 @@ interface EventTeamInvitesCardProps {
   eventName: string;
   /** team_ids already registered for the event: shown as "Registered" and not selectable. */
   registeredTeamIds?: number[];
+  /**
+   * True for a SOLO event (owner 2026-08-26). The card then invites PLAYERS instead of teams: it
+   * picks them through the site's UserSearchSelect typeahead rather than listing every team, and
+   * posts user_ids. A solo event has no teams to invite, and before this it could not invite
+   * anybody at all.
+   */
+  solo?: boolean;
 }
 
 // Every error body the invitation endpoints return carries a human-readable `message`
@@ -166,6 +178,7 @@ export function EventTeamInvitesCard({
   eventId,
   eventName,
   registeredTeamIds = [],
+  solo = false,
 }: EventTeamInvitesCardProps) {
   const t = useTranslations("eventInvites");
   const { token } = useAuth();
@@ -188,7 +201,12 @@ export function EventTeamInvitesCard({
   // The two new choices (owner 2026-08-08). Defaults are deliberately the OLD behaviour: one
   // invitation per team, delivered in-app and by email, so an organizer who changes nothing gets
   // exactly what this card did before, and "both" is what the backend defaults to as well.
-  const [kind, setKind] = useState<InviteKind>("per_team");
+  const [kind, setKind] = useState<InviteKind>(solo ? "per_player" : "per_team");
+  // SOLO mode: the players picked through the typeahead. Held as {id, username} because the send
+  // needs the ids and the list needs something to show, and the typeahead answers in usernames.
+  const [pickedPlayers, setPickedPlayers] = useState<
+    { user_id: number; username: string }[]
+  >([]);
   const [channels, setChannels] = useState<Channel[]>(["push", "email"]);
   const [slots, setSlots] = useState("");
   // How many people the CURRENT selection would actually reach, per channel. Fetched live rather
@@ -240,9 +258,17 @@ export function EventTeamInvitesCard({
     setSelected([]);
     setSearch("");
     setMessage("");
-    setKind("per_team");
+    setKind(solo ? "per_player" : "per_team");
+    setPickedPlayers([]);
     setChannels(["push", "email"]);
     setSlots("");
+    if (solo) {
+      // Nothing to list: a solo event picks players through the typeahead, and the player table is
+      // far too large to enumerate.
+      setTeams([]);
+      setTeamsLoading(false);
+      return;
+    }
     axios
       .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -250,7 +276,7 @@ export function EventTeamInvitesCard({
       .then((res) => setTeams(res.data.teams ?? []))
       .catch(() => toast.error(t("organizer.toastTeamsFailed")))
       .finally(() => setTeamsLoading(false));
-  }, [open, token, t]);
+  }, [open, token, t, solo]);
 
   // Teams that already hold a PENDING invitation cannot be invited twice (the backend skips them,
   // and the picker greys them out so an organizer never selects a no-op).
@@ -290,7 +316,12 @@ export function EventTeamInvitesCard({
     const timer = setTimeout(() => {
       axios
         .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/team-invitations/reach/`, {
-          params: { event_id: eventId, team_ids: selected.join(",") },
+          params: {
+            event_id: eventId,
+            ...(solo
+              ? { user_ids: selected.join(",") }
+              : { team_ids: selected.join(",") }),
+          },
           headers: { Authorization: `Bearer ${token}` },
           signal: controller.signal,
         })
@@ -313,7 +344,9 @@ export function EventTeamInvitesCard({
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/team-invitations/create/`,
         {
           event_id: eventId,
-          team_ids: selected,
+          // Exactly one of these. The backend refuses the wrong shape for the event rather than
+          // silently ignoring half the request.
+          ...(solo ? { user_ids: selected } : { team_ids: selected }),
           message: message.trim(),
           kind,
           // The backend speaks afc_auth.audience's comma-joined vocabulary, so the tick boxes are
@@ -638,7 +671,50 @@ export function EventTeamInvitesCard({
               />
             </div>
 
-            {teamsLoading ? (
+            {solo ? (
+              /* SOLO: pick players by name. The player table is far too large to list the way the
+                 team picker does, so this reuses the site's UserSearchSelect typeahead (backed by
+                 /auth/search-users/), the same control every other "pick an existing user" surface
+                 uses. Picked players are shown as removable chips beneath it. */
+              <div className="space-y-2">
+                <UserSearchSelect
+                  multiple
+                  value={pickedPlayers.map((p) => p.username)}
+                  onChange={(usernames, lastUser) => {
+                    // The typeahead answers in usernames; the send needs ids, so the id is captured
+                    // from the picked user as it arrives and kept alongside.
+                    setPickedPlayers((prev) => {
+                      const next = prev.filter((p) => usernames.includes(p.username));
+                      if (
+                        lastUser &&
+                        usernames.includes(lastUser.username) &&
+                        !next.some((p) => p.user_id === lastUser.user_id)
+                      ) {
+                        next.push({
+                          user_id: lastUser.user_id,
+                          username: lastUser.username,
+                        });
+                      }
+                      return next;
+                    });
+                    setSelected((prev) => {
+                      const byName = new Map(pickedPlayers.map((p) => [p.username, p.user_id]));
+                      if (lastUser) byName.set(lastUser.username, lastUser.user_id);
+                      const ids = usernames
+                        .map((n) => byName.get(n))
+                        .filter((id): id is number => typeof id === "number");
+                      return ids.length ? ids : prev.filter(() => false);
+                    });
+                  }}
+                  placeholder={t("organizer.searchPlayersPlaceholder")}
+                />
+                {pickedPlayers.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    {t("organizer.noPlayersPicked")}
+                  </p>
+                ) : null}
+              </div>
+            ) : teamsLoading ? (
               <div className="flex items-center justify-center py-10 text-muted-foreground gap-2 text-sm">
                 <IconLoader2 className="size-4 animate-spin" />
                 {t("organizer.loadingTeams")}
@@ -707,7 +783,7 @@ export function EventTeamInvitesCard({
                 onValueChange={(value) => setKind(value as InviteKind)}
                 className="flex flex-col gap-2"
               >
-                {KINDS.map((option) => (
+                {(solo ? SOLO_KINDS : KINDS).map((option) => (
                   <div key={option} className="flex items-start gap-2">
                     <RadioGroupItem
                       value={option}

@@ -79,5 +79,16 @@
   "requireWhatsappDesc": "Every registering player must have a WhatsApp number saved on their profile. Turn this on when you plan to send room details over WhatsApp.",
   "requireLetterAvatars": "Require letter avatars",
   "requireLetterAvatarsTip": "Teams or players must have at least this many Free Fire letter avatars (A-Z) available before they can register. A team's available letters are the combined letters its members own plus any manual extras added on the team editor.",
-  "requireLetterAvatarsDesc": "Set the minimum number of letter avatars (1 to 26) competitors must have available to register."
+  "requireLetterAvatarsDesc": "Set the minimum number of letter avatars (1 to 26) competitors must have available to register.",
+  "requiredConnections": {
+    "label": "Required connected accounts",
+    "help": "Every player registering must have these accounts linked to their AFC profile. Discord is set separately above, because it also checks server membership.",
+    "none": "No connected accounts are configured on this site yet.",
+    "loadError": "We could not load the list of accounts. Please try again.",
+    "provider": {
+      "discord": "Discord",
+      "google": "Google",
+      "vent": "v-ent.co"
+    }
+  }
 }

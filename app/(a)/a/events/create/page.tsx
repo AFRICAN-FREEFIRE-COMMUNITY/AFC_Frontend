@@ -1196,6 +1196,15 @@ export default function CreateEventPage() {
           "require_whatsapp",
           String((form.getValues("require_whatsapp" as never) as unknown as boolean) ?? false),
         );
+        // Required connected accounts (owner 2026-08-26), same hand-append pattern as the
+        // require_* toggles above. A LIST, so it travels as JSON: multipart FormData can only
+        // carry strings, and create_event coerces it back with the repo's existing _as_list.
+        formData.append(
+          "required_connections",
+          JSON.stringify(
+            (form.getValues("required_connections" as never) as unknown as string[]) ?? [],
+          ),
+        );
         // Letter-avatars registration gate (feature #7, owner 2026-06-29). UNLIKE the require_*
         // toggles above this is a NUMBER (0-26, 0 = off), written into RHF by Step1EventDetails'
         // "Require letter avatars" Switch + count input. create_event re-parses + clamps it

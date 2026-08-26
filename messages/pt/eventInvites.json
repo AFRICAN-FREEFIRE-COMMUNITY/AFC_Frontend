@@ -15,12 +15,15 @@
   "kind": {
     "per_team": "Uma por equipa",
     "fcfs": "Por ordem de chegada",
-    "bulk": "Um convite geral"
+    "bulk": "Um convite geral",
+    "per_player": "Uma por jogador"
   },
   "kindHint": {
     "per_team": "Cada equipa recebe o seu próprio convite. Todas as que escolher podem aceitar.",
     "fcfs": "Convide mais equipas do que as vagas que tem. As que aceitarem primeiro ficam com elas.",
-    "bulk": "Um único convite aberto. Qualquer equipa que avisar pode ocupar uma vaga enquanto houver."
+    "bulk": "Um único convite aberto. Qualquer equipa que avisar pode ocupar uma vaga enquanto houver.",
+    "per_player": "Cada jogador recebe o seu próprio convite. Todos os que escolher podem aceitar.",
+    "fcfs_solo": "Convide mais jogadores do que as vagas que tem. Os primeiros a aceitar ficam com elas."
   },
   "channel": {
     "push": "Notificação no site",
@@ -95,7 +98,9 @@
     "toastClosed": "Convite fechado.",
     "toastCloseFailed": "Não foi possível fechar o convite.",
     "toastSentBulk": "Convite aberto enviado a {count} equipa(s).",
-    "toastDelivered": "{recipients} pessoas alcançadas: {pushed} no site, {emailed} por e-mail, {whatsapp} no WhatsApp."
+    "toastDelivered": "{recipients} pessoas alcançadas: {pushed} no site, {emailed} por e-mail, {whatsapp} no WhatsApp.",
+    "searchPlayersPlaceholder": "Procurar um jogador pelo nome...",
+    "noPlayersPicked": "Ainda não escolheu jogadores. Procure um nome acima."
   },
   "team": {
     "title": "Convites para eventos",

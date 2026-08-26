@@ -19,17 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { formatWord } from "@/lib/utils";
@@ -57,7 +46,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { DEFAULT_PROFILE_PICTURE } from "@/constants";
-import { FullLoader, Loader } from "@/components/Loader";
+import { FullLoader } from "@/components/Loader";
 import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { PageHeader } from "@/components/PageHeader";
 import axios from "axios";
@@ -179,29 +168,6 @@ export const ProfileContent = () => {
     } catch (error) {
       console.error("Error checking Discord status:", error);
     }
-  };
-
-  const handleDiscordDisconnect = async () => {
-    if (!token) return;
-
-    startTransition(async () => {
-      try {
-        await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/disconnect-discord-account/`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        setDiscordConnected(false);
-        toast.success(t("discord.disconnected"));
-      } catch (error) {
-        console.error("Error disconnecting Discord:", error);
-        toast.error(t("discord.disconnectFailed"));
-      }
-    });
   };
 
   useEffect(() => {
@@ -333,14 +299,6 @@ export const ProfileContent = () => {
       }, 50);
     }
   }, [searchParams, router]);
-
-  const handleDiscordConnect = () => {
-    // Construct the URL to your backend endpoint
-    const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord-account?session_token=${token}`;
-
-    // Redirect the browser to start the OAuth flow
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
 
   if (!user) return <FullLoader />;
 
@@ -512,85 +470,15 @@ export const ProfileContent = () => {
               <Button className="w-full" asChild>
                 <Link href="/profile/edit">{t("card.editProfile")}</Link>
               </Button>
-              {/* <Button
-                disabled={pending}
-                onClick={
-                  discordConnected
-                    ? handleDiscordDisconnect
-                    : handleDiscordConnect
-                }
-                variant={discordConnected ? "destructive" : "secondary"} // Change color to red if connected
-                className="w-full"
-              >
-                {pending ? (
-                  <Loader
-                    text={
-                      discordConnected ? "Disconnecting..." : "Connecting..."
-                    }
-                  />
-                ) : discordConnected ? (
-                  `Disconnect Discord (${user.discord_username})`
-                ) : (
-                  "Connect to Discord"
-                )}
-              </Button> */}
-
-              {discordConnected ? (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      className="w-full"
-                      disabled={pending}
-                    >
-                      {pending ? (
-                        <Loader text={t("card.disconnecting")} />
-                      ) : (
-                        t("card.disconnect", {
-                          // discord_username is optional on the User type; this branch
-                          // only renders when Discord is connected (so it is set), but
-                          // fall back to an empty string to satisfy the value type.
-                          username: user.discord_username ?? "",
-                        })
-                      )}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        {t("discord.disconnectTitle")}
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t("discord.disconnectDescription")}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>
-                        {t("discord.disconnectCancel")}
-                      </AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDiscordDisconnect}
-                        className="bg-destructive text-white hover:bg-destructive/90"
-                      >
-                        {t("discord.disconnectConfirm")}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              ) : (
-                <Button
-                  disabled={pending}
-                  onClick={handleDiscordConnect}
-                  variant="secondary"
-                  className="w-full"
-                >
-                  {pending ? (
-                    <Loader text={t("card.connecting")} />
-                  ) : (
-                    t("card.connectDiscord")
-                  )}
-                </Button>
-              )}
+              {/* Account connections moved to /profile/connected-apps (owner 2026-08-26).
+                  That page carries every provider (Discord, Google, v-ent.co) in one list, plus
+                  the apps that can sign this player in. Keeping a second, Discord-only control
+                  here would mean two places to look and two places to keep correct. It also
+                  removed a hardcoded English string and a handler that put the player's live
+                  session token in a URL sent to discord.com. */}
+              <Button variant="secondary" className="w-full" asChild>
+                <Link href="/profile/connected-apps">{t("card.manageConnections")}</Link>
+              </Button>
             </div>
           </div>
         </CardContent>

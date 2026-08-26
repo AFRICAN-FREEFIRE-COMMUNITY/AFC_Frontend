@@ -79,5 +79,16 @@
   "requireWhatsappDesc": "Chaque joueur qui s'inscrit doit avoir un numéro WhatsApp enregistré dans son profil. Activez cette option si vous comptez envoyer les détails de la salle par WhatsApp.",
   "requireLetterAvatars": "Exiger des avatars sous forme de lettres",
   "requireLetterAvatarsTip": "Les équipes ou les joueurs doivent disposer d'au moins ce nombre d'avatars « lettres » Free Fire (A-Z) avant de pouvoir s'inscrire. Les lettres disponibles d'une équipe correspondent à la somme des lettres détenues par ses membres, auxquelles s'ajoutent les lettres supplémentaires ajoutées manuellement dans l'éditeur d'équipe.",
-  "requireLetterAvatarsDesc": "Définissez le nombre minimum d'avatars sous forme de lettres (de 1 à 26) dont les participants doivent disposer pour pouvoir s'inscrire."
+  "requireLetterAvatarsDesc": "Définissez le nombre minimum d'avatars sous forme de lettres (de 1 à 26) dont les participants doivent disposer pour pouvoir s'inscrire.",
+  "requiredConnections": {
+    "label": "Comptes connectés requis",
+    "help": "Chaque joueur qui s'inscrit doit avoir ces comptes liés à son profil AFC. Discord se configure séparément ci-dessus, car il vérifie aussi l'appartenance au serveur.",
+    "none": "Aucun compte connecté n'est configuré sur ce site pour le moment.",
+    "loadError": "Nous n'avons pas pu charger la liste des comptes. Veuillez réessayer.",
+    "provider": {
+      "discord": "Discord",
+      "google": "Google",
+      "vent": "v-ent.co"
+    }
+  }
 }
