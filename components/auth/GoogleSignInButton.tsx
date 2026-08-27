@@ -19,36 +19,15 @@ import axios from "axios";
 import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+// GIS loader shared with the CONNECT page (lib/googleIdentity.ts). It used to be private
+// to this file, which is why the connect page had nothing to reuse and took a path that
+// could never work (owner bug 2026-08-27).
+import { loadGis } from "@/lib/googleIdentity";
 // Two-step sign-in (owner 2026-08-06). Google goes through the SAME backend gate as password
 // login, so this response can be a challenge instead of a session. The button does not render the
 // code screen itself: it hands the challenge up to whichever surface owns it (the login page or
 // the in-place auth modal), so there is one code screen rather than one per entry point.
 import { isTwoFactorChallenge, type TwoFactorChallenge } from "@/lib/twoFactor";
-
-const GIS_SRC = "https://accounts.google.com/gsi/client";
-
-let gisLoadPromise: Promise<void> | null = null;
-function loadGis(): Promise<void> {
-  if (typeof window === "undefined") return Promise.resolve();
-  if ((window as any).google?.accounts?.oauth2) return Promise.resolve();
-  if (gisLoadPromise) return gisLoadPromise;
-  gisLoadPromise = new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${GIS_SRC}"]`);
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () => reject(new Error("GIS load failed")));
-      return;
-    }
-    const s = document.createElement("script");
-    s.src = GIS_SRC;
-    s.async = true;
-    s.defer = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("GIS load failed"));
-    document.head.appendChild(s);
-  });
-  return gisLoadPromise;
-}
 
 // Official multi-colour Google "G".
 function GoogleG({ className = "" }: { className?: string }) {

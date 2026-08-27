@@ -41,10 +41,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { env } from "@/lib/env";
+// The Google consent popup, shared with the sign-in button so the two cannot drift apart.
+import { requestGoogleCode } from "@/lib/googleIdentity";
 import {
   type Connection,
   disconnectProvider,
   listConnections,
+  linkGoogle,
   startConnection,
 } from "@/lib/connections";
 
@@ -142,6 +146,43 @@ export function ConnectedAccounts() {
   const onConnect = async (row: Connection) => {
     if (!token) return;
     setBusy(row.provider);
+
+    // ── TWO KINDS OF PROVIDER, and this branch is the bug fix ────────────────────────────────
+    // Every provider used to go down the redirect path. Google does not have one: it is
+    // registered kind="id_token", and the backend answers /start/ for it with a deliberate 400,
+    // "This provider is linked without a redirect". That 400 was the "We could not start
+    // connecting Google" toast an owner reported on 2026-08-27, and it meant Google connect had
+    // never once worked.
+    //
+    // Branching on `kind` rather than on the slug is on purpose: the backend already sends it on
+    // every row (connections/links.py serialize_for), so a future id_token provider works here
+    // with no change, and nothing hardcodes the word "google".
+    if (row.kind === "id_token") {
+      const clientId = env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        toast.error(t("toast.connectFailed", { provider: labelFor(row) }));
+        setBusy(null);
+        return;
+      }
+      try {
+        // The SAME popup the sign-in button uses (lib/googleIdentity.ts), so the two cannot drift
+        // apart again. It resolves with a one-time auth code, which the backend exchanges.
+        const code = await requestGoogleCode(clientId);
+        setRows(await linkGoogle(token, code));
+        toast.success(t("toast.connected", { provider: labelFor(row) }));
+      } catch (err) {
+        // Closing the popup is a normal thing to do, not a failure worth shouting about. Only a
+        // real link failure gets an error toast.
+        if ((err as Error)?.message !== "popup closed") {
+          toast.error(t("toast.connectFailed", { provider: labelFor(row) }));
+        }
+      } finally {
+        setBusy(null);
+      }
+      return;
+    }
+
+    // ── redirect providers (Discord, v-ent.co) ──
     try {
       const authorizeUrl = await startConnection(
         token,
