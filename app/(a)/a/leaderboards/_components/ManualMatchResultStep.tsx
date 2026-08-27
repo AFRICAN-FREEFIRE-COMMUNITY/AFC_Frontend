@@ -19,6 +19,9 @@ import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { readJson } from "@/lib/readJson";
 import { cn } from "@/lib/utils";
+// The dated NEW tag (CLAUDE.md hard rule). It expires by itself 5 days after the date below, so
+// there is nothing to come back and delete.
+import { NewBadge } from "@/components/NewBadge";
 // Absent-vs-zero for the manual score boxes (owner bug 2026-08-06). A blank placement stays null
 // so the backend rejects it instead of scoring 0; a blank kills box collapses to 0. Rendering also
 // goes through here so a typed 0 stays visible instead of redrawing as an empty box.
@@ -616,6 +619,9 @@ export function ManualMatchResultStep({
                 )}
               >
                 {labelText}
+                {/* Only the new half of the toggle is tagged: "Review all teams" is the layout
+                    this screen has always had, and a NEW tag on it would be a lie. */}
+                {value === "one" && <NewBadge since="2026-08-27" className="ml-1.5" />}
               </button>
             ))}
           </div>
