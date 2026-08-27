@@ -102,11 +102,19 @@ export async function startConnection(
   return res.data.authorize_url;
 }
 
-/** Link Google from an ID token the Google button already produced. No redirect. */
-export async function linkGoogle(token: string, credential: string): Promise<Connection[]> {
+/**
+ * Link Google from the one-time auth CODE the GIS popup produced. No redirect round trip.
+ *
+ * A CODE, not an id token: the sign-in button moved to the GIS popup code client on 2026-06-21,
+ * so a code is what the browser actually holds. This helper existed before but took a
+ * `credential` and, worse, was never called by anything, so Google connect always failed with
+ * "We could not start connecting Google" (owner bug 2026-08-27). The backend accepts both shapes;
+ * this sends the one the browser has.
+ */
+export async function linkGoogle(token: string, code: string): Promise<Connection[]> {
   const res = await axios.post<ListResponse>(
     url("google/"),
-    { credential },
+    { code },
     { headers: bearer(token) },
   );
   return res.data?.connections ?? [];
