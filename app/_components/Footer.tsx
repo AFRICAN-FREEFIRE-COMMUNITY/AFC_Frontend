@@ -156,6 +156,28 @@ export const Footer = () => {
                   {t("footer.rules")}
                 </Link>
               </li>
+              {/* Partner links (owner 2026-08-27). Both pages were ALREADY public and in the
+                  (root) group; the gap was that nothing on the site linked to them, so only
+                  somebody who already knew the URL could reach them. The footer is the one
+                  element rendered on every public page, signed in or not, which is exactly the
+                  audience: an engineer at a partner organisation who has no AFC account and
+                  never will. */}
+              <li>
+                <Link
+                  href="/partners/api"
+                  className="hover:text-primary transition-colors"
+                >
+                  {t("footer.partnerApi")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/partners/apply"
+                  className="hover:text-primary transition-colors"
+                >
+                  {t("footer.becomeAPartner")}
+                </Link>
+              </li>
               {/* Always-on site feedback (owner backlog item 29). Lives here rather than in a
                   floating button because the Footer is the one element rendered on EVERY public
                   page (the user layout plus the landing, rules, privacy, terms, invite, auth and

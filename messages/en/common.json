@@ -95,7 +95,9 @@
     "privacyPolicy": "Privacy Policy",
     "rules": "Rules",
     "copyright": "© {year} African Free Fire Community. All rights reserved.",
-    "poweredBy": "Powered by AFC Hub"
+    "poweredBy": "Powered by AFC Hub",
+    "partnerApi": "Partner API",
+    "becomeAPartner": "Become a partner"
   },
   "notifications": {
     "title": "Notifications",
