@@ -149,6 +149,40 @@ test("a team marked not played still posts, carrying its played flag", () => {
   assert.equal(row.played, false);
 });
 
+// ── a stored placement of 0 ──────────────────────────────────────────────────
+
+test("a stored placement of 0 is read back as NOT ENTERED", () => {
+  // Reproduced on a real map 2026-08-27. Save a map with two teams marked as not playing and the
+  // API stores placement 0 for both. Seed that back as 0 and the next save posts 0 twice, so
+  // validate_placements refuses it for duplicate position 0 and the map can never be saved again.
+  // There is no 0th place, so a stored 0 can only mean the box was empty.
+  const [seeded] = buildEntryTeams({
+    teams: [
+      { tournament_team_id: 7, team_name: "T", team_logo: null, members: [{ player_id: 1, username: "a" }] },
+    ],
+    savedStats: [{ tournament_team_id: 7, placement: 0, played: false, players: [] }],
+    previousStats: null,
+    maxPlayed: 4,
+  });
+  assert.equal(seeded.placement, null);
+  assert.equal(seeded.played, false);
+});
+
+test("a real placement still survives seeding, including position 1", () => {
+  // The guard against over-correcting: only 0 is special, and 1 must not be swept up with it.
+  const [seeded] = buildEntryTeams({
+    teams: [
+      { tournament_team_id: 7, team_name: "T", team_logo: null, members: [{ player_id: 1, username: "a" }] },
+    ],
+    savedStats: [{ tournament_team_id: 7, placement: 1, players: [{ player_id: 1, kills: 0 }] }],
+    previousStats: null,
+    maxPlayed: 4,
+  });
+  assert.equal(seeded.placement, 1);
+  // A stored 0 KILLS is a real answer and must not be swept up either.
+  assert.equal(seeded.players[0].kills, 0);
+});
+
 // ── the GOLDEN replay: the thing that makes this rebuild provable ────────────
 //
 // The fixture carries the inputs the old screen was seeded from (`seedInput`), its own state at

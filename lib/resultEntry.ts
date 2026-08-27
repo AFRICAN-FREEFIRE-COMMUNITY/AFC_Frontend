@@ -92,6 +92,20 @@ export function resolveLineup(args: {
   return rosterIds.slice(0, maxPlayed);
 }
 
+/**
+ * A stored finishing position, as a value the picker can hold.
+ *
+ * `0` becomes null. Written as an explicit comparison rather than `|| null`, because gating a
+ * number on truthiness is how the zero bugs in this codebase have always started. The point here
+ * is that 0 is not a POSSIBLE placement, not that it is falsy.
+ */
+function normalisePlacement(stored: unknown): ScoreValue {
+  if (stored === null || stored === undefined) return null;
+  const n = Number(stored);
+  if (Number.isNaN(n)) return null;
+  return n === 0 ? null : n;
+}
+
 /** A saved player row's id, whichever key this particular path used. */
 function savedPlayerId(row: any): number | null {
   const id = row?.player_id ?? row?.user_id;
@@ -163,7 +177,18 @@ export function buildEntryTeams(args: {
       team_logo: team.team_logo ?? null,
       // A placement nobody has entered stays null so the backend refuses the save, rather than
       // being collapsed to 0 and scoring a played team zero points (owner bug 2026-08-06).
-      placement: savedRow ? (savedRow.placement ?? null) : null,
+      //
+      // A STORED 0 is read back as null, and that is a semantic call rather than a truthiness
+      // one: there is no 0th place, so 0 can only mean the box was empty when it was saved. The
+      // backend's own duplicate-placement message says the same thing.
+      //
+      // Reproduced on a real map 2026-08-27: save a map with two teams marked as not playing,
+      // and the API stores placement 0 for both. Reopen it and every seeded 0 posts back as 0, so
+      // validate_placements refuses the save for "two or more teams at the same finishing
+      // position (0)" and the map can never be saved again. The pre-rebuild component seeded
+      // `stat?.placement ?? null`, which reads a stored 0 as 0 in exactly the same way, so this
+      // is an old bug being closed here rather than a new one being avoided.
+      placement: normalisePlacement(savedRow?.placement),
       // The API's team row usually carries no `played` key, and absent means played.
       played: savedRow ? (savedRow.played ?? true) : true,
       players: team.members.map((m) => ({

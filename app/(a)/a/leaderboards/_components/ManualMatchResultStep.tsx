@@ -18,6 +18,7 @@ import { InfoTip } from "@/components/ui/info-tip";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { readJson } from "@/lib/readJson";
+import { cn } from "@/lib/utils";
 // Absent-vs-zero for the manual score boxes (owner bug 2026-08-06). A blank placement stays null
 // so the backend rejects it instead of scoring 0; a blank kills box collapses to 0. Rendering also
 // goes through here so a typed 0 stays visible instead of redrawing as an empty box.
@@ -28,6 +29,19 @@ import {
   scoreOrZero,
   type ScoreValue,
 } from "@/lib/scoreInput";
+// Every rule about WHAT the boxes start as and WHAT gets posted lives here, not in this file.
+// Both ends are replayed in lib/resultEntry.test.ts against a golden captured from this very
+// component before the 2026-08-27 rebuild, so this component can only decide WHEN to seed and
+// what the screen looks like.
+import {
+  buildEntryTeams,
+  buildTeamPayload,
+  type EntryPlayer,
+  type EntryTeam,
+} from "@/lib/resultEntry";
+// The per-team screen, which is the default on a phone. See the view toggle below.
+import { ProgressRail } from "./_result-entry/ProgressRail";
+import { TeamStepper } from "./_result-entry/TeamStepper";
 import { toast } from "sonner";
 // Add-player picker (Roster Rules, owner 2026-06-15): a per-team dialog that lists the
 // team's PLAYING-role members who are NOT yet on this event's roster, then POSTs the
@@ -49,6 +63,11 @@ import {
 // so the add-player picker has to read roles from get-team-details/). These sets match
 // afc_team/views.py PLAYER_ROLES / STAFF_ROLES.
 const PLAYER_ROLES = ["team_captain", "vice_captain", "member"];
+
+// A squad map allows at most 4 PLAYED players; the backend rejects more. Registered rosters hold
+// 5 or 6 (substitutes), which is exactly why the lineup needs deciding rather than defaulting to
+// "everybody".
+const MAX_PLAYED = 4;
 
 // One selectable candidate for the add-player dialog: a PLAYING-role team member who is
 // not already on this event's roster. id comes from get-team-details/ member.id.
@@ -72,23 +91,13 @@ interface TournamentTeam {
   members: TournamentMember[];
 }
 
-// Every numeric field is a ScoreValue (number | null). null means "this box is empty", which is
-// a DIFFERENT thing from 0 and must survive to handleSubmit below (see lib/scoreInput.ts).
-interface PlayerResult {
-  user_id: number;
-  username: string;
-  kills: ScoreValue;
-  played: boolean;
-}
-
-interface TeamResult {
-  tournament_team_id: number;
-  team_name: string;
-  team_logo: string | null;
-  placement: ScoreValue;
-  played: boolean;
-  players: PlayerResult[];
-}
+// The team-mode shapes are DECLARED IN lib/resultEntry.ts and only aliased here. Re-declaring
+// them locally is how the component and the tested functions would drift apart, and the drift
+// would be invisible: the two structures would still typecheck against each other for a while.
+// Every numeric field is a ScoreValue (number | null), where null means "this box is empty",
+// which is a DIFFERENT thing from 0 (see lib/scoreInput.ts).
+type PlayerResult = EntryPlayer;
+type TeamResult = EntryTeam;
 
 interface SoloResult {
   competitor_id: number;
@@ -117,6 +126,13 @@ interface Props {
    * stage context (e.g. the create wizard) simply omit it and no banner shows.
    */
   championPointEnabled?: boolean;
+  /**
+   * The PREVIOUS map's stats for this stage, in the same `match.stats` shape as `initialStats`,
+   * so a team's lineup carries forward instead of being re-ticked on every map (owner brief
+   * 2026-08-27). Optional: the first map of a stage has none, and resolveLineup then falls back
+   * to the roster. Parents that do not thread it simply get that fallback.
+   */
+  previousMatchStats?: any[];
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -129,6 +145,7 @@ export function ManualMatchResultStep({
   initialStats,
   participantTypeOverride,
   championPointEnabled,
+  previousMatchStats,
 }: Props) {
   const { token } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -138,6 +155,22 @@ export function ManualMatchResultStep({
   );
   const [teamResults, setTeamResults] = useState<TeamResult[]>([]);
   const [soloResults, setSoloResults] = useState<SoloResult[]>([]);
+
+  // ── the two ways of looking at the same map (owner brief 2026-08-27) ──────────
+  // "one" shows a single team with a progress rail, which is what makes this usable on a phone.
+  // "all" is the layout this screen has always had, kept because it is genuinely better for one
+  // job: checking a whole map before publishing, or correcting one number afterwards, on a
+  // desktop. Both edit the same teamResults and both submit through buildTeamPayload, so the
+  // toggle changes what is on screen and nothing else.
+  const [teamView, setTeamView] = useState<"one" | "all">("one");
+  const [currentTeam, setCurrentTeam] = useState(0);
+
+  // The default follows the viewport ONCE, on mount, and never fights the organizer afterwards.
+  // Re-deciding on every resize would yank a wide-screen user back to the per-team view when
+  // they opened dev tools, which is the kind of helpfulness nobody asks for twice.
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth >= 1024) setTeamView("all");
+  }, []);
 
   // ── Add-player dialog state (Roster Rules, owner 2026-06-15) ───────────────────
   // The team whose "Add player" dialog is open (its TeamResult), the loaded list of
@@ -206,67 +239,41 @@ export function ManualMatchResultStep({
       const teams: TournamentTeam[] = details.tournament_teams ?? [];
 
       if (pType === "team") {
-        // Overlay any SAVED stats (placement + per-player kills) onto the REGISTERED ROSTER, so the
-        // team's registered players always show, pre-filled with whatever was already entered.
-        const statByTeam = new Map<number, any>();
-        for (const s of initialStats ?? []) {
-          if (s?.tournament_team_id != null) statByTeam.set(s.tournament_team_id, s);
-        }
+        // Seed this map's editable state. Every rule about WHAT appears in the boxes lives in
+        // lib/resultEntry.ts: saved stats overlaid on the REGISTERED ROSTER (so a team's
+        // registered players always show, pre-filled), the lineup carried from the previous map
+        // when this one is empty, and a placement left null rather than faked to 0.
+        //
+        // This replaced a hand-written mapper. Keeping both would have been the drift the golden
+        // replay exists to prevent, since only one of them is under test.
         if (teams.length > 0) {
           setTeamResults(
-            teams.map((tt) => {
-              const stat = statByTeam.get(tt.tournament_team_id);
-              const savedByUid = new Map<number, any>();
-              for (const p of stat?.players ?? []) {
-                const uid = p?.player_id ?? p?.user_id;
-                if (uid != null) savedByUid.set(uid, p);
-              }
-              return {
-                tournament_team_id: tt.tournament_team_id,
-                team_name: tt.team_name,
-                team_logo: tt.team_logo ?? null,
-                // No saved stat for this team yet -> the placement box starts EMPTY, not at a
-                // fake 0. A 0 here used to be indistinguishable from a real entry and saved as a
-                // played row worth 0 placement points (owner bug 2026-08-06).
-                placement: stat?.placement ?? null,
-                played: stat?.played ?? true,
-                players: (tt.members ?? []).map((m) => {
-                  const sp = savedByUid.get(m.player_id);
-                  return {
-                    user_id: m.player_id,
-                    username: m.username,
-                    // No saved row for this member on this map means nothing has been entered
-                    // for them yet, so their boxes start EMPTY; a member WITH a saved row keeps
-                    // its real value, including a deliberate 0 (bug 2026-08-06).
-                    kills: sp?.kills ?? null,
-                    // Squad matches allow max 4 PLAYED players (the backend rejects >4).
-                    // Registered rosters can hold 5-6 (substitutes), so a member counts as
-                    // played by DEFAULT only when they have a saved stat for this map; subs
-                    // default to NOT played and the admin ticks "Played" / enters their stats
-                    // for anyone who actually played. Before this every roster member defaulted
-                    // to played=true, so 5-6 member squads failed to save. (bug fix 2026-06-15)
-                    played: sp != null,
-                  };
-                }),
-              };
+            buildEntryTeams({
+              teams,
+              savedStats: initialStats ?? null,
+              previousStats: previousMatchStats ?? null,
+              maxPlayed: MAX_PLAYED,
             }),
           );
         } else if (initialStats && initialStats.length > 0) {
-          // Fallback: roster fetch returned nothing (e.g. no event slug) - use saved stats as-is.
+          // Fallback: the roster fetch returned nothing (e.g. no event slug), so the saved stats
+          // are all there is. Shaped through the same builder by treating each saved row as its
+          // own roster, which keeps one code path instead of two.
           setTeamResults(
-            initialStats.map((s: any) => ({
-              tournament_team_id: s.tournament_team_id,
-              team_name: s.team_name,
-              team_logo: s.team_logo ?? null,
-              placement: s.placement ?? null,
-              played: s.played ?? true,
-              players: (s.players ?? []).map((p: any) => ({
-                user_id: p.player_id ?? p.user_id,
-                username: p.username,
-                kills: p.kills ?? 0,
-                played: p.played ?? true,
+            buildEntryTeams({
+              teams: initialStats.map((sv: any) => ({
+                tournament_team_id: sv.tournament_team_id,
+                team_name: sv.team_name,
+                team_logo: sv.team_logo ?? null,
+                members: (sv.players ?? []).map((pl: any) => ({
+                  player_id: pl.player_id ?? pl.user_id,
+                  username: pl.username,
+                })),
               })),
-            })),
+              savedStats: initialStats,
+              previousStats: null,
+              maxPlayed: MAX_PLAYED,
+            }),
           );
         }
       } else {
@@ -492,26 +499,13 @@ export function ManualMatchResultStep({
           ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-match-result/`
           : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/enter-team-match-result-manual/`;
 
+        // The body is built by buildTeamPayload, which is unit tested AND replayed against the
+        // golden captured from this screen before the rebuild. The rules it carries (raw
+        // placement so a blank one is refused rather than scored as zero; bench players omitted
+        // so a squad stays within the backend cap) are documented there.
         body = {
           match_id: match.match_id,
-          results: teamResults.map((t) => ({
-            tournament_team_id: t.tournament_team_id,
-            // RAW: a placement box left empty arrives as null so the backend rejects the save
-            // instead of storing a played row at 0 placement points.
-            placement: t.placement,
-            played: t.played,
-            // Only players who actually played (≤4 for squad). Omitting not-played subs keeps
-            // the payload within the cap and avoids persisting subs that would re-appear as
-            // "played" on the next load (the API carries no per-player played flag). (fix 2026-06-15)
-            players: t.players
-              .filter((p) => p.played)
-              .map((p) => ({
-                user_id: p.user_id,
-                // A blank kills box legitimately means none.
-                kills: scoreOrZero(p.kills),
-                played: true,
-              })),
-          })),
+          results: buildTeamPayload(teamResults),
         };
       } else {
         endpoint = isEditing
@@ -596,12 +590,107 @@ export function ManualMatchResultStep({
           </div>
         )}
 
+        {/* ── how to look at this map ─────────────────────────────────────
+            A filled segmented control, never a ring of outlined chips (CLAUDE.md hard rule).
+            Both views edit the same state and post the same body, so switching is free and
+            loses nothing half-entered. */}
+        {participantType === "team" && teamResults.length > 0 && (
+          <div className="flex w-full gap-1 rounded-md bg-muted p-1">
+            {(
+              [
+                ["one", "One team at a time"],
+                ["all", "Review all teams"],
+              ] as const
+            ).map(([value, labelText]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTeamView(value)}
+                aria-pressed={teamView === value}
+                className={cn(
+                  "h-9 flex-1 rounded-sm text-sm font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                  teamView === value
+                    ? "bg-background text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {labelText}
+              </button>
+            ))}
+          </div>
+        )}
+
         {participantType === "team" ? (
           /* ── TEAM MODE ─────────────────────────────────────────────────── */
           teamResults.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">
               No teams found for this match.
             </p>
+          ) : teamView === "one" ? (
+            /* ── ONE TEAM AT A TIME, the default on a phone ─────────────────
+               About six controls instead of the whole map. The rail above says where you are and
+               which teams are still untouched, which the all-teams layout never did. */
+            <div className="space-y-5">
+              <div className="flex items-center justify-between gap-3">
+                <ProgressRail
+                  teams={teamResults}
+                  currentIndex={currentTeam}
+                  onJump={setCurrentTeam}
+                />
+              </div>
+
+              <TeamStepper
+                team={teamResults[Math.min(currentTeam, teamResults.length - 1)]}
+                allTeams={teamResults}
+                maxPlayed={MAX_PLAYED}
+                onChange={(next) =>
+                  setTeamResults((prev) =>
+                    prev.map((t) =>
+                      t.tournament_team_id === next.tournament_team_id ? next : t,
+                    ),
+                  )
+                }
+              />
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="h-11 flex-1"
+                  disabled={currentTeam === 0}
+                  onClick={() => setCurrentTeam((i) => Math.max(0, i - 1))}
+                >
+                  Previous team
+                </Button>
+                <Button
+                  type="button"
+                  className="h-11 flex-1"
+                  disabled={currentTeam >= teamResults.length - 1}
+                  onClick={() =>
+                    setCurrentTeam((i) => Math.min(teamResults.length - 1, i + 1))
+                  }
+                >
+                  Next team
+                </Button>
+              </div>
+
+              {/* Adding somebody to the EVENT roster is a different thing from picking this
+                  map's lineup, so it stays its own control rather than living in the swap
+                  sheet. (Roster Rules, owner 2026-06-15.) */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                onClick={() =>
+                  openAddPlayer(teamResults[Math.min(currentTeam, teamResults.length - 1)])
+                }
+              >
+                <IconUserPlus size={14} className="mr-1" />
+                Add player to the event roster
+              </Button>
+            </div>
           ) : (
             teamResults.map((team, ti) => (
               <div
