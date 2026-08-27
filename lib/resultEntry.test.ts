@@ -20,6 +20,7 @@ import { test } from "node:test";
 import {
   buildEntryTeams,
   buildTeamPayload,
+  previousMatchStats,
   resolveLineup,
   takenPlacements,
   teamIsComplete,
@@ -250,6 +251,73 @@ test("GOLDEN: the fixture actually contains the cases it claims to", () => {
     (s.players || []).some((p: any) => "played" in p),
   );
   assert.equal(anyPlayedKey, false);
+});
+
+// ── previousMatchStats: which map the lineup carries FROM ────────────────────
+
+const MAPS = [
+  { match_id: 11, match_number: 1, stats: [{ tournament_team_id: 1, players: [{ player_id: 5 }] }] },
+  { match_id: 12, match_number: 2, stats: [{ tournament_team_id: 1, players: [{ player_id: 6 }] }] },
+  { match_id: 13, match_number: 3, stats: [] },
+];
+
+test("map 2 carries from map 1", () => {
+  assert.equal(previousMatchStats(MAPS, 12)?.[0].players[0].player_id, 5);
+});
+
+test("the FIRST map has no previous, so the lineup falls back to the roster", () => {
+  assert.equal(previousMatchStats(MAPS, 11), null);
+});
+
+test("previous is chosen by match_number, NOT by position in the array", () => {
+  // The API happens to return these in order today. If that ever changes, position would carry the
+  // wrong map's lineup and nobody would notice, so the rule is the number.
+  const shuffled = [MAPS[2], MAPS[0], MAPS[1]];
+  assert.equal(previousMatchStats(shuffled, 12)?.[0].players[0].player_id, 5);
+});
+
+test("it skips no maps: map 3 carries from map 2, not from map 1", () => {
+  assert.equal(previousMatchStats(MAPS, 13)?.[0].players[0].player_id, 6);
+});
+
+test("a previous map that was never entered yields null, not an empty lineup", () => {
+  // [] would mean "entered, nobody played" and would pin every lineup empty on the next map.
+  const maps = [
+    { match_id: 21, match_number: 1, stats: [] },
+    { match_id: 22, match_number: 2, stats: [] },
+  ];
+  assert.equal(previousMatchStats(maps, 22), null);
+});
+
+test("an unknown match id yields null rather than guessing", () => {
+  assert.equal(previousMatchStats(MAPS, 999), null);
+  assert.equal(previousMatchStats([], 11), null);
+});
+
+test("the carry-forward NEVER overwrites a map that was already entered", () => {
+  // The end-to-end version of precedence rule 1, through the two functions the component actually
+  // calls. This is the failure that would be worst: an organizer's finished map silently replaced
+  // by the previous map's lineup.
+  const teams = [
+    {
+      tournament_team_id: 1,
+      team_name: "T",
+      team_logo: null,
+      members: [1, 2, 3, 4, 5, 6].map((n) => ({ player_id: n, username: `p${n}` })),
+    },
+  ];
+  const seeded = buildEntryTeams({
+    teams,
+    savedStats: [{ tournament_team_id: 1, placement: 3, players: [{ player_id: 5, kills: 2 }] }],
+    previousStats: [
+      { tournament_team_id: 1, players: [1, 2, 3, 4].map((n) => ({ player_id: n, kills: 0 })) },
+    ],
+    maxPlayed: 4,
+  });
+  assert.deepEqual(
+    seeded[0].players.filter((p) => p.played).map((p) => p.user_id),
+    [5],
+  );
 });
 
 // ── takenPlacements and teamIsComplete ───────────────────────────────────────

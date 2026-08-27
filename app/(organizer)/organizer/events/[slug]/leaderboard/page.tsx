@@ -151,6 +151,8 @@ import { useOrganizer } from "../../../_components/OrganizerContext";
 // ── Reused ADMIN leaderboard components (Approach A) ──────────────────────────
 // View + edit-results surface (same imports the admin [id] page uses).
 import { MatchMethodSelectionStep } from "@/app/(a)/a/leaderboards/_components/MatchMethodSelectionStep";
+// Picks the previous map's saved stats for the lineup carry-forward. Pure and tested.
+import { previousMatchStats } from "@/lib/resultEntry";
 import { ManualMatchResultStep } from "@/app/(a)/a/leaderboards/_components/ManualMatchResultStep";
 import { FileUploadStep } from "@/app/(a)/a/leaderboards/_components/FileUploadStep";
 import { ImageUploadStep } from "@/app/(a)/a/leaderboards/_components/ImageUploadStep";
@@ -846,6 +848,16 @@ export default function OrganizerEventLeaderboardPage({
     (m: any) => m.match_id.toString() === selectedMatchId,
   );
 
+  // ── the match being EDITED, which is NOT the match being VIEWED ─────────────────────────────
+  // Same distinction, and the same bug, as the admin page: `currentMatch` follows the VIEW TYPE
+  // dropdown, while `editingMatch` is what the edit dialog chose. With the dropdown on the overall
+  // leaderboard, editing a map that already had results opened it completely BLANK.
+  const editedMatch = editingMatch
+    ? (currentGroup?.matches?.find(
+        (m: any) => m.match_id === editingMatch.match.match_id,
+      ) ?? currentMatch)
+    : currentMatch;
+
   // ── Match Results grid derived values (owner 2026-07-04 organizer parity) ──
   // Slice the loaded grid state for the currently selected NUMERIC grid map (gridMatchId), plus the
   // live Match Leaderboard preview (this map's saved stats sorted by effective total) and the id
@@ -1049,7 +1061,7 @@ export default function OrganizerEventLeaderboardPage({
     event_slug: eventSlug,
     event_id: eventId,
     completed_match_ids:
-      editingMatch && currentMatch?.result_inputted
+      editingMatch && editedMatch?.result_inputted
         ? [editingMatch.match.match_id]
         : [],
     group_matches: currentGroup?.matches ?? [],
@@ -2554,7 +2566,16 @@ export default function OrganizerEventLeaderboardPage({
           match={editingMatch.match}
           formData={detailsFormData}
           participantTypeOverride={detailsParticipantType}
-          initialStats={currentMatch?.stats ?? []}
+          initialStats={editedMatch?.stats ?? []}
+          // The map BEFORE this one, so a team's lineup carries forward instead of being re-ticked
+          // every map. Organizers running scrims on a phone are exactly who the 2026-08-27 brief
+          // was about, so this page gets it as much as the admin one does.
+          previousMatchStats={
+            previousMatchStats(
+              currentGroup?.matches ?? [],
+              editingMatch.match.match_id,
+            ) ?? undefined
+          }
           // Surface the ordered-entry banner only on Champion-Point stages.
           championPointEnabled={currentStage?.champion_point_enabled ?? false}
           onComplete={handleEditComplete}

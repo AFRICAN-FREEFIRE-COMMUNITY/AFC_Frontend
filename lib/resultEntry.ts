@@ -202,6 +202,40 @@ export function buildEntryTeams(args: {
 }
 
 /**
+ * The saved stats of the map BEFORE this one in the same group, or null if this is the first.
+ *
+ * The lineup carry-forward is only as good as its idea of "previous". Two ways of getting that
+ * wrong, both avoided here deliberately:
+ *
+ *   - by ARRAY POSITION. The matches array arrives ordered by match_number today, but that is an
+ *     ordering the API chooses and could change; a reorder would silently carry the wrong map's
+ *     lineup, which is precisely the kind of wrong answer nobody would notice.
+ *   - by "the last one that has stats". A middle map entered before an earlier one would then
+ *     become everybody's previous map.
+ *
+ * So: the highest match_number strictly below this match's own. A map with no earlier sibling
+ * returns null, and resolveLineup then falls back to the roster, which is correct for map 1.
+ *
+ * `matches` is the group's matches array from the leaderboard API: `{ match_id, match_number,
+ * stats }`. Returns the `stats` array itself, which is what buildEntryTeams takes.
+ */
+export function previousMatchStats(matches: any[], matchId: number): any[] | null {
+  const list = matches ?? [];
+  const current = list.find((m) => m?.match_id === matchId);
+  if (!current || current.match_number == null) return null;
+
+  let best: any = null;
+  for (const m of list) {
+    if (m?.match_number == null || m.match_number >= current.match_number) continue;
+    if (best === null || m.match_number > best.match_number) best = m;
+  }
+  // A previous map that exists but was never entered has no stats. Returning null rather than []
+  // matters: [] would mean "entered, nobody played" and would pin every lineup empty.
+  if (!best) return null;
+  return Array.isArray(best.stats) && best.stats.length > 0 ? best.stats : null;
+}
+
+/**
  * The `results` array for enter-team-match-result-manual / edit-match-result.
  *
  * The OUTPUT end. This body is unchanged by the rebuild apart from damage and assists, which were
