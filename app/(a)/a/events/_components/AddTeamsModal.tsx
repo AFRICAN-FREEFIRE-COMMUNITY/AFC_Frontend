@@ -30,6 +30,93 @@ interface Team {
   is_banned: boolean;
 }
 
+// ── WHY A TEAM WAS REFUSED, in words an organizer can act on ─────────────────────────────────
+// (owner 2026-08-27) add-teams-to-event answered a blocked add with only "Some teams do not meet
+// this event's requirements". The backend has always returned far more than that: a per-team list
+// of failing CODES, and now a per-player list of exactly what each player is missing. The modal
+// threw all of it away and showed the one sentence, so an admin was told no and given nothing to
+// do about it.
+//
+// Everything below is that payload rendered. No new endpoint, no new check.
+
+/** One player who is missing something, as the backend reports them. */
+interface MissingPlayer {
+  user_id: number;
+  username: string;
+  /** e.g. "uid", "whatsapp", "connection:google" */
+  fields: string[];
+}
+
+/** One team the gate refused, with the codes it failed on. */
+interface BlockedTeam {
+  team_id: number;
+  team_name: string;
+  codes: string[];
+  /** Present only for registration_requirements_unmet. */
+  missing?: MissingPlayer[];
+}
+
+// Codes a waiver can get past. MIRRORS afc_tournament_and_scrims/waivers.py WAIVABLE_CODES; the
+// backend is the authority and refuses anything else, so a drift here shows up as a refused waive
+// rather than as an admitted ban.
+const WAIVABLE = new Set([
+  "team_logo_required",
+  "registration_requirements_unmet",
+  "letter_avatars_required",
+  "discord_required",
+  "roster_size",
+  "country_restricted",
+  "capacity_full",
+  "sponsor_submission_invalid",
+]);
+
+const CODE_TEXT: Record<string, string> = {
+  team_banned: "This team is banned",
+  player_banned: "A player on this team is banned",
+  team_logo_required: "The team has no logo, and this event requires one",
+  registration_requirements_unmet: "Players are missing things this event requires",
+  capacity_full: "This event is already full",
+};
+
+// A missing FIELD in plain words. "connection:<slug>" is handled separately below because the slug
+// is part of the sentence.
+const FIELD_TEXT: Record<string, string> = {
+  uid: "Free Fire UID",
+  whatsapp: "WhatsApp number",
+  esports_image: "esports image",
+  profile_image: "profile picture",
+};
+
+function fieldLabel(field: string): string {
+  if (field.startsWith("connection:")) {
+    const slug = field.slice("connection:".length);
+    return `${slug.charAt(0).toUpperCase()}${slug.slice(1)} account connected`;
+  }
+  return FIELD_TEXT[field] || field;
+}
+
+/** "3 players have not connected Google" rather than a code. */
+function summarise(team: BlockedTeam): string[] {
+  const lines = team.codes
+    .filter((c) => c !== "registration_requirements_unmet")
+    .map((c) => CODE_TEXT[c] || c);
+
+  // Group the per-player detail BY WHAT IS MISSING, because "3 players have no UID" is the
+  // sentence an organizer can act on, where six separate player lines is a wall.
+  const byField = new Map<string, string[]>();
+  for (const player of team.missing || []) {
+    for (const field of player.fields) {
+      if (!byField.has(field)) byField.set(field, []);
+      byField.get(field)!.push(player.username);
+    }
+  }
+  for (const [field, players] of byField) {
+    const who = players.length <= 3 ? players.join(", ") : `${players.length} players`;
+    lines.push(`${who}: no ${fieldLabel(field)}`);
+  }
+  return lines;
+}
+
 type Mode = "event" | "stage" | "group";
 
 interface AddTeamsModalProps {
@@ -117,26 +204,50 @@ export function AddTeamsModal({
     );
   };
 
-  const handleSubmit = async () => {
+  // The refusal, kept in state so it can be SHOWN rather than toasted away.
+  const [blocked, setBlocked] = useState<BlockedTeam[] | null>(null);
+  const [waiveReason, setWaiveReason] = useState("");
+
+  // A waiver can only cover codes the backend treats as waivable. A ban is never waivable, so the
+  // offer is hidden entirely rather than shown and then refused.
+  const allWaivable =
+    !!blocked && blocked.length > 0 &&
+    blocked.every((t) => t.codes.every((c) => WAIVABLE.has(c)));
+
+  const handleSubmit = async (waive = false) => {
     if (selected.length === 0) return;
+    if (waive && !waiveReason.trim()) {
+      toast.error("Give a reason for the waiver. It is recorded against your name.");
+      return;
+    }
     setSubmitting(true);
     try {
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}${ENDPOINT[mode]}`,
-        { [BODY_KEY[mode]]: targetId, team_ids: selected },
+        {
+          [BODY_KEY[mode]]: targetId,
+          team_ids: selected,
+          ...(waive ? { waive: true, reason: waiveReason.trim() } : {}),
+        },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       toast.success(
-        `${selected.length} team${selected.length > 1 ? "s" : ""} added to ${targetName}.`,
+        waive
+          ? `${selected.length} team${selected.length > 1 ? "s" : ""} added with a recorded waiver.`
+          : `${selected.length} team${selected.length > 1 ? "s" : ""} added to ${targetName}.`,
       );
+      setBlocked(null);
+      setWaiveReason("");
       setOpen(false);
       onSuccess?.();
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message ||
-          err?.response?.data?.detail ||
-          "Failed to add teams.",
-      );
+      const data = err?.response?.data;
+      // The gate refused, and it told us exactly why. Show it instead of a shrug.
+      if (data?.code === "requirements_unmet" && Array.isArray(data.blocked)) {
+        setBlocked(data.blocked);
+      } else {
+        toast.error(data?.message || data?.detail || "Failed to add teams.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -241,6 +352,70 @@ export function AddTeamsModal({
               </ScrollArea>
             )}
 
+            {/* ── WHY THE ADD WAS REFUSED ────────────────────────────────────────────────────
+                Shown in place of the old one-line toast. Filled surface, no outline: the house
+                rule bans building structure out of hairlines. */}
+            {blocked && blocked.length > 0 && (
+              <div className="rounded-md bg-muted/60 p-3 space-y-3">
+                <p className="text-sm font-semibold">
+                  {blocked.length === 1
+                    ? "1 team cannot be added yet"
+                    : `${blocked.length} teams cannot be added yet`}
+                </p>
+
+                {/* Capped and scrollable: on a phone a dozen blocked teams would otherwise push
+                    the reason box and the waive button off the bottom of the dialog, which is the
+                    one place this panel could recreate the dead end it exists to remove. */}
+                <div className="space-y-2.5 max-h-48 overflow-y-auto">
+                  {blocked.map((team) => (
+                    <div key={team.team_id} className="space-y-1">
+                      <p className="text-sm font-medium">{team.team_name}</p>
+                      <ul className="space-y-0.5">
+                        {summarise(team).map((line, i) => (
+                          <li key={i} className="text-xs text-muted-foreground">
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+
+                {allWaivable ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      You can add them anyway. The waiver is recorded against your name, with your
+                      reason, so the decision stays visible afterwards.
+                    </p>
+                    <Input
+                      placeholder="Why are you waiving this?"
+                      value={waiveReason}
+                      onChange={(e) => setWaiveReason(e.target.value)}
+                    />
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="w-full"
+                      onClick={() => handleSubmit(true)}
+                      disabled={submitting || !waiveReason.trim()}
+                    >
+                      {submitting && (
+                        <IconLoader2 className="size-4 animate-spin mr-2" />
+                      )}
+                      Waive and add anyway
+                    </Button>
+                  </div>
+                ) : (
+                  // A ban is never waivable, at any price, so say so rather than offering a button
+                  // the backend would refuse.
+                  <p className="text-xs text-muted-foreground">
+                    This cannot be waived. Remove the affected team from your selection, or lift
+                    the ban first.
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Footer */}
             <div className="flex items-center justify-between pt-1">
               <span className="text-sm text-muted-foreground">
@@ -257,7 +432,11 @@ export function AddTeamsModal({
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleSubmit}
+                  onClick={() => {
+                    // Clear any previous refusal so the panel reflects THIS attempt.
+                    setBlocked(null);
+                    handleSubmit();
+                  }}
                   disabled={submitting || selected.length === 0}
                 >
                   {submitting && (
