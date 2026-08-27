@@ -78,8 +78,6 @@ interface PlayerResult {
   user_id: number;
   username: string;
   kills: ScoreValue;
-  damage: ScoreValue;
-  assists: ScoreValue;
   played: boolean;
 }
 
@@ -241,8 +239,6 @@ export function ManualMatchResultStep({
                     // for them yet, so their boxes start EMPTY; a member WITH a saved row keeps
                     // its real value, including a deliberate 0 (bug 2026-08-06).
                     kills: sp?.kills ?? null,
-                    damage: sp?.damage ?? null,
-                    assists: sp?.assists ?? null,
                     // Squad matches allow max 4 PLAYED players (the backend rejects >4).
                     // Registered rosters can hold 5-6 (substitutes), so a member counts as
                     // played by DEFAULT only when they have a saved stat for this map; subs
@@ -268,8 +264,6 @@ export function ManualMatchResultStep({
                 user_id: p.player_id ?? p.user_id,
                 username: p.username,
                 kills: p.kills ?? 0,
-                damage: p.damage ?? 0,
-                assists: p.assists ?? 0,
                 played: p.played ?? true,
               })),
             })),
@@ -335,7 +329,7 @@ export function ManualMatchResultStep({
   const updatePlayerField = (
     teamIdx: number,
     playerIdx: number,
-    field: "kills" | "damage" | "assists" | "played",
+    field: "kills" | "played",
     value: ScoreValue | boolean,
   ) => {
     setTeamResults((prev) => {
@@ -513,10 +507,8 @@ export function ManualMatchResultStep({
               .filter((p) => p.played)
               .map((p) => ({
                 user_id: p.user_id,
-                // A blank kills/damage/assists box legitimately means none.
+                // A blank kills box legitimately means none.
                 kills: scoreOrZero(p.kills),
-                damage: scoreOrZero(p.damage),
-                assists: scoreOrZero(p.assists),
                 played: true,
               })),
           })),
@@ -671,7 +663,11 @@ export function ManualMatchResultStep({
                               {player.username}
                             </label>
                           </div>
-                          <div className="grid grid-cols-3 gap-2">
+                          {/* Kills is the only per-player number now (damage and assists were
+                              removed 2026-08-27: non-zero on 0 of 2,982 stored rows). Capped in
+                              width so a single field does not stretch the full card, which is how
+                              a one-column grid renders it. */}
+                          <div className="max-w-[12rem]">
                             <div className="space-y-1">
                               <Label className="text-xs text-muted-foreground">
                                 Kills
@@ -691,54 +687,6 @@ export function ManualMatchResultStep({
                                     ti,
                                     pi,
                                     "kills",
-                                    parseScoreInput(e.target.value),
-                                  )
-                                }
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">
-                                Damage
-                                <InfoTip
-                                  id="leaderboards.result_damage"
-                                  className="ml-1"
-                                />
-                              </Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                placeholder="0"
-                                value={scoreInputValue(player.damage)}
-                                disabled={!player.played}
-                                onChange={(e) =>
-                                  updatePlayerField(
-                                    ti,
-                                    pi,
-                                    "damage",
-                                    parseScoreInput(e.target.value),
-                                  )
-                                }
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs text-muted-foreground">
-                                Assists
-                                <InfoTip
-                                  id="leaderboards.result_assists"
-                                  className="ml-1"
-                                />
-                              </Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                placeholder="0"
-                                value={scoreInputValue(player.assists)}
-                                disabled={!player.played}
-                                onChange={(e) =>
-                                  updatePlayerField(
-                                    ti,
-                                    pi,
-                                    "assists",
                                     parseScoreInput(e.target.value),
                                   )
                                 }

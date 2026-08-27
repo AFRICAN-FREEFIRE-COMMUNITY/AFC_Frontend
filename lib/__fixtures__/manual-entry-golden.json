@@ -1997,5 +1997,298 @@
         }
       ]
     }
+  ],
+  "postedResultsAfterFieldDrop": [
+    {
+      "tournament_team_id": 1109,
+      "placement": 10,
+      "played": true,
+      "players": [
+        {
+          "user_id": 14,
+          "kills": 1,
+          "played": true
+        },
+        {
+          "user_id": 30,
+          "kills": 1,
+          "played": true
+        },
+        {
+          "user_id": 42,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 4054,
+          "kills": 2,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1108,
+      "placement": 9,
+      "played": true,
+      "players": [
+        {
+          "user_id": 282,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 2443,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 2594,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 4119,
+          "kills": 3,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1112,
+      "placement": 5,
+      "played": true,
+      "players": [
+        {
+          "user_id": 216,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 2442,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 2761,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 4197,
+          "kills": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1107,
+      "placement": 1,
+      "played": true,
+      "players": [
+        {
+          "user_id": 117,
+          "kills": 5,
+          "played": true
+        },
+        {
+          "user_id": 234,
+          "kills": 5,
+          "played": true
+        },
+        {
+          "user_id": 3649,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 4108,
+          "kills": 1,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1115,
+      "placement": 6,
+      "played": true,
+      "players": [
+        {
+          "user_id": 246,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 2963,
+          "kills": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1114,
+      "placement": null,
+      "played": false,
+      "players": []
+    },
+    {
+      "tournament_team_id": 1111,
+      "placement": 7,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2653,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 2760,
+          "kills": 4,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1110,
+      "placement": 4,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2597,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 3993,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 4385,
+          "kills": 4,
+          "played": true
+        },
+        {
+          "user_id": 8812,
+          "kills": 1,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1132,
+      "placement": 2,
+      "played": true,
+      "players": [
+        {
+          "user_id": 4749,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 5051,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 7389,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 8772,
+          "kills": 2,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1106,
+      "placement": 11,
+      "played": true,
+      "players": [
+        {
+          "user_id": 166,
+          "kills": 1,
+          "played": true
+        },
+        {
+          "user_id": 245,
+          "kills": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1135,
+      "placement": null,
+      "played": false,
+      "players": []
+    },
+    {
+      "tournament_team_id": 1105,
+      "placement": 12,
+      "played": true,
+      "players": [
+        {
+          "user_id": 65,
+          "kills": 1,
+          "played": true
+        },
+        {
+          "user_id": 2468,
+          "kills": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1104,
+      "placement": 3,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2640,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 8670,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 8682,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 8811,
+          "kills": 2,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1113,
+      "placement": 8,
+      "played": true,
+      "players": [
+        {
+          "user_id": 4747,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 4891,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 8834,
+          "kills": 2,
+          "played": true
+        }
+      ]
+    }
   ]
 }
