@@ -83,15 +83,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? `${title} - ${parts.join(" • ")}`
       : `${title} is a competitive tournament on African Free Fire Community. Register now!`;
 
-  // Link-embed image FALLBACK CHAIN (owner 2026-06-14): the event banner, else the
-  // organizing org's logo, else the AFC branded card. resolveOgImage proxies a
-  // backend /media/ image through /api/og-image so crawlers can fetch it, and returns
-  // the site default (/assets/opengraph.png) when nothing usable is passed.
-  // (organization_logo comes from the not-logged-in event detail endpoint.)
-  const absoluteImageUrl = resolveOgImage(
-    data.event_banner_url || data.organization_logo || data.team_logo,
-  );
-
   // Canonicalize to the event's TRUE slug from the backend (not the URL param),
   // so case/encoding variants of the same event collapse to one canonical URL
   // (fixes GSC "Duplicate without user-selected canonical"). Falls back to the
@@ -106,21 +97,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: canonicalUrl,
       siteName: siteConfig.name,
-      images: [
-        {
-          url: absoluteImageUrl,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
+      // NO `images` HERE ON PURPOSE (owner report 2026-08-27). This route now has an
+      // opengraph-image.tsx beside it, and Next only uses that file convention when
+      // generateMetadata does NOT set openGraph.images: an explicit list here would
+      // override it and put us straight back on the bug.
+      //
+      // The bug it fixes: this used to pass the RAW banner while declaring
+      // width:1200, height:630. Crawlers trust that declaration and centre-crop to
+      // it. Measured across 28 live banners, none was 1.91:1 (20 were 16:9, 7 were
+      // SQUARE, 1 ultrawide), so a square banner lost ~47% of its height on every
+      // platform. opengraph-image.tsx composites the whole banner into a real
+      // 1200x630 card instead.
       type: "website",
     },
     twitter: {
+      // Same reason as openGraph above: no `images` here, so the generated card
+      // from opengraph-image.tsx is what Twitter/X and Discord fetch. The LARGE
+      // card is kept because the whole point is that the banner is visible.
       card: "summary_large_image",
       title: `${title} | AFC`,
       description,
-      images: [absoluteImageUrl],
     },
     alternates: {
       canonical: canonicalUrl,
