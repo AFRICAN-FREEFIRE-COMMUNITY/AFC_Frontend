@@ -44,6 +44,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 // The Google consent popup, shared with the sign-in button so the two cannot drift apart.
 import { requestGoogleCode } from "@/lib/googleIdentity";
+// Official brand marks, used on their owners' terms. See that file before changing how one renders.
+import { providerBrand } from "@/lib/providerBrands";
 import {
   type Connection,
   disconnectProvider,
@@ -243,12 +245,21 @@ export function ConnectedAccounts() {
     <div className="space-y-3">
       {rows.map((row) => {
         const label = labelFor(row);
+        // The provider's own mark, when AFC holds a licensed copy. Null for Discord and Google,
+        // which keep the neutral letter avatar (lib/providerBrands.ts explains why).
+        const brand = providerBrand(row.provider);
         return (
           // border-0 is deliberate and must stay: shadcn's Card ships a 1px border, and the house
           // rule bans building structure out of hairlines. The row is separated from the page by a
           // FILLED surface one step off the background plus spacing, never by a stroke.
           <Card key={row.provider} className="bg-card rounded-md border-0 shadow-sm">
             <CardContent className="flex flex-wrap items-center gap-4 p-4">
+              {/* Three cases, most specific first:
+                    1. the player is connected and has an avatar THERE  -> show the person
+                    2. AFC holds that provider's official mark          -> show the brand
+                    3. neither                                          -> a neutral letter
+                  The person beats the brand on purpose: once the row is connected it is about
+                  their account, and seeing their own face is the confirmation that it worked. */}
               {row.avatar_url ? (
                 <Image
                   src={row.avatar_url}
@@ -258,6 +269,22 @@ export function ConnectedAccounts() {
                   className="h-10 w-10 rounded-full object-cover"
                   unoptimized
                 />
+              ) : brand ? (
+                // object-contain and an AUTO width, never object-cover and never a circle: the
+                // v-ent.co artwork is 80x83, and cropping it to a round frame would be stretching
+                // it by another name, which its terms forbid. 36px tall clears their 24px floor.
+                // No filter and no tint anywhere near it; the colour is theirs. See
+                // lib/providerBrands.ts for the terms this is obeying.
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center">
+                  <Image
+                    src={brand.src}
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="h-9 w-auto max-w-10 object-contain"
+                    unoptimized
+                  />
+                </span>
               ) : (
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-sm font-semibold">
                   {label.slice(0, 1)}
