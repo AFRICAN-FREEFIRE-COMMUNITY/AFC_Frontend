@@ -204,5 +204,11 @@
     "coach": "Coach",
     "manager": "Manager",
     "analyst": "Analyste"
+  },
+  "eventTimezone": {
+    "willSave": "Ces heures seront enregistrées dans le fuseau {tz}, le vôtre actuellement.",
+    "storedIn": "Ces heures sont dans le fuseau {tz}, celui de l'événement, pas le vôtre.",
+    "yourTime": "Cette heure de début correspond à {time} chez vous.",
+    "noneStored": "Aucun fuseau horaire n'est enregistré pour cet événement, ces heures sont donc affichées telles qu'elles ont été saisies."
   }
 }

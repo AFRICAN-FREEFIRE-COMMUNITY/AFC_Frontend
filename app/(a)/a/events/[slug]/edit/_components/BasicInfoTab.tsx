@@ -60,6 +60,9 @@ import CountryPaymentRulesEditor from "@/components/CountryPaymentRulesEditor";
 // Shared per-event Discord registration gate (guild id + invite + verify + require +
 // invite link) - same control the create wizard's Step1EventDetails uses.
 import { DiscordRegistrationGate } from "@/app/(a)/a/events/create/_components/DiscordRegistrationGate";
+// Says WHICH timezone the times above are in (owner bug 2026-08-28: an organizer's Nigerian
+// assistants read a Johannesburg wall-clock as their own). See the component for the whole story.
+import { EventTimezoneNote } from "@/components/events/EventTimezoneNote";
 
 // The registration-requirement toggles (owner correction 2026-06-22: these belong on Basic Info,
 // not the Waitlist tab). Each blocks registration until satisfied; the register flow points players
@@ -1004,6 +1007,12 @@ export default function BasicInfoTab({
             )}
           />
         </div>
+        <EventTimezoneNote
+          mode="edit"
+          tz={eventDetails?.timezone}
+          date={form.watch("start_date")}
+          startTime={form.watch("event_start_time")}
+        />
 
         <Separator />
 

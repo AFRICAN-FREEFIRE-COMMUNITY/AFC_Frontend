@@ -204,5 +204,11 @@
     "coach": "Coach",
     "manager": "Manager",
     "analyst": "Analyst"
+  },
+  "eventTimezone": {
+    "willSave": "These times will be saved in {tz}, your current timezone.",
+    "storedIn": "These times are in {tz}, the event's timezone, not yours.",
+    "yourTime": "That start time is {time} where you are.",
+    "noneStored": "This event has no timezone saved, so these times are shown exactly as they were entered."
   }
 }

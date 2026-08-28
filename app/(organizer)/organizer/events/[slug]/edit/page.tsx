@@ -198,10 +198,25 @@ function appendEventTimes(
   formData.append("event_end_time", data.event_end_time || "");
   formData.append("registration_start_time", data.registration_start_time || "");
   formData.append("registration_end_time", data.registration_end_time || "");
-  formData.append(
-    "timezone",
-    Intl.DateTimeFormat().resolvedOptions().timeZone || "",
-  );
+  // TIMEZONE IS DELIBERATELY NOT SENT ON EDIT (owner bug 2026-08-28).
+  //
+  // This used to append Intl.DateTimeFormat().resolvedOptions().timeZone, the timezone of whoever
+  // happened to have the form open. Event times are stored as NAIVE wall-clock paired with
+  // Event.timezone, so an organizer in Lagos who fixed a typo on a Johannesburg event re-stamped it
+  // Africa/Lagos while the numbers stayed 22:00. The event then moved an hour for every viewer and
+  // every registered player, and nothing in the UI said so.
+  //
+  // Reported as "the time for them is showing in SA time"; the silent re-stamping was the half
+  // nobody had noticed yet.
+  //
+  // Leaving the key OUT is what keeps the stored value: apply_event_writes skips absent keys
+  // (`if f.name not in data: continue` in event_contract.py), so an edit that does not mention the
+  // timezone cannot change it. Pinned by
+  // afc_tournament_and_scrims/test_event_timezone.py so a backend change cannot quietly undo this.
+  //
+  // An event's timezone belongs to the EVENT, not to whoever is editing it. If it ever needs
+  // changing it should be an explicit control the organizer sets on purpose, never a side effect of
+  // opening a form in another country.
 }
 
 // ── Round-Robin rehydration (sub-project B) ─────────────────────────────────────

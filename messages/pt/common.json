@@ -204,5 +204,11 @@
     "coach": "Treinador",
     "manager": "Gerente",
     "analyst": "Analista"
+  },
+  "eventTimezone": {
+    "willSave": "Estes horários serão salvos no fuso {tz}, o seu fuso atual.",
+    "storedIn": "Estes horários estão no fuso {tz}, o do evento, não o seu.",
+    "yourTime": "Esse horário de início corresponde a {time} onde você está.",
+    "noneStored": "Este evento não tem fuso horário salvo, então estes horários aparecem exatamente como foram digitados."
   }
 }
