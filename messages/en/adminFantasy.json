@@ -1,0 +1,62 @@
+{
+  "title": "Fantasy Leagues",
+  "description": "Create a fantasy league on an event, price its players, and open it to fans.",
+  "loading": "Loading leagues",
+  "loadFailed": "The leagues could not be loaded.",
+  "explainer": "A league goes draft, then priced, then open. It cannot be opened before its players are priced, because an open league with no prices shows fans an empty squad builder. Once it opens, the rules of the game are frozen: every squad already entered was built against them.",
+  "empty": "No fantasy leagues yet. Create one on an event that has a registered roster.",
+  "status": {
+    "draft": "Draft",
+    "open": "Open",
+    "locked": "Picks final",
+    "settled": "Finished"
+  },
+  "fact": {
+    "squad": "Squad size",
+    "perTeam": "Max per team",
+    "captain": "Captain",
+    "budget": "Budget",
+    "freePick": "Free pick",
+    "entries": "{count, plural, =0 {No entries} one {# entry} other {# entries}}",
+    "teamPremium": "team bonus up to {n}"
+  },
+  "action": {
+    "preview": "Preview prices",
+    "writePrices": "Save prices",
+    "open": "Open to fans",
+    "recompute": "Rebuild scores",
+    "view": "View"
+  },
+  "priced": {
+    "preview": "{count} players would be priced, from {floor} to {ceiling} seeds. Nothing saved.",
+    "written": "{count} prices saved. {skipped} manual overrides left alone.",
+    "failed": "The players could not be priced."
+  },
+  "opened": "The league is open. Fans can enter now.",
+  "openFailed": "The league could not be opened.",
+  "recomputed": "Scores rebuilt from current results. {rows} rows.",
+  "recomputeFailed": "Scores could not be rebuilt.",
+  "create": {
+    "button": "New league",
+    "title": "Create a fantasy league",
+    "description": "These settings are frozen once the league opens, because every squad entered is built against them. Everything else can be edited later.",
+    "eventId": "Event ID",
+    "eventIdHint": "The AFC event this league runs on. Its registered players become the pool.",
+    "name": "Name",
+    "nameHint": "Left blank, it is named after the event.",
+    "squadSize": "Squad size",
+    "squadSizeHint": "4 to 6. Five is recommended: a Free Fire squad is four, so four would let somebody copy one real team.",
+    "maxPerTeam": "Max per team",
+    "maxPerTeamHint": "The setting that stops everyone entering the same squad. Two is recommended.",
+    "captain": "Captain multiplier",
+    "captainHint": "In tenths: 20 is 2x. Three times makes the captain almost the whole game.",
+    "budget": "Budget in AFC SEEDS",
+    "budgetHint": "The pot each fan gets. 100 keeps prices easy to read at a glance.",
+    "teamPremium": "Team bonus in seeds",
+    "teamPremiumHint": "How much playing for a strong team adds to a player's price, ranked on the team's actual finishes. Set 0 to price purely on the individual.",
+    "cancel": "Cancel",
+    "submit": "Create as draft",
+    "done": "League created as a draft. Price the players next.",
+    "failed": "The league could not be created."
+  }
+}
