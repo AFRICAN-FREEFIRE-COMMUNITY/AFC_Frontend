@@ -40,6 +40,10 @@ import { useTranslations } from "next-intl";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 // "Continue with Discord" (owner 2026-06-21). Gated on NEXT_PUBLIC_DISCORD_SSO_ENABLED.
 import { DiscordSignInButton } from "@/components/auth/DiscordSignInButton";
+// "Continue with v-ent.co" (owner 2026-08-28). Renders only when NEXT_PUBLIC_VENT_SSO_ENABLED=true.
+// Signing in this way LINKS the v-ent.co account too, so it appears on /profile/connected-apps
+// without the player doing anything: "a sign in and sign up should also be the same as linking."
+import { VentSignInButton } from "@/components/auth/VentSignInButton";
 // OPTIONAL WhatsApp number (owner 2026-08-08). Same control the profile page uses, so the country
 // code is picked rather than typed and the value is always emitted in international form. The
 // backend refuses a number without one (afc_whatsapp.phone.require_international), because the
@@ -579,6 +583,7 @@ export function CreateAccountForm() {
       </form>
       <GoogleSignInButton />
       <DiscordSignInButton />
+      <VentSignInButton />
     </Form>
   );
 }
