@@ -312,6 +312,16 @@ export interface AdvancementRuleEcho {
 
 export interface EventDetails {
   /**
+   * IANA timezone the event's wall-clock times belong to (Event.timezone), e.g. "Africa/Lagos".
+   * NULL on legacy events created before the field existed: 13 of 35 on the production clone.
+   *
+   * The times are stored NAIVE and only mean something paired with this, which is why the edit form
+   * shows it (components/events/EventTimezoneNote.tsx). It is deliberately NOT sent back on save:
+   * the form used to stamp it from the editor's browser, so an assistant in Lagos fixing a typo
+   * silently re-labelled a Johannesburg event and moved it an hour for everyone.
+   */
+  timezone?: string | null;
+  /**
    * Results provenance (owner 2026-08-20). True when this event's results came from an external
    * organiser's published standings via afc_results_import, rather than from matches played on AFC.
    * Derived on the backend from Event.results_imported_at, so it needs no switch of its own and
