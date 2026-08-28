@@ -17,6 +17,10 @@ export const env = createEnv({
     // (reuses the existing Discord app), so the FE only needs this on/off flag. Off where
     // Discord creds aren't configured (e.g. local dev) so the button isn't shown broken.
     NEXT_PUBLIC_DISCORD_SSO_ENABLED: z.string().optional(),
+    // "true" shows the v-ent.co sign-in button. It only WORKS where the backend has
+    // VENT_CLIENT_ID and VENT_CLIENT_SECRET set, so the flag is about not offering a button that
+    // cannot work, not about security.
+    NEXT_PUBLIC_VENT_SSO_ENABLED: z.string().optional(),
     // AFC Capture desktop client (owner 2026-07-01): the URL the "Download AFC Capture"
     // button on /organizer/capture points at (the hosted, code-signed .exe release).
     // OPTIONAL: when unset the download button is disabled with a "coming soon" note, so the
@@ -28,6 +32,7 @@ export const env = createEnv({
     NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     NEXT_PUBLIC_DISCORD_SSO_ENABLED: process.env.NEXT_PUBLIC_DISCORD_SSO_ENABLED,
+    NEXT_PUBLIC_VENT_SSO_ENABLED: process.env.NEXT_PUBLIC_VENT_SSO_ENABLED,
     NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL: process.env.NEXT_PUBLIC_CAPTURE_DOWNLOAD_URL,
   },
 });

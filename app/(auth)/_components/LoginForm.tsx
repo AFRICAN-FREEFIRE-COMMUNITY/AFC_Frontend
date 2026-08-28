@@ -27,6 +27,10 @@ import { useTranslations } from "next-intl";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 // "Continue with Discord" (owner 2026-06-21). Renders only when NEXT_PUBLIC_DISCORD_SSO_ENABLED=true.
 import { DiscordSignInButton } from "@/components/auth/DiscordSignInButton";
+// "Continue with v-ent.co" (owner 2026-08-28). Renders only when NEXT_PUBLIC_VENT_SSO_ENABLED=true.
+// Signing in this way LINKS the v-ent.co account too, so it appears on /profile/connected-apps
+// without the player doing anything: "a sign in and sign up should also be the same as linking."
+import { VentSignInButton } from "@/components/auth/VentSignInButton";
 // Two-step sign-in (owner 2026-08-06). For a user who opted in, /auth/login/ returns a CHALLENGE
 // instead of a session token; TwoFactorStep collects the emailed code and completes the sign-in.
 // Users without 2FA - everyone today - never reach this branch and see the flow they always had.
@@ -232,6 +236,7 @@ function LoginFormContent() {
           its challenge is handled on app/(auth)/discord/callback instead. */}
       <GoogleSignInButton onChallenge={setChallenge} />
       <DiscordSignInButton />
+      <VentSignInButton />
     </Form>
   );
 }
