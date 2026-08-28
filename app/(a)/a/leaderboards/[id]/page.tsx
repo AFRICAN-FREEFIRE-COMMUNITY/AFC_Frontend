@@ -62,6 +62,9 @@ import {
 } from "@/components/ui/table";
 import { MatchMethodSelectionStep } from "../_components/MatchMethodSelectionStep";
 import { ManualMatchResultStep } from "../_components/ManualMatchResultStep";
+// Picks the previous map's saved stats for the lineup carry-forward. Pure and tested, so the page
+// does not decide "which map is previous" by hand.
+import { previousMatchStats } from "@/lib/resultEntry";
 import { FileUploadStep } from "../_components/FileUploadStep";
 import { ImageUploadStep } from "../_components/ImageUploadStep";
 import { DownloadLeaderboardButton } from "../_components/DownloadLeaderboardButton";
@@ -201,6 +204,21 @@ export default function IndividualLeaderboardPage({
     (m: any) => m.match_id.toString() === selectedMatchId,
   );
 
+  // ── the match being EDITED, which is NOT the match being VIEWED ─────────────────────────────
+  // `currentMatch` follows the VIEW TYPE dropdown at the top of the page. `editingMatch` is what
+  // the "Edit Match Results" dialog chose. They are different things, and conflating them was a
+  // real bug: with the dropdown on "Overall Leaderboard", editing map 1 passed NO saved stats, so
+  // a map that already had results opened completely blank. Reproduced 2026-08-27, 0 filled inputs
+  // versus 129 with the dropdown pointed at the same map.
+  //
+  // It did not silently destroy anything, because the missing-placement guard refuses a save with
+  // no positions. It did mean the form claimed to pre-populate and did not.
+  const editedMatch = editingMatch
+    ? (currentGroup?.matches?.find(
+        (m: any) => m.match_id === editingMatch.match.match_id,
+      ) ?? currentMatch)
+    : currentMatch;
+
   const [leaderboardTab, setLeaderboardTab] = useState<"team" | "player">(
     "team",
   );
@@ -273,7 +291,7 @@ export default function IndividualLeaderboardPage({
     event_id: id,
     // Use edit endpoint only when the match already has results
     completed_match_ids:
-      editingMatch && currentMatch?.result_inputted
+      editingMatch && editedMatch?.result_inputted
         ? [editingMatch.match.match_id]
         : [],
     group_matches: currentGroup?.matches ?? [],
@@ -758,7 +776,18 @@ export default function IndividualLeaderboardPage({
           match={editingMatch.match}
           formData={detailsFormData}
           participantTypeOverride={detailsParticipantType}
-          initialStats={currentMatch?.stats ?? []}
+          initialStats={editedMatch?.stats ?? []}
+          // The map BEFORE this one in the group, so a team's lineup carries forward instead of
+          // being re-ticked on every map (owner brief 2026-08-27). Chosen by match_number rather
+          // than by array position, and null on the first map, both of which are tested in
+          // lib/resultEntry.test.ts. A map that was already entered keeps its OWN lineup: the
+          // carry-forward is a default for an empty map, never a correction to a filled one.
+          previousMatchStats={
+            previousMatchStats(
+              currentGroup?.matches ?? [],
+              editingMatch.match.match_id,
+            ) ?? undefined
+          }
           // Surface the ordered-entry banner only on Champion-Point stages.
           championPointEnabled={currentStage?.champion_point_enabled ?? false}
           onComplete={handleEditComplete}

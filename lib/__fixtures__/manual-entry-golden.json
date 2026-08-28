@@ -1,0 +1,2294 @@
+{
+  "captured": "2026-08-27",
+  "source": "SSA LEAGUE TIER 1 SCRIMS, leaderboard 202, Group 1, Match 1 (Solara), match_id 3718",
+  "note": "Captured on the SECOND visit: the map was already entered, so every value on screen came from savedStats. 14 rostered teams, 12 with saved rows. Includes zero-kill players, rostered players who did not play, and two teams with NO saved row at all (ALLSTARS NG, VASTAMUNDO) which were unticked before submitting because the missing-placement guard refuses them.",
+  "untickedBeforeSubmit": [
+    1114,
+    1135
+  ],
+  "seedInput": {
+    "teams": [
+      {
+        "tournament_team_id": 1109,
+        "team_name": "V-ENT ESPORTS",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 2,
+            "username": "Layott"
+          },
+          {
+            "player_id": 14,
+            "username": "VT.HABEEB"
+          },
+          {
+            "player_id": 30,
+            "username": "VT SUPREME"
+          },
+          {
+            "player_id": 42,
+            "username": "VT V1RUX"
+          },
+          {
+            "player_id": 1162,
+            "username": "VT KingHydra"
+          },
+          {
+            "player_id": 4054,
+            "username": "VT TIMMYY"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1108,
+        "team_name": "EUVINCI PRO GAMERS",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 203,
+            "username": "KN.DANTE"
+          },
+          {
+            "player_id": 282,
+            "username": "EPG.D4HN1x09"
+          },
+          {
+            "player_id": 2443,
+            "username": "EPG ALVIN"
+          },
+          {
+            "player_id": 2594,
+            "username": "EPG.KN1GHTx6"
+          },
+          {
+            "player_id": 4119,
+            "username": "EPG.Capybara"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1112,
+        "team_name": "UNDERGROUND",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 216,
+            "username": "UND SLYFER"
+          },
+          {
+            "player_id": 2442,
+            "username": "UND MITSUKE7"
+          },
+          {
+            "player_id": 2761,
+            "username": "UND Pokizinn"
+          },
+          {
+            "player_id": 4112,
+            "username": "UND SERIP9"
+          },
+          {
+            "player_id": 4197,
+            "username": "UND NEUTRO7"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1107,
+        "team_name": "SOLAR FLARE ESPORT ",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 117,
+            "username": "SLF ZEUSmvp."
+          },
+          {
+            "player_id": 234,
+            "username": "SLF  ZAZA"
+          },
+          {
+            "player_id": 1249,
+            "username": "MacTech"
+          },
+          {
+            "player_id": 3649,
+            "username": "SLF FEROUZAN"
+          },
+          {
+            "player_id": 4108,
+            "username": "SLF Baby"
+          },
+          {
+            "player_id": 4113,
+            "username": "SLF Ragnar"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1115,
+        "team_name": "NOOBZ Esports",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 246,
+            "username": "NB VALSI"
+          },
+          {
+            "player_id": 2454,
+            "username": "NB   DRAXx7"
+          },
+          {
+            "player_id": 2538,
+            "username": "VERMANI07  NB"
+          },
+          {
+            "player_id": 2697,
+            "username": "sr GRAY NB"
+          },
+          {
+            "player_id": 2963,
+            "username": "NB KENNY "
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1114,
+        "team_name": "ALLSTARS NG",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 259,
+            "username": "X. THOR"
+          },
+          {
+            "player_id": 2027,
+            "username": "ASN FAMEZY20"
+          },
+          {
+            "player_id": 2477,
+            "username": "ASN REAPER"
+          },
+          {
+            "player_id": 2544,
+            "username": "ASN GABBY"
+          },
+          {
+            "player_id": 3884,
+            "username": "ASN KUZI"
+          },
+          {
+            "player_id": 7577,
+            "username": "X. Scanta"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1111,
+        "team_name": "CLIQ ESPORT ",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 2463,
+            "username": "CLQ.LARRY"
+          },
+          {
+            "player_id": 2561,
+            "username": "CLQ.ELIJAH17"
+          },
+          {
+            "player_id": 2653,
+            "username": "CLQ.TREVER"
+          },
+          {
+            "player_id": 2760,
+            "username": "CLQ.NEZIF"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1110,
+        "team_name": "ZENITH GAMING",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 1204,
+            "username": "ZN.ASTAx07"
+          },
+          {
+            "player_id": 2597,
+            "username": "ZN.Chungx01"
+          },
+          {
+            "player_id": 3993,
+            "username": "ZN.ATOMIC"
+          },
+          {
+            "player_id": 4385,
+            "username": "ASA LEVI "
+          },
+          {
+            "player_id": 8291,
+            "username": "ZN.BE4S7"
+          },
+          {
+            "player_id": 8812,
+            "username": "ZN.MALXO9"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1132,
+        "team_name": "Alpha Wolves",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 4224,
+            "username": "AW.TWO7"
+          },
+          {
+            "player_id": 4749,
+            "username": "AW.TJ777"
+          },
+          {
+            "player_id": 5051,
+            "username": "AW.JORDANX7"
+          },
+          {
+            "player_id": 7389,
+            "username": "AW.SOMBRA"
+          },
+          {
+            "player_id": 8341,
+            "username": "AW.MRNHrlq"
+          },
+          {
+            "player_id": 8772,
+            "username": "AW.NICE7"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1106,
+        "team_name": "NO PRESSURE",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 166,
+            "username": "NP.HEALER"
+          },
+          {
+            "player_id": 188,
+            "username": "NP. BLOOD"
+          },
+          {
+            "player_id": 245,
+            "username": "NP.ELLIOT`ཀ´"
+          },
+          {
+            "player_id": 1612,
+            "username": "NP. KILLUA"
+          },
+          {
+            "player_id": 2144,
+            "username": "NP.RENZOO"
+          },
+          {
+            "player_id": 2618,
+            "username": "NP ISAGI "
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1135,
+        "team_name": "VASTAMUNDO ",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 283,
+            "username": "vM   OBINNA"
+          },
+          {
+            "player_id": 475,
+            "username": "vM Madlad"
+          },
+          {
+            "player_id": 1500,
+            "username": "vM Na'oya"
+          },
+          {
+            "player_id": 4056,
+            "username": "vM Pxnda"
+          },
+          {
+            "player_id": 4883,
+            "username": "vM M4rSziN"
+          },
+          {
+            "player_id": 8092,
+            "username": "vM   Killa"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1105,
+        "team_name": "PHOENIX ESPORTS ",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 65,
+            "username": "BHAMZ"
+          },
+          {
+            "player_id": 159,
+            "username": "PHX.NOLAN Nx"
+          },
+          {
+            "player_id": 581,
+            "username": "PHX.PROSPER."
+          },
+          {
+            "player_id": 2468,
+            "username": "PHX.KENZO"
+          },
+          {
+            "player_id": 4616,
+            "username": "PHX.LOYAL"
+          },
+          {
+            "player_id": 7904,
+            "username": "PHX.ANOHIGH"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1104,
+        "team_name": "IL ESPORTS",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 2640,
+            "username": "IL.rushGOD"
+          },
+          {
+            "player_id": 3909,
+            "username": "IL TASmvp10"
+          },
+          {
+            "player_id": 8670,
+            "username": "IL.DAMIAN"
+          },
+          {
+            "player_id": 8681,
+            "username": "IL.Spryzn18"
+          },
+          {
+            "player_id": 8682,
+            "username": "IL.EZIO"
+          },
+          {
+            "player_id": 8811,
+            "username": "IL.LOREM"
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1113,
+        "team_name": "AMIGOES",
+        "team_logo": null,
+        "members": [
+          {
+            "player_id": 4747,
+            "username": "AMG GAARA7"
+          },
+          {
+            "player_id": 4873,
+            "username": "AMG JUNIN"
+          },
+          {
+            "player_id": 4891,
+            "username": "AMG DEATH9"
+          },
+          {
+            "player_id": 8808,
+            "username": "AMG MESSI10"
+          },
+          {
+            "player_id": 8834,
+            "username": "AMG  JAYA9"
+          }
+        ]
+      }
+    ],
+    "savedStats": [
+      {
+        "tournament_team_id": 1107,
+        "team_name": "SOLAR FLARE ESPORT ",
+        "team_country": "Nigeria",
+        "placement": 1,
+        "kills": 14,
+        "placement_points": 12,
+        "kill_points": 14,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 26,
+        "effective_total": 26,
+        "players": [
+          {
+            "player_id": 117,
+            "username": "SLF ZEUSmvp.",
+            "kills": 5,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 234,
+            "username": "SLF  ZAZA",
+            "kills": 5,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 3649,
+            "username": "SLF FEROUZAN",
+            "kills": 3,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 4108,
+            "username": "SLF Baby",
+            "kills": 1,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1110,
+        "team_name": "ZENITH GAMING",
+        "team_country": "South Africa",
+        "placement": 4,
+        "kills": 10,
+        "placement_points": 7,
+        "kill_points": 10,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 17,
+        "effective_total": 17,
+        "players": [
+          {
+            "player_id": 2597,
+            "username": "ZN.Chungx01",
+            "kills": 3,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 3993,
+            "username": "ZN.ATOMIC",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 4385,
+            "username": "ASA LEVI ",
+            "kills": 4,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 8812,
+            "username": "ZN.MALXO9",
+            "kills": 1,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1104,
+        "team_name": "IL ESPORTS",
+        "team_country": "South Africa",
+        "placement": 3,
+        "kills": 7,
+        "placement_points": 8,
+        "kill_points": 7,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 15,
+        "effective_total": 15,
+        "players": [
+          {
+            "player_id": 2640,
+            "username": "IL.rushGOD",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 8670,
+            "username": "IL.DAMIAN",
+            "kills": 3,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 8682,
+            "username": "IL.EZIO",
+            "kills": 0,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 8811,
+            "username": "IL.LOREM",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1112,
+        "team_name": "UNDERGROUND",
+        "team_country": "Cabo Verde",
+        "placement": 5,
+        "kills": 7,
+        "placement_points": 6,
+        "kill_points": 7,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 13,
+        "effective_total": 13,
+        "players": [
+          {
+            "player_id": 216,
+            "username": "UND SLYFER",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 2442,
+            "username": "UND MITSUKE7",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 2761,
+            "username": "UND Pokizinn",
+            "kills": 3,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 4197,
+            "username": "UND NEUTRO7",
+            "kills": 0,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1132,
+        "team_name": "Alpha Wolves",
+        "team_country": "Cabo Verde",
+        "placement": 2,
+        "kills": 4,
+        "placement_points": 9,
+        "kill_points": 4,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 13,
+        "effective_total": 13,
+        "players": [
+          {
+            "player_id": 4749,
+            "username": "AW.TJ777",
+            "kills": 0,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 5051,
+            "username": "AW.JORDANX7",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 7389,
+            "username": "AW.SOMBRA",
+            "kills": 0,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 8772,
+            "username": "AW.NICE7",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1108,
+        "team_name": "EUVINCI PRO GAMERS",
+        "team_country": "Nigeria",
+        "placement": 9,
+        "kills": 8,
+        "placement_points": 2,
+        "kill_points": 8,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 10,
+        "effective_total": 10,
+        "players": [
+          {
+            "player_id": 282,
+            "username": "EPG.D4HN1x09",
+            "kills": 0,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 2443,
+            "username": "EPG ALVIN",
+            "kills": 3,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 2594,
+            "username": "EPG.KN1GHTx6",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 4119,
+            "username": "EPG.Capybara",
+            "kills": 3,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1111,
+        "team_name": "CLIQ ESPORT ",
+        "team_country": "Nigeria",
+        "placement": 7,
+        "kills": 6,
+        "placement_points": 4,
+        "kill_points": 6,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 10,
+        "effective_total": 10,
+        "players": [
+          {
+            "player_id": 2653,
+            "username": "CLQ.TREVER",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 2760,
+            "username": "CLQ.NEZIF",
+            "kills": 4,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1113,
+        "team_name": "AMIGOES",
+        "team_country": "Cabo Verde",
+        "placement": 8,
+        "kills": 6,
+        "placement_points": 3,
+        "kill_points": 6,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 9,
+        "effective_total": 9,
+        "players": [
+          {
+            "player_id": 4747,
+            "username": "AMG GAARA7",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 4891,
+            "username": "AMG DEATH9",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 8834,
+            "username": "AMG  JAYA9",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1109,
+        "team_name": "V-ENT ESPORTS",
+        "team_country": "Nigeria",
+        "placement": 10,
+        "kills": 6,
+        "placement_points": 1,
+        "kill_points": 6,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 7,
+        "effective_total": 7,
+        "players": [
+          {
+            "player_id": 14,
+            "username": "VT.HABEEB",
+            "kills": 1,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 30,
+            "username": "VT SUPREME",
+            "kills": 1,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 42,
+            "username": "VT V1RUX",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 4054,
+            "username": "VT TIMMYY",
+            "kills": 2,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1115,
+        "team_name": "NOOBZ Esports",
+        "team_country": "Nigeria",
+        "placement": 6,
+        "kills": 0,
+        "placement_points": 5,
+        "kill_points": 0,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 5,
+        "effective_total": 5,
+        "players": [
+          {
+            "player_id": 246,
+            "username": "NB VALSI",
+            "kills": 0,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 2963,
+            "username": "NB KENNY ",
+            "kills": 0,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1106,
+        "team_name": "NO PRESSURE",
+        "team_country": "Nigeria",
+        "placement": 11,
+        "kills": 1,
+        "placement_points": 0,
+        "kill_points": 1,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 1,
+        "effective_total": 1,
+        "players": [
+          {
+            "player_id": 166,
+            "username": "NP.HEALER",
+            "kills": 1,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 245,
+            "username": "NP.ELLIOT`ཀ´",
+            "kills": 0,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      },
+      {
+        "tournament_team_id": 1105,
+        "team_name": "PHOENIX ESPORTS ",
+        "team_country": "Nigeria",
+        "placement": 12,
+        "kills": 1,
+        "placement_points": 0,
+        "kill_points": 1,
+        "bonus_points": 0,
+        "penalty_points": 0,
+        "total_points": 1,
+        "effective_total": 1,
+        "players": [
+          {
+            "player_id": 65,
+            "username": "BHAMZ",
+            "kills": 1,
+            "damage": 0,
+            "assists": 0
+          },
+          {
+            "player_id": 2468,
+            "username": "PHX.KENZO",
+            "kills": 0,
+            "damage": 0,
+            "assists": 0
+          }
+        ]
+      }
+    ]
+  },
+  "teamResults": [
+    {
+      "tournament_team_id": 1109,
+      "team_name": "V-ENT ESPORTS",
+      "team_logo": null,
+      "placement": 10,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2,
+          "username": "Layott",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 14,
+          "username": "VT.HABEEB",
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 30,
+          "username": "VT SUPREME",
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 42,
+          "username": "VT V1RUX",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 1162,
+          "username": "VT KingHydra",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 4054,
+          "username": "VT TIMMYY",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1108,
+      "team_name": "EUVINCI PRO GAMERS",
+      "team_logo": null,
+      "placement": 9,
+      "played": true,
+      "players": [
+        {
+          "user_id": 203,
+          "username": "KN.DANTE",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 282,
+          "username": "EPG.D4HN1x09",
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2443,
+          "username": "EPG ALVIN",
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2594,
+          "username": "EPG.KN1GHTx6",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4119,
+          "username": "EPG.Capybara",
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1112,
+      "team_name": "UNDERGROUND",
+      "team_logo": null,
+      "placement": 5,
+      "played": true,
+      "players": [
+        {
+          "user_id": 216,
+          "username": "UND SLYFER",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2442,
+          "username": "UND MITSUKE7",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2761,
+          "username": "UND Pokizinn",
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4112,
+          "username": "UND SERIP9",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 4197,
+          "username": "UND NEUTRO7",
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1107,
+      "team_name": "SOLAR FLARE ESPORT ",
+      "team_logo": null,
+      "placement": 1,
+      "played": true,
+      "players": [
+        {
+          "user_id": 117,
+          "username": "SLF ZEUSmvp.",
+          "kills": 5,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 234,
+          "username": "SLF  ZAZA",
+          "kills": 5,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 1249,
+          "username": "MacTech",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 3649,
+          "username": "SLF FEROUZAN",
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4108,
+          "username": "SLF Baby",
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4113,
+          "username": "SLF Ragnar",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1115,
+      "team_name": "NOOBZ Esports",
+      "team_logo": null,
+      "placement": 6,
+      "played": true,
+      "players": [
+        {
+          "user_id": 246,
+          "username": "NB VALSI",
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2454,
+          "username": "NB   DRAXx7",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2538,
+          "username": "VERMANI07  NB",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2697,
+          "username": "sr GRAY NB",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2963,
+          "username": "NB KENNY ",
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1114,
+      "team_name": "ALLSTARS NG",
+      "team_logo": null,
+      "placement": null,
+      "played": false,
+      "players": [
+        {
+          "user_id": 259,
+          "username": "X. THOR",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2027,
+          "username": "ASN FAMEZY20",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2477,
+          "username": "ASN REAPER",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2544,
+          "username": "ASN GABBY",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 3884,
+          "username": "ASN KUZI",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 7577,
+          "username": "X. Scanta",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1111,
+      "team_name": "CLIQ ESPORT ",
+      "team_logo": null,
+      "placement": 7,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2463,
+          "username": "CLQ.LARRY",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2561,
+          "username": "CLQ.ELIJAH17",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2653,
+          "username": "CLQ.TREVER",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2760,
+          "username": "CLQ.NEZIF",
+          "kills": 4,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1110,
+      "team_name": "ZENITH GAMING",
+      "team_logo": null,
+      "placement": 4,
+      "played": true,
+      "players": [
+        {
+          "user_id": 1204,
+          "username": "ZN.ASTAx07",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2597,
+          "username": "ZN.Chungx01",
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 3993,
+          "username": "ZN.ATOMIC",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4385,
+          "username": "ASA LEVI ",
+          "kills": 4,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8291,
+          "username": "ZN.BE4S7",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 8812,
+          "username": "ZN.MALXO9",
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1132,
+      "team_name": "Alpha Wolves",
+      "team_logo": null,
+      "placement": 2,
+      "played": true,
+      "players": [
+        {
+          "user_id": 4224,
+          "username": "AW.TWO7",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 4749,
+          "username": "AW.TJ777",
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 5051,
+          "username": "AW.JORDANX7",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 7389,
+          "username": "AW.SOMBRA",
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8341,
+          "username": "AW.MRNHrlq",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 8772,
+          "username": "AW.NICE7",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1106,
+      "team_name": "NO PRESSURE",
+      "team_logo": null,
+      "placement": 11,
+      "played": true,
+      "players": [
+        {
+          "user_id": 166,
+          "username": "NP.HEALER",
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 188,
+          "username": "NP. BLOOD",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 245,
+          "username": "NP.ELLIOT`ཀ´",
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 1612,
+          "username": "NP. KILLUA",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2144,
+          "username": "NP.RENZOO",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2618,
+          "username": "NP ISAGI ",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1135,
+      "team_name": "VASTAMUNDO ",
+      "team_logo": null,
+      "placement": null,
+      "played": false,
+      "players": [
+        {
+          "user_id": 283,
+          "username": "vM   OBINNA",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 475,
+          "username": "vM Madlad",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 1500,
+          "username": "vM Na'oya",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 4056,
+          "username": "vM Pxnda",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 4883,
+          "username": "vM M4rSziN",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 8092,
+          "username": "vM   Killa",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1105,
+      "team_name": "PHOENIX ESPORTS ",
+      "team_logo": null,
+      "placement": 12,
+      "played": true,
+      "players": [
+        {
+          "user_id": 65,
+          "username": "BHAMZ",
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 159,
+          "username": "PHX.NOLAN Nx",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 581,
+          "username": "PHX.PROSPER.",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 2468,
+          "username": "PHX.KENZO",
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4616,
+          "username": "PHX.LOYAL",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 7904,
+          "username": "PHX.ANOHIGH",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1104,
+      "team_name": "IL ESPORTS",
+      "team_logo": null,
+      "placement": 3,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2640,
+          "username": "IL.rushGOD",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 3909,
+          "username": "IL TASmvp10",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 8670,
+          "username": "IL.DAMIAN",
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8681,
+          "username": "IL.Spryzn18",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 8682,
+          "username": "IL.EZIO",
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8811,
+          "username": "IL.LOREM",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1113,
+      "team_name": "AMIGOES",
+      "team_logo": null,
+      "placement": 8,
+      "played": true,
+      "players": [
+        {
+          "user_id": 4747,
+          "username": "AMG GAARA7",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4873,
+          "username": "AMG JUNIN",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 4891,
+          "username": "AMG DEATH9",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8808,
+          "username": "AMG MESSI10",
+          "kills": null,
+          "damage": null,
+          "assists": null,
+          "played": false
+        },
+        {
+          "user_id": 8834,
+          "username": "AMG  JAYA9",
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    }
+  ],
+  "postedResults": [
+    {
+      "tournament_team_id": 1109,
+      "placement": 10,
+      "played": true,
+      "players": [
+        {
+          "user_id": 14,
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 30,
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 42,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4054,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1108,
+      "placement": 9,
+      "played": true,
+      "players": [
+        {
+          "user_id": 282,
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2443,
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2594,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4119,
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1112,
+      "placement": 5,
+      "played": true,
+      "players": [
+        {
+          "user_id": 216,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2442,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2761,
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4197,
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1107,
+      "placement": 1,
+      "played": true,
+      "players": [
+        {
+          "user_id": 117,
+          "kills": 5,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 234,
+          "kills": 5,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 3649,
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4108,
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1115,
+      "placement": 6,
+      "played": true,
+      "players": [
+        {
+          "user_id": 246,
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2963,
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1114,
+      "placement": null,
+      "played": false,
+      "players": []
+    },
+    {
+      "tournament_team_id": 1111,
+      "placement": 7,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2653,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2760,
+          "kills": 4,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1110,
+      "placement": 4,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2597,
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 3993,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4385,
+          "kills": 4,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8812,
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1132,
+      "placement": 2,
+      "played": true,
+      "players": [
+        {
+          "user_id": 4749,
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 5051,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 7389,
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8772,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1106,
+      "placement": 11,
+      "played": true,
+      "players": [
+        {
+          "user_id": 166,
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 245,
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1135,
+      "placement": null,
+      "played": false,
+      "players": []
+    },
+    {
+      "tournament_team_id": 1105,
+      "placement": 12,
+      "played": true,
+      "players": [
+        {
+          "user_id": 65,
+          "kills": 1,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 2468,
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1104,
+      "placement": 3,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2640,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8670,
+          "kills": 3,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8682,
+          "kills": 0,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8811,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1113,
+      "placement": 8,
+      "played": true,
+      "players": [
+        {
+          "user_id": 4747,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 4891,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        },
+        {
+          "user_id": 8834,
+          "kills": 2,
+          "damage": 0,
+          "assists": 0,
+          "played": true
+        }
+      ]
+    }
+  ],
+  "postedResultsAfterFieldDrop": [
+    {
+      "tournament_team_id": 1109,
+      "placement": 10,
+      "played": true,
+      "players": [
+        {
+          "user_id": 14,
+          "kills": 1,
+          "played": true
+        },
+        {
+          "user_id": 30,
+          "kills": 1,
+          "played": true
+        },
+        {
+          "user_id": 42,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 4054,
+          "kills": 2,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1108,
+      "placement": 9,
+      "played": true,
+      "players": [
+        {
+          "user_id": 282,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 2443,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 2594,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 4119,
+          "kills": 3,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1112,
+      "placement": 5,
+      "played": true,
+      "players": [
+        {
+          "user_id": 216,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 2442,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 2761,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 4197,
+          "kills": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1107,
+      "placement": 1,
+      "played": true,
+      "players": [
+        {
+          "user_id": 117,
+          "kills": 5,
+          "played": true
+        },
+        {
+          "user_id": 234,
+          "kills": 5,
+          "played": true
+        },
+        {
+          "user_id": 3649,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 4108,
+          "kills": 1,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1115,
+      "placement": 6,
+      "played": true,
+      "players": [
+        {
+          "user_id": 246,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 2963,
+          "kills": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1114,
+      "placement": null,
+      "played": false,
+      "players": []
+    },
+    {
+      "tournament_team_id": 1111,
+      "placement": 7,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2653,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 2760,
+          "kills": 4,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1110,
+      "placement": 4,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2597,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 3993,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 4385,
+          "kills": 4,
+          "played": true
+        },
+        {
+          "user_id": 8812,
+          "kills": 1,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1132,
+      "placement": 2,
+      "played": true,
+      "players": [
+        {
+          "user_id": 4749,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 5051,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 7389,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 8772,
+          "kills": 2,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1106,
+      "placement": 11,
+      "played": true,
+      "players": [
+        {
+          "user_id": 166,
+          "kills": 1,
+          "played": true
+        },
+        {
+          "user_id": 245,
+          "kills": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1135,
+      "placement": null,
+      "played": false,
+      "players": []
+    },
+    {
+      "tournament_team_id": 1105,
+      "placement": 12,
+      "played": true,
+      "players": [
+        {
+          "user_id": 65,
+          "kills": 1,
+          "played": true
+        },
+        {
+          "user_id": 2468,
+          "kills": 0,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1104,
+      "placement": 3,
+      "played": true,
+      "players": [
+        {
+          "user_id": 2640,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 8670,
+          "kills": 3,
+          "played": true
+        },
+        {
+          "user_id": 8682,
+          "kills": 0,
+          "played": true
+        },
+        {
+          "user_id": 8811,
+          "kills": 2,
+          "played": true
+        }
+      ]
+    },
+    {
+      "tournament_team_id": 1113,
+      "placement": 8,
+      "played": true,
+      "players": [
+        {
+          "user_id": 4747,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 4891,
+          "kills": 2,
+          "played": true
+        },
+        {
+          "user_id": 8834,
+          "kills": 2,
+          "played": true
+        }
+      ]
+    }
+  ]
+}

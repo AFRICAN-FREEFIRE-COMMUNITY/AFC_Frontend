@@ -6,6 +6,12 @@
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
+    // A lib module that is unit tested has to import its siblings WITH the .ts extension, because
+    // the tests run on Node's own runner (`node --test lib/x.test.ts`, no bundler) and Node's ESM
+    // resolver will not guess it. Safe here: noEmit is on, so nothing is written out, and this
+    // only permits the extension rather than requiring it. Added 2026-08-27 for
+    // lib/resultEntry.ts -> lib/scoreInput.ts.
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
