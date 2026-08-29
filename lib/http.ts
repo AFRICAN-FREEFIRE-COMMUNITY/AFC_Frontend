@@ -67,5 +67,31 @@ export class SessionExpiredError extends Error {
  * should use this. (We are not sweeping every existing inline use in this pass.)
  */
 export function getErrorMessage(err: any, fallback = "Something went wrong. Please try again."): string {
-  return err?.response?.data?.message || err?.message || fallback;
+  const data = err?.response?.data;
+
+  // 1. AFC's own shape. Every hand-written view in this codebase answers {"message": "..."}.
+  if (typeof data?.message === "string" && data.message) return data.message;
+
+  // 2. DRF's shape, which AFC's views do NOT use but the framework itself does: a parse failure, a
+  //    throttle, a permission class, or anything raising APIException answers {"detail": "..."}.
+  //    Missing this is why an admin approving a partner application saw "Request failed with status
+  //    code 400" (axios's own text) instead of the reason: the 400 came from DRF, not from the view,
+  //    so `.message` was undefined and the real sentence was thrown away (owner report 2026-08-29).
+  if (typeof data?.detail === "string" && data.detail) return data.detail;
+
+  // 3. DRF serializer errors: {"field": ["this is required"], ...}. Name the field, because "this
+  //    field is required" on its own does not say WHICH, and the form has a dozen.
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    for (const [field, value] of Object.entries(data)) {
+      const first = Array.isArray(value) ? value[0] : value;
+      if (typeof first === "string" && first) {
+        return field === "non_field_errors" ? first : `${field}: ${first}`;
+      }
+    }
+  }
+
+  // 4. A plain string body, which some proxies return.
+  if (typeof data === "string" && data.trim()) return data.trim();
+
+  return err?.message || fallback;
 }
