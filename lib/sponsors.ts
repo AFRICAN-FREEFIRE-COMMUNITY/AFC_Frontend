@@ -16,12 +16,18 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 import { env } from "@/lib/env";
+// Routed through lib/http authHeaders (owner bug 2026-08-29): building the header inline as
+// `Bearer ${token ?? ""}` sent "Bearer " when the cookie had lapsed, which axios trims to
+// "Bearer", so the backend reported a DEAD SESSION as a MALFORMED REQUEST (400) and nothing
+// logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
+// modal in place.
+import { authHeaders } from "@/lib/http";
 
 const BASE = `${env.NEXT_PUBLIC_BACKEND_API_URL}/sponsors`;
 
 function headers() {
   const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
+  return authHeaders();
 }
 
 async function sGet<T = any>(path: string, params?: Record<string, any>): Promise<T> {
@@ -103,6 +109,11 @@ export interface EventSponsorshipRow {
   };
   requires_approval: boolean;
   engagements: SponsorEngagement[];
+  /**
+   * The organizer's explainer, shown to players above this sponsor's fields (owner 2026-08-29).
+   * Always a string from the backend, never null, so no call site needs a ?? "".
+   */
+  player_note: string;
 }
 
 // One registrant answer row in the portal's per-engagement table
@@ -223,7 +234,7 @@ export const sponsorsApi = {
   configureSponsorship: (
     sponsorId: number,
     eventId: number,
-    body: { requires_approval?: boolean; engagements?: SponsorEngagement[] },
+    body: { requires_approval?: boolean; engagements?: SponsorEngagement[]; player_note?: string },
   ) => sPatch(`${sponsorId}/events/${eventId}/configure/`, body),
   // PUBLIC read of an event's sponsorships + engagement config (registration UI + wizard
   // rehydrate). No auth header needed but harmless to send.

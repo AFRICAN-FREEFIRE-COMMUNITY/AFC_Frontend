@@ -35,6 +35,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { env } from "@/lib/env";
 import { useAuth, type User } from "@/contexts/AuthContext";
+// Routed through lib/http authHeaders (owner bug 2026-08-29): building the header inline as
+// `Bearer ${token ?? ""}` sent "Bearer " when the cookie had lapsed, which axios trims to
+// "Bearer", so the backend reported a DEAD SESSION as a MALFORMED REQUEST (400) and nothing
+// logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
+// modal in place.
+import { authHeaders } from "@/lib/http";
 
 // One dashboard the callout can introduce: how access is detected + where the menu entry lives.
 // The user-visible label + section text are NOT stored here anymore; they are resolved at render
@@ -128,7 +134,7 @@ export function DashboardIntroCoachmark() {
       .post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/mark-dashboard-intro-seen/`,
         { dashboard: active.key },
-        { headers: { Authorization: `Bearer ${token ?? ""}` } },
+        { headers: authHeaders() },
       )
       .catch(() => {});
   };

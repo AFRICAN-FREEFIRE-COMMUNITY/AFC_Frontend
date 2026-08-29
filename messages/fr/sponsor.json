@@ -114,6 +114,11 @@
       "nameRequired": "Donnez un nom au sponsor.",
       "created": "Sponsor créé.",
       "createFailed": "Échec de la création du sponsor."
+    },
+    "playerNote": {
+      "label": "Explication pour les joueurs (facultatif)",
+      "placeholder": "Dites aux joueurs quoi faire et pourquoi, avec vos mots. Par exemple : créez un compte Grow avec le lien ci-dessous, puis collez le nom d'utilisateur choisi.",
+      "help": "Affiché aux joueurs et aux équipes lors de l'inscription, au-dessus des champs de ce sponsor."
     }
   }
 }

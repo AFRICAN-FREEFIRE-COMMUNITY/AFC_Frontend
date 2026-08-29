@@ -103,6 +103,12 @@ import {
   type PartnerToggle,
   type EditPartnerBody,
 } from "@/lib/partners";
+// Routed through lib/http authHeaders (owner bug 2026-08-29): building the header inline as
+// `Bearer ${token ?? ""}` sent "Bearer " when the cookie had lapsed, which axios trims to
+// "Bearer", so the backend reported a DEAD SESSION as a MALFORMED REQUEST (400) and nothing
+// logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
+// modal in place.
+import { authHeaders } from "@/lib/http";
 
 // ── Toggle copy lives in the i18n catalogue, keyed by toggle id ──────────────
 // Every toggle label is `partners.detail.toggles.<id>` and the few that need a helper
@@ -371,7 +377,7 @@ export default function PartnerDetailPage({
     // events
     axios
       .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`, {
-        headers: { Authorization: `Bearer ${token ?? ""}` },
+        headers: authHeaders(),
       })
       .then((res) => setEventOptions(res.data?.events ?? []))
       .catch(() => toast.error(t("detail.eventsLoadFailed")));

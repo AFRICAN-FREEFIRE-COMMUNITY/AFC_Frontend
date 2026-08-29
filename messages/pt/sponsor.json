@@ -114,6 +114,11 @@
       "nameRequired": "Dá um nome ao patrocinador.",
       "created": "Patrocinador criado.",
       "createFailed": "Não foi possível criar o patrocinador."
+    },
+    "playerNote": {
+      "label": "Explicação para os jogadores (opcional)",
+      "placeholder": "Diga aos jogadores o que fazer e por quê, com suas palavras. Por exemplo: crie uma conta Grow com o link abaixo e cole o nome de usuário escolhido.",
+      "help": "Mostrado aos jogadores e às equipes na etapa de inscrição, acima dos campos deste patrocinador."
     }
   }
 }

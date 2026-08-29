@@ -1,6 +1,12 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 import { env } from "@/lib/env";
+// Routed through lib/http authHeaders (owner bug 2026-08-29): building the header inline as
+// `Bearer ${token ?? ""}` sent "Bearer " when the cookie had lapsed, which axios trims to
+// "Bearer", so the backend reported a DEAD SESSION as a MALFORMED REQUEST (400) and nothing
+// logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
+// modal in place.
+import { authHeaders } from "@/lib/http";
 
 /**
  * Typed client for the PUBLIC (read-only, unauthenticated) rankings API (prefix /rankings/).
@@ -305,7 +311,7 @@ export interface MyTeam {
 
 function userAuthHeaders() {
   const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
+  return authHeaders();
 }
 
 export const rankingsClaimApi = {
