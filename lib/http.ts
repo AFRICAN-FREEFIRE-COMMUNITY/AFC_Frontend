@@ -90,8 +90,23 @@ export function getErrorMessage(err: any, fallback = "Something went wrong. Plea
     }
   }
 
-  // 4. A plain string body, which some proxies return.
-  if (typeof data === "string" && data.trim()) return data.trim();
+  // 4. A string body. Two kinds arrive here and they need different treatment.
+  if (typeof data === "string" && data.trim()) {
+    const text = data.trim();
+
+    // An HTML page, which is what Django serves for a SuspiciousOperation (DisallowedHost,
+    // RequestDataTooBig, TooManyFieldsSent) once DEBUG is off. Dumping the markup into a toast is
+    // worse than useless: it is unreadable AND it hides that the request never reached a view.
+    // Say that plainly instead, and keep the status, which is the part worth quoting to whoever
+    // reads the server log. Seen 2026-08-29 approving a partner application.
+    if (/^\s*<(!doctype|html)/i.test(text)) {
+      const status = err?.response?.status;
+      return status
+        ? `The server rejected the request before it reached the app (HTTP ${status}). Ask an admin to check the server log.`
+        : "The server rejected the request before it reached the app. Ask an admin to check the server log.";
+    }
+    return text;
+  }
 
   return err?.message || fallback;
 }
