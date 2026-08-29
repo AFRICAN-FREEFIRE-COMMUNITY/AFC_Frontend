@@ -81,7 +81,7 @@ type Props = SingleProps | MultiProps;
 
 function authHeaders() {
   const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
+  return authHeaders();
 }
 
 export function TeamSearchSelect(props: Props) {

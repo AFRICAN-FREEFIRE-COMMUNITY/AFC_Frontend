@@ -1062,6 +1062,9 @@ export default function OrganizerCreateEventPage() {
                 await sponsorsApi.configureSponsorship(s.sponsor_id, newEventId, {
                   requires_approval: s.requires_approval,
                   engagements: s.engagements,
+                  // The organizer's explainer for players (owner 2026-08-29). Forwarded
+                  // here or it would be typed into the builder and saved nowhere.
+                  player_note: s.player_note ?? "",
                 });
               } catch {
                 failedSponsors.push(s.sponsor_name);

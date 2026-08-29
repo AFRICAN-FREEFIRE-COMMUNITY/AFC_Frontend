@@ -29,17 +29,28 @@
 
 import axios from "axios";
 import { env } from "@/lib/env";
+import { SessionExpiredError } from "@/lib/http";
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
 
 // Bearer auth header built from the live token the shop surfaces hold via
 // useAuth().token (matches the `Bearer ${token}` idiom in OrdersClient /
-// ProductDetailPage, rather than the cookie-reading authHeaders() the admin
-// clients use). The empty-string fallback keeps the header well-formed even if a
-// caller passes null/undefined; per-user endpoints will simply 401 in that case.
-const tokenHeaders = (token: string | null | undefined) => ({
-  Authorization: `Bearer ${token ?? ""}`,
-});
+// ProductDetailPage, rather than the cookie-reading authHeaders() the admin clients use).
+//
+// CORRECTION 2026-08-29: the old comment here claimed "the empty-string fallback keeps the header
+// well-formed ... per-user endpoints will simply 401 in that case". That was WRONG, and it is the
+// belief behind a real bug. `Bearer ${""}` is the string "Bearer ", axios trims the trailing space
+// to "Bearer", and the backend gate is `startswith("Bearer ")` WITH the space. So it did not 401 as
+// "expired"; it 400'd as "Invalid or missing Authorization token.", and AuthContext's interceptor
+// (which acts on 401 WITH a token) never fired, leaving the user visibly signed in beside an action
+// that could never succeed.
+//
+// Now a missing token raises the same session-expired flow the rest of the app uses, before any
+// request goes out. See lib/http.ts SessionExpiredError.
+const tokenHeaders = (token: string | null | undefined) => {
+  if (!token) throw new SessionExpiredError();
+  return { Authorization: `Bearer ${token}` };
+};
 
 // One saved product row from GET /shop/wishlist/ (the Saved Items list card). This is a
 // LIGHT product shape (just enough to render a card + link to the full product), distinct

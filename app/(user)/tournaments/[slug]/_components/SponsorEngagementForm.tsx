@@ -781,6 +781,14 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
               {t("sponsorForm.sponsorSection.requiresApprovalNote")}
             </p>
           )}
+          {/* The organizer's own explainer (owner 2026-08-29), above the fields it explains.
+              whitespace-pre-line so the line breaks they typed survive; it is rendered as TEXT and
+              never as HTML, because this is organizer-authored copy on a player-facing page. */}
+          {s.player_note ? (
+            <p className="whitespace-pre-line text-sm text-foreground/90">
+              {s.player_note}
+            </p>
+          ) : null}
           {s.engagements.map((eng, idx) =>
             renderEngagement(s.sponsorship_id, eng, idx),
           )}

@@ -114,6 +114,11 @@
       "nameRequired": "Give the sponsor a name.",
       "created": "Sponsor created.",
       "createFailed": "Failed to create the sponsor."
+    },
+    "playerNote": {
+      "label": "Explainer for players (optional)",
+      "placeholder": "Tell players what to do and why, in your own words. For example: create a Grow account with the link below, then paste the username you chose.",
+      "help": "Shown to players and teams on the registration step, above this sponsor's fields."
     }
   }
 }

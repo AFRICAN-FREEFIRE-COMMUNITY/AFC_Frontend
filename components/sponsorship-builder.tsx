@@ -66,11 +66,22 @@ import { sponsorsApi, SponsorEngagement, SponsorRow } from "@/lib/sponsors";
 // One row per sponsor attached (or about to be attached) to the event. The edit
 // wizard hydrates these from sponsorsApi.forEvent(); the create wizard starts empty
 // and persists them AFTER /events/create-event/ returns the new event_id.
+// Matches PLAYER_NOTE_MAX in afc_sponsors/engagements.py. The backend refuses anything longer with
+// a 400 rather than truncating; this stops a player-facing 400 by capping the box itself.
+const PLAYER_NOTE_MAX = 2000;
+
 export interface SponsorshipDraft {
   sponsor_id: number;
   sponsor_name: string;
   requires_approval: boolean;
   engagements: SponsorEngagement[];
+  /**
+   * The organizer's explainer, shown to players on the registration step above this sponsor's
+   * fields (owner 2026-08-29). Optional: "" means the fields appear on their own, as they always
+   * have. Lives per event-sponsor, not on the sponsor, because the same brand can want different
+   * wording on different events.
+   */
+  player_note?: string;
 }
 
 interface SponsorshipBuilderProps {
@@ -250,7 +261,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
   const addSponsor = (s: SponsorRow) => {
     onChange([
       ...value,
-      { sponsor_id: s.id, sponsor_name: s.name, requires_approval: false, engagements: [] },
+      { sponsor_id: s.id, sponsor_name: s.name, requires_approval: false, engagements: [], player_note: "" },
     ]);
     setQuery("");
     setPickerOpen(false);
@@ -467,6 +478,32 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
             >
               <X className="size-4" />
             </Button>
+          </div>
+
+          {/* ── the explainer players read (owner 2026-08-29) ──
+              Sits ABOVE the engagement list on purpose, because that is the order a player meets
+              it in: first why they are being asked, then the fields. */}
+          <div className="mt-3">
+            <label
+              htmlFor={`player-note-${row.sponsor_id}`}
+              className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground"
+            >
+              {t("builder.playerNote.label")}
+            </label>
+            <Textarea
+              id={`player-note-${row.sponsor_id}`}
+              value={row.player_note ?? ""}
+              maxLength={PLAYER_NOTE_MAX}
+              rows={3}
+              className="mt-1 text-sm"
+              placeholder={t("builder.playerNote.placeholder")}
+              onChange={(e) =>
+                patchRow(row.sponsor_id, { player_note: e.target.value })
+              }
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {t("builder.playerNote.help")}
+            </p>
           </div>
 
           {/* ── engagement list ── */}

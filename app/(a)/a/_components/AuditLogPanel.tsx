@@ -86,7 +86,7 @@ type AuditRow = {
 // authHeaders() helper used across lib/*.ts.
 function authHeaders() {
   const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
+  return authHeaders();
 }
 
 // Status code -> badge style + tone (2xx ok, 4xx client warning, 5xx server error).

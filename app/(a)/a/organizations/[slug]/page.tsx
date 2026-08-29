@@ -77,6 +77,12 @@ import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { UserSearchSelect } from "@/components/ui/user-search-select";
 import { organizersApi } from "@/lib/organizers";
 import { InfoTip } from "@/components/ui/info-tip";
+// Routed through lib/http authHeaders (owner bug 2026-08-29): building the header inline as
+// `Bearer ${token ?? ""}` sent "Bearer " when the cookie had lapsed, which axios trims to
+// "Bearer", so the backend reported a DEAD SESSION as a MALFORMED REQUEST (400) and nothing
+// logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
+// modal in place.
+import { authHeaders } from "@/lib/http";
 
 // ── Types (mirror the adminGetOrganization payload) ──────────────────────────
 
@@ -410,7 +416,7 @@ export default function OrganizationDetailPage({
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/verify-event/`,
         { event_id: ev.event_id, verified: !ev.rankings_verified },
-        { headers: { Authorization: `Bearer ${token ?? ""}` } },
+        { headers: authHeaders() },
       );
       toast.success(
         ev.rankings_verified

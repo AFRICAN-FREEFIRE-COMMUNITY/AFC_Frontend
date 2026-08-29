@@ -96,7 +96,7 @@ type RevealRecord = {
 // Same helper idiom AuditLogPanel.tsx and lib/*.ts use across the admin app.
 function authHeaders() {
   const token = Cookies.get("auth_token");
-  return { Authorization: `Bearer ${token ?? ""}` };
+  return authHeaders();
 }
 
 // One label/value line inside the expandable reveal block. Mirrors AuditLogPanel's Detail.

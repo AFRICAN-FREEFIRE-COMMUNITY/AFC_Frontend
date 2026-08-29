@@ -130,6 +130,10 @@ export default function SponsorTab({
           sponsor_name: r.sponsor.name,
           requires_approval: r.requires_approval,
           engagements: r.engagements ?? [],
+          // Rehydrate the explainer too. Without it, reopening this tab loaded an EMPTY box and
+          // the next save posted "" over whatever the organizer had written, which is the silent
+          // kind of data loss nobody reports because the form looked normal.
+          player_note: r.player_note ?? "",
         }));
         setRows(hydrated);
         savedIdsRef.current = new Set(hydrated.map((r) => r.sponsor_id));
@@ -191,6 +195,9 @@ export default function SponsorTab({
         await sponsorsApi.configureSponsorship(row.sponsor_id, eventId, {
           requires_approval: row.requires_approval,
           engagements: row.engagements,
+          // The organizer's explainer for players (owner 2026-08-29). Forwarded here or it
+          // would be typed into the builder and saved nowhere.
+          player_note: row.player_note ?? "",
         });
       } catch (err: any) {
         failed.push(
