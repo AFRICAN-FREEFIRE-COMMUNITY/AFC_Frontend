@@ -6,12 +6,18 @@
   "apiNote": "Tout ceci est aussi disponible en JSON, pour l'intégrer à une étape de build plutôt que de le copier à la main.",
   "mark": {
     "heading": "Le logo",
-    "body": "Un seul logo, cinq tailles. Prenez la taille la plus proche de l'espace où vous l'affichez, puis laissez-le se réduire plutôt que s'agrandir.",
-    "sizesHeading": "Tailles",
+    "body": "Un seul logo. Prenez le SVG et affichez-le à la taille qu'il vous faut. Les PNG en dessous servent aux endroits qui exigent encore une image matricielle.",
+    "sizesHeading": "Tailles PNG",
     "download": "Télécharger",
-    "resolutionHeading": "Il n'existe pas de version vectorielle",
-    "resolutionBody": "Le logo AFC existe en PNG de 500 pixels et rien de plus grand. Au-delà, il devient flou : 500 est donc la plus grande taille publiée. S'il vous le faut plus grand, demandez-nous plutôt que de l'agrandir.",
-    "previewAlt": "Le logo AFC"
+    "resolutionHeading": "Comment le vectoriel a été obtenu",
+    "resolutionBody": "L'AFC n'a jamais possédé de vectoriel d'origine : celui-ci a été vectorisé à partir du même PNG de 500 pixels dont viennent les tailles ci-dessus. Le résultat est contrôlé contre ce fichier en le rendant et en mesurant le recouvrement : 98,9 pour cent sur la forme, 99,7 pour cent sur le vert. Utilisez le SVG à n'importe quelle taille. Les PNG restent des réductions de ce seul fichier, donc 500 demeure la plus grande de ces tailles.",
+    "previewAlt": "Le logo AFC",
+    "vectorHeading": "Vectoriel",
+    "vector": {
+      "default": "pour un fond clair",
+      "onDark": "pour un fond sombre"
+    },
+    "previewAltOnDark": "Le logo AFC sur un fond sombre"
   },
   "button": {
     "heading": "Le bouton de connexion",
@@ -39,11 +45,13 @@
       "Affichez le logo à côté du texte, avec le même poids visuel que les autres boutons de connexion de la ligne.",
       "Intitulez le bouton « Continuer avec AFC ».",
       "Gardez autour du logo un espace libre d'au moins un quart de sa largeur.",
-      "Placez-le sur un fond suffisamment contrasté, clair ou sombre."
+      "Placez-le sur un fond suffisamment contrasté, clair ou sombre.",
+      "Préférez le SVG. C'est le même dessin à toutes les tailles, et c'est ce que le bouton doit utiliser.",
+      "Sur un fond sombre, prenez le SVG pour fond sombre. Dans le logo par défaut, le texte est presque noir et disparaît sur un tel fond."
     ],
     "dont": [
       "N'étirez pas, ne faites pas pivoter, ne recolorez pas et n'ajoutez pas d'effets au logo.",
-      "Ne l'affichez pas au-delà de 500 pixels. Il n'existe pas de version vectorielle, il deviendrait flou.",
+      "N'affichez pas un PNG au-delà de sa propre taille. 500 pixels est le plus grand qui existe. Utilisez le SVG à la place, à n'importe quelle taille.",
       "N'utilisez pas le nom complet comme libellé de bouton.",
       "Ne laissez pas entendre qu'AFC cautionne votre produit. Le bouton signifie qu'un joueur peut se connecter, rien de plus."
     ]

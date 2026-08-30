@@ -27,6 +27,12 @@
 //   - Colour swatches are drawn as solid fills with the hex written next to them, rather
 //     than as three feature cards in a row.
 //
+// 2026-08-30, LATER THE SAME DAY: the mark is a VECTOR now. This page first shipped saying
+// in as many words that AFC had none and that a partner must not draw the PNG above 500px.
+// tools/trace_afc_mark.py (backend) traced the 500px source and the ceiling is gone, so the
+// svg leads here and the rasters follow it. The "There is no vector" panel became the one
+// that says there is, and what it was measured against.
+//
 // CONSUMED BY: app/(root)/brand/page.tsx
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -36,12 +42,25 @@ import { Check, Copy } from "lucide-react";
 
 import { env } from "@/lib/env";
 import { Button } from "@/components/ui/button";
+import { NewBadge } from "@/components/NewBadge";
 
 const API = env.NEXT_PUBLIC_BACKEND_API_URL;
 
-/** The sizes backend afc_sso/brand.py serves. 500 is the SOURCE; the rest are downscales
- *  of it, and nothing above it exists because there is no vector of the AFC mark. */
+/** The RASTER sizes backend afc_sso/brand.py serves. 500 is the source file; the rest are
+ *  downscales of it, so the 500px ceiling still applies to THESE. It no longer applies to
+ *  the mark, which is why the vector is offered above them. */
 const LOGO_SIZES = [500, 256, 128, 64, 32] as const;
+
+/** The vector, and the variant for a dark surface. The default mark's wordmark is
+ *  near-black, so on a dark login page (which is most of them) it disappears and the mark
+ *  reads as the letters alone. Both are the same traced paths. */
+const VECTORS = [
+  { key: "default", href: `${API}/sso/brand/logo.svg` },
+  { key: "onDark", href: `${API}/sso/brand/logo.svg?on=dark` },
+] as const;
+
+/** The day the vector went live, for the NEW tag. It expires on its own. */
+const VECTOR_SINCE = "2026-08-30";
 
 /** The exact values GET /sso/brand/ publishes. Converted from the site's own oklch tokens
  *  (app/globals.css) by Chrome's canvas rather than by hand, so a partner painting this
@@ -144,11 +163,13 @@ export function BrandKit() {
   const t = useTranslations("brand");
 
   const markUrl = (size: number) => `${API}/sso/brand/logo/${size}.png`;
+  const vectorUrl = `${API}/sso/brand/logo.svg`;
+  const vectorOnDarkUrl = `${API}/sso/brand/logo.svg?on=dark`;
 
   // The snippet a partner pastes. Deliberately plain HTML + inline CSS: the audience is an
   // engineer on an unknown stack, and anything framework-shaped would have to be rewritten.
   const buttonSnippet = `<a class="afc-signin" href="/your/afc/start">
-  <img src="${API}/sso/brand/logo/64.png" alt="" width="20" height="20">
+  <img src="${API}/sso/brand/logo.svg?on=dark" alt="" width="20" height="20">
   <span>${t("button.label")}</span>
 </a>
 
@@ -175,6 +196,8 @@ export function BrandKit() {
     "primary": { "hex": "#15a249", "rgb": "rgb(21, 162, 73)" }
   },
   "logo": {
+    "preferred": "svg",
+    "vector": { "default": "${API}/sso/brand/logo.svg" },
     "format": "png",
     "source_resolution": 500,
     "mark": { "64": "${API}/sso/brand/logo/64.png" }
@@ -199,15 +222,62 @@ export function BrandKit() {
       <Section title={t("mark.heading")}>
         <p className="text-sm text-muted-foreground">{t("mark.body")}</p>
 
-        {/* The mark on the surface it is designed for. Fixed size, never stretched. */}
-        <div className="flex items-center justify-center rounded-md bg-muted py-8">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={markUrl(256)}
-            alt={t("mark.previewAlt")}
-            width={128}
-            height={128}
-          />
+        {/* BOTH variants, each on the surface it is for. One panel is what this page shipped
+            with, and on a dark page it showed the green letters with the wordmark invisible
+            underneath them, which is the exact mistake the on-dark variant exists to prevent.
+            Showing the pair states the rule better than the sentence next to it does.
+            Fixed size, never stretched. The panel colours are literals rather than tokens:
+            they must stay light and dark whatever theme the reader is in, because the point
+            is the contrast, not the page. */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <figure className="rounded-md bg-[#f4f4f5] py-8">
+            <div className="flex justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={vectorUrl} alt={t("mark.previewAlt")} width={128} height={128} />
+            </div>
+            <figcaption className="mt-3 text-center text-xs text-[#52525b]">
+              {t("mark.vector.default")}
+            </figcaption>
+          </figure>
+          <figure className="rounded-md bg-[#09090b] py-8">
+            <div className="flex justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={vectorOnDarkUrl} alt={t("mark.previewAltOnDark")} width={128} height={128} />
+            </div>
+            <figcaption className="mt-3 text-center text-xs text-[#a1a1aa]">
+              {t("mark.vector.onDark")}
+            </figcaption>
+          </figure>
+        </div>
+
+        {/* THE VECTOR FIRST, because it is what a partner should take. The rasters below it
+            are for the places that still need one: a link preview, an email client, an OG
+            card. Same row shape as the sizes, so the two read as one list. */}
+        <div>
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
+            {t("mark.vectorHeading")}
+            <NewBadge since={VECTOR_SINCE} />
+          </h3>
+          <ul className="mt-2 space-y-1">
+            {VECTORS.map((v) => (
+              <li
+                key={v.key}
+                className="flex items-center justify-between gap-3 rounded-sm bg-muted/60 px-3 py-2"
+              >
+                <span className="text-xs">
+                  <span className="font-mono">SVG</span>
+                  <span className="text-muted-foreground"> {t(`mark.vector.${v.key}`)}</span>
+                </span>
+                <a
+                  href={v.href}
+                  download
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  {t("mark.download")}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div>
@@ -255,7 +325,9 @@ export function BrandKit() {
                 infer them from the snippet. Not a link: it is an example, not a control. */}
             <span className="inline-flex items-center gap-2.5 rounded-lg bg-[#1c1c1f] px-4 py-2.5 text-[15px] font-medium text-[#fafafa]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={markUrl(64)} alt="" width={20} height={20} aria-hidden />
+              {/* on-dark: this button's own background is #1c1c1f, and the default mark's
+                  wordmark is near-black against it. */}
+              <img src={vectorOnDarkUrl} alt="" width={20} height={20} aria-hidden />
               {t("button.label")}
             </span>
           </div>
