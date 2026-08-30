@@ -117,6 +117,10 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
     upcoming: "text-blue-500",
     ongoing: "text-green-500",
     completed: "text-muted-foreground",
+    // "cancelled" is a real value effective_event_status returns, even though Event's own
+    // choices list does not declare it. Red because it carries meaning a player has to act
+    // on: the event they were counting on is not happening.
+    cancelled: "text-red-500",
   };
 
   // Paid-event badge: only when the list endpoint flags this event "paid" with a
@@ -169,8 +173,19 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
             className={`text-sm font-medium ${statusColors[event.event_status] ?? "text-muted-foreground"}`}
           >
             {/* i18n: localized status label (tournaments -> list.status.*) instead of
-                capitalizing the raw backend enum, which only read in English. */}
-            {t(`list.status.${event.event_status}`)}
+                capitalizing the raw backend enum, which only read in English.
+
+                GUARDED with t.has (owner report 2026-08-30: a cancelled event rendered
+                the literal string "tournaments.list.status.cancelled" on the card). The
+                backend's effective_event_status returns "cancelled", but Event's own
+                choices list only declares upcoming/ongoing/completed, so the catalog was
+                written from the model and missed it. next-intl renders the KEY when it is
+                absent, which puts a developer string in front of a player. Falling back to
+                the raw status is ugly in one language and unreadable in none. Same shape as
+                player-markets/applications/[id]/page.tsx. */}
+            {t.has(`list.status.${event.event_status}`)
+              ? t(`list.status.${event.event_status}`)
+              : event.event_status.replace(/_/g, " ")}
           </p>
           <TournamentTierBadge tier={event.tournament_tier} />
         </div>
