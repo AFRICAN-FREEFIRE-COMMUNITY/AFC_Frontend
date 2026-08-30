@@ -6,12 +6,18 @@
   "apiNote": "Tudo isto também está disponível em JSON, para usar num passo de build em vez de copiar à mão.",
   "mark": {
     "heading": "O logótipo",
-    "body": "Um logótipo, cinco tamanhos. Escolha o tamanho mais próximo do espaço onde o vai mostrar e deixe-o reduzir, nunca aumentar.",
-    "sizesHeading": "Tamanhos",
+    "body": "Um logótipo. Use o SVG e mostre-o no tamanho que precisar. Os PNG abaixo servem para os sítios que ainda exigem uma imagem rasterizada.",
+    "sizesHeading": "Tamanhos PNG",
     "download": "Transferir",
-    "resolutionHeading": "Não existe versão vetorial",
-    "resolutionBody": "O logótipo da AFC existe como PNG de 500 pixéis e nada maior. Acima disso fica desfocado, por isso 500 é o maior tamanho publicado. Se precisar dele maior, fale connosco em vez de o ampliar.",
-    "previewAlt": "O logótipo da AFC"
+    "resolutionHeading": "Como se obteve o vetorial",
+    "resolutionBody": "A AFC nunca teve um vetorial original, por isso este foi vetorizado a partir do mesmo PNG de 500 pixéis de onde vêm os tamanhos acima. O resultado é conferido contra esse ficheiro, desenhando-o e medindo a sobreposição: 98,9 por cento na forma e 99,7 por cento no verde. Use o SVG em qualquer tamanho. Os PNG continuam a ser reduções desse único ficheiro, por isso 500 mantém-se o maior deles.",
+    "previewAlt": "O logótipo da AFC",
+    "vectorHeading": "Vetorial",
+    "vector": {
+      "default": "para fundo claro",
+      "onDark": "para fundo escuro"
+    },
+    "previewAltOnDark": "O logótipo da AFC sobre um fundo escuro"
   },
   "button": {
     "heading": "O botão de início de sessão",
@@ -39,11 +45,13 @@
       "Mostre o logótipo ao lado do texto, com o mesmo peso visual dos outros botões de início de sessão da linha.",
       "Dê ao botão o texto \"Continuar com a AFC\".",
       "Mantenha à volta do logótipo um espaço livre de pelo menos um quarto da sua largura.",
-      "Coloque-o sobre um fundo com contraste real, claro ou escuro."
+      "Coloque-o sobre um fundo com contraste real, claro ou escuro.",
+      "Prefira o SVG. É o mesmo desenho em todos os tamanhos e é o que o botão deve usar.",
+      "Num fundo escuro use o SVG para fundo escuro. No logótipo por omissão o texto é quase preto e desaparece sobre um fundo assim."
     ],
     "dont": [
       "Não estique, rode, mude a cor nem acrescente efeitos ao logótipo.",
-      "Não o mostre acima de 500 pixéis. Não existe versão vetorial, por isso ficará desfocado.",
+      "Não mostre um PNG acima do seu próprio tamanho. 500 pixéis é o maior que existe. Use antes o SVG, em qualquer tamanho.",
       "Não use o nome completo como texto do botão.",
       "Não dê a entender que a AFC aprova o seu produto. O botão significa que um jogador pode iniciar sessão, nada mais."
     ]

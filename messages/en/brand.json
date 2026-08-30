@@ -6,12 +6,18 @@
   "apiNote": "All of this is also readable as JSON, so you can pull it into a build step instead of copying by hand.",
   "mark": {
     "heading": "The mark",
-    "body": "One mark, five sizes. Pick the size closest to the box you are drawing it in, then let it scale down rather than up.",
-    "sizesHeading": "Sizes",
+    "body": "One mark. Take the SVG and draw it at whatever size you need. The PNGs below it are for the places that still want a raster.",
+    "sizesHeading": "PNG sizes",
     "download": "Download",
-    "resolutionHeading": "There is no vector",
-    "resolutionBody": "The AFC mark exists as a 500 pixel PNG and nothing larger. Drawn above that it goes soft, so 500 is the biggest size published. If you need it bigger than that, ask us rather than scaling it.",
-    "previewAlt": "The AFC mark"
+    "resolutionHeading": "How the vector was made",
+    "resolutionBody": "AFC never held an original vector, so this one was traced from the same 500 pixel PNG the sizes above come from. The trace is checked against that file by rendering it and measuring the overlap: 98.9 percent on the shape, 99.7 percent on the green. Use the SVG at any size. The PNGs are still downscales of that one file, so 500 stays the largest of those.",
+    "previewAlt": "The AFC mark",
+    "vectorHeading": "Vector",
+    "vector": {
+      "default": "for a light surface",
+      "onDark": "for a dark surface"
+    },
+    "previewAltOnDark": "The AFC mark on a dark surface"
   },
   "button": {
     "heading": "The sign-in button",
@@ -39,11 +45,13 @@
       "Show the mark beside the words, at the same visual weight as the other sign-in buttons on the row.",
       "Label the button \"Continue with AFC\".",
       "Keep clear space around the mark of at least a quarter of its width.",
-      "Put it on a surface with real contrast behind it, light or dark."
+      "Put it on a surface with real contrast behind it, light or dark.",
+      "Prefer the SVG. It is the same drawing at every size, and it is what the button should use.",
+      "On a dark surface take the on-dark SVG. The wordmark in the default mark is near-black and vanishes against one."
     ],
     "dont": [
       "Do not stretch, rotate, recolour or add effects to the mark.",
-      "Do not draw it larger than 500 pixels. There is no vector, so it will go soft.",
+      "Do not draw a PNG above its own size. 500 pixels is the largest that exists. Use the SVG instead, at any size.",
       "Do not use the full name as a button label.",
       "Do not imply AFC endorses your product. The button means a player can sign in, nothing more."
     ]
