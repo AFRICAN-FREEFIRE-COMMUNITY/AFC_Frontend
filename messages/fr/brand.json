@@ -1,0 +1,61 @@
+{
+  "metaTitle": "Marque AFC",
+  "description": "Le logo, les couleurs et le bouton de connexion AFC, pour les partenaires qui intègrent Se connecter avec AFC.",
+  "heading": "Marque AFC",
+  "intro": "Tout ce qu'il faut pour afficher AFC correctement sur votre site. Si vous ajoutez un bouton Se connecter avec AFC, la section du bouton ci-dessous est celle à copier.",
+  "apiNote": "Tout ceci est aussi disponible en JSON, pour l'intégrer à une étape de build plutôt que de le copier à la main.",
+  "mark": {
+    "heading": "Le logo",
+    "body": "Un seul logo, cinq tailles. Prenez la taille la plus proche de l'espace où vous l'affichez, puis laissez-le se réduire plutôt que s'agrandir.",
+    "sizesHeading": "Tailles",
+    "download": "Télécharger",
+    "resolutionHeading": "Il n'existe pas de version vectorielle",
+    "resolutionBody": "Le logo AFC existe en PNG de 500 pixels et rien de plus grand. Au-delà, il devient flou : 500 est donc la plus grande taille publiée. S'il vous le faut plus grand, demandez-nous plutôt que de l'agrandir.",
+    "previewAlt": "Le logo AFC"
+  },
+  "button": {
+    "heading": "Le bouton de connexion",
+    "body": "Utilisez le nom court. « African Free Fire Community » comme libellé de bouton rend celui-ci environ deux fois plus large que ceux des autres fournisseurs de la ligne, ce qui était le cas avant l'existence de cette page.",
+    "exampleHeading": "À quoi il doit ressembler",
+    "label": "Continuer avec AFC",
+    "codeHeading": "À copier",
+    "codeNote": "HTML et CSS simples, sans dépendance. Le logo est servi par AFC, il se met donc à jour si nous le changeons un jour.",
+    "copy": "Copier",
+    "copied": "Copié"
+  },
+  "colors": {
+    "heading": "Couleurs",
+    "body": "Un seul vert fait le travail. Le doré sert aux prix, aux paliers et aux vainqueurs, jamais comme seconde couleur de marque.",
+    "copyHint": "Cliquez sur une valeur pour la copier",
+    "primary": "Vert AFC",
+    "gold": "Doré",
+    "surfaceDark": "Fond sombre"
+  },
+  "rules": {
+    "heading": "Utiliser le logo",
+    "doHeading": "À faire",
+    "dontHeading": "À ne pas faire",
+    "do": [
+      "Affichez le logo à côté du texte, avec le même poids visuel que les autres boutons de connexion de la ligne.",
+      "Intitulez le bouton « Continuer avec AFC ».",
+      "Gardez autour du logo un espace libre d'au moins un quart de sa largeur.",
+      "Placez-le sur un fond suffisamment contrasté, clair ou sombre."
+    ],
+    "dont": [
+      "N'étirez pas, ne faites pas pivoter, ne recolorez pas et n'ajoutez pas d'effets au logo.",
+      "Ne l'affichez pas au-delà de 500 pixels. Il n'existe pas de version vectorielle, il deviendrait flou.",
+      "N'utilisez pas le nom complet comme libellé de bouton.",
+      "Ne laissez pas entendre qu'AFC cautionne votre produit. Le bouton signifie qu'un joueur peut se connecter, rien de plus."
+    ]
+  },
+  "api": {
+    "heading": "Le lire en JSON",
+    "body": "Les mêmes noms, couleurs, URL de logo et règles, en une seule requête sans authentification. Aucune clé n'est nécessaire, puisque ce bouton s'affiche avant que quiconque se soit connecté.",
+    "responseHeading": "Ce que vous recevez"
+  },
+  "questions": {
+    "heading": "Il manque quelque chose",
+    "body": "S'il vous faut le logo dans un format absent d'ici, ou si vous n'êtes pas sûr qu'un usage soit autorisé, demandez avant de le publier.",
+    "cta": "Contacter AFC"
+  }
+}

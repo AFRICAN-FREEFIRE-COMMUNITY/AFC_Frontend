@@ -1,0 +1,61 @@
+{
+  "metaTitle": "Marca AFC",
+  "description": "O logótipo, as cores e o botão de início de sessão da AFC, para parceiros que integram Iniciar sessão com a AFC.",
+  "heading": "Marca AFC",
+  "intro": "Tudo o que precisa para mostrar a AFC corretamente no seu site. Se está a acrescentar um botão Iniciar sessão com a AFC, a secção do botão abaixo é a que deve copiar.",
+  "apiNote": "Tudo isto também está disponível em JSON, para usar num passo de build em vez de copiar à mão.",
+  "mark": {
+    "heading": "O logótipo",
+    "body": "Um logótipo, cinco tamanhos. Escolha o tamanho mais próximo do espaço onde o vai mostrar e deixe-o reduzir, nunca aumentar.",
+    "sizesHeading": "Tamanhos",
+    "download": "Transferir",
+    "resolutionHeading": "Não existe versão vetorial",
+    "resolutionBody": "O logótipo da AFC existe como PNG de 500 pixéis e nada maior. Acima disso fica desfocado, por isso 500 é o maior tamanho publicado. Se precisar dele maior, fale connosco em vez de o ampliar.",
+    "previewAlt": "O logótipo da AFC"
+  },
+  "button": {
+    "heading": "O botão de início de sessão",
+    "body": "Use o nome curto. \"African Free Fire Community\" como texto do botão torna-o cerca de duas vezes mais largo do que o de qualquer outro fornecedor na mesma linha, que era exatamente o aspeto que tinha antes desta página existir.",
+    "exampleHeading": "Como deve ficar",
+    "label": "Continuar com a AFC",
+    "codeHeading": "Copie isto",
+    "codeNote": "HTML e CSS simples, sem dependências. O logótipo é servido pela AFC, por isso atualiza-se se algum dia o mudarmos.",
+    "copy": "Copiar",
+    "copied": "Copiado"
+  },
+  "colors": {
+    "heading": "Cores",
+    "body": "Um verde faz o trabalho todo. O dourado é para prémios, escalões e vencedores, nunca como segunda cor da marca.",
+    "copyHint": "Clique num valor para o copiar",
+    "primary": "Verde AFC",
+    "gold": "Dourado",
+    "surfaceDark": "Fundo escuro"
+  },
+  "rules": {
+    "heading": "Utilizar o logótipo",
+    "doHeading": "Faça",
+    "dontHeading": "Não faça",
+    "do": [
+      "Mostre o logótipo ao lado do texto, com o mesmo peso visual dos outros botões de início de sessão da linha.",
+      "Dê ao botão o texto \"Continuar com a AFC\".",
+      "Mantenha à volta do logótipo um espaço livre de pelo menos um quarto da sua largura.",
+      "Coloque-o sobre um fundo com contraste real, claro ou escuro."
+    ],
+    "dont": [
+      "Não estique, rode, mude a cor nem acrescente efeitos ao logótipo.",
+      "Não o mostre acima de 500 pixéis. Não existe versão vetorial, por isso ficará desfocado.",
+      "Não use o nome completo como texto do botão.",
+      "Não dê a entender que a AFC aprova o seu produto. O botão significa que um jogador pode iniciar sessão, nada mais."
+    ]
+  },
+  "api": {
+    "heading": "Ler em JSON",
+    "body": "Os mesmos nomes, cores, URL do logótipo e regras, num único pedido sem autenticação. Não precisa de chave, porque este botão aparece antes de alguém ter iniciado sessão.",
+    "responseHeading": "O que recebe"
+  },
+  "questions": {
+    "heading": "Falta alguma coisa",
+    "body": "Se precisar do logótipo num formato que não esteja aqui, ou não tiver a certeza de que uma utilização é permitida, pergunte antes de publicar.",
+    "cta": "Contactar a AFC"
+  }
+}
