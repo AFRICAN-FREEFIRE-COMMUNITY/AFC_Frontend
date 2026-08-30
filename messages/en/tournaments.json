@@ -43,7 +43,8 @@
       "all": "All",
       "upcoming": "Upcoming",
       "ongoing": "Ongoing",
-      "completed": "Completed"
+      "completed": "Completed",
+      "cancelled": "Cancelled"
     },
     "tabs": {
       "tournaments": "Tournaments ({count})",
