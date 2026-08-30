@@ -15,7 +15,15 @@
     "teams": "Teams",
     "structure": "Structure",
     "prizes": "Prizes",
-    "comms": "Comms"
+    "comms": "Comms",
+    "basicInfo": "Basic Info",
+    "registeredTeams": "Registered Teams",
+    "stagesGroups": "Stages & Groups",
+    "prizeRules": "Prize & Rules",
+    "linkedEvents": "Linked Events",
+    "actions": "Event Actions",
+    "sponsor": "Sponsor",
+    "waitlist": "Waitlist"
   },
   "participant": {
     "teams": "teams",

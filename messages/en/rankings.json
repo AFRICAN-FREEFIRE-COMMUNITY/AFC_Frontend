@@ -1104,7 +1104,8 @@
         "eventPlaceholder": "Search events",
         "noMatches": "Nothing matches that search.",
         "reasonPlaceholder": "Why are you adding this? Saved to the admin log.",
-        "adding": "Adding"
+        "adding": "Adding",
+        "recording": "Recording <b>{amount}</b>, shown in your display currency. The value stored is the Naira amount you typed."
       },
       "editDialog": {
         "title": "Edit payout",
@@ -1208,7 +1209,8 @@
         "updateFailed": "Could not save that change.",
         "loadFailed": "Could not load social following.",
         "loadSeasonFailed": "Could not load the season."
-      }
+      },
+      "note": "<b>Teams connect their own accounts.</b> Instagram and TikTok handles are added from a team's own dashboard, so there is nothing to connect here. This page verifies a connected team, corrects its follower counts, or pulls its points until it is checked again."
     }
   }
 }
