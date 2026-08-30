@@ -8,6 +8,7 @@ import React from "react";
 // renders it). Strings live in messages/en/common.json under the "common" namespace.
 import { useTranslations } from "next-intl";
 import { FeedbackLauncher } from "@/components/feedback/FeedbackLauncher";
+import { NewBadge } from "@/components/NewBadge";
 
 export const Footer = () => {
   const t = useTranslations("common");
@@ -176,6 +177,20 @@ export const Footer = () => {
                   className="hover:text-primary transition-colors"
                 >
                   {t("footer.becomeAPartner")}
+                </Link>
+              </li>
+              {/* Brand kit (owner 2026-08-30). Added because a partner shipped a "Sign in
+                  with AFC" button with no mark on it and the full legal name as its label,
+                  for the simple reason that AFC published neither. Same audience and same
+                  reasoning as the two links above: an engineer who needs our artwork and
+                  has no AFC account. */}
+              <li>
+                <Link
+                  href="/brand"
+                  className="hover:text-primary transition-colors inline-flex items-center gap-1.5"
+                >
+                  {t("footer.brand")}
+                  <NewBadge since="2026-08-30" />
                 </Link>
               </li>
               {/* Always-on site feedback (owner backlog item 29). Lives here rather than in a
