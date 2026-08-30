@@ -1104,7 +1104,8 @@
         "eventPlaceholder": "Rechercher un evenement",
         "noMatches": "Aucun resultat pour cette recherche.",
         "reasonPlaceholder": "Pourquoi ajoutez-vous ceci ? Enregistre dans le journal admin.",
-        "adding": "Ajout en cours"
+        "adding": "Ajout en cours",
+        "recording": "Enregistrement de <b>{amount}</b>, affiche dans votre devise d''affichage. La valeur enregistree est le montant en nairas que vous avez saisi."
       },
       "editDialog": {
         "title": "Modifier le versement",
@@ -1208,7 +1209,8 @@
         "updateFailed": "Echec de l'enregistrement de cette modification.",
         "loadFailed": "Echec du chargement de l'audience sociale.",
         "loadSeasonFailed": "Echec du chargement de la saison."
-      }
+      },
+      "note": "<b>Les equipes connectent leurs propres comptes.</b> Les identifiants Instagram et TikTok sont ajoutes depuis le tableau de bord de l''equipe, il n''y a donc rien a connecter ici. Cette page sert a verifier une equipe connectee, corriger ses nombres d''abonnes, ou retirer ses points jusqu''au prochain controle."
     }
   }
 }

@@ -1104,7 +1104,8 @@
         "eventPlaceholder": "Procurar eventos",
         "noMatches": "Nada corresponde a essa procura.",
         "reasonPlaceholder": "Porque esta a adicionar isto? Guardado no registo de administracao.",
-        "adding": "A adicionar"
+        "adding": "A adicionar",
+        "recording": "A registar <b>{amount}</b>, apresentado na sua moeda de visualizacao. O valor guardado e o montante em nairas que introduziu."
       },
       "editDialog": {
         "title": "Editar pagamento",
@@ -1208,7 +1209,8 @@
         "updateFailed": "Nao foi possivel guardar essa alteracao.",
         "loadFailed": "Nao foi possivel carregar a audiencia.",
         "loadSeasonFailed": "Nao foi possivel carregar a epoca."
-      }
+      },
+      "note": "<b>As equipas ligam as suas proprias contas.</b> Os identificadores de Instagram e TikTok sao adicionados a partir do painel da propria equipa, por isso nao ha nada para ligar aqui. Esta pagina serve para verificar uma equipa ligada, corrigir os seus numeros de seguidores, ou retirar os seus pontos ate novo controlo."
     }
   }
 }

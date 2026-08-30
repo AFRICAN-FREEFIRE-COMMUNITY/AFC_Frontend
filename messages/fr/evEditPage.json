@@ -15,7 +15,15 @@
     "teams": "Equipes",
     "structure": "Structure",
     "prizes": "Recompenses",
-    "comms": "Communication"
+    "comms": "Communication",
+    "basicInfo": "Informations générales",
+    "registeredTeams": "Équipes inscrites",
+    "stagesGroups": "Phases et groupes",
+    "prizeRules": "Prix et règlement",
+    "linkedEvents": "Événements associés",
+    "actions": "Actions sur l'événement",
+    "sponsor": "Sponsor",
+    "waitlist": "Liste d'attente"
   },
   "participant": {
     "teams": "équipes",
