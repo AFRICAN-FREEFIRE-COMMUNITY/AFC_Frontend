@@ -88,6 +88,17 @@ const KINDS: InviteKind[] = ["per_team", "fcfs", "bulk"];
 const SOLO_KINDS: InviteKind[] = ["per_player", "fcfs", "bulk"];
 const CHANNELS: Channel[] = ["push", "email", "whatsapp"];
 
+// ── how long the inviter's note may be ─────────────────────────────────────────────────
+// MIRRORS the backend, which owns this number: afc_tournament_and_scrims.models
+// .INVITE_MESSAGE_MAX_LENGTH, read by both message columns (EventTeamInvitation and
+// EventInvitationCampaign) and by create_team_invitations, which trims the incoming string to it.
+// Raised 280 -> 2000 on 2026-09-01 at the owner's ask. Changing it here alone does nothing useful:
+// the server trims regardless, so a higher number here would just lose the tail silently.
+const MESSAGE_MAX_LENGTH = 2000;
+// Only count down over the last tenth. A counter running from the first keystroke reads as a quota
+// on a field whose whole point is that the organizer writes what they need to.
+const MESSAGE_COUNTER_FROM = MESSAGE_MAX_LENGTH - 200;
+
 // One row of /events/team-invitations/ (event_invites._serialize).
 interface Invitation {
   id: number;
@@ -896,16 +907,43 @@ export function EventTeamInvitesCard({
               )}
             </div>
 
+            {/* ── The organizer's note (owner 2026-09-01: 280 → 2000 characters) ─────────────
+                280 was a tweet, and what actually gets written here is a slot offer with a date,
+                a schedule and a reason. MESSAGE_MAX_LENGTH mirrors the backend's
+                models.INVITE_MESSAGE_MAX_LENGTH, which both columns and the create endpoint's own
+                trim read; the server still trims, so this cap is a courtesy that stops a typist
+                before anything is silently cut.
+                The counter appears only in the last stretch: showing "0 / 2000" from the first
+                keystroke turns a free-text note into a form field with a quota. */}
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="event-invite-message">{t("organizer.messageLabel")}</Label>
               <Textarea
                 id="event-invite-message"
                 value={message}
-                maxLength={280}
+                maxLength={MESSAGE_MAX_LENGTH}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder={t("organizer.messagePlaceholder")}
-                className="min-h-20"
+                // max-h is not decoration. The shared Textarea carries field-sizing-content, so it
+                // grows with what is typed: at the old 280 characters that was invisible, at 2000 it
+                // measured 818px, taller than a laptop viewport, and it pushed Send off the bottom
+                // of the dialog. Capped, the field scrolls inside itself and the buttons stay put.
+                className="min-h-32 max-h-64"
               />
+              {message.length >= MESSAGE_COUNTER_FROM && (
+                <p
+                  className={
+                    message.length >= MESSAGE_MAX_LENGTH
+                      ? "text-xs text-yellow-400"
+                      : "text-xs text-muted-foreground"
+                  }
+                >
+                  {message.length >= MESSAGE_MAX_LENGTH
+                    ? t("organizer.messageAtLimit", { max: MESSAGE_MAX_LENGTH })
+                    : t("organizer.messageRemaining", {
+                        remaining: MESSAGE_MAX_LENGTH - message.length,
+                      })}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-between gap-2 flex-wrap pt-1">

@@ -353,11 +353,18 @@ export function EventInvitationsCard({
                 </Button>
               </div>
 
+              {/* The inviter's own words. Given its own filled surface (never a stroke, house
+                  rule) so a long note reads as THEIRS rather than as more of the card, and
+                  whitespace-pre-line so the line breaks they typed survive: since the note grew to
+                  2000 characters on 2026-09-01 it commonly carries a date on one line and a
+                  schedule under it, which a plain <p> would run into one paragraph. */}
               {invitation.message && (
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-medium">{t("team.noteLabel")}: </span>
-                  {invitation.message}
-                </p>
+                <div className="rounded-md bg-muted/40 px-3 py-2">
+                  <p className="text-xs text-muted-foreground whitespace-pre-line break-words">
+                    <span className="font-medium">{t("team.noteLabel")}: </span>
+                    {invitation.message}
+                  </p>
+                </div>
               )}
 
               {/* WHAT KIND of ask this is, said plainly, because it changes how fast the team

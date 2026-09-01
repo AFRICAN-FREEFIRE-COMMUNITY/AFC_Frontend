@@ -49,6 +49,8 @@
     "registeredBadge": "Registered",
     "messageLabel": "Message (optional)",
     "messagePlaceholder": "Add a note the team will see, for example why you want them in this event.",
+    "messageRemaining": "{remaining, plural, one {# character left} other {# characters left}}",
+    "messageAtLimit": "Maximum length reached ({max, number} characters).",
     "selectedCount": "{count} selected",
     "noneSelected": "None selected",
     "cancel": "Cancel",
