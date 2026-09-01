@@ -1,11 +1,10 @@
 {
-  "openTitle": "🟢 Transfer window is OPEN",
-  "closedTitle": "🔴 Transfer window is CLOSED",
+  "openTitle": "Transfer window is OPEN",
+  "closedTitle": "Transfer window is CLOSED",
   "openBody": "Roster moves are allowed.",
-  "openBodyWithDate": "Roster moves are allowed, the window closes {date}.",
   "closedBody": "Roster moves are locked, players cannot leave, be removed from, or disband teams until the window reopens.",
   "openBadge": "OPEN",
   "closedBadge": "CLOSED",
-  "closedBodyWithOpenDate": "Roster moves are locked, players cannot leave, be removed from, or disband teams. The window opens on {date}.",
-  "closedBodyAfterClose": "Roster moves are locked, players cannot leave, be removed from, or disband teams. The window closed on {date} and reopens next season."
+  "windowRange": "This season's window: {open} to {close}.",
+  "nextWindowOpens": "The next window opens {date}."
 }
