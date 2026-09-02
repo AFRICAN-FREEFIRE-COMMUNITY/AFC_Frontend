@@ -41,8 +41,20 @@
 //   - API: lib/broadcastAudience.ts -> /auth/admin/broadcast-audience/{options,preview,send}/
 //     (afc_auth/views_broadcast_audience.py).
 //   - Delivery goes through the same deliver_broadcast chokepoint as every other broadcast, so a
-//     send from here appears in the existing "Sent broadcasts" history right below this card
-//     (<BroadcastHistory scope="general" />) with no extra wiring.
+//     send from here appears in the audit log right below this card with no extra wiring.
+//
+// WHERE THIS LIVES (owner 2026-09-02: "this notification feature should be under broadcasts").
+// It was a tab on /a/settings, which is an odd home for the loudest WRITE in the dashboard:
+// Settings is roles, users and audit, while this sends a message to thousands of people. It now
+// sits on /a/broadcasts, directly above the log of every broadcast ever sent, so composing one
+// and reading back what was sent are the same screen. The Settings tab is GONE, not duplicated.
+//
+// WHO SEES IT, and why the page gate alone is not enough: /a/broadcasts admits head_admin,
+// event_admin, organizer_admin and metrics_admin, because they may READ the audit. The SEND
+// endpoint admits only the coarse role=="admin" or a granular head_admin / super_admin
+// (_is_broadcast_audience_admin, afc_auth/views_broadcast_audience.py). So the page renders this
+// card behind the SAME condition the server enforces. Rendering it to everyone the page admits
+// would hand an event_admin a compose form that 403s on Send.
 //   - Deep links reuse <NotificationTargetSelector/>, the same control the other admin composers
 //     use, so a "Take me there" button behaves identically wherever it was sent from.
 //   - Pickers are the shared <TeamSearchSelect/> and <UserSearchSelect/> typeaheads.

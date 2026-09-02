@@ -38,10 +38,8 @@ import {
   type EventOption,
 } from "@/app/(a)/a/_components/NotificationTargetSelector";
 // General broadcast history (scope general/direct) shown under the Notifications tab.
-import { BroadcastHistory } from "@/app/(a)/a/_components/BroadcastHistory";
 // Audience builder (owner backlog item 15): the recipient-selection surface that replaced the
 // old pick-them-one-by-one bulk composer. Owns its own count-before-send and email-volume rules.
-import { AudienceBuilder } from "./_components/AudienceBuilder";
 // Parses a stored user_agent into a readable device label for the Login History tab.
 import { parseUserAgent } from "@/lib/user-agent";
 // Shared search matcher: punctuation/space/accent-insensitive and folds stylized "fancy font" unicode,
@@ -678,12 +676,14 @@ const page = () => {
   // which shows ALL admin/staff actions with search + date + pagination. The old
   // get-admin-activities "latest 100" fetch + adminActivities state were removed as dead code.
 
-  // ── Bulk notifications ──────────────────────────────────────────────────
-  // The composer that used to live here (message + recipient state + handleSendBulkNotification
-  // posting to /auth/send-notification-to-multiple-users/) moved into <AudienceBuilder/>, which
-  // owns its own state. It was removed rather than left behind because its recipient picker could
-  // only offer users already loaded into `adminUsers` on this page, which is the limitation the
-  // audience builder exists to fix. See app/(a)/a/settings/_components/AudienceBuilder.tsx.
+  // ── Bulk notifications: GONE FROM THIS PAGE ENTIRELY ─────────────────────────────
+  // Two moves, and both are worth keeping, because the second undoes the first's home:
+  //   1. The old composer here (message + recipient state + handleSendBulkNotification, posting
+  //      to /auth/send-notification-to-multiple-users/) was replaced by <AudienceBuilder/>,
+  //      because its picker could only offer users already loaded into `adminUsers` on this page.
+  //   2. 2026-09-02: the owner moved the audience builder itself OUT of Settings and under
+  //      Broadcasts. It lives at app/(a)/a/broadcasts/_components/AudienceBuilder.tsx now and is
+  //      rendered by that page, above the audit log of every broadcast ever sent.
 
   const exportToExcel = () => {
     try {
@@ -762,7 +762,6 @@ const page = () => {
           <TabsTrigger value="admins">Admin Users</TabsTrigger>
           <TabsTrigger value="all-users">All Users</TabsTrigger>
           <TabsTrigger value="roles">Roles & Permissions</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="login-history">Login History</TabsTrigger>
           {/* Audit log = head-admin only. */}
           {canSeeAudit && <TabsTrigger value="activities">Admin Activities</TabsTrigger>}
@@ -1923,32 +1922,12 @@ const page = () => {
           )}
         </TabsContent>
 
-        {/* ── Notifications: audience builder + sent history ────────────── */}
-        {/* The old composer here could only reach users the admin picked one by one out of the
-            already-loaded admin list, push-only, with no idea how many people that was.
-            <AudienceBuilder/> replaces it (owner backlog item 15, 2026-08-03): pick teams,
-            players, or a category (tier / country / role / language), or the entire site; SEE THE
-            RECIPIENT COUNT before sending; and send in-app, by email, or both, with the email
-            volume limit surfaced plainly. It posts to /auth/admin/broadcast-audience/send/, which
-            routes through the same deliver_broadcast chokepoint as every other broadcast, so its
-            sends land in the same "Sent broadcasts" history rendered below. */}
-        <TabsContent value="notifications" className="space-y-4">
-          <AudienceBuilder />
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                Sent broadcasts
-                <InfoTip id="settings.notifications._section" className="ml-1.5" />
-              </CardTitle>
-              <CardDescription>
-                Every general and direct broadcast sent from this dashboard.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BroadcastHistory scope="general" />
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Notifications MOVED to /a/broadcasts on 2026-09-02 (owner: "this notification
+            feature should be under broadcasts"). The composer was <AudienceBuilder/> and the
+            card under it was <BroadcastHistory scope="general" />; both now live on that page,
+            above the full cross-scope audit log, which already showed these same general sends
+            alongside every other kind. Nothing here replaces it: Settings is roles, users and
+            audit, and a form that messages thousands of people did not belong among them. */}
 
         {/* ── Login History ──────────────────────────────────────────────── */}
         <TabsContent value="login-history" className="space-y-4">

@@ -692,14 +692,19 @@ export const HELP = {
     "Download every user (admins and players) with their email, status and roles as an Excel file.",
 
   // ── Settings tabs ───────────────────────────────────────────────────────────
+  // ── Broadcasts ──────────────────────────────────────────────────────
+  // Was "settings.notifications._section" until 2026-09-02, when the composer moved from a
+  // Settings tab to /a/broadcasts. The old text described the composer that was REPLACED back
+  // in August ("by listing their usernames"), so it was rewritten rather than carried over.
+  "broadcasts.sent._section":
+    "Every broadcast sent across the platform, by any admin or organizer: what was said, to which scope, how many people it reached, and when. Read-only.",
+
   "settings.admins._section":
     "Users who hold at least one admin role. Edit their roles, suspend or reactivate access, or remove them.",
   "settings.all_users._section":
     "Every account on the platform - admins and regular players. Promote a player by assigning roles, or manage their access here.",
   "settings.roles._section":
     "The catalogue of admin roles and the permissions each grants. Create new roles or delete ones no longer used.",
-  "settings.notifications._section":
-    "Send a one-off notification to several users at once by listing their usernames. Useful for admin-wide announcements.",
   "settings.login_history._section":
     "On-demand audit of every user sign-in (IP, location, time). Loaded only when you ask, since the records are large.",
   "settings.activities._section":

@@ -19,6 +19,13 @@
 //
 // Connections: lib/broadcasts.ts (broadcastsApi.all + AdminBroadcastRow), components/LocalTime (UTC →
 // viewer tz), components/PageHeader. No backend writes - this page only reads the audit log.
+//
+// SENDING lives here too, since 2026-09-02 (owner: "this notification feature should be under
+// broadcasts"). <AudienceBuilder/> was a tab on /a/settings; it now sits above this log, so the
+// compose surface and the record of what was sent are one screen. The header line above saying
+// "No backend writes" is therefore no longer true, and the card carries its own role gate:
+// this page admits four roles that may READ the audit, while the send endpoint admits only a
+// coarse admin or head_admin / super_admin. See canSendBroadcast below.
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -41,6 +48,9 @@ import {
 import { Users, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { broadcastsApi, type AdminBroadcastRow } from "@/lib/broadcasts";
+import { useAuth } from "@/contexts/AuthContext";
+import { InfoTip } from "@/components/ui/info-tip";
+import { AudienceBuilder } from "./_components/AudienceBuilder";
 
 // Page size - matches the endpoint's default limit (20). "Load more" appends the next page.
 const PAGE = 20;
@@ -133,6 +143,14 @@ export default function AdminBroadcastsPage() {
   // First load only - keep everything on-screen during filter/page refetches.
   if (loading && rows.length === 0) return <FullLoader />;
 
+  // MIRRORS the server gate on the send endpoint (_is_broadcast_audience_admin): the coarse
+  // role=="admin", or a granular head_admin / super_admin. Deliberately NARROWER than the four
+  // roles this page admits, because those extra roles may read the audit but may not send, and a
+  // compose form that 403s on the last click is worse than no compose form.
+  const { user, hasAnyRole } = useAuth();
+  const canSendBroadcast =
+    user?.role === "admin" || hasAnyRole(["head_admin", "super_admin"]);
+
   const hasFilters = !!debouncedSearch || scope !== "all" || !!sender;
 
   return (
@@ -141,6 +159,17 @@ export default function AdminBroadcastsPage() {
         title="Broadcasts"
         description="Every broadcast sent across the platform: announcements, stage/group messages, room details and direct messages, by any admin or organizer."
       />
+
+      {/* Compose, above the record of what has already gone out. Only for those the send
+          endpoint will actually accept: see canSendBroadcast. */}
+      {canSendBroadcast && <AudienceBuilder />}
+
+      {/* The audit log itself. Heading it explicitly matters now that a composer sits above it:
+          without one, the filter toolbar reads as part of the send form. */}
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-lg font-semibold">Sent broadcasts</h2>
+        <InfoTip id="broadcasts.sent._section" />
+      </div>
 
       {/* ── Filter toolbar: search + scope. (Sender is filtered by clicking a row's sender.) ── */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
