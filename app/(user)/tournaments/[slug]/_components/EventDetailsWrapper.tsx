@@ -113,6 +113,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EventReviewCard } from "./EventReviewCard";
 // ⓘ help tips for the non-obvious registration steps (copy in lib/help-content.ts).
 import { InfoTip } from "@/components/ui/info-tip";
+import { RosterRequirementsList } from "@/components/events/RosterRequirementsList";
+import { EventInvitationBanner } from "@/components/events/EventInvitationBanner";
 // Subtle clickable name -> public player/team profile (used in standings + lists).
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 // Country flag shown beside a team name (owner 2026-06-20). The registered-teams list below renders its
@@ -511,6 +513,32 @@ interface EventDetails {
    * requirement as "waived by AFC" instead of a red blocker the team cannot clear but which will
    * not actually stop them registering.
    */
+  /**
+   * The VIEWER's own PENDING invitation to this event, or null (backend _my_event_invitation,
+   * on the wire since 2026-08-26).
+   *
+   * NOTHING IN THE FRONTEND READ THIS UNTIL 2026-09-02, which is why an invited team opening the
+   * event page saw only "Private event, invite required" with a dead button, and why a SOLO
+   * invitee had nowhere at all to answer: a solo player has no team page, and the team page is
+   * where the only Accept control lived. The backend docstring named this component as its
+   * consumer the day it was written.
+   *
+   * Scoped to the viewer by the backend: a team invitation is resolved through the teams they
+   * belong to, a solo one by their own id. WHO may actually answer stays the accept endpoint's
+   * decision (owner, captain, vice-captain, manager, coach), so this showing does not widen it.
+   */
+  my_invitation?: {
+    id: number;
+    status: string;
+    message?: string | null;
+    team_id?: number | null;
+    team_name?: string | null;
+    user_id?: number | null;
+    is_solo?: boolean;
+    invited_by?: string | null;
+    kind?: string;
+    campaign_id?: number | null;
+  } | null;
   my_waiver?: {
     waived_codes: string[];
     reason: string;
@@ -2380,27 +2408,11 @@ const RegistrationModals: React.FC<ModalProps> = ({
       // "show me who is missing what" view the owner asked for, so the captain can chase the
       // right teammates instead of guessing. The backend re-validates on submit (the authority).
       case "ROSTER_REQUIREMENTS": {
-        const reqLabel = (f: string) =>
-          ({
-            uid: t("register.rosterRequirements.req.uid"),
-            discord: t("register.rosterRequirements.req.discord"),
-            esports_image: t("register.rosterRequirements.req.esportsImage"),
-            profile_image: t("register.rosterRequirements.req.profileImage"),
-            // whatsapp was missing here while its sibling map above had it, so a missing WhatsApp
-            // number rendered the RAW KEY in this panel. Added with the connection case below.
-            whatsapp: t("register.rosterRequirements.req.whatsapp"),
-          })[f] ??
-          (f.startsWith(CONNECTION_PREFIX)
-            ? t("register.rosterRequirements.req.connection", {
-                provider: connectionProviderLabel(f.slice(CONNECTION_PREFIX.length)),
-              })
-            : f);
         // Nothing left to show (everything was fixed, or a stale draft reopened this step): say so
         // plainly and offer the way forward instead of an empty box with a Close button - the exact
         // dead end the owner reported on 2026-08-02.
         const nothingPending =
           rosterReqIssues.length === 0 && !rosterReqTeamLogo;
-        const blockedSelf = rosterReqIssues.some((it) => it.isSelf);
         // SOLO copy (owner 2026-08-02): a solo registrant is the only person in this panel, so the
         // team wording ("Some roster members aren't ready" / "These players") reads wrong. Address
         // them directly instead. The rows, badges, Back and Re-check are identical either way; only
@@ -2424,82 +2436,17 @@ const RegistrationModals: React.FC<ModalProps> = ({
                     : t("register.rosterRequirements.description")}
               </DialogDescription>
             </DialogHeader>
+            {/* The rows and the note moved into components/events/RosterRequirementsList.tsx on
+                2026-09-02 so the invitation accept dialog can render the SAME panel instead of a
+                one-line toast. Only the body is shared; this step keeps its own header and its own
+                Back / Re-check footer, which the dialog does not have. */}
             {!nothingPending && (
-              <div className="space-y-2 text-sm max-h-72 overflow-y-auto">
-                {rosterReqIssues.map((it) => (
-                  <div
-                    key={it.username}
-                    className="flex flex-col gap-1 rounded-md border p-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3"
-                  >
-                    <span className="font-medium">
-                      {it.username}
-                      {/* "(you)" only earns its place when there are OTHER people in the list. */}
-                      {it.isSelf && !isSolo && (
-                        <span className="ml-1 text-muted-foreground">
-                          {t("register.rosterRequirements.youSuffix")}
-                        </span>
-                      )}
-                    </span>
-                    {/* Each unmet requirement as its own badge: on a phone a comma-joined string
-                        wrapped into an unreadable blob, and the owner asked for "exactly what is
-                        missing" per player. */}
-                    <span className="flex flex-wrap gap-1 sm:justify-end">
-                      {it.missing.map((k) => (
-                        <Badge
-                          key={k}
-                          variant="outline"
-                          className="border-destructive text-destructive"
-                        >
-                          {reqLabel(k)}
-                        </Badge>
-                      ))}
-                    </span>
-                  </div>
-                ))}
-                {/* Team logo is a TEAM asset, not a player one (backend team_logo_missing). */}
-                {rosterReqTeamLogo && (
-                  <div className="flex flex-col gap-1 rounded-md border p-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                    <span className="font-medium">
-                      {t("register.rosterRequirements.teamRow")}
-                    </span>
-                    <span className="flex flex-wrap gap-1 sm:justify-end">
-                      <Badge
-                        variant="outline"
-                        className="border-destructive text-destructive"
-                      >
-                        {t("register.rosterRequirements.req.teamLogo")}
-                      </Badge>
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-            {/* Where to go and fix it. The registrant can fix their OWN row right now, so link them
-                straight to /profile/edit; teammates have to be chased, so say that instead. A solo
-                registrant never has teammates in the list, so they get the shorter direct wording
-                without the "you are on this list" preamble. */}
-            {!nothingPending && (
-              <p className="text-xs text-muted-foreground">
-                {isSolo || blockedSelf ? (
-                  t.rich(
-                    isSolo
-                      ? "register.rosterRequirements.soloNote"
-                      : "register.rosterRequirements.selfNote",
-                    {
-                      editProfileLink: (chunks) => (
-                        <Link
-                          href="/profile/edit"
-                          className="text-primary underline underline-offset-2"
-                        >
-                          {chunks}
-                        </Link>
-                      ),
-                    },
-                  )
-                ) : (
-                  <>{t("register.rosterRequirements.othersNote")}</>
-                )}
-              </p>
+              <RosterRequirementsList
+                issues={rosterReqIssues}
+                teamLogoMissing={rosterReqTeamLogo}
+                isSolo={isSolo}
+                actionHint={t("register.rosterRequirements.actionRecheck")}
+              />
             )}
             {/* Footer (owner 2026-08-02): Back returns to the step they came from and Re-check
                 re-reads the roster/profile from the API and CONTINUES the registration when
@@ -5324,7 +5271,16 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   );
 
   // Determine if user can register
-  const canRegister = eventDetails.is_public || hasValidInvite;
+  // An ADDRESSED invitation opens a private event just as an invite LINK does. hasValidInvite
+  // is only ever true for a token in the URL, so before this a team that had been invited
+  // properly, through the invitations feature, was told "Private event, invite required" and
+  // given a dead button (owner 2026-09-02). The backend already mints a single-use token when
+  // such an invitation is created and the accept replays it, so the door was always open; the
+  // page simply refused to show it.
+  const myInvitation = eventDetails.my_invitation ?? null;
+  const hasPendingInvitation = !!myInvitation && myInvitation.status === "pending";
+  const canRegister =
+    eventDetails.is_public || hasValidInvite || hasPendingInvitation;
 
   // ── Event window as ABSOLUTE INSTANTS (owner 2026-08-03, backlog item 38) ────────────────────
   // A registration window is ONE instant in time: when it opens, it opens for everybody at once.
@@ -6228,13 +6184,29 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                       : t("detail.registerButton.registerExternal")}
             </Button>
           ) : (
+            <>
+            {/* An invitation addressed to this viewer, answerable HERE (owner 2026-09-02).
+                Accepting hands off to the ordinary registration flow rather than posting on
+                its own: accepting IS registering, and an invitation must not skip a gate. */}
+            {hasPendingInvitation && myInvitation && (
+              <div className="mb-3">
+                <EventInvitationBanner
+                  invitation={myInvitation}
+                  token={token}
+                  onAccept={() => requireAuth(handleRegisterClick)}
+                  onAnswered={() => fetchEventDetails(true)}
+                />
+              </div>
+            )}
             <Button
               onClick={() => requireAuth(handleRegisterClick)}
               disabled={
                 !!token &&
                 (!!registrationDisabledReason ||
                   isCheckingInvite ||
-                  (isInviteConsumed && !eventDetails.is_public))
+                  // A spent LINK is irrelevant to someone invited BY NAME: that is a different
+                  // door, and the accept path mints its own token.
+                  (isInviteConsumed && !eventDetails.is_public && !hasPendingInvitation))
               }
               className="w-full"
             >
@@ -6242,7 +6214,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 ? t("detail.registerButton.loginToRegister")
                 : isCheckingInvite
                   ? t("detail.registerButton.validatingInvite")
-                  : isInviteConsumed && !eventDetails.is_public
+                  : isInviteConsumed && !eventDetails.is_public && !hasPendingInvitation
                     ? t("detail.registerButton.inviteAlreadyUsed")
                     : registrationDisabledReason ||
                       (waitlistMode
@@ -6257,6 +6229,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                             })
                           : t("detail.registerButton.registerForTournament"))}
             </Button>
+            </>
           )}
         </div>
       )}

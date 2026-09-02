@@ -323,7 +323,7 @@
       "description": "Ces joueurs doivent remplir les conditions requises pour l'événement avant que vous puissiez vous inscrire. Pour chaque joueur, le système indique précisément ce qu'il lui reste à faire.",
       "soloTitle": "Vous n'êtes pas encore prêt",
       "soloDescription": "Vous devez remplir les conditions requises pour l'événement avant de pouvoir vous inscrire. Voici précisément ce qu'il vous reste à ajouter.",
-      "soloNote": "Ajoutez ce qui vous manque sur <editProfileLink>votre profil</editProfileLink>, puis appuyez sur Revérifier et continuer.",
+      "soloNote": "Ajoutez ce qui vous manque sur <editProfileLink>votre profil</editProfileLink>.",
       "clearTitle": "Tout est complet",
       "nothingPending": "Il ne manque plus rien. Appuyez sur Continuer pour poursuivre votre inscription.",
       "ready": "Prêt",
@@ -331,8 +331,8 @@
       "you": "Vous",
       "youSuffix": "(vous)",
       "teamRow": "Votre équipe",
-      "selfNote": "Vous figurez sur cette liste. Ajoutez ce qui vous manque sur <editProfileLink>votre profil</editProfileLink>, puis appuyez sur Revérifier et continuer.",
-      "othersNote": "Demandez à ces joueurs d'ajouter ce qui leur manque sur leur profil, puis appuyez sur Revérifier et continuer.",
+      "selfNote": "Vous figurez sur cette liste. Ajoutez ce qui vous manque sur <editProfileLink>votre profil</editProfileLink>.",
+      "othersNote": "Demandez a ces joueurs d'ajouter ce qui leur manque sur leur profil.",
       "back": "Retour",
       "recheck": "Revérifier et continuer",
       "rechecking": "Vérification...",
@@ -348,7 +348,8 @@
         "whatsapp": "Numéro WhatsApp",
         "teamLogo": "Logo de l'équipe",
         "connection": "Compte {provider} connecté"
-      }
+      },
+      "actionRecheck": "Appuyez ensuite sur Verifier a nouveau et continuer."
     },
     "selfEdit": {
       "trigger": "Modifier mes informations",

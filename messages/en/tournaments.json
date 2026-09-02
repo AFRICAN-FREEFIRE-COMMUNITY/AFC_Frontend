@@ -323,7 +323,7 @@
       "description": "These players must complete the event requirements before you can register. Each player is shown with exactly what they still need to add.",
       "soloTitle": "You aren't ready yet",
       "soloDescription": "You must complete the event requirements before you can register. Below is exactly what you still need to add.",
-      "soloNote": "Add what you are missing on <editProfileLink>your profile</editProfileLink>, then press Re-check and continue.",
+      "soloNote": "Add what you are missing on <editProfileLink>your profile</editProfileLink>.",
       "clearTitle": "Everything is complete",
       "nothingPending": "Nothing is missing anymore. Press Continue to carry on with your registration.",
       "ready": "Ready",
@@ -331,8 +331,8 @@
       "you": "You",
       "youSuffix": "(you)",
       "teamRow": "Your team",
-      "selfNote": "You are on this list. Add what you are missing on <editProfileLink>your profile</editProfileLink>, then press Re-check and continue.",
-      "othersNote": "Ask these players to add what they are missing on their profile, then press Re-check and continue.",
+      "selfNote": "You are on this list. Add what you are missing on <editProfileLink>your profile</editProfileLink>.",
+      "othersNote": "Ask these players to add what they are missing on their profile.",
       "back": "Back",
       "recheck": "Re-check and continue",
       "rechecking": "Checking...",
@@ -348,7 +348,8 @@
         "whatsapp": "WhatsApp number",
         "teamLogo": "Team logo",
         "connection": "{provider} account connected"
-      }
+      },
+      "actionRecheck": "Then press Re-check and continue."
     },
     "selfEdit": {
       "trigger": "Edit my details",

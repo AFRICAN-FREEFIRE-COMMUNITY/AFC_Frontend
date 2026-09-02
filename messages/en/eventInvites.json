@@ -138,9 +138,20 @@
     "toastDeclined": "Invitation declined.",
     "toastDeclineFailed": "Could not decline the invitation.",
     "cancelDialog": "Cancel",
+    "blockedBack": "Back to roster",
     "fcfsNotice": "First come, first served. More teams were asked than there are places, so the ones who accept first take them.",
     "bulkNotice": "An open invitation. Take a place while they last.",
     "placesLeft": "{count} left.",
-    "eventPlacesLeft": "{count} places left in this event."
+    "eventPlacesLeft": "{count} places left in this event.",
+    "blockedAction": "Then press Back to roster and try again."
+  },
+  "event": {
+    "bannerTitleTeam": "{team} has been invited to this event",
+    "bannerTitleSolo": "You have been invited to this event",
+    "bannerByline": "Invited by {inviter}.",
+    "bannerBylineUnknown": "Invited by the organizer.",
+    "bannerAccept": "Accept and register",
+    "bannerDecline": "Decline",
+    "bannerNote": "Accepting opens the normal registration flow, so every registration rule still applies."
   }
 }

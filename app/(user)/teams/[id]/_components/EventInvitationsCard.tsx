@@ -75,6 +75,11 @@ import {
 } from "@tabler/icons-react";
 // Dates render in the VIEWER's timezone + language, never a raw toLocale* call.
 import { LocalTime } from "@/components/LocalTime";
+import {
+  RosterRequirementsList,
+  parseRequirementIssues,
+  type RosterRequirementIssue,
+} from "@/components/events/RosterRequirementsList";
 
 // One row of /events/team-invitations/mine/. Two shapes arrive in this one list and they carry the
 // same keys on purpose (event_invites._serialize with for_team=True, and _serialize_campaign with
@@ -127,6 +132,17 @@ function errorMessage(err: unknown): string | undefined {
     : undefined;
 }
 
+/** The WHOLE refusal body, not just its first sentence.
+ *
+ *  register_for_event answers an unmet requirement with a structured 403 naming every player and
+ *  every missing field, and the accept endpoint hands that back untouched. This card read
+ *  `message` alone and threw the rest away, so a captain saw "Some players are missing required
+ *  profile info before this registration can proceed" and had no way to learn who, or what
+ *  (owner 2026-09-02). */
+function errorBody(err: unknown): unknown {
+  return axios.isAxiosError(err) ? err.response?.data : undefined;
+}
+
 const STATUS_CLASS: Record<TeamInvitation["status"], string> = {
   pending: "text-yellow-400 border-yellow-800",
   accepted: "text-green-400 border-green-800",
@@ -157,7 +173,7 @@ export function EventInvitationsCard({
   teamName = "",
 }: EventInvitationsCardProps) {
   const t = useTranslations("eventInvites");
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
   const [canRespond, setCanRespond] = useState(false);
@@ -169,6 +185,14 @@ export function EventInvitationsCard({
   const [roster, setRoster] = useState<number[]>([]);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  // The structured refusal, kept so the DIALOG can show who is missing what instead of a toast
+  // that vanishes. Null means "no refusal on screen"; a value flips the dialog into its blocked
+  // view, which is the flow the tournament page has had since 2026-08-02.
+  const [blocked, setBlocked] = useState<{
+    issues: RosterRequirementIssue[];
+    teamLogoMissing: boolean;
+    message: string;
+  } | null>(null);
 
   const fetchInvitations = useCallback(async () => {
     if (!token || !teamId) return;
@@ -232,10 +256,20 @@ export function EventInvitationsCard({
       setAcceptTarget(null);
       fetchInvitations();
     } catch (err) {
-      // The message comes from register-for-event itself ("Registration limit reached.",
-      // "Roster must contain 4 to 6 players.", the per-player requirements body, and so on). It is
-      // shown as-is because the invited team is judged by the same rules as everybody else, and
-      // the hint says plainly that nothing was accepted.
+      // A refusal that NAMES its cause is shown in the dialog, not in a toast. The per-player
+      // requirements body lists every player and every missing field; a toast can hold none of
+      // that, cannot be re-read, and on a phone is easy to miss entirely (owner 2026-09-02:
+      // "it should show the exact flow and issues as to why they cant register and what
+      // players and their issues"). The dialog STAYS OPEN so the roster picker is still there
+      // when they come back from fixing it.
+      const parsed = parseRequirementIssues(errorBody(err), user?.user_id);
+      if (parsed) {
+        setBlocked({ ...parsed, message: errorMessage(err) || t("team.toastAcceptFailed") });
+        return;
+      }
+      // Everything else keeps the toast: those refusals are ONE sentence that says the whole
+      // thing ("Registration limit reached.", "Roster must contain 4 to 6 players."), and a
+      // panel would add ceremony without adding information.
       toast.error(errorMessage(err) || t("team.toastAcceptFailed"), {
         description: t("team.acceptBlockedHint"),
         duration: 10000,
@@ -449,6 +483,19 @@ export function EventInvitationsCard({
             </DialogDescription>
           </DialogHeader>
 
+          {/* BLOCKED: the refusal named players and fields, so show them here rather than in a
+              toast. Same panel the tournament page renders, from one component. */}
+          {blocked ? (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm font-medium text-destructive">{blocked.message}</p>
+              <RosterRequirementsList
+                issues={blocked.issues}
+                teamLogoMissing={blocked.teamLogoMissing}
+                actionHint={t("team.blockedAction")}
+              />
+              <p className="text-xs text-muted-foreground">{t("team.acceptBlockedHint")}</p>
+            </div>
+          ) : (
           <div className="flex flex-col gap-2">
             <Label>{t("team.rosterLabel")}</Label>
             <p className="text-xs text-muted-foreground">
@@ -480,15 +527,24 @@ export function EventInvitationsCard({
               {t("team.rosterSelected", { count: roster.length })}
             </p>
           </div>
+          )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAcceptTarget(null)} disabled={busy}>
+            <Button variant="outline" onClick={() => { setAcceptTarget(null); setBlocked(null); }} disabled={busy}>
               {t("team.cancelDialog")}
             </Button>
-            <Button onClick={handleAccept} disabled={busy || !rosterValid}>
-              {busy && <IconLoader2 className="size-4 animate-spin mr-2" />}
-              {busy ? t("team.accepting") : t("team.confirmAccept")}
-            </Button>
+            {blocked ? (
+              // Back to the picker rather than straight into another attempt: nothing has been
+              // fixed yet, and re-firing the same request would fail identically.
+              <Button onClick={() => setBlocked(null)} disabled={busy}>
+                {t("team.blockedBack")}
+              </Button>
+            ) : (
+              <Button onClick={handleAccept} disabled={busy || !rosterValid}>
+                {busy && <IconLoader2 className="size-4 animate-spin mr-2" />}
+                {busy ? t("team.accepting") : t("team.confirmAccept")}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

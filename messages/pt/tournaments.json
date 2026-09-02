@@ -323,7 +323,7 @@
       "description": "Estes jogadores têm de cumprir os requisitos do evento antes de se poderem inscrever. Para cada jogador, é indicado exatamente o que ainda falta fazer.",
       "soloTitle": "Ainda não está pronto",
       "soloDescription": "Tem de cumprir os requisitos do evento antes de se poder inscrever. Em baixo está exatamente o que ainda falta adicionar.",
-      "soloNote": "Adicione o que lhe falta no <editProfileLink>seu perfil</editProfileLink> e depois prima Verificar novamente e continuar.",
+      "soloNote": "Adicione o que lhe falta no <editProfileLink>seu perfil</editProfileLink>.",
       "clearTitle": "Está tudo completo",
       "nothingPending": "Já não falta nada. Prima Continuar para prosseguir com a sua inscrição.",
       "ready": "Pronto",
@@ -331,8 +331,8 @@
       "you": "Você",
       "youSuffix": "(você)",
       "teamRow": "A sua equipa",
-      "selfNote": "Está nesta lista. Adicione o que lhe falta no <editProfileLink>seu perfil</editProfileLink> e depois prima Verificar novamente e continuar.",
-      "othersNote": "Peça a estes jogadores para adicionarem o que lhes falta no perfil deles e depois prima Verificar novamente e continuar.",
+      "selfNote": "Esta nesta lista. Adicione o que lhe falta no <editProfileLink>seu perfil</editProfileLink>.",
+      "othersNote": "Peca a estes jogadores para adicionarem o que lhes falta no perfil.",
       "back": "Voltar",
       "recheck": "Verificar novamente e continuar",
       "rechecking": "A verificar...",
@@ -348,7 +348,8 @@
         "whatsapp": "Número de WhatsApp",
         "teamLogo": "Logótipo da equipa",
         "connection": "Conta {provider} ligada"
-      }
+      },
+      "actionRecheck": "Depois carregue em Verificar novamente e continuar."
     },
     "selfEdit": {
       "trigger": "Editar os meus dados",

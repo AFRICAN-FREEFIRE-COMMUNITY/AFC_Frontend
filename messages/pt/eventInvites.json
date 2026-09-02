@@ -138,9 +138,20 @@
     "toastDeclined": "Convite recusado.",
     "toastDeclineFailed": "Não foi possível recusar o convite.",
     "cancelDialog": "Cancelar",
+    "blockedBack": "Voltar ao plantel",
     "fcfsNotice": "Por ordem de chegada. Foram convidadas mais equipas do que as vagas existentes, por isso as que aceitarem primeiro ficam com elas.",
     "bulkNotice": "Um convite aberto. Ocupe uma vaga enquanto houver.",
     "placesLeft": "{count} restantes.",
-    "eventPlacesLeft": "{count} vagas restantes neste evento."
+    "eventPlacesLeft": "{count} vagas restantes neste evento.",
+    "blockedAction": "Depois carregue em Voltar ao plantel e tente novamente."
+  },
+  "event": {
+    "bannerTitleTeam": "{team} foi convidada para este evento",
+    "bannerTitleSolo": "Foi convidado para este evento",
+    "bannerByline": "Convite enviado por {inviter}.",
+    "bannerBylineUnknown": "Convite enviado pelo organizador.",
+    "bannerAccept": "Aceitar e inscrever",
+    "bannerDecline": "Recusar",
+    "bannerNote": "Aceitar abre o processo de inscricao normal, por isso todas as regras continuam a aplicar-se."
   }
 }
