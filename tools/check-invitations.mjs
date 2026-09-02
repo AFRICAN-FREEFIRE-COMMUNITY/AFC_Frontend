@@ -56,13 +56,19 @@ const CHECKS = {
     return bad;
   },
 
-  // B2 - the dialog shows the panel rather than narrowing the body to one sentence.
-  "dialog-uses-panel": () => {
+  // SUPERSEDED 2026-09-02, and replaced rather than deleted. The old check demanded that the
+  // ACCEPT DIALOG render the per-player panel. The owner then removed that dialog entirely:
+  // "clicking on accept should take them to the events page". The underlying requirement is
+  // unchanged - a captain pressing Accept must reach somewhere that can explain and fix a
+  // refusal - so the check now guards the hand-off instead of the dialog.
+  "accept-goes-to-the-event": () => {
     const s = read(CARD);
     const bad = [];
-    if (!/RosterRequirementsList/.test(s)) bad.push("  the accept dialog does not render the panel");
-    if (!/parseRequirementIssues/.test(s)) bad.push("  the refusal body is never parsed");
-    if (!/errorBody/.test(s)) bad.push("  the card still reads only `message` from the refusal");
+    if (/openAccept|handleAccept/.test(s))
+      bad.push("  the roster-picker accept dialog is back; Accept should link to the event page");
+    // The Accept control must be a LINK into the event page, where the full wizard lives.
+    if (!/href=\{`\/tournaments\/\$\{invitation\.event_slug \|\| invitation\.event_id\}`\}/.test(s))
+      bad.push("  Accept does not link to the event page");
     return bad;
   },
 

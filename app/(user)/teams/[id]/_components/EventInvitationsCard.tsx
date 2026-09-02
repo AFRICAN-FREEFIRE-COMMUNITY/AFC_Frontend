@@ -55,9 +55,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // Shared, self-expiring NEW tag (owner rule: any new surface wears one for 5 days).
 import { NewBadge } from "@/components/NewBadge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -75,11 +73,6 @@ import {
 } from "@tabler/icons-react";
 // Dates render in the VIEWER's timezone + language, never a raw toLocale* call.
 import { LocalTime } from "@/components/LocalTime";
-import {
-  RosterRequirementsList,
-  parseRequirementIssues,
-  type RosterRequirementIssue,
-} from "@/components/events/RosterRequirementsList";
 
 // One row of /events/team-invitations/mine/. Two shapes arrive in this one list and they carry the
 // same keys on purpose (event_invites._serialize with for_team=True, and _serialize_campaign with
@@ -121,8 +114,6 @@ interface TeamMemberRow {
   management_role: string;
 }
 
-const STAFF_ROLES = ["coach", "manager", "analyst"];
-
 // The accept endpoint forwards register-for-event's refusal verbatim, and every refusal body on
 // both paths carries a human-readable `message`. Narrowing through axios's own type guard states
 // that shape once and checks it, instead of reaching through an `any` at each call site.
@@ -130,17 +121,6 @@ function errorMessage(err: unknown): string | undefined {
   return axios.isAxiosError<{ message?: string }>(err)
     ? err.response?.data?.message
     : undefined;
-}
-
-/** The WHOLE refusal body, not just its first sentence.
- *
- *  register_for_event answers an unmet requirement with a structured 403 naming every player and
- *  every missing field, and the accept endpoint hands that back untouched. This card read
- *  `message` alone and threw the rest away, so a captain saw "Some players are missing required
- *  profile info before this registration can proceed" and had no way to learn who, or what
- *  (owner 2026-09-02). */
-function errorBody(err: unknown): unknown {
-  return axios.isAxiosError(err) ? err.response?.data : undefined;
 }
 
 const STATUS_CLASS: Record<TeamInvitation["status"], string> = {
@@ -180,19 +160,9 @@ export function EventInvitationsCard({
   const [loaded, setLoaded] = useState(false);
 
   // Which invitation each dialog is about (null = closed).
-  const [acceptTarget, setAcceptTarget] = useState<TeamInvitation | null>(null);
   const [declineTarget, setDeclineTarget] = useState<TeamInvitation | null>(null);
-  const [roster, setRoster] = useState<number[]>([]);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
-  // The structured refusal, kept so the DIALOG can show who is missing what instead of a toast
-  // that vanishes. Null means "no refusal on screen"; a value flips the dialog into its blocked
-  // view, which is the flow the tournament page has had since 2026-08-02.
-  const [blocked, setBlocked] = useState<{
-    issues: RosterRequirementIssue[];
-    teamLogoMissing: boolean;
-    message: string;
-  } | null>(null);
 
   const fetchInvitations = useCallback(async () => {
     if (!token || !teamId) return;
@@ -215,68 +185,12 @@ export function EventInvitationsCard({
     fetchInvitations();
   }, [fetchInvitations]);
 
-  // Only PLAYING members can be rostered. Filtering here (rather than letting the backend refuse)
-  // means a captain never picks a coach and then reads an error explaining they cannot.
-  const playingMembers = useMemo(
-    () => members.filter((m) => !STAFF_ROLES.includes(m.management_role)),
-    [members],
-  );
-
-  const openAccept = (invitation: TeamInvitation) => {
-    // Pre-select the whole playing side up to the squad maximum: for the common four-player team
-    // this means the captain confirms rather than re-picks what they already know.
-    const max = invitation.participant_type === "duo" ? 2 : 6;
-    setRoster(playingMembers.slice(0, max).map((m) => m.id));
-    setAcceptTarget(invitation);
-  };
-
-  const toggleRoster = (id: number) =>
-    setRoster((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-
   // An OFFER has no per-team row yet, so it is answered on the campaign and has to name which team
   // is answering. An addressed invitation already knows its team, so it does not.
   const answerUrl = (invitation: TeamInvitation, action: "accept" | "decline") =>
     invitation.is_offer
       ? `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/invitation-campaigns/${invitation.campaign_id}/${action}/`
       : `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/team-invitations/${invitation.id}/${action}/`;
-
-  const handleAccept = async () => {
-    if (!acceptTarget) return;
-    setBusy(true);
-    try {
-      await axios.post(
-        answerUrl(acceptTarget, "accept"),
-        {
-          roster_member_ids: roster,
-          ...(acceptTarget.is_offer ? { team_id: teamId } : {}),
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      toast.success(t("team.toastAccepted", { event: acceptTarget.event_name }));
-      setAcceptTarget(null);
-      fetchInvitations();
-    } catch (err) {
-      // A refusal that NAMES its cause is shown in the dialog, not in a toast. The per-player
-      // requirements body lists every player and every missing field; a toast can hold none of
-      // that, cannot be re-read, and on a phone is easy to miss entirely (owner 2026-09-02:
-      // "it should show the exact flow and issues as to why they cant register and what
-      // players and their issues"). The dialog STAYS OPEN so the roster picker is still there
-      // when they come back from fixing it.
-      // EVERY refusal stays in the dialog now, not just the per-player one. The owner hit a
-      // SPONSOR requirement ("Your username on the grow app"), which this dialog cannot
-      // collect: the answer belongs to a step of the full registration wizard. That fell
-      // through to a toast which told them to "finish the entry on the event page" and gave
-      // them no way to get there. A dead end with directions is still a dead end.
-      const parsed = parseRequirementIssues(errorBody(err), user?.user_id);
-      setBlocked({
-        issues: parsed?.issues ?? [],
-        teamLogoMissing: parsed?.teamLogoMissing ?? false,
-        message: errorMessage(err) || t("team.toastAcceptFailed"),
-      });
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const handleDecline = async () => {
     if (!declineTarget) return;
@@ -305,9 +219,6 @@ export function EventInvitationsCard({
   if (!loaded || invitations.length === 0) return null;
 
   const pendingCount = invitations.filter(isAnswerable).length;
-  const rosterMin = acceptTarget?.participant_type === "duo" ? 2 : 4;
-  const rosterMax = acceptTarget?.participant_type === "duo" ? 2 : 6;
-  const rosterValid = roster.length >= rosterMin && roster.length <= rosterMax;
 
   return (
     <Card className="mb-6">
@@ -431,14 +342,31 @@ export function EventInvitationsCard({
                     // Buttons stay full-width on a phone and inline from sm up, so both tap
                     // targets are comfortable on mobile without a cramped two-up row.
                     <div className="flex flex-col sm:flex-row gap-2">
-                      <Button
-                        size="sm"
-                        className="w-full sm:w-auto"
-                        disabled={!!blockedReason}
-                        onClick={() => openAccept(invitation)}
-                      >
-                        {t("team.accept")}
-                      </Button>
+                      {/* ACCEPT GOES TO THE EVENT PAGE (owner 2026-09-02: "clicking on accept
+                          should take them to the events page").
+
+                          This used to open a roster picker here and post the acceptance. That
+                          dialog could only ever collect a roster, so any event asking for
+                          anything else - sponsor engagement answers, a waiver, payment - died
+                          in it with a refusal the dialog could not act on. The event page runs
+                          the WHOLE registration wizard and shows the same invitation with its
+                          own Accept, so sending them there is one hop instead of a dead end.
+
+                          blockedReason still disables it: an event that is closed or full is
+                          not worth the journey. */}
+                      {blockedReason ? (
+                        <Button size="sm" className="w-full sm:w-auto" disabled>
+                          {t("team.accept")}
+                        </Button>
+                      ) : (
+                        <Button asChild size="sm" className="w-full sm:w-auto">
+                          <Link
+                            href={`/tournaments/${invitation.event_slug || invitation.event_id}`}
+                          >
+                            {t("team.accept")}
+                          </Link>
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
@@ -466,105 +394,6 @@ export function EventInvitationsCard({
       </CardContent>
 
       {/* ── Accept: pick who plays, then register through the normal path ──────────────── */}
-      <Dialog open={!!acceptTarget} onOpenChange={(o) => !o && setAcceptTarget(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            {/* pr-6 keeps a long event name clear of the dialog's absolutely-positioned close X.
-                Found on the 390px pass: "Accept the invitation to Invite Demo Cup" ran under it. */}
-            <DialogTitle className="pr-6">
-              {t("team.acceptTitle", { event: acceptTarget?.event_name ?? "" })}
-            </DialogTitle>
-            <DialogDescription>
-              {t("team.acceptDescription", {
-                event: acceptTarget?.event_name ?? "",
-                team: teamName,
-              })}
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* BLOCKED: the refusal named players and fields, so show them here rather than in a
-              toast. Same panel the tournament page renders, from one component. */}
-          {blocked ? (
-            <div className="flex flex-col gap-3">
-              <p className="text-sm font-medium text-destructive">{blocked.message}</p>
-              {/* The per-player panel only when the refusal actually named players. A sponsor
-                  or Discord refusal names a cause instead, and an empty panel under it would
-                  be furniture. */}
-              {(blocked.issues.length > 0 || blocked.teamLogoMissing) && (
-                <RosterRequirementsList
-                  issues={blocked.issues}
-                  teamLogoMissing={blocked.teamLogoMissing}
-                  actionHint={t("team.blockedAction")}
-                />
-              )}
-              <p className="text-xs text-muted-foreground">{t("team.acceptBlockedHint")}</p>
-            </div>
-          ) : (
-          <div className="flex flex-col gap-2">
-            <Label>{t("team.rosterLabel")}</Label>
-            <p className="text-xs text-muted-foreground">
-              {acceptTarget?.participant_type === "duo"
-                ? t("team.rosterHintDuo")
-                : t("team.rosterHintSquad")}
-            </p>
-            {playingMembers.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-4">{t("team.noPlayers")}</p>
-            ) : (
-              <ScrollArea className="h-56 rounded-md border">
-                <div className="p-1">
-                  {playingMembers.map((member) => (
-                    <label
-                      key={member.id}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-md select-none hover:bg-muted cursor-pointer"
-                    >
-                      <Checkbox
-                        checked={roster.includes(member.id)}
-                        onCheckedChange={() => toggleRoster(member.id)}
-                      />
-                      <span className="text-sm truncate">{member.username}</span>
-                    </label>
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
-            <p className="text-xs text-muted-foreground">
-              {t("team.rosterSelected", { count: roster.length })}
-            </p>
-          </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setAcceptTarget(null); setBlocked(null); }} disabled={busy}>
-              {t("team.cancelDialog")}
-            </Button>
-            {blocked ? (
-              <>
-                {/* Back to the picker rather than straight into another attempt: nothing has
-                    been fixed yet, and re-firing would fail identically. */}
-                <Button variant="outline" onClick={() => setBlocked(null)} disabled={busy}>
-                  {t("team.blockedBack")}
-                </Button>
-                {/* THE WAY THROUGH, and the primary action (owner 2026-09-02: "better still
-                    let it take them to the tournament page so they follow the full flow").
-                    The event page runs the whole wizard - sponsor engagements, waivers,
-                    payment - so anything this dialog cannot collect gets collected there. */}
-                <Button asChild>
-                  <Link
-                    href={`/tournaments/${acceptTarget?.event_slug || acceptTarget?.event_id}`}
-                  >
-                    {t("team.blockedContinueOnEvent")}
-                  </Link>
-                </Button>
-              </>
-            ) : (
-              <Button onClick={handleAccept} disabled={busy || !rosterValid}>
-                {busy && <IconLoader2 className="size-4 animate-spin mr-2" />}
-                {busy ? t("team.accepting") : t("team.confirmAccept")}
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* ── Decline: optional reason, sent to the inviter ──────────────────────────────── */}
       <Dialog open={!!declineTarget} onOpenChange={(o) => !o && setDeclineTarget(null)}>
