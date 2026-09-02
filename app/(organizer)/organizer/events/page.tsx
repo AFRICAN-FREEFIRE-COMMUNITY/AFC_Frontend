@@ -268,7 +268,13 @@ export default function OrganizerEventsPage() {
     return {
       total: events.length,
       tournaments: events.filter((e) => typeOf(e) === "tournament").length,
-      scrims: events.filter((e) => typeOf(e) === "scrim").length,
+      // startsWith("scrim"), not === "scrim". The model stores "scrims" (plural), so the
+      // equality test matched NOTHING and every organizer running scrims was shown 0 of
+      // them (found 2026-09-02; 105 scrims live on production). startsWith rather than
+      // === "scrims" because older rows and some backend filters used the singular, and
+      // this card should count the event either way. Same approach as
+      // LeaderboardsAdminContent.tsx, which hit this first.
+      scrims: events.filter((e) => typeOf(e).startsWith("scrim")).length,
       upcoming: events.filter((e) => statusOf(e) === "upcoming").length,
       ongoing: events.filter((e) => statusOf(e) === "ongoing").length,
       completed: events.filter((e) => statusOf(e) === "completed").length,
@@ -360,7 +366,7 @@ export default function OrganizerEventsPage() {
               </div>
             </CardContent>
           </Card>
-          {/* Scrims (competition_type === "scrim"). */}
+          {/* Scrims (competition_type is "scrims"; matched with startsWith, see stats above). */}
           <Card className="hover:shadow-lg transition-shadow gap-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
