@@ -4493,6 +4493,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     return () => clearInterval(id);
   }, [eventDetails?.roster_edit_until, eventDetails?.your_team_roster_edit_until]);
 
+  // Derived ABOVE handleRegisterClick because that callback reads hasPendingInvitation. They used
+  // to sit further down, which happened to work only because the closure runs after render.
+  const myInvitation = eventDetails?.my_invitation ?? null;
+  const hasPendingInvitation = !!myInvitation && myInvitation.status === "pending";
+
   const handleRegisterClick = useCallback(async () => {
     // Check ban status before anything else
     if (eventDetails?.participant_type === "squad" && userTeam?.is_banned) {
@@ -4525,8 +4530,22 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       }
     }
 
-    // Check if event is private and if user has a valid invite
-    if (eventDetails && !eventDetails.is_public && !hasValidInvite) {
+    // Private event: an invite LINK or an ADDRESSED INVITATION both open the door.
+    //
+    // hasPendingInvitation was missing here, and that is why v7.1.80 shipped half a fix: the
+    // CTA became enabled (canRegister counted the invitation) while THIS guard, which runs
+    // first and never reaches the API, still refused. An invited team pressed a live button
+    // and got "This is a private event. You need an invite link to register."
+    //
+    // The two conditions must stay in step: canRegister decides whether the button is
+    // OFFERED, this decides whether pressing it does anything, and a disagreement between
+    // them is invisible until somebody clicks.
+    if (
+      eventDetails &&
+      !eventDetails.is_public &&
+      !hasValidInvite &&
+      !hasPendingInvitation
+    ) {
       toast.error(t("register.toast.privateEvent"));
       return;
     }
@@ -5272,13 +5291,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   // Determine if user can register
   // An ADDRESSED invitation opens a private event just as an invite LINK does. hasValidInvite
-  // is only ever true for a token in the URL, so before this a team that had been invited
-  // properly, through the invitations feature, was told "Private event, invite required" and
-  // given a dead button (owner 2026-09-02). The backend already mints a single-use token when
-  // such an invitation is created and the accept replays it, so the door was always open; the
-  // page simply refused to show it.
-  const myInvitation = eventDetails.my_invitation ?? null;
-  const hasPendingInvitation = !!myInvitation && myInvitation.status === "pending";
+  // is only ever true for a token in the URL, so before v7.1.80 a team invited properly,
+  // through the invitations feature, was told "Private event, invite required".
+  //
+  // CORRECTED 2026-09-02: this comment used to claim the backend "already mints a token so
+  // the door was always open". That is true of the ACCEPT path, which replays the token, and
+  // FALSE of registering from this page. v7.1.80 therefore shipped half a fix - the button
+  // became enabled and the register endpoint still refused - and the owner hit it in a day.
+  // Invitation rows do not all carry a token either. The real fix is in the backend gate
+  // (views._has_pending_invitation), which now accepts the addressed invitation itself.
   const canRegister =
     eventDetails.is_public || hasValidInvite || hasPendingInvitation;
 

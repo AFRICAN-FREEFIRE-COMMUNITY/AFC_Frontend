@@ -143,7 +143,8 @@
     "bulkNotice": "An open invitation. Take a place while they last.",
     "placesLeft": "{count} left.",
     "eventPlacesLeft": "{count} places left in this event.",
-    "blockedAction": "Then press Back to roster and try again."
+    "blockedAction": "Then press Back to roster and try again.",
+    "blockedContinueOnEvent": "Continue on the event page"
   },
   "event": {
     "bannerTitleTeam": "{team} has been invited to this event",

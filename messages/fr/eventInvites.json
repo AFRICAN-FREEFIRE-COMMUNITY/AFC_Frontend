@@ -143,7 +143,8 @@
     "bulkNotice": "Une invitation ouverte. Prenez une place tant qu'il en reste.",
     "placesLeft": "{count} restantes.",
     "eventPlacesLeft": "{count} places restantes dans cet événement.",
-    "blockedAction": "Appuyez ensuite sur Retour a l'effectif, puis reessayez."
+    "blockedAction": "Appuyez ensuite sur Retour a l'effectif, puis reessayez.",
+    "blockedContinueOnEvent": "Continuer sur la page de l'evenement"
   },
   "event": {
     "bannerTitleTeam": "{team} a ete invitee a cet evenement",

@@ -262,17 +262,16 @@ export function EventInvitationsCard({
       // "it should show the exact flow and issues as to why they cant register and what
       // players and their issues"). The dialog STAYS OPEN so the roster picker is still there
       // when they come back from fixing it.
+      // EVERY refusal stays in the dialog now, not just the per-player one. The owner hit a
+      // SPONSOR requirement ("Your username on the grow app"), which this dialog cannot
+      // collect: the answer belongs to a step of the full registration wizard. That fell
+      // through to a toast which told them to "finish the entry on the event page" and gave
+      // them no way to get there. A dead end with directions is still a dead end.
       const parsed = parseRequirementIssues(errorBody(err), user?.user_id);
-      if (parsed) {
-        setBlocked({ ...parsed, message: errorMessage(err) || t("team.toastAcceptFailed") });
-        return;
-      }
-      // Everything else keeps the toast: those refusals are ONE sentence that says the whole
-      // thing ("Registration limit reached.", "Roster must contain 4 to 6 players."), and a
-      // panel would add ceremony without adding information.
-      toast.error(errorMessage(err) || t("team.toastAcceptFailed"), {
-        description: t("team.acceptBlockedHint"),
-        duration: 10000,
+      setBlocked({
+        issues: parsed?.issues ?? [],
+        teamLogoMissing: parsed?.teamLogoMissing ?? false,
+        message: errorMessage(err) || t("team.toastAcceptFailed"),
       });
     } finally {
       setBusy(false);
@@ -488,11 +487,16 @@ export function EventInvitationsCard({
           {blocked ? (
             <div className="flex flex-col gap-3">
               <p className="text-sm font-medium text-destructive">{blocked.message}</p>
-              <RosterRequirementsList
-                issues={blocked.issues}
-                teamLogoMissing={blocked.teamLogoMissing}
-                actionHint={t("team.blockedAction")}
-              />
+              {/* The per-player panel only when the refusal actually named players. A sponsor
+                  or Discord refusal names a cause instead, and an empty panel under it would
+                  be furniture. */}
+              {(blocked.issues.length > 0 || blocked.teamLogoMissing) && (
+                <RosterRequirementsList
+                  issues={blocked.issues}
+                  teamLogoMissing={blocked.teamLogoMissing}
+                  actionHint={t("team.blockedAction")}
+                />
+              )}
               <p className="text-xs text-muted-foreground">{t("team.acceptBlockedHint")}</p>
             </div>
           ) : (
@@ -534,11 +538,24 @@ export function EventInvitationsCard({
               {t("team.cancelDialog")}
             </Button>
             {blocked ? (
-              // Back to the picker rather than straight into another attempt: nothing has been
-              // fixed yet, and re-firing the same request would fail identically.
-              <Button onClick={() => setBlocked(null)} disabled={busy}>
-                {t("team.blockedBack")}
-              </Button>
+              <>
+                {/* Back to the picker rather than straight into another attempt: nothing has
+                    been fixed yet, and re-firing would fail identically. */}
+                <Button variant="outline" onClick={() => setBlocked(null)} disabled={busy}>
+                  {t("team.blockedBack")}
+                </Button>
+                {/* THE WAY THROUGH, and the primary action (owner 2026-09-02: "better still
+                    let it take them to the tournament page so they follow the full flow").
+                    The event page runs the whole wizard - sponsor engagements, waivers,
+                    payment - so anything this dialog cannot collect gets collected there. */}
+                <Button asChild>
+                  <Link
+                    href={`/tournaments/${acceptTarget?.event_slug || acceptTarget?.event_id}`}
+                  >
+                    {t("team.blockedContinueOnEvent")}
+                  </Link>
+                </Button>
+              </>
             ) : (
               <Button onClick={handleAccept} disabled={busy || !rosterValid}>
                 {busy && <IconLoader2 className="size-4 animate-spin mr-2" />}
