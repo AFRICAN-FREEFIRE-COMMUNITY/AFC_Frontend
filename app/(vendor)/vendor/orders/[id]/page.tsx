@@ -37,6 +37,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
+import { MessageBuyerCard } from "./_components/MessageBuyerCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -281,6 +282,35 @@ export default function VendorOrderDetailPage({
                 .join(", ")}
               {order.delivery.postcode ? ` ${order.delivery.postcode}` : ""}
             </p>
+            {/* CONTACT DETAILS (owner 2026-09-02). These were withheld by a deliberate PII
+                firewall until then; the reversal and what is STILL withheld are documented at
+                afc_shop/fulfilment.py:vendor_my_orders. Rendered as tel:/mailto: links so a
+                vendor on a phone can act on them with one tap rather than copying by hand. */}
+            {(order.buyer_email || order.buyer_phone) && (
+              <>
+                <Separator className="my-2" />
+                {order.buyer_email && (
+                  <p className="break-all">
+                    <a
+                      href={`mailto:${order.buyer_email}`}
+                      className="text-primary underline underline-offset-2"
+                    >
+                      {order.buyer_email}
+                    </a>
+                  </p>
+                )}
+                {order.buyer_phone && (
+                  <p>
+                    <a
+                      href={`tel:${order.buyer_phone}`}
+                      className="text-primary underline underline-offset-2"
+                    >
+                      {order.buyer_phone}
+                    </a>
+                  </p>
+                )}
+              </>
+            )}
             {order.ship_date && (
               <>
                 <Separator className="my-2" />
@@ -295,6 +325,10 @@ export default function VendorOrderDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Contact details sit in the card above; writing to them belongs next to reading who
+          they are, rather than somewhere else on the page. */}
+      <MessageBuyerCard orderId={order.order_id} buyerName={order.buyer_name} />
 
       {/* ── Lifecycle stepper ── (data-tour: Vendor Tour "move it through the steps" step.) */}
       <Card data-tour="vendor-order-fulfilment">

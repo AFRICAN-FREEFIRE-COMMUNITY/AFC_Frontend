@@ -69,6 +69,17 @@ export interface VendorOrder {
   fulfilment_state: FulfilmentState | null;
   ship_date: string | null; // "YYYY-MM-DD" once set, else null
   buyer_name: string;
+  /** The buyer's CONTACT DETAILS, added 2026-09-02 at the owner's instruction ("Vendor on the
+   *  website should be able to see the mail and number of who ordered from them").
+   *
+   *  These were withheld by design until then: afc_shop/fulfilment.py carried an explicit PII
+   *  firewall, and the marketplace spec asked for one "like the partner API". The reversal is
+   *  deliberate and documented at the endpoint. What is still withheld: the buyer's account
+   *  id, payment references, and every money internal.
+   *
+   *  Empty string, never undefined, when the platform holds nothing. */
+  buyer_email: string;
+  buyer_phone: string;
   delivery: {
     address: string;
     city: string;
@@ -95,6 +106,23 @@ export const vendorApi = {
   // the 403 propagate so it can branch on err.response.status.
   getMyOrders: async (): Promise<VendorOrdersResponse> =>
     (await axios.get(url("my-orders/"), { headers: authHeaders() })).data,
+
+  // ── MESSAGE THE BUYER (owner 2026-09-02) ──────────────────────────────────
+  // POST /shop/fulfilment/orders/<id>/message/ - the vendor writes to the buyer about
+  // ONE order. Delivered as a branded email in the buyer's own language plus an in-app
+  // notification, recorded on VendorOrderMessage, and CAPPED per order (429 names the
+  // cap when it is spent). Not a chat: there is no reply path, by design.
+  messageBuyer: async (orderId: number, message: string): Promise<{
+    message_id: number;
+    emailed: boolean;
+    notified: boolean;
+    remaining: number;
+  }> =>
+    (
+      await axios.post(`${BASE}/shop/fulfilment/orders/${orderId}/message/`, { message }, {
+        headers: authHeaders(),
+      })
+    ).data,
 
   // ── TRANSITIONS (each POSTs { order_id }; the backend gates to THIS order's
   //    vendor and enforces the legal state jump, returning 400 on an illegal one) ──
