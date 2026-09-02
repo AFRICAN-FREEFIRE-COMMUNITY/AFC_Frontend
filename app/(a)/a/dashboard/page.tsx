@@ -1,10 +1,60 @@
 "use client";
-import { ComingSoon } from "@/components/ComingSoon";
+
+// ── Admin · Dashboard ────────────────────────────────────────────────────────
+// The at-a-glance numbers, each one a door into its own breakdown.
+//
+// WHAT THIS PAGE USED TO DO, and why almost all of it was rewritten (owner audit 2026-09-02:
+// "everything actually works fine and as they should, check and ensure it is so"):
+//
+//   1. IT PRINTED NUMBERS NOBODY HAD CALCULATED. Diamond Bundles "0" and "Top: 0", Total Revenue
+//      the naira zero twice, and Scrims "0 active" were LITERALS in the JSX. A constant cannot go
+//      stale, cannot be wrong, and cannot be right; it is decoration dressed as a metric, and an
+//      admin reads a zero revenue line as a fact about the business. 18 paid orders existed.
+//   2. IT SHOWED A CONFIDENT ZERO FOR A FAILED REQUEST. "Player Match Stats Records" called an
+//      ADMIN endpoint with a bare axios and no Authorization header, got HTTP 400, and swallowed
+//      it in `.catch(() => null)`. 2,982 records existed. The "Top Player Match Stats" table was
+//      hidden by the same failure, since it was gated on that array being non-empty.
+//   3. IT COUNTED SCRIMS WRONG. The backend filtered competition_type="scrim" where the model
+//      stores "scrims", so 105 live scrims were reported as 0. Fixed in AFC-B c815fea3.
+//   4. IT CARRIED A MOCK. `fetchWebsiteMetrics` returned invented figures (15847 members, 2.45m
+//      revenue) and was never called; `metrics` / `setMetrics` were never read.
+//   5. THREE CONTROLS WERE `disabled` WITH THEIR LINKS COMMENTED OUT: Manage Members, Create
+//      Leaderboard, Manage Rankings. The page offered four quick actions and did two.
+//   6. IT MADE THIRTEEN REQUESTS to fill one screen, three of which downloaded a whole table to
+//      call `.length` on it (get-all-teams 362 KB, get-all-news 232 KB, get-admin-history 305 KB).
+//
+// NOW: one authed request to auth/admin/dashboard-stats/ (lib/dashboard.ts) for every figure and
+// the ten activity rows, and every card links to auth/admin/dashboard-stats/<metric>/ rendered by
+// ./[metric]/page.tsx. A failed load SAYS SO; it never renders a zero it does not have.
+//
+// CONNECTS TO
+//   lib/dashboard.ts  ->  afc_auth/views_dashboard.py (both endpoints, one registry of metrics)
+//   ./[metric]/page.tsx   the drill-down every card points at
+//   admin-tour-steps.ts   via the data-tour anchors below; renaming one breaks the tour
+// ─────────────────────────────────────────────────────────────────────────────
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  IconActivity,
+  IconAlertTriangle,
+  IconArticle,
+  IconCalendar,
+  IconDiamond,
+  IconRefresh,
+  IconShoppingCart,
+  IconStar,
+  IconSwords,
+  IconTrophy,
+  IconUserPlus,
+  IconUsers,
+} from "@tabler/icons-react";
+import { ArrowRight, Shield, TrendingUp } from "lucide-react";
+
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InfoTip } from "@/components/ui/info-tip";
 import {
   Table,
   TableBody,
@@ -13,520 +63,409 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { env } from "@/lib/env";
 import { formatDate, formatMoneyInput } from "@/lib/utils";
-import {
-  IconActivity,
-  IconArticle,
-  IconCalendar,
-  IconDiamond,
-  IconShoppingCart,
-  IconStar,
-  IconSwords,
-  IconTrophy,
-  IconUserPlus,
-  IconUsers,
-} from "@tabler/icons-react";
-import axios from "axios";
-import { ArrowRight, Shield, TrendingUp } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { Activity, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { dashboardApi, type DashboardSummary } from "@/lib/dashboard";
 
-// Mock function to fetch website metrics
-const fetchWebsiteMetrics = async () => {
-  // In a real app, this would be an API call
-  return {
-    totalMembers: 15847,
-    newMembersThisMonth: 1234,
-    totalTeams: 3421,
-    newTeamsThisMonth: 187,
-    totalTournaments: 156,
-    activeTournaments: 8,
-    totalScrims: 2847,
-    activeScrims: 23,
-    totalNews: 89,
-    publishedNews: 67,
-    diamondBundlesSold: 5632,
-    diamondBundlesRevenue: 847500,
-    topSellingBundle: "1000 Diamonds",
-    totalRevenue: 2450000,
-  };
-};
+/** Naira. The old markup hardcoded a zero here; this only ever prefixes a real API figure. */
+function money(value: string | undefined) {
+  if (value === undefined || value === null) return "-";
+  const n = Number(value);
+  return `₦${Number.isFinite(n) ? formatMoneyInput(n) : value}`;
+}
 
-const page = () => {
-  const router = useRouter();
-  const [metrics, setMetrics] = useState(null);
+/**
+ * One metric card. The heading and the value are a LINK into that metric's breakdown, and the
+ * "Manage" button is a SIBLING link, never nested inside it: an anchor inside an anchor (or inside
+ * a button, which is what "Create Event" used to be) is invalid markup and breaks keyboard use.
+ */
+function StatCard({
+  title,
+  helpId,
+  icon,
+  value,
+  sub,
+  metric,
+  action,
+}: {
+  title: string;
+  helpId: string;
+  icon: React.ReactNode;
+  value: React.ReactNode;
+  sub?: React.ReactNode;
+  metric: string;
+  action?: { href: string; label: string; icon: React.ReactNode };
+}) {
+  return (
+    <Card className="gap-1">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium flex items-center">
+          <Link href={`/a/dashboard/${metric}`} className="hover:text-primary">
+            {title}
+          </Link>
+          <InfoTip id={helpId} className="ml-1" />
+        </CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        {/* The number itself is the door into the detail, which is what the owner asked for:
+            "when you click on each text or mini tab it takes you that stats". */}
+        <Link href={`/a/dashboard/${metric}`} className="block group">
+          <div className="text-2xl font-bold group-hover:text-primary">{value}</div>
+          {sub ? <div className="mt-1 text-sm text-muted-foreground">{sub}</div> : null}
+          <div className="mt-2 flex items-center gap-1 text-xs text-primary">
+            View breakdown <ArrowRight className="size-3" />
+          </div>
+        </Link>
+        {action ? (
+          <Button asChild className="w-full mt-3" size="md">
+            <Link href={action.href}>
+              {action.icon}
+              {action.label}
+            </Link>
+          </Button>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function AdminDashboardPage() {
+  const [stats, setStats] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  // The page must be able to SAY it failed. The old one toasted, set two counters to 0, and
+  // rendered the rest of its fabricated numbers as though nothing had happened.
+  const [error, setError] = useState<string | null>(null);
 
-  const [totalUsers, setTotalUsers] = useState<number>(0);
-  const [totalTeams, setTotalTeams] = useState<number>(0);
-  const [totalNews, setTotalNews] = useState<number>(0);
-  const [totalTournaments, setTotalTournaments] = useState<number>(0);
-  const [totalScrims, setTotalScrims] = useState<number>(0);
-  const [membersThisMonth, setMembersThisMonth] = useState<number>(0);
-  const [teamsThisMonth, setTeamsThisMonth] = useState<number>(0);
-  const [activeTournaments, setActiveTournaments] = useState<number>(0);
-  const [publishedNews, setPublishedNews] = useState<number>(0);
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [popularFormat, setPopularFormat] = useState<string | null>(null);
-  const [killStats, setKillStats] = useState<{ total_solo_kills: number; total_team_kills: number; total_kills: number } | null>(null);
-  const [playerMatchStats, setPlayerMatchStats] = useState<any[]>([]);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const [
-          users,
-          teams,
-          news,
-          tournaments,
-          scrims,
-          activities,
-          membersMonth,
-          teamsMonth,
-          activeTournamentsRes,
-          pubNews,
-        ] = await Promise.all([
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`),
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`),
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`),
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-tournaments-count/`),
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-scrims-count/`),
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-admin-history/`),
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-members-this-month/`),
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-team-this-month/`),
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-active-tournaments/`),
-          axios(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/total-published-news/`),
-        ]);
-
-        // Fetch additional stats in parallel (non-blocking - failures don't crash the dashboard)
-        Promise.all([
-          axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-most-popular-event-format/`).catch(() => null),
-          axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-total-kills/`).catch(() => null),
-          axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-tournament-player-match-stats/`).catch(() => null),
-        ]).then(([fmt, kills, stats]) => {
-          if (fmt) setPopularFormat(fmt.data?.most_popular_format ?? null);
-          if (kills) setKillStats(kills.data ?? null);
-          if (stats) setPlayerMatchStats(Array.isArray(stats.data) ? stats.data : []);
-        });
-
-        setTotalUsers(users?.data?.total_users);
-        setTotalTeams(teams?.data?.teams.length);
-        setTotalNews(news.data.news?.length);
-        setTotalTournaments(tournaments?.data?.total_tournaments);
-        setTotalScrims(scrims?.data?.total_scrims);
-        setRecentActivities(activities?.data?.admin_history);
-        setMembersThisMonth(membersMonth?.data?.total_members_this_month ?? 0);
-        setTeamsThisMonth(teamsMonth?.data?.total_teams_this_month ?? 0);
-        setActiveTournaments(activeTournamentsRes?.data?.total_active_tournaments ?? 0);
-        setPublishedNews(pubNews?.data?.total_published_news ?? 0);
-      } catch (error) {
-        setTotalUsers(0);
-        setTotalTeams(0);
-        toast.error("Oops! An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setStats(await dashboardApi.summary());
+    } catch (err: any) {
+      setStats(null);
+      setError(
+        err?.response?.data?.message ||
+          "Could not load the dashboard figures. Nothing is being shown as zero on purpose.",
+      );
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) {
-    return <FullLoader />;
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (loading) return <FullLoader />;
+
+  if (error || !stats) {
+    return (
+      <div className="flex flex-col gap-4">
+        <PageHeader title="Admin dashboard" />
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
+            <IconAlertTriangle className="size-8 text-destructive" />
+            <p className="text-base font-semibold">The figures could not be loaded</p>
+            <p className="max-w-md text-sm text-muted-foreground">{error}</p>
+            <Button onClick={load} variant="outline">
+              <IconRefresh className="mr-2 size-4" />
+              Try again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
+
+  const { members, teams, events, news, combat, shop, activity } = stats;
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        {/* Title is a ReactNode so the page-level ⓘ can sit right after it. */}
         <PageHeader
           title={
-            // data-tour anchor: first dashboard tour step (the AdminTour guide,
-            // see app/(a)/a/_components/admin-tour-steps.ts → "dashboard").
             <span data-tour="dashboard-title" className="inline-flex flex-wrap items-center">
               Admin dashboard
               <InfoTip id="dashboard._page" className="ml-1.5" />
             </span>
           }
         />
-        {/* Main Metrics Grid (data-tour anchor: dashboard "live metrics" step). */}
+
+        {/* ── Headline metrics ─────────────────────────────────────────────── */}
         <div
           data-tour="dashboard-metrics"
           className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-2 mb-4"
         >
-          {/* Members Metrics */}
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                Total Members
-                <InfoTip id="dashboard.total_members" className="ml-1" />
-              </CardTitle>
-              <IconUsers className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatMoneyInput(totalUsers)}
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center gap-1 text-sm text-green-600">
-                  <TrendingUp className="h-3 w-3" />+{" "}
-                  {formatMoneyInput(membersThisMonth)} this month
-                </div>
-              </div>
-              <Button disabled className="w-full mt-3" size="md">
-                <IconUserPlus className="mr-2 h-4 w-4" />
-                Manage Members
-              </Button>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Total Members"
+            helpId="dashboard.total_members"
+            icon={<IconUsers className="h-4 w-4 text-blue-600" />}
+            metric="members"
+            value={formatMoneyInput(members.total)}
+            sub={
+              <span className="flex items-center gap-1 text-green-600">
+                <TrendingUp className="h-3 w-3" />+ {formatMoneyInput(members.this_month)} this month
+              </span>
+            }
+            action={{
+              // Was `disabled` with no destination at all. Members are managed on the Teams and
+              // Players page, whose `players` tab is addressable by query param.
+              href: "/a/teams?tab=players",
+              label: "Manage Members",
+              icon: <IconUserPlus className="mr-2 h-4 w-4" />,
+            }}
+          />
 
-          {/* Teams Metrics */}
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                Total Teams
-                <InfoTip id="dashboard.total_teams" className="ml-1" />
-              </CardTitle>
-              <Shield className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatMoneyInput(totalTeams)}
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center gap-1 text-sm text-green-600">
-                  <TrendingUp className="h-3 w-3" />+{" "}
-                  {formatMoneyInput(teamsThisMonth)} this month
-                </div>
-              </div>
-              <Button asChild className="w-full mt-3" size="md">
-                <Link href="/a/teams">
-                  <Shield className="mr-2 h-4 w-4" />
-                  Manage Teams
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Total Teams"
+            helpId="dashboard.total_teams"
+            icon={<Shield className="h-4 w-4 text-purple-600" />}
+            metric="teams"
+            value={formatMoneyInput(teams.total)}
+            sub={
+              <span className="flex items-center gap-1 text-green-600">
+                <TrendingUp className="h-3 w-3" />+ {formatMoneyInput(teams.this_month)} this month
+              </span>
+            }
+            action={{
+              href: "/a/teams",
+              label: "Manage Teams",
+              icon: <Shield className="mr-2 h-4 w-4" />,
+            }}
+          />
 
-          {/* Tournaments Metrics */}
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                Tournaments
-                <InfoTip id="dashboard.tournaments" className="ml-1" />
-              </CardTitle>
-              <IconTrophy className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatMoneyInput(totalTournaments)}
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center gap-1 text-sm text-blue-600">
-                  <IconCalendar className="h-3 w-3" />
-                  {activeTournaments} active
-                </div>
-              </div>
-              <Button asChild className="w-full mt-3" size="md">
-                <Link href="/a/events">
-                  <IconTrophy className="mr-2 h-4 w-4" />
-                  Manage Tournaments
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Tournaments"
+            helpId="dashboard.tournaments"
+            icon={<IconTrophy className="h-4 w-4 text-yellow-600" />}
+            metric="tournaments"
+            value={formatMoneyInput(events.tournaments)}
+            sub={
+              <span className="flex items-center gap-1 text-blue-600">
+                <IconCalendar className="h-3 w-3" />
+                {events.tournaments_active} running now
+              </span>
+            }
+            action={{
+              href: "/a/events",
+              label: "Manage Tournaments",
+              icon: <IconTrophy className="mr-2 h-4 w-4" />,
+            }}
+          />
 
-          {/* Scrims Metrics */}
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                Scrims
-                <InfoTip id="dashboard.scrims" className="ml-1" />
-              </CardTitle>
-              <IconSwords className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatMoneyInput(totalScrims)}
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center gap-1 text-sm text-orange-600">
-                  <IconActivity className="h-3 w-3" />0 active
-                </div>
-              </div>
-              <Button asChild className="w-full mt-3" size="md">
-                <Link href="/a/events">
-                  <IconSwords className="mr-2 h-4 w-4" />
-                  Manage Scrims
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Scrims"
+            helpId="dashboard.scrims"
+            icon={<IconSwords className="h-4 w-4 text-red-600" />}
+            metric="scrims"
+            // Both numbers are real now. This card read "0" and "0 active" for every scrim ever
+            // hosted: the count filtered the wrong enum value, and the "active" line was a literal
+            // with no endpoint behind it at all.
+            value={formatMoneyInput(events.scrims)}
+            sub={
+              <span className="flex items-center gap-1 text-orange-600">
+                <IconActivity className="h-3 w-3" />
+                {events.scrims_active} running now
+              </span>
+            }
+            action={{
+              href: "/a/events",
+              label: "Manage Scrims",
+              icon: <IconSwords className="mr-2 h-4 w-4" />,
+            }}
+          />
         </div>
 
-        {/* Secondary Metrics Grid */}
+        {/* ── Content and commerce ─────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 mb-4">
-          {/* News Metrics */}
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                News & Announcements
-                <InfoTip id="dashboard.news" className="ml-1" />
-              </CardTitle>
-              <IconArticle className="h-4 w-4 text-indigo-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalNews}</div>
-              <div className="text-sm text-muted-foreground mt-1">
-                {publishedNews} published
-              </div>
-              <Button asChild className="w-full mt-3" size="md">
-                <Link href="/a/news">
-                  <IconArticle className="mr-2 h-4 w-4" />
-                  Manage News
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="News & Announcements"
+            helpId="dashboard.news"
+            icon={<IconArticle className="h-4 w-4 text-indigo-600" />}
+            metric="news"
+            value={formatMoneyInput(news.total)}
+            // Published is a DIFFERENT number from the total now. The endpoint behind the old
+            // "published" line counted every row, drafts and scheduled posts included.
+            sub={`${formatMoneyInput(news.published)} published, ${formatMoneyInput(
+              news.total - news.published,
+            )} not yet`}
+            action={{
+              href: "/a/news",
+              label: "Manage News",
+              icon: <IconArticle className="mr-2 h-4 w-4" />,
+            }}
+          />
 
-          {/* Shop Metrics */}
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                Diamond Bundles
-                <InfoTip id="dashboard.diamond_bundles" className="ml-1" />
-              </CardTitle>
-              <IconDiamond className="h-4 w-4 text-cyan-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <div className="text-sm text-muted-foreground mt-1">Top: 0</div>
-              <Button asChild className="w-full mt-3" size="md">
-                <Link href="/a/shop">
-                  <IconShoppingCart className="mr-2 h-4 w-4" />
-                  Manage Shop
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Diamond Bundles"
+            helpId="dashboard.diamond_bundles"
+            icon={<IconDiamond className="h-4 w-4 text-cyan-600" />}
+            metric="shop"
+            value={formatMoneyInput(shop.diamond_bundles_sold)}
+            sub={shop.top_bundle ? `Top seller: ${shop.top_bundle}` : "No bundle sold yet"}
+            action={{
+              href: "/a/shop",
+              label: "Manage Shop",
+              icon: <IconShoppingCart className="mr-2 h-4 w-4" />,
+            }}
+          />
 
-          {/* Revenue Metrics */}
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                Total Revenue
-                <InfoTip id="dashboard.revenue" className="ml-1" />
-              </CardTitle>
-              <IconStar className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₦0</div>
-              <div className="text-sm text-muted-foreground mt-1">
-                ₦0 from diamonds
-              </div>
-              <Button asChild className="w-full mt-3" size="md">
-                <Link href="/a/shop/orders">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  View Orders
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Total Revenue"
+            helpId="dashboard.revenue"
+            icon={<IconStar className="h-4 w-4 text-green-600" />}
+            metric="revenue"
+            value={money(shop.revenue_paid)}
+            sub={`${money(shop.diamond_revenue)} from diamonds, across ${formatMoneyInput(
+              shop.orders_paid,
+            )} paid orders`}
+            action={{
+              href: "/a/shop/orders",
+              label: "View Orders",
+              icon: <TrendingUp className="mr-2 h-4 w-4" />,
+            }}
+          />
         </div>
 
-        {/* Kill Stats + Popular Format */}
+        {/* ── Competition ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-4">
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                Total Platform Kills
-                <InfoTip id="dashboard.platform_kills" className="ml-1" />
-              </CardTitle>
-              <IconSwords className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatMoneyInput(killStats?.total_kills ?? 0)}</div>
-              <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                <p>Solo: {formatMoneyInput(killStats?.total_solo_kills ?? 0)}</p>
-                <p>Team: {formatMoneyInput(killStats?.total_team_kills ?? 0)}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Total Platform Kills"
+            helpId="dashboard.platform_kills"
+            icon={<IconSwords className="h-4 w-4 text-red-500" />}
+            metric="kills"
+            value={formatMoneyInput(combat.total_kills)}
+            sub={`Solo ${formatMoneyInput(combat.solo_kills)}, team ${formatMoneyInput(
+              combat.team_kills,
+            )}`}
+          />
 
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                Most Popular Event Format
-                <InfoTip id="dashboard.popular_format" className="ml-1" />
-              </CardTitle>
-              <IconCalendar className="h-4 w-4 text-violet-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold capitalize">
-                {popularFormat ? popularFormat.replace(/_/g, " ") : "-"}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">Based on all events</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Most Popular Event Format"
+            helpId="dashboard.popular_format"
+            icon={<IconCalendar className="h-4 w-4 text-violet-500" />}
+            metric="formats"
+            value={
+              <span className="capitalize">
+                {events.popular_format ? events.popular_format.replace(/_/g, " ") : "-"}
+              </span>
+            }
+            sub="Based on all events"
+          />
 
-          <Card className="hover:shadow-lg transition-shadow gap-1">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
-                Player Match Stats Records
-                <InfoTip id="dashboard.match_stat_records" className="ml-1" />
-              </CardTitle>
-              <IconActivity className="h-4 w-4 text-emerald-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{formatMoneyInput(playerMatchStats.length)}</div>
-              <div className="text-xs text-muted-foreground mt-1">Individual match stat entries</div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Player Match Stats Records"
+            helpId="dashboard.match_stat_records"
+            icon={<IconActivity className="h-4 w-4 text-emerald-500" />}
+            metric="match-stats"
+            // Read 0 until the Authorization header was added. 2,982 rows existed the whole time.
+            value={formatMoneyInput(combat.player_match_records)}
+            sub={`${formatMoneyInput(combat.solo_match_records)} solo records as well`}
+          />
         </div>
 
-        {/* Top Player Match Stats */}
-        {playerMatchStats.length > 0 && (
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <IconSwords className="h-4 w-4" />
-                Top Player Match Stats (by Kills)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Player</TableHead>
-                    <TableHead>Kills</TableHead>
-                    <TableHead>Damage</TableHead>
-                    <TableHead>Assists</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[...playerMatchStats]
-                    .sort((a, b) => b.kills - a.kills)
-                    .slice(0, 10)
-                    .map((s, i) => (
-                      <TableRow key={i}>
-                        <TableCell className="font-medium">{s.player_username}</TableCell>
-                        <TableCell>{s.kills}</TableCell>
-                        <TableCell>{s.damage}</TableCell>
-                        <TableCell>{s.assists}</TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Quick Actions (data-tour anchor: dashboard "quick actions" step). */}
+        {/* ── Quick actions ────────────────────────────────────────────────── */}
         <div
           data-tour="dashboard-quick-actions"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4"
         >
-          <Button
-            disabled
-            className="h-auto p-4 flex flex-col items-center gap-2"
-          >
-            {/* <Link
-              href="/a/leaderboards/create"
-              className="flex flex-col items-center gap-2"
-            > */}
-            <IconTrophy className="h-6 w-6" />
-            <span>Create Leaderboard</span>
-            {/* </Link> */}
+          {/* All four are real links now. Three were `disabled` buttons with their <Link> sitting
+              commented out beside them, so the page offered four actions and performed two. */}
+          <Button asChild variant="outline" className="h-auto p-4 bg-transparent">
+            <Link href="/a/leaderboards/create" className="flex flex-col items-center gap-2">
+              <IconTrophy className="h-6 w-6" />
+              <span>Create Leaderboard</span>
+            </Link>
           </Button>
 
-          <Button
-            asChild
-            variant="outline"
-            className="h-auto p-4 bg-transparent"
-          >
-            <Link
-              href="/a/news/create"
-              className="flex flex-col items-center gap-2"
-            >
+          <Button asChild variant="outline" className="h-auto p-4 bg-transparent">
+            <Link href="/a/news/create" className="flex flex-col items-center gap-2">
               <IconArticle className="h-6 w-6" />
               <span>Create News</span>
             </Link>
           </Button>
 
-          <Button variant="outline" className="h-auto p-4 bg-transparent">
-            <Link
-              href="/a/events/create"
-              className="flex flex-col items-center gap-2"
-            >
+          {/* asChild, which this one was missing: without it the Button renders a <button> that
+              WRAPS an <a>, which is invalid markup and unusable from the keyboard. */}
+          <Button asChild variant="outline" className="h-auto p-4 bg-transparent">
+            <Link href="/a/events/create" className="flex flex-col items-center gap-2">
               <IconCalendar className="h-6 w-6" />
               <span>Create Event</span>
             </Link>
           </Button>
 
-          <Button
-            disabled
-            variant="outline"
-            className="h-auto p-4 bg-transparent flex flex-col items-center gap-2"
-          >
-            {/* <Link
-              href="/a/rankings"
-              className="flex flex-col items-center gap-2"
-            > */}
-            <IconStar className="h-6 w-6" />
-            <span>Manage Rankings</span>
-            {/* </Link> */}
+          <Button asChild variant="outline" className="h-auto p-4 bg-transparent">
+            <Link href="/a/rankings" className="flex flex-col items-center gap-2">
+              <IconStar className="h-6 w-6" />
+              <span>Manage Rankings</span>
+            </Link>
           </Button>
         </div>
 
-        {/* Recent Activities (data-tour anchor: dashboard "recent activity" step). */}
+        {/* ── Recent activity ──────────────────────────────────────────────── */}
         <Card data-tour="dashboard-recent-activity">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <IconActivity className="h-5 w-5" />
-              Recent Admin Activities
+              <Link href="/a/dashboard/activity" className="hover:text-primary">
+                Recent Admin Activities
+              </Link>
               <InfoTip id="dashboard.recent_activities._section" />
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Admin User</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Timestamp</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentActivities.slice(0, 10).map((activity: any) => (
-                  <TableRow key={activity.id}>
-                    <TableCell className="font-medium">
-                      {activity.admin_user}
-                    </TableCell>
-                    <TableCell>{activity.description}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDate(activity.timestamp, true)}
-                    </TableCell>
+            {/* Scrolls inside its own container so three columns never push the page sideways on
+                a phone. */}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Admin User</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Timestamp</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            {recentActivities.length > 10 && (
-              <div className="mt-4">
-                <Button className="w-full" asChild variant="outline">
-                  <Link href="/a/history">
-                    View All Activities <ArrowRight />
-                  </Link>
-                </Button>
-              </div>
-            )}
+                </TableHeader>
+                <TableBody>
+                  {activity.recent.length === 0 ? (
+                    <TableRow>
+                      {/* A written empty state. The old table simply rendered nothing at all. */}
+                      <TableCell
+                        colSpan={3}
+                        className="py-10 text-center text-sm text-muted-foreground"
+                      >
+                        No admin actions have been recorded yet.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    activity.recent.map((row) => (
+                      <TableRow key={row.id}>
+                        <TableCell className="font-medium">{row.admin_user}</TableCell>
+                        <TableCell className="max-w-md truncate">{row.description}</TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {row.timestamp ? formatDate(row.timestamp, true) : "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <Button className="flex-1" asChild variant="outline">
+                <Link href="/a/dashboard/activity">
+                  Activity breakdown ({formatMoneyInput(activity.admin_actions_total)} actions)
+                  <ArrowRight className="ml-1 size-4" />
+                </Link>
+              </Button>
+              <Button className="flex-1" asChild variant="outline">
+                <Link href="/a/history">
+                  View full history <ArrowRight className="ml-1 size-4" />
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
     </div>
   );
-};
-
-export default page;
+}
