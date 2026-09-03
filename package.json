@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "i18n:translate": "node scripts/i18n-translate.mjs"
+    "i18n:translate": "node scripts/i18n-translate.mjs",
+    "design-lint": "node tools/design-lint.mjs"
   },
   "pnpm": {
     "//": "Security overrides mirror pnpm-workspace.yaml. pnpm honours both, but GitHub Dependabot only reads this package.json block, so duplicating them here makes Dependabot recognise the patched (already-installed) versions. Keep the two in sync. `pnpm audit` is the source of truth for the installed tree (0).",

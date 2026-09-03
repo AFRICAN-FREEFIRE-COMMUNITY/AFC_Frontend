@@ -1,0 +1,41 @@
+{
+  "why": "Pre-existing design-rule breaches, recorded so NEW ones fail immediately while these stay visible and counted. Shrink this list; never grow it. Remove an entry when the file is fixed.",
+  "entries": [
+    {
+      "rule": "decorative-blur",
+      "file": "app/(a)/a/leaderboards/_components/SuccessStep.tsx",
+      "note": "blurred decorative orb / colour bloom.",
+      "recorded": "2026-09-03"
+    },
+    {
+      "rule": "glow-keyframes",
+      "file": "app/(user)/_components/MobileNavbar.tsx",
+      "note": "ambient animation keyframes.",
+      "recorded": "2026-09-03"
+    },
+    {
+      "rule": "glow-shadow",
+      "file": "app/(user)/rankings/page.tsx",
+      "note": "glow (a shadow with no offset). Elevation shadows must be offset and neutral.",
+      "recorded": "2026-09-03"
+    },
+    {
+      "rule": "pulsing-accent",
+      "file": "app/(root)/page.tsx",
+      "note": "pulsing accent. A live marker is a solid dot or a text label, never a pulse.",
+      "recorded": "2026-09-03"
+    },
+    {
+      "rule": "pulsing-accent",
+      "file": "app/overlay/leaderboard/_components/DesignBoard.tsx",
+      "note": "pulsing accent. A live marker is a solid dot or a text label, never a pulse.",
+      "recorded": "2026-09-03"
+    },
+    {
+      "rule": "pulsing-accent",
+      "file": "components/h2h-bracket.tsx",
+      "note": "pulsing accent. A live marker is a solid dot or a text label, never a pulse.",
+      "recorded": "2026-09-03"
+    }
+  ]
+}
