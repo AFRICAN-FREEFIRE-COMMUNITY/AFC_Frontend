@@ -931,8 +931,10 @@ function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any
           </CardContent>
         </Card>
       ) : (
-        <Card className={cn(elite &&
-          "border-amber-500/50 bg-gradient-to-br from-amber-500/10 via-amber-500/[0.03] to-transparent shadow-[0_0_40px_-18px] shadow-amber-500/40")}>
+        // Elite reads as elite through a warmer FILL, not a coloured bloom around the card. The
+        // shadow-[0_0_40px] glow that was here came off on 2026-09-04: house rule is neutral,
+        // offset elevation only, never a centred colour halo.
+        <Card className={cn(elite && "border-amber-500/50 bg-amber-500/[0.07]")}>
           <CardContent className="p-0">
             {rows.map((r, i) => <TierTeamRow key={i} row={r} elite={elite} />)}
           </CardContent>

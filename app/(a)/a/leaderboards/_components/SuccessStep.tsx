@@ -14,9 +14,11 @@ export function SuccessStep() {
   return (
     <Card>
       <CardContent className="flex flex-col items-center text-center space-y-6">
-        <div className="relative">
-          <div className="absolute inset-0 bg-green-500/20 blur-3xl rounded-full" />
-          <IconCircleCheck size={80} className="text-green-500 relative z-10" />
+        {/* A filled disc, not a blurred bloom. The colour bloom this replaced is banned house
+            style (CLAUDE.md: no glow, no halos), and a flat surface reads as deliberate where a
+            blur reads as a screen artefact. */}
+        <div className="rounded-full bg-green-500/12 p-5">
+          <IconCircleCheck size={80} className="text-green-500" />
         </div>
 
         <div className="space-y-2">

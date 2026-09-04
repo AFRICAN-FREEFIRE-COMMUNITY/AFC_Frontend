@@ -525,9 +525,11 @@ export function DesignBoard({
               padding: `${canvasH * 0.008}px ${canvasH * 0.016}px`,
             }}
           >
-            {/* Pulsing red dot = the universal "live" tell. */}
+            {/* Solid red dot beside the word LIVE. It used to pulse; a breathing dot is banned
+                house style, and on a broadcast overlay it also flickers against the video and
+                encodes badly. The word does the work. */}
             <span
-              className="inline-block animate-pulse rounded-full bg-red-500"
+              className="inline-block rounded-full bg-red-500"
               style={{ width: canvasH * 0.014, height: canvasH * 0.014 }}
             />
             <span

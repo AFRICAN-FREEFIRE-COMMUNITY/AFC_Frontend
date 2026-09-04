@@ -117,30 +117,15 @@ export function MobileNavbar() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
+      {/* The NEW badge was a glowing, breathing pill: @keyframes glow-pulse driving three
+          stacked coloured box-shadows plus a scale bounce, on a gradient fill with a 1px ring.
+          Every one of those is banned house style (no glow, no ambient animation, no gradient
+          fill, no hairline ring), and it sat in the mobile menu where it throbbed next to the
+          nav links. Replaced on 2026-09-04 by a flat filled chip: same job, no motion. */}
       <style jsx global>{`
-        @keyframes glow-pulse {
-          0%,
-          100% {
-            box-shadow:
-              0 0 5px rgba(34, 197, 94, 0.5),
-              0 0 10px rgba(34, 197, 94, 0.3),
-              0 0 15px rgba(34, 197, 94, 0.2);
-            transform: scale(1);
-          }
-          50% {
-            box-shadow:
-              0 0 10px rgba(34, 197, 94, 0.8),
-              0 0 20px rgba(34, 197, 94, 0.5),
-              0 0 30px rgba(34, 197, 94, 0.3);
-            transform: scale(1.05);
-          }
-        }
-
         .glow-new-badge {
-          animation: glow-pulse 2s ease-in-out infinite;
-          background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+          background: #16a34a;
           font-weight: 600;
-          border: 1px solid rgba(34, 197, 94, 0.5);
         }
       `}</style>
       <SheetTrigger asChild>

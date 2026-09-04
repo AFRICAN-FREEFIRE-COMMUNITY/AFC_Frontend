@@ -119,11 +119,12 @@ const page = () => {
                 : "opacity-0 translate-y-10"
             }`}
           >
-            {/* Animated glowing season tagline (owner 2026-06-20): no border, no icon,
-                just glowing text. animate-pulse + a primary text-shadow gives the soft
-                breathing glow. */}
+            {/* Season tagline. Was a breathing glow (animate-pulse plus a coloured text-shadow)
+                until 2026-09-04; both are banned house style, and a headline that throbs is the
+                single clearest tell of a generated page. The emphasis now comes from weight,
+                colour and letter-spacing, which is what the glow was standing in for. */}
             <div className="mb-6 flex justify-center">
-              <span className="text-sm md:text-base font-semibold uppercase tracking-[0.2em] text-primary animate-pulse [text-shadow:0_0_14px_rgba(52,210,123,0.75)]">
+              <span className="text-sm md:text-base font-bold uppercase tracking-[0.25em] text-primary">
                 {t("landing.hero.seasonBadge")}
               </span>
             </div>

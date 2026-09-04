@@ -144,10 +144,12 @@ function losersRoundLabel(index: number, total: number, t: BracketT): string {
   return index === total - 1 ? t("losersFinal") : t("losersRound", { n: index + 1 });
 }
 
-// Status dot color: gray = pending, orange (pulsing) = live, green = completed.
+// Status dot colour: grey = pending, orange = live, green = completed. Flat fills, all three.
+// The live one pulsed until 2026-09-04; colour carries the meaning, and a bracket with a dozen
+// matches on screen had a dozen things throbbing at once.
 const STATUS_DOT: Record<H2HMatch["status"], string> = {
   pending: "bg-muted-foreground/50",
-  live: "bg-orange-500 animate-pulse",
+  live: "bg-orange-500",
   completed: "bg-green-500",
 };
 
