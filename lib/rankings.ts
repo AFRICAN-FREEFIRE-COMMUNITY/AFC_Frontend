@@ -309,8 +309,10 @@ export interface MyTeam {
   user_role_in_team?: string | null; // owner / captain / manager (management role)
 }
 
+// Kept as a named wrapper because eight call sites below read better with it. It delegates to
+// the shared helper; the dead `Cookies.get` line the 2026-08-29 refactor left behind is gone,
+// because a line that reads a token nothing uses looks like the bug it sits next to.
 function userAuthHeaders() {
-  const token = Cookies.get("auth_token");
   return authHeaders();
 }
 

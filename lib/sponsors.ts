@@ -13,7 +13,6 @@
  * PRIVACY: portal payloads carry usernames + submitted values only; no emails (owner decision).
  */
 import axios from "axios";
-import Cookies from "js-cookie";
 
 import { env } from "@/lib/env";
 // Routed through lib/http authHeaders (owner bug 2026-08-29): building the header inline as
@@ -25,8 +24,9 @@ import { authHeaders } from "@/lib/http";
 
 const BASE = `${env.NEXT_PUBLIC_BACKEND_API_URL}/sponsors`;
 
+// Delegates to the shared helper. See the note in lib/rankings.ts: the dead cookie read the
+// 2026-08-29 refactor left here is removed rather than left looking deliberate.
 function headers() {
-  const token = Cookies.get("auth_token");
   return authHeaders();
 }
 

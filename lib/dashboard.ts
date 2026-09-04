@@ -80,7 +80,24 @@ export interface DashboardSummary {
     diamond_revenue: string;
     top_bundle: string | null;
   };
-  activity: { admin_actions_total: number };
+  activity: {
+    admin_actions_total: number;
+    /** The ten newest admin actions, already written for a reader.
+     *
+     *  `summary` is one plain-English sentence and `details` is the full change list behind it
+     *  (owner 2026-09-03: the table used to print the raw stored row, and an event edit stores
+     *  itself as a JSON document). Built by afc_auth/history_text.py -> describe_history.
+     *  `description` is the untouched stored text, kept for anything that still wants it. */
+    recent: {
+      id: number;
+      admin_user: string;
+      action: string;
+      action_label: string;
+      summary: string;
+      details: string[];
+      timestamp: string | null;
+    }[];
+  };
 }
 
 /** One table in a drill-down. `rows` are pre-formatted primitives, so the renderer never needs to

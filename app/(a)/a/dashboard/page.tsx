@@ -421,7 +421,7 @@ export default function AdminDashboardPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Admin User</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead>What happened</TableHead>
                     <TableHead>Timestamp</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -440,7 +440,19 @@ export default function AdminDashboardPage() {
                     activity.recent.map((row) => (
                       <TableRow key={row.id}>
                         <TableCell className="font-medium">{row.admin_user}</TableCell>
-                        <TableCell className="max-w-md truncate">{row.description}</TableCell>
+                        {/* One sentence, not the raw stored row. An event edit is stored as a
+                            JSON document, and this table used to print it (owner 2026-09-03).
+                            The individual changes sit under it, so nothing is hidden. */}
+                        <TableCell className="max-w-md">
+                          <span>{row.summary}</span>
+                          {row.details.length > 0 && (
+                            <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                              {row.details.map((change, i) => (
+                                <li key={i}>{change}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </TableCell>
                         <TableCell className="text-muted-foreground">
                           {row.timestamp ? formatDate(row.timestamp, true) : "-"}
                         </TableCell>

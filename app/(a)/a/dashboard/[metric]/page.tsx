@@ -32,6 +32,7 @@ import { IconAlertTriangle, IconRefresh } from "@tabler/icons-react";
 import { ArrowLeft } from "lucide-react";
 
 import { FullLoader } from "@/components/Loader";
+import { LocalTime } from "@/components/LocalTime";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +54,21 @@ import { dashboardApi, type DashboardDetail, type DetailSection } from "@/lib/da
  * A bar is a filled div whose width is a percentage of the largest value, so it reads at a glance
  * and the exact number still sits beside it for anyone who needs it.
  */
+/** ISO-8601 as the backend emits it (datetime.isoformat), e.g. 2026-08-26T19:33:53.616900+00:00.
+ *  Anchored, so a plain "2026-08" month bucket or a team called "2026-thing" is left alone. */
+const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+
+/** Rows arrive as primitives, and a timestamp among them is still a timestamp: the site's rule is
+ *  that every displayed time renders in the VIEWER's timezone, never the server's UTC. The Latest
+ *  actions table in the activity breakdown was showing a raw
+ *  "2026-08-26T19:33:53.616900+00:00" at a reader until this existed. */
+function renderCell(cell: string | number) {
+  if (typeof cell === "string" && ISO_TIMESTAMP.test(cell)) {
+    return <LocalTime value={cell} />;
+  }
+  return cell;
+}
+
 function MiniSeries({ section }: { section: DetailSection }) {
   const values = section.rows.map((r) => Number(r[1]) || 0);
   const max = Math.max(...values, 1);
@@ -123,7 +139,7 @@ function SectionCard({ section }: { section: DetailSection }) {
                             : "text-right tabular-nums text-muted-foreground"
                         }
                       >
-                        {cell}
+                        {renderCell(cell)}
                       </TableCell>
                     ))}
                   </TableRow>

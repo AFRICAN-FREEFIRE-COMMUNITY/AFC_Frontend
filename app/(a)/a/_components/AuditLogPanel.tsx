@@ -36,7 +36,7 @@ import { env } from "@/lib/env";
 import { formatDate } from "@/lib/utils";
 import { parseUserAgent } from "@/lib/user-agent";
 import axios from "axios";
-import Cookies from "js-cookie";
+import { authHeaders } from "@/lib/http";
 import {
   Calendar as CalendarIcon,
   ChevronDown,
@@ -82,12 +82,13 @@ type AuditRow = {
   timestamp: string;
 };
 
-// Bearer header from the auth_token cookie (the cookie AuthContext writes on login). Mirrors the
-// authHeaders() helper used across lib/*.ts.
-function authHeaders() {
-  const token = Cookies.get("auth_token");
-  return authHeaders();
-}
+// Auth header comes from the SHARED helper (lib/http.authHeaders), which reads the token
+// AuthContext keeps in memory and throws SessionExpiredError when there is none.
+//
+// It used to be a local copy. The 2026-08-29 refactor that centralised twelve copies of
+// `Bearer ${token ?? ""}` rewrote this one's BODY to `return authHeaders()` without adding
+// the import, so the local definition shadowed nothing and called ITSELF: every request from
+// this file died with "Maximum call stack size exceeded" before any network call was made.
 
 // Status code -> badge style + tone (2xx ok, 4xx client warning, 5xx server error).
 function statusBadge(code: number | null): {
@@ -107,6 +108,11 @@ function statusBadge(code: number | null): {
  */
 export function AuditLogPanel({ embedded = false }: { embedded?: boolean }) {
   const [loading, setLoading] = useState(true);
+  // What the SERVER said when the load failed. The panel used to raise a toast and then render an
+  // empty table, so the screen said "No matching audit entries" about a request that never
+  // succeeded, and the toast was gone by the time anyone looked (owner 2026-09-03: "audit log is
+  // not working"). The message is kept on screen until the next successful load.
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -146,8 +152,20 @@ export function AuditLogPanel({ embedded = false }: { embedded?: boolean }) {
       setRows(res.data?.results ?? []);
       setTotal(res.data?.total_count ?? 0);
       setHasMore(Boolean(res.data?.has_more));
+      setLoadError(null);
     } catch (error) {
-      toast.error("Could not load the audit log.");
+      // The endpoint says WHY when it can: a 503 with code "audit_log_table_missing" means the
+      // server has the model and not the table (migrations are generated on the box, see
+      // afc_auth.views.get_audit_log). Showing that beats "something went wrong".
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const said = axios.isAxiosError(error)
+        ? (error.response?.data as { message?: string } | undefined)?.message
+        : undefined;
+      setRows([]);
+      setTotal(0);
+      setHasMore(false);
+      setLoadError(said || `Could not load the audit log${status ? ` (HTTP ${status})` : ""}.`);
+      toast.error(said || "Could not load the audit log.");
     } finally {
       setLoading(false);
     }
@@ -237,17 +255,33 @@ export function AuditLogPanel({ embedded = false }: { embedded?: boolean }) {
         </div>
       </div>
 
+      {/* A failed load is NOT an empty log. Saying "no entries" about a request that never
+          came back is the same screen for two very different problems. */}
+      {loadError && !loading && (
+        <div className="mb-6 rounded-md bg-destructive/10 p-4 text-sm text-destructive">
+          {loadError}
+        </div>
+      )}
+
       {loading ? (
         <FullLoader />
       ) : (
         <>
+          {/* MOBILE (checked at 390x844): four columns at this density squeeze until only "Admin"
+              is on screen and the sentence saying WHAT happened is off-canvas, which is the one
+              column somebody opened this page to read. So on a phone the role line and the When
+              column drop out and the time moves under the summary; the container still scrolls if
+              a long path pushes it. */}
+          <div className="overflow-x-auto">
           <Table className="text-xs">
             <TableHeader>
               <TableRow>
                 <TableHead className="h-10 w-8 text-foreground" />
                 <TableHead className="h-10 text-foreground">Admin</TableHead>
                 <TableHead className="h-10 text-foreground">What happened</TableHead>
-                <TableHead className="h-10 text-right text-foreground">When</TableHead>
+                <TableHead className="hidden h-10 text-right text-foreground sm:table-cell">
+                  When
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -273,14 +307,25 @@ export function AuditLogPanel({ embedded = false }: { embedded?: boolean }) {
                         </TableCell>
                         <TableCell className="p-2 align-top">
                           <div className="font-medium whitespace-nowrap">{r.actor_username}</div>
+                          {/* The role string runs to five joined roles, which on a phone is three
+                              wrapped lines of context nobody asked for. Desktop keeps it. */}
                           {r.actor_role && (
-                            <div className="text-muted-foreground">{r.actor_role}</div>
+                            <div className="hidden text-muted-foreground sm:block">
+                              {r.actor_role}
+                            </div>
                           )}
                         </TableCell>
-                        <TableCell className="p-2 align-top">
+                        {/* Wraps rather than running off the edge: at 390px an event name plus a
+                            quoted slug is easily wider than the column. */}
+                        <TableCell className="p-2 align-top break-words whitespace-normal">
                           <span className="font-medium">{r.summary || r.action}</span>
+                          {/* On a phone the When column is gone, so the time rides under the
+                              sentence rather than disappearing. */}
+                          <div className="mt-0.5 text-muted-foreground sm:hidden">
+                            {formatDate(r.timestamp)}
+                          </div>
                         </TableCell>
-                        <TableCell className="p-2 align-top text-right text-muted-foreground whitespace-nowrap">
+                        <TableCell className="hidden p-2 align-top text-right text-muted-foreground whitespace-nowrap sm:table-cell">
                           {formatDate(r.timestamp)}
                         </TableCell>
                       </TableRow>
@@ -342,6 +387,7 @@ export function AuditLogPanel({ embedded = false }: { embedded?: boolean }) {
               )}
             </TableBody>
           </Table>
+          </div>
 
           {/* Pagination footer: range + Prev/Next driven by the envelope's has_more/offset. */}
           <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">

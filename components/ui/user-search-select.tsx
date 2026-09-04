@@ -27,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { env } from "@/lib/env";
 import axios from "axios";
-import Cookies from "js-cookie";
+import { authHeaders } from "@/lib/http";
 import { Check, Loader2, Search, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -78,10 +78,13 @@ type MultiProps = BaseProps & {
 
 type Props = SingleProps | MultiProps;
 
-function authHeaders() {
-  const token = Cookies.get("auth_token");
-  return authHeaders();
-}
+// Auth header comes from the SHARED helper (lib/http.authHeaders), which reads the token
+// AuthContext keeps in memory and throws SessionExpiredError when there is none.
+//
+// It used to be a local copy. The 2026-08-29 refactor that centralised twelve copies of
+// `Bearer ${token ?? ""}` rewrote this one's BODY to `return authHeaders()` without adding
+// the import, so the local definition shadowed nothing and called ITSELF: every request from
+// this file died with "Maximum call stack size exceeded" before any network call was made.
 
 export function UserSearchSelect(props: Props) {
   const {

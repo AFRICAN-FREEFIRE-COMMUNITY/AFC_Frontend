@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/table";
 import { env } from "@/lib/env";
 import axios from "axios";
-import Cookies from "js-cookie";
+import { authHeaders } from "@/lib/http";
 import {
   Calendar as CalendarIcon,
   ChevronDown,
@@ -92,12 +92,13 @@ type RevealRecord = {
   created_at: string;
 };
 
-// Bearer header from the auth_token cookie (the cookie AuthContext writes on login).
-// Same helper idiom AuditLogPanel.tsx and lib/*.ts use across the admin app.
-function authHeaders() {
-  const token = Cookies.get("auth_token");
-  return authHeaders();
-}
+// Auth header comes from the SHARED helper (lib/http.authHeaders), which reads the token
+// AuthContext keeps in memory and throws SessionExpiredError when there is none.
+//
+// It used to be a local copy. The 2026-08-29 refactor that centralised twelve copies of
+// `Bearer ${token ?? ""}` rewrote this one's BODY to `return authHeaders()` without adding
+// the import, so the local definition shadowed nothing and called ITSELF: every request from
+// this file died with "Maximum call stack size exceeded" before any network call was made.
 
 // One label/value line inside the expandable reveal block. Mirrors AuditLogPanel's Detail.
 function Detail({ label, children }: { label: string; children: ReactNode }) {
