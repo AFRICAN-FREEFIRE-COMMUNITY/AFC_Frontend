@@ -1,0 +1,62 @@
+{
+  "title": "Ligas Fantasy",
+  "description": "Crie uma liga fantasy num evento, defina o preço dos jogadores e abra-a aos adeptos.",
+  "loading": "A carregar as ligas",
+  "loadFailed": "Não foi possível carregar as ligas.",
+  "explainer": "Uma liga passa por rascunho, depois preços, depois abertura. Não pode ser aberta antes de os jogadores terem preço, porque uma liga aberta sem preços mostra aos adeptos um construtor de equipa vazio. Depois de aberta, as regras do jogo ficam fixas: todas as equipas já inscritas foram montadas com elas.",
+  "empty": "Ainda não há ligas fantasy. Crie uma num evento com jogadores inscritos.",
+  "status": {
+    "draft": "Rascunho",
+    "open": "Aberta",
+    "locked": "Escolhas fechadas",
+    "settled": "Terminada"
+  },
+  "fact": {
+    "squad": "Tamanho da equipa",
+    "perTeam": "Máximo por equipa",
+    "captain": "Capitão",
+    "budget": "Orçamento",
+    "freePick": "Escolha livre",
+    "entries": "{count, plural, =0 {Sem participações} one {# participação} other {# participações}}",
+    "teamPremium": "bónus de equipa até {n}"
+  },
+  "action": {
+    "preview": "Pré-visualizar preços",
+    "writePrices": "Guardar preços",
+    "open": "Abrir aos adeptos",
+    "recompute": "Recalcular pontuações",
+    "view": "Ver"
+  },
+  "priced": {
+    "preview": "{count} jogadores seriam avaliados, de {floor} a {ceiling} seeds. Nada foi guardado.",
+    "written": "{count} preços guardados. {skipped} ajustes manuais mantidos.",
+    "failed": "Não foi possível definir os preços dos jogadores."
+  },
+  "opened": "A liga está aberta. Os adeptos já podem participar.",
+  "openFailed": "Não foi possível abrir a liga.",
+  "recomputed": "Pontuações recalculadas a partir dos resultados atuais. {rows} linhas.",
+  "recomputeFailed": "Não foi possível recalcular as pontuações.",
+  "create": {
+    "button": "Nova liga",
+    "title": "Criar uma liga fantasy",
+    "description": "Estas definições ficam fixas assim que a liga abre, porque cada equipa inscrita é montada com elas. O resto continua editável.",
+    "eventId": "ID do evento",
+    "eventIdHint": "O evento AFC em que esta liga decorre. Os jogadores inscritos formam o conjunto.",
+    "name": "Nome",
+    "nameHint": "Se ficar vazio, usa o nome do evento.",
+    "squadSize": "Tamanho da equipa",
+    "squadSizeHint": "De 4 a 6. Cinco é o recomendado: uma equipa de Free Fire tem quatro, por isso quatro permitiria copiar uma equipa real.",
+    "maxPerTeam": "Máximo por equipa",
+    "maxPerTeamHint": "A definição que evita que todos inscrevam a mesma equipa. Dois é o recomendado.",
+    "captain": "Multiplicador do capitão",
+    "captainHint": "Em décimos: 20 é 2x. Três vezes torna o capitão quase decisivo sozinho.",
+    "budget": "Orçamento em AFC SEEDS",
+    "budgetHint": "O saldo de cada participante. 100 mantém os preços fáceis de ler.",
+    "teamPremium": "Bónus de equipa em seeds",
+    "teamPremiumHint": "Quanto jogar numa equipa forte acrescenta ao preço de um jogador, ordenado pelos resultados reais da equipa. Ponha 0 para avaliar apenas o individual.",
+    "cancel": "Cancelar",
+    "submit": "Criar como rascunho",
+    "done": "Liga criada como rascunho. Defina os preços dos jogadores a seguir.",
+    "failed": "Não foi possível criar a liga."
+  }
+}

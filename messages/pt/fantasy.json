@@ -1,31 +1,267 @@
 {
   "title": "Liga Fantasy",
-  "subtitle": "Monte um time a partir de um evento real da AFC e marque pontos pelo que os jogadores realmente fazem.",
-  "comingSoon": "Em breve",
-  "headline": "Liga Fantasy de Free Fire",
-  "blurb": "Estamos criando uma liga fantasy que acompanha os eventos da AFC. Ainda não está no ar. Se você jogaria, marque a caixa abaixo e saberemos que vale a pena terminar.",
+  "subtitle": "Escolha uma equipa a partir de um evento AFC real e marque pontos com o que os jogadores fazem de facto.",
   "how": {
     "pick": {
-      "title": "Monte seu time",
-      "body": "Escolha jogadores dos times de um evento real da AFC, antes da primeira partida começar."
+      "title": "Escolha a sua equipa",
+      "body": "Escolha jogadores das equipas de um evento AFC real, antes de começar o primeiro jogo."
     },
     "score": {
-      "title": "Eles jogam, você pontua",
-      "body": "Seu time ganha pontos pelo que esses jogadores realmente fazem nas partidas, incluindo abates e vitórias."
+      "title": "Eles jogam, você marca",
+      "body": "A sua equipa ganha pontos com o que esses jogadores fazem de facto nos jogos, incluindo eliminações e vitórias."
     },
     "win": {
       "title": "Suba na tabela",
-      "body": "Todo mundo que entrou naquele evento fica em uma única tabela. Maior pontuação no final leva."
+      "body": "Todos os participantes desse evento estão na mesma tabela. A maior pontuação no fim vence."
     }
   },
-  "interest": {
-    "label": "Eu jogaria isso",
-    "hint": "Uma marcação por pessoa. Pode desmarcar quando quiser.",
-    "count": "{count, plural, =0 {Ninguém se manifestou ainda} one {# pessoa quer isso} other {# pessoas querem isso}}"
+  "empty": {
+    "title": "Não há nenhuma liga a decorrer neste momento.",
+    "body": "Quando abrir uma num evento AFC, aparecerá aqui."
   },
-  "thanks": "Anotado. Obrigado.",
-  "failed": "Não foi possível salvar.",
-  "signInFirst": "Entre na sua conta para registrar seu interesse.",
-  "signInPrompt": "Você precisa de uma conta para isso contar.",
-  "signInLink": "Entrar"
+  "state": {
+    "open": "Aberta",
+    "locked": "Escolhas fechadas",
+    "settled": "Terminada"
+  },
+  "entry": {
+    "free": "Entrada gratuita",
+    "sponsored": "Prémio patrocinado",
+    "paid": "Taxa de entrada"
+  },
+  "card": {
+    "entries": "{count, plural, =0 {Sem participações} one {# participação} other {# participações}}",
+    "enter": "Jogar",
+    "mySquad": "A minha equipa",
+    "view": "Ver",
+    "locksOn": "Escolhas fecham",
+    "lockedOn": "Escolhas fechadas"
+  },
+  "cta": {
+    "enter": "Escolher a sua equipa",
+    "mySquad": "A minha equipa"
+  },
+  "closed": {
+    "locked": "As escolhas estão fechadas nesta liga. As pontuações atualizam à medida que os jogos decorrem.",
+    "notEligible": "Esta liga não está aberta à sua conta.",
+    "signedOut": "Precisa de uma conta para entrar nesta liga.",
+    "signIn": "Iniciar sessão"
+  },
+  "rules": {
+    "squadSize": "Jogadores a escolher",
+    "maxPerTeam": "Máximo por equipa",
+    "captain": "O capitão marca",
+    "budget": "O seu orçamento",
+    "seeds": "{n} AFC SEEDS",
+    "freePick": "Escolha livre"
+  },
+  "table": {
+    "title": "A tabela",
+    "rank": "Posição",
+    "squad": "Equipa",
+    "matches": "Jogos",
+    "points": "Pontos",
+    "you": "você",
+    "notStarted": "Ainda sem pontos. A tabela preenche-se assim que os jogos forem disputados.",
+    "noScoresYet": "Ainda não foram introduzidos resultados para este evento.",
+    "liveNote": "As pontuações são calculadas a partir dos resultados atuais, por isso a tabela pode mudar se um resultado for corrigido."
+  },
+  "builder": {
+    "title": "Monte a sua equipa",
+    "yourSquad": "A sua equipa",
+    "players": "Jogadores",
+    "namePlaceholder": "Dê um nome à sua equipa",
+    "searchPlaceholder": "Procurar um jogador ou equipa",
+    "remaining": "Por gastar",
+    "nothingPicked": "Escolha jogadores da lista para começar.",
+    "noPlayers": "Nenhum resultado para essa procura.",
+    "noTeam": "Sem equipa",
+    "unproven": "Sem histórico",
+    "makeCaptain": "Tornar capitão",
+    "remove": "Remover da equipa",
+    "save": "Guardar equipa",
+    "saved": "Equipa guardada.",
+    "saveFailed": "Não foi possível guardar essa equipa."
+  },
+  "notFound": {
+    "title": "Liga não encontrada",
+    "body": "Esta liga fantasy não existe, ou ainda não está aberta."
+  },
+  "guide": {
+    "title": "Como funciona a Liga Fantasy",
+    "subtitle": "Tudo, por palavras simples: como se joga, como os pontos são calculados e quanto custam os jogadores.",
+    "seeLeagues": "Ver as ligas",
+    "what": {
+      "title": "O que isto é, na verdade",
+      "p1": "A AFC organiza torneios a sério com jogadores a sério. Uma liga fantasy deixa-o escolher um pequeno grupo desses jogadores antes de um torneio começar. Quando eles disputam os jogos reais, você ganha pontos com o que eles fazem.",
+      "p2": "Você não joga Free Fire. Não precisa de ser bom no jogo. Escolhe e depois assiste.",
+      "p3": "Todos os participantes estão na mesma tabela. Quem tiver mais pontos no fim vence."
+    },
+    "steps": {
+      "title": "Como jogar, passo a passo",
+      "find": {
+        "title": "Encontre uma liga",
+        "body": "As ligas decorrem em eventos AFC. Abra a página Fantasy e escolha uma que ainda esteja aberta."
+      },
+      "pick": {
+        "title": "Escolha os seus jogadores",
+        "body": "Recebe a lista de todos os participantes desse evento, cada um com um preço. Monte a equipa sem passar do orçamento."
+      },
+      "captain": {
+        "title": "Escolha um capitão",
+        "body": "Uma das suas escolhas é o capitão. Os pontos dele são multiplicados, por isso é esta escolha que torna a sua equipa diferente das outras."
+      },
+      "lock": {
+        "title": "As escolhas fecham",
+        "body": "Quando o evento começa, as escolhas fecham. Ninguém pode alterar nada depois disso, você incluído. A página indica a hora exata."
+      },
+      "watch": {
+        "title": "Veja os jogos",
+        "body": "Os seus jogadores jogam. À medida que os resultados chegam, a sua pontuação sobe sozinha. Não há nada a fazer nem nada a reclamar."
+      },
+      "finish": {
+        "title": "Veja onde terminou",
+        "body": "A tabela vai mudando durante o evento. No fim, quem estiver no topo vence."
+      }
+    },
+    "squad": {
+      "title": "As regras para montar uma equipa",
+      "intro": "Três regras, e cada uma existe por um motivo:",
+      "colRule": "Regra",
+      "colUsual": "Normalmente",
+      "colWhy": "Porquê",
+      "size": {
+        "rule": "Quantos jogadores escolhe",
+        "usual": "5",
+        "why": "Uma equipa de Free Fire tem quatro jogadores. Se escolhesse só quatro, podia copiar uma equipa real e nunca decidir nada. Cinco obriga a escolher."
+      },
+      "perTeam": {
+        "rule": "Máximo da mesma equipa",
+        "usual": "2",
+        "why": "Sem isto, toda a gente escolhe as mesmas estrelas da melhor equipa e todas as equipas ficam iguais. É esta regra que o obriga a encontrar alguém bom numa equipa mais modesta."
+      },
+      "captain": {
+        "rule": "Multiplicador do capitão",
+        "usual": "2x",
+        "why": "É a única escolha que pode decidir tudo, e mudar de ideias antes de as escolhas fecharem não custa nada."
+      },
+      "perLeague": "Estas são as definições habituais. Cada liga pode definir as suas, e cada liga mostra-as na sua própria página: confirme antes de escolher."
+    },
+    "points": {
+      "title": "Como os pontos são calculados",
+      "intro": "Em cada jogo dos seus jogadores, você ganha pontos. Esta é a lista completa:",
+      "colWhat": "O que o seu jogador fez",
+      "colPoints": "Pontos",
+      "rows": {
+        "kill": {
+          "what": "Cada eliminação",
+          "points": "2"
+        },
+        "booyah": {
+          "what": "A equipa dele vence o jogo (booyah)",
+          "points": "5"
+        },
+        "top3": {
+          "what": "A equipa dele termina em 2.º ou 3.º",
+          "points": "2"
+        },
+        "mvp": {
+          "what": "Foi MVP do mapa",
+          "points": "5"
+        },
+        "played": {
+          "what": "Simplesmente jogou a partida",
+          "points": "1"
+        }
+      },
+      "captainTitle": "O seu capitão marca a dobrar.",
+      "captainBody": "Tudo o que está acima, a dobrar, para esse jogador. Não são só as eliminações: é tudo. Um grande jogo do seu capitão é a maior diferença possível na liga.",
+      "examplesTitle": "Dois exemplos com contas",
+      "big": {
+        "title": "Um grande jogo do seu capitão",
+        "l1": "6 eliminações, a 2 pontos cada = 12",
+        "l2": "a equipa dele venceu o jogo = 5",
+        "l3": "foi MVP = 5",
+        "l4": "jogou = 1",
+        "total": "23 pontos, a dobrar por ser capitão = 46"
+      },
+      "small": {
+        "title": "Um jogo discreto de uma escolha barata",
+        "l1": "2 eliminações, a 2 pontos cada = 4",
+        "l2": "jogou, a equipa dele ficou em 5.º = 1",
+        "total": "5 pontos"
+      },
+      "whyThese": "Porquê estes números: as eliminações valem 2 porque são o que registamos de forma mais fiável. Uma vitória da equipa vale 5 para que escolher alguém de uma equipa forte conte mesmo numa noite calma para ele, senão toda a gente escolheria apenas grandes fraggers em equipas fracas. Ter jogado vale 1 para que um suplente marque menos do que alguém que foi utilizado e não fez nada.",
+      "onlyWhatWeRecord": "Um limite assumido: contamos eliminações, MVP, se a equipa venceu ou ficou no top três, e se o jogador foi utilizado. São os dados que a AFC regista para cada jogador em cada jogo. Dano e assistências têm colunas mas estão quase sempre vazias, e contar com isso significaria que a sua pontuação dependia do tempo que um organizador teve nesse dia."
+    },
+    "prices": {
+      "title": "Preços e AFC SEEDS",
+      "intro": "Os AFC SEEDS são o dinheiro de faz de conta com que monta a equipa. Todos recebem a mesma quantia, normalmente 100. Não é dinheiro real, não os pode comprar nem levantar.",
+      "why": "Os melhores jogadores custam mais. É este o jogo todo: não consegue pagar todos os melhores, por isso tem de decidir quais valem a pena e descobrir alguém barato que vá render.",
+      "colSquad": "Se escolher",
+      "colCost": "Custa",
+      "colCan": "É possível?",
+      "best5": {
+        "squad": "Os cinco melhores jogadores",
+        "cost": "cerca de 180",
+        "can": "Não, e é de propósito. Essa equipa não deve existir."
+      },
+      "two": {
+        "squad": "Os dois melhores e depois três baratos",
+        "cost": "cerca de 100",
+        "can": "Sim, mas os outros três ficam abaixo da média. É essa a troca."
+      },
+      "average": {
+        "squad": "Cinco jogadores médios",
+        "cost": "exatamente 100",
+        "can": "Sim. A equipa segura."
+      },
+      "cheap": {
+        "squad": "Os cinco mais baratos",
+        "cost": "cerca de 40",
+        "can": "Sim, e desperdiça 60. Ninguém faz isto."
+      },
+      "team": "A equipa de um jogador também influencia o preço. Quem está numa equipa forte marca duas vezes: as suas eliminações e os pontos da vitória da equipa. Por isso, jogadores de equipas que costumam ficar bem classificadas custam um pouco mais, com base nos resultados reais dessas equipas e não num rótulo.",
+      "unproven": "Alguns jogadores aparecem como Sem histórico. Quer dizer que não temos jogos registados suficientes para os avaliar, por isso ficam no preço médio. Nem caros nem baratos, porque adivinhar para qualquer dos lados seria injusto para quem se estreia.",
+      "checkable": "Cada preço mostra a razão por baixo, por exemplo 1,9 eliminações por mapa em 12 mapas. Se achar que um preço está errado, pode confirmá-lo, e um administrador pode alterar qualquer preço antes de a liga abrir."
+    },
+    "lock": {
+      "title": "Quando as escolhas fecham, e porque isso importa",
+      "p1": "As escolhas fecham quando o evento começa. A partir daí ninguém pode alterar uma equipa, administradores incluídos. A página da liga mostra a hora exata no seu fuso horário.",
+      "p2": "É isto que torna o jogo justo. Se as escolhas ficassem abertas, podia esperar que alguém fizesse um primeiro jogo enorme e só depois escolhê-lo: isso já não é prever, é copiar a resposta."
+    },
+    "faq": {
+      "title": "Perguntas que as pessoas fazem mesmo",
+      "notPlay": {
+        "q": "E se um jogador que escolhi nunca jogar?",
+        "a": "Não lhe rende nada. A equipa dele pode ser eliminada cedo, ou ele pode ficar no banco. Isso faz parte da decisão: antes de escolher alguém, vale a pena perguntar quantos jogos a equipa dele deve ter."
+      },
+      "corrected": {
+        "q": "Um resultado foi corrigido. A minha pontuação mudou?",
+        "a": "Sim, e é de propósito. A sua pontuação é sempre calculada a partir dos resultados atuais: se uma contagem de eliminações for corrigida ou uma equipa desclassificada, a tabela acompanha. Pode descer tanto como subir. Caso contrário, a tabela contradiria a página de resultados."
+      },
+      "sameSquad": {
+        "q": "O que impede toda a gente de escolher a mesma equipa?",
+        "a": "Duas coisas. O limite por equipa e o orçamento. Juntos, fazem com que não possa simplesmente levar as estrelas da melhor equipa e ficar por ali."
+      },
+      "rename": {
+        "q": "Um jogador mudou de nome. A minha equipa fica estragada?",
+        "a": "Não. A sua equipa guarda a pessoa, não o nome que ela usava quando a escolheu."
+      },
+      "twoAccounts": {
+        "q": "Alguém pode participar duas vezes?",
+        "a": "Não. Uma equipa por conta em cada liga."
+      },
+      "cost": {
+        "q": "Custa dinheiro real?",
+        "a": "Normalmente não. A maioria das ligas tem entrada gratuita. Se uma liga cobrar, a página diz isso claramente antes de você entrar."
+      }
+    },
+    "prizes": {
+      "title": "Prémios",
+      "intro": "Uma liga é de um de três tipos, e a página dela diz qual:",
+      "body": "Gratuita significa orgulho e um lugar na tabela. Patrocinada significa que a entrada continua gratuita e um patrocinador ou a AFC pôs o prémio. Taxa de entrada significa que o prémio é feito do que os participantes pagam. Seja qual for, está indicado na página da liga antes de entrar."
+    },
+    "readGuide": "Como tudo funciona"
+  }
 }

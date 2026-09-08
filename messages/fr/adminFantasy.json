@@ -1,0 +1,62 @@
+{
+  "title": "Ligues Fantasy",
+  "description": "Créez une ligue fantasy sur un événement, fixez le prix des joueurs, puis ouvrez-la au public.",
+  "loading": "Chargement des ligues",
+  "loadFailed": "Les ligues n'ont pas pu être chargées.",
+  "explainer": "Une ligue passe par brouillon, puis tarification, puis ouverture. Elle ne peut pas être ouverte avant que ses joueurs aient un prix, car une ligue ouverte sans prix affiche un composeur d'équipe vide. Une fois ouverte, les règles du jeu sont figées : toutes les équipes déjà inscrites ont été construites avec ces règles.",
+  "empty": "Aucune ligue fantasy pour l'instant. Créez-en une sur un événement avec un effectif inscrit.",
+  "status": {
+    "draft": "Brouillon",
+    "open": "Ouverte",
+    "locked": "Choix figés",
+    "settled": "Terminée"
+  },
+  "fact": {
+    "squad": "Taille d'équipe",
+    "perTeam": "Max par équipe",
+    "captain": "Capitaine",
+    "budget": "Budget",
+    "freePick": "Choix libre",
+    "entries": "{count, plural, =0 {Aucune participation} one {# participation} other {# participations}}",
+    "teamPremium": "bonus d'équipe jusqu'à {n}"
+  },
+  "action": {
+    "preview": "Aperçu des prix",
+    "writePrices": "Enregistrer les prix",
+    "open": "Ouvrir au public",
+    "recompute": "Recalculer les scores",
+    "view": "Voir"
+  },
+  "priced": {
+    "preview": "{count} joueurs seraient tarifés, de {floor} à {ceiling} seeds. Rien n'est enregistré.",
+    "written": "{count} prix enregistrés. {skipped} ajustements manuels conservés.",
+    "failed": "Les joueurs n'ont pas pu être tarifés."
+  },
+  "opened": "La ligue est ouverte. Le public peut participer.",
+  "openFailed": "La ligue n'a pas pu être ouverte.",
+  "recomputed": "Scores recalculés à partir des résultats actuels. {rows} lignes.",
+  "recomputeFailed": "Les scores n'ont pas pu être recalculés.",
+  "create": {
+    "button": "Nouvelle ligue",
+    "title": "Créer une ligue fantasy",
+    "description": "Ces réglages sont figés dès l'ouverture de la ligue, car chaque équipe inscrite est construite avec eux. Le reste reste modifiable.",
+    "eventId": "ID de l'événement",
+    "eventIdHint": "L'événement AFC sur lequel tourne cette ligue. Ses joueurs inscrits forment le vivier.",
+    "name": "Nom",
+    "nameHint": "Laissé vide, il reprend le nom de l'événement.",
+    "squadSize": "Taille d'équipe",
+    "squadSizeHint": "De 4 à 6. Cinq est recommandé : une escouade Free Fire compte quatre joueurs, donc quatre permettrait de recopier une vraie équipe.",
+    "maxPerTeam": "Max par équipe",
+    "maxPerTeamHint": "Le réglage qui évite que tout le monde inscrive la même équipe. Deux est recommandé.",
+    "captain": "Multiplicateur du capitaine",
+    "captainHint": "En dixièmes : 20 vaut 2x. Trois fois rend le capitaine presque décisif à lui seul.",
+    "budget": "Budget en AFC SEEDS",
+    "budgetHint": "La cagnotte de chaque participant. 100 garde des prix faciles à lire.",
+    "teamPremium": "Bonus d'équipe en seeds",
+    "teamPremiumHint": "Ce que jouer dans une équipe forte ajoute au prix d'un joueur, classé selon les résultats réels de l'équipe. Mettez 0 pour tarifer uniquement sur l'individu.",
+    "cancel": "Annuler",
+    "submit": "Créer en brouillon",
+    "done": "Ligue créée en brouillon. Tarifez les joueurs ensuite.",
+    "failed": "La ligue n'a pas pu être créée."
+  }
+}

@@ -371,6 +371,16 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: Award,
     allowedRoles: ["head_admin"],
   },
+  // Fantasy leagues (owner 2026-08-17, spec WEBSITE/tasks/fantasy-league-spec.md). Head admins
+  // only for now; event organizers reach a league on their own event through the same endpoints,
+  // gated by afc_fantasy.permissions.can_manage_league.
+  {
+    label: "Fantasy",
+    navKey: "fantasy",
+    slug: "/a/fantasy",
+    icon: IconTrophy,
+    allowedRoles: ["head_admin"],
+  },
   {
     label: "Drafts",
     navKey: "drafts",
