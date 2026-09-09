@@ -45,7 +45,8 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  IconAlertTriangle, IconCheck, IconDeviceFloppy, IconLock, IconRefresh, IconWorld,
+  IconAlertTriangle, IconArrowNarrowRight, IconCheck, IconCircleX, IconDeviceFloppy,
+  IconLock, IconRefresh, IconWorld,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -55,7 +56,8 @@ import { IssueList, ScoringBlob, SeasonScope, toIssues } from "./editor-primitiv
 const MIN_REASON = 10;
 
 export function SaveConfigDialog({
-  open, onOpenChange, config, seasons, currentSeasonId, activeVersion, dirtyCount, onSaved,
+  open, onOpenChange, config, seasons, currentSeasonId, activeVersion, dirtyCount,
+  describeIssuePath, onLocateIssue, onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -64,6 +66,11 @@ export function SaveConfigDialog({
   currentSeasonId: number | null;
   activeVersion: string;
   dirtyCount: number;
+  // A blocking problem arrives as a blob path plus a sentence. The page owns the field labels,
+  // so it supplies both the words for WHERE the problem lives and the jump to it; without them
+  // a refused save names a number the admin then has to hunt for across eleven cards.
+  describeIssuePath: (path: string) => string;
+  onLocateIssue: (path: string) => void;
   onSaved: () => void | Promise<void>;
 }) {
   const t = useTranslations("rankings");
@@ -234,7 +241,41 @@ export function SaveConfigDialog({
             <p className="text-xs font-semibold text-destructive">
               {t("admin.scoringConfig.save.blockedTitle")}
             </p>
-            <IssueList issues={errors} />
+            {/* Each refusal says what is wrong, WHERE that field lives, and offers to take the
+                admin to it. The bare sentence on its own was the thing that could not be acted
+                on. */}
+            <div className="space-y-1">
+              {errors.map((issue, i) => {
+                const where = describeIssuePath(issue.path);
+                return (
+                  <div
+                    key={`${issue.path}-${i}`}
+                    className="rounded-md bg-destructive/10 px-2 py-1.5 text-[11px] leading-snug text-destructive"
+                  >
+                    <p className="flex items-start gap-1.5">
+                      <IconCircleX className="mt-0.5 size-3.5 shrink-0" />
+                      <span>{issue.message}</span>
+                    </p>
+                    {where && (
+                      <div className="mt-1 flex flex-wrap items-center gap-2 pl-5">
+                        <span className="text-muted-foreground">{where}</span>
+                        <button
+                          type="button"
+                          onClick={() => onLocateIssue(issue.path)}
+                          // min-h-8 keeps it a real tap target on a phone: at the surrounding
+                          // 11px type the button was only 19px tall, which is under the
+                          // comfortable minimum for a thumb.
+                          className="inline-flex min-h-8 items-center gap-1 rounded-sm bg-destructive/15 px-2 py-1 font-medium text-destructive hover:bg-destructive/25"
+                        >
+                          <IconArrowNarrowRight className="size-3.5" />
+                          {t("admin.scoringConfig.save.takeMeThere")}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
         {!blocked && warnings.length > 0 && (

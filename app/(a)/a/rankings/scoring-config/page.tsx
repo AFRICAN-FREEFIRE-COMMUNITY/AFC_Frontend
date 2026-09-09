@@ -111,17 +111,21 @@ function humanize(key: string): string {
 /* ─────────────────────────────────────────────────────── group container */
 
 function GroupCard({
-  icon, title, help, unit, helpId, issues, action, className, children,
+  icon, title, help, unit, helpId, issues, action, className, path, children,
 }: {
   icon: React.ReactNode; title: string; help: string; unit?: string;
   helpId?: HelpId; issues: Issue[]; action?: React.ReactNode;
+  // `path` is the top-level blob key this card edits ("scrim", "tiers", ...). It is stamped on
+  // the DOM so the Save dialog can send the admin straight to the card a blocking problem came
+  // from - see locateIssue() in the page component below.
+  path?: string;
   className?: string; children: React.ReactNode;
 }) {
   const t = useTranslations("rankings");
   const errors = issues.filter((i) => i.severity === "error").length;
   const warnings = issues.length - errors;
   return (
-    <Card className={className}>
+    <Card className={className} data-scoring-group={path}>
       <CardHeader className="gap-2">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 space-y-1">
@@ -320,7 +324,8 @@ function ScalarGroup({
         const labelKey = `admin.scoringConfig.fields.${group}.${key}`;
         const label = t.has(labelKey) ? t(labelKey) : humanize(key);
         return (
-          <div key={key} className="space-y-1">
+          // data-scoring-path is what the Save dialog jumps to when a problem names this field.
+          <div key={key} className="space-y-1" data-scoring-path={path}>
             <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
               {label}
               {baseValues?.[key] !== values[key] && (
@@ -377,6 +382,45 @@ export default function ScoringConfigPage() {
     () => (cfg && baseline ? countLeafDiffs(cfg, baseline) : 0),
     [cfg, baseline],
   );
+
+  /* ── finding the field a problem is about ──────────────────────────────────────────────
+   * The backend addresses every problem by blob path ("scrim.flat_cap",
+   * "kill_compression[3].points"). The Save dialog used to print only the SENTENCE, which
+   * reads fine ("Flat scrim allowance must be a number.") and still leaves the admin hunting
+   * for the input it is talking about across eleven cards. These two turn the path into
+   * something actionable: words for where it lives, and a jump that scrolls it into view and
+   * focuses it.
+   * ───────────────────────────────────────────────────────────────────────────────────── */
+
+  // "scrim.flat_cap" -> "Scrim rules › Flat scrim allowance". Falls back to the card name
+  // alone for a path pointing at a row inside a table, where the message already renders
+  // next to that row.
+  const describeIssuePath = useCallback((path: string): string => {
+    if (!path) return "";
+    const group = path.split(/[.[]/)[0];
+    if (!group) return "";
+    const groupLabel = metaText(group, "label") || humanize(group);
+    const rest = path.startsWith(`${group}.`) ? path.slice(group.length + 1) : "";
+    if (!rest) return groupLabel;
+    const fieldKey = `admin.scoringConfig.fields.${group}.${rest}`;
+    if (t.has(fieldKey)) return `${groupLabel} › ${t(fieldKey)}`;
+    return groupLabel;
+  }, [metaText, t]);
+
+  // Close the dialog, scroll the field (or failing that its card) into view, focus its input.
+  const locateIssue = useCallback((path: string) => {
+    setSaveOpen(false);
+    // one frame after the dialog starts closing: scrolling while the overlay is still up
+    // lands the field under it, and the focus is stolen back by the dialog's focus trap.
+    window.setTimeout(() => {
+      const group = path.split(/[.[]/)[0];
+      const el = document.querySelector(`[data-scoring-path="${path}"]`)
+        ?? document.querySelector(`[data-scoring-group="${group}"]`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      (el.querySelector("input") as HTMLInputElement | null)?.focus();
+    }, 220);
+  }, []);
 
   /* ── load ── */
   const load = useCallback(async () => {
@@ -638,6 +682,7 @@ export default function ScoringConfigPage() {
           help={metaText("tiers", "help")}
           helpId="rankings.scoring.tier_multipliers._section"
           issues={issuesAt(issues, "tiers")}
+          path="tiers"
           action={<AddRowButton label={t("admin.scoringConfig.addTournamentTier")} onClick={addTournamentTier} />}
         >
           <div className="rounded-md border">
@@ -759,6 +804,7 @@ export default function ScoringConfigPage() {
           unit={metaText("tier_thresholds", "unit")}
           helpId="rankings.scoring.thresholds._section"
           issues={issuesAt(issues, "tier_thresholds")}
+          path="tier_thresholds"
           action={<AddRowButton label={t("admin.scoringConfig.addRankingTier")} onClick={addRankTier} />}
         >
           {/* Mode picker, built from field_meta.tier_thresholds.modes: the frontend never
@@ -938,6 +984,7 @@ export default function ScoringConfigPage() {
           unit={metaText("placement_points", "unit")}
           helpId="rankings.scoring.placement_points._section"
           issues={issuesAt(issues, "placement_points")}
+          path="placement_points"
           action={<AddRowButton label={t("admin.scoringConfig.addPosition")} onClick={addPlacementPosition} />}
         >
           <div className="rounded-md border">
@@ -1012,9 +1059,11 @@ export default function ScoringConfigPage() {
           help={metaText("finals_base", "help")}
           helpId="rankings.scoring.win_bonus._section"
           issues={issuesUnder(issues, "finals_base")}
+          path="finals_base"
         >
           <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
+            {/* data-scoring-path: the anchor the Save dialog's "take me to it" jump lands on */}
+            <div className="space-y-1" data-scoring-path="finals_base">
               <Label className="text-xs text-muted-foreground">{metaText("finals_base", "label")}</Label>
               <NumberBox
                 value={cfg.finals_base}
@@ -1042,6 +1091,7 @@ export default function ScoringConfigPage() {
           unit={metaText("kill_compression", "unit")}
           helpId="rankings.scoring.kill_scale._section"
           issues={issuesAt(issues, "kill_compression")}
+          path="kill_compression"
         >
           <BracketTable group="kill_compression" rows={cfg.kill_compression}
             baseRows={baseline?.kill_compression} meta={meta} issues={issues}
@@ -1055,6 +1105,7 @@ export default function ScoringConfigPage() {
           unit={metaText("placement_compression", "unit")}
           helpId="rankings.scoring.placement_scale._section"
           issues={issuesAt(issues, "placement_compression")}
+          path="placement_compression"
         >
           <BracketTable group="placement_compression" rows={cfg.placement_compression}
             baseRows={baseline?.placement_compression} meta={meta} issues={issues}
@@ -1068,6 +1119,7 @@ export default function ScoringConfigPage() {
           unit={metaText("prize_money_points", "unit")}
           helpId="rankings.scoring.prize_scale._section"
           issues={issuesAt(issues, "prize_money_points")}
+          path="prize_money_points"
         >
           <BracketTable group="prize_money_points" rows={cfg.prize_money_points}
             baseRows={baseline?.prize_money_points} meta={meta} issues={issues}
@@ -1081,6 +1133,7 @@ export default function ScoringConfigPage() {
           unit={metaText("social_media_points", "unit")}
           helpId="rankings.scoring.social_scale._section"
           issues={issuesAt(issues, "social_media_points")}
+          path="social_media_points"
         >
           <BracketTable group="social_media_points" rows={cfg.social_media_points}
             baseRows={baseline?.social_media_points} meta={meta} issues={issues}
@@ -1094,6 +1147,7 @@ export default function ScoringConfigPage() {
           help={metaText("scrim", "help")}
           helpId="rankings.scoring.scrim._section"
           issues={issuesAt(issues, "scrim")}
+          path="scrim"
         >
           <ScalarGroup group="scrim" values={cfg.scrim} baseValues={baseline?.scrim}
             issues={issues} onChange={(v) => update((d) => { d.scrim = v; })} />
@@ -1105,6 +1159,7 @@ export default function ScoringConfigPage() {
           help={metaText("participation_floors", "help")}
           unit={metaText("participation_floors", "unit")}
           issues={issuesAt(issues, "participation_floors")}
+          path="participation_floors"
         >
           <ScalarGroup group="participation_floors" values={cfg.participation_floors}
             baseValues={baseline?.participation_floors} issues={issues}
@@ -1119,6 +1174,7 @@ export default function ScoringConfigPage() {
           help={metaText("player_weights", "help")}
           helpId="rankings.scoring.player_weights._section"
           issues={issuesAt(issues, "player_weights")}
+          path="player_weights"
         >
           <ScalarGroup group="player_weights" values={cfg.player_weights}
             baseValues={baseline?.player_weights} issues={issues}
@@ -1216,6 +1272,8 @@ export default function ScoringConfigPage() {
         currentSeasonId={currentSeasonId}
         activeVersion={activeVersion}
         dirtyCount={dirtyCount}
+        describeIssuePath={describeIssuePath}
+        onLocateIssue={locateIssue}
         onSaved={load}
       />
     </div>

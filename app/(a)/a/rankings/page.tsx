@@ -1136,9 +1136,20 @@ interface ClaimRow {
   id: string;                 // ghost_team_id (uuid) for teams, String(id) for players
   name: string;               // ghost team_name / player ign
   requestedBy: number | null; // claim_requested_by (User id)
-  // Who it would map onto. Kept as the RAW id plus a kind marker so the label can be
-  // translated at render time; it used to be a pre-built English "Team #12" / "Unassigned".
+  // The person's own name, so the queue reads "sweez" rather than "User #4294". The uid is the
+  // in-game UID, which is what an admin matches against a ghost IGN when judging a claim.
+  // Backend: admin_ghost.serialize_ghost / serialize_ghost_player claim_requested_by_username.
+  requestedByName: string;
+  requestedByUid: string;
+  // Who it would map onto. The RAW id (for the link) plus its display name; the id alone was
+  // all this table used to have, which is why it could only print "Team #258".
   targetId: number | null;
+  targetName: string;
+  // WHAT is being claimed, beyond the name: a ghost team carries its country + in-game roster,
+  // a ghost player carries the ghost team it sits on (or nothing, when it is a parked IGN).
+  country: string;
+  roster: string[];
+  ghostTeamName: string;
   evidence: string;           // claim_note
   requestedAt: string;        // claim_requested_at (raw UTC instant, formatted at render)
 }
@@ -1167,8 +1178,14 @@ function ClaimRequestsSection() {
           id: String(g.ghost_team_id),
           name: g.team_name,
           requestedBy: g.claim_requested_by ?? null,
+          requestedByName: g.claim_requested_by_username ?? "",
+          requestedByUid: g.claim_requested_by_uid ?? "",
           // claimed_by is the target afc_team.Team id (set by the request; confirmed on approve).
           targetId: g.claimed_by ?? null,
+          targetName: g.claimed_by_name ?? "",
+          country: g.country ?? "",
+          roster: (g.players ?? []).map((p: any) => p?.ign).filter(Boolean),
+          ghostTeamName: "",
           evidence: g.claim_note ?? "",
           // Keep the full instant. It used to be sliced to the first 10 chars of the UTC
           // ISO string and printed raw, which is neither localized nor the viewer's day.
@@ -1179,8 +1196,14 @@ function ClaimRequestsSection() {
           id: String(p.id),
           name: p.ign,
           requestedBy: p.claim_requested_by ?? null,
+          requestedByName: p.claim_requested_by_username ?? "",
+          requestedByUid: p.claim_requested_by_uid ?? "",
           // a self-claim: claimed_by is the requesting User id.
           targetId: p.claimed_by ?? null,
+          targetName: p.claimed_by_username ?? "",
+          country: "",
+          roster: [],
+          ghostTeamName: p.ghost_team_name ?? "",
           evidence: p.claim_note ?? "",
           requestedAt: p.claim_requested_at ? String(p.claim_requested_at) : "",
         }));
@@ -1269,11 +1292,32 @@ function ClaimRequestsSection() {
             ) : (
               rows.map((r) => (
                 <TableRow key={`${r.kind}-${r.id}`}>
-                  <TableCell className="font-medium">
+                  {/* The ghost, and enough of WHAT it is to judge the claim without leaving
+                      the page: a ghost team shows its country and in-game roster, a ghost
+                      player shows the ghost team it sits on (or that it is a parked IGN). */}
+                  <TableCell className="align-top font-medium">
                     <span className="inline-flex items-center gap-1.5">
                       <IconGhost2 className="size-4 text-muted-foreground" />
                       {r.name}
                     </span>
+                    <div className="mt-0.5 max-w-[18rem] text-[11px] font-normal text-muted-foreground">
+                      {r.kind === "team" ? (
+                        <>
+                          {r.country && <span>{r.country}</span>}
+                          {r.roster.length > 0 && (
+                            <span className={cn(r.country && "ml-1.5")}>
+                              {t("claims.roster", { names: r.roster.join(", ") })}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span>
+                          {r.ghostTeamName
+                            ? t("claims.onGhostTeam", { team: r.ghostTeamName })
+                            : t("claims.standaloneGhost")}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {/* outline rounded-full kind badge (green team / blue player), AFC tier-badge idiom */}
@@ -1291,29 +1335,83 @@ function ClaimRequestsSection() {
                       )}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {r.requestedBy != null
-                      ? t("claims.requestedByUser", { id: r.requestedBy })
-                      : t("claims.unknownRequester")}
+                  {/* WHO asked. The username links to their public profile
+                      (/players/[username]); the UID underneath is what an admin compares
+                      against the ghost IGN. Falls back to the raw user id when the account was
+                      deleted after the request was filed. */}
+                  <TableCell className="align-top text-muted-foreground">
+                    {r.requestedBy == null ? (
+                      t("claims.unknownRequester")
+                    ) : (
+                      <div className="space-y-0.5">
+                        {r.requestedByName ? (
+                          <Link
+                            href={`/players/${encodeURIComponent(r.requestedByName)}`}
+                            className="font-medium text-foreground hover:text-primary"
+                          >
+                            {r.requestedByName}
+                          </Link>
+                        ) : (
+                          <span className="font-medium text-foreground">
+                            {t("claims.requestedByUser", { id: r.requestedBy })}
+                          </span>
+                        )}
+                        <div className="text-[11px]">
+                          {r.requestedByUid && (
+                            <span>{t("claims.uid", { uid: r.requestedByUid })}</span>
+                          )}
+                          <span className={cn(r.requestedByUid && "ml-1.5")}>
+                            {t("claims.requestedByUser", { id: r.requestedBy })}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </TableCell>
-                  {/* A team claim points at a Team id; a player claim is a self-claim, so a
-                      missing id reads "Self" there but "Unassigned" for a team. */}
-                  <TableCell className="text-muted-foreground">
-                    {r.targetId != null
-                      ? r.kind === "team"
-                        ? t("claims.targetTeam", { id: r.targetId })
-                        : t("claims.targetUser", { id: r.targetId })
-                      : r.kind === "team"
-                        ? t("claims.unassigned")
-                        : t("claims.self")}
+                  {/* WHERE the history would land. A team claim points at a real AFC team
+                      (linked to /teams/[id]); a player claim is a self-claim, so the target is
+                      the requester themselves. A missing id reads "Self" for a player but
+                      "Unassigned" for a team, which is a claim nobody should approve. */}
+                  <TableCell className="align-top text-muted-foreground">
+                    {r.targetId == null ? (
+                      r.kind === "team" ? t("claims.unassigned") : t("claims.self")
+                    ) : r.kind === "team" ? (
+                      <div className="space-y-0.5">
+                        {r.targetName ? (
+                          <Link
+                            href={`/teams/${r.targetId}`}
+                            className="font-medium text-foreground hover:text-primary"
+                          >
+                            {r.targetName}
+                          </Link>
+                        ) : (
+                          <span className="font-medium text-foreground">
+                            {t("claims.targetTeam", { id: r.targetId })}
+                          </span>
+                        )}
+                        <div className="text-[11px]">
+                          {t("claims.targetTeam", { id: r.targetId })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-0.5">
+                        <span className="font-medium text-foreground">
+                          {r.targetName || t("claims.targetUser", { id: r.targetId })}
+                        </span>
+                        <div className="text-[11px]">
+                          {r.targetId === r.requestedBy
+                            ? t("claims.selfClaim")
+                            : t("claims.targetUser", { id: r.targetId })}
+                        </div>
+                      </div>
+                    )}
                   </TableCell>
-                  <TableCell className="max-w-[16rem] truncate text-muted-foreground" title={r.evidence || undefined}>
+                  <TableCell className="max-w-[16rem] truncate align-top text-muted-foreground" title={r.evidence || undefined}>
                     {r.evidence || <span className="italic">{t("claims.noEvidence")}</span>}
                   </TableCell>
-                  <TableCell className="text-muted-foreground tabular-nums">
+                  <TableCell className="align-top text-muted-foreground tabular-nums">
                     {r.requestedAt ? <LocalTime value={r.requestedAt} mode="date" /> : ""}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="align-top text-right">
                     <div className="flex justify-end gap-2">
                       <Button size="sm" onClick={() => setAction({ row: r, mode: "approve" })}>
                         <IconCheck className="mr-1 size-3.5" /> {t("claims.approve")}
