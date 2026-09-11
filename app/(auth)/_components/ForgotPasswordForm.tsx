@@ -46,7 +46,7 @@ function EmailTab() {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/send-verification-token/`,
           { ...data }
         );
-        if (response.statusText === "OK") {
+        if (response.status >= 200 && response.status < 300) {
           toast.success(response.data.message);
           router.push(`/verify-token?email=${encodeURIComponent(data.email)}`);
         } else {
@@ -118,7 +118,7 @@ function UidTab() {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/send-verification-token/`,
           { ...data }
         );
-        if (response.statusText === "OK") {
+        if (response.status >= 200 && response.status < 300) {
           toast.success(response.data.message);
           router.push(`/verify-token?uid=${encodeURIComponent(data.uid)}`);
         } else {

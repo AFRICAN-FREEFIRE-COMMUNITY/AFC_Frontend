@@ -112,7 +112,7 @@ function LoginFormContent() {
           return;
         }
 
-        if (response.statusText === "OK") {
+        if (response.status >= 200 && response.status < 300) {
           await login(response.data.session_token);
           toast.success(response.data.message);
           // redirect is handled by the useEffect above once auth state updates

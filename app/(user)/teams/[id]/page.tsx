@@ -524,7 +524,7 @@ const Page = ({ params }: { params: Params }) => {
             },
           },
         );
-        if (response.statusText === "OK") {
+        if (response.status >= 200 && response.status < 300) {
           toast.success(response.data.message);
           router.push("/teams");
         } else {
@@ -571,11 +571,11 @@ const Page = ({ params }: { params: Params }) => {
           },
         );
 
-        // axios rejects any non-2xx, so reaching here means success. Do NOT gate on
-        // response.statusText === "OK": statusText is EMPTY over HTTP/2 (prod is behind a
-        // proxy that speaks h2), so that check silently failed the success path even though
-        // the backend had already transferred ownership - the user saw "nothing happens".
-        // (Same bug class fixed in AuthContext.fetchUser this session.)
+        // axios rejects any non-2xx, so reaching here means success. Do NOT gate on the
+        // response's statusText: it is EMPTY over HTTP/2 (the site serves h2 since
+        // 2026-09-11), so that check silently failed the success path even though the backend
+        // had already transferred ownership - the user saw "nothing happens". The 17 other
+        // sites that gated on it were rewritten to a status-code check the same day.
         toast.success(response.data.message || t("teamDetail.transferSuccess"));
         router.push("/teams");
       } catch (error: any) {
