@@ -1,16 +1,46 @@
+# Build the production image and put it live on the VPS, on every push to master.
+#
+# Before 2026-09-11 this workflow only ran on a v* tag and only BUILT the image; a human then had
+# to ssh in and recreate the container (that step was never automated, see WEBSITE/docs). Now:
+#   build   same as before, plus a second tag sha-<commit> so the deploy step can name exactly
+#           the image it just built instead of racing a moving "latest"
+#   deploy  one ssh connection to the VPS with a key that can only run
+#           /home/ubuntu/deploy-vps/run-deploy.sh (forced command). It sends
+#           "frontend sha-<commit>"; the box runs AFC-B/deploy/vps/deploy-frontend.sh: pulls the
+#           image, starts it on the idle port (3000/3001), waits for a 200, points nginx at it,
+#           reloads nginx gracefully, retires the old container. Zero downtime, no maintenance
+#           page. If the new container never answers 200, traffic never moves and this run is red.
+#
+# Tags v* still trigger it (release markers keep working). workflow_dispatch deploys a branch by
+# hand (used to test this before it was merged). One deploy at a time; later runs wait.
+#
+# Secrets: DOCKER_HUB_USERNAME / DOCKER_HUB_LIVE_TOKEN (existing), VPS_HOST + VPS_SSH_KEY
+# (added 2026-09-11, this repo's own deploy key, distinct from AFC-B's). Host key pinned below.
+
 name: AFC-Frontend-Image
 
 on:
   push:
+    branches: [master]
     tags:
       - v*
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      sha_tag: ${{ steps.meta.outputs.sha_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Image tags
+        id: meta
+        run: echo "sha_tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -26,6 +56,39 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/afc-frontend:latest
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/afc-frontend:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/afc-frontend:${{ steps.meta.outputs.sha_tag }}
           cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/afc-frontend:buildcache
           cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/afc-frontend:buildcache,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Prepare ssh
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # pinned host key of the VPS (vps3619402, InterServer, 2026-09-11)
+          echo "$VPS_HOST ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIVme6Nys17x9EZga6/u0Pr8IOJSH+rI5uSddT0q2Ike" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Swap in ${{ needs.build.outputs.sha_tag }}
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+              -o ConnectTimeout=20 -o ServerAliveInterval=30 \
+              "ubuntu@$VPS_HOST" "frontend ${{ needs.build.outputs.sha_tag }}"
+
+      - name: Public probe
+        run: |
+          code=$(curl -s -o /dev/null -m 20 -w '%{http_code}' https://africanfreefirecommunity.com/)
+          echo "africanfreefirecommunity.com -> $code"
+          test "$code" = "200"
