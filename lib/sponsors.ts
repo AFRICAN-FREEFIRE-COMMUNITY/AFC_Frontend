@@ -132,6 +132,28 @@ export interface EngagementSubmissionRow {
   updated_at: string | null;
 }
 
+// What a decision hands back for ONE submission (decide_submission and decide_submissions both
+// return this exact shape per row). It is the subset of EngagementSubmissionRow a decision can
+// change, so both panels patch their rows from it IN PLACE instead of refetching the page
+// (owner 2026-09-11: "the pages shouldn't reload each time you confirm or reject").
+export interface DecidedSubmission {
+  id: number;
+  approval_status: "pending" | "approved" | "rejected";
+  reason: string;
+  can_undo: boolean;
+}
+
+// One outcome inside a bulk decision (POST sponsors/submissions/decide/). ok=false rows carry
+// the HTTP status the single endpoint would have answered (403 not your sponsor, 404 unknown id,
+// 400 rule refused) plus its message; the rest of the batch is unaffected.
+export interface BulkDecisionResult {
+  id: number;
+  ok: boolean;
+  status: number;
+  submission?: DecidedSubmission;
+  message?: string;
+}
+
 // One row of the CROSS-EVENT approval queue (GET sponsors/queue/engagement-submissions/).
 // The same submission as above plus the context the per-event table did not need, because this
 // queue spans every event and sponsor the caller may decide for (owner 2026-08-14).
@@ -279,7 +301,25 @@ export const sponsorsApi = {
     submissionId: number,
     action: "approve" | "reject" | "reject_final" | "undo",
     reason?: string,
-  ) => sPost(`submissions/${submissionId}/decide/`, { action, ...(reason ? { reason } : {}) }),
+  ) =>
+    sPost<{ message: string; submission: DecidedSubmission }>(
+      `submissions/${submissionId}/decide/`,
+      { action, ...(reason ? { reason } : {}) },
+    ),
+  // Many submissions, one request (owner 2026-09-11: "bulk approve or reject"). Backend
+  // afc_sponsors/engagements.py decide_submissions: same rules and the same permission gate as
+  // decideSubmission, applied per id, at most 200 ids, undo deliberately not offered. Consumed by
+  // ApprovalQueuePanel (admin) and EngagementSubmissionsPanel (sponsor portal), which patch the
+  // returned rows in place and toast the applied / refused counts.
+  decideSubmissions: (
+    ids: number[],
+    action: "approve" | "reject" | "reject_final",
+    reason?: string,
+  ) =>
+    sPost<{ results: BulkDecisionResult[]; applied: number; refused: number }>(
+      "submissions/decide/",
+      { ids, action, ...(reason ? { reason } : {}) },
+    ),
   // The player re-enters a corrected value on a rejected submission; row returns to pending.
   resubmitSubmission: (submissionId: number, payload: Record<string, any>) =>
     sPost(`submissions/${submissionId}/resubmit/`, { payload }),

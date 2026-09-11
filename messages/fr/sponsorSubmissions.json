@@ -50,5 +50,19 @@
   "toastLoadFailed": "Impossible de charger les soumissions.",
   "toastReasonRequired": "Il faut indiquer un motif. Celui-ci est transmis au joueur.",
   "confirmRemove": "Refuser et SUPPRIMER {username} de {event} ? Cela libère leur place dans l'événement.",
-  "toastCsvFailed": "L'exportation au format CSV a échoué."
+  "toastCsvFailed": "L'exportation au format CSV a échoué.",
+  "refresh": "Actualiser",
+  "selectAllPending": "Sélectionner toutes les lignes en attente de cette page",
+  "selectRow": "Sélectionner {username}",
+  "bulkBarLabel": "Soumissions sélectionnées",
+  "selectedCount": "{count, plural, one {# sélectionnée} other {# sélectionnées}}",
+  "clearSelection": "Effacer",
+  "bulkConfirm": "Confirmer la sélection ({count})",
+  "bulkReject": "Refuser la sélection ({count})",
+  "rejectManyTitle": "Refuser {count} soumissions ?",
+  "alsoRemoveMany": "Retirer également ces {count} joueurs de l'événement",
+  "confirmRemoveMany": "Refuser et SUPPRIMER {count} joueurs de {event} ? Cela libère leurs places dans l'événement.",
+  "toastBulkApplied": "{count, plural, one {# soumission mise à jour.} other {# soumissions mises à jour.}}",
+  "toastBulkRefused": "{count, plural, one {# soumission n'a pas été mise à jour} other {# soumissions n'ont pas été mises à jour}} : {message}",
+  "toastBulkFailed": "Impossible de mettre à jour les soumissions sélectionnées."
 }

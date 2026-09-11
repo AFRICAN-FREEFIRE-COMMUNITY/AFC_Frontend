@@ -50,5 +50,19 @@
   "toastLoadFailed": "Failed to load submissions.",
   "toastReasonRequired": "A reason is required. It is sent to the player.",
   "confirmRemove": "Reject and REMOVE {username} from {event}? This frees their slot in the event.",
-  "toastCsvFailed": "CSV export failed."
+  "toastCsvFailed": "CSV export failed.",
+  "refresh": "Refresh",
+  "selectAllPending": "Select every pending row on this page",
+  "selectRow": "Select {username}",
+  "bulkBarLabel": "Selected submissions",
+  "selectedCount": "{count, plural, one {# selected} other {# selected}}",
+  "clearSelection": "Clear",
+  "bulkConfirm": "Confirm selected ({count})",
+  "bulkReject": "Reject selected ({count})",
+  "rejectManyTitle": "Reject {count} submissions?",
+  "alsoRemoveMany": "Also remove these {count} players from the event",
+  "confirmRemoveMany": "Reject and REMOVE {count} players from {event}? This frees their slots in the event.",
+  "toastBulkApplied": "{count, plural, one {# submission updated.} other {# submissions updated.}}",
+  "toastBulkRefused": "{count, plural, one {# submission was not updated} other {# submissions were not updated}}: {message}",
+  "toastBulkFailed": "Could not update the selected submissions."
 }

@@ -14,11 +14,23 @@
 //   1. One line saying what the queue is, plus how many rows are waiting.
 //   2. Toolbar: search (client-side, over the loaded page) + status / event / sponsor filters
 //      (server-side params) + Export CSV of exactly what the filters select.
-//   3. The table: Event | Sponsor | Player | Answer | Status | Actions, with the same light
-//      pill badges and h-7 outline buttons as the sponsor portal, so the two read as one system.
+//   3. The table: [select] | Event | Sponsor | Player | Answer | Status | Actions, with the same
+//      light pill badges and h-7 outline buttons as the sponsor portal, so the two read as one
+//      system. Pending rows carry a checkbox; the header checkbox selects every pending row on
+//      the page (owner 2026-09-11: "there should be a way to bulk approve or reject").
 //   4. "Showing x to y of z" + server offset pagination.
-//   5. The reject dialog: reason REQUIRED (it reaches the player by email and in-app), plus an
-//      "also remove them from the event" checkbox that switches the call to reject_final.
+//   5. The bulk bar: appears once anything is selected, sticks to the bottom of the viewport,
+//      Confirm selected (n) / Reject selected (n) / Clear. One request for the whole batch.
+//   6. The reject dialog: reason REQUIRED (it reaches the player by email and in-app), plus an
+//      "also remove them from the event" checkbox that switches the call to reject_final. The
+//      same dialog serves one row or a batch; a batch shares one reason.
+//
+// NO RELOAD AFTER A DECISION (owner 2026-09-11: "the pages shouldn't reload each time you
+// confirm or reject"): a decision, single or bulk, patches the affected rows IN PLACE from the
+// submission shape the backend returns, so the table never unmounts, the scroll position holds
+// and a row you just approved shows Undo right where it was. The server is re-read only when
+// the filters or page change, or through the Refresh button. Under the Pending filter a decided
+// row therefore stays visible until the next refresh; that is deliberate, it is the undo window.
 //
 // HOW IT CONNECTS
 //   - Data: lib/sponsors.ts sponsorsApi.queue / queueCsv -> backend
@@ -27,6 +39,9 @@
 //   - Decisions: sponsorsApi.decideSubmission -> afc_sponsors decide_submission, the identical
 //     endpoint the sponsor portal's EngagementSubmissionsPanel uses. Rejections notify the player
 //     and (reject_final) free their slot; the backend owns all of that.
+//   - Bulk: sponsorsApi.decideSubmissions -> afc_sponsors decide_submissions, same rules and the
+//     same permission gate applied per id; a refused row is reported in its own result and the
+//     rest of the batch still lands.
 //   - Rendered by app/(a)/a/sponsor-dashboard/page.tsx inside the Approvals tab.
 //   - Copy: messages/{en,fr,pt}/sponsorAdmin.json, namespace "sponsorAdmin".
 //   - Times render through <LocalTime> so a viewer in Lagos and one in Lisbon each see their own
@@ -74,11 +89,20 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { LocalTime } from "@/components/LocalTime";
-import { IconCheck, IconDownload, IconLoader2, IconSearch, IconX } from "@tabler/icons-react";
+import { NewBadge } from "@/components/NewBadge";
+import {
+  IconCheck,
+  IconDownload,
+  IconLoader2,
+  IconRefresh,
+  IconSearch,
+  IconX,
+} from "@tabler/icons-react";
 
 import { matchesSearch } from "@/lib/search";
 import {
   sponsorsApi,
+  type DecidedSubmission,
   type QueuedSubmissionRow,
   type SponsorQueueFilters,
 } from "@/lib/sponsors";
@@ -88,11 +112,16 @@ import { cn } from "@/lib/utils";
 const QUEUE_PAGE_SIZE = 20;
 
 type DecideAction = "approve" | "reject" | "reject_final" | "undo";
+type BulkAction = Exclude<DecideAction, "undo">;
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
+
+// The day the checkboxes and the bulk bar went live (NEW badge, 5 days, self-expiring).
+const BULK_SINCE = "2026-09-11";
 
 interface RejectDialogState {
   open: boolean;
-  row: QueuedSubmissionRow | null;
+  // one row from its own Reject button, or every selected row from the bulk bar
+  rows: QueuedSubmissionRow[];
   reason: string;
   // true -> fires reject_final, which also frees the player's slot in the event
   removeFromEvent: boolean;
@@ -101,7 +130,7 @@ interface RejectDialogState {
 
 const CLOSED_REJECT_DIALOG: RejectDialogState = {
   open: false,
-  row: null,
+  rows: [],
   reason: "",
   removeFromEvent: false,
   loading: false,
@@ -162,6 +191,10 @@ export function ApprovalQueuePanel() {
   const [acting, setActing] = useState<Map<number, DecideAction>>(new Map());
   const [rejectDialog, setRejectDialog] = useState<RejectDialogState>(CLOSED_REJECT_DIALOG);
 
+  // Ids ticked for a bulk decision. Only pending rows are ever in here: a decided row's checkbox
+  // is not rendered, and a refresh prunes anything that stopped being pending.
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
   // Monotonic guard: a slow response for an older filter must never overwrite a newer one.
   const fetchSeq = useRef(0);
 
@@ -181,6 +214,12 @@ export function ApprovalQueuePanel() {
         setRows(res.results);
         setFilters(res.filters);
         setTotalCount(res.total_count);
+        // Keep a tick only on rows that came back still pending; the rest is gone or decided.
+        setSelected((prev) => {
+          const next = new Set<number>();
+          for (const r of res.results) if (r.approval_status === "pending" && prev.has(r.id)) next.add(r.id);
+          return next;
+        });
         // Deciding the last row of a trailing page can leave us past the end; step back.
         if (res.results.length === 0 && pg > 1 && res.total_count > 0) setPage(pg - 1);
       } catch (err) {
@@ -223,13 +262,47 @@ export function ApprovalQueuePanel() {
   const lastShown = Math.min(page * QUEUE_PAGE_SIZE, totalCount);
 
   // ── decisions ───────────────────────────────────────────────────────────────
-  // One decide call, then a refetch, so the table always shows the server's truth rather than an
-  // optimistic guess (a rejection can cascade: reject_final also releases the player's slot).
+  // The backend answers every decision with the row's new state (id, approval_status, reason,
+  // can_undo). That is written straight into `rows`, so nothing refetches and nothing scrolls:
+  // the row you acted on changes under your finger and offers Undo. A reject_final also frees
+  // the player's slot server-side; that cascade is not shown here and needs no reload.
+  const patchRows = useCallback((decided: DecidedSubmission[]) => {
+    if (decided.length === 0) return;
+    const byId = new Map(decided.map((d) => [d.id, d]));
+    setRows((prev) =>
+      prev.map((r) => {
+        const d = byId.get(r.id);
+        return d ? { ...r, ...d, updated_at: new Date().toISOString() } : r;
+      }),
+    );
+    // A decided row leaves the selection; an undone row (back to pending) is not re-ticked.
+    setSelected((prev) => {
+      if (prev.size === 0) return prev;
+      const next = new Set(prev);
+      for (const d of decided) next.delete(d.id);
+      return next;
+    });
+  }, []);
+
+  const markActing = useCallback((ids: number[], action: DecideAction | null) => {
+    setActing((prev) => {
+      const next = new Map(prev);
+      for (const id of ids) {
+        if (action) next.set(id, action);
+        else next.delete(id);
+      }
+      return next;
+    });
+  }, []);
+
+  // One row, one call. Kept on the single endpoint so undo (which is never bulk) and the
+  // per-username toasts stay exactly as they were.
   const decide = useCallback(
     async (row: QueuedSubmissionRow, action: DecideAction, reason?: string) => {
-      setActing((prev) => new Map(prev).set(row.id, action));
+      markActing([row.id], action);
       try {
-        await sponsorsApi.decideSubmission(row.id, action, reason);
+        const res = await sponsorsApi.decideSubmission(row.id, action, reason);
+        patchRows([res.submission]);
         const toasts: Record<DecideAction, string> = {
           approve: t("toastConfirmed", { username: row.username }),
           reject: t("toastRejected", { username: row.username }),
@@ -237,40 +310,106 @@ export function ApprovalQueuePanel() {
           undo: t("toastUndone", { username: row.username }),
         };
         toast.success(toasts[action]);
-        await load(statusFilter, eventFilter, sponsorFilter, page);
         return true;
       } catch (err) {
         toast.error(errorMessage(err, t("toastUpdateFailed", { username: row.username })));
         return false;
       } finally {
-        setActing((prev) => {
-          const next = new Map(prev);
-          next.delete(row.id);
-          return next;
-        });
+        markActing([row.id], null);
       }
     },
-    [load, statusFilter, eventFilter, sponsorFilter, page, t],
+    [markActing, patchRows, t],
+  );
+
+  // Many rows, one call (decide_submissions). Every row is judged on its own server-side, so a
+  // batch that mixes a row this person may decide with one they may not still lands the
+  // allowed ones; the refused ones stay pending and ticked, and the toast says how many and why.
+  const decideMany = useCallback(
+    async (targets: QueuedSubmissionRow[], action: BulkAction, reason?: string) => {
+      const ids = targets.map((r) => r.id);
+      markActing(ids, action);
+      try {
+        const res = await sponsorsApi.decideSubmissions(ids, action, reason);
+        patchRows(res.results.flatMap((r) => (r.ok && r.submission ? [r.submission] : [])));
+        if (res.applied > 0) toast.success(t("toastBulkApplied", { count: res.applied }));
+        if (res.refused > 0) {
+          const first = res.results.find((r) => !r.ok);
+          toast.error(t("toastBulkRefused", { count: res.refused, message: first?.message ?? "" }));
+        }
+        return res.refused === 0;
+      } catch (err) {
+        toast.error(errorMessage(err, t("toastBulkFailed")));
+        return false;
+      } finally {
+        markActing(ids, null);
+      }
+    },
+    [markActing, patchRows, t],
+  );
+
+  // The rows a bulk action targets: what is ticked AND still on the page as pending.
+  const selectedRows = useMemo(
+    () => rows.filter((r) => selected.has(r.id) && r.approval_status === "pending"),
+    [rows, selected],
   );
 
   const handleRejectConfirm = async () => {
-    const { row, reason, removeFromEvent } = rejectDialog;
-    if (!row) return;
+    const { rows: targets, reason, removeFromEvent } = rejectDialog;
+    if (targets.length === 0) return;
     // The reason is not optional here: it is what the player is told to fix.
     if (!reason.trim()) {
       toast.error(t("toastReasonRequired"));
       return;
     }
-    if (
-      removeFromEvent &&
-      !window.confirm(t("confirmRemove", { username: row.username, event: row.event_name }))
-    ) {
-      return;
+    if (removeFromEvent) {
+      const question =
+        targets.length === 1
+          ? t("confirmRemove", { username: targets[0].username, event: targets[0].event_name })
+          : t("confirmRemoveMany", { count: targets.length });
+      if (!window.confirm(question)) return;
     }
     setRejectDialog((prev) => ({ ...prev, loading: true }));
-    const ok = await decide(row, removeFromEvent ? "reject_final" : "reject", reason.trim());
+    const action: BulkAction = removeFromEvent ? "reject_final" : "reject";
+    const ok =
+      targets.length === 1
+        ? await decide(targets[0], action, reason.trim())
+        : await decideMany(targets, action, reason.trim());
     setRejectDialog(ok ? CLOSED_REJECT_DIALOG : { ...rejectDialog, loading: false });
   };
+
+  // ── selection ───────────────────────────────────────────────────────────────
+  // The header checkbox works on the rows the person can SEE: the page after the search box.
+  const visiblePending = useMemo(
+    () => visible.filter((r) => r.approval_status === "pending"),
+    [visible],
+  );
+  const visiblePendingSelected = visiblePending.filter((r) => selected.has(r.id)).length;
+  const headerChecked: boolean | "indeterminate" =
+    visiblePending.length > 0 && visiblePendingSelected === visiblePending.length
+      ? true
+      : visiblePendingSelected > 0
+        ? "indeterminate"
+        : false;
+
+  const toggleRow = (id: number, on: boolean) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+
+  const toggleVisiblePending = (on: boolean) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const r of visiblePending) {
+        if (on) next.add(r.id);
+        else next.delete(r.id);
+      }
+      return next;
+    });
+
+  const bulkBusy = selectedRows.some((r) => acting.has(r.id));
 
   const handleExport = async () => {
     try {
@@ -357,18 +496,32 @@ export function ApprovalQueuePanel() {
             </SelectContent>
           </Select>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleExport}
-          disabled={totalCount === 0}
-          className="shrink-0"
-        >
-          <IconDownload className="size-4 mr-1" />
-          {t("exportCsv")}
-        </Button>
+        <div className="flex gap-3">
+          {/* Refresh is the ONLY way the table re-reads the server outside a filter or page
+              change, now that decisions patch rows in place. It dims the table rather than
+              swapping it for a spinner, so the viewport stays put. */}
+          <Button
+            variant="outline"
+            onClick={() => load(statusFilter, eventFilter, sponsorFilter, page)}
+            disabled={loading}
+            className="shrink-0"
+          >
+            <IconRefresh className={cn("size-4 mr-1", loading && "animate-spin")} />
+            {t("refresh")}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            disabled={totalCount === 0}
+            className="shrink-0"
+          >
+            <IconDownload className="size-4 mr-1" />
+            {t("exportCsv")}
+          </Button>
+        </div>
       </div>
 
-      {loading ? (
+      {loading && rows.length === 0 ? (
         <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
           <IconLoader2 className="size-5 animate-spin" />
           {t("loading")}
@@ -381,15 +534,27 @@ export function ApprovalQueuePanel() {
         </Card>
       ) : (
         <Card className="pt-2">
-          <CardContent className="p-0">
+          <CardContent className={cn("p-0", loading && "opacity-60 pointer-events-none")}>
             {/* The table scrolls inside its own box, so a phone never scrolls the whole page.
-                min-w is what makes that real: without it the six columns squeeze into 350px and
+                min-w is what makes that real: without it the seven columns squeeze into 350px and
                 Status and Actions get clipped instead of coming into reach by scrolling.
                 (Same idiom as the rankings scoring-config tables.) */}
             <div className="overflow-x-auto">
-              <Table className="min-w-[860px]">
+              <Table className="min-w-[900px]">
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      {/* Ticks every pending row on this page; indeterminate when only some are. */}
+                      <div className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={headerChecked}
+                          disabled={visiblePending.length === 0}
+                          onCheckedChange={(v) => toggleVisiblePending(v === true)}
+                          aria-label={t("selectAllPending")}
+                        />
+                        <NewBadge since={BULK_SINCE} />
+                      </div>
+                    </TableHead>
                     <TableHead>{t("colEvent")}</TableHead>
                     <TableHead>{t("colSponsor")}</TableHead>
                     <TableHead>{t("colPlayer")}</TableHead>
@@ -402,7 +567,17 @@ export function ApprovalQueuePanel() {
                   {visible.map((row) => {
                     const busy = acting.has(row.id);
                     return (
-                      <TableRow key={row.id}>
+                      <TableRow key={row.id} data-state={selected.has(row.id) ? "selected" : undefined}>
+                        <TableCell>
+                          {row.approval_status === "pending" && (
+                            <Checkbox
+                              checked={selected.has(row.id)}
+                              disabled={busy}
+                              onCheckedChange={(v) => toggleRow(row.id, v === true)}
+                              aria-label={t("selectRow", { username: row.username })}
+                            />
+                          )}
+                        </TableCell>
                         <TableCell className="max-w-[14rem] truncate" title={row.event_name}>
                           {row.event_name}
                         </TableCell>
@@ -457,7 +632,7 @@ export function ApprovalQueuePanel() {
                                   onClick={() =>
                                     setRejectDialog({
                                       open: true,
-                                      row,
+                                      rows: [row],
                                       reason: "",
                                       removeFromEvent: false,
                                       loading: false,
@@ -547,7 +722,66 @@ export function ApprovalQueuePanel() {
         </Card>
       )}
 
-      {/* Reject dialog: the reason reaches the player, so it is required. */}
+      {/* Bulk bar: only while something is ticked. Sticky to the bottom of the viewport while
+          the list runs past it, in flow once the end of the list is on screen. A filled surface
+          with a neutral shadow, no outline (design rule), and the counts come from selectedRows
+          so a row decided by its own button drops out of the numbers immediately. */}
+      {selectedRows.length > 0 && (
+        <div
+          className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-md bg-card px-3 py-2 shadow-md"
+          role="region"
+          aria-label={t("bulkBarLabel")}
+        >
+          <span className="flex items-center gap-2 text-sm font-medium">
+            {t("selectedCount", { count: selectedRows.length })}
+            <NewBadge since={BULK_SINCE} />
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs"
+            disabled={bulkBusy}
+            onClick={() => setSelected(new Set())}
+          >
+            {t("clearSelection")}
+          </Button>
+          <div className="ml-auto flex gap-2">
+            <Button
+              size="sm"
+              className="h-8 bg-green-600 text-white hover:bg-green-700"
+              disabled={bulkBusy}
+              onClick={() => decideMany(selectedRows, "approve")}
+            >
+              {bulkBusy ? (
+                <IconLoader2 className="size-3 animate-spin" />
+              ) : (
+                <IconCheck className="size-3" />
+              )}
+              {t("bulkConfirm", { count: selectedRows.length })}
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="h-8"
+              disabled={bulkBusy}
+              onClick={() =>
+                setRejectDialog({
+                  open: true,
+                  rows: selectedRows,
+                  reason: "",
+                  removeFromEvent: false,
+                  loading: false,
+                })
+              }
+            >
+              <IconX className="size-3" />
+              {t("bulkReject", { count: selectedRows.length })}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Reject dialog: the reason reaches the player, so it is required. One row or a batch. */}
       <Dialog
         open={rejectDialog.open}
         onOpenChange={(open) =>
@@ -557,7 +791,9 @@ export function ApprovalQueuePanel() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {t("rejectTitle", { username: rejectDialog.row?.username ?? "" })}
+              {rejectDialog.rows.length > 1
+                ? t("rejectManyTitle", { count: rejectDialog.rows.length })
+                : t("rejectTitle", { username: rejectDialog.rows[0]?.username ?? "" })}
             </DialogTitle>
             {/* Radix wants every dialog described, and this is the sentence that matters: what
                 the reason is for. It also removes the "Missing Description" console warning. */}

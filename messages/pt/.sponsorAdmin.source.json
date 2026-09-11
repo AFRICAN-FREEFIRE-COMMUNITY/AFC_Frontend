@@ -53,5 +53,18 @@
   "inviteRevoke": "Revoke the invitation for {email}",
   "inviteRevoked": "Invitation revoked.",
   "toastInviteFailed": "Could not send the invitation.",
-  "toastRevokeFailed": "Could not revoke the invitation."
+  "toastRevokeFailed": "Could not revoke the invitation.",
+  "refresh": "Refresh",
+  "selectAllPending": "Select every pending row on this page",
+  "selectRow": "Select {username}",
+  "bulkBarLabel": "Selected submissions",
+  "selectedCount": "{count, plural, one {# selected} other {# selected}}",
+  "clearSelection": "Clear",
+  "bulkConfirm": "Confirm selected ({count})",
+  "bulkReject": "Reject selected ({count})",
+  "rejectManyTitle": "Reject {count} submissions?",
+  "confirmRemoveMany": "Reject {count} players and free their slots in their events?",
+  "toastBulkApplied": "{count, plural, one {# submission updated.} other {# submissions updated.}}",
+  "toastBulkRefused": "{count, plural, one {# submission was not updated} other {# submissions were not updated}}: {message}",
+  "toastBulkFailed": "Could not update the selected submissions."
 }
