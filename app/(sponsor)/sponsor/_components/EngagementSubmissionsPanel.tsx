@@ -14,8 +14,11 @@
 //      Pending-count chips ride on the tabs when requires_approval.
 //   3. Toolbar: search input (client-side, over the loaded page) + status
 //      filter Select (All / Pending / Approved / Rejected, server-side param).
-//   4. The submissions table: Username | (Engagement, All tab only) | Value |
-//      Status (light pill; rejected carries the reason as a title) | Actions.
+//   4. The submissions table: [select] | Username | (Engagement, All tab only) |
+//      Value | Status (light pill; rejected carries the reason as a title) |
+//      Actions. Pending rows carry a checkbox and the header checkbox ticks
+//      every pending row on the page (owner 2026-09-11: "there should be a way
+//      to bulk approve or reject"). Only shown when the approval gate is on.
 //      Actions per approval_status:
 //        pending      -> h-7 outline Confirm (approve) + Reject (reason dialog)
 //        approved     -> "Confirmed by you" + Undo (when can_undo)
@@ -24,11 +27,23 @@
 //   5. Footer: "Showing x-y of z" + pagination (SERVER offset paging via the
 //      endpoint's limit/offset params, same Pagination idiom as the legacy
 //      sponsor dashboard).
-//   6. Reject dialog: REQUIRED reason textarea (the reason rides in the
+//   6. Bulk bar: appears while anything is ticked, sticks to the bottom of the
+//      viewport: Confirm selected (n) / Reject selected (n) / Clear. One
+//      request for the batch (sponsorsApi.decideSubmissions).
+//   7. Reject dialog: REQUIRED reason textarea (the reason rides in the
 //      player's rejection email + in-app notification) + an extra "Also remove
 //      from the event" checkbox that switches the action to reject_final
 //      (frees the player's slot; button relabels to "Reject and remove" and
-//      asks for an explicit confirm before firing).
+//      asks for an explicit confirm before firing). Serves one row or the
+//      whole selection; a batch shares one reason.
+//
+// NO RELOAD AFTER A DECISION (owner 2026-09-11: "the pages shouldn't reload
+// each time you confirm or reject"): every decision, single or bulk, patches
+// the affected rows IN PLACE from the submission shape the backend returns.
+// The table never unmounts and the scroll position holds. The page is re-read
+// only on a tab / filter / page change or through the Refresh button; the
+// pending chips on the tabs still re-count in the background (cheap limit-1
+// probes that touch nothing on screen but the numbers).
 //
 // HOW IT CONNECTS:
 //   - Rendered by ScopedSponsorDashboard.tsx (same folder) inside the event
@@ -36,9 +51,10 @@
 //     (engagements written by the P2 wizard builder). Events without
 //     engagements keep the legacy submissions table in the parent.
 //   - Data: sponsorsApi.engagementSubmissions / decideSubmission /
-//     engagementSubmissionsCsv (lib/sponsors.ts -> afc_sponsors engagement
-//     endpoints). The parent fetches page 1 (All tab, no status filter) and
-//     hands it down as `initial` so this panel never double-fetches on mount.
+//     decideSubmissions (bulk) / engagementSubmissionsCsv (lib/sponsors.ts ->
+//     afc_sponsors engagement endpoints). The parent fetches page 1 (All tab,
+//     no status filter) and hands it down as `initial` so this panel never
+//     double-fetches on mount.
 //   - A rejected player resubmits via sponsorsApi.resubmitSubmission on their
 //     side; the corrected row returns to THIS pending queue.
 //
@@ -89,11 +105,13 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { NewBadge } from "@/components/NewBadge";
 import { ITEMS_PER_PAGE } from "@/constants";
 import { matchesSearch } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import {
   sponsorsApi,
+  type DecidedSubmission,
   type EngagementSubmissionRow,
   type SponsorEngagement,
   type SponsorEventRow,
@@ -104,6 +122,7 @@ import {
   IconCheck,
   IconDownload,
   IconLoader2,
+  IconRefresh,
   IconSearch,
   IconX,
 } from "@tabler/icons-react";
@@ -127,8 +146,12 @@ export interface EngagementSubmissionsPayload {
 // exact same limit and the seed response lines up with this panel's paging.
 export const ENGAGEMENT_PAGE_SIZE = ITEMS_PER_PAGE;
 
+// The day the checkboxes and the bulk bar went live (NEW badge, 5 days, self-expiring).
+const BULK_SINCE = "2026-09-11";
+
 type StatusFilter = "all" | "pending" | "approved" | "rejected";
 type DecideAction = "approve" | "reject" | "reject_final" | "undo";
+type BulkAction = Exclude<DecideAction, "undo">;
 
 // ── small helpers ─────────────────────────────────────────────────────────────
 
@@ -215,7 +238,8 @@ function ApprovalPill({
 
 interface RejectDialogState {
   open: boolean;
-  row: EngagementSubmissionRow | null;
+  // one row from its own Reject button, or every selected row from the bulk bar
+  rows: EngagementSubmissionRow[];
   reason: string;
   // true -> the decision fires as reject_final (also frees the player's slot)
   removeFromEvent: boolean;
@@ -224,7 +248,7 @@ interface RejectDialogState {
 
 const CLOSED_REJECT_DIALOG: RejectDialogState = {
   open: false,
-  row: null,
+  rows: [],
   reason: "",
   removeFromEvent: false,
   loading: false,
@@ -275,6 +299,11 @@ export function EngagementSubmissionsPanel({
 
   const [rejectDialog, setRejectDialog] = useState<RejectDialogState>(CLOSED_REJECT_DIALOG);
 
+  // Ids ticked for a bulk decision. Only pending rows are ever in here: a decided
+  // row's checkbox is not rendered, and a page load prunes anything that stopped
+  // being pending.
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
   // ── data loading (server offset paging) ─────────────────────────────────────
 
   // Monotonic sequence guard: a stale response (user clicked tabs fast) must
@@ -294,6 +323,12 @@ export function EngagementSubmissionsPanel({
         });
         if (fetchSeq.current !== mySeq) return; // a newer fetch superseded this one
         setData(res);
+        // Keep a tick only on rows that came back still pending.
+        setSelected((prev) => {
+          const next = new Set<number>();
+          for (const r of res.results) if (r.approval_status === "pending" && prev.has(r.id)) next.add(r.id);
+          return next;
+        });
         // Deciding the last row of a trailing page (e.g. approving the only
         // pending row on page 2 of the Pending filter) can leave us past the
         // end; step back one page and let the effect refetch.
@@ -357,14 +392,50 @@ export function EngagementSubmissionsPanel({
 
   // ── decisions (P4 approval queue) ────────────────────────────────────────────
 
-  // Fire one decide call, toast the outcome, then refetch the current page +
-  // the pending chips so the table always reflects the server's truth.
-  // Returns true on success (the reject dialog closes only then).
+  // The backend answers every decision with the row's new state (id,
+  // approval_status, reason, can_undo). That is written straight into the
+  // current page, so nothing refetches and nothing scrolls: the row changes
+  // under your finger and offers Undo. The pending chips re-count in the
+  // background because a decision moves a row between them.
+  const patchRows = useCallback((decided: DecidedSubmission[]) => {
+    if (decided.length === 0) return;
+    const byId = new Map(decided.map((d) => [d.id, d]));
+    setData((prev) => ({
+      ...prev,
+      results: prev.results.map((r) => {
+        const d = byId.get(r.id);
+        return d ? { ...r, ...d, updated_at: new Date().toISOString() } : r;
+      }),
+    }));
+    // A decided row leaves the selection; an undone row is not re-ticked.
+    setSelected((prev) => {
+      if (prev.size === 0) return prev;
+      const next = new Set(prev);
+      for (const d of decided) next.delete(d.id);
+      return next;
+    });
+  }, []);
+
+  const markActing = useCallback((ids: number[], action: DecideAction | null) => {
+    setActing((prev) => {
+      const next = new Map(prev);
+      for (const id of ids) {
+        if (action) next.set(id, action);
+        else next.delete(id);
+      }
+      return next;
+    });
+  }, []);
+
+  // One row, one call. Stays on the single endpoint so undo (never bulk) and
+  // the per-username toasts are exactly as they were. Returns true on success
+  // (the reject dialog closes only then).
   const decide = useCallback(
     async (row: EngagementSubmissionRow, action: DecideAction, reason?: string) => {
-      setActing((prev) => new Map(prev).set(row.id, action));
+      markActing([row.id], action);
       try {
-        await sponsorsApi.decideSubmission(row.id, action, reason);
+        const res = await sponsorsApi.decideSubmission(row.id, action, reason);
+        patchRows([res.submission]);
         if (action === "approve") {
           toast.success(t("toastConfirmed", { username: row.username }));
         } else if (action === "reject") {
@@ -374,30 +445,58 @@ export function EngagementSubmissionsPanel({
         } else {
           toast.success(t("toastUndone", { username: row.username }));
         }
-        await loadPage(activeTab, statusFilter, page);
         refreshPendingCounts();
         return true;
       } catch (err) {
         toast.error(errorMessage(err, t("toastUpdateFailed", { username: row.username })));
         return false;
       } finally {
-        setActing((prev) => {
-          const next = new Map(prev);
-          next.delete(row.id);
-          return next;
-        });
+        markActing([row.id], null);
       }
     },
-    [activeTab, statusFilter, page, loadPage, refreshPendingCounts, t],
+    [markActing, patchRows, refreshPendingCounts, t],
   );
 
-  const openRejectDialog = (row: EngagementSubmissionRow) => {
-    setRejectDialog({ open: true, row, reason: "", removeFromEvent: false, loading: false });
+  // Many rows, one call (decide_submissions). Every row is judged on its own
+  // server-side; a refused row stays pending and ticked, and the toast says
+  // how many and why.
+  const decideMany = useCallback(
+    async (targets: EngagementSubmissionRow[], action: BulkAction, reason?: string) => {
+      const ids = targets.map((r) => r.id);
+      markActing(ids, action);
+      try {
+        const res = await sponsorsApi.decideSubmissions(ids, action, reason);
+        patchRows(res.results.flatMap((r) => (r.ok && r.submission ? [r.submission] : [])));
+        if (res.applied > 0) toast.success(t("toastBulkApplied", { count: res.applied }));
+        if (res.refused > 0) {
+          const first = res.results.find((r) => !r.ok);
+          toast.error(t("toastBulkRefused", { count: res.refused, message: first?.message ?? "" }));
+        }
+        refreshPendingCounts();
+        return res.refused === 0;
+      } catch (err) {
+        toast.error(errorMessage(err, t("toastBulkFailed")));
+        return false;
+      } finally {
+        markActing(ids, null);
+      }
+    },
+    [markActing, patchRows, refreshPendingCounts, t],
+  );
+
+  // The rows a bulk action targets: ticked AND still pending on this page.
+  const selectedRows = useMemo(
+    () => data.results.filter((r) => selected.has(r.id) && r.approval_status === "pending"),
+    [data.results, selected],
+  );
+
+  const openRejectDialog = (rows: EngagementSubmissionRow[]) => {
+    setRejectDialog({ open: true, rows, reason: "", removeFromEvent: false, loading: false });
   };
 
   const handleRejectConfirm = async () => {
-    const { row, reason, removeFromEvent } = rejectDialog;
-    if (!row) return;
+    const { rows: targets, reason, removeFromEvent } = rejectDialog;
+    if (targets.length === 0) return;
     // Reason is REQUIRED here (unlike the legacy dialog): it rides in the
     // player's rejection email + in-app notification.
     if (!reason.trim()) {
@@ -406,16 +505,19 @@ export function EngagementSubmissionsPanel({
     }
     // reject_final frees the player's slot in the event; demand an explicit
     // confirm on top of the checkbox before firing it.
-    if (
-      removeFromEvent &&
-      !window.confirm(
-        t("confirmRemove", { username: row.username, event: event.event_name }),
-      )
-    ) {
-      return;
+    if (removeFromEvent) {
+      const question =
+        targets.length === 1
+          ? t("confirmRemove", { username: targets[0].username, event: event.event_name })
+          : t("confirmRemoveMany", { count: targets.length, event: event.event_name });
+      if (!window.confirm(question)) return;
     }
     setRejectDialog((prev) => ({ ...prev, loading: true }));
-    const ok = await decide(row, removeFromEvent ? "reject_final" : "reject", reason.trim());
+    const action: BulkAction = removeFromEvent ? "reject_final" : "reject";
+    const ok =
+      targets.length === 1
+        ? await decide(targets[0], action, reason.trim())
+        : await decideMany(targets, action, reason.trim());
     if (ok) {
       setRejectDialog(CLOSED_REJECT_DIALOG);
     } else {
@@ -451,6 +553,42 @@ export function EngagementSubmissionsPanel({
       matchesSearch([r.username, r.value, r.engagement_label], search),
     );
   }, [data.results, search]);
+
+  // ── selection (bulk decisions) ──────────────────────────────────────────────
+  // The header checkbox works on the rows the person can SEE: this page after
+  // the search box. Only offered when the approval gate is on; without it no
+  // row is ever pending.
+  const visiblePending = useMemo(
+    () => filtered.filter((r) => r.approval_status === "pending"),
+    [filtered],
+  );
+  const visiblePendingSelected = visiblePending.filter((r) => selected.has(r.id)).length;
+  const headerChecked: boolean | "indeterminate" =
+    visiblePending.length > 0 && visiblePendingSelected === visiblePending.length
+      ? true
+      : visiblePendingSelected > 0
+        ? "indeterminate"
+        : false;
+
+  const toggleRow = (id: number, on: boolean) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+
+  const toggleVisiblePending = (on: boolean) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const r of visiblePending) {
+        if (on) next.add(r.id);
+        else next.delete(r.id);
+      }
+      return next;
+    });
+
+  const bulkBusy = selectedRows.some((r) => acting.has(r.id));
 
   // ── paging numbers (server totals, mockup's "Showing x-y of z") ─────────────
 
@@ -495,9 +633,25 @@ export function EngagementSubmissionsPanel({
               {t("privacyLine", { name: sponsor.name })}
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={exportCsv}>
-            <IconDownload className="size-4" /> {t("exportCsv")}
-          </Button>
+          <div className="flex gap-2">
+            {/* Refresh is the only way this page re-reads the server outside a
+                tab / filter / page change, now that decisions patch rows in
+                place. Loading dims the table instead of unmounting it. */}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={loading}
+              onClick={() => {
+                loadPage(activeTab, statusFilter, page);
+                refreshPendingCounts();
+              }}
+            >
+              <IconRefresh className={cn("size-4", loading && "animate-spin")} /> {t("refresh")}
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportCsv}>
+              <IconDownload className="size-4" /> {t("exportCsv")}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -579,6 +733,20 @@ export function EngagementSubmissionsPanel({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {requiresApproval && (
+                      <TableHead className="w-10">
+                        {/* Ticks every pending row on this page; indeterminate when only some are. */}
+                        <div className="flex items-center gap-1.5">
+                          <Checkbox
+                            checked={headerChecked}
+                            disabled={visiblePending.length === 0}
+                            onCheckedChange={(v) => toggleVisiblePending(v === true)}
+                            aria-label={t("selectAllPending")}
+                          />
+                          <NewBadge since={BULK_SINCE} />
+                        </div>
+                      </TableHead>
+                    )}
                     <TableHead>{t("colUsername")}</TableHead>
                     {/* The All tab mixes engagements, so name each row's source. */}
                     {activeTab === "all" && <TableHead>{t("colEngagement")}</TableHead>}
@@ -591,7 +759,19 @@ export function EngagementSubmissionsPanel({
                   {filtered.map((r) => {
                     const rowAction = acting.get(r.id);
                     return (
-                      <TableRow key={r.id}>
+                      <TableRow key={r.id} data-state={selected.has(r.id) ? "selected" : undefined}>
+                        {requiresApproval && (
+                          <TableCell>
+                            {r.approval_status === "pending" && (
+                              <Checkbox
+                                checked={selected.has(r.id)}
+                                disabled={!!rowAction}
+                                onCheckedChange={(v) => toggleRow(r.id, v === true)}
+                                aria-label={t("selectRow", { username: r.username })}
+                              />
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell className="font-medium">{r.username}</TableCell>
                         {activeTab === "all" && (
                           <TableCell className="text-xs text-muted-foreground">
@@ -633,7 +813,7 @@ export function EngagementSubmissionsPanel({
                                 variant="outline"
                                 className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
                                 disabled={!!rowAction}
-                                onClick={() => openRejectDialog(r)}
+                                onClick={() => openRejectDialog([r])}
                               >
                                 {rowAction === "reject" || rowAction === "reject_final" ? (
                                   <IconLoader2 className="size-3 animate-spin" />
@@ -783,7 +963,57 @@ export function EngagementSubmissionsPanel({
         </p>
       )}
 
-      {/* ── Reject dialog: REQUIRED reason + optional reject_final ── */}
+      {/* Bulk bar: only while something is ticked. Sticky to the bottom of the
+          viewport while the list runs past it, in flow once the end is on
+          screen. Filled surface, neutral shadow, no outline (design rule). */}
+      {selectedRows.length > 0 && (
+        <div
+          className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-md bg-card px-3 py-2 shadow-md"
+          role="region"
+          aria-label={t("bulkBarLabel")}
+        >
+          <span className="flex items-center gap-2 text-sm font-medium">
+            {t("selectedCount", { count: selectedRows.length })}
+            <NewBadge since={BULK_SINCE} />
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs"
+            disabled={bulkBusy}
+            onClick={() => setSelected(new Set())}
+          >
+            {t("clearSelection")}
+          </Button>
+          <div className="ml-auto flex gap-2">
+            <Button
+              size="sm"
+              className="h-8 bg-green-600 text-white hover:bg-green-700"
+              disabled={bulkBusy}
+              onClick={() => decideMany(selectedRows, "approve")}
+            >
+              {bulkBusy ? (
+                <IconLoader2 className="size-3 animate-spin" />
+              ) : (
+                <IconCheck className="size-3" />
+              )}
+              {t("bulkConfirm", { count: selectedRows.length })}
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="h-8"
+              disabled={bulkBusy}
+              onClick={() => openRejectDialog(selectedRows)}
+            >
+              <IconX className="size-3" />
+              {t("bulkReject", { count: selectedRows.length })}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Reject dialog: REQUIRED reason + optional reject_final. One row or the selection. ── */}
       <Dialog
         open={rejectDialog.open}
         onOpenChange={(open) =>
@@ -794,7 +1024,9 @@ export function EngagementSubmissionsPanel({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {t("rejectDialogTitle", { username: rejectDialog.row?.username ?? "" })}
+              {rejectDialog.rows.length > 1
+                ? t("rejectManyTitle", { count: rejectDialog.rows.length })
+                : t("rejectDialogTitle", { username: rejectDialog.rows[0]?.username ?? "" })}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 py-2">
@@ -823,7 +1055,9 @@ export function EngagementSubmissionsPanel({
                 }
               />
               <span>
-                {t("alsoRemove", { username: rejectDialog.row?.username ?? "" })}
+                {rejectDialog.rows.length > 1
+                  ? t("alsoRemoveMany", { count: rejectDialog.rows.length })
+                  : t("alsoRemove", { username: rejectDialog.rows[0]?.username ?? "" })}
                 <span className="block text-xs text-muted-foreground">
                   {t("alsoRemoveNote")}
                 </span>

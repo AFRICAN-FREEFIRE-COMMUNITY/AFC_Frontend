@@ -53,5 +53,18 @@
   "inviteRevoke": "Révoquer l'invitation pour {email}",
   "inviteRevoked": "Invitation révoquée.",
   "toastInviteFailed": "Impossible d'envoyer l'invitation.",
-  "toastRevokeFailed": "Impossible de révoquer l'invitation."
+  "toastRevokeFailed": "Impossible de révoquer l'invitation.",
+  "refresh": "Actualiser",
+  "selectAllPending": "Sélectionner toutes les lignes en attente de cette page",
+  "selectRow": "Sélectionner {username}",
+  "bulkBarLabel": "Soumissions sélectionnées",
+  "selectedCount": "{count, plural, one {# sélectionnée} other {# sélectionnées}}",
+  "clearSelection": "Effacer",
+  "bulkConfirm": "Confirmer la sélection ({count})",
+  "bulkReject": "Rejeter la sélection ({count})",
+  "rejectManyTitle": "Rejeter {count} soumissions ?",
+  "confirmRemoveMany": "Rejeter {count} joueurs et libérer leurs places dans leurs événements ?",
+  "toastBulkApplied": "{count, plural, one {# soumission mise à jour.} other {# soumissions mises à jour.}}",
+  "toastBulkRefused": "{count, plural, one {# soumission n'a pas été mise à jour} other {# soumissions n'ont pas été mises à jour}} : {message}",
+  "toastBulkFailed": "Impossible de mettre à jour les soumissions sélectionnées."
 }

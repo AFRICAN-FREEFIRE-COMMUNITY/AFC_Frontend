@@ -53,5 +53,18 @@
   "inviteRevoke": "Revogar o convite para {email}",
   "inviteRevoked": "Convite revogado.",
   "toastInviteFailed": "Não foi possível enviar o convite.",
-  "toastRevokeFailed": "Não foi possível revogar o convite."
+  "toastRevokeFailed": "Não foi possível revogar o convite.",
+  "refresh": "Atualizar",
+  "selectAllPending": "Selecionar todas as linhas pendentes desta página",
+  "selectRow": "Selecionar {username}",
+  "bulkBarLabel": "Submissões selecionadas",
+  "selectedCount": "{count, plural, one {# selecionada} other {# selecionadas}}",
+  "clearSelection": "Limpar",
+  "bulkConfirm": "Confirmar selecionadas ({count})",
+  "bulkReject": "Rejeitar selecionadas ({count})",
+  "rejectManyTitle": "Rejeitar {count} submissões?",
+  "confirmRemoveMany": "Rejeitar {count} jogadores e libertar os lugares deles nos respetivos eventos?",
+  "toastBulkApplied": "{count, plural, one {# submissão atualizada.} other {# submissões atualizadas.}}",
+  "toastBulkRefused": "{count, plural, one {# submissão não foi atualizada} other {# submissões não foram atualizadas}}: {message}",
+  "toastBulkFailed": "Não foi possível atualizar as submissões selecionadas."
 }
