@@ -53,7 +53,7 @@ export const LatestNews = () => {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-all-news/`,
         );
 
-        if (res.statusText === "OK") {
+        if (res.status >= 200 && res.status < 300) {
           setNews(res.data.news.splice(0, 2));
         } else if (!background) {
           toast.error(t("latestNews.toast.error"));

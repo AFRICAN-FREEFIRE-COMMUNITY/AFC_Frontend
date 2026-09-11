@@ -168,7 +168,7 @@ export const EventsAdminContent = () => {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-average-participants-per-event/`,
         );
 
-        if (eventsResponse.statusText === "OK") {
+        if (eventsResponse.status >= 200 && eventsResponse.status < 300) {
           setEvents(eventsResponse.data.events);
           setTotalEvents(eventsResponse.data.events.length);
           setTotalTournaments(tournaments.data.total_tournaments);

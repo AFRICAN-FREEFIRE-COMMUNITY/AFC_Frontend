@@ -235,7 +235,7 @@ export const TeamsAdminContent = () => {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`,
         );
 
-        if (res.statusText === "OK") {
+        if (res.status >= 200 && res.status < 300) {
           setTeams(res.data.teams);
         } else {
           toast.error("Oops! An error occurred");

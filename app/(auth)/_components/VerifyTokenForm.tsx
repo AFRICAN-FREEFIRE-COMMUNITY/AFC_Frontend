@@ -77,7 +77,7 @@ export function VerifyTokenForm({ identifier, method }: Props) {
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/resend-token/`,
           payload
         );
-        if (response.statusText === "OK") {
+        if (response.status >= 200 && response.status < 300) {
           toast.success(response.data.message);
           setResendCooldown(300);
           // Count this resend so the "wrong email/UID?" hint can appear.
@@ -113,7 +113,7 @@ export function VerifyTokenForm({ identifier, method }: Props) {
           payload
         );
 
-        if (response.statusText === "OK") {
+        if (response.status >= 200 && response.status < 300) {
           toast.success(
             t("verifyToken.successRedirecting", {
               message: response.data.message,

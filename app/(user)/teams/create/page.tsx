@@ -174,7 +174,7 @@ export default function CreateTeamForm() {
           },
         );
 
-        if (response.statusText === "Created") {
+        if (response.status >= 200 && response.status < 300) {
           toast.success(t("teamCreate.createdSuccess"));
           router.push("/teams");
         } else {

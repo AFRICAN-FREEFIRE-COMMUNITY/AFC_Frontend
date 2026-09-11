@@ -60,7 +60,7 @@ export const ContactForm = () => {
           { ...data }
         );
 
-        if (response.statusText === "OK") {
+        if (response.status >= 200 && response.status < 300) {
           toast.success(response.data.message);
           setOpenModal(true);
         } else {

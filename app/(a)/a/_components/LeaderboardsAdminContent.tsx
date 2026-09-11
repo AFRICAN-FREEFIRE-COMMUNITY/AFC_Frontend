@@ -129,8 +129,8 @@ export const LeaderboardsAdminContent = () => {
           authCfg,
         );
         if (
-          eventsResponse.statusText === "OK" ||
-          leaderboardResponse.statusText === "OK"
+          (eventsResponse.status >= 200 && eventsResponse.status < 300) ||
+          (leaderboardResponse.status >= 200 && leaderboardResponse.status < 300)
         ) {
           setEvents(eventsResponse.data.events);
           setLeaderboards(leaderboardResponse.data.leaderboards);
