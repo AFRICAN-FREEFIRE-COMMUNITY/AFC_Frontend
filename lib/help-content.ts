@@ -47,6 +47,8 @@ export const HELP = {
   // ── Step 1: Registration requirements (owner 2026-06-21) ────────────────────
   "events.create.registration_requirements._section":
     "Optional gates that block registration until competitors have uploaded the media and identifiers you need for graphics and broadcasts.",
+  "events.create.open_roster":
+    "Teams may field any AFC player, not only their own members. Nothing from this event counts toward rankings or tiers, and results are entered per team without player stats.",
   "events.create.require_team_logo":
     "Teams cannot register until they have uploaded a team logo.",
   "events.create.require_esport_images":

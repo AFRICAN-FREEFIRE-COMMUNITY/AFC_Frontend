@@ -200,7 +200,9 @@
     },
     "sponsorsCard": {
       "title": "Patrocinadores"
-    }
+    },
+    "openRosterBadge": "Plantel aberto",
+    "openRosterHint": "Qualquer jogador AFC pode ser alinhado. Este evento não conta para os rankings nem para os escalões."
   },
   "leaveModal": {
     "trigger": "Sair do Torneio",
@@ -272,7 +274,10 @@
       "description": "Selecione {min}-{max} jogadores do elenco da sua equipe",
       "availablePlayers": "Jogadores Disponíveis:",
       "selectedCount": "Selecionados: {count} / {max} jogadores",
-      "continue": "Continuar"
+      "continue": "Continuar",
+      "openRosterNote": "Plantel aberto: pode alinhar qualquer jogador AFC, não apenas os membros da sua equipa. Um jogador só pode estar numa equipa neste evento.",
+      "addAnyPlayer": "Procurar um jogador AFC pelo nome de utilizador",
+      "guest": "convidado"
     },
     "teamInfo": {
       "title": "Informações da Equipe",

@@ -1183,6 +1183,11 @@ export default function CreateEventPage() {
           "require_team_logo",
           String((form.getValues("require_team_logo" as never) as unknown as boolean) ?? false),
         );
+        // Open roster (owner 2026-09-11): one contract field, same shape as the toggles above.
+        formData.append(
+          "open_roster",
+          String((form.getValues("open_roster" as never) as unknown as boolean) ?? false),
+        );
         formData.append(
           "require_esport_images",
           String((form.getValues("require_esport_images" as never) as unknown as boolean) ?? false),

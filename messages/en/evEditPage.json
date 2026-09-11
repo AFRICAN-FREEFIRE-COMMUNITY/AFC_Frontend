@@ -139,7 +139,8 @@
     "requireWhatsapp": "WhatsApp number required",
     "allowTeamResults": "Teams submit their own results",
     "minLetterAvatars": "Minimum letter avatars",
-    "waitlistMode": "Waitlist order"
+    "waitlistMode": "Waitlist order",
+    "openRoster": "Open roster"
   },
   "results": {
     "title": "Results",

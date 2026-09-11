@@ -5,6 +5,7 @@ import { useFormContext } from "react-hook-form";
 // i18n: this Basic Info tab is shared by the admin + organizer event-edit wizards. All copy is
 // internationalized via the "evEditTabs" namespace (messages/{en,fr,pt}/evEditTabs.json).
 import { useTranslations } from "next-intl";
+import { NewBadge } from "@/components/NewBadge";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -479,6 +480,29 @@ export default function BasicInfoTab({
               checked={Boolean(requirementsForm.allow_team_result_submissions)}
               onCheckedChange={(v) =>
                 setRequirementsForm((p: any) => ({ ...p, allow_team_result_submissions: v }))
+              }
+            />
+          </div>
+        </div>
+
+        {/* ── Open roster (owner 2026-09-11) ─────────────────────────────────────────────
+            Same reasoning as the block above: this LIFTS a rule (any AFC player may be
+            fielded) rather than adding a gate, so it is not a REQUIREMENT_TOGGLES row. Backed by
+            the same requirementsForm state and both Save buttons. Filled surface, no outline. */}
+        <div className="space-y-3 rounded-lg bg-muted/30 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="open-roster" className="flex items-center gap-2">
+                {t("basicInfo.openRosterLabel")}
+                <NewBadge since="2026-09-11" />
+              </Label>
+              <p className="text-xs text-muted-foreground">{t("basicInfo.openRosterHelp")}</p>
+            </div>
+            <Switch
+              id="open-roster"
+              checked={Boolean(requirementsForm.open_roster)}
+              onCheckedChange={(v) =>
+                setRequirementsForm((p: any) => ({ ...p, open_roster: v }))
               }
             />
           </div>

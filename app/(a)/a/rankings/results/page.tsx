@@ -90,6 +90,9 @@ type Tournament = {
   countPlacement: boolean; // count_placement
   countKills: boolean;   // count_kills
   exclusionCount: number; // active_exclusions
+  // Open-roster event (owner 2026-09-11): never counts, and the backend refuses to switch it
+  // back on. The row shows the reason and its switches are disabled.
+  openRoster: boolean;   // locked_open_roster
 };
 
 // One ResultExclusion as returned by GET result-exclusions/ (serialize_exclusion).
@@ -118,6 +121,7 @@ function mapMarker(row: any): Tournament {
     countPlacement: row.count_placement !== false,
     countKills: row.count_kills !== false,
     exclusionCount: row.active_exclusions ?? 0,
+    openRoster: row.locked_open_roster === true,
   };
 }
 
@@ -143,6 +147,9 @@ type EntityOption = { id: number; name: string };
 // ── status derivation ──
 type Status = "counting" | "partial" | "disabled";
 function statusOf(t: Tournament): Status {
+  // An open-roster event is off whatever its component flags say (the aggregation reads the
+  // event column, not the control row).
+  if (t.openRoster) return "disabled";
   const flagsOn = [t.countWinner, t.countPlacement, t.countKills].filter(Boolean).length;
   if (flagsOn === 0) return "disabled";
   if (flagsOn === 3 && t.exclusionCount === 0) return "counting";
@@ -823,7 +830,8 @@ export default function ResultMarkersPage() {
                     <TableCell className="text-center">
                       <div className="flex justify-center">
                         <Switch
-                          checked={t.countWinner}
+                          checked={t.openRoster ? false : t.countWinner}
+                          disabled={t.openRoster}
                           onCheckedChange={(v) => toggleFlag(t, "countWinner", tr("flags.winner"), v)}
                           aria-label={tr("table.winnerToggle", { name: t.name })}
                         />
@@ -832,7 +840,8 @@ export default function ResultMarkersPage() {
                     <TableCell className="text-center">
                       <div className="flex justify-center">
                         <Switch
-                          checked={t.countPlacement}
+                          checked={t.openRoster ? false : t.countPlacement}
+                          disabled={t.openRoster}
                           onCheckedChange={(v) => toggleFlag(t, "countPlacement", tr("flags.placement"), v)}
                           aria-label={tr("table.placementToggle", { name: t.name })}
                         />
@@ -841,7 +850,8 @@ export default function ResultMarkersPage() {
                     <TableCell className="text-center">
                       <div className="flex justify-center">
                         <Switch
-                          checked={t.countKills}
+                          checked={t.openRoster ? false : t.countKills}
+                          disabled={t.openRoster}
                           onCheckedChange={(v) => toggleFlag(t, "countKills", tr("flags.kills"), v)}
                           aria-label={tr("table.killsToggle", { name: t.name })}
                         />
@@ -850,6 +860,15 @@ export default function ResultMarkersPage() {
                     <TableCell>
                       <div className="flex items-center gap-1.5">
                         <StatusBadge status={status} />
+                        {t.openRoster && (
+                          <Badge
+                            variant="outline"
+                            className="rounded-full px-1.5 py-0 text-[10px] text-muted-foreground"
+                            title={tr("status.openRosterHint")}
+                          >
+                            {tr("status.openRoster")}
+                          </Badge>
+                        )}
                         {excl > 0 && (
                           <Badge variant="outline" className="rounded-full border-orange-500/40 px-1.5 py-0 text-[10px] text-orange-400 tabular-nums">
                             {tr("list.exclShort", { count: excl })}

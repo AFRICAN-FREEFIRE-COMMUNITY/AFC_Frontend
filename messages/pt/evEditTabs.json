@@ -84,7 +84,9 @@
     "saving": "A guardar...",
     "eventDescription": "Sobre este torneio",
     "eventDescriptionPlaceholder": "O que e este torneio, para quem e, e porque vale a pena participar?",
-    "eventDescriptionHelp": "Mostrado na pagina publica do evento. Diferente das regras: e a historia do evento, nao o que desqualifica uma equipa. Deixe em branco e a seccao fica oculta."
+    "eventDescriptionHelp": "Mostrado na pagina publica do evento. Diferente das regras: e a historia do evento, nao o que desqualifica uma equipa. Deixe em branco e a seccao fica oculta.",
+    "openRosterLabel": "Plantel aberto",
+    "openRosterHelp": "As equipas podem alinhar qualquer jogador AFC, não apenas os seus próprios membros. Este evento não conta para os rankings nem para os escalões, e os resultados são introduzidos por equipa."
   },
   "prizeRules": {
     "cardTitle": "Prémios e Regras",

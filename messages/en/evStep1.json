@@ -93,5 +93,7 @@
       "google": "Google",
       "vent": "v-ent.co"
     }
-  }
+  },
+  "openRoster": "Open roster",
+  "openRosterDesc": "Teams may field any AFC player, not only their own members. This event will not count toward rankings or tiers, and results are entered per team."
 }

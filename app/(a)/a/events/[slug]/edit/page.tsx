@@ -393,6 +393,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     waitlist_mode: "first_registered",
     // F3 registration requirements (owner 2026-06-19) - edited + saved via the Waitlist tab,
     // which is the shared home for registration-behavior toggles in the edit form.
+    // Open roster (owner 2026-09-11): lives in this state like the toggles below so BOTH
+    // save buttons persist it (the 2026-07-04 lesson, see the main Save).
+    open_roster: false,
     require_team_logo: false,
     require_esport_images: false,
     require_player_uid: false,
@@ -794,6 +797,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           waitlist_discord_role_id: ed.waitlist_discord_role_id ?? "",
           waitlist_mode: ed.waitlist_mode ?? "first_registered",
           // F3: prefill the registration-requirement toggles from the event.
+          open_roster: ed.open_roster ?? false,
           require_team_logo: ed.require_team_logo ?? false,
           require_esport_images: ed.require_esport_images ?? false,
           require_player_uid: ed.require_player_uid ?? false,
@@ -1609,6 +1613,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
       );
 
       // F3 registration requirements (owner 2026-06-19) - saved alongside the waitlist config.
+      formData.append("open_roster", waitlistForm.open_roster ? "True" : "False");
       formData.append("require_team_logo", waitlistForm.require_team_logo ? "True" : "False");
       formData.append("require_esport_images", waitlistForm.require_esport_images ? "True" : "False");
       formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
@@ -1663,6 +1668,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
                 : null,
               waitlist_discord_role_id: waitlistForm.waitlist_discord_role_id,
               waitlist_mode: waitlistForm.waitlist_mode,
+              open_roster: waitlistForm.open_roster,
               require_team_logo: waitlistForm.require_team_logo,
               require_esport_images: waitlistForm.require_esport_images,
               require_player_uid: waitlistForm.require_player_uid,
@@ -1898,6 +1904,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         // Waitlist tab's button). So toggling a requirement on Basic Info + hitting THIS main Save did
         // not persist it - it reverted on refresh. Re-send them here too (edit_event reads them), so
         // whichever Save the operator clicks persists the requirements.
+        formData.append("open_roster", waitlistForm.open_roster ? "True" : "False");
         formData.append("require_team_logo", waitlistForm.require_team_logo ? "True" : "False");
         formData.append("require_esport_images", waitlistForm.require_esport_images ? "True" : "False");
         formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");

@@ -16,7 +16,9 @@
   "status": {
     "counting": "Counting",
     "partial": "Partial",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "openRoster": "Open roster",
+    "openRosterHint": "Open-roster events never count toward rankings or tiers. This cannot be switched on."
   },
   "filters": {
     "search": "Search tournaments",

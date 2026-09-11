@@ -139,7 +139,8 @@
     "requireWhatsapp": "Número de WhatsApp obrigatório",
     "allowTeamResults": "As equipas enviam os seus resultados",
     "minLetterAvatars": "Mínimo de avatares-letra",
-    "waitlistMode": "Ordem da lista de espera"
+    "waitlistMode": "Ordem da lista de espera",
+    "openRoster": "Plantel aberto"
   },
   "results": {
     "title": "Resultados",

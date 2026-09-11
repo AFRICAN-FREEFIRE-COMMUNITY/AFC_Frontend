@@ -551,5 +551,9 @@
   "publicSponsors.removeFailed": "Could not remove that sponsor.",
   "publicSponsors.nameRequired": "Give the sponsor a name.",
   "publicSponsors.limitReached": "You can show up to {max} sponsors. Remove one to add another.",
-  "changes.eventDescription": "About this tournament"
+  "changes.eventDescription": "About this tournament",
+  "basicInfo": {
+    "openRosterLabel": "Open roster",
+    "openRosterHelp": "Teams may field any AFC player, not only their own members. This event will not count toward rankings or tiers, and results are entered per team."
+  }
 }

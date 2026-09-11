@@ -16,7 +16,9 @@
   "status": {
     "counting": "Contabilizado",
     "partial": "Parcial",
-    "disabled": "Desativado"
+    "disabled": "Desativado",
+    "openRoster": "Plantel aberto",
+    "openRosterHint": "Os eventos de plantel aberto nunca contam para os rankings nem para os escalões. Isto não pode ser ativado."
   },
   "filters": {
     "search": "Pesquisar torneios",

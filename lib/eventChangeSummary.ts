@@ -102,6 +102,7 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   // WhatsApp number" and pressing Save produced "No changes detected. Are you sure you want to
   // save?", and an operator who answers that honestly (Go Back) loses the change and finds the
   // toggle off again on the next visit. The page passes this state as extraBaseline/extraCurrent.
+  open_roster: "openRoster",
   require_team_logo: "requireTeamLogo",
   require_esport_images: "requireEsportImages",
   require_player_profile_image: "requireProfileImage",
@@ -120,6 +121,7 @@ const BOOLEAN_FIELDS = new Set([
   "publish_to_tournaments",
   "publish_to_news",
   "save_to_drafts",
+  "open_roster",
   "require_team_logo",
   "require_esport_images",
   "require_player_profile_image",

@@ -40,6 +40,7 @@ import Image from "next/image";
 import { countries, REGIONS_MAP } from "@/constants";
 import { RequiredConnectionsPicker } from "@/components/events/RequiredConnectionsPicker";
 import { InfoTip } from "@/components/ui/info-tip";
+import { NewBadge } from "@/components/NewBadge";
 // Shared "require letter avatars" control, also rendered by the edit form (BasicInfoTab).
 import { LetterAvatarRequirement } from "./LetterAvatarRequirement";
 import CountryPaymentRulesEditor from "@/components/CountryPaymentRulesEditor";
@@ -796,6 +797,43 @@ export function Step1EventDetails({
             </FormItem>
           )}
         />
+        {/* ── Open roster (owner 2026-09-11) ──────────────────────────────────────────────
+            Its OWN block, not a requirement row: a requirement blocks registration, this one
+            LIFTS a rule. On: any AFC player may be fielded (no club membership needed), the
+            event never counts for rankings or tiers, and results are entered per team. One
+            contract field, event_contract.open_roster; the backend switches the rankings
+            counting control off on save (open_roster.sync_after_save). Shared by the admin and
+            organizer create wizards like everything else in this step. Filled surface, no
+            outline (design rule). */}
+        <div className="space-y-3 rounded-lg bg-muted/30 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="open-roster" className="flex items-center gap-2">
+                {t("openRoster")}
+                <InfoTip id="events.create.open_roster" />
+                <NewBadge since="2026-09-11" />
+              </Label>
+              <p className="text-xs text-muted-foreground">{t("openRosterDesc")}</p>
+            </div>
+            <FormField
+              // @ts-ignore - shared optional field
+              control={form.control}
+              name={"open_roster" as never}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Switch
+                      id="open-roster"
+                      checked={(field.value as unknown as boolean) ?? false}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+
         {/* ── Registration requirements (owner 2026-06-20: moved to STEP 1 so creators see them
             first). Per-event criteria the backend enforces at registration (register_for_event):
             teams need a logo, and every registering player needs the toggled assets (esport image /

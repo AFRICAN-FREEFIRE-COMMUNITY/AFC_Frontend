@@ -16,7 +16,9 @@
   "status": {
     "counting": "Comptabilisé",
     "partial": "Partiel",
-    "disabled": "Désactivé"
+    "disabled": "Désactivé",
+    "openRoster": "Effectif ouvert",
+    "openRosterHint": "Les événements à effectif ouvert ne comptent jamais pour les classements ni les niveaux. Ceci ne peut pas être activé."
   },
   "filters": {
     "search": "Rechercher des tournois",

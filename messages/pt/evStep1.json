@@ -93,5 +93,7 @@
       "google": "Google",
       "vent": "v-ent.co"
     }
-  }
+  },
+  "openRoster": "Plantel aberto",
+  "openRosterDesc": "As equipas podem alinhar qualquer jogador AFC, não apenas os seus próprios membros. Este evento não conta para os rankings nem para os escalões, e os resultados são introduzidos por equipa."
 }
