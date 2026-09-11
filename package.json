@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "check:bugs": "node scripts/check-known-bugs.mjs",
     "i18n:translate": "node scripts/i18n-translate.mjs",
     "design-lint": "node tools/design-lint.mjs"
   },
