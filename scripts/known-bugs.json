@@ -1,0 +1,45 @@
+{
+  "_about": "Registry of bugs this codebase has produced MORE THAN ONCE. Each entry becomes an automatic check (scripts/check-known-bugs.mjs) that runs on every push and every PR and turns the run red with the bug id and the exact file:line. Owner's rule, 2026-09-11: a bug seen twice gets a checker; a red checker is fixed before anything else. Add an entry the second time you meet a bug, with both sightings, so the checker carries its own justification.",
+  "bugs": [
+    {
+      "id": "fe-status-text-gate",
+      "title": "Success gated on response.statusText",
+      "why": "statusText is the HTTP/1.1 reason phrase and is EMPTY under HTTP/2, so `statusText === \"OK\"` reads a healthy 200 as failure: the generic 'Oops! An error occurred' toast, a login that never completes, lists that never load. Production serves HTTP/2 since 2026-09-11.",
+      "seen": [
+        "2026-08 AuthContext.fetchUser and teams/[id] transfer: a valid 200 threw and logged the user out (fixed in place, comment left)",
+        "2026-09-11 VPS rehearsal: 17 more gates in 12 files (login form, modal, forgot password, verify code, LatestNews, teams, contact form, three admin screens) broke the moment nginx spoke h2"
+      ],
+      "fix": "check the status code: `response.status >= 200 && response.status < 300` (axios already rejects non-2xx, so usually no gate is needed at all)",
+      "kind": "regex",
+      "pattern": "\\.statusText\\s*===",
+      "globs": ["app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "contexts/**/*.ts", "contexts/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"],
+      "ignoreLineRegex": "^\\s*//"
+    },
+    {
+      "id": "fe-em-dash",
+      "title": "Em dash or en dash in source or copy",
+      "why": "Hard rule (owner 2026-07-13): never an em dash or en dash anywhere. They read as machine-written and the owner has asked for their removal repeatedly.",
+      "seen": [
+        "2026-08-03: 2,427 removed across roughly 300 files in both repos",
+        "2026-09-04: the design lint found six more that had crept back in"
+      ],
+      "fix": "a hyphen with spaces, a comma, a colon, parentheses, or reword",
+      "kind": "regex",
+      "pattern": "[\\u2014\\u2013]",
+      "globs": ["app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "contexts/**/*.ts", "contexts/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx", "messages/**/*.json", "app/**/*.md"]
+    },
+    {
+      "id": "fe-i18n-namespace-missing",
+      "title": "useTranslations / getTranslations namespace that does not exist in messages/en",
+      "why": "next-intl renders the raw key on screen when a namespace is missing, so a whole page can ship printing 'rankings.admin.ghostTeams.title' and nothing in the build or the tests notices.",
+      "seen": [
+        "2026-08-22 /a/rankings/ghost-teams: useTranslations('rankings.admin.ghostTeams') with no such namespace in en, fr or pt; ~100 raw keys live",
+        "2026-08-30 organizer edit tabs printed 8 raw keys, live since 2026-08-22"
+      ],
+      "fix": "add the namespace object to messages/en/<first segment>.json (then run pnpm i18n:translate), or fix the namespace string",
+      "kind": "i18n-namespace",
+      "globs": ["app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "contexts/**/*.ts", "contexts/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"],
+      "messagesDir": "messages/en"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+# Known-bug checker on every pull request and every push to any branch.
+#
+# scripts/known-bugs.json is the registry of bugs this codebase has produced more than once;
+# scripts/check-known-bugs.mjs runs it. Owner's rule (2026-09-11): a bug seen twice gets a
+# checker, and a red checker is fixed before anything else is merged. The same check is also the
+# first step of the production build (docker-image-live.yml), so nothing that trips it can deploy.
+# Output lines are greppable: KNOWN-BUG <id> <file>:<line>.
+
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [master]
+
+jobs:
+  known-bugs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Known-bug checker
+        run: node scripts/check-known-bugs.mjs

@@ -38,6 +38,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      # First, before any build minute is spent: the registry of bugs this codebase has produced
+      # more than once (scripts/known-bugs.json). A hit here means nothing deploys.
+      - name: Known-bug checker
+        run: node scripts/check-known-bugs.mjs
       - name: Image tags
         id: meta
         run: echo "sha_tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
