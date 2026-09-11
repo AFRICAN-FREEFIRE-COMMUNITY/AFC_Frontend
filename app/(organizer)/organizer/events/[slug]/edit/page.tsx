@@ -436,6 +436,9 @@ export default function OrganizerEditEventPage({
     // Registration-requirement toggles (owner correction 2026-06-22): rendered on Basic Info
     // (BasicInfoTab) but still stored here + saved by the waitlist save, for parity with the
     // admin edit page. Previously the organizer flow never carried/saved these.
+    // Open roster (owner 2026-09-11): lives in this state like the toggles below so BOTH
+    // save buttons persist it (the 2026-07-04 lesson, see the main Save).
+    open_roster: false,
     require_team_logo: false,
     require_esport_images: false,
     require_player_uid: false,
@@ -853,6 +856,7 @@ export default function OrganizerEditEventPage({
           waitlist_discord_role_id: ed.waitlist_discord_role_id ?? "",
           waitlist_mode: ed.waitlist_mode ?? "first_registered",
           // Prefill the registration-requirement toggles from the event (now on Basic Info).
+          open_roster: ed.open_roster ?? false,
           require_team_logo: ed.require_team_logo ?? false,
           require_esport_images: ed.require_esport_images ?? false,
           require_player_uid: ed.require_player_uid ?? false,
@@ -1616,6 +1620,7 @@ export default function OrganizerEditEventPage({
 
       // Registration-requirement toggles (owner correction 2026-06-22): edited on Basic Info
       // but saved here (parity with the admin edit page). edit_event reads these require_* keys.
+      formData.append("open_roster", waitlistForm.open_roster ? "True" : "False");
       formData.append("require_team_logo", waitlistForm.require_team_logo ? "True" : "False");
       formData.append("require_esport_images", waitlistForm.require_esport_images ? "True" : "False");
       formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
@@ -1656,6 +1661,7 @@ export default function OrganizerEditEventPage({
                 ? Number(waitlistForm.waitlist_capacity)
                 : null,
               waitlist_discord_role_id: waitlistForm.waitlist_discord_role_id,
+              open_roster: waitlistForm.open_roster,
               require_team_logo: waitlistForm.require_team_logo,
               require_esport_images: waitlistForm.require_esport_images,
               require_player_uid: waitlistForm.require_player_uid,
@@ -1863,6 +1869,7 @@ export default function OrganizerEditEventPage({
         // Registration-requirement toggles (owner 2026-07-04 bug fix): live on Basic Info but in the
         // separate waitlistForm state, previously only sent by saveWaitlistSettings - so toggling one
         // and hitting THIS main Save didn't persist it (reverted on refresh). Re-send here too.
+        formData.append("open_roster", waitlistForm.open_roster ? "True" : "False");
         formData.append("require_team_logo", waitlistForm.require_team_logo ? "True" : "False");
         formData.append("require_esport_images", waitlistForm.require_esport_images ? "True" : "False");
         formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");

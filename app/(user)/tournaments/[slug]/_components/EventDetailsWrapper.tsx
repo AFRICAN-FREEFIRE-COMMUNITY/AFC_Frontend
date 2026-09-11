@@ -90,6 +90,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { NewBadge } from "@/components/NewBadge";
 import { TournamentTierBadge } from "@/components/TournamentTierBadge";
+import { UserSearchSelect, type PickedUser } from "@/components/ui/user-search-select";
 import {
   Select,
   SelectContent,
@@ -493,6 +494,10 @@ interface EventDetails {
   // and WHERE, before the backend gates reject them.
   require_team_logo?: boolean;
   require_esport_images?: boolean;
+  // Open roster (owner 2026-09-11): any AFC player may be fielded, not only club members; the
+  // event never counts for rankings or tiers. Drives the header badge, the note in the member
+  // picker and the "add any AFC player" search there.
+  open_roster?: boolean;
   // F3 (owner 2026-06-19): two more per-player registration gates. require_player_uid blocks until
   // every registering player has their Free Fire UID set; require_player_profile_image until each
   // has a profile image. Shown in the INFO-step requirements callout + enforced server-side.
@@ -608,6 +613,9 @@ interface TeamMember {
   // Drives isPlayingMember(): STAFF members are filtered out of the registration pickers
   // because the backend rejects them at register-for-event/ + edit-roster/. (Roster Rules)
   management_role?: string;
+  // Open roster (owner 2026-09-11): an AFC player picked through the search rather than a club
+  // member. Rendered with a "guest" note; otherwise handled exactly like a member.
+  is_guest?: boolean;
   // Registration-requirement marker flags (owner 2026-06-22): does this member have an esport
   // image / profile image on file? Echoed by team/get-team-details/ (afc_team.get_team_details)
   // alongside uid + discord_id, so the roster step can show a per-member ✓/✗ for every active
@@ -1735,6 +1743,8 @@ interface TeamRegistrationModalsProps {
   setSelectedMembers: (members: string[]) => void;
   eventDetails: EventDetails;
   onContinueToRules: () => void;
+  // Open roster (owner 2026-09-11): the parent appends a picked outsider to userTeam.members.
+  onAddGuest?: (guest: PickedUser) => void;
 }
 
 const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
@@ -1745,10 +1755,15 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
   setSelectedMembers,
   eventDetails,
   onContinueToRules,
+  onAddGuest,
 }) => {
   const t = useTranslations("tournaments");
   const minPlayers = userTeam?.min_players || 4;
   const maxPlayers = userTeam?.max_players || 6;
+  // Open roster (owner 2026-09-11): the picker also takes ANY AFC player. A pick is appended to
+  // the team's member list by the parent (as a guest row) and ticked here, so every later step
+  // (Discord check, sponsor answers, the payload) sees them exactly like a club member.
+  const isOpenRoster = Boolean(eventDetails.open_roster);
 
   const handleMemberToggle = (memberId: string) => {
     // @ts-ignore
@@ -1812,6 +1827,33 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
             </DialogHeader>
 
             <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-primary/10 rounded-md">
+              {/* Open roster (owner 2026-09-11): say so, and offer the search. The picked
+                  player joins the list below as a guest row, already ticked. */}
+              {isOpenRoster && (
+                <div className="mb-3 space-y-2 rounded-md bg-background/60 p-3">
+                  <p className="text-xs text-muted-foreground">
+                    {t("teamRegister.selectMembers.openRosterNote")}
+                    <NewBadge since="2026-09-11" className="ml-1" />
+                  </p>
+                  <UserSearchSelect
+                    value={null}
+                    placeholder={t("teamRegister.selectMembers.addAnyPlayer")}
+                    onChange={(_username, user) => {
+                      if (!user) return;
+                      if (selectedMembers.length >= maxPlayers) {
+                        toast.error(t("teamRegister.selectMaxError", { max: maxPlayers }));
+                        return;
+                      }
+                      onAddGuest?.(user);
+                      // team/get-team-details/ sends member ids as NUMBERS despite the string
+                      // type here, and register-for-event compares them against integer user
+                      // ids, so a guest must carry the same shape or the backend answers "Some
+                      // roster users do not exist" (seen in the 2026-09-11 walk).
+                      handleMemberToggle(user.user_id as unknown as string);
+                    }}
+                  />
+                </div>
+              )}
               <h3 className="font-semibold mb-3">
                 {t("teamRegister.selectMembers.availablePlayers")}
               </h3>
@@ -1840,6 +1882,11 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                         className="font-medium cursor-pointer"
                       >
                         {member.username}
+                        {member.is_guest && (
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            {t("teamRegister.selectMembers.guest")}
+                          </span>
+                        )}
                       </label>
                     </div>
                     <MemberRequirementBadges
@@ -5697,8 +5744,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         {/* ── Tournament tier badge (owner 2026-06-29) ──
             Always shown so viewers know how this event is ranked (tier_1/2/3). Reuses the shared
             TournamentTierBadge (same outline rounded-full idiom as the badges below). */}
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
           <TournamentTierBadge tier={eventDetails.tournament_tier} />
+          {/* Open roster (owner 2026-09-11): says up front that any AFC player may be fielded
+              and that nothing here counts for rankings, before anyone registers. */}
+          {eventDetails.open_roster && (
+            <Badge
+              variant="outline"
+              className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+              title={t("detail.openRosterHint")}
+            >
+              {t("detail.openRosterBadge")}
+              <NewBadge since="2026-09-11" className="ml-1" />
+            </Badge>
+          )}
         </div>
 
         {/* ── Paid-event badge + entry fee (owner 2026-06-24, per-country) ──
@@ -6661,6 +6720,31 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           setSelectedMembers={setSelectedMembers}
           eventDetails={eventDetails}
           onContinueToRules={handleTeamContinueToRules}
+          onAddGuest={(guest) =>
+            // Open roster (owner 2026-09-11): a searched player becomes a guest row on the
+            // team, so every step downstream reads them like any member. Idempotent.
+            setUserTeam((prev) => {
+              if (!prev) return prev;
+              // Same numeric shape as the ids get-team-details/ returns (see the picker).
+              const id = guest.user_id as unknown as string;
+              if (prev.members.some((m) => m.id === id)) return prev;
+              return {
+                ...prev,
+                members: [
+                  ...prev.members,
+                  {
+                    id,
+                    username: guest.username,
+                    is_verified: false,
+                    discord_connected: false,
+                    discord_id: null,
+                    management_role: "member",
+                    is_guest: true,
+                  },
+                ],
+              };
+            })
+          }
         />
       )}
 

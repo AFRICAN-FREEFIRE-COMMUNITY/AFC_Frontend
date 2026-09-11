@@ -56,9 +56,15 @@ interface Props {
   /** How many players may be in the lineup at once. 4 for a squad map; the backend rejects more. */
   maxPlayed: number;
   onChange: (next: EntryTeam) => void;
+  /**
+   * OPEN-ROSTER events (owner 2026-09-11): results are entered per TEAM, so the lineup block is
+   * replaced by one kills control for the whole team and no player is ever named. The parent
+   * reads event.open_roster and posts buildTeamPayload(..., { teamOnly: true }).
+   */
+  teamOnly?: boolean;
 }
 
-export function TeamStepper({ team, allTeams, maxPlayed, onChange }: Props) {
+export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = false }: Props) {
   // Which player row has its swap sheet open, by user_id. null means no sheet.
   const [swapping, setSwapping] = useState<number | null>(null);
 
@@ -152,7 +158,25 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange }: Props) {
             )}
           </div>
 
-          {/* ── the lineup ─────────────────────────────────────────────── */}
+          {/* ── team-only kills (open-roster events) ───────────────────── */}
+          {teamOnly ? (
+            <div className="space-y-2">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Team kills
+              </p>
+              <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 p-3">
+                <span className="text-sm font-medium">{team.team_name}</span>
+                <KillStepper
+                  value={team.kills ?? null}
+                  onChange={(kills: ScoreValue) => onChange({ ...team, kills })}
+                  label={`Kills for ${team.team_name}`}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Open-roster event: team totals only, no player results.
+              </p>
+            </div>
+          ) : (
           <div className="space-y-2">
             <div className="flex items-baseline justify-between">
               <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
@@ -208,6 +232,7 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange }: Props) {
               </button>
             )}
           </div>
+          )}
         </>
       )}
 

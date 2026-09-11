@@ -84,7 +84,9 @@
     "saving": "Saving...",
     "eventDescription": "About this tournament",
     "eventDescriptionPlaceholder": "What is this tournament, who is it for, and what makes it worth entering?",
-    "eventDescriptionHelp": "Shown on the public event page. This is different from the rules: it is the story of the event, not what gets a team disqualified. Leave it blank and the section is hidden."
+    "eventDescriptionHelp": "Shown on the public event page. This is different from the rules: it is the story of the event, not what gets a team disqualified. Leave it blank and the section is hidden.",
+    "openRosterLabel": "Open roster",
+    "openRosterHelp": "Teams may field any AFC player, not only their own members. This event will not count toward rankings or tiers, and results are entered per team."
   },
   "prizeRules": {
     "cardTitle": "Prize Pool & Rules",

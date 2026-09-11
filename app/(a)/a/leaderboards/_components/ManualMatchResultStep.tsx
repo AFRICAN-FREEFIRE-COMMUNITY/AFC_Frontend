@@ -157,6 +157,10 @@ export function ManualMatchResultStep({
     "team",
   );
   const [teamResults, setTeamResults] = useState<TeamResult[]>([]);
+  // OPEN-ROSTER event (owner 2026-09-11): results are entered per team, kills as one number, no
+  // player rows. Read from the event details this step already fetches (event_contract exposes
+  // open_roster to everyone). See lib/resultEntry.ts buildTeamPayload's teamOnly mode.
+  const [teamOnly, setTeamOnly] = useState(false);
   const [soloResults, setSoloResults] = useState<SoloResult[]>([]);
 
   // ── the two ways of looking at the same map (owner brief 2026-08-27) ──────────
@@ -238,6 +242,7 @@ export function ManualMatchResultStep({
         participantTypeOverride ??
         (details.participant_type === "solo" ? "solo" : "team");
       setParticipantType(pType);
+      setTeamOnly(Boolean(details.open_roster));
 
       const teams: TournamentTeam[] = details.tournament_teams ?? [];
 
@@ -508,7 +513,7 @@ export function ManualMatchResultStep({
         // so a squad stays within the backend cap) are documented there.
         body = {
           match_id: match.match_id,
-          results: buildTeamPayload(teamResults),
+          results: buildTeamPayload(teamResults, { teamOnly }),
         };
       } else {
         endpoint = isEditing
@@ -650,6 +655,7 @@ export function ManualMatchResultStep({
                 team={teamResults[Math.min(currentTeam, teamResults.length - 1)]}
                 allTeams={teamResults}
                 maxPlayed={MAX_PLAYED}
+                teamOnly={teamOnly}
                 onChange={(next) =>
                   setTeamResults((prev) =>
                     prev.map((t) =>
@@ -734,7 +740,36 @@ export function ManualMatchResultStep({
                   />
                 </div>
 
-                {team.players.length > 0 && (
+                {/* Open-roster event (owner 2026-09-11): one kills number for the team, no
+                    player rows; the backend scores the team-level value when no player is
+                    posted (result_writes.write_team_result_row). */}
+                {teamOnly && (
+                  <div className="space-y-1.5 max-w-xs">
+                    <Label>
+                      Team kills
+                      <InfoTip id="leaderboards.result_kills" className="ml-1" />
+                    </Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={scoreInputValue(team.kills ?? null)}
+                      disabled={!team.played}
+                      onChange={(e) =>
+                        setTeamResults((prev) => {
+                          const next = [...prev];
+                          next[ti] = { ...next[ti], kills: parseScoreInput(e.target.value) };
+                          return next;
+                        })
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Open-roster event: team totals only, no player results.
+                    </p>
+                  </div>
+                )}
+
+                {!teamOnly && team.players.length > 0 && (
                   <div className="space-y-2">
                     <Label>Players</Label>
                     <div className="space-y-2">

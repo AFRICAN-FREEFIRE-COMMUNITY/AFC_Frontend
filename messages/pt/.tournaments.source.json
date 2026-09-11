@@ -200,7 +200,9 @@
     },
     "sponsorsCard": {
       "title": "Sponsors"
-    }
+    },
+    "openRosterBadge": "Open roster",
+    "openRosterHint": "Any AFC player can be fielded. This event does not count toward rankings or tiers."
   },
   "leaveModal": {
     "trigger": "Leave Tournament",
@@ -272,7 +274,10 @@
       "description": "Select {min}-{max} players from your team roster",
       "availablePlayers": "Available Players:",
       "selectedCount": "Selected: {count} / {max} players",
-      "continue": "Continue"
+      "continue": "Continue",
+      "openRosterNote": "Open roster: you can field any AFC player, not only your team members. A player can only be on one team in this event.",
+      "addAnyPlayer": "Search any AFC player by username",
+      "guest": "guest"
     },
     "teamInfo": {
       "title": "Team Information",

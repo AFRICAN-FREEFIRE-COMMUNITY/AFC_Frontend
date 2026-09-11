@@ -84,7 +84,9 @@
     "saving": "Enregistrement en cours...",
     "eventDescription": "A propos de ce tournoi",
     "eventDescriptionPlaceholder": "Qu'est-ce que ce tournoi, a qui s'adresse-t-il, et pourquoi vaut-il la peine d'y participer ?",
-    "eventDescriptionHelp": "Affiche sur la page publique de l'evenement. Different du reglement : c'est l'histoire de l'evenement, pas ce qui fait disqualifier une equipe. Laissez vide et la section est masquee."
+    "eventDescriptionHelp": "Affiche sur la page publique de l'evenement. Different du reglement : c'est l'histoire de l'evenement, pas ce qui fait disqualifier une equipe. Laissez vide et la section est masquee.",
+    "openRosterLabel": "Effectif ouvert",
+    "openRosterHelp": "Les équipes peuvent aligner n'importe quel joueur AFC, pas seulement leurs propres membres. Cet événement ne comptera ni pour les classements ni pour les niveaux, et les résultats sont saisis par équipe."
   },
   "prizeRules": {
     "cardTitle": "Cagnotte et règlement",

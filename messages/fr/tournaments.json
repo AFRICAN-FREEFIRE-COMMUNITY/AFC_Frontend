@@ -200,7 +200,9 @@
     },
     "sponsorsCard": {
       "title": "Partenaires"
-    }
+    },
+    "openRosterBadge": "Effectif ouvert",
+    "openRosterHint": "N'importe quel joueur AFC peut être aligné. Cet événement ne compte ni pour les classements ni pour les niveaux."
   },
   "leaveModal": {
     "trigger": "Quitter le tournoi",
@@ -272,7 +274,10 @@
       "description": "Sélectionnez {min}-{max} joueurs de votre effectif d'équipe",
       "availablePlayers": "Joueurs disponibles :",
       "selectedCount": "Sélectionnés : {count} / {max} joueurs",
-      "continue": "Continuer"
+      "continue": "Continuer",
+      "openRosterNote": "Effectif ouvert : vous pouvez aligner n'importe quel joueur AFC, pas seulement les membres de votre équipe. Un joueur ne peut être que dans une seule équipe pour cet événement.",
+      "addAnyPlayer": "Rechercher un joueur AFC par nom d'utilisateur",
+      "guest": "invité"
     },
     "teamInfo": {
       "title": "Informations sur l'équipe",

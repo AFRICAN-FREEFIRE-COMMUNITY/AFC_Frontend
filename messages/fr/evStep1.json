@@ -93,5 +93,7 @@
       "google": "Google",
       "vent": "v-ent.co"
     }
-  }
+  },
+  "openRoster": "Effectif ouvert",
+  "openRosterDesc": "Les équipes peuvent aligner n'importe quel joueur AFC, pas seulement leurs propres membres. Cet événement ne comptera ni pour les classements ni pour les niveaux, et les résultats sont saisis par équipe."
 }

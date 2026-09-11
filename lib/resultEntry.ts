@@ -54,6 +54,13 @@ export type EntryTeam = {
   placement: ScoreValue;
   played: boolean;
   players: EntryPlayer[];
+  /**
+   * The team's kills as ONE number, used only on an OPEN-ROSTER event (owner 2026-09-11: "admins
+   * will be able to input the results of teams without having to input the result of players").
+   * Seeded from the saved team row's kills, posted by buildTeamPayload in teamOnly mode, ignored
+   * otherwise. null means the box is empty, the same convention as every other ScoreValue here.
+   */
+  kills?: ScoreValue;
 };
 
 /**
@@ -191,6 +198,9 @@ export function buildEntryTeams(args: {
       placement: normalisePlacement(savedRow?.placement),
       // The API's team row usually carries no `played` key, and absent means played.
       played: savedRow ? (savedRow.played ?? true) : true,
+      // Team-level kills for the open-roster (team-only) form; the stored team row's kills is the
+      // sum the backend keeps whichever way the map was entered, so it seeds cleanly either way.
+      kills: savedRow && savedRow.kills != null ? Number(savedRow.kills) : null,
       players: team.members.map((m) => ({
         user_id: m.player_id,
         username: m.username,
@@ -248,12 +258,28 @@ export function previousMatchStats(matches: any[], matchId: number): any[] | nul
  *     of 4 and stops substitutes re-appearing as played on the next load, since the API carries no
  *     per-player played flag (bug 2026-06-15).
  */
-export function buildTeamPayload(teams: EntryTeam[]): Array<{
+export function buildTeamPayload(
+  teams: EntryTeam[],
+  opts: { teamOnly?: boolean } = {},
+): Array<{
   tournament_team_id: number;
   placement: ScoreValue;
   played: boolean;
   players: Array<{ user_id: number; kills: number; played: true }>;
+  kills?: number;
 }> {
+  // TEAM-ONLY mode (open-roster events, owner 2026-09-11): one kills number per team and NO
+  // player list. The backend (result_writes.write_team_result_row) reads the team-level kills
+  // only when no player entry is posted, so an empty players array is what makes it count.
+  if (opts.teamOnly) {
+    return teams.map((t) => ({
+      tournament_team_id: t.tournament_team_id,
+      placement: t.placement,
+      played: t.played,
+      players: [],
+      kills: scoreOrZero(t.kills ?? null),
+    }));
+  }
   return teams.map((t) => ({
     tournament_team_id: t.tournament_team_id,
     placement: t.placement,

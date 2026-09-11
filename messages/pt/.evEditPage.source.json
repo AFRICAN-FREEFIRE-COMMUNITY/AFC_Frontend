@@ -120,5 +120,6 @@
   "changes.requireWhatsapp": "WhatsApp number required",
   "changes.allowTeamResults": "Teams submit their own results",
   "changes.minLetterAvatars": "Minimum letter avatars",
-  "changes.waitlistMode": "Waitlist order"
+  "changes.waitlistMode": "Waitlist order",
+  "openRoster": "Open roster"
 }

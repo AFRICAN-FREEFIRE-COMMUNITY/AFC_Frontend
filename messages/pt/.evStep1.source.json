@@ -69,5 +69,7 @@
   "requireWhatsappDesc": "Every registering player must have a WhatsApp number saved on their profile. Turn this on when you plan to send room details over WhatsApp.",
   "requireLetterAvatars": "Require letter avatars",
   "requireLetterAvatarsTip": "Teams or players must have at least this many Free Fire letter avatars (A-Z) available before they can register. A team's available letters are the combined letters its members own plus any manual extras added on the team editor.",
-  "requireLetterAvatarsDesc": "Set the minimum number of letter avatars (1 to 26) competitors must have available to register."
+  "requireLetterAvatarsDesc": "Set the minimum number of letter avatars (1 to 26) competitors must have available to register.",
+  "openRoster": "Open roster",
+  "openRosterDesc": "Teams may field any AFC player, not only their own members. This event will not count toward rankings or tiers, and results are entered per team."
 }

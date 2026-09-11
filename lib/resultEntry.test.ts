@@ -150,6 +150,23 @@ test("a team marked not played still posts, carrying its played flag", () => {
   assert.equal(row.played, false);
 });
 
+// ── team-only mode (open-roster events, owner 2026-09-11) ────────────────────
+
+test("team-only mode posts one kills number and NO players, so the backend reads the team value", () => {
+  const [row] = buildTeamPayload([team({ kills: 9 })], { teamOnly: true });
+  assert.deepEqual(row, { tournament_team_id: 1, placement: 3, played: true, players: [], kills: 9 });
+});
+
+test("team-only mode: a blank team kills box is 0", () => {
+  const [row] = buildTeamPayload([team({ kills: null })], { teamOnly: true });
+  assert.equal(row.kills, 0);
+});
+
+test("normal mode ignores the team-level kills and never posts the key", () => {
+  const [row] = buildTeamPayload([team({ kills: 9 })]);
+  assert.equal("kills" in row, false);
+});
+
 // ── a stored placement of 0 ──────────────────────────────────────────────────
 
 test("a stored placement of 0 is read back as NOT ENTERED", () => {

@@ -35,6 +35,8 @@ export interface WaitlistForm {
   waitlist_discord_role_id: string;
   // Slot-assignment mode (owner 2026-06-17): how a no-show's slot is filled.
   waitlist_mode: string;
+  // Open roster (owner 2026-09-11): any AFC player may be fielded; never counts for rankings.
+  open_roster?: boolean;
   // F3 registration requirements (owner 2026-06-19): per-event gates enforced at registration.
   require_team_logo?: boolean;
   require_esport_images?: boolean;
