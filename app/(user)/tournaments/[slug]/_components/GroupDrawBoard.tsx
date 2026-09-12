@@ -207,8 +207,19 @@ export function GroupDrawBoard({ eventId }: { eventId: number }) {
               ) : null}
             </div>
 
-            {/* the board */}
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+            {/* the board. Column count follows the size of the lobby (owner 2026-09-12, "if it
+                was an event of like 48 teams"): 8 cards read best at 4 a row, 48 at 6 a row on a
+                phone so the whole board is 8 rows instead of 12, and 12 a row on a desktop. */}
+            <div
+              className={cn(
+                "grid gap-2",
+                board.cards_total <= 16
+                  ? "grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10"
+                  : board.cards_total <= 32
+                    ? "grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12"
+                    : "grid-cols-6 sm:grid-cols-8 md:grid-cols-12 lg:grid-cols-12",
+              )}
+            >
               {board.cards.map((card, index) => (
                 <FlipCard
                   key={card.number}
