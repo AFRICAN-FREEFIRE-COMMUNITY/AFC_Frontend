@@ -81,7 +81,8 @@
   "toastDisconnectFailed": "La clé n'a pas pu être déconnectée.",
   "gate": {
     "connect": "Connecter une clé",
-    "fallback": "Impossible de lire cette capture. Veuillez réessayer."
+    "fallback": "Impossible de lire cette capture. Veuillez réessayer.",
+    "freeReadSpent": "C'était la lecture gratuite offerte par AFC. Connectez votre propre clé IA pour continuer à utiliser l'OCR."
   },
   "admin": {
     "title": "Clés OCR",

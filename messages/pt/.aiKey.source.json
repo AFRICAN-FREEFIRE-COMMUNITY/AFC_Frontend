@@ -79,6 +79,7 @@
   "toastDisconnectFailed": "The key could not be disconnected.",
   "gate.connect": "Connect a key",
   "gate.fallback": "Could not read that screenshot. Please try again.",
+  "gate.freeReadSpent": "That was AFC's free read. Connect your own AI key to keep using OCR.",
   "admin.title": "OCR keys",
   "admin.description": "Which organizations read on their own AI key, what they read, and the free reads AFC still pays for.",
   "admin.afcMonth": "AFC's own key this month: {reads} reads, about {usd}.",

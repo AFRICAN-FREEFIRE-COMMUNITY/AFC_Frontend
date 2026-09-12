@@ -51,7 +51,7 @@ import {
   IconCheck,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { toastOcrError } from "@/lib/api/ocrKeyGate";
+import { toastFreeReadSpent, toastOcrError } from "@/lib/api/ocrKeyGate";
 import { cn } from "@/lib/utils";
 import { ocrApi, type DraftRow } from "@/lib/api/ocr";
 import { filterOcrImages, OCR_ACCEPT } from "@/lib/ocrImages";
@@ -188,6 +188,8 @@ export function MapSelectionStep({
           shots: shots.length,
         }),
       );
+      // Own-key OCR (owner 2026-09-12): when this read was AFC's free one, say so now.
+      toastFreeReadSpent(session.paid_by, { message: tk("gate.freeReadSpent"), connect: tk("gate.connect") });
       onSessionReady(
         session.session_id,
         session.draft_rows ?? [],

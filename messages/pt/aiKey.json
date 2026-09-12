@@ -81,7 +81,8 @@
   "toastDisconnectFailed": "Não foi possível desligar a chave.",
   "gate": {
     "connect": "Ligar uma chave",
-    "fallback": "Não foi possível ler essa captura. Tente de novo."
+    "fallback": "Não foi possível ler essa captura. Tente de novo.",
+    "freeReadSpent": "Essa foi a leitura gratuita oferecida pela AFC. Ligue a sua própria chave de IA para continuar a usar o OCR."
   },
   "admin": {
     "title": "Chaves OCR",

@@ -81,7 +81,8 @@
   "toastDisconnectFailed": "The key could not be disconnected.",
   "gate": {
     "connect": "Connect a key",
-    "fallback": "Could not read that screenshot. Please try again."
+    "fallback": "Could not read that screenshot. Please try again.",
+    "freeReadSpent": "That was AFC's free read. Connect your own AI key to keep using OCR."
   },
   "admin": {
     "title": "OCR keys",

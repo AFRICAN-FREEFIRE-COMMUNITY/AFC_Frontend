@@ -24,7 +24,9 @@
 //   onComplete - called after a successful (or partial) upload so the parent refetches.
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { isOcrKeyRequired, ocrFetchError, toastFreeReadSpent, toastOcrError } from "@/lib/api/ocrKeyGate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -70,6 +72,8 @@ export function GroupBulkUploadPanel({
   // group's maps.
   groupName?: string;
 }) {
+  // Own-key OCR copy (the key gate sentence + button live in the aiKey namespace).
+  const tk = useTranslations("aiKey");
   const [pending, setPending] = useState<PendingFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -128,6 +132,10 @@ export function GroupBulkUploadPanel({
           });
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
+            // Own-key OCR (owner 2026-09-12): the key gate (402) is the same for every map, so
+            // it is thrown as-is and answered ONCE below with the connect-a-key sentence + button.
+            const gate = ocrFetchError(res, err);
+            if (isOcrKeyRequired(gate)) throw gate;
             // Surface the REAL cause (owner 2026-07-09, bug #7): the backend returns the actual
             // OCR/extraction failure in an `errors[]` array; we were only reading `message`, so the
             // admin saw a bare "1 failed" with no reason. Prefer the detailed errors when present.
@@ -140,6 +148,13 @@ export function GroupBulkUploadPanel({
           return res.json();
         }),
       );
+
+      // The key gate: no AI key and no free read left. One toast, no counts, nothing was read.
+      const gated = results.find((r) => r.status === "rejected" && isOcrKeyRequired(r.reason));
+      if (gated && gated.status === "rejected") {
+        toastOcrError(gated.reason, { connect: tk("gate.connect"), fallback: tk("gate.fallback") });
+        return;
+      }
 
       const failed = results.filter((r) => r.status === "rejected").length;
       const ok = entries.length - failed;
@@ -173,6 +188,9 @@ export function GroupBulkUploadPanel({
             (unmatched ? ` ${unmatched} name(s) need manual matching.` : ""),
         );
       }
+      // Own-key OCR (owner 2026-09-12): when a map was read on AFC's free allowance, say so now.
+      const freeRead = results.some((r) => r.status === "fulfilled" && (r.value as { paid_by?: string })?.paid_by === "afc_free");
+      toastFreeReadSpent(freeRead ? "afc_free" : "", { message: tk("gate.freeReadSpent"), connect: tk("gate.connect") });
       setPending([]);
       onComplete();
     } catch (err: any) {
