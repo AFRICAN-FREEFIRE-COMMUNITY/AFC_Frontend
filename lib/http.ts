@@ -1,5 +1,5 @@
 import Cookies from "js-cookie";
-import { getAuthToken } from "./authToken";
+import { getAuthToken, hadSessionThisLoad } from "./authToken";
 
 /**
  * Shared HTTP helpers for the typed API clients in lib/*.ts.
@@ -21,6 +21,24 @@ export function authHeaders() {
   const token = getAuthToken() ?? Cookies.get("auth_token");
   if (!token) throw new SessionExpiredError();
   return { Authorization: `Bearer ${token}` };
+}
+
+/**
+ * Bearer auth header for a read that is PUBLIC but answers with more when the viewer is signed in
+ * (an event's rating carries `my_score`, a group draw carries `viewer`, an event's sponsors are
+ * plain public). A signed-in viewer gets the same header authHeaders() builds; a guest gets no
+ * header at all, and NOTHING is thrown.
+ *
+ * WHY THIS EXISTS (bug 2026-09-12): the three reads above called authHeaders() and either let
+ * the throw escape or wrapped it in try/catch. Neither was enough, because SessionExpiredError
+ * dispatches auth:session-expired from its CONSTRUCTOR: by the time a catch sees the error, the
+ * "Session expired" modal is already on screen. Every logged-out visitor to an event page got
+ * it. An optional read must not construct that error in the first place, so it reads the token
+ * itself and calls authHeaders() only when there is one.
+ */
+export function optionalAuthHeaders(): { Authorization: string } | Record<string, never> {
+  const token = getAuthToken() ?? Cookies.get("auth_token");
+  return token ? authHeaders() : {};
 }
 
 /**
@@ -55,7 +73,11 @@ export class SessionExpiredError extends Error {
   constructor() {
     super("Your session expired. Please sign in again.");
     this.name = "SessionExpiredError";
-    if (typeof window !== "undefined") {
+    // Open the login modal ONLY for someone who had a session during this page load. A guest
+    // reaching a gated call has nothing to expire, and the modal titled "Session expired" on a
+    // page they opened logged out is the 2026-09-12 bug (see lib/authToken hadSessionThisLoad).
+    // The error itself is still thrown either way: the request must not go out without a token.
+    if (typeof window !== "undefined" && hadSessionThisLoad()) {
       window.dispatchEvent(new CustomEvent("auth:session-expired"));
     }
   }

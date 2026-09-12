@@ -1,6 +1,6 @@
 import axios from "axios";
 import { env } from "@/lib/env";
-import { authHeaders } from "@/lib/http";
+import { authHeaders, optionalAuthHeaders } from "@/lib/http";
 
 /**
  * Typed client for the organizer API (prefix /organizers/).
@@ -124,8 +124,11 @@ export const organizersApi = {
     aPost(`events/${eventId}/rate/`, { score }),
   // getEventRating returns { average, count, my_score } - auth is OPTIONAL (anonymous callers
   // still get average+count; my_score is null without a valid token). Ratings are anonymous to
-  // organizers - only the aggregate is ever exposed.
-  getEventRating: (eventId: number | string) => aGet(`events/${eventId}/rating/`),
+  // organizers - only the aggregate is ever exposed. Optional means optionalAuthHeaders, not
+  // aGet: aGet calls authHeaders(), which throws for a guest and opened the "Session expired"
+  // modal on every logged-out visit to a finished event's page (2026-09-12).
+  getEventRating: async (eventId: number | string) =>
+    (await axios.get(url(`events/${eventId}/rating/`), { headers: optionalAuthHeaders() })).data,
   // commentEvent posts a comment that ONLY the event's organizer (+ AFC) can read.
   commentEvent: (eventId: number | string, text: string) =>
     aPost(`events/${eventId}/comment/`, { text }),

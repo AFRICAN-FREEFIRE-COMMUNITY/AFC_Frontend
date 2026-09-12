@@ -20,7 +20,7 @@ import { env } from "@/lib/env";
 // "Bearer", so the backend reported a DEAD SESSION as a MALFORMED REQUEST (400) and nothing
 // logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
 // modal in place.
-import { authHeaders } from "@/lib/http";
+import { authHeaders, optionalAuthHeaders } from "@/lib/http";
 
 const BASE = `${env.NEXT_PUBLIC_BACKEND_API_URL}/sponsors`;
 
@@ -259,9 +259,16 @@ export const sponsorsApi = {
     body: { requires_approval?: boolean; engagements?: SponsorEngagement[]; player_note?: string },
   ) => sPatch(`${sponsorId}/events/${eventId}/configure/`, body),
   // PUBLIC read of an event's sponsorships + engagement config (registration UI + wizard
-  // rehydrate). No auth header needed but harmless to send.
-  forEvent: (eventId: number) =>
-    sGet<{ results: EventSponsorshipRow[]; total_count: number }>(`for-event/${eventId}/`),
+  // rehydrate). No auth header needed, so the header is OPTIONAL: through sGet this called
+  // authHeaders(), which throws for a guest and opened the "Session expired" modal on every
+  // logged-out visit to an event page (2026-09-12). Now a guest sends no header at all.
+  forEvent: async (eventId: number) =>
+    (
+      await axios.get<{ results: EventSponsorshipRow[]; total_count: number }>(
+        `${BASE}/for-event/${eventId}/`,
+        { headers: optionalAuthHeaders() },
+      )
+    ).data,
 
   // ── P3: the portal's per-engagement submission tables ──
   engagementSubmissions: (

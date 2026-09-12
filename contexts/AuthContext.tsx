@@ -509,9 +509,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (err: any) {
       const status = err?.response?.status;
 
-      // Genuine auth failure: the token is invalid/expired -> clear the session.
+      // Genuine auth failure: the token is invalid/expired -> clear the session, then offer the
+      // in-place re-login. Whoever carried this token WAS signed in (a cookie that outlived its
+      // SessionToken, a session revoked elsewhere), so "Session expired, log back in to pick up
+      // where you left off" is the right greeting. Until 2026-09-12 this modal appeared here only
+      // by accident: the public reads on the event page threw SessionExpiredError once the token
+      // was gone, and that error opened the modal for guests too. Those reads no longer throw
+      // (lib/http optionalAuthHeaders), so the returning-user case is raised here on purpose.
       if (status === 401) {
         logout();
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("auth:session-expired"));
+        }
         throw err;
       }
 
