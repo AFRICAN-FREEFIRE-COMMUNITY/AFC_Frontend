@@ -90,6 +90,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { NewBadge } from "@/components/NewBadge";
 import { TournamentTierBadge } from "@/components/TournamentTierBadge";
+// Group draw (owner 2026-09-12): the sealed card board a captain turns a card over on. Renders
+// nothing for an event without a draw. See GroupDrawBoard.tsx.
+import { GroupDrawBoard } from "./GroupDrawBoard";
 import { UserSearchSelect, type PickedUser } from "@/components/ui/user-search-select";
 import {
   Select,
@@ -5989,6 +5992,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 isRegistered={eventDetails.is_registered}
                 timezone={eventDetails.timezone}
               />
+
+              {/* Group draw (owner 2026-09-12): sits above the standings because while it is
+                  open it is the one thing a captain came here to do. Nothing renders without a
+                  draw, so every other event page is unchanged. */}
+              {eventDetails?.event_id && (
+                <div className="mb-6">
+                  <GroupDrawBoard eventId={eventDetails.event_id} />
+                </div>
+              )}
 
               {/* Results ⇄ Structure ⇄ Combined toggle. "Structure" renders the graphical
                   TournamentStructure view (stage flow + group standings); "Combined" renders
