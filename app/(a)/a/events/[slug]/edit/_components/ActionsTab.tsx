@@ -48,6 +48,9 @@ import {
 } from "@/app/(a)/a/_components/NotificationTargetSelector";
 // Broadcast history list (event-scoped). Shown in a dialog from the Communication card.
 import { BroadcastHistory } from "@/app/(a)/a/_components/BroadcastHistory";
+// Group draw (owner 2026-09-12): teams turn over a sealed card to pick their own group. Its own
+// card below the seeding one; it talks to afc_draws through lib/draws.ts.
+import { GroupDrawCard } from "./GroupDrawCard";
 import {
   CheckCircle2,
   ChevronRight,
@@ -1065,6 +1068,15 @@ export default function ActionsTab({
           )}
         </CardContent>
       </Card>
+
+      {/* 2a ── Group draw (owner 2026-09-12) ─────────────────────────────
+          The alternative to "Seed to groups": the teams pick their own group by turning a sealed
+          card over on the event page. Create, open with a close time, close now, reset. */}
+      <GroupDrawCard
+        eventId={eventDetails.event_id}
+        stages={eventDetails.stages}
+        onRefresh={onRefresh}
+      />
 
       {/* 2b ── Seeding Management (owner 2026-06-15) ──────────────────────
           Undo/redo group seeding and delete a group/stage with a disposition

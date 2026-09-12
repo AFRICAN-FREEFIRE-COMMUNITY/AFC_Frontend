@@ -164,6 +164,8 @@ export const HELP = {
     "Finalise the event and lock all results so nothing can be changed afterwards.",
   "events.edit.reopen_event":
     "Set a completed event back to active so you can fix or add results. It won't be auto-completed again until you re-enter the final results or mark it complete.",
+  "events.edit.group_draw":
+    "Instead of seeding at random, let the teams pick: the site deals one sealed card per team across the groups, you open the draw with a close time, and captains turn a card over on the event page. Whoever has not picked by the close time is placed automatically.",
   "events.edit.seed_to_groups":
     "Randomly distribute a stage's competitors across its groups. Run before the stage's matches begin.",
   "events.edit.advance_stage":
