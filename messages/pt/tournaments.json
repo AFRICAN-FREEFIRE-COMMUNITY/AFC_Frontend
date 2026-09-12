@@ -777,6 +777,8 @@
     "restPlaced": "Quem não escolher até à hora de fecho é colocado automaticamente.",
     "restOrganizer": "Quem não escolher até à hora de fecho será colocado pelo organizador.",
     "leftForOrganizer": "{count, plural, one {# equipa não foi colocada} other {# equipas não foram colocadas}} pelo sorteio; o organizador trata disso.",
+    "hiddenGuest": "O organizador reservou este sorteio às equipas e jogadores inscritos. Inicie sessão com uma conta de uma equipa inscrita para o acompanhar.",
+    "hiddenMember": "O organizador reservou este sorteio às equipas e jogadores inscritos, e a sua conta não pertence a nenhuma equipa inscrita neste evento.",
     "yourCard": "<b>{name}</b> virou a carta {number}: <b>{group}</b>",
     "youPickFor": "Escolhe por {name}. Toca numa carta e depois confirma.",
     "signInToPick": "Inicia sessão para virar uma carta pela tua equipa.",

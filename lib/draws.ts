@@ -52,9 +52,16 @@ export interface DrawBoard {
   // The organizer's choice for whoever has not picked at close: dealt in (true) or left for
   // hand placement (false). Set at open, changeable while open (drawsApi.window).
   auto_place_at_close: boolean;
+  // Who may see the board: "everyone" (default) or "participants" (members of a registered
+  // club, registered solo players, and whoever runs the draw). The organizer's choice.
+  visibility: "everyone" | "participants";
+  // Present (true) ONLY on the stub a viewer gets for a participants-only board they may not
+  // see: then cards, names, seal and mapping are absent. See DrawBoardHidden.
+  hidden?: false;
   // The stage's "Teams per group" (competitors_per_group); null when no fixed size is set.
   per_group: number | null;
-  // When the last "you have not picked" reminder went out; one per 10 minutes is allowed.
+  // When the last "you have not picked" reminder went out. Reminders send only when the organizer
+  // presses the button; the backend refuses a second press inside a minute (a double-send guard).
   last_reminder_at: string | null;
   // sha256(salt:mapping), shown before anyone picks; salt + mapping arrive once closed.
   commitment: string;
@@ -90,20 +97,24 @@ async function post<T>(path: string, body?: Record<string, unknown>): Promise<T>
 
 export const drawsApi = {
   // GET draws/events/<event_id>/ -> every draw of the event, one board per stage that has one.
-  forEvent: (eventId: number) => get<{ draws: DrawBoard[] }>(`events/${eventId}/`),
+  forEvent: (eventId: number) => get<{ draws: DrawBoardOrHidden[] }>(`events/${eventId}/`),
   // GET draws/<id>/board/ -> the board (public; token adds viewer).
   board: (drawId: number) => get<DrawBoard>(`${drawId}/board/`),
   // Organizer / admin lifecycle (afc_draws.services.user_may_run_draw decides who).
   create: (stageId: number) => post<DrawBoard>(`stages/${stageId}/create/`),
   open: (drawId: number, closesAtIso: string, autoPlaceAtClose = true) =>
     post<DrawBoard>(`${drawId}/open/`, { closes_at: closesAtIso, auto_place_at_close: autoPlaceAtClose }),
-  // POST draws/<id>/window/ while open: a new close time and/or the straggler choice.
-  window: (drawId: number, body: { closes_at?: string; auto_place_at_close?: boolean }) =>
-    post<DrawBoard>(`${drawId}/window/`, body),
+  // POST draws/<id>/window/: a new close time and/or the straggler choice (while open), and/or
+  // who may see the board (any state).
+  window: (
+    drawId: number,
+    body: { closes_at?: string; auto_place_at_close?: boolean; visibility?: "everyone" | "participants" },
+  ) => post<DrawBoard>(`${drawId}/window/`, body),
   // POST draws/<id>/close/ {place_rest}: undefined = the choice made at open.
   close: (drawId: number, placeRest?: boolean) =>
     post<DrawBoard>(`${drawId}/close/`, placeRest === undefined ? {} : { place_rest: placeRest }),
-  // POST draws/<id>/remind/: in-app + email to everyone who has not picked (429 inside 10 min).
+  // POST draws/<id>/remind/: in-app + email to everyone who has not picked, on the organizer's press
+  // only (429 for a second press inside a minute).
   remind: (drawId: number) => post<DrawBoard & { reminded: number }>(`${drawId}/remind/`),
   reset: (drawId: number) => post<{ message: string }>(`${drawId}/reset/`),
   // The pick: a captain (or solo player) turns card `number` over. tournament_team_id only when
@@ -114,6 +125,23 @@ export const drawsApi = {
       ...(tournamentTeamId ? { tournament_team_id: tournamentTeamId } : {}),
     }),
 };
+
+// What a viewer who may not see a participants-only board receives instead of a DrawBoard.
+export interface DrawBoardHidden {
+  draw_id: number;
+  stage_id: number;
+  stage_name: string;
+  event_id: number;
+  status: DrawStatus;
+  visibility: "participants";
+  hidden: true;
+}
+
+export type DrawBoardOrHidden = DrawBoard | DrawBoardHidden;
+
+export function isHiddenBoard(b: DrawBoardOrHidden): b is DrawBoardHidden {
+  return (b as DrawBoardHidden).hidden === true;
+}
 
 // Pull a useful message off an axios error without inventing backend shapes.
 export function drawErrorMessage(err: unknown, fallback: string): string {

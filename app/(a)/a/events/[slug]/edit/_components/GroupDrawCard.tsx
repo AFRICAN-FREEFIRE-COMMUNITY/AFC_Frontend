@@ -10,7 +10,7 @@
 // per team, evenly across the groups and never past the stage's "Teams per group", and shows the
 // seal), OPENS it with a close time and a choice about stragglers (every captain is told in-app
 // and by email and turns a card over on the event page), can CHANGE the close time or the choice
-// while it is open, can REMIND everyone who has not picked (in-app + email, once per 10 minutes),
+// while it is open, can REMIND everyone who has not picked (in-app + email, only when pressed),
 // and either lets it CLOSE by itself at the deadline or closes it now, placing the rest at random
 // or leaving them for hand placement (the owner's ask of 2026-09-12: "the admin/organizers decides
 // if they want to randomize the teams/players who did not pick"). RESET throws the draw away
@@ -46,7 +46,7 @@ import { NewBadge } from "@/components/NewBadge";
 import { Loader } from "@/components/Loader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { cn } from "@/lib/utils";
-import { drawsApi, drawErrorMessage, type DrawBoard } from "@/lib/draws";
+import { drawsApi, drawErrorMessage, isHiddenBoard, type DrawBoard } from "@/lib/draws";
 
 // The day the card went live (NEW badge, 5 days, self-expiring), and the day the close-time edit,
 // the straggler choice and the reminder arrived.
@@ -118,7 +118,8 @@ export function GroupDrawCard({ eventId, stages, onRefresh }: Props) {
     setLoading(true);
     try {
       const res = await drawsApi.forEvent(eventId);
-      setBoards(res.draws);
+      // The organizer always sees the full board; the hidden stub is for other viewers.
+      setBoards(res.draws.filter((b): b is DrawBoard => !isHiddenBoard(b)));
     } catch (err) {
       toast.error(drawErrorMessage(err, t("draw.toastLoadFailed")));
     } finally {
@@ -183,6 +184,7 @@ export function GroupDrawCard({ eventId, stages, onRefresh }: Props) {
     run("open", () => drawsApi.open(board.draw_id, when.toISOString(), placeRest), t("draw.toastOpened"));
   };
   // While open: push a new close time and/or choice (R1 / R2 of the owner's 2026-09-12 message).
+  const unpickedCount = board?.unpicked.length ?? 0;
   const handleWindow = () => {
     if (!board) return;
     const when = parseCloseInput();
@@ -193,15 +195,25 @@ export function GroupDrawCard({ eventId, stages, onRefresh }: Props) {
       t("draw.toastWindowUpdated"),
     );
   };
+  // Who may see the board: the organizer's choice, any state (owner 2026-09-12).
+  const handleVisibility = (participantsOnly: boolean) => {
+    if (!board) return;
+    run(
+      "window",
+      () => drawsApi.window(board.draw_id, { visibility: participantsOnly ? "participants" : "everyone" }),
+      t(participantsOnly ? "draw.toastHiddenOn" : "draw.toastHiddenOff"),
+    );
+  };
+  // Sends ONLY on this press (owner 2026-09-12: "it should only send when they say it should").
   const handleRemind = () => {
     if (!board) return;
+    if (!window.confirm(t("draw.confirmRemind", { count: unpickedCount }))) return;
     run(
       "remind",
       () => drawsApi.remind(board.draw_id),
       (r) => t("draw.toastReminded", { count: (r as { reminded?: number })?.reminded ?? 0 }),
     );
   };
-  const unpickedCount = board?.unpicked.length ?? 0;
   const handleClose = (place: boolean) => {
     if (!board) return;
     const question =
@@ -332,6 +344,23 @@ export function GroupDrawCard({ eventId, stages, onRefresh }: Props) {
                 </span>
               )}
             </div>
+
+            {/* who may see the board: everyone (default) or only registered teams and players */}
+            <label className="flex items-start gap-3 rounded-md bg-muted/30 p-3 text-sm">
+              <Switch
+                checked={board.visibility === "participants"}
+                onCheckedChange={handleVisibility}
+                disabled={busy !== null}
+                aria-label={t("draw.visibilityLabel")}
+              />
+              <span>
+                <span className="font-medium">
+                  {t("draw.visibilityLabel")}
+                  <NewBadge since={CONTROLS_SINCE} className="ml-1" />
+                </span>
+                <span className="block text-xs text-muted-foreground">{t("draw.visibilityHelp")}</span>
+              </span>
+            </label>
 
             {/* controls per state */}
             {board.status === "draft" && (

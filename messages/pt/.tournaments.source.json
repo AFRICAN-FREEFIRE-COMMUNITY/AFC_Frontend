@@ -777,6 +777,8 @@
     "restPlaced": "Anyone who has not picked by the close time is placed automatically.",
     "restOrganizer": "Anyone who has not picked by the close time will be placed by the organizer.",
     "leftForOrganizer": "{count, plural, one {# team was} other {# teams were}} not placed by the draw; the organizer will place them.",
+    "hiddenGuest": "The organizer limited this draw to registered teams and players. Sign in with an account on a registered team to watch it.",
+    "hiddenMember": "The organizer limited this draw to registered teams and players, and your account is not on a team registered in this event.",
     "yourCard": "<b>{name}</b> turned over card {number}: <b>{group}</b>",
     "youPickFor": "You pick for {name}. Tap a card, then confirm.",
     "signInToPick": "Sign in to turn a card over for your team.",
