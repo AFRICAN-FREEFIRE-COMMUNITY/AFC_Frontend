@@ -349,8 +349,9 @@ export function GroupDrawCard({ eventId, stages, onRefresh }: Props) {
               </div>
             )}
 
-            {/* who still has to pick (open), or who was left for the organizer (closed) */}
-            {unpickedCount > 0 && (
+            {/* who still has to pick (open), or who was left for the organizer (closed); nothing
+                while the draw is a draft, nobody can pick yet */}
+            {unpickedCount > 0 && board.status !== "draft" && (
               <div className="space-y-1.5 rounded-md bg-muted/30 p-3">
                 <p className="text-sm font-medium">
                   {board.status === "closed"
