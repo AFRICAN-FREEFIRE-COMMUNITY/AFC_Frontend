@@ -1,0 +1,193 @@
+{
+  "title": "AI key",
+  "description": "Read result screenshots on your own AI account.",
+  "loading": "Loading",
+  "lockNotice": "Only the organization's owner or a member who manages the organization can connect or change its AI key.",
+  "whatTitle": "What this is",
+  "what1": "OCR reads the standings off a Free Fire result screen for you, so nobody types 48 rows by hand.",
+  "what2": "When a screenshot needs the AI engine, it runs on your own key and your provider bills you: well under one cent per screenshot.",
+  "what3": "AFC pays for one such read per organization, so you can see how it works. After that, connect your key here to keep using OCR.",
+  "what4": "AFC never sees your bill and cannot read your key back once it is saved.",
+  "freeReadsLeft": "{count, plural, one {You still have # free read.} other {You still have # free reads.}}",
+  "freeReadsGone": "Your free read has been used. Connect a key to keep using OCR.",
+  "ocrDisabledByAdmin": "OCR has been switched off for this organization by AFC. Contact support.",
+  "connectedTitle": "Connected",
+  "connectedLine": "{provider}, key ending {last4}",
+  "connectedBy": "Added by {who}",
+  "someone": "a member",
+  "modelLine": "Model: {model}",
+  "lastTestOk": "Last test: works.",
+  "lastTestFailed": "Last test failed: {error}",
+  "usageMonth": "Reads this month",
+  "usageAllTime": "Reads all time",
+  "usageLast": "Last read",
+  "usageSpend": "about {usd}",
+  "never": "Never",
+  "lastReadOk": "worked",
+  "testAgain": "Test again",
+  "testing": "Testing...",
+  "changeKey": "Change key",
+  "disconnect": "Disconnect",
+  "disconnecting": "Disconnecting...",
+  "confirmDisconnect": "Disconnect this key? OCR reads will stop until another key is connected (or a free read is left).",
+  "connectTitle": "Connect your key",
+  "changeTitle": "Change the key",
+  "pickProvider": "Pick your provider",
+  "guideTitle": "How to get a {provider} key",
+  "openKeysPage": "Open the {provider} keys page",
+  "keyLooksLike": "Your key looks like:",
+  "freeTier": "Free tier:",
+  "cost": "Cost:",
+  "costLine": "about ${usd} per screenshot on the recommended model, checked on {date}. Check the provider's own page for today's price.",
+  "wrongTitle": "What can go wrong",
+  "wrong1": "\"Incorrect API key\" or \"invalid x-api-key\": the key was copied with a space, or a character is missing. Paste it again.",
+  "wrong2": "\"Insufficient quota\", \"credit balance too low\" or \"exceeded your current quota\": your provider account has no credit. Top it up on the provider's page and test again.",
+  "wrong3": "\"Model not found\": the model id is wrong for this provider. Put the recommended one back.",
+  "reportStep": "A step looks wrong? Providers rename buttons.",
+  "reportStepLink": "Tell us and we fix the line.",
+  "keyLabel": "Your key",
+  "keyPlaceholder": "Paste it here ({hint})",
+  "modelLabel": "Model",
+  "modelHelp": "Pre-filled with the model that reads best. Change it only if you know why.",
+  "baseUrlLabel": "Base URL",
+  "testKey": "Test key",
+  "save": "Save",
+  "saving": "Saving...",
+  "cancel": "Cancel",
+  "saveNeedsTest": "Test the key first; Save turns on once it works.",
+  "verdictOk": "It works",
+  "verdictFailed": "It did not work",
+  "verdictFailedHelp": "That is the provider's own message. See \"What can go wrong\" above.",
+  "privacyTitle": "Privacy and safety",
+  "privacy1": "The key is encrypted before it is stored. Nobody at AFC can read it back; this page shows only its last four characters.",
+  "privacy2": "It is sent to the provider you chose and nowhere else. When the AI engine reads a screenshot, that screenshot goes to your provider.",
+  "privacy3": "You can revoke the key at the provider any time and paste a new one here. Every connect, test and disconnect is listed below with who did it.",
+  "historyTitle": "History",
+  "byWho": "by {who}",
+  "action": {
+    "connected": "Connected",
+    "changed": "Changed",
+    "tested": "Tested",
+    "disconnected": "Disconnected",
+    "allowance": "Free reads changed by AFC",
+    "disabled": "OCR switched off by AFC",
+    "enabled": "OCR switched on by AFC"
+  },
+  "toastLoadFailed": "Could not load the key page.",
+  "toastTestFailed": "The test could not run.",
+  "toastSaved": "Key saved. OCR now runs on your {provider} account.",
+  "toastSaveFailed": "The key could not be saved.",
+  "toastDisconnected": "Key disconnected.",
+  "toastDisconnectFailed": "The key could not be disconnected.",
+  "gate": {
+    "connect": "Connect a key",
+    "fallback": "Could not read that screenshot. Please try again."
+  },
+  "admin": {
+    "title": "OCR keys",
+    "description": "Which organizations read on their own AI key, what they read, and the free reads AFC still pays for.",
+    "afcMonth": "AFC's own key this month: {reads} reads, about {usd}.",
+    "colOrg": "Organization",
+    "colProvider": "Provider",
+    "colModel": "Model",
+    "colMonth": "Reads this month",
+    "colAll": "All time",
+    "colFree": "Free reads left",
+    "colOcr": "OCR",
+    "notConnected": "not connected",
+    "on": "on",
+    "off": "off",
+    "switchOff": "Switch off",
+    "switchOn": "Switch on",
+    "setAllowance": "Set",
+    "allowanceSaved": "Free reads updated.",
+    "loadFailed": "Could not load the list.",
+    "lastError": "Last error: {error}"
+  },
+  "guides": {
+    "gemini": {
+      "keyHint": "starts with AIza",
+      "freeTier": "Yes, with daily limits on an AI Studio key.",
+      "steps": [
+        "Open aistudio.google.com and sign in with any Google account.",
+        "Press Get API key in the left menu.",
+        "Press Create API key. Choose an existing Google Cloud project or let it create one.",
+        "Copy the key. It starts with AIza. Treat it like a password.",
+        "Optional but wise: in Google Cloud, restrict this key to the Generative Language API only."
+      ]
+    },
+    "openai": {
+      "keyHint": "starts with sk-",
+      "freeTier": "No. Pay as you go; add a few dollars of credit under Billing first.",
+      "steps": [
+        "Open platform.openai.com and sign in.",
+        "Under Settings, open Billing and add credit (a few dollars lasts a whole season).",
+        "Open API keys in the left menu and press Create new secret key.",
+        "Name it AFC OCR, choose Restricted and allow only Model capabilities.",
+        "Copy the key. It starts with sk-. It is shown once."
+      ]
+    },
+    "anthropic": {
+      "keyHint": "starts with sk-ant-",
+      "freeTier": "No. Pay as you go; add credit under Plans and billing first.",
+      "steps": [
+        "Open console.anthropic.com and sign in.",
+        "Under Plans and billing, add credit.",
+        "Open Settings, then API keys, and press Create key.",
+        "Name it AFC OCR and choose the workspace it belongs to.",
+        "Copy the key. It starts with sk-ant-. It is shown once."
+      ]
+    },
+    "openrouter": {
+      "keyHint": "starts with sk-or-",
+      "freeTier": "Some models are free with limits; the recommended one is pay as you go.",
+      "steps": [
+        "Open openrouter.ai and sign in (Google or GitHub works).",
+        "Open Credits and add a few dollars.",
+        "Open Keys and press Create key.",
+        "Name it AFC OCR. A credit limit on the key is a good idea.",
+        "Copy the key. It starts with sk-or-."
+      ]
+    },
+    "groq": {
+      "keyHint": "starts with gsk_",
+      "freeTier": "Yes, rate limited.",
+      "steps": [
+        "Open console.groq.com and sign in.",
+        "Open API Keys in the left menu and press Create API Key.",
+        "Name it AFC OCR.",
+        "Copy the key. It starts with gsk_. It is shown once."
+      ]
+    },
+    "mistral": {
+      "keyHint": "a 32-character string",
+      "freeTier": "Yes, a limited free plan.",
+      "steps": [
+        "Open console.mistral.ai and sign in.",
+        "Choose a plan under Billing (the free experiment plan works for OCR).",
+        "Open API Keys and press Create new key.",
+        "Name it AFC OCR and copy it. It is shown once."
+      ]
+    },
+    "xai": {
+      "keyHint": "starts with xai-",
+      "freeTier": "No. Pay as you go.",
+      "steps": [
+        "Open console.x.ai and sign in with your X account.",
+        "Add credit under Billing.",
+        "Open API Keys and press Create API key.",
+        "Name it AFC OCR and copy it. It starts with xai-."
+      ]
+    },
+    "custom": {
+      "keyHint": "whatever your provider gave you",
+      "freeTier": "Depends on the provider.",
+      "steps": [
+        "Find your provider's OpenAI-compatible base URL (it usually ends in /v1).",
+        "Find the id of a model that can read images.",
+        "Create a key in your provider's console.",
+        "Paste the base URL, the model id and the key below, then Test."
+      ]
+    }
+  }
+}

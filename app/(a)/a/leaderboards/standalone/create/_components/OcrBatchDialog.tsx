@@ -38,6 +38,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { toastOcrError } from "@/lib/api/ocrKeyGate";
 
 import {
   Dialog,
@@ -180,6 +181,7 @@ export function OcrBatchDialog({
 }) {
   // `ocr` namespace, group `stdBatch`; `t("common.*")` reaches the shared generic verbs.
   const t = useTranslations("ocr");
+  const tk = useTranslations("aiKey");
   const [maps, setMaps] = useState<MapEntry[]>([newMap()]);
   const [polling, setPolling] = useState(false);
   const [busyAll, setBusyAll] = useState(false); // "Read all" in-flight (creating jobs)
@@ -349,7 +351,9 @@ export function OcrBatchDialog({
       update(localId, { status: "processing", error: "" });
       setPolling(true);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || t("stdBatch.couldNotStartMap"));
+      // Own-key OCR (owner 2026-09-12): the run endpoint answers 402 up front when the
+      // organization has no key and no free read; the shared gate shows the sentence + button.
+      toastOcrError(err, { connect: tk("gate.connect"), fallback: t("stdBatch.couldNotStartMap") });
     }
   };
 
@@ -384,7 +388,7 @@ export function OcrBatchDialog({
       );
       refreshJobs();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || t("stdBatch.couldNotStartMaps"));
+      toastOcrError(err, { connect: tk("gate.connect"), fallback: t("stdBatch.couldNotStartMaps") });
     } finally {
       setBusyAll(false);
     }

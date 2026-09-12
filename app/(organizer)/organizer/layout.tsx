@@ -139,6 +139,10 @@ const NAV_ITEMS: OrganizerNavItem[] = [
   { key: "metrics", href: "/organizer/metrics" },
   // "Payouts" (F6-P4) - the org's share of paid-event revenue + bank details (owner sets the bank).
   { key: "payouts", href: "/organizer/payouts" },
+  // "AI key" (owner 2026-09-12) - the organization's own AI provider key for OCR: one free read
+  // per organization, then their key. Owner or can_manage_members; the page locks for others.
+  // See app/(organizer)/organizer/ai-key/page.tsx. NEW for 5 days from the day it shipped.
+  { key: "aiKey", href: "/organizer/ai-key", newSince: "2026-09-12" },
   // "Reviews" - the org's per-event ratings + ANONYMOUS comments,
   // gated per-page on can_view_reviews (or owner).
   { key: "reviews", href: "/organizer/reviews" },
