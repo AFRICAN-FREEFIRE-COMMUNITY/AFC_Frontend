@@ -347,6 +347,17 @@ export const adminNavLinks: AdminNavLink[] = [
     icon: IconScan,
     allowedRoles: ["head_admin"],
   },
+  // OCR keys (owner 2026-09-12): which organizations read on their own AI key, reads and
+  // estimated spend, the free reads AFC still pays for, and the per-org OCR switch.
+  // app/(a)/a/ocr-model/keys/page.tsx; backend organizers/admin/ai-keys/ (platform org admins).
+  {
+    label: "OCR Keys",
+    navKey: "ocrKeys",
+    slug: "/a/ocr-model/keys",
+    icon: IconScan,
+    allowedRoles: ["head_admin", "organizer_admin"],
+    newSince: "2026-09-12",
+  },
   // Admin Shop is the single shop entry point. The vendor payouts ledger
   // (app/(a)/a/shop/payouts/page.tsx) used to have its own "Shop Payouts" entry
   // here; it now lives INSIDE the shop dashboard as the "Vendor Payouts" card in

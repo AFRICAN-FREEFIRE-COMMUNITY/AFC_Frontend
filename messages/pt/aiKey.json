@@ -1,0 +1,194 @@
+{
+  "title": "Chave de IA",
+  "description": "Leia as capturas de resultados com a sua própria conta de IA.",
+  "loading": "A carregar",
+  "lockNotice": "Só o proprietário da organização ou um membro que gere a organização pode ligar ou alterar a sua chave de IA.",
+  "whatTitle": "O que é isto",
+  "what1": "O OCR lê a classificação num ecrã de resultados do Free Fire por si, para que ninguém escreva 48 linhas à mão.",
+  "what2": "Quando uma captura precisa do motor de IA, corre na sua própria chave e é o seu fornecedor que lhe cobra: bem menos de um cêntimo por captura.",
+  "what3": "A AFC paga uma leitura destas por organização, para ver como funciona. Depois disso, ligue aqui a sua chave para continuar a usar o OCR.",
+  "what4": "A AFC nunca vê a sua fatura e não consegue ler a sua chave depois de guardada.",
+  "freeReadsLeft": "{count, plural, one {Ainda tem # leitura gratuita.} other {Ainda tem # leituras gratuitas.}}",
+  "freeReadsGone": "A sua leitura gratuita foi usada. Ligue uma chave para continuar a usar o OCR.",
+  "ocrDisabledByAdmin": "O OCR foi desligado para esta organização pela AFC. Contacte o suporte.",
+  "connectedTitle": "Ligada",
+  "connectedLine": "{provider}, chave terminada em {last4}",
+  "connectedBy": "Adicionada por {who}",
+  "someone": "um membro",
+  "modelLine": "Modelo: {model}",
+  "lastTestOk": "Último teste: funciona.",
+  "lastTestFailed": "Último teste falhou: {error}",
+  "usageMonth": "Leituras este mês",
+  "usageAllTime": "Leituras no total",
+  "usageLast": "Última leitura",
+  "usageSpend": "cerca de {usd}",
+  "never": "Nunca",
+  "lastReadOk": "funcionou",
+  "testAgain": "Testar de novo",
+  "testing": "A testar...",
+  "changeKey": "Mudar de chave",
+  "disconnect": "Desligar",
+  "disconnecting": "A desligar...",
+  "confirmDisconnect": "Desligar esta chave? As leituras OCR param até ligar outra chave (ou enquanto não houver leitura gratuita).",
+  "connectTitle": "Ligar a sua chave",
+  "changeTitle": "Mudar a chave",
+  "pickProvider": "Escolha o seu fornecedor",
+  "guideTitle": "Como obter uma chave {provider}",
+  "openKeysPage": "Abrir a página de chaves {provider}",
+  "keyLooksLike": "A sua chave parece-se com:",
+  "freeTier": "Plano gratuito:",
+  "cost": "Custo:",
+  "costLine": "cerca de {usd} $ por captura no modelo recomendado, verificado em {date}. Veja a página do fornecedor para o preço de hoje.",
+  "wrongTitle": "O que pode correr mal",
+  "wrong1": "«Incorrect API key» ou «invalid x-api-key»: a chave foi copiada com um espaço, ou falta um carácter. Cole-a de novo.",
+  "wrong2": "«Insufficient quota», «credit balance too low» ou «exceeded your current quota»: a sua conta no fornecedor não tem crédito. Carregue-a na página do fornecedor e teste de novo.",
+  "wrong3": "«Model not found»: o id do modelo está errado para este fornecedor. Volte a pôr o recomendado.",
+  "reportStep": "Um passo parece errado? Os fornecedores mudam o nome dos botões.",
+  "reportStepLink": "Diga-nos e corrigimos a linha.",
+  "keyLabel": "A sua chave",
+  "keyPlaceholder": "Cole-a aqui ({hint})",
+  "modelLabel": "Modelo",
+  "modelHelp": "Pré-preenchido com o modelo que lê melhor. Mude-o só se souber porquê.",
+  "baseUrlLabel": "Endereço base",
+  "testKey": "Testar a chave",
+  "save": "Guardar",
+  "saving": "A guardar...",
+  "cancel": "Cancelar",
+  "saveNeedsTest": "Teste primeiro a chave; Guardar liga-se assim que funcionar.",
+  "verdictOk": "Funciona",
+  "verdictFailed": "Não funcionou",
+  "verdictFailedHelp": "Esta é a mensagem do próprio fornecedor. Veja «O que pode correr mal» acima.",
+  "privacyTitle": "Privacidade e segurança",
+  "privacy1": "A chave é cifrada antes de ser guardada. Ninguém na AFC a consegue ler; esta página mostra apenas os últimos quatro caracteres.",
+  "privacy2": "É enviada apenas ao fornecedor que escolheu. Quando o motor de IA lê uma captura, essa captura vai para o seu fornecedor.",
+  "privacy3": "Pode revogar a chave no fornecedor a qualquer momento e colar aqui uma nova. Cada ligação, teste e desligar fica listado abaixo com quem o fez.",
+  "historyTitle": "Histórico",
+  "byWho": "por {who}",
+  "action": {
+    "connected": "Ligada",
+    "changed": "Alterada",
+    "tested": "Testada",
+    "disconnected": "Desligada",
+    "allowance": "Leituras gratuitas alteradas pela AFC",
+    "disabled": "OCR desligado pela AFC",
+    "enabled": "OCR ligado pela AFC"
+  },
+  "toastLoadFailed": "Não foi possível carregar a página da chave.",
+  "toastTestFailed": "O teste não pôde correr.",
+  "toastSaved": "Chave guardada. O OCR corre agora na sua conta {provider}.",
+  "toastSaveFailed": "Não foi possível guardar a chave.",
+  "toastDisconnected": "Chave desligada.",
+  "toastDisconnectFailed": "Não foi possível desligar a chave.",
+  "gate": {
+    "connect": "Ligar uma chave",
+    "fallback": "Não foi possível ler essa captura. Tente de novo.",
+    "freeReadSpent": "Essa foi a leitura gratuita oferecida pela AFC. Ligue a sua própria chave de IA para continuar a usar o OCR."
+  },
+  "admin": {
+    "title": "Chaves OCR",
+    "description": "Que organizações leem com a sua própria chave de IA, o que leem, e as leituras gratuitas que a AFC ainda paga.",
+    "afcMonth": "Chave da AFC este mês: {reads} leituras, cerca de {usd}.",
+    "colOrg": "Organização",
+    "colProvider": "Fornecedor",
+    "colModel": "Modelo",
+    "colMonth": "Leituras este mês",
+    "colAll": "No total",
+    "colFree": "Leituras gratuitas restantes",
+    "colOcr": "OCR",
+    "notConnected": "não ligada",
+    "on": "ligado",
+    "off": "desligado",
+    "switchOff": "Desligar",
+    "switchOn": "Ligar",
+    "setAllowance": "Definir",
+    "allowanceSaved": "Leituras gratuitas atualizadas.",
+    "loadFailed": "Não foi possível carregar a lista.",
+    "lastError": "Último erro: {error}"
+  },
+  "guides": {
+    "gemini": {
+      "keyHint": "começa por AIza",
+      "freeTier": "Sim, com limites diários numa chave do AI Studio.",
+      "steps": [
+        "Abra aistudio.google.com e inicie sessão com qualquer conta Google.",
+        "Carregue em Get API key no menu da esquerda.",
+        "Carregue em Create API key. Escolha um projeto Google Cloud existente ou deixe-o criar um.",
+        "Copie a chave. Começa por AIza. Trate-a como uma palavra-passe.",
+        "Opcional mas sensato: no Google Cloud, restrinja esta chave apenas à Generative Language API."
+      ]
+    },
+    "openai": {
+      "keyHint": "começa por sk-",
+      "freeTier": "Não. Pagamento por utilização; adicione primeiro alguns dólares de crédito em Billing.",
+      "steps": [
+        "Abra platform.openai.com e inicie sessão.",
+        "Em Settings, abra Billing e adicione crédito (alguns dólares chegam para uma época inteira).",
+        "Abra API keys no menu da esquerda e carregue em Create new secret key.",
+        "Dê-lhe o nome AFC OCR, escolha Restricted e permita apenas Model capabilities.",
+        "Copie a chave. Começa por sk-. É mostrada uma única vez."
+      ]
+    },
+    "anthropic": {
+      "keyHint": "começa por sk-ant-",
+      "freeTier": "Não. Pagamento por utilização; adicione primeiro crédito em Plans and billing.",
+      "steps": [
+        "Abra console.anthropic.com e inicie sessão.",
+        "Em Plans and billing, adicione crédito.",
+        "Abra Settings, depois API keys, e carregue em Create key.",
+        "Dê-lhe o nome AFC OCR e escolha o workspace a que pertence.",
+        "Copie a chave. Começa por sk-ant-. É mostrada uma única vez."
+      ]
+    },
+    "openrouter": {
+      "keyHint": "começa por sk-or-",
+      "freeTier": "Alguns modelos são gratuitos com limites; o recomendado é pago por utilização.",
+      "steps": [
+        "Abra openrouter.ai e inicie sessão (Google ou GitHub funcionam).",
+        "Abra Credits e adicione alguns dólares.",
+        "Abra Keys e carregue em Create key.",
+        "Dê-lhe o nome AFC OCR. Um limite de crédito na chave é boa ideia.",
+        "Copie a chave. Começa por sk-or-."
+      ]
+    },
+    "groq": {
+      "keyHint": "começa por gsk_",
+      "freeTier": "Sim, com limite de pedidos.",
+      "steps": [
+        "Abra console.groq.com e inicie sessão.",
+        "Abra API Keys no menu da esquerda e carregue em Create API Key.",
+        "Dê-lhe o nome AFC OCR.",
+        "Copie a chave. Começa por gsk_. É mostrada uma única vez."
+      ]
+    },
+    "mistral": {
+      "keyHint": "uma sequência de 32 caracteres",
+      "freeTier": "Sim, um plano gratuito limitado.",
+      "steps": [
+        "Abra console.mistral.ai e inicie sessão.",
+        "Escolha um plano em Billing (o plano gratuito Experiment chega para o OCR).",
+        "Abra API Keys e carregue em Create new key.",
+        "Dê-lhe o nome AFC OCR e copie-a. É mostrada uma única vez."
+      ]
+    },
+    "xai": {
+      "keyHint": "começa por xai-",
+      "freeTier": "Não. Pagamento por utilização.",
+      "steps": [
+        "Abra console.x.ai e inicie sessão com a sua conta X.",
+        "Adicione crédito em Billing.",
+        "Abra API Keys e carregue em Create API key.",
+        "Dê-lhe o nome AFC OCR e copie-a. Começa por xai-."
+      ]
+    },
+    "custom": {
+      "keyHint": "o que o seu fornecedor lhe deu",
+      "freeTier": "Depende do fornecedor.",
+      "steps": [
+        "Encontre o endereço base compatível com OpenAI do seu fornecedor (normalmente termina em /v1).",
+        "Encontre o id de um modelo que consiga ler imagens.",
+        "Crie uma chave na consola do seu fornecedor.",
+        "Cole o endereço base, o id do modelo e a chave abaixo, e depois teste."
+      ]
+    }
+  }
+}

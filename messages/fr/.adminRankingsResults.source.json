@@ -108,8 +108,6 @@
   "toasts.bulkDisabled": "{count, plural, one {Counting disabled for # tournament} other {Counting disabled for # tournaments}}",
   "toasts.reincluded": "{name} now counts again for {tournament}",
   "toasts.actionFailed": "Action failed",
-  "status": {
-    "openRoster": "Open roster",
-    "openRosterHint": "Open-roster events never count toward rankings or tiers. This cannot be switched on."
-  }
+  "status.openRoster": "Open roster",
+  "status.openRosterHint": "Open-roster events never count toward rankings or tiers. This cannot be switched on."
 }

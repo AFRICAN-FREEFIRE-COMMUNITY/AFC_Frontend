@@ -32,6 +32,7 @@ import {
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { ocrFetchError, toastFreeReadSpent, toastOcrError } from "@/lib/api/ocrKeyGate";
 import { cn } from "@/lib/utils";
 // Centralized OCR contract (lib/api/ocr.ts). The extract handler below hits ocrApi.ocrFromStoredImage
 // (POST /events/ocr-from-image/) instead of a hand-rolled fetch, and the returned session is handed
@@ -71,6 +72,7 @@ interface Props {
 export function ImageUploadStep({ match, onNext, onBack }: Props) {
   const t = useTranslations("ocr");
   const tc = useTranslations("common");
+  const tk = useTranslations("aiKey");
   const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -180,12 +182,16 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
         const data = await res.json();
         if (res.ok) {
           toast.success(t("uploadSteps.imageStep.uploadSuccess"));
+          // Own-key OCR (owner 2026-09-12): when this read was AFC's free one, say so now.
+          toastFreeReadSpent(data.paid_by, { message: tk("gate.freeReadSpent"), connect: tk("gate.connect") });
           pendingFiles.forEach(({ preview }) => URL.revokeObjectURL(preview));
           setPendingFiles([]);
           if (fileInputRef.current) fileInputRef.current.value = "";
           fetchImages();
         } else {
-          toast.error(data.message || t("uploadSteps.imageStep.uploadFailed"));
+          // Own-key OCR: a 402 shows the connect-a-key sentence with its button; anything else
+          // keeps the backend's message (a provider refusal carries the provider's own words).
+          toastOcrError(ocrFetchError(res, data), { connect: tk("gate.connect"), fallback: t("uploadSteps.imageStep.uploadFailed") });
         }
       } catch {
         toast.error(t("uploadSteps.imageStep.unexpectedError"));
@@ -247,15 +253,15 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
           count: session.draft_rows?.length ?? 0,
         }),
       );
+      toastFreeReadSpent(session.paid_by, { message: tk("gate.freeReadSpent"), connect: tk("gate.connect") });
       setReviewSession({
         sessionId: session.session_id,
         draftRows: session.draft_rows ?? [],
         engine: session.engine ?? session.teacher_model ?? null,
       });
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || t("uploadSteps.imageStep.extractFailed"),
-      );
+      // Own-key OCR (owner 2026-09-12): 402 -> the connect-a-key toast (lib/api/ocrKeyGate).
+      toastOcrError(err, { connect: tk("gate.connect"), fallback: t("uploadSteps.imageStep.extractFailed") });
     } finally {
       setExtractingId(null);
     }
