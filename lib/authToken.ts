@@ -18,10 +18,29 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 let _token: string | null = null;
+// True once a real token has been set during this page load. It never goes back to false: it is
+// the difference between "this person was signed in and lost it" and "this person never signed in",
+// which lib/http SessionExpiredError needs (see hadSessionThisLoad).
+let _hadSession = false;
 
 /** AuthContext calls this whenever it sets/clears the active session token. */
 export function setAuthToken(token: string | null): void {
   _token = token;
+  if (token) _hadSession = true;
+}
+
+/**
+ * Whether a session token has existed at any point during this page load.
+ *
+ * WHY (bug, 2026-09-12): authHeaders() throws SessionExpiredError when there is no token, and that
+ * error opens the "Session expired" login modal. But "no token" is also simply a GUEST, and three
+ * reads on the public event page (event rating, event sponsors, group draw) call authHeaders()
+ * because a signed-in viewer gets extra fields back. So every logged-out visitor to an event page
+ * was greeted with "Session expired". A guest has no session to expire; the modal is only right
+ * for someone who HAD one. This flag is how the error tells the two apart.
+ */
+export function hadSessionThisLoad(): boolean {
+  return _hadSession;
 }
 
 /** The authoritative in-memory token, or null before AuthContext has hydrated. */

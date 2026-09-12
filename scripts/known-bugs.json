@@ -40,6 +40,19 @@
       "kind": "i18n-namespace",
       "globs": ["app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "contexts/**/*.ts", "contexts/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"],
       "messagesDir": "messages/en"
+    },
+    {
+      "id": "fe-authheaders-in-try",
+      "title": "authHeaders() called inside try/catch to make auth optional",
+      "why": "authHeaders() throws SessionExpiredError when there is no token, and that error dispatches auth:session-expired from its CONSTRUCTOR. A try/catch swallows the throw but the event has already opened the login modal, so a public page greets every logged-out visitor with 'Session expired'.",
+      "seen": [
+        "2026-09-12 lib/draws.ts optionalHeaders wrapped authHeaders() in try/catch; the post-deploy walk of FE #40 then showed the same modal from two OLDER sites too, lib/organizers getEventRating and lib/sponsors forEvent (both documented as optional auth, both calling authHeaders() since the 2026-08-29 throw): every guest on an event page had been greeted with Session expired for two weeks. Fixed in fix/draw-guest-session-modal: optionalAuthHeaders() in lib/http, and the modal event now fires only when a session existed this page load"
+      ],
+      "fix": "use optionalAuthHeaders() from lib/http for a read that is public but richer when signed in; never call authHeaders() unless the request truly needs a session",
+      "kind": "regex",
+      "pattern": "try\\s*\\{\\s*return\\s+authHeaders\\(\\)",
+      "ignoreLineRegex": "^\\s*//",
+      "globs": ["app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "contexts/**/*.ts", "contexts/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"]
     }
   ]
 }

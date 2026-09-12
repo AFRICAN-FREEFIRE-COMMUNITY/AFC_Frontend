@@ -13,7 +13,7 @@
 import axios from "axios";
 
 import { env } from "@/lib/env";
-import { authHeaders } from "@/lib/http";
+import { authHeaders, optionalAuthHeaders } from "@/lib/http";
 
 const BASE = `${env.NEXT_PUBLIC_BACKEND_API_URL}/draws`;
 
@@ -64,19 +64,13 @@ export interface DrawBoard {
   } | null;
 }
 
-// A Bearer header when the viewer is signed in, nothing otherwise: the board is public and a
-// logged-out visitor must still be able to watch it. authHeaders throws when the session is dead,
-// which is the right outcome for a signed-in viewer and irrelevant for a guest.
-function optionalHeaders() {
-  try {
-    return authHeaders();
-  } catch {
-    return {};
-  }
-}
-
+// Reads: a Bearer header when the viewer is signed in, nothing otherwise. The board is public
+// and a logged-out visitor must still be able to watch it, so the header is optionalAuthHeaders
+// (lib/http), which never constructs SessionExpiredError for a guest. The first cut wrapped
+// authHeaders() in try/catch; the throw was swallowed but the error had already opened the
+// "Session expired" modal from its constructor, for every guest on an event page (2026-09-12).
 async function get<T>(path: string, auth: "optional" | "required" = "optional"): Promise<T> {
-  const headers = auth === "required" ? authHeaders() : optionalHeaders();
+  const headers = auth === "required" ? authHeaders() : optionalAuthHeaders();
   return (await axios.get(`${BASE}/${path}`, { headers })).data;
 }
 
