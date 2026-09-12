@@ -41,7 +41,7 @@ import { Button } from "@/components/ui/button";
 import { LocalTime } from "@/components/LocalTime";
 import { NewBadge } from "@/components/NewBadge";
 import { cn } from "@/lib/utils";
-import { drawsApi, drawErrorMessage, type DrawBoard, type DrawCard } from "@/lib/draws";
+import { drawsApi, drawErrorMessage, isHiddenBoard, type DrawBoard, type DrawBoardOrHidden, type DrawCard } from "@/lib/draws";
 
 // The day the board went live (NEW badge, 5 days, self-expiring).
 const DRAW_SINCE = "2026-09-12";
@@ -69,7 +69,7 @@ export function GroupDrawBoard({ eventId }: { eventId: number }) {
   const { isAuthenticated } = useAuth();
   const reduced = useReducedMotion();
 
-  const [boards, setBoards] = useState<DrawBoard[] | null>(null);
+  const [boards, setBoards] = useState<DrawBoardOrHidden[] | null>(null);
   // Per draw: the card the viewer has tapped but not yet confirmed.
   const [selected, setSelected] = useState<Record<number, number | null>>({});
   const [picking, setPicking] = useState<number | null>(null);
@@ -106,6 +106,7 @@ export function GroupDrawBoard({ eventId }: { eventId: number }) {
   // Once closed, check the seal in the browser and say so in words.
   useEffect(() => {
     for (const b of boards ?? []) {
+      if (isHiddenBoard(b)) continue;
       if (b.status !== "closed" || !b.salt || !b.mapping || seal[b.draw_id]) continue;
       setSeal((s) => ({ ...s, [b.draw_id]: "checking" }));
       const payload = JSON.stringify(b.mapping);
@@ -140,6 +141,21 @@ export function GroupDrawBoard({ eventId }: { eventId: number }) {
   return (
     <div className="space-y-6">
       {boards.map((board) => {
+        // The organizer limited this draw to registered teams and players, and this viewer is
+        // not one (or not signed in): say so, show nothing else.
+        if (isHiddenBoard(board)) {
+          return (
+            <section key={board.draw_id} className="space-y-2 rounded-md bg-card p-4 md:p-5">
+              <h3 className="flex flex-wrap items-center gap-2 text-lg font-bold text-primary">
+                {t("draw.title", { stage: board.stage_name })}
+                <NewBadge since={DRAW_SINCE} />
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {isAuthenticated ? t("draw.hiddenMember") : t("draw.hiddenGuest")}
+              </p>
+            </section>
+          );
+        }
         const viewer = board.viewer;
         const myCards = new Set((viewer?.competitors ?? []).map((c) => c.card_number).filter(Boolean) as number[]);
         const pickedFor = viewer?.competitors.find((c) => c.card_number !== null) ?? null;
@@ -177,12 +193,33 @@ export function GroupDrawBoard({ eventId }: { eventId: number }) {
                 <span className="text-muted-foreground tabular-nums">
                   {t("draw.taken", { taken: board.cards_taken, total: board.cards_total })}
                 </span>
+                {/* The stage's "Teams per group", when the organizer set one (owner 2026-09-12). */}
+                {board.per_group ? (
+                  <span className="text-muted-foreground">{t("draw.perGroup", { size: board.per_group })}</span>
+                ) : null}
                 {board.status === "open" && board.closes_at && (
                   <span className="text-muted-foreground">
                     {t("draw.closesAt")} <LocalTime value={board.closes_at} />
                   </span>
                 )}
+                {board.status === "closed" && board.closed_at && (
+                  <span className="text-muted-foreground">
+                    {t("draw.closedAt")} <LocalTime value={board.closed_at} />
+                  </span>
+                )}
               </div>
+              {/* What happens to whoever does not pick: the organizer's choice, said up front while
+                  the draw is open; after a close that left some unplaced, how many are waiting. */}
+              {board.status === "open" && (
+                <p className="text-xs text-muted-foreground">
+                  {board.auto_place_at_close ? t("draw.restPlaced") : t("draw.restOrganizer")}
+                </p>
+              )}
+              {board.status === "closed" && board.unpicked.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {t("draw.leftForOrganizer", { count: board.unpicked.length })}
+                </p>
+              )}
             </div>
 
             {/* the viewer's line: what they can do here */}

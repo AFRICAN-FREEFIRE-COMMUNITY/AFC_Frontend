@@ -111,6 +111,9 @@ export const StageSchema = z.object({
   // the bottom of this schema (Clash Squad runs as a bracket with no groups; BR Round-Robin
   // keeps its groups on round_robin.round_robin_groups). Mirrors the create schema.
   number_of_groups: z.coerce.number().min(0),
+  // "Teams per group" (owner 2026-09-12): the size each group is built to hold; 0 / absent
+  // means no fixed size. Mirrors the create schema. See backend group_capacity.py.
+  competitors_per_group: z.coerce.number().min(0).optional(),
   stage_format: z.string().min(1, "Stage format required"),
   groups: z.array(GroupSchema),
   teams_qualifying_from_stage: z.coerce.number().min(0).default(0),
@@ -425,6 +428,8 @@ export interface EventDetails {
     start_date: string;
     end_date: string;
     number_of_groups: number;
+    // "Teams per group" echoed by get-event-details(-for-admin); null when no size is set.
+    competitors_per_group?: number | null;
     stage_format: string;
     teams_qualifying_from_stage: number;
     stage_status: string;

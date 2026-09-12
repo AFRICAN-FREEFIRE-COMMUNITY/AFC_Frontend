@@ -60,6 +60,7 @@ const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
   end_date: "",
   stage_format: "",
   number_of_groups: 2,
+  competitors_per_group: 0,
   teams_qualifying_from_stage: 1,
   stage_discord_role_id: "",
   prizepool: "",
@@ -550,6 +551,7 @@ export default function CreateEventPage() {
         end_date: existing.end_date,
         stage_format: existing.stage_format,
         number_of_groups: existing.number_of_groups,
+        competitors_per_group: existing.competitors_per_group || 0,
         teams_qualifying_from_stage: existing.teams_qualifying_from_stage || 1,
         prizepool: existing.prizepool || "",
         prizepool_cash_value: existing.prizepool_cash_value || "",
@@ -716,6 +718,7 @@ export default function CreateEventPage() {
       start_date: stageModalData.start_date,
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
+      competitors_per_group: stageModalData.competitors_per_group || 0,
       stage_format: stageModalData.stage_format,
       // A round-robin stage's lobbies come from its base groups (the round_robin config below),
       // NOT the classic per-group list. tempGroups can still hold leftover classic groups (e.g. the
@@ -1439,6 +1442,7 @@ export default function CreateEventPage() {
           onAddMap={addMapToGroup}
           onRemoveMap={removeOneMapFromGroup}
           onSaveStage={handleSaveStage}
+          participantType={form.watch("participant_type")}
         />
       </Form>
     </div>

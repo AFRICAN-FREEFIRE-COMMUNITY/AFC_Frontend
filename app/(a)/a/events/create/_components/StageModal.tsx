@@ -403,6 +403,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2, Plus, Minus } from "lucide-react";
+import { NewBadge } from "@/components/NewBadge";
 import { InfoTip } from "@/components/ui/info-tip";
 import { formatDate } from "@/lib/utils";
 import {
@@ -429,6 +430,8 @@ export interface StageModalData {
   end_date: string;
   stage_format: string;
   number_of_groups: number;
+  // "Teams per group" (owner 2026-09-12). 0 = no fixed size. See StageSchema in ./types.
+  competitors_per_group?: number;
   teams_qualifying_from_stage: number;
   stage_discord_role_id: string;
   prizepool: any;
@@ -491,6 +494,8 @@ interface StageModalProps {
   // group_discord_role_id strings, so the backend shape is identical - the fields are
   // just never editable in the organizer UI. Defaults to false → admin modal unchanged.
   hideDiscord?: boolean;
+  // "solo" words the group-size field "Players per group"; anything else "Teams per group".
+  participantType?: string;
 }
 
 // ── Reusable Prize Pool Section ────────────────────────────────────────────────
@@ -845,6 +850,7 @@ export function StageModal({
   onRemoveMap,
   onSaveStage,
   hideDiscord = false,
+  participantType = "squad",
 }: StageModalProps) {
   const t = useTranslations("evStageModal");
   // Stage-format labels: reuse the shared eventFormats namespace. The lookup key is a
@@ -1303,25 +1309,63 @@ export function StageModal({
                 {t("roundRobinNote")}
               </p>
             ) : isClashSquad ? null : (
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("numberOfGroups")}
-                  <InfoTip id="events.create.number_of_groups" className="ml-1" />
-                </label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={
-                    stageModalData.number_of_groups === 0
-                      ? ""
-                      : stageModalData.number_of_groups
-                  }
-                  onChange={(e) =>
-                    onGroupCountChange(
-                      e.target.value === "" ? 0 : Number(e.target.value),
-                    )
-                  }
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    {t("numberOfGroups")}
+                    <InfoTip id="events.create.number_of_groups" className="ml-1" />
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={
+                      stageModalData.number_of_groups === 0
+                        ? ""
+                        : stageModalData.number_of_groups
+                    }
+                    onChange={(e) =>
+                      onGroupCountChange(
+                        e.target.value === "" ? 0 : Number(e.target.value),
+                      )
+                    }
+                  />
+                </div>
+                {/* "Teams per group" (owner 2026-09-12): the other half of the structure. Empty
+                    means no fixed size. The seeders and the group draw fill up to this and refuse
+                    a pool that does not fit (backend group_capacity.py). */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    {participantType === "solo" ? t("playersPerGroup") : t("teamsPerGroup")}
+                    <NewBadge since="2026-09-12" className="ml-1" />
+                    <InfoTip id="events.create.competitors_per_group" className="ml-1" />
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    placeholder={t("perGroupPlaceholder")}
+                    value={
+                      !stageModalData.competitors_per_group
+                        ? ""
+                        : stageModalData.competitors_per_group
+                    }
+                    onChange={(e) =>
+                      setStageModalData({
+                        ...stageModalData,
+                        competitors_per_group:
+                          e.target.value === "" ? 0 : Number(e.target.value),
+                      })
+                    }
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {stageModalData.competitors_per_group && stageModalData.number_of_groups
+                      ? t("perGroupCapacity", {
+                          groups: stageModalData.number_of_groups,
+                          size: stageModalData.competitors_per_group,
+                          total: stageModalData.number_of_groups * stageModalData.competitors_per_group,
+                        })
+                      : t("perGroupNone")}
+                  </p>
+                </div>
               </div>
             )}
 

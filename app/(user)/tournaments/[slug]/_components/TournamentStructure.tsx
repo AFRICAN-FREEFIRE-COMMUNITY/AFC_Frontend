@@ -96,6 +96,8 @@ interface Stage {
   stage_name: string;
   stage_format: string;
   teams_qualifying_from_stage: number;
+  // "Teams per group" the organizer set on the stage (owner 2026-09-12); null = no fixed size.
+  competitors_per_group?: number | null;
   // Branching advancement rules (feature #9). When present, the stage routes its finishers into
   // (possibly several) specific later stages; the chips below replace the single "top N" hint.
   advancement_rules?: AdvancementRule[];
@@ -528,6 +530,10 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
             <span className="size-2.5 rounded-[3px] bg-primary" />{" "}
             {t("structure.qualifiedLegend")}
           </span>
+          {/* The group size the organizer set on this stage, when there is one. */}
+          {stage.competitors_per_group ? (
+            <span>{t("structure.groupsOf", { size: stage.competitors_per_group })}</span>
+          ) : null}
           {sel !== finalsIdx && (
             <span>
               {/* teams_qualifying_from_stage is the STAGE TOTAL that advances (e.g. 15), NOT a
