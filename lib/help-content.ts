@@ -87,6 +87,8 @@ export const HELP = {
     "Split this stage's finishers into different later stages. Add a rule per cut (e.g. top 1 to 8 to the Finals, 9 to 16 to a Play-In). Off uses the single 'Teams Qualifying' number instead.",
   "events.create.number_of_groups":
     "How many groups (lobbies) this stage is split into. Each group is configured separately.",
+  "events.create.competitors_per_group":
+    "How many teams (or players) each group is built to hold. Seeding and the group draw fill up to this number and refuse a pool the groups cannot hold. Leave it empty and the teams are simply spread evenly.",
   "events.create.teams_qualifying":
     "How many teams advance out of this group to the next round.",
   "events.create.match_count":

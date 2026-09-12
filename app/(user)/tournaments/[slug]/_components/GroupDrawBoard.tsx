@@ -177,12 +177,33 @@ export function GroupDrawBoard({ eventId }: { eventId: number }) {
                 <span className="text-muted-foreground tabular-nums">
                   {t("draw.taken", { taken: board.cards_taken, total: board.cards_total })}
                 </span>
+                {/* The stage's "Teams per group", when the organizer set one (owner 2026-09-12). */}
+                {board.per_group ? (
+                  <span className="text-muted-foreground">{t("draw.perGroup", { size: board.per_group })}</span>
+                ) : null}
                 {board.status === "open" && board.closes_at && (
                   <span className="text-muted-foreground">
                     {t("draw.closesAt")} <LocalTime value={board.closes_at} />
                   </span>
                 )}
+                {board.status === "closed" && board.closed_at && (
+                  <span className="text-muted-foreground">
+                    {t("draw.closedAt")} <LocalTime value={board.closed_at} />
+                  </span>
+                )}
               </div>
+              {/* What happens to whoever does not pick: the organizer's choice, said up front while
+                  the draw is open; after a close that left some unplaced, how many are waiting. */}
+              {board.status === "open" && (
+                <p className="text-xs text-muted-foreground">
+                  {board.auto_place_at_close ? t("draw.restPlaced") : t("draw.restOrganizer")}
+                </p>
+              )}
+              {board.status === "closed" && board.unpicked.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {t("draw.leftForOrganizer", { count: board.unpicked.length })}
+                </p>
+              )}
             </div>
 
             {/* the viewer's line: what they can do here */}

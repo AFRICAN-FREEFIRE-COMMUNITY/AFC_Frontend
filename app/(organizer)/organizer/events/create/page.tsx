@@ -132,6 +132,7 @@ const DEFAULT_STAGE_MODAL_DATA: StageModalData = {
   end_date: "",
   stage_format: "",
   number_of_groups: 2,
+  competitors_per_group: 0,
   teams_qualifying_from_stage: 1,
   stage_discord_role_id: "", // never edited in the organizer flow (Discord omitted)
   prizepool: "",
@@ -377,6 +378,7 @@ export default function OrganizerCreateEventPage() {
         end_date: existing.end_date,
         stage_format: existing.stage_format,
         number_of_groups: existing.number_of_groups,
+        competitors_per_group: existing.competitors_per_group || 0,
         teams_qualifying_from_stage: existing.teams_qualifying_from_stage || 1,
         prizepool: existing.prizepool || "",
         prizepool_cash_value: existing.prizepool_cash_value || "",
@@ -538,6 +540,7 @@ export default function OrganizerCreateEventPage() {
       start_date: stageModalData.start_date,
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
+      competitors_per_group: stageModalData.competitors_per_group || 0,
       stage_format: stageModalData.stage_format,
       // Clash Squad has no groups (a bracket) - send [] so the backend creates no phantom BR group.
       groups: isClashSquadStage ? [] : tempGroups,
@@ -1417,6 +1420,7 @@ export default function OrganizerCreateEventPage() {
           onRemoveMap={removeOneMapFromGroup}
           onSaveStage={handleSaveStage}
           hideDiscord
+          participantType={form.watch("participant_type")}
         />
 
         {/* Paid-event terms gate (organizer-only). Opened by handleCreateClick before

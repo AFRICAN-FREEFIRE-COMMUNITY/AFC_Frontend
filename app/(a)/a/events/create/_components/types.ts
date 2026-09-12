@@ -199,6 +199,10 @@ export const StageSchema = z.object({
   // 0 groups (it runs as a bracket) and a BR Round-Robin stage keeps its groups on
   // round_robin.round_robin_groups. See lib/eventFormats.ts for the three shapes.
   number_of_groups: z.coerce.number().min(0),
+  // "Teams per group" (owner 2026-09-12): how many each group is built to hold. 0 / absent means
+  // no fixed size (the backend stores null and splits evenly, as it always did). The seeders and
+  // the group draw refuse a pool larger than groups x size. See backend group_capacity.py.
+  competitors_per_group: z.coerce.number().min(0).optional(),
   stage_format: z.string().min(1, "Stage format required"),
   groups: z.array(GroupSchema),
   teams_qualifying_from_stage: z.coerce.number().min(0).optional(),

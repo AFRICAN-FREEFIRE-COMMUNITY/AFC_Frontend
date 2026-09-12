@@ -348,6 +348,7 @@ export default function OrganizerEditEventPage({
     end_date: string;
     stage_format: string;
     number_of_groups: number;
+    competitors_per_group?: number;
     teams_qualifying_from_stage: number;
     stage_discord_role_id: string;
     total_teams_in_stage: number;
@@ -374,6 +375,7 @@ export default function OrganizerEditEventPage({
     end_date: "",
     stage_format: "",
     number_of_groups: 2,
+    competitors_per_group: 0,
     teams_qualifying_from_stage: 0,
     stage_discord_role_id: "", // never edited in the organizer flow (Discord omitted)
     total_teams_in_stage: 0,
@@ -969,6 +971,7 @@ export default function OrganizerEditEventPage({
         end_date: existingStage.end_date,
         stage_format: existingStage.stage_format,
         number_of_groups: existingStage.number_of_groups,
+        competitors_per_group: existingStage.competitors_per_group || 0,
         stage_discord_role_id: existingStage.stage_discord_role_id || "",
         teams_qualifying_from_stage:
           existingStage.teams_qualifying_from_stage || 0,
@@ -1002,6 +1005,7 @@ export default function OrganizerEditEventPage({
         stage_discord_role_id: "",
         stage_format: "",
         number_of_groups: 2,
+        competitors_per_group: 0,
         teams_qualifying_from_stage: 0,
         total_teams_in_stage: 0,
         prizepool: "",
@@ -1281,6 +1285,7 @@ export default function OrganizerEditEventPage({
       start_date: stageModalData.start_date,
       end_date: stageModalData.end_date,
       number_of_groups: stageModalData.number_of_groups,
+      competitors_per_group: stageModalData.competitors_per_group || 0,
       stage_format: stageModalData.stage_format,
       // Clash Squad has no groups (a bracket) - send [] so the backend creates no phantom BR group.
       groups: isClashSquadStage
@@ -2379,6 +2384,7 @@ export default function OrganizerEditEventPage({
             .filter((t: any) => t?.team_id != null && t?.team_name)
             .map((t: any) => ({ team_id: t.team_id, team_name: t.team_name }))}
           hideDiscord
+          participantType={eventDetails?.participant_type}
         />
 
         <RemoveStageModal

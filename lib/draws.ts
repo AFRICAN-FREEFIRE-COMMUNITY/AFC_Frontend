@@ -49,6 +49,13 @@ export interface DrawBoard {
   opens_at: string | null;
   closes_at: string | null;
   closed_at: string | null;
+  // The organizer's choice for whoever has not picked at close: dealt in (true) or left for
+  // hand placement (false). Set at open, changeable while open (drawsApi.window).
+  auto_place_at_close: boolean;
+  // The stage's "Teams per group" (competitors_per_group); null when no fixed size is set.
+  per_group: number | null;
+  // When the last "you have not picked" reminder went out; one per 10 minutes is allowed.
+  last_reminder_at: string | null;
   // sha256(salt:mapping), shown before anyone picks; salt + mapping arrive once closed.
   commitment: string;
   groups: Array<{ group_id: number; group_name: string }>;
@@ -57,6 +64,9 @@ export interface DrawBoard {
   cards: DrawCard[];
   salt: string | null;
   mapping: Array<[number, number]> | null;
+  // Names of the competitors with no card yet (open), or left for the organizer (closed
+  // without placing the rest).
+  unpicked: string[];
   viewer: {
     can_pick: boolean;
     competitors: DrawViewerCompetitor[];
@@ -85,8 +95,16 @@ export const drawsApi = {
   board: (drawId: number) => get<DrawBoard>(`${drawId}/board/`),
   // Organizer / admin lifecycle (afc_draws.services.user_may_run_draw decides who).
   create: (stageId: number) => post<DrawBoard>(`stages/${stageId}/create/`),
-  open: (drawId: number, closesAtIso: string) => post<DrawBoard>(`${drawId}/open/`, { closes_at: closesAtIso }),
-  close: (drawId: number) => post<DrawBoard>(`${drawId}/close/`),
+  open: (drawId: number, closesAtIso: string, autoPlaceAtClose = true) =>
+    post<DrawBoard>(`${drawId}/open/`, { closes_at: closesAtIso, auto_place_at_close: autoPlaceAtClose }),
+  // POST draws/<id>/window/ while open: a new close time and/or the straggler choice.
+  window: (drawId: number, body: { closes_at?: string; auto_place_at_close?: boolean }) =>
+    post<DrawBoard>(`${drawId}/window/`, body),
+  // POST draws/<id>/close/ {place_rest}: undefined = the choice made at open.
+  close: (drawId: number, placeRest?: boolean) =>
+    post<DrawBoard>(`${drawId}/close/`, placeRest === undefined ? {} : { place_rest: placeRest }),
+  // POST draws/<id>/remind/: in-app + email to everyone who has not picked (429 inside 10 min).
+  remind: (drawId: number) => post<DrawBoard & { reminded: number }>(`${drawId}/remind/`),
   reset: (drawId: number) => post<{ message: string }>(`${drawId}/reset/`),
   // The pick: a captain (or solo player) turns card `number` over. tournament_team_id only when
   // the viewer may act for more than one team in the stage.
