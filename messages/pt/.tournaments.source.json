@@ -641,5 +641,6 @@
   "draw.showProof": "Show the proof",
   "draw.salt": "Secret",
   "draw.mapping": "Cards",
-  "draw.yourCardAuto": "<b>{name}</b> did not pick in time and was placed by the draw: card {number}, <b>{group}</b>"
+  "draw.yourCardAuto": "<b>{name}</b> did not pick in time and was placed by the draw: card {number}, <b>{group}</b>",
+  "review.rateAction": "rate this event and leave feedback"
 }

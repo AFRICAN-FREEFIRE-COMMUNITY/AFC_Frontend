@@ -34,6 +34,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
+import { useViewer } from "@/lib/gating";
+import { NeedsAccount } from "@/components/NeedsAccount";
 import { organizersApi } from "@/lib/organizers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -63,7 +65,10 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
 }) => {
   const t = useTranslations("tournaments");
   const { token } = useAuth();
-  const isLoggedIn = !!token;
+  // Session STATUS, not data (owner rule R26): while the session is still being asked the stars
+  // stay quiet and no helper line renders, so a signed-in reader never sees the sign-in nudge flash.
+  const { loading: viewerLoading, signedIn } = useViewer();
+  const isLoggedIn = signedIn && !!token;
 
   // ── Rating state ──
   const [rating, setRating] = useState<EventRating | null>(null);
@@ -208,15 +213,16 @@ export const EventReviewCard: React.FC<EventReviewCardProps> = ({
             </div>
           </div>
 
-          {/* Helper line: logged-in users learn the stars are editable; anonymous
-              visitors are nudged to log in to participate. */}
-          <p className="text-xs text-muted-foreground">
-            {isLoggedIn
-              ? rating?.my_score
-                ? t("review.helperEditable")
-                : t("review.helperRate")
-              : t("review.helperLogin")}
-          </p>
+          {/* Helper line: logged-in users learn the stars are editable; a stranger gets the
+              one sentence and the sign-in link that brings them back here (NeedsAccount, owner
+              rule R26); nothing while the session is still loading. */}
+          {isLoggedIn ? (
+            <p className="text-xs text-muted-foreground">
+              {rating?.my_score ? t("review.helperEditable") : t("review.helperRate")}
+            </p>
+          ) : viewerLoading ? null : (
+            <NeedsAccount action={t("review.rateAction")} className="text-xs text-muted-foreground" />
+          )}
         </div>
 
         {/* ── Comment box - logged-in only. Private to the organizer. ── */}

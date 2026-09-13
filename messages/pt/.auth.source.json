@@ -116,5 +116,7 @@
   "support.resetWithWhatsApp": "Recover it with WhatsApp",
   "whatsappReset.title": "Lost that inbox too?",
   "whatsappReset.body": "If you saved a WhatsApp number on your account, we can send the code there instead. You can then set a new password, or move your account to an email address you can actually read.",
-  "whatsappReset.cta": "Recover my account with WhatsApp"
+  "whatsappReset.cta": "Recover my account with WhatsApp",
+  "needsAccount": "Sign in to {action}.",
+  "needsAccountLink": "Sign in"
 }

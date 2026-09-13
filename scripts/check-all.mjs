@@ -17,6 +17,7 @@
  * catcher nobody runs):
  *   known-bugs      scripts/check-known-bugs.mjs   blocking: any hit is red (owner rule 2026-09-11)
  *   check-datetime  scripts/check-datetime.mjs     blocking on DATE faults; NUMBER notes ledgered
+ *   check-signed-out scripts/check-signed-out.mjs  blocking: two possibly-absent identities compared
  *
  * Usage:
  *   node scripts/check-all.mjs            run everything, print the table, exit 1 on a breach
@@ -58,6 +59,15 @@ const CHECKERS = [
       try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["check-datetime: could not run"], counts: {} }; }
       const blocking = parsed.hits.filter((h) => h.grade === "DATE").map((h) => `DATE ${h.file}:${h.line}  ${h.what}`);
       return { blocking, counts: { "datetime.numbers": parsed.numbers } };
+    },
+  },
+  {
+    id: "check-signed-out",
+    run() {
+      const r = run("scripts/check-signed-out.mjs", ["--json"]);
+      let parsed = { hits: 0, list: [] };
+      try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["check-signed-out: could not run"], counts: {} }; }
+      return { blocking: parsed.list.map((h) => `SIGNED-OUT ${h.file}:${h.line}  ${h.what}`), counts: {} };
     },
   },
 ];

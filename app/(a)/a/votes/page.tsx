@@ -625,9 +625,12 @@ export default function Page() {
 
       // Find all vote records for this category from nomineeVotes
       // Match by category name (case-insensitive)
+      // A vote with no category name never matches a category with no name: two absent names
+      // are not the same name (owner rule R26; scripts/check-signed-out.mjs holds this shape).
       const categoryVotes = nomineeVotes.filter((vote) => {
         const voteCategoryName = vote.category_name?.trim();
-        return voteCategoryName?.toLowerCase() === categoryName?.toLowerCase();
+        if (!voteCategoryName || !categoryName) return false;
+        return voteCategoryName.toLowerCase() === categoryName.toLowerCase();
       });
 
       if (categoryVotes.length === 0) {

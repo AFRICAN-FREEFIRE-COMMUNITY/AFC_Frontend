@@ -619,7 +619,8 @@
     "rateSuccess": "Thanks for rating this event!",
     "rateFailed": "Failed to submit your rating",
     "commentSuccess": "Sent to the organizer",
-    "commentFailed": "Failed to send your comment"
+    "commentFailed": "Failed to send your comment",
+    "rateAction": "rate this event and leave feedback"
   },
   "requirements": {
     "title": "Requirements to register",
