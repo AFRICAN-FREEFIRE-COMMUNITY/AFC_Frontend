@@ -114,6 +114,9 @@ const NAV_ITEMS: OrganizerNavItem[] = [
   // the same set the backend get-drafted-events endpoint requires. See
   // app/(organizer)/organizer/events/drafts/page.tsx.
   { key: "drafts", href: "/organizer/events/drafts" },
+  // "Invitations" (owner 2026-09-13) - co-organizer invites addressed to this org, where its
+  // owner accepts or declines. See app/(organizer)/organizer/invites/page.tsx. NEW for 5 days.
+  { key: "invites", href: "/organizer/invites", newSince: "2026-09-13" },
   // "Leaderboards" - the org's results-upload + leaderboard-management surface
   // (list the org's events, then manage each event's leaderboard: create/generate,
   // upload results manually or via OCR image upload, configure points, view/edit).

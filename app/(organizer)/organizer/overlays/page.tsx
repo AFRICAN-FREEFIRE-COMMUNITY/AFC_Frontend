@@ -29,6 +29,9 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 interface EventRow {
   event_id: number;
   slug?: string; // the address /organizer/overlays/<slug> (owner rule R22)
+  // co-organized (owner 2026-09-13): the inviting org's name and grant, null on our own events
+  co_organizer_of?: string | null;
+  co_organizer_grant?: Record<string, boolean> | null;
   event_name: string;
   event_status?: string;
 }
@@ -77,9 +80,12 @@ export default function OrganizerOverlaysListPage() {
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
+    // A co-organized event (owner 2026-09-13) is listed only when the inviting org's grant
+    // holds can_upload_results: overlays are results and broadcast.
+    const allowed = events.filter((e) => !e.co_organizer_of || !!e.co_organizer_grant?.can_upload_results);
     return s
-      ? events.filter((e) => (e.event_name || "").toLowerCase().includes(s))
-      : events;
+      ? allowed.filter((e) => (e.event_name || "").toLowerCase().includes(s))
+      : allowed;
   }, [events, q]);
 
   if (loading) return <FullLoader />;
