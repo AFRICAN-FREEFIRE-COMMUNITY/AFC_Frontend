@@ -101,6 +101,20 @@ const CHECKERS = [
       return { blocking, counts: {}, note: `${parsed.called} of ${parsed.endpoints} endpoints called; ${parsed.uncalled} named` };
     },
   },
+  {
+    // A capability that must exist on both sides (owner rule R27): the backend's parity table,
+    // whose frontend rows can only be read with this tree beside the backend one.
+    id: "check-parity",
+    run() {
+      const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "check_parity.py")));
+      if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
+      const py = spawnSync("python", [join(backend, "tools", "check_parity.py"), "--frontend", ".", "--json"], { encoding: "utf8" });
+      let parsed = null;
+      try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["check-parity: could not run"], counts: {} }; }
+      const blocking = (parsed.failures || []).map((f) => `PARITY ${f.capability}: built on ${f.have.join(", ") || "no side"}, missing on ${f.lack.join(", ")}`);
+      return { blocking, counts: {}, note: `${parsed.ok} rows on both sides${parsed.skipped.length ? `, ${parsed.skipped.length} skipped` : ""}` };
+    },
+  },
 ];
 
 const ledger = existsSync(LEDGER) ? JSON.parse(readFileSync(LEDGER, "utf8")) : { _about: "", counts: {} };
