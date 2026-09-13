@@ -50,6 +50,9 @@ import { CountryFlag } from "@/lib/countryFlag";
 import { useLiveTick } from "@/hooks/useLiveTick";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
+// The address is the event's slug (owner rule R22); every endpoint below takes the numeric id,
+// so the slug is resolved once here and an old numeric link is rewritten in place.
+import { useEventRef } from "@/lib/addressRef";
 import { PageHeader } from "@/components/PageHeader";
 import { Label } from "@/components/ui/label";
 import {
@@ -83,7 +86,8 @@ export default function IndividualLeaderboardPage({
   params: Promise<Params>;
 }) {
   const resolvedParams = use(params);
-  const { id } = resolvedParams;
+  const { id: ref } = resolvedParams;
+  const { id } = useEventRef(ref, (slug) => `/a/leaderboards/${slug}`);
   const { token } = useAuth();
   // Live refresh (owner 2026-07-02): tick advances every 30s while the tab is visible.
   const tick = useLiveTick();
@@ -166,6 +170,7 @@ export default function IndividualLeaderboardPage({
     // (fetchLeaderboard only seeds them when still unset). No spinner: the FullLoader only
     // gates the very first load (!eventData).
     if (tick > 0 && (editingMatch || groupEditOpen)) return;
+    if (!id) return; // the slug is still resolving
     fetchLeaderboard();
   }, [tick, id, token]);
 

@@ -58,6 +58,9 @@ export type RankingTier = "tier_1" | "tier_2" | "tier_3";
 // Header row returned by create/list/edit.
 export interface StandaloneLeaderboardHeader {
   id: number;
+  /** The address /a/leaderboards/standalone/<slug> (owner rule R22); follows the name. Empty
+   *  on a row minted before the backfill ran; links fall back to the id, which still resolves. */
+  slug?: string | null;
   name: string;
   format: LeaderboardFormat;
   organization_id: number | null;

@@ -28,6 +28,7 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 
 interface EventRow {
   event_id: number;
+  slug?: string; // the address /organizer/overlays/<slug> (owner rule R22)
   event_name: string;
   event_status?: string;
 }
@@ -127,7 +128,7 @@ export default function OrganizerOverlaysListPage() {
                     ) : null}
                   </div>
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/organizer/overlays/${e.event_id}`}>
+                    <Link href={`/organizer/overlays/${e.slug || e.event_id}`}>
                       {t("studio.openOverlays")}
                       <IconChevronRight className="size-4" />
                     </Link>

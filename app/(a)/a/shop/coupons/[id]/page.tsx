@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ type Params = Promise<{ id: string }>;
 
 interface CouponDetails {
   id: number;
+  slug?: string; // the address /a/shop/coupons/<slug> (owner rule R22)
   code: string;
   discount_type: "percent" | "fixed";
   discount_value: string;
@@ -104,6 +106,7 @@ const mockStats = {
 
 export default function CouponStatisticsPage({ params }: { params: Params }) {
   const { id } = use(params);
+  const router = useRouter();
   const { token } = useAuth();
 
   const [couponDetails, setCouponDetails] = useState<CouponDetails | null>(
@@ -123,21 +126,26 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
         setIsLoading(true);
         const decodedId = decodeURIComponent(id);
 
+        // `ref` is the coupon's slug, a retired slug or a legacy id (owner rule R22); a move
+        // comes back on the envelope as `moved_to` and the address is rewritten in place.
         const [detailsRes, usesRes] = await Promise.all([
           axios.post(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-coupon-details/`,
-            { coupon_id: decodedId },
+            { ref: decodedId },
             { headers: { Authorization: `Bearer ${token}` } },
           ),
           axios.post(
             `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-total-coupon-uses/`,
-            { coupon_id: decodedId },
+            { ref: decodedId },
             { headers: { Authorization: `Bearer ${token}` } },
           ),
         ]);
 
         setCouponDetails(detailsRes.data.coupon_details);
         setTotalUses(usesRes.data.total_uses);
+        if (detailsRes.data.moved_to && detailsRes.data.moved_to !== `/a/shop/coupons/${decodedId}`) {
+          router.replace(detailsRes.data.moved_to);
+        }
       } catch (error: any) {
         toast.error(
           error.response?.data?.message || "Failed to fetch coupon data",
@@ -178,7 +186,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <PageHeader back title={`Coupon Statistics: ${couponDetails.code}`} />
         <Button className="w-full md:w-auto" asChild>
-          <Link href={`/a/shop/coupons/${id}/edit`}>Edit Coupon</Link>
+          <Link href={`/a/shop/coupons/${couponDetails?.slug || id}/edit`}>Edit Coupon</Link>
         </Button>
       </div>
 

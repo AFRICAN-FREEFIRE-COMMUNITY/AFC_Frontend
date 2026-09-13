@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { formatMoney } from "@/lib/money";
 import { formatLocalTime } from "@/lib/i18n/time";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -69,6 +69,7 @@ interface OrderData {
 
 export default function OrderDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const { token } = useAuth();
   const orderId = params.id;
   const [order, setOrder] = useState<OrderData | null>(null);
@@ -79,13 +80,18 @@ export default function OrderDetailsPage() {
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
+      // `ref` is the order's public token or a legacy numeric id (owner rule R22); a move comes
+      // back on the envelope as `moved_to` and the address is rewritten in place.
       const response = await axios.get(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-order-details-for-admin/?order_id=${orderId}`,
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-order-details-for-admin/?ref=${encodeURIComponent(String(orderId))}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
       setOrder(response.data.order);
+      if (response.data.moved_to && response.data.moved_to !== `/a/shop/orders/${orderId}`) {
+        router.replace(response.data.moved_to);
+      }
     } catch (error) {
       console.error("Error fetching order:", error);
       toast.error("Failed to load order details");

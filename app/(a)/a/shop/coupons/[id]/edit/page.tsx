@@ -95,17 +95,21 @@ const Page = ({ params }: { params: Params }) => {
       setLoadingCoupon(true);
       const decodedId = decodeURIComponent(id);
 
-      // Updated endpoint and parameter name
+      // `ref` is the coupon's slug, a retired slug or a legacy id (owner rule R22); a move
+      // comes back on the envelope as `moved_to` and the address is rewritten in place.
       const res = await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-coupon-details/`,
-        { coupon_id: decodedId },
+        { ref: decodedId },
         {
-          headers: { Authorization: `Bearer ${token}` }, // Added token if required
+          headers: { Authorization: `Bearer ${token}` },
         },
       );
 
       // The API wraps data in "coupon_details"
       setCouponDetails(res.data.coupon_details);
+      if (res.data.moved_to && res.data.moved_to !== `/a/shop/coupons/${decodedId}`) {
+        router.replace(`${res.data.moved_to}/edit`);
+      }
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Failed to fetch coupon details";

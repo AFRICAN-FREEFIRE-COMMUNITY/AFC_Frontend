@@ -42,6 +42,7 @@ import { Loader } from "@/components/Loader";
 
 interface Coupon {
   id: number;
+  slug?: string; // the address /a/shop/coupons/<slug> (owner rule R22)
   code: string;
   discount_type: "percent" | "fixed";
   discount_value: string;
@@ -290,7 +291,7 @@ export default function CouponMetricsPage() {
                         <TableRow key={coupon.id} className="cursor-pointer">
                           <TableCell>
                             <Link
-                              href={`/a/shop/coupons/${coupon.id}`}
+                              href={`/a/shop/coupons/${coupon.slug || coupon.id}`}
                               className="font-mono font-medium text-primary hover:underline"
                               data-tour="shop-coupons-coupon-link"
                             >

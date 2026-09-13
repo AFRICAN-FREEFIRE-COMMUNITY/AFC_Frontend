@@ -992,10 +992,10 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </Button>
           )}
           {/* Jump to THIS event's leaderboard (results, standings, OBS overlay link, broadcast control).
-              The leaderboard edit route is keyed by the numeric event id (owner 2026-07-01). */}
+              The leaderboard edit route is keyed by the event slug (owner rule R22, 2026-09-13). */}
           {!allStagesCs && (
             <Button className="flex-1 lg:flex-none" asChild variant="outline">
-              <Link href={`/a/leaderboards/${eventDetails.event_id}/edit`}>
+              <Link href={`/a/leaderboards/${slug}/edit`}>
                 <IconChartBar />
                 Leaderboard
               </Link>

@@ -283,7 +283,7 @@ export default function page() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link
-                            href={`/a/shop/orders/${order.order_id}`}
+                            href={`/a/shop/orders/${order.public_token || order.order_id}`}
                             data-tour="shop-orders-view-details"
                           >
                             <IconEye />
