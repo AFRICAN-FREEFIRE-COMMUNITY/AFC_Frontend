@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition, useMemo } from "react";
+import { formatLocalTime } from "@/lib/i18n/time";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; the news list re-fetches on each
 // tick (and on tab return) so scheduled/new articles appear without a manual reload.
 import { useLiveTick } from "@/hooks/useLiveTick";
@@ -344,7 +345,7 @@ const NewsAdminPage = () => {
                 )}
                 {dateFilter && (
                   <Badge variant="secondary" className="text-xs">
-                    Date: {new Date(dateFilter).toLocaleDateString()}
+                    Date: {formatLocalTime(dateFilter, "date")}
                   </Badge>
                 )}
                 {filterCategory !== "all" && (

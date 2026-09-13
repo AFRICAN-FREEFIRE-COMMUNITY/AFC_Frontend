@@ -1335,9 +1335,7 @@ export default function ActionsTab({
                     {etT("actions.openUntil")}{" "}
                     <span className="font-semibold text-foreground">
                       {(eventDetails as any).roster_edit_until
-                        ? new Date(
-                            (eventDetails as any).roster_edit_until,
-                          ).toLocaleString()
+                        ? formatLocalTime((eventDetails as any).roster_edit_until, "datetime")
                         : ""}
                     </span>
                   </>

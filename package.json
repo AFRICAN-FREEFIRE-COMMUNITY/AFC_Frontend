@@ -9,6 +9,9 @@
     "start": "next start",
     "lint": "eslint",
     "check:bugs": "node scripts/check-known-bugs.mjs",
+    "check:datetime": "node scripts/check-datetime.mjs",
+    "check:all": "node scripts/check-all.mjs",
+    "hooks:install": "node scripts/install-hooks.mjs",
     "i18n:translate": "node scripts/i18n-translate.mjs",
     "design-lint": "node tools/design-lint.mjs"
   },

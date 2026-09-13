@@ -17,6 +17,7 @@
 //   • organizer app/(organizer)/organizer/events/[slug]/leaderboard/page.tsx (gridMatchId, t() labels)
 
 import { useCallback, useEffect, useState } from "react";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { toast } from "sonner";
 import {
   IconDownload,
@@ -77,18 +78,10 @@ export interface MatchEvidencePanelProps {
   labels?: Partial<MatchEvidenceLabels>;
 }
 
-// Short, locale-agnostic "DD Mon YYYY, HH:MM" so the audit row is readable without pulling in a date lib
-// (the editor is admin/organizer surface; the viewer-timezone LocalTime rule targets player-facing UI).
+// The audit row's time, in the viewer's own zone and language through the timing model (owner rule
+// R31, 2026-09-13: every date on the site, admin surfaces included).
 function fmt(ts: string): string {
-  const d = new Date(ts);
-  if (isNaN(d.getTime())) return "";
-  return d.toLocaleString(undefined, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatLocalTime(ts, "datetime");
 }
 
 export function MatchEvidencePanel({

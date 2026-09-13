@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -240,10 +241,10 @@ export default function EditNewsForm({ params }: { params: Params }) {
         changes.push({
           label: t("changes.schedule"),
           from: originalSchedule
-            ? new Date(originalSchedule).toLocaleString()
+            ? formatLocalTime(originalSchedule, "datetime")
             : t("changes.publishNow"),
           to: scheduledPublishAt
-            ? new Date(scheduledPublishAt).toLocaleString()
+            ? formatLocalTime(scheduledPublishAt, "datetime")
             : t("changes.publishNow"),
         });
       // Pin change, shown in the confirm modal like every other field: pinning and unpinning both
@@ -256,9 +257,9 @@ export default function EditNewsForm({ params }: { params: Params }) {
         changes.push({
           label: t("changes.pinned"),
           from: originalPin
-            ? new Date(originalPin).toLocaleString()
+            ? formatLocalTime(originalPin, "datetime")
             : t("changes.notPinned"),
-          to: nextPin ? new Date(nextPin).toLocaleString() : t("changes.notPinned"),
+          to: nextPin ? formatLocalTime(nextPin, "datetime") : t("changes.notPinned"),
         });
     }
 

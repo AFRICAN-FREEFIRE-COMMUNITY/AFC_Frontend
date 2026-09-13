@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -53,38 +54,18 @@ export const formatMoneyInput = (inputValue: string | number | any) => {
   return decimal !== undefined ? `${whole}.${decimal}` : whole;
 };
 
+/**
+ * Legacy date formatter kept for its 67 callers across the admin screens. Since 2026-09-13 it is a
+ * thin door onto the timing model (owner rule R31): the viewer's own timezone and the UI language,
+ * via formatLocalTime in lib/i18n/time.ts. It used to build "June 5th, 2026 • 03:42 PM" by hand
+ * with a device-language month name and an en-US clock, which read wrong for a French reader and
+ * for anyone not in the server's zone. New code calls formatLocalTime / <LocalTime/> directly.
+ */
 export function formatDate(
   dateString: string | Date,
   withTime: boolean = false,
 ): string {
-  const date = new Date(dateString);
-
-  const day = date.getDate();
-  const month = date.toLocaleString("default", { month: "long" });
-  const year = date.getFullYear();
-
-  const getOrdinalSuffix = (num: number): string => {
-    const modulo100 = num % 100;
-    const modulo10 = num % 10;
-
-    if (modulo100 >= 11 && modulo100 <= 13) return `${num}th`;
-    if (modulo10 === 1) return `${num}st`;
-    if (modulo10 === 2) return `${num}nd`;
-    if (modulo10 === 3) return `${num}rd`;
-    return `${num}th`;
-  };
-
-  const datePart = `${month} ${getOrdinalSuffix(day)}, ${year}`;
-
-  if (!withTime) return datePart;
-
-  const timePart = date.toLocaleString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-
-  return `${datePart} • ${timePart}`;
+  return formatLocalTime(dateString, withTime ? "datetime" : "date");
 }
 
 export const formatWord = (role: string) => {

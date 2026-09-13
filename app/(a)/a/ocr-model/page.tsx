@@ -33,6 +33,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { formatLocalTime, getActiveLocale, getBrowserTimeZone } from "@/lib/i18n/time";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { FullLoader } from "@/components/Loader";
@@ -125,16 +126,11 @@ const fmtInt = (n: number | null | undefined): string => (n ?? 0).toLocaleString
 const fmtPct = (n: number | null | undefined): string =>
   n == null ? "-" : `${Number(n).toFixed(1)}%`;
 
-// ISO timestamp -> "Jun 7, 2026" (null -> "-"). Used for promoted-at / retrain dates.
+// ISO timestamp -> "Jun 7, 2026" (null -> "-"). Used for promoted-at / retrain dates. Through the
+// timing model so the month name follows the UI language and the day the viewer's zone (R31).
 const fmtDate = (iso: string | null | undefined): string => {
   if (!iso) return "-";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "-";
-  return d.toLocaleDateString("default", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return formatLocalTime(iso, "date") || "-";
 };
 
 // A week anchor ("2026-W23" or "2026-06-01") -> a compact axis label. We keep the last
@@ -144,7 +140,11 @@ const fmtWeek = (key: string): string => {
   if (key.includes("W")) return key.split("-").slice(1).join("-"); // "2026-W23" -> "W23"
   const d = new Date(key);
   if (!Number.isNaN(d.getTime())) {
-    return d.toLocaleDateString("default", { month: "short", day: "numeric" });
+    return new Intl.DateTimeFormat(getActiveLocale(), {
+      month: "short",
+      day: "numeric",
+      timeZone: getBrowserTimeZone(),
+    }).format(d);
   }
   return key;
 };

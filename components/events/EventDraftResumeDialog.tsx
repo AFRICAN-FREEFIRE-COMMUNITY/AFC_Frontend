@@ -20,6 +20,7 @@
 // The page owns Resume (apply the saved state to the form) and Discard (wipe the draft).
 // ─────────────────────────────────────────────────────────────────────────────
 import { Button } from "@/components/ui/button";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { IconHistory } from "@tabler/icons-react";
 
 export interface EventDraftResumeDialogProps {
@@ -49,7 +50,7 @@ export function EventDraftResumeDialog({
   // A light "saved <local time>" line so the user knows how recent the draft is.
   const when =
     savedAt && Number.isFinite(savedAt)
-      ? new Date(savedAt).toLocaleString()
+      ? formatLocalTime(savedAt, "datetime")
       : null;
 
   return (

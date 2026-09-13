@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { getActiveLocale, getBrowserTimeZone } from "@/lib/i18n/time";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; the voting analytics + the
 // categories/nominees/sections lists re-fetch on each tick (and on tab return) so the
 // dashboard updates without a manual reload. The create/edit modals hold their own form
@@ -1821,13 +1822,13 @@ export default function Page() {
                       />
                       <XAxis
                         dataKey="date"
-                        tickFormatter={(date) => {
-                          const d = new Date(date);
-                          return d.toLocaleDateString("en-US", {
+                        tickFormatter={(date) =>
+                          new Intl.DateTimeFormat(getActiveLocale(), {
                             month: "short",
                             day: "numeric",
-                          });
-                        }}
+                            timeZone: getBrowserTimeZone(),
+                          }).format(new Date(date))
+                        }
                         className="text-xs"
                       />
                       <YAxis
@@ -1844,15 +1845,15 @@ export default function Page() {
                           borderRadius: "8px",
                           color: "white",
                         }}
-                        labelFormatter={(date) => {
-                          const d = new Date(date);
-                          return d.toLocaleDateString("en-US", {
+                        labelFormatter={(date) =>
+                          new Intl.DateTimeFormat(getActiveLocale(), {
                             weekday: "long",
                             year: "numeric",
                             month: "long",
                             day: "numeric",
-                          });
-                        }}
+                            timeZone: getBrowserTimeZone(),
+                          }).format(new Date(date))
+                        }
                         formatter={(value) => [`${value} votes`, "Total Votes"]}
                       />
                       <Line

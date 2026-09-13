@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -297,8 +298,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
 
   // ── helpers ────────────────────────────────────────────────────────────────
 
-  const fmtDate = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+  const fmtDate = (d: string | null) => (d ? formatLocalTime(d, "date") || "-" : "-");
 
   const statusBadgeVariant = (s: string): "default" | "destructive" | "secondary" | "outline" => {
     if (s === "active") return "default";
