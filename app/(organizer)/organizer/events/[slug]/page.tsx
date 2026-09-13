@@ -60,6 +60,7 @@
 "use client";
 
 import React, { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 // One rule for "is this Clash Squad?" (lib/eventFormats).
 import { isClashSquadFormat } from "@/lib/eventFormats";
 import Image from "next/image";
@@ -654,7 +655,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
   // Prizepool can be a plain number ("500") or free text; only prefix $ + group
   // digits when numeric (same rule as the admin view page).
   const formattedPrizepool = /^\d+(\.\d+)?$/.test(details.prizepool)
-    ? `$${parseFloat(details.prizepool).toLocaleString()}`
+    ? `$${formatNumber(parseFloat(details.prizepool))}`
     : details.prizepool;
 
   const stageStatus = adminDetails.stage_progress;

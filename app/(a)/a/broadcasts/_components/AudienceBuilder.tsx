@@ -64,6 +64,7 @@
 // table scrolls inside its own container so it never pushes the page sideways on a phone.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -545,7 +546,7 @@ export function AudienceBuilder() {
             <div className="space-y-3">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="text-3xl font-bold text-primary">
-                  {preview.recipient_count.toLocaleString()}
+                  {formatNumber(preview.recipient_count)}
                 </span>
                 <span className="text-sm text-muted-foreground">
                   {t("count.recipients", { count: preview.recipient_count })}

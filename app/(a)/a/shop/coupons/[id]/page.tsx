@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -111,12 +112,8 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
   const [totalUses, setTotalUses] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
+  // Money goes through lib/money (the active UI locale, the currency's own decimals).
+  const formatCurrency = (amount: number) => formatMoney(amount, "USD");
 
   useEffect(() => {
     const fetchData = async () => {

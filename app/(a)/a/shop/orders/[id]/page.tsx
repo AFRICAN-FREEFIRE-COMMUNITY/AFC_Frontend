@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { formatMoney } from "@/lib/money";
 import { formatLocalTime } from "@/lib/i18n/time";
 import { useParams } from "next/navigation";
 import {
@@ -118,12 +119,8 @@ export default function OrderDetailsPage() {
     });
   };
 
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(Number(price));
-  };
+  // Money goes through lib/money (the active UI locale, NGN's own decimals).
+  const formatPrice = (price: string | number) => formatMoney(Number(price), "NGN");
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {

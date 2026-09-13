@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { formatNumber } from "@/lib/i18n/number";
 
 // ── PrizeDistributionSummary (owner 2026-07-02) ──────────────────────────────
 // Live check that the prize DISTRIBUTION adds up to the (now compulsory) prize-pool CASH VALUE.
@@ -65,7 +66,7 @@ export function validatePrizeDistribution(
   const total = sumPrizeDistribution(distribution);
   const diff = total - cash;
   if (Math.abs(diff) < 0.005) return null;
-  const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const fmt = (n: number) => formatNumber(n, { maximumFractionDigits: 2 });
   // OVER: distributed total exceeds the cash value; UNDER: it falls short. `amount` is the gap,
   // `target` is the cash value the distribution must land on, `currency` labels both.
   return diff > 0
@@ -82,7 +83,7 @@ interface Props {
 export function PrizeDistributionSummary({ distribution, cashValue, currency = "USD" }: Props) {
   // evSteps.prizeSummary namespace (shared create wizard + edit prize tab).
   const t = useTranslations("evSteps");
-  const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const fmt = (n: number) => formatNumber(n, { maximumFractionDigits: 2 });
   const ccy = currency || "USD";
 
   if (!hasCashValue(cashValue)) {

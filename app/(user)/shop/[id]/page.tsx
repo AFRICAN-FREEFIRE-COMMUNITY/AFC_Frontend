@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { formatNumber } from "@/lib/i18n/number";
 import { notFound, permanentRedirect } from "next/navigation";
 import { env } from "@/lib/env";
 import ProductDetailPage from "../_components/ProductDetailPage";
@@ -77,7 +78,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       .replace(/<[^>]*>/g, "")
       .trim();
     const priceLine =
-      startingPrice != null ? `From $${startingPrice.toLocaleString()}. ` : "";
+      startingPrice != null ? `From $${formatNumber(startingPrice)}. ` : "";
     const description =
       `${priceLine}${plainDesc || `Buy ${product.name} on the African Free Fire Community shop.`}`.slice(
         0,

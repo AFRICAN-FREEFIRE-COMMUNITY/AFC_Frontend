@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 import { useRouter, useSearchParams } from "next/navigation";
 // i18n: user-visible copy on the owner's own profile page is sourced from the
 // `profile` namespace (messages/en/profile.json). The active locale comes from the
@@ -1226,7 +1227,7 @@ function AchievementCard({
   const achTitle = t(`achievementsCatalog.title.${achievement.id}`);
   const achDescription = isLadder
     ? t("achievementsCatalog.ladderDesc", {
-        count: achievement.threshold!.toLocaleString(),
+        count: formatNumber(achievement.threshold!),
         // Ladder groups all have a unit key; fall back to the lowercased group.
         unit: groupKey
           ? t(`achievementsCatalog.unit.${groupKey}`)
@@ -1309,8 +1310,8 @@ function AchievementCard({
               {/* unit (e.g. "kills") comes from the achievement's group label in
                   achievements.ts; the surrounding label is translated. */}
               {t("achievementsPanel.progressLabel", {
-                value: (value as number).toLocaleString(),
-                threshold: achievement.threshold!.toLocaleString(),
+                value: formatNumber(value as number),
+                threshold: formatNumber(achievement.threshold!),
                 // Localized unit (e.g. "kills") for the ladder group; falls back
                 // to the lowercased English group when no key is mapped.
                 unit: groupKey

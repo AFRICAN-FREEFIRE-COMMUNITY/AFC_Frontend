@@ -33,6 +33,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 import { formatLocalTime, getActiveLocale, getBrowserTimeZone } from "@/lib/i18n/time";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
@@ -120,7 +121,7 @@ const tooltipStyle = {
 // ── Formatters ──────────────────────────────────────────────────────────────────
 
 // "1,234" thousands-separated integer (null/undefined safe).
-const fmtInt = (n: number | null | undefined): string => (n ?? 0).toLocaleString();
+const fmtInt = (n: number | null | undefined): string => formatNumber(n ?? 0);
 
 // "82.4%" one-decimal percentage from a 0..100 number (null safe).
 const fmtPct = (n: number | null | undefined): string =>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import {
   Pagination,
   PaginationContent,
@@ -120,12 +121,8 @@ export default function CouponMetricsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [couponsPage, setCouponsPage] = useState(1);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
+  // Money goes through lib/money (the active UI locale, the currency's own decimals).
+  const formatCurrency = (amount: number) => formatMoney(amount, "USD");
 
   useEffect(() => {
     const fetchCoupons = async () => {

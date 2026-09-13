@@ -1,6 +1,7 @@
 "use client";
 
 import { FullLoader } from "@/components/Loader";
+import { formatNumber } from "@/lib/i18n/number";
 import { formatLocalTime } from "@/lib/i18n/time";
 // One rule for "is this Clash Squad?" - the plain "cs" format the picker
 // writes since 2026-08-13 does not match the old "cs - " literals.
@@ -885,7 +886,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   } = calculatedData;
 
   const formattedPrizepool = /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
-    ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+    ? `$${formatNumber(parseFloat(eventDetails.prizepool))}`
     : eventDetails.prizepool;
 
   // Get stage status
