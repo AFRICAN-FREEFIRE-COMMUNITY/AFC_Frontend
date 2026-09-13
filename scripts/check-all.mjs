@@ -18,6 +18,7 @@
  *   known-bugs      scripts/check-known-bugs.mjs   blocking: any hit is red (owner rule 2026-09-11)
  *   check-datetime  scripts/check-datetime.mjs     blocking on DATE faults; NUMBER notes ledgered
  *   check-signed-out scripts/check-signed-out.mjs  blocking: two possibly-absent identities compared
+ *   check-slugs     scripts/check-slugs.mjs        ledgered: a numeric id in a visible address
  *
  * Usage:
  *   node scripts/check-all.mjs            run everything, print the table, exit 1 on a breach
@@ -68,6 +69,19 @@ const CHECKERS = [
       let parsed = { hits: 0, list: [] };
       try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["check-signed-out: could not run"], counts: {} }; }
       return { blocking: parsed.list.map((h) => `SIGNED-OUT ${h.file}:${h.line}  ${h.what}`), counts: {} };
+    },
+  },
+  {
+    // A numeric id in a visible address (owner rule R22). Both counts are LEDGERED rather than
+    // blocking: the 5 public ones left are nameless things (orders, market applications) that
+    // need an opaque public token on their model before their address can change, and the
+    // workspace ones predate the rule. A NEW one raises the count and fails the run.
+    id: "check-slugs",
+    run() {
+      const r = run("scripts/check-slugs.mjs", ["--json"]);
+      let parsed = { fails: 0, notes: 0, hits: [] };
+      try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["check-slugs: could not run"], counts: {} }; }
+      return { blocking: [], counts: { "slugs.public": parsed.fails, "slugs.workspace": parsed.notes } };
     },
   },
 ];

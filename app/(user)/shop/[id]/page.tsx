@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { env } from "@/lib/env";
 import ProductDetailPage from "../_components/ProductDetailPage";
 // Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
@@ -25,15 +25,17 @@ type Props = {
 
 // Shared server-side fetch of a single product (public, no auth). Same endpoint
 // generateMetadata uses, so Next de-dupes the GET. Returns a DetailResult:
-// "ok" with the product, "missing" on a backend 404 (unknown product_id →
-// get_object_or_404), or "error" on any transient failure.
-async function getProductData(id: string) {
+// "ok" with the product, "missing" on a backend 404, or "error" on any transient failure.
+//
+// The address is the product's SLUG (owner rule R22, 2026-09-13). `ref` may also be a legacy
+// numeric id or a retired slug: the backend (afc_auth/slugs.py resolve_or_redirect) answers the
+// product plus `moved_to`, the current /shop/<slug> path, and this page sends the reader there
+// with a permanent redirect, so a link shared before the rename still opens the right product.
+async function getProductData(ref: string) {
   return fetchDetail(
-    `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-product-details/?product_id=${encodeURIComponent(
-      id,
-    )}`,
+    `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-product-details/?ref=${encodeURIComponent(ref)}`,
     { next: { revalidate: 60 } },
-    (j) => j?.product,
+    (j) => (j?.product ? { ...j.product, moved_to: j.moved_to ?? null } : null),
   );
 }
 
@@ -61,6 +63,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (result.status === "missing") notFound();
   try {
     const product = result.status === "ok" ? result.data : null;
+    // The canonical address is the slug, whatever the reader typed.
+    const canonicalRef = product?.slug || id;
     // Transient failure → fall through to the branded fallback embed at 200.
     if (!product) throw new Error("product not found");
 
@@ -83,7 +87,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return buildEntityMetadata({
       title: product.name,
       description,
-      path: `/shop/${id}`,
+      path: `/shop/${canonicalRef}`,
       image: product.image || null, // real primary image (absolute) or site default
       tags: [product.name, "AFC shop", "Free Fire merch"].filter(Boolean),
     });
@@ -107,11 +111,13 @@ export default async function Page({ params }: Props) {
   // through to product=null and render at 200 (the client UI retries).
   if (result.status === "missing") notFound();
   const product = result.status === "ok" ? result.data : null;
+  // An old address (legacy id, retired slug): send the reader to the current one, permanently.
+  if (product?.moved_to && product.moved_to !== `/shop/${id}`) permanentRedirect(product.moved_to);
 
   let productSchema: object | null = null;
   let breadcrumbSchema: object | null = null;
   if (product) {
-    const path = `/shop/${id}`;
+    const path = `/shop/${product.slug || id}`;
     const plainDesc = (product.description || "").replace(/<[^>]*>/g, "").trim();
     // Whether any active variant is actually purchasable right now.
     const inStock = (product.variants || []).some(

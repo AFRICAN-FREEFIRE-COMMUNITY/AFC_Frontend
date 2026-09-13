@@ -2007,7 +2007,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                               {
                                 teamEditLink: (chunks) => (
                                   <Link
-                                    href={`/teams/${userTeam.team_id}/edit`}
+                                    href={`/teams/${encodeURIComponent(userTeam.team_name)}/edit`}
                                     className="text-primary underline underline-offset-2"
                                   >
                                     {chunks}
@@ -2367,7 +2367,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                           ? t.rich("register.info.teamLogoNoteWithLink", {
                               teamEditLink: (chunks) => (
                                 <Link
-                                  href={`/teams/${userTeam.team_id}/edit`}
+                                  href={`/teams/${encodeURIComponent(userTeam.team_name)}/edit`}
                                   className="text-primary underline underline-offset-2"
                                 >
                                   {chunks}
@@ -5029,7 +5029,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             ? {
                 action: {
                   label: t("register.toast.teamLogoAction"),
-                  onClick: () => router.push(`/teams/${userTeam.team_id}/edit`),
+                  onClick: () => router.push(`/teams/${encodeURIComponent(userTeam.team_name)}/edit`),
                 },
               }
             : {}),
@@ -5124,7 +5124,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               onClick: () =>
                 router.push(
                   isTeam && userTeam?.team_id
-                    ? `/teams/${userTeam.team_id}/edit`
+                    ? `/teams/${encodeURIComponent(userTeam.team_name)}/edit`
                     : "/profile/edit",
                 ),
             },
