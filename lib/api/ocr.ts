@@ -120,6 +120,9 @@ export interface OcrSession {
   // is optional - OCRReviewTable only renders the Engine badge when it is present.
   teacher_model?: string | null;
   engine?: string | null;
+  // Whose key paid for the read (own-key OCR, owner 2026-09-12): "org" / "afc_free" / "afc", or
+  // "" for a local read. The upload callers show the free-read notice off this.
+  paid_by?: string;
 }
 
 /** PATCH body for one row (afc_ocr.views.ocr_session_detail PATCH). All fields optional but row_id. */

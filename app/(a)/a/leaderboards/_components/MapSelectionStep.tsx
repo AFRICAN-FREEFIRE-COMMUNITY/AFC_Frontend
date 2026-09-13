@@ -51,6 +51,7 @@ import {
   IconCheck,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { toastFreeReadSpent, toastOcrError } from "@/lib/api/ocrKeyGate";
 import { cn } from "@/lib/utils";
 import { ocrApi, type DraftRow } from "@/lib/api/ocr";
 import { filterOcrImages, OCR_ACCEPT } from "@/lib/ocrImages";
@@ -94,6 +95,7 @@ export function MapSelectionStep({
 }: Props) {
   const t = useTranslations("ocr");
   const tc = useTranslations("common");
+  const tk = useTranslations("aiKey");
 
   // The stable match_id of the map the admin picked (B9). Pre-pick the only map if there is one.
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(
@@ -186,15 +188,17 @@ export function MapSelectionStep({
           shots: shots.length,
         }),
       );
+      // Own-key OCR (owner 2026-09-12): when this read was AFC's free one, say so now.
+      toastFreeReadSpent(session.paid_by, { message: tk("gate.freeReadSpent"), connect: tk("gate.connect") });
       onSessionReady(
         session.session_id,
         session.draft_rows ?? [],
         session.engine ?? session.teacher_model ?? null,
       );
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || t("uploadSteps.mapStep.uploadFailed"),
-      );
+      // Own-key OCR (owner 2026-09-12): a 402 means the organization has no AI key and no free
+      // read left; the shared gate shows the sentence with a "Connect a key" button.
+      toastOcrError(err, { connect: tk("gate.connect"), fallback: t("uploadSteps.mapStep.uploadFailed") });
     } finally {
       setUploading(false);
     }
