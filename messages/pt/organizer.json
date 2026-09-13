@@ -1514,7 +1514,18 @@
     "size": "Tamanho",
     "format": "Formato",
     "noFace": "Esta imagem não apresenta nenhum rosto identificável. Uma imagem de um jogador de e-sport deve ser uma fotografia do jogador, e não um logótipo.",
-    "uploadAnyway": "Carregar na mesma"
+    "uploadAnyway": "Carregar na mesma",
+    "check": {
+      "badge": "Verificar",
+      "looksFine": "Está bem",
+      "cleared": "Marcada como correta. Não voltará a ser listada.",
+      "clearError": "Não foi possível marcar essa imagem como correta.",
+      "summary": "{count, plural, one {# imagem de jogador precisa de ser vista antes da transmissão} other {# imagens de jogadores precisam de ser vistas antes da transmissão}}",
+      "reason": {
+        "no_face": "Nenhum rosto encontrado nesta imagem. Costuma ser um logótipo, uma captura do jogo ou um fundo de ecrã.",
+        "face_too_small": "O rosto é minúsculo no enquadramento. Uma imagem esport deve ser um retrato de busto."
+      }
+    }
   },
   "broadcastKit": {
     "title": "Kit de transmissão",

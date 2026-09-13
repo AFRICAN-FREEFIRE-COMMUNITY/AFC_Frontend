@@ -1514,7 +1514,18 @@
     "size": "Size",
     "format": "Format",
     "noFace": "This image has no detectable face. A player esport image should be a photo of the player, not a logo.",
-    "uploadAnyway": "Upload anyway"
+    "uploadAnyway": "Upload anyway",
+    "check": {
+      "badge": "Check this",
+      "looksFine": "Looks fine",
+      "cleared": "Marked as fine. It will not be listed again.",
+      "clearError": "Could not mark that image as fine.",
+      "summary": "{count, plural, one {# player image needs a look before broadcast} other {# player images need a look before broadcast}}",
+      "reason": {
+        "no_face": "No face found in this picture. It is usually a logo, a game screenshot or a wallpaper.",
+        "face_too_small": "The face is tiny in the frame. An esport image should be a head and shoulders shot."
+      }
+    }
   },
   "broadcastKit": {
     "title": "Broadcast Kit",

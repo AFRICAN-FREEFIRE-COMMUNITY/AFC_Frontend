@@ -1195,5 +1195,12 @@
   "studio.playerBoardDesignHint": "This design only sets the background and colours of the built-in board. Pick a design of this board's own type to control the whole layout yourself.",
   "studio.h2hDesignDriven": "This design drives the whole overlay. What shows is what you placed on it, filled with the competitors you picked, one row per side.",
   "studio.h2hDesignHint": "This design only sets the background and colours of the built-in cards. Pick a head to head design to control the whole layout yourself.",
-  "studio.h2hDesignBracket": "Bracket mode always draws the stage bracket, so this design only sets its background and colours."
+  "studio.h2hDesignBracket": "Bracket mode always draws the stage bracket, so this design only sets its background and colours.",
+  "mediaAudit.check.badge": "Check this",
+  "mediaAudit.check.looksFine": "Looks fine",
+  "mediaAudit.check.cleared": "Marked as fine. It will not be listed again.",
+  "mediaAudit.check.clearError": "Could not mark that image as fine.",
+  "mediaAudit.check.summary": "{count, plural, one {# player image needs a look before broadcast} other {# player images need a look before broadcast}}",
+  "mediaAudit.check.reason.no_face": "No face found in this picture. It is usually a logo, a game screenshot or a wallpaper.",
+  "mediaAudit.check.reason.face_too_small": "The face is tiny in the frame. An esport image should be a head and shoulders shot."
 }
