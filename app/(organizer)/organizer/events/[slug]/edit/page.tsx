@@ -2281,8 +2281,10 @@ export default function OrganizerEditEventPage({
                   the PRIMARY org's OWNER (or an AFC admin) invite/revoke, so it renders only for
                   isOwner - a can_edit_events member would just get 403s from every action in it.
                   primaryOrgSlug = the context org's slug (the org guard above already proved the
-                  event is homed to it), so the picker excludes the owning org itself. */}
-              {isOwner && (
+                  event is homed to it), so the picker excludes the owning org itself. A co-org
+                  owner editing under a grant (owner 2026-09-13) is not the primary org, so the
+                  panel is not theirs either. */}
+              {isOwner && !grant && (
                 <CoOrganizersPanel
                   eventId={eventDetails.event_id}
                   primaryOrgSlug={orgSlug}
