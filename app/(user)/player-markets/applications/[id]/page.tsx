@@ -525,7 +525,7 @@ export default function ApplicationDetailPage({
               <div>
                 <p className="text-muted-foreground mb-1.5">{t("post.rolesNeeded")}</p>
                 <div className="flex flex-wrap gap-1">
-                  {details.post.roles_needed.map((r) => (
+                  {(details.post.roles_needed ?? []).map((r) => (
                     <Badge key={r} variant="secondary" className="text-xs">
                       {r}
                     </Badge>
