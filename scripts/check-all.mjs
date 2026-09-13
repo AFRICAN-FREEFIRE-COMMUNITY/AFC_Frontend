@@ -19,6 +19,7 @@
  *   check-datetime  scripts/check-datetime.mjs     blocking on DATE faults; NUMBER notes ledgered
  *   check-signed-out scripts/check-signed-out.mjs  blocking: two possibly-absent identities compared
  *   check-slugs     scripts/check-slugs.mjs        ledgered: a numeric id in a visible address
+ *   endpoint-callers ../<backend>/tools/endpoint_callers.py  blocking; skipped with no backend tree beside this one
  *
  * Usage:
  *   node scripts/check-all.mjs            run everything, print the table, exit 1 on a breach
@@ -84,6 +85,22 @@ const CHECKERS = [
       return { blocking: [], counts: { "slugs.public": parsed.fails, "slugs.workspace": parsed.notes } };
     },
   },
+  {
+    // An endpoint needs a caller (owner rule R45): the backend's tools/endpoint_callers.py matched
+    // against THIS tree. It needs both checkouts, so it runs where a backend tree sits beside this
+    // one (a developer machine, the pre-commit hook) and reports "skipped" in a CI job that has
+    // only the frontend. Blocking: an endpoint with no caller and no named consumer.
+    id: "endpoint-callers",
+    run() {
+      const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "endpoint_callers.py")));
+      if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
+      const py = spawnSync("python", [join(backend, "tools", "endpoint_callers.py"), "--frontend", ".", "--json"], { encoding: "utf8" });
+      let parsed = null;
+      try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["endpoint-callers: could not run (python + the backend tree are needed)"], counts: {} }; }
+      const blocking = (parsed.unexplained || []).map((p) => `UNCALLED ${p}  (no frontend caller, not named in tools/endpoint_consumers.json)`);
+      return { blocking, counts: {}, note: `${parsed.called} of ${parsed.endpoints} endpoints called; ${parsed.uncalled} named` };
+    },
+  },
 ];
 
 const ledger = existsSync(LEDGER) ? JSON.parse(readFileSync(LEDGER, "utf8")) : { _about: "", counts: {} };
@@ -92,13 +109,13 @@ ledger.counts ||= {};
 let failed = false;
 const rows = [];
 for (const c of CHECKERS) {
-  const { blocking, counts } = c.run();
+  const { blocking, counts, note } = c.run();
   if (blocking.length) {
     failed = true;
     rows.push([c.id, "BLOCKING", `${blocking.length} hit${blocking.length === 1 ? "" : "s"}`]);
     for (const b of blocking) rows.push(["", "", "  " + b]);
   } else {
-    rows.push([c.id, "ok", ""]);
+    rows.push([c.id, "ok", note || ""]);
   }
   for (const [name, count] of Object.entries(counts)) {
     const prev = ledger.counts[name];
