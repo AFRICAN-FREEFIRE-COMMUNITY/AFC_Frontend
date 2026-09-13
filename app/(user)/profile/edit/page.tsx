@@ -100,6 +100,9 @@ const Page = () => {
 
   // ── Esport Image state (its own flow: uploads immediately on file pick, replace-only). ──
   const [esportUploading, setEsportUploading] = useState(false);
+  // What the picture check said about the image just uploaded, in plain words. Null when the
+  // image read as a proper bust shot, or before anything has been uploaded this visit.
+  const [esportNotice, setEsportNotice] = useState<string | null>(null);
   const [esportPreview, setEsportPreview] = useState<string | null>(null);
 
   // ── Letter avatars (A-Z) state ──────────────────────────────────────────────────────────────
@@ -147,6 +150,7 @@ const Page = () => {
   // the preview. No delete path exists by design (owner: replace-only).
   const handleEsportImagePick = async (file: File | null) => {
     if (!file) return;
+    setEsportNotice(null);
     setEsportUploading(true);
     try {
       const fd = new FormData();
@@ -157,14 +161,35 @@ const Page = () => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setEsportPreview(res.data.esport_image_url);
-      toast.success(t("edit.esport.saved"));
+      // The picture check could not see a clear face but the image WAS saved (owner 2026-09-13).
+      // Say so, and say the ban rule out loud at the moment it matters: the notice stays on the
+      // page under the preview rather than only flashing past in a toast.
+      const code = res.data?.code as string | undefined;
+      if (code) {
+        setEsportNotice(
+          t.has(`edit.esport.check.${code}`)
+            ? t(`edit.esport.check.${code}`)
+            : res.data?.warning || t("edit.esport.check.generic"),
+        );
+        toast.warning(t("edit.esport.check.toast"));
+      } else {
+        setEsportNotice(null);
+        toast.success(t("edit.esport.saved"));
+      }
     } catch (error: any) {
       // 413 = the request body outgrew the server's limit (nginx answers before Django, so
       // there is no JSON message) - tell the user it is a SIZE problem, not a mystery.
+      // not_a_person = the check is SURE there is no person in the picture (a logo, a game
+      // screenshot, a wallpaper). It is the only thing the upload refuses over, and the message
+      // has to say what to do instead, not just "no".
+      const data = error?.response?.data;
+      if (data?.code === "not_a_person") setEsportNotice(t("edit.esport.check.not_a_person"));
       toast.error(
         error?.response?.status === 413
           ? t("edit.esport.tooLarge")
-          : error?.response?.data?.message || t("edit.esport.uploadFailed"),
+          : data?.code === "not_a_person"
+            ? t("edit.esport.check.not_a_person")
+            : data?.message || t("edit.esport.uploadFailed"),
       );
     } finally {
       setEsportUploading(false);
@@ -458,6 +483,16 @@ const Page = () => {
               </p>
               {esportUploading && (
                 <Loader text={t("edit.esport.uploading")} />
+              )}
+              {/* What the picture check said about the image just uploaded (owner 2026-09-13).
+                  It stays on the page instead of flashing past in a toast, because it carries the
+                  ban rule: an image that is not the player's own face can get them and their team
+                  banned, and that is worth reading twice. Only drawn after an upload the check
+                  could not read a clear face in; a clean upload shows nothing. */}
+              {esportNotice && (
+                <p className="rounded-md bg-amber-500/10 p-2.5 text-xs text-amber-600 dark:text-amber-500">
+                  {esportNotice}
+                </p>
               )}
             </div>
           </div>

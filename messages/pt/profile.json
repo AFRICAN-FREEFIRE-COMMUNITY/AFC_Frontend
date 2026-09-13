@@ -285,7 +285,14 @@
       "uploading": "Carregando imagem de esport...",
       "saved": "Imagem de esport salva.",
       "uploadFailed": "Falha ao carregar a imagem de esport.",
-      "tooLarge": "Essa imagem é demasiado grande. O tamanho máximo é de 15 MB - por favor, escolha uma fotografia mais pequena (uma fotografia normal tirada com o telemóvel serve)."
+      "tooLarge": "Essa imagem é demasiado grande. O tamanho máximo é de 15 MB - por favor, escolha uma fotografia mais pequena (uma fotografia normal tirada com o telemóvel serve).",
+      "check": {
+        "toast": "Guardada, mas leia a nota sobre a sua imagem.",
+        "generic": "Guardada, mas não conseguimos ver uma foto nítida do seu rosto. Um organizador vai rever esta imagem. Tem de ser uma foto SUA: enviar a foto de outra pessoa, um logótipo ou qualquer imagem que não seja o seu próprio rosto pode levar ao banimento seu e da sua equipa.",
+        "no_face": "Guardada, mas não encontrámos nenhum rosto nesta imagem. Um organizador vai revê-la. Tem de ser uma foto SUA: enviar a foto de outra pessoa, um logótipo ou qualquer imagem que não seja o seu próprio rosto pode levar ao banimento seu e da sua equipa.",
+        "face_too_small": "Guardada, mas o seu rosto está muito pequeno nesta imagem. Uma imagem esport deve ser um retrato de busto. Um organizador vai revê-la, e uma imagem que não seja o seu próprio rosto pode levar ao banimento seu e da sua equipa.",
+        "not_a_person": "Isto não parece uma foto de uma pessoa, por isso não foi enviada. A sua imagem esport tem de ser uma foto SUA, de busto, com o rosto bem visível: não um logótipo, uma captura do jogo ou um fundo de ecrã."
+      }
     },
     "identityLocked": "Bloqueado enquanto estiver registado para um evento. Pode editar isto novamente assim que os seus eventos terminarem.",
     "statsVisible": {
