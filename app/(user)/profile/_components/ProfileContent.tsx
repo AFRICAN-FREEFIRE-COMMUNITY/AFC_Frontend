@@ -918,7 +918,7 @@ export const ProfileContent = () => {
 
                             <Button size="sm" variant="outline" asChild>
                               <Link
-                                href={`/player-markets/applications/${app.id}`}
+                                href={`/player-markets/applications/${app.public_token || app.id}`}
                               >
                                 {t("applications.view")}
                               </Link>

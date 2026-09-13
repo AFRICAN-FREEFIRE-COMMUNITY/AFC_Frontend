@@ -55,8 +55,9 @@ export function classify(line, rel) {
     const tpl = m[2];
     if (EXTERNAL.test(tpl.trim()) || tpl.trim().startsWith("#")) continue; // external, or an in-page anchor
     // `${product.slug || product.id}` is the fallback for an unslugged row: the slug wins when
-    // present, so the id only shows on a row that has no name yet. Allowed.
-    const idInPath = ID_IN_PATH.test(tpl) && !/slug\s*(\|\||\?\?)/.test(tpl);
+    // present, so the id only shows on a row that has no name yet. Allowed. The same for
+    // `${order.public_token || order.order_id}`, the opaque token of a thing that has no name.
+    const idInPath = ID_IN_PATH.test(tpl) && !/(slug|public_token)\s*(\|\||\?\?)/.test(tpl);
     const queryId = QUERY_ID.test(tpl) && !/\$\{slug\}|\$\{[a-z]*slug/i.test(tpl);
     if (!idInPath && !queryId) continue;
     const grade = WORKSPACE.test(rel) ? "NOTE" : "FAIL";
@@ -116,6 +117,7 @@ const FIXTURES = [
   ["router.push(`/organizer/leaderboards/standalone/${lb.id}`)", "app/(organizer)/organizer/x.tsx", "NOTE"],
   // OK
   ["<Link href={`/shop/${product.slug || product.id}`}>", "app/(user)/shop/_components/ShopClient.tsx", "OK"],
+  ["<Link href={`/orders/${order.public_token || order.order_id}`}>", "app/(user)/shop/_components/OrdersClient.tsx", "OK"],
   ["<Link href={`/tournaments/${event.slug}`}>", "app/(user)/x.tsx", "OK"],
   ["<Link href={`/teams/${player.team.team_name}`}>", "app/(user)/x.tsx", "OK"],
   ["<Link href={`/players/${username}`}>", "app/(user)/x.tsx", "OK"],
