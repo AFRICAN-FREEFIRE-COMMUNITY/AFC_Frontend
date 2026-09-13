@@ -309,7 +309,7 @@ export default function EditLeaderboardPage({
 }) {
   const resolvedParams = use(params);
   const { id: ref } = resolvedParams;
-  const { id } = useEventRef(ref, (slug) => `/a/leaderboards/${slug}/edit`);
+  const { id, slug: eventAddress } = useEventRef(ref, (slug) => `/a/leaderboards/${slug}/edit`);
   const { token } = useAuth();
 
   const [eventData, setEventData] = useState<any>(null);
@@ -1324,7 +1324,7 @@ export default function EditLeaderboardPage({
             stages) is driven from the overlay card, not baked into the URL. */}
         {eventData && (
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/a/overlays/${id}`}>
+            <Link href={`/a/overlays/${eventAddress || ref}`}>
               <IconBroadcast className="size-4" /> Live overlays
             </Link>
           </Button>

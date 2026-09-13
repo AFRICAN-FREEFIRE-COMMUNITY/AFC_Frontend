@@ -39,15 +39,21 @@ const WORKSPACE = /^app\/\((a|organizer|sponsor|vendor)\)\//;
 // Where an address is built: an href attribute, a Link/router call, a `path:`/`url:` field, or a
 // redirect. The template inside is what we grade.
 const ADDRESS_SITES = /(href=\{?\s*`|\.(?:push|replace|prefetch)\(\s*`|\b(?:path|url|href|pathname):\s*`|redirect\(\s*`|permanentRedirect\(\s*`)([^`]*)`/g;
-// A numeric id is a MEMBER access (`x.id`, `x._id`, `x.team_id`) or an `_id` variable; a bare
+// A numeric id is a MEMBER access (`x.id`, `x._id`, `x.team_id`), an `_id` variable or a camelCase
+// `eventId` / `orderId` variable; a bare
 // `${id}` is the route's own param, which on a slug route IS the slug (teams are addressed by
 // name, products by slug), so it is not graded.
-const ID_IN_PATH = /\$\{[^}]*?(?:\.(?:id|_id|[a-z]+_id)|(?<![\w.])[a-z]+_id)\b[^}]*\}/;
+const ID_IN_PATH = /\$\{[^}]*?(?:\.(?:id|_id|[a-z]+_id)|(?<![\w.])[a-z]+_id|(?<![\w.])[a-z]+Id)\b[^}]*\}/;
+// ...except in a file that RESOLVED its address to a numeric id (useEventRef / useStandaloneRef in
+// lib/addressRef.ts): there `id` is the number every endpoint takes, and putting it back into an
+// address is exactly the fault. Two links on the admin leaderboard pages did that on 2026-09-13.
+const BARE_ID = /\$\{\s*id\s*\}/;
+const RESOLVES_ID = /\buse(?:Event|Standalone)Ref\(/;
 const QUERY_ID = /[?&]id=/;
 const EXTERNAL = /^(https?:)?\/\//;
 
 /** Grade one comment-stripped line from a file at `rel`. */
-export function classify(line, rel) {
+export function classify(line, rel, resolvedId = false) {
   const hits = [];
   let m;
   ADDRESS_SITES.lastIndex = 0;
@@ -57,7 +63,10 @@ export function classify(line, rel) {
     // `${product.slug || product.id}` is the fallback for an unslugged row: the slug wins when
     // present, so the id only shows on a row that has no name yet. Allowed. The same for
     // `${order.public_token || order.order_id}`, the opaque token of a thing that has no name.
-    const idInPath = ID_IN_PATH.test(tpl) && !/(slug|public_token)\s*(\|\||\?\?)/.test(tpl);
+    // A team invite id is a UUID (afc_team.TeamInvite.invite_id), an opaque token already: exempt,
+    // like anything else named for a token.
+    const opaque = /\$\{[^}]*(invite|token)[^}]*\}/i.test(tpl);
+    const idInPath = !opaque && (ID_IN_PATH.test(tpl) || (resolvedId && BARE_ID.test(tpl))) && !/(slug|public_token)\s*(\|\||\?\?)/.test(tpl);
     const queryId = QUERY_ID.test(tpl) && !/\$\{slug\}|\$\{[a-z]*slug/i.test(tpl);
     if (!idInPath && !queryId) continue;
     const grade = WORKSPACE.test(rel) ? "NOTE" : "FAIL";
@@ -99,8 +108,9 @@ function scan() {
     try { files = walk(join(ROOT, d)); } catch { continue; }
     for (const p of files) {
       const rel = relative(ROOT, p).split(sep).join("/");
-      const lines = stripComments(readFileSync(p, "utf8")).split("\n");
-      lines.forEach((ln, i) => { for (const h of classify(ln, rel)) hits.push({ file: rel, line: i + 1, ...h }); });
+      const src = stripComments(readFileSync(p, "utf8"));
+      const resolvedId = RESOLVES_ID.test(src);
+      src.split("\n").forEach((ln, i) => { for (const h of classify(ln, rel, resolvedId)) hits.push({ file: rel, line: i + 1, ...h }); });
     }
   }
   return hits;
@@ -115,6 +125,7 @@ const FIXTURES = [
   // workspace: NOTE
   ["<Link href={`${basePath}/create?id=${leaderboard.id}`}>", "app/(a)/a/leaderboards/x.tsx", "NOTE"],
   ["router.push(`/organizer/leaderboards/standalone/${lb.id}`)", "app/(organizer)/organizer/x.tsx", "NOTE"],
+  ["<Link href={`/organizer/overlays/${eventId}`}>", "app/(organizer)/organizer/x.tsx", "NOTE"],
   // OK
   ["<Link href={`/shop/${product.slug || product.id}`}>", "app/(user)/shop/_components/ShopClient.tsx", "OK"],
   ["<Link href={`/orders/${order.public_token || order.order_id}`}>", "app/(user)/shop/_components/OrdersClient.tsx", "OK"],
@@ -126,16 +137,20 @@ const FIXTURES = [
   ["const res = await fetch(`${API}/shop/view-product-details/?product_id=${id}`)", "app/(user)/x.tsx", "OK"],
   ["// used to be href={`/shop/${product.id}`}", "app/(user)/x.tsx", "OK"],
   ["<Link href={`/overlay/leaderboard/${token}`}>", "app/(user)/x.tsx", "OK"],
+  ["router.push(`/login?redirect=/invite/${inviteId}`)", "app/(root)/invite/x.tsx", "OK"],
   ["path: `/shop/${id}`,", "app/(user)/shop/[id]/page.tsx", "OK"],
   ["href={`/tournaments/${invitation.event_slug || invitation.event_id}`}", "app/(user)/x.tsx", "OK"],
   ["<a href={`#${section.id}`}>", "components/x.tsx", "OK"],
   ["href={`/teams/${userTeam.team_id}/edit`}", "app/(user)/x.tsx", "FAIL"],
+  // a bare ${id} is the route's own slug... unless the file resolved it to a number
+  ["<Link href={`/a/leaderboards/${id}/edit`}>", "app/(a)/a/leaderboards/[id]/page.tsx", "NOTE", true],
+  ["<Link href={`/a/leaderboards/${id}/edit`}>", "app/(a)/a/leaderboards/[id]/page.tsx", "OK", false],
 ];
 
 if (SELF_TEST) {
   let failures = 0;
-  for (const [code, rel, want] of FIXTURES) {
-    const grades = classify(stripComments(code), rel).map((h) => h.grade);
+  for (const [code, rel, want, resolvedId] of FIXTURES) {
+    const grades = classify(stripComments(code), rel, !!resolvedId).map((h) => h.grade);
     const got = grades.includes("FAIL") ? "FAIL" : grades.includes("NOTE") ? "NOTE" : "OK";
     if (got !== want) { failures++; console.log(`  MISS expected ${want}, got ${got}: ${code}`); }
   }

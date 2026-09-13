@@ -87,7 +87,7 @@ export default function IndividualLeaderboardPage({
 }) {
   const resolvedParams = use(params);
   const { id: ref } = resolvedParams;
-  const { id } = useEventRef(ref, (slug) => `/a/leaderboards/${slug}`);
+  const { id, slug: eventAddress } = useEventRef(ref, (slug) => `/a/leaderboards/${slug}`);
   const { token } = useAuth();
   // Live refresh (owner 2026-07-02): tick advances every 30s while the tab is visible.
   const tick = useLiveTick();
@@ -408,7 +408,7 @@ export default function IndividualLeaderboardPage({
               />
             </span>
             <Button asChild variant="outline" size="sm" className="flex-1">
-              <Link href={`/a/leaderboards/${id}/edit`}>
+              <Link href={`/a/leaderboards/${eventAddress || ref}/edit`}>
                 <IconPencil size={16} /> Edit Leaderboard
               </Link>
             </Button>
