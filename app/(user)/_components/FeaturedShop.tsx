@@ -37,6 +37,7 @@ interface Variant {
 }
 interface Product {
   id: number;
+  slug?: string; // the public address /shop/<slug> (owner rule R22)
   name: string;
   image: string | null;
   variants: Variant[];
@@ -135,7 +136,7 @@ export function FeaturedShop() {
                     </p>
                   </div>
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/shop/${item.id}`}>
+                    <Link href={`/shop/${item.slug || item.id}`}>
                       {t("featuredShop.view")}{" "}
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </Link>

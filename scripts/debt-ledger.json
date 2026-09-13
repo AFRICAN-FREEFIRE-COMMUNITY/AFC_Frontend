@@ -1,0 +1,23 @@
+{
+  "_about": "Every counted debt on this tree, with the count and the date it last moved (owner rule R32, 2026-09-13). Written by scripts/check-all.mjs: a count going UP fails the run and the ceiling stays; a count going DOWN is written back at once; a count unmoved for 7 days is named STUCK. Edit by bringing the number down, never by raising the ceiling.",
+  "counts": {
+    "datetime.numbers": {
+      "count": 46,
+      "ceiling": 46,
+      "since": "2026-09-13",
+      "movedAt": "2026-09-13"
+    },
+    "slugs.public": {
+      "count": 5,
+      "ceiling": 5,
+      "since": "2026-09-13",
+      "movedAt": "2026-09-13"
+    },
+    "slugs.workspace": {
+      "count": 16,
+      "ceiling": 16,
+      "since": "2026-09-13",
+      "movedAt": "2026-09-13"
+    }
+  }
+}

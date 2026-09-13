@@ -189,6 +189,14 @@ export function formatLocalTime(
   // Client-only: the browser timezone is meaningless on the server.
   if (typeof window === "undefined") return "";
 
+  // A bare calendar date ("2026-08-10" from a Django DateField) is not an instant: `new Date`
+  // would read it as UTC midnight and a viewer west of UTC would see the day before. Any absolute
+  // mode renders it as the calendar date it is (owner rule R31, 2026-09-13: one door, so a caller
+  // cannot get this wrong by picking the wrong helper).
+  if (mode !== "relative" && typeof value === "string" && DATE_ONLY.test(value.trim())) {
+    return formatCalendarDate(value.trim(), locale ?? getActiveLocale());
+  }
+
   const date = toDate(value);
   if (!date) return ""; // null / invalid input renders nothing.
 
@@ -229,12 +237,19 @@ export function formatLocalTime(
 export function formatLocalDateOnly(value?: string | null, locale?: string): string {
   if (!value) return "";
   if (typeof window === "undefined") return "";
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
-  if (!match) return formatLocalTime(value, "date", locale); // has a time component: a real instant
-  const [, y, mo, d] = match;
-  const local = new Date(Number(y), Number(mo) - 1, Number(d));
+  if (!DATE_ONLY.test(value.trim())) return formatLocalTime(value, "date", locale); // a real instant
+  return formatCalendarDate(value.trim(), locale ?? getActiveLocale());
+}
+
+// "YYYY-MM-DD" exactly: a Django DateField on the wire.
+export const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Render a bare calendar date at LOCAL midnight so it round-trips to the same day everywhere. */
+function formatCalendarDate(value: string, locale: string): string {
+  const [y, mo, d] = value.split("-").map(Number);
+  const local = new Date(y, mo - 1, d);
   if (Number.isNaN(local.getTime())) return value;
-  return new Intl.DateTimeFormat(locale ?? getActiveLocale(), optionsFor("date")).format(local);
+  return new Intl.DateTimeFormat(locale, optionsFor("date")).format(local);
 }
 
 // ── Event times (host wall-clock + tz) ────────────────────────────────────────

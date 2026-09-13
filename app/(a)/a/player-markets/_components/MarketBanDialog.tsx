@@ -23,6 +23,7 @@
 // can refetch the queue.
 
 import { useEffect, useMemo, useState } from "react";
+import { formatLocalTime } from "@/lib/i18n/time";
 import {
   Dialog,
   DialogContent,
@@ -119,11 +120,7 @@ export function MarketBanDialog({
     }
     const end = new Date();
     end.setDate(end.getDate() + days);
-    const endStr = end.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+    const endStr = formatLocalTime(end, "date");
     return `This will block ${who} from the market for ${days} day${
       days === 1 ? "" : "s"
     }. Ends ${endStr}.`;

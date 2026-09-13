@@ -61,6 +61,7 @@
 import { useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 import {
+  DATE_ONLY,
   formatLocalTime,
   getBrowserTimeZone,
   type LocalTimeMode,
@@ -97,6 +98,16 @@ export function LocalTime({ value, mode = "datetime", className }: LocalTimeProp
   // the browser timezone / locale for the localized string. See HYDRATION note.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+
+  // A bare calendar date ("2026-08-10", a Django DateField) is not an instant: rendered as the
+  // day it names, in the viewer's language, never shifted by a timezone (owner rule R31).
+  if (typeof value === "string" && DATE_ONLY.test(value.trim()) && mode !== "relative") {
+    return (
+      <time dateTime={value.trim()} className={className}>
+        {mounted ? formatLocalTime(value.trim(), "date", locale) : value.trim()}
+      </time>
+    );
+  }
 
   const date = toDate(value);
 

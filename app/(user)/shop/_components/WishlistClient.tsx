@@ -168,7 +168,7 @@ export default function WishlistClient() {
                   {/* View opens the full product; Remove un-saves it (drops the card). */}
                   <div className="flex gap-2">
                     <Button asChild className="flex-1">
-                      <Link href={`/shop/${product.id}`}>
+                      <Link href={`/shop/${product.slug || product.id}`}>
                         {t("wishlist.view")}
                       </Link>
                     </Button>

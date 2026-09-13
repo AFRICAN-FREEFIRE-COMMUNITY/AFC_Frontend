@@ -13,6 +13,7 @@
 // {results, has_more, next_offset, total_count} envelope (the afc_partner_api house shape).
 
 import { FullLoader } from "@/components/Loader";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -344,7 +345,7 @@ export function AuditLogPanel({ embedded = false }: { embedded?: boolean }) {
                               <Detail label="Device">{parseUserAgent(r.user_agent)}</Detail>
                               <Detail label="IP address">{r.ip_address || "n/a"}</Detail>
                               <Detail label="When">
-                                {new Date(r.timestamp).toLocaleString()}
+                                {formatLocalTime(r.timestamp, "datetime")}
                               </Detail>
                               <Detail label="Request">
                                 <span className="font-mono">

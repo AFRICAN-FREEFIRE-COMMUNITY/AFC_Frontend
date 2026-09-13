@@ -59,6 +59,7 @@ const tokenHeaders = (token: string | null | undefined) => {
 // site via Intl.NumberFormat "en-NG".
 export interface WishlistProduct {
   id: number;
+  slug?: string; // the public address /shop/<slug> (owner rule R22)
   name: string;
   image: string | null;
   category: string | null;

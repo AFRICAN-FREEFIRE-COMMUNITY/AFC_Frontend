@@ -1,6 +1,7 @@
 "use client";
 
 import { FullLoader } from "@/components/Loader";
+import { formatLocalTime } from "@/lib/i18n/time";
 // One rule for "is this Clash Squad?" - the plain "cs" format the picker
 // writes since 2026-08-13 does not match the old "cs - " literals.
 import { isClashSquadFormat } from "@/lib/eventFormats";
@@ -757,11 +758,11 @@ const Page = ({ params }: { params: Promise<Params> }) => {
       // Distinguish the reusable FCFS link from single-use links in the export.
       Type: invite.is_shared ? "Shared (FCFS)" : "Single-use",
       "Created By": invite.created_by,
-      "Created At": new Date(invite.created_at).toLocaleString(),
+      "Created At": formatLocalTime(invite.created_at, "datetime"),
       Status: invite.is_shared ? "Reusable" : invite.is_used ? "Used" : "Active",
       "Used By": invite.used_by || "N/A",
       "Used At": invite.used_at
-        ? new Date(invite.used_at).toLocaleString()
+        ? formatLocalTime(invite.used_at, "datetime")
         : "N/A",
     }));
 

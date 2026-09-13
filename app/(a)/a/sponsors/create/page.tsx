@@ -1,6 +1,7 @@
 "use client";
 
 import { FullLoader } from "@/components/Loader";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -345,7 +346,7 @@ export default function CreateSponsorPage() {
         ? details.assigned_events.map((e, i) => `  ${i + 1}. ${e}`)
         : ["  (none)"]),
       "",
-      `Generated: ${new Date().toLocaleString()}`,
+      `Generated: ${formatLocalTime(new Date(), "datetime")}`,
     ].join("\n");
 
     const blob = new Blob([content], { type: "text/plain" });

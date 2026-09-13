@@ -45,6 +45,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { formatLocalTime, getActiveLocale, getBrowserTimeZone } from "@/lib/i18n/time";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
@@ -271,12 +272,16 @@ const fmtMonth = (key: string): string => {
   return `${months[monthIdx]} ${y.slice(2)}`;
 };
 
-// ISO date → "Jun 2026" for the per-event table (null → "-").
+// ISO date → "Jun 2026" for the per-event table (null → "-"), in the UI language (R31).
 const fmtDate = (iso: string | null): string => {
   if (!iso) return "-";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "-";
-  return d.toLocaleString("default", { month: "short", year: "numeric" });
+  return new Intl.DateTimeFormat(getActiveLocale(), {
+    month: "short",
+    year: "numeric",
+    timeZone: getBrowserTimeZone(),
+  }).format(d);
 };
 
 // Humanise a split key for chart labels: "physical(lan)" → "Physical(lan)",
@@ -585,16 +590,7 @@ export default function OrganizerMetricsPage() {
     // custom: describe whichever bounds are set (either side may be open).
     const s = metrics?.range?.start ?? customStart;
     const e = metrics?.range?.end ?? customEnd;
-    const f = (iso: string) => {
-      const d = new Date(iso);
-      return Number.isNaN(d.getTime())
-        ? iso
-        : d.toLocaleDateString("default", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          });
-    };
+    const f = (iso: string) => formatLocalTime(iso, "date") || iso;
     if (s && e) return t("metrics.range.between", { start: f(s), end: f(e) });
     if (s) return t("metrics.range.from", { date: f(s) });
     if (e) return t("metrics.range.upTo", { date: f(e) });

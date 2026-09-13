@@ -1,10 +1,12 @@
-# Known-bug checker on every pull request and every push to any branch.
+# Every checker on every pull request and every push to any branch.
 #
-# scripts/known-bugs.json is the registry of bugs this codebase has produced more than once;
-# scripts/check-known-bugs.mjs runs it. Owner's rule (2026-09-11): a bug seen twice gets a
-# checker, and a red checker is fixed before anything else is merged. The same check is also the
-# first step of the production build (docker-image-live.yml), so nothing that trips it can deploy.
-# Output lines are greppable: KNOWN-BUG <id> <file>:<line>.
+# scripts/check-all.mjs runs the known-bug registry (scripts/known-bugs.json, owner's rule
+# 2026-09-11: a bug seen twice gets a checker, a red checker is fixed before anything else) and
+# every other catcher (check-datetime, owner's rule R31), and reads scripts/debt-ledger.json
+# (owner's rule R32, 2026-09-13): a blocking hit or a debt count that went UP turns the run red;
+# --no-write because a pull request never edits the ledger, a commit on the branch does. The same
+# runner is the first step of the production build (docker-image-live.yml), so nothing that trips
+# it can deploy. Output lines are greppable: KNOWN-BUG <id> <file>:<line>, DATE <file>:<line>.
 
 name: Checks
 
@@ -22,5 +24,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Known-bug checker
-        run: node scripts/check-known-bugs.mjs
+      - name: Every checker (known-bugs, check-datetime, the debt ledger)
+        run: node scripts/check-all.mjs --no-write

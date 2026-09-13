@@ -85,6 +85,7 @@ interface ProductCategory {
 
 interface Product {
   id: number;
+  slug?: string; // the public address /shop/<slug> (owner rule R22); "" on a row not yet slugged
   name: string;
   type: string; // legacy slug string (back-compat with the category slug)
   category: ProductCategory | null;
@@ -484,7 +485,7 @@ export default function ShopClient() {
                     <Money amount={startingPrice} />
                   </p>
                   <Button asChild className="w-full">
-                    <Link href={`/shop/${product.id}`}>
+                    <Link href={`/shop/${product.slug || product.id}`}>
                       {isOutOfStock ? t("list.view") : t("list.buyNow")}
                     </Link>
                   </Button>

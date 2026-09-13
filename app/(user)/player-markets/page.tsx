@@ -3654,7 +3654,7 @@ function PlayerMarketPage() {
                   </DialogTitle>
                   <p className="text-sm text-muted-foreground">
                     {t("common.expires", {
-                      date: new Date(viewTeam.expiry).toLocaleDateString(),
+                      date: formatLocalTime(viewTeam.expiry, "date", locale),
                     })}
                   </p>
                 </div>
@@ -3721,7 +3721,7 @@ function PlayerMarketPage() {
                   <Badge variant="outline" className="text-xs">
                     <IconCalendar className="h-3 w-3 mr-1" />
                     {t("common.expires", {
-                      date: new Date(viewTeam.expiry).toLocaleDateString(),
+                      date: formatLocalTime(viewTeam.expiry, "date", locale),
                     })}
                   </Badge>
                 </div>
@@ -3927,7 +3927,7 @@ function PlayerMarketPage() {
                   <Badge variant="outline" className="text-xs">
                     <IconCalendar className="h-3 w-3 mr-1" />
                     {t("common.expires", {
-                      date: new Date(viewPlayer.expiry).toLocaleDateString(),
+                      date: formatLocalTime(viewPlayer.expiry, "date", locale),
                     })}
                   </Badge>
                   {/* The phone the player currently plays on (compulsory on new posts). */}

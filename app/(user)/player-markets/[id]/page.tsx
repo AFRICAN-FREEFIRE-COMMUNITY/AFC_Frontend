@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { LocalTime } from "@/components/LocalTime";
 import { notFound } from "next/navigation";
 // i18n: Server Component -> copy is read via getTranslations (async server-side
 // counterpart of useTranslations) from the `pmPost` namespace. The client child
@@ -490,11 +491,7 @@ export default async function PlayerMarketPostPage({
             <p className="text-xs text-muted-foreground border-t pt-4 flex items-center gap-1.5">
               <IconCalendar size={13} />
               {t("postExpires")}{" "}
-              {new Date(post.post_expiry_date).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
+              <LocalTime value={post.post_expiry_date} mode="date" />
             </p>
           )}
         </CardContent>

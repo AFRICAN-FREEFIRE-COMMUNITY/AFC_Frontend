@@ -154,8 +154,10 @@ export default function ProductDetailPage() {
     const fetchDetails = async () => {
       try {
         setLoading(true);
+        // `ref` is the slug, a retired slug, or a legacy id (owner rule R22); a move comes back on
+        // the envelope as `moved_to` and the address is rewritten in place, no second fetch.
         const res = await axios.get(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-product-details/?product_id=${params.id}`,
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-product-details/?ref=${encodeURIComponent(String(params.id))}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -164,6 +166,7 @@ export default function ProductDetailPage() {
         );
         const data = res.data.product;
         setProduct(data);
+        if (res.data.moved_to && res.data.moved_to !== `/shop/${params.id}`) router.replace(res.data.moved_to);
 
         // Auto-select the first active variant
         const firstAvailable = data.variants.find((v: Variant) => v.is_active);

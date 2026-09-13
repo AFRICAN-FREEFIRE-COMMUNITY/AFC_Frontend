@@ -619,7 +619,8 @@
     "rateSuccess": "Merci d'avoir évalué cet événement !",
     "rateFailed": "Échec de l'envoi de votre évaluation",
     "commentSuccess": "Envoyé à l'organisateur",
-    "commentFailed": "Échec de l'envoi de votre commentaire"
+    "commentFailed": "Échec de l'envoi de votre commentaire",
+    "rateAction": "évaluer cet événement et laisser un commentaire"
   },
   "requirements": {
     "title": "Conditions d'inscription",

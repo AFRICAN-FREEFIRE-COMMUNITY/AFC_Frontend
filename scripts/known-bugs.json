@@ -1,5 +1,5 @@
 {
-  "_about": "Registry of bugs this codebase has produced MORE THAN ONCE. Each entry becomes an automatic check (scripts/check-known-bugs.mjs) that runs on every push and every PR and turns the run red with the bug id and the exact file:line. Owner's rule, 2026-09-11: a bug seen twice gets a checker; a red checker is fixed before anything else. Add an entry the second time you meet a bug, with both sightings, so the checker carries its own justification.",
+  "_about": "Registry of bugs this codebase has produced MORE THAN ONCE. Each entry becomes an automatic check (scripts/check-known-bugs.mjs) that runs on every push and every PR and turns the run red with the bug id and the exact file:line. Owner's rule, 2026-09-11: a bug seen twice gets a checker; a red checker is fixed before anything else. Add an entry the second time you meet a bug, with both sightings, so the checker carries its own justification. Every regex entry carries a `fixture` line it must catch and a `fixtureOk` line it must leave alone; `node scripts/check-known-bugs.mjs --self-test` proves both (owner rule R28, 2026-09-13).",
   "bugs": [
     {
       "id": "fe-status-text-gate",
@@ -10,9 +10,22 @@
         "2026-09-11 VPS rehearsal: 17 more gates in 12 files (login form, modal, forgot password, verify code, LatestNews, teams, contact form, three admin screens) broke the moment nginx spoke h2"
       ],
       "fix": "check the status code: `response.status >= 200 && response.status < 300` (axios already rejects non-2xx, so usually no gate is needed at all)",
+      "fixture": "if (response.statusText === \"OK\") {",
+      "fixtureOk": "if (response.status >= 200 && response.status < 300) {",
       "kind": "regex",
       "pattern": "\\.statusText\\s*===",
-      "globs": ["app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "contexts/**/*.ts", "contexts/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"],
+      "globs": [
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "components/**/*.ts",
+        "components/**/*.tsx",
+        "contexts/**/*.ts",
+        "contexts/**/*.tsx",
+        "hooks/**/*.ts",
+        "hooks/**/*.tsx",
+        "lib/**/*.ts",
+        "lib/**/*.tsx"
+      ],
       "ignoreLineRegex": "^\\s*//"
     },
     {
@@ -24,9 +37,24 @@
         "2026-09-04: the design lint found six more that had crept back in"
       ],
       "fix": "a hyphen with spaces, a comma, a colon, parentheses, or reword",
+      "fixture": "const label = \"Teams \u2014 all\";",
+      "fixtureOk": "const label = \"Teams - all\";",
       "kind": "regex",
       "pattern": "[\\u2014\\u2013]",
-      "globs": ["app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "contexts/**/*.ts", "contexts/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx", "messages/**/*.json", "app/**/*.md"]
+      "globs": [
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "components/**/*.ts",
+        "components/**/*.tsx",
+        "contexts/**/*.ts",
+        "contexts/**/*.tsx",
+        "hooks/**/*.ts",
+        "hooks/**/*.tsx",
+        "lib/**/*.ts",
+        "lib/**/*.tsx",
+        "messages/**/*.json",
+        "app/**/*.md"
+      ]
     },
     {
       "id": "fe-i18n-namespace-missing",
@@ -38,7 +66,18 @@
       ],
       "fix": "add the namespace object to messages/en/<first segment>.json (then run pnpm i18n:translate), or fix the namespace string",
       "kind": "i18n-namespace",
-      "globs": ["app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "contexts/**/*.ts", "contexts/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"],
+      "globs": [
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "components/**/*.ts",
+        "components/**/*.tsx",
+        "contexts/**/*.ts",
+        "contexts/**/*.tsx",
+        "hooks/**/*.ts",
+        "hooks/**/*.tsx",
+        "lib/**/*.ts",
+        "lib/**/*.tsx"
+      ],
       "messagesDir": "messages/en"
     },
     {
@@ -49,10 +88,52 @@
         "2026-09-12 lib/draws.ts optionalHeaders wrapped authHeaders() in try/catch; the post-deploy walk of FE #40 then showed the same modal from two OLDER sites too, lib/organizers getEventRating and lib/sponsors forEvent (both documented as optional auth, both calling authHeaders() since the 2026-08-29 throw): every guest on an event page had been greeted with Session expired for two weeks. Fixed in fix/draw-guest-session-modal: optionalAuthHeaders() in lib/http, and the modal event now fires only when a session existed this page load"
       ],
       "fix": "use optionalAuthHeaders() from lib/http for a read that is public but richer when signed in; never call authHeaders() unless the request truly needs a session",
+      "fixture": "try { return authHeaders(); } catch { return {}; }",
+      "fixtureOk": "return optionalAuthHeaders();",
       "kind": "regex",
       "pattern": "try\\s*\\{\\s*return\\s+authHeaders\\(\\)",
       "ignoreLineRegex": "^\\s*//",
-      "globs": ["app/**/*.ts", "app/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "contexts/**/*.ts", "contexts/**/*.tsx", "hooks/**/*.ts", "hooks/**/*.tsx", "lib/**/*.ts", "lib/**/*.tsx"]
+      "globs": [
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "components/**/*.ts",
+        "components/**/*.tsx",
+        "contexts/**/*.ts",
+        "contexts/**/*.tsx",
+        "hooks/**/*.ts",
+        "hooks/**/*.tsx",
+        "lib/**/*.ts",
+        "lib/**/*.tsx"
+      ]
+    },
+    {
+      "id": "fe-date-outside-timing-model",
+      "title": "A date or time rendered outside the timing model (device language, device zone)",
+      "why": "`new Date(x).toLocaleDateString()` passes no locale and no zone: the month name follows the DEVICE language, not the site language the reader chose, and the day follows the device zone; a bare DateField read through `new Date` is UTC midnight and shows the previous day west of UTC. Nothing about it looks wrong to whoever built the page. Owner's rule R31 (2026-09-13): everything through lib/i18n/time.ts (formatLocalTime, formatLocalDateOnly, LocalTime, LocalEventTime).",
+      "seen": [
+        "2026-08-03 the registration window showed the day before (backlog item 38)",
+        "2026-08-30 OwnStatsTab hardcoded en-US UTC toLocaleDateString",
+        "2026-09-01 the transfer window banner hardcoded en-US",
+        "2026-09-13 29 more sites across 19 files (admin audit rows, order dates, market expiries, chart axes, lib/utils formatDate with 67 callers), all fixed the same day"
+      ],
+      "fix": "formatLocalTime(value, mode) / formatLocalDateOnly for a bare date / <LocalTime/> for visible text; chart axes: new Intl.DateTimeFormat(getActiveLocale(), {..., timeZone: getBrowserTimeZone()}). The dedicated checker is scripts/check-datetime.mjs (run by check-all); this entry only names the class.",
+      "fixture": "<span>{new Date(order.created_at).toLocaleDateString()}</span>",
+      "fixtureOk": "<span>{formatLocalTime(order.created_at, \"date\")}</span>",
+      "kind": "regex",
+      "pattern": "\\.toLocale(Date|Time)String\\s*\\(\\s*(\\)|undefined|\"default\"|'default'|\"[a-z]{2}-[A-Z]{2}\"|'[a-z]{2}-[A-Z]{2}')",
+      "ignoreLineRegex": "^\\s*(//|\\*|/\\*)",
+      "globs": [
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "components/**/*.ts",
+        "components/**/*.tsx",
+        "contexts/**/*.ts",
+        "contexts/**/*.tsx",
+        "hooks/**/*.ts",
+        "hooks/**/*.tsx",
+        "lib/**/*.ts",
+        "lib/**/*.tsx"
+      ]
     }
   ]
 }

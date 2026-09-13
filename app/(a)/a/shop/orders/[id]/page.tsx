@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { useParams } from "next/navigation";
 import {
   Card,
@@ -319,7 +320,7 @@ export default function OrderDetailsPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Created At:</span>
-                  <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                  <span>{formatLocalTime(order.created_at, "date")}</span>
                 </div>
               </div>
             </CardContent>

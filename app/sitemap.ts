@@ -172,7 +172,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter((p) => p?.id != null)
     .slice(0, CAP_PRODUCTS)
     .map((p) => ({
-      url: `${base}/shop/${p.id}`,
+      url: `${base}/shop/${p.slug || p.id}`, // the slug is the canonical address (owner rule R22)
       lastModified: toDate(p.updated_at || p.created_at),
       changeFrequency: "weekly",
       priority: 0.6,

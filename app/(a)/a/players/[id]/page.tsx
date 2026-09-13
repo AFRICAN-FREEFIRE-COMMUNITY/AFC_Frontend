@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useTransition, use } from "react";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
@@ -842,7 +843,7 @@ const Page = ({ params }: Props) => {
                       <TableCell>{entry.country ?? "-"}</TableCell>
                       <TableCell>{entry.city ?? "-"}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "-"}
+                        {entry.timestamp ? formatLocalTime(entry.timestamp, "datetime") : "-"}
                       </TableCell>
                     </TableRow>
                   ))
