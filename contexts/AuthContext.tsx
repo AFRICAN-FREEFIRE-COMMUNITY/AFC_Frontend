@@ -43,6 +43,17 @@ export interface UserStats {
   total_tournaments_played: number;
 }
 
+/**
+ * One event holding a player's in-game name and Free Fire UID still (see identity_lock_events).
+ * Comes from GET /auth/get-user-profile/, built by afc_auth/views.py::_identity_locking_events.
+ * `slug` is the event's address (R22: slugs everywhere), so a surface can link to it if it wants.
+ */
+export interface IdentityLockEvent {
+  event_id: number;
+  event_name: string;
+  slug?: string | null;
+}
+
 export interface User {
   id?: string; // optional if not always returned
   user_id: number;
@@ -55,6 +66,10 @@ export interface User {
   // explains the in-game name and UID inputs when this is true; the backend enforces the same in
   // edit_profile. Set by the get-user-profile payload; releases once all their events complete.
   identity_locked?: boolean;
+  // The events BEHIND identity_locked, so a screen can say WHICH one rather than "an event" (owner
+  // 2026-09-13: "it should also tell people what event they are locked into"). Same source as the
+  // boolean; empty whenever identity_locked is false. Read by the profile-edit form.
+  identity_lock_events?: IdentityLockEvent[];
   team: string | null;
   // Profile-completion reminder (owner 2026-06-20): the name of a team this user OWNS that has no logo
   // (or null), so a gentle nudge can ask the owner to add one. From get-user-profile.
@@ -464,6 +479,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // IDENTITY LOCK: disables the IGN/UID inputs on the profile-edit form while the player is
         // in a live event (server also enforces it in edit_profile). Defaults false when omitted.
         identity_locked: dbUser.identity_locked ?? false,
+        // The events doing the locking. An older cached payload has no such key, so the form falls
+        // back to the unnamed sentence rather than printing an empty list.
+        identity_lock_events: Array.isArray(dbUser.identity_lock_events)
+          ? (dbUser.identity_lock_events as IdentityLockEvent[])
+          : [],
         team: dbUser.team,
         team_without_logo: dbUser.team_without_logo ?? null,
         role: dbUser.role,
