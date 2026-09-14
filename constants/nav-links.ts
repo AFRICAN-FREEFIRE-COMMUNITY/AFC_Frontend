@@ -1,4 +1,5 @@
 import {
+  IconHeadset,
   IconArticle,
   IconBroadcast,
   IconBuilding,
@@ -350,6 +351,17 @@ export const adminNavLinks: AdminNavLink[] = [
   // OCR keys (owner 2026-09-12): which organizations read on their own AI key, reads and
   // estimated spend, the free reads AFC still pays for, and the per-org OCR switch.
   // app/(a)/a/ocr-model/keys/page.tsx; backend organizers/admin/ai-keys/ (platform org admins).
+  // The support desk (owner 2026-09-14): every message anybody sends AFC, with its files and its
+  // replies. app/(a)/a/support; backend afc_support. The AUDIT sibling (/a/support/audit) is head
+  // admins only and is reached from the page itself, so it is deliberately not a second nav row.
+  {
+    label: "Support",
+    navKey: "support",
+    slug: "/a/support",
+    icon: IconHeadset,
+    allowedRoles: ["head_admin", "support_admin", "support"],
+    newSince: "2026-09-14",
+  },
   {
     label: "OCR Keys",
     navKey: "ocrKeys",
