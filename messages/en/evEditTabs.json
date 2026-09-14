@@ -321,6 +321,8 @@
     "complete": "Complete",
     "reopenEvent": "Reopen Event",
     "reopenEventDesc": "Set this completed event back to active so you can fix or add results.",
+    "reopenRosterNote": "This event's dates have already passed, so reopening it does not lock rosters again: players can still leave their team, be removed, or be swapped while it is open.",
+    "toastReopenRosterOpen": "Reopened. Rosters stay open on this one, because its dates have passed.",
     "reopen": "Reopen",
     "endedLocked": "This tournament has ended. Results are now locked.",
     "seedingTitle": "Seeding & Progression",
