@@ -24,7 +24,7 @@
  * it on the sitewide History page automatically. The support-only audit (every message, every
  * file) is the sibling page at /a/support/audit, head admins only.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -69,7 +69,21 @@ const STATUS_VARIANTS: Record<string, string> = {
   closed: "bg-muted text-muted-foreground",
 };
 
+/**
+ * The page itself is only the Suspense boundary. SupportDesk below reads the ?ticket= query with
+ * useSearchParams, which SUSPENDS, and a suspending client component with no boundary above it
+ * leaves the whole segment showing a placeholder for ever (which is exactly what happened to the
+ * public ticket page on the day this shipped).
+ */
 export default function SupportDeskPage() {
+  return (
+    <Suspense fallback={<FullLoader />}>
+      <SupportDesk />
+    </Suspense>
+  );
+}
+
+function SupportDesk() {
   const t = useTranslations("support");
   const { token } = useAuth();
   const params = useSearchParams();
