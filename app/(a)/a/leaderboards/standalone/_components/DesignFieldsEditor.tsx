@@ -144,7 +144,12 @@ const CANVAS_RATIO_BY_SIZE: Record<"instagram" | "youtube", number> = {
 type EditSize = "instagram" | "youtube";
 
 // Maximum pixel height for the editor canvas so it never overflows the dialog.
-const MAX_CANVAS_H = 520;
+// How tall the preview may get. It is pinned while the controls scroll (see the canvas markup),
+// so it is measured against the WINDOW: a fixed pixel cap either wastes a desktop screen or eats a
+// phone one. 0.45 leaves room for the palette above it and the control you are dragging below.
+// Owner 2026-09-14: "Can the previous please be bigger?"
+const MAX_CANVAS_H = 720;
+const MAX_CANVAS_VH = 0.45;
 
 // All available connected field types with friendly display labels (mirrors backend FIELD_CHOICES).
 //
@@ -745,28 +750,46 @@ export function DesignFieldsEditor({
   const loadedFontUrls = useRef<Map<number, string>>(new Map());
 
   // ── Canvas sizing (same JS-computed pattern as LeaderboardDesignsManager) ──
-  const wrapRef = useRef<HTMLDivElement>(null);
+  // The wrapper is held in STATE, not a ref (owner 2026-09-14). With a ref, this effect ran once on
+  // mount with `open` already true, the dialog's content had not been portalled in yet, so
+  // wrapRef.current was null, the effect returned early and never ran again: availW stayed 0 and
+  // every preview was drawn at the 320px fallback inside a 919px column. A callback ref fires WHEN
+  // the node exists, so the measurement cannot miss it.
+  const [wrapEl, setWrapEl] = useState<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [availW, setAvailW] = useState(0);
+  // Window height, so the pinned preview can be capped against the real screen (see MAX_CANVAS_VH).
+  const [viewportH, setViewportH] = useState(0);
+
+  useEffect(() => {
+    if (!wrapEl) return;
+    const measure = () => setAvailW(wrapEl.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(wrapEl);
+    return () => ro.disconnect();
+  }, [wrapEl]);
 
   useEffect(() => {
     if (!open) return;
-    const el = wrapRef.current;
-    if (!el) return;
-    const measure = () => setAvailW(el.clientWidth);
+    const measure = () => setViewportH(window.innerHeight);
     measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
   }, [open]);
 
   // Canvas pixel dims: fit the wrapper width, cap at MAX_CANVAS_H, preserve the ASPECT OF THE SIZE
   // BEING EDITED (IG portrait 1080x1350 vs YT landscape 1920x1080) so positions match the export.
   const ratio = CANVAS_RATIO_BY_SIZE[editSize];
+  // Tallest the preview may be: the fixed cap, or a share of the window when we know it. Guarding
+  // on viewportH keeps the first paint (and any non-browser render) on the fixed cap.
+  const maxCanvasH = viewportH
+    ? Math.max(240, Math.min(MAX_CANVAS_H, Math.round(viewportH * MAX_CANVAS_VH)))
+    : MAX_CANVAS_H;
   let canvasW = availW || 320;
   let canvasH = canvasW / ratio;
-  if (canvasH > MAX_CANVAS_H) {
-    canvasH = MAX_CANVAS_H;
+  if (canvasH > maxCanvasH) {
+    canvasH = maxCanvasH;
     canvasW = canvasH * ratio;
   }
   const canvasDims = { w: Math.round(canvasW), h: Math.round(canvasH) };
@@ -2397,8 +2420,12 @@ export function DesignFieldsEditor({
         {/* ── Main layout: canvas (left/center) + side panel (right) ── */}
         <div className="grid gap-4 lg:grid-cols-[1fr_280px]">
 
-          {/* ── Left: connected-columns palette + canvas ── */}
-          <div className="space-y-3">
+          {/* ── Left: canvas (pinned, first) + connected-columns palette + column groups ──
+              The preview is ordered to the TOP of this column (owner 2026-09-14). Sticky on its own
+              did nothing useful: the canvas sat under a tall palette and only reached the top of
+              the dialog at maximum scroll, which is the "you cant see it" the owner described.
+              CSS ordering keeps the markup below in its original reading order. */}
+          <div className="flex flex-col gap-3">
 
             {/* ── §A Palette: all field types as add/remove chips ── */}
             <div className="rounded-md border bg-card p-3">
@@ -2471,11 +2498,20 @@ export function DesignFieldsEditor({
               )}
             </div>
 
-            {/* ── §B Canvas: background + field handles + text elements ── */}
-            <div ref={wrapRef} className="w-full">
+            {/* ── §B Canvas: background + field handles + text elements ──
+                PINNED (owner 2026-09-14): "when you scroll and yu try o edit what appears on the
+                design, you cant see it". The dialog body is the scroll container, so the preview
+                sticks to the top of it while the palette, the column groups and the style panel
+                scroll past underneath. Same on a phone, where the layout is one column and the
+                problem is worst. The wrapper carries the background and the padding so scrolled
+                content never shows through behind the canvas. */}
+            <div
+              ref={setWrapEl}
+              className="bg-background sticky top-0 z-30 order-first w-full py-2"
+            >
               <div
                 ref={canvasRef}
-                className="relative select-none overflow-hidden rounded-md border bg-[#0a0e0c]"
+                className="relative mx-auto select-none overflow-hidden rounded-md border bg-[#0a0e0c]"
                 style={{ width: canvasDims.w, height: canvasDims.h }}
                 onClick={(e) => {
                   // Click on empty canvas space deselects.
