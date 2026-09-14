@@ -17,7 +17,8 @@
  *
  * TALKS TO  GET support/t/<token>/ and POST support/t/<token>/reply/ (lib/api/support.ts).
  */
-import { use, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { IconMessageQuestion } from "@tabler/icons-react";
@@ -33,12 +34,12 @@ import {
   type SupportTicket,
 } from "@/lib/api/support";
 
-export default function SupportTicketPage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
-  const { token } = use(params);
+export default function SupportTicketPage() {
+  // useParams, not use(params): a promise in a client component suspends, this route has no loading
+  // boundary above it, and on production the page sat on Next's streamed placeholder without ever
+  // calling the API. The token is in the URL; read it synchronously.
+  const routeParams = useParams<{ token: string }>();
+  const token = String(routeParams?.token ?? "");
   const t = useTranslations("support");
 
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
