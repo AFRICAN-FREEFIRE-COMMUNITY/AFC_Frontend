@@ -18,6 +18,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ContactFormSchema, ContactFormSchemaType } from "@/lib/zodSchemas";
+// The support desk (owner 2026-09-14). The form posts to support/contact/ now, which STORES the
+// message, its files and its replies before emailing anybody: the old endpoint stored nothing and
+// a shadowed variable had been replacing every message with the words "Valid email." for months.
+import { sendContactMessage } from "@/lib/api/support";
+import { formatBytes } from "@/components/support/SupportThread";
+import { IconPaperclip, IconX } from "@tabler/icons-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
@@ -41,6 +47,13 @@ export const ContactForm = () => {
   // (namespace == messages/en/home.json).
   const t = useTranslations("home");
   const [openModal, setOpenModal] = useState<boolean>(false);
+  // What the desk answered: the number the person quotes back at us, and the address of their own
+  // ticket page. Shown in the success dialog so they leave with both.
+  const [ticket, setTicket] = useState<{ number: string; url: string } | null>(null);
+  // Documents, pictures and videos (owner 2026-09-14). Six files, 20 MB each, the same limits
+  // afc_support/views.py enforces.
+  const [files, setFiles] = useState<File[]>([]);
+  const fileInput = React.useRef<HTMLInputElement>(null);
 
   const [pending, startTransition] = useTransition();
 
@@ -55,17 +68,19 @@ export const ContactForm = () => {
   function onSubmit(data: ContactFormSchemaType) {
     startTransition(async () => {
       try {
-        const response = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/contact-us/`,
-          { ...data }
+        const res = await sendContactMessage({ ...data, files });
+        // A refused file is NAMED rather than dropped in silence: the desk tells us which one and
+        // why, and the person can send it another way instead of assuming it arrived.
+        res.rejected_files?.forEach((f) =>
+          toast.error(t(`contactForm.rejected.${f.reason}` as "contactForm.rejected.type", {
+            name: f.name,
+          })),
         );
-
-        if (response.status >= 200 && response.status < 300) {
-          toast.success(response.data.message);
-          setOpenModal(true);
-        } else {
-          toast.error(t("contactForm.toast.error"));
-        }
+        setTicket({ number: res.ticket_number, url: res.ticket_url });
+        setFiles([]);
+        form.reset();
+        toast.success(res.message);
+        setOpenModal(true);
       } catch (error: any) {
         toast.error(
           error?.response?.data?.message || t("contactForm.toast.serverError"),
@@ -130,6 +145,56 @@ export const ContactForm = () => {
                   </FormItem>
                 )}
               />
+              {/* Attachments. A support message is often a screenshot of the thing that went
+                  wrong, and asking for it in a second email is how a ticket dies. */}
+              <div className="space-y-2">
+                <input
+                  ref={fileInput}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const picked = e.target.files;
+                    if (picked) setFiles((prev) => [...prev, ...Array.from(picked)].slice(0, 6));
+                    if (fileInput.current) fileInput.current.value = "";
+                  }}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInput.current?.click()}
+                  >
+                    <IconPaperclip className="mr-1 size-4" /> {t("contactForm.attach")}
+                  </Button>
+                  <span className="text-muted-foreground text-xs">
+                    {t("contactForm.attachLimits")}
+                  </span>
+                </div>
+                {files.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {files.map((f, i) => (
+                      <span
+                        key={`${f.name}-${i}`}
+                        className="bg-muted flex items-center gap-1.5 rounded-md px-2 py-1 text-xs"
+                      >
+                        <IconPaperclip className="size-3.5" />
+                        <span className="max-w-[200px] truncate">{f.name}</span>
+                        <span className="text-muted-foreground">{formatBytes(f.size)}</span>
+                        <button
+                          type="button"
+                          aria-label={t("contactForm.removeFile", { name: f.name })}
+                          onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
+                          className="hover:text-destructive"
+                        >
+                          <IconX className="size-3.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
               <Button disabled={pending} type="submit" className="w-full">
                 {pending ? (
                   <Loader text={t("contactForm.sending")} />
@@ -151,8 +216,24 @@ export const ContactForm = () => {
               <DialogDescription asChild>
                 <div className="px-6 py-4">
                   <div className="[&_strong]:text-foreground space-y-4 [&_strong]:font-semibold">
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       <p>{t("contactForm.success.body")}</p>
+                      {ticket ? (
+                        <>
+                          <p>
+                            <strong>{t("contactForm.success.ticket", { number: ticket.number })}</strong>
+                          </p>
+                          <p>
+                            {t("contactForm.success.thread")}{" "}
+                            <a
+                              href={ticket.url}
+                              className="text-primary hover:underline break-all"
+                            >
+                              {ticket.url}
+                            </a>
+                          </p>
+                        </>
+                      ) : null}
                     </div>
                   </div>
                 </div>

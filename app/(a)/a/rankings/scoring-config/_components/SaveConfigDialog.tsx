@@ -167,7 +167,18 @@ export function SaveConfigDialog({
         recalculate,
       });
       const recalculated = res?.recalculated ?? {};
-      toast.success(t("admin.scoringConfig.save.saved", {
+      // The version is saved the moment this answers; the scores follow on the rankings
+      // worker (state "queued"), or are already done (dev inline), or nothing was asked
+      // for (recalculate off). Say which, so "saved" never implies "re-scored" when it is not.
+      const state: string = recalculated.state ?? "none";
+      const key = state === "queued" || state === "running"
+        ? "admin.scoringConfig.save.savedQueued"
+        : state === "failed"
+          ? "admin.scoringConfig.save.savedRebuildFailed"
+          : state === "done"
+            ? "admin.scoringConfig.save.saved"
+            : "admin.scoringConfig.save.savedNoRebuild";
+      toast.success(t(key, {
         version: res?.version ?? "?",
         seasons: recalculated.seasons ?? 0,
       }));

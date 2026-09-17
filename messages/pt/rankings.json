@@ -264,7 +264,20 @@
         "confirm": "Guardar e criar versão",
         "savingBusy": "A guardar",
         "saved": "Guardado como v{version}. {seasons, plural, =0 {Nenhuma época recalculada} one {# época recalculada} other {# épocas recalculadas}}.",
-        "failed": "Falha ao guardar a configuração de pontuação"
+        "failed": "Falha ao guardar a configuração de pontuação",
+        "savedQueued": "Guardado como v{version}. As pontuações de {seasons, plural, one {# época} other {# épocas}} estão a ser recalculadas; esta página dirá quando terminar.",
+        "savedRebuildFailed": "Guardado como v{version}, mas o recálculo das pontuações não pôde começar. Use Executar de novo na página.",
+        "savedNoRebuild": "Guardado como v{version}. Nenhuma pontuação foi recalculada."
+      },
+      "rebuild": {
+        "queued": "A recalcular as pontuações de {seasons, plural, one {# época} other {# épocas}} ({months, plural, one {# mês} other {# meses}}). Demora alguns minutos; a página verifica por si própria.",
+        "running": "A recalcular as pontuações de {seasons, plural, one {# época} other {# épocas}}, iniciado às",
+        "done": "Pontuações recalculadas para {seasons, plural, one {# época} other {# épocas}} ({months, plural, one {# mês} other {# meses}}) em",
+        "failed": "O recálculo das pontuações falhou: {error}. As regras estão guardadas; as classificações mantêm os números antigos até ser executado de novo.",
+        "stale": "Um recálculo das pontuações começou mas nunca deu resposta (provavelmente uma implementação interrompeu-o). Execute-o de novo.",
+        "runAgain": "Executar de novo",
+        "queuedToast": "Recálculo das pontuações colocado em fila.",
+        "runFailed": "Não foi possível iniciar o recálculo das pontuações."
       }
     },
     "overview": {

@@ -20,7 +20,7 @@
 import { useEffect, useState, useTransition } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, Globe, MessageCircle, Trash2, UserCog } from "lucide-react";
 
 import { env } from "@/lib/env";
@@ -48,6 +48,7 @@ import {
   AccountIdentity,
   Consequence,
   ReasonField,
+  lockedEventsSentence,
 } from "./AccountIdentityControls";
 
 /**
@@ -95,6 +96,8 @@ export const EditUsernameDialog = ({
   onSuccess: () => void;
 }) => {
   const t = useTranslations("adminIdentity");
+  // Same named warning the UID dialog shows: which event a mid-event rename would cut across.
+  const lockedEvents = lockedEventsSentence(identity, useLocale());
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [reason, setReason] = useState("");
@@ -126,7 +129,8 @@ export const EditUsernameDialog = ({
         {identity.identity_locked && (
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3">
             <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {t("username.lockedTitle")}
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />{" "}
+              {lockedEvents ? t("lockedIn", { events: lockedEvents }) : t("username.lockedTitle")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{t("username.lockedBody")}</p>
           </div>

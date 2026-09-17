@@ -23,7 +23,7 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import axios from "axios";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, Fingerprint, Mail, ShieldAlert, Trash2 } from "lucide-react";
 
 import { env } from "@/lib/env";
@@ -59,8 +59,32 @@ export interface AccountIdentity {
   two_factor_enabled: boolean;
   active_sessions: number;
   identity_locked: boolean;
+  /**
+   * The events BEHIND identity_locked: [{event_id, event_name, slug}], empty when not locked.
+   * Added 2026-09-13 (owner: "it should also tell people what event they are locked into") so the
+   * UID and username dialogs can say which event an admin override would cut across. Built by
+   * afc_auth/views.py::_identity_locking_events, shaped by event_names.py::event_refs.
+   */
+  identity_lock_events?: { event_id: number; event_name: string; slug?: string | null }[];
   is_super_admin: boolean;
 }
+
+/**
+ * The locking events as one sentence for a dialog heading, or null when none are known (an older
+ * payload, or the player is simply not locked). Intl.ListFormat joins several names the way the
+ * active language does, so no joining word is hand-translated. Used by BOTH identity dialogs
+ * (AccountIdentityControls UID, AccountIdentityMore username), which is why it lives here.
+ */
+export const lockedEventsSentence = (
+  identity: Pick<AccountIdentity, "identity_lock_events">,
+  locale: string,
+) => {
+  const names = (identity.identity_lock_events ?? [])
+    .map((e) => e.event_name)
+    .filter(Boolean);
+  if (names.length === 0) return null;
+  return new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(names);
+};
 
 /**
  * True only for a head admin or super admin - the two roles the backend gate
@@ -156,6 +180,9 @@ export const EditUidDialog = ({
   onSuccess: () => void;
 }) => {
   const t = useTranslations("adminIdentity");
+  // The event(s) this override would cut across, named (owner 2026-09-13). Null when the payload
+  // does not carry them, and the older unnamed heading is used instead.
+  const lockedEvents = lockedEventsSentence(identity, useLocale());
   const { token } = useAuth();
   const [open, setOpen] = useState(false);
   const [confirmingRemove, setConfirmingRemove] = useState(false);
@@ -216,7 +243,8 @@ export const EditUidDialog = ({
         {identity.identity_locked && (
           <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3">
             <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {t("uid.lockedTitle")}
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />{" "}
+              {lockedEvents ? t("lockedIn", { events: lockedEvents }) : t("uid.lockedTitle")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{t("uid.lockedBody")}</p>
           </div>

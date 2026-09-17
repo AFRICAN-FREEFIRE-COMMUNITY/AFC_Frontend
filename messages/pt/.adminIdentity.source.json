@@ -83,6 +83,7 @@
   "reason.label": "Reason",
   "reason.placeholder": "Why are you making this change?",
   "reason.hint": "Recorded in the audit log with your name, the old value and the new one.",
+  "lockedIn": "This player is playing {events}",
   "cancel": "Cancel",
   "loadFailed": "Failed to load account details"
 }

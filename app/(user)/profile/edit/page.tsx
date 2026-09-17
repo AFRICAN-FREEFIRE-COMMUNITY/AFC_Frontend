@@ -6,7 +6,7 @@ import { toast } from "sonner";
 // i18n: user-visible copy on the profile edit form is sourced from the `profile`
 // namespace (messages/en/profile.json). Locale comes from the NEXT_LOCALE cookie
 // (set on save below) and falls back to English.
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 // js-cookie: used to persist the chosen UI language to a NEXT_LOCALE cookie on save (i18n
 // Phase 0). Same library + options pattern the auth_token cookie uses in
 // contexts/AuthContext.tsx, so Phase 1 (next-intl, not built yet) can read the locale server-side.
@@ -91,6 +91,9 @@ const LOCALE_COOKIE_OPTIONS = {
 
 const Page = () => {
   const t = useTranslations("profile");
+  // Active locale, used to join several locking event names the way the language does it (see the
+  // identity lock note below).
+  const locale = useLocale();
   const { user, token, login } = useAuth();
   const router = useRouter();
 
@@ -331,6 +334,31 @@ const Page = () => {
 
   if (!user) return <FullLoader />;
 
+  // ── Identity lock note (owner 2026-09-13, inbox #13) ──────────────────────────────────────────
+  // "it should also tell people what event they are locked into." GET /auth/get-user-profile/ now
+  // answers `identity_lock_events` beside the `identity_locked` boolean (built by
+  // afc_auth/views.py::_identity_locking_events), so this names the event instead of saying only
+  // "an event". Both locked fields below (Free Fire UID and in-game name) print the same note.
+  // Intl.ListFormat joins several names the way the active language does ("A and B", "A et B",
+  // "A e B"), which is why no joining word is hand-translated. A payload from before this shipped
+  // carries no events, so the older unnamed sentence stays as the fallback.
+  const lockedEventNames = (user.identity_lock_events ?? [])
+    .map((e) => e.event_name)
+    .filter(Boolean);
+  const identityLockNote = user.identity_locked ? (
+    <p className="text-xs text-muted-foreground">
+      {lockedEventNames.length > 0
+        ? t("edit.identityLockedIn", {
+            count: lockedEventNames.length,
+            events: new Intl.ListFormat(locale, {
+              style: "long",
+              type: "conjunction",
+            }).format(lockedEventNames),
+          })
+        : t("edit.identityLocked")}
+    </p>
+  ) : null;
+
   return (
     <div>
       <PageHeader back title={t("edit.title", { name: user.full_name })} />
@@ -565,11 +593,7 @@ const Page = () => {
                         {...field}
                       />
                     </FormControl>
-                    {user.identity_locked && (
-                      <p className="text-xs text-muted-foreground">
-                        {t("edit.identityLocked")}
-                      </p>
-                    )}
+                    {identityLockNote}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -596,11 +620,7 @@ const Page = () => {
                         {...field}
                       />
                     </FormControl>
-                    {user.identity_locked && (
-                      <p className="text-xs text-muted-foreground">
-                        {t("edit.identityLocked")}
-                      </p>
-                    )}
+                    {identityLockNote}
                     <FormMessage />
                   </FormItem>
                 )}

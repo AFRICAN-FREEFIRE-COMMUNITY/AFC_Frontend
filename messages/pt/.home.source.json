@@ -298,5 +298,13 @@
   "reviewApplication.toast.updateFailed": "Failed to update status.",
   "notices.title": "Notices",
   "notices.subtitle": "Important announcements from AFC.",
-  "notices.readMore": "Read more"
+  "notices.readMore": "Read more",
+  "contactForm.attach": "Attach files",
+  "contactForm.attachLimits": "Optional. Up to 6 files, 20 MB each: pictures, video or documents.",
+  "contactForm.removeFile": "Remove {name}",
+  "contactForm.rejected.type": "{name} was not sent: that file type is not allowed.",
+  "contactForm.rejected.size": "{name} was not sent: it is over 20 MB.",
+  "contactForm.rejected.count": "{name} was not sent: six files is the limit.",
+  "contactForm.success.ticket": "Your ticket number is {number}.",
+  "contactForm.success.thread": "You can read the conversation and add anything you forgot here:"
 }

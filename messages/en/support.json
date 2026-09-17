@@ -1,0 +1,82 @@
+{
+  "title": "Support",
+  "subtitle": "Every message people send AFC, and the replies that go back.",
+  "search": "Search name, email, ticket or text",
+  "refresh": "Refresh",
+  "loading": "Loading",
+  "queue": "Tickets",
+  "empty": "No tickets match this view yet.",
+  "pickOne": "Pick a ticket on the left to read it.",
+  "noAccess": "You do not have access to the support desk. Ask a head admin for the support role.",
+  "counts": "{open} waiting on us, {total} in view",
+  "openedOn": "Opened",
+  "account": "Account: {name}",
+  "assignedTo": "With {name}",
+  "hasDiscord": "On Discord",
+  "theirPage": "Open the page they see",
+  "filters": {
+    "all": "Every status"
+  },
+  "status": {
+    "open": "Waiting on us",
+    "waiting": "Waiting on them",
+    "resolved": "Resolved",
+    "closed": "Closed",
+    "changed": "Status saved."
+  },
+  "thread": {
+    "empty": "Nothing in this conversation yet.",
+    "fromAfc": "AFC Support",
+    "fromSender": "Them",
+    "automatic": "(automatic)"
+  },
+  "composer": {
+    "placeholder": "Write your message",
+    "staffPlaceholder": "Write your reply. They get it by email, and on Discord when we have it.",
+    "attach": "Attach files",
+    "limits": "Up to 6 files, 20 MB each. Pictures, video or documents.",
+    "removeFile": "Remove {name}",
+    "send": "Send",
+    "sending": "Sending"
+  },
+  "reply": {
+    "sent": "Reply sent by email.",
+    "sentWithDiscord": "Reply sent by email and on Discord.",
+    "explainer": "Your reply goes to their email and, when they have Discord connected, as a message from the AFC bot. Everything here is kept on the ticket."
+  },
+  "errors": {
+    "queue": "We could not load the tickets.",
+    "ticket": "We could not open that ticket.",
+    "reply": "Your reply did not send. Try again.",
+    "status": "The status did not save.",
+    "audit": "We could not load the audit.",
+    "rejected": {
+      "type": "{name} was not accepted: that file type is not allowed.",
+      "size": "{name} was not accepted: it is over 20 MB.",
+      "count": "{name} was not accepted: six files is the limit."
+    }
+  },
+  "audit": {
+    "title": "Support audit",
+    "subtitle": "Every message in either direction, every file, with the exact date and time.",
+    "noAccess": "Only head admins can open the support audit.",
+    "search": "Search text, ticket, name or email",
+    "everything": "Everything",
+    "fromPeople": "From people",
+    "fromAfc": "From AFC",
+    "counts": "{messages} messages across {tickets} tickets, {files} files",
+    "empty": "Nothing has been sent yet.",
+    "more": "Load more",
+    "rowFromAfc": "AFC, by {who}",
+    "rowFromPerson": "{who} wrote"
+  },
+  "public": {
+    "title": "Your support ticket",
+    "subtitle": "Read the conversation and add anything you forgot, files included.",
+    "ticket": "Ticket {number}",
+    "notFound": "We could not find that ticket. Check the link in your email, or write to us again from the Contact page.",
+    "placeholder": "Add to your message",
+    "replySent": "Your reply has been added.",
+    "explainer": "Anything you add here reaches the AFC team handling your ticket. Keep this link: it is how you get back to this page."
+  }
+}

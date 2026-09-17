@@ -240,6 +240,7 @@
   "edit.esport.uploadFailed": "Failed to upload the esport image.",
   "edit.esport.tooLarge": "That image is too large. The maximum size is 15MB - please pick a smaller photo (a normal phone picture works).",
   "edit.identityLocked": "Locked while you're registered for an event. You can edit this again once your events are over.",
+  "edit.identityLockedIn": "{count, plural, =1 {Locked while you're playing {events}. You can edit this again once it is over.} other {Locked while you're playing {events}. You can edit this again once they are over.}}",
   "edit.statsVisible.label": "Show my stats to others",
   "edit.statsVisible.description": "Your stats are private by default. Turn this on to let others see them.",
   "edit.letterAvatars.title": "Letter avatars",

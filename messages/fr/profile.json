@@ -295,6 +295,7 @@
       }
     },
     "identityLocked": "Verrouillé tant que vous êtes inscrit à un événement. Vous pourrez le modifier à nouveau une fois vos événements terminés.",
+    "identityLockedIn": "{count, plural, =1 {Verrouillé tant que vous participez à {events}. Vous pourrez le modifier à nouveau une fois l'événement terminé.} other {Verrouillé tant que vous participez à {events}. Vous pourrez le modifier à nouveau une fois ces événements terminés.}}",
     "statsVisible": {
       "label": "Afficher mes statistiques aux autres",
       "description": "Vos statistiques sont privées par défaut. Activez cette option pour permettre aux autres de les consulter."

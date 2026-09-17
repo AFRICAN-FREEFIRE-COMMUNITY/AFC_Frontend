@@ -300,6 +300,8 @@
   "actions.complete": "Complete",
   "actions.reopenEvent": "Reopen Event",
   "actions.reopenEventDesc": "Set this completed event back to active so you can fix or add results.",
+  "actions.reopenRosterNote": "This event's dates have already passed, so reopening it does not lock rosters again: players can still leave their team, be removed, or be swapped while it is open.",
+  "actions.toastReopenRosterOpen": "Reopened. Rosters stay open on this one, because its dates have passed.",
   "actions.reopen": "Reopen",
   "actions.endedLocked": "This tournament has ended. Results are now locked.",
   "actions.seedingTitle": "Seeding & Progression",

@@ -193,7 +193,17 @@
     "success": {
       "title": "Message envoyé !",
       "body": "Merci de nous avoir contactés. Nous vous répondrons bientôt.",
-      "close": "Fermer"
+      "close": "Fermer",
+      "ticket": "Votre numéro de ticket est {number}.",
+      "thread": "Vous pouvez relire la conversation et ajouter ce que vous avez oublié ici :"
+    },
+    "attach": "Joindre des fichiers",
+    "attachLimits": "Facultatif. Jusqu'à 6 fichiers, 20 Mo chacun : photos, vidéos ou documents.",
+    "removeFile": "Retirer {name}",
+    "rejected": {
+      "type": "{name} n'a pas été envoyé : ce type de fichier n'est pas autorisé.",
+      "size": "{name} n'a pas été envoyé : il dépasse 20 Mo.",
+      "count": "{name} n'a pas été envoyé : six fichiers au maximum."
     }
   },
   "trialChat": {

@@ -95,6 +95,7 @@
     "placeholder": "Porque está a fazer esta alteração?",
     "hint": "Registado no registo de auditoria com o seu nome, o valor antigo e o novo."
   },
+  "lockedIn": "Este jogador está a participar em {events}",
   "cancel": "Cancelar",
   "loadFailed": "Não foi possível carregar os dados da conta"
 }

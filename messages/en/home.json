@@ -193,7 +193,17 @@
     "success": {
       "title": "Message sent!",
       "body": "Thank you for reaching out. We'll get back to you soon.",
-      "close": "Close"
+      "close": "Close",
+      "ticket": "Your ticket number is {number}.",
+      "thread": "You can read the conversation and add anything you forgot here:"
+    },
+    "attach": "Attach files",
+    "attachLimits": "Optional. Up to 6 files, 20 MB each: pictures, video or documents.",
+    "removeFile": "Remove {name}",
+    "rejected": {
+      "type": "{name} was not sent: that file type is not allowed.",
+      "size": "{name} was not sent: it is over 20 MB.",
+      "count": "{name} was not sent: six files is the limit."
     }
   },
   "trialChat": {

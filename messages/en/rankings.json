@@ -264,7 +264,20 @@
         "confirm": "Save and draft version",
         "savingBusy": "Saving",
         "saved": "Saved as v{version}. {seasons, plural, =0 {No seasons were recalculated} one {# season recalculated} other {# seasons recalculated}}.",
-        "failed": "Failed to save the scoring configuration"
+        "failed": "Failed to save the scoring configuration",
+        "savedQueued": "Saved as v{version}. Scores for {seasons, plural, one {# season} other {# seasons}} are being rebuilt; this page will say when it is done.",
+        "savedRebuildFailed": "Saved as v{version}, but the score rebuild could not start. Use Run again on the page.",
+        "savedNoRebuild": "Saved as v{version}. No scores were rebuilt."
+      },
+      "rebuild": {
+        "queued": "Rebuilding scores for {seasons, plural, one {# season} other {# seasons}} ({months, plural, one {# month} other {# months}}). This takes a few minutes; the page checks by itself.",
+        "running": "Rebuilding scores for {seasons, plural, one {# season} other {# seasons}}, started at",
+        "done": "Scores rebuilt for {seasons, plural, one {# season} other {# seasons}} ({months, plural, one {# month} other {# months}}) on",
+        "failed": "The score rebuild failed: {error}. The rules are saved; the standings keep the old numbers until it is run again.",
+        "stale": "A score rebuild started but never reported back (a deploy probably interrupted it). Run it again.",
+        "runAgain": "Run again",
+        "queuedToast": "Score rebuild queued.",
+        "runFailed": "Could not start the score rebuild."
       }
     },
     "overview": {

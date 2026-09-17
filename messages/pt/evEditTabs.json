@@ -321,6 +321,8 @@
     "complete": "Concluir",
     "reopenEvent": "Evento de reabertura",
     "reopenEventDesc": "Volte a colocar este evento concluído como ativo para que possa corrigir ou adicionar resultados.",
+    "reopenRosterNote": "As datas deste evento já passaram, por isso reabri-lo não bloqueia novamente as equipas: os jogadores continuam a poder sair da sua equipa, ser removidos ou ser substituídos enquanto estiver aberto.",
+    "toastReopenRosterOpen": "Reaberto. As equipas continuam editáveis, porque as datas já passaram.",
     "reopen": "Reabrir",
     "endedLocked": "Este torneio terminou. Os resultados já estão definitivos.",
     "seedingTitle": "Classificação inicial e progressão",
