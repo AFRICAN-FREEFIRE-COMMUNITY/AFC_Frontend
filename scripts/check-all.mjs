@@ -20,6 +20,7 @@
  *   check-signed-out scripts/check-signed-out.mjs  blocking: two possibly-absent identities compared
  *   check-slugs     scripts/check-slugs.mjs        ledgered: a numeric id in a visible address
  *   endpoint-callers ../<backend>/tools/endpoint_callers.py  blocking; skipped with no backend tree beside this one
+ *   design-lint     tools/design-lint.mjs              blocking on BLOCK / CHANGED breaches; NOTE reported (R30)
  *   security-ledger  ~/.claude/skills/security-rules (R55 to R61)  blocking when a HIGH count rose; skipped without the checker
  *
  * Usage:
@@ -114,6 +115,23 @@ const CHECKERS = [
       try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["check-parity: could not run"], counts: {} }; }
       const blocking = (parsed.failures || []).map((f) => `PARITY ${f.capability}: built on ${f.have.join(", ") || "no side"}, missing on ${f.lack.join(", ")}`);
       return { blocking, counts: {}, note: `${parsed.ok} rows on both sides${parsed.skipped.length ? `, ${parsed.skipped.length} skipped` : ""}` };
+    },
+  },
+  {
+    // The design rules of CLAUDE.md, checked by a machine (owner rule R30, wired 2026-09-17): the
+    // hairline and glow bans and the vibecoded list live in tools/design-lint.mjs. BLOCK rules and
+    // CHANGED rules (judged on files this branch touched) block; NOTE rules are reported. The
+    // 2026-09-03 audit was a one-off until now; this makes it run on every commit.
+    id: "design-lint",
+    run() {
+      const r = spawnSync("node", ["tools/design-lint.mjs", "--json"], { encoding: "utf8" });
+      let findings = [];
+      try { findings = JSON.parse(r.stdout || "[]"); } catch { return { blocking: ["design-lint: could not run"], counts: {} }; }
+      const gate = spawnSync("node", ["tools/design-lint.mjs"], { encoding: "utf8" });
+      const blocking = gate.status === 0 ? [] : (gate.stdout || "").split(String.fromCharCode(10)).filter((l) => /^\s+\S+:\d+\s+\[/.test(l)).map((l) => l.trim());
+      if (gate.status !== 0 && !blocking.length) blocking.push("design-lint: blocking breaches (run node tools/design-lint.mjs)");
+      const notes = findings.filter((f) => f.tier === "NOTE").length;
+      return { blocking, counts: {}, note: `${findings.length - notes} blocking-tier, ${notes} note(s)` };
     },
   },
   {

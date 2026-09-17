@@ -187,7 +187,8 @@
     "passwordRequirements": "Password requirements",
     "requirementMet": " - Requirement met",
     "requirementNotMet": " - Requirement not met",
-    "accountDeleted": "This account was deleted by its owner. Contact support if you want it restored."
+    "accountDeleted": "This account was deleted by its owner. Contact support if you want it restored.",
+    "tooManyAttempts": "Too many attempts from your connection. Wait a minute and try again."
   },
   "logoAlt": "AFC Logo",
   "phoneInput": {

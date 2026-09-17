@@ -187,7 +187,8 @@
     "passwordRequirements": "Requisitos da senha",
     "requirementMet": " - Requisito atendido",
     "requirementNotMet": " - Requisito não atendido",
-    "accountDeleted": "Esta conta foi eliminada pelo seu dono. Contacte o suporte se quiser repô-la."
+    "accountDeleted": "Esta conta foi eliminada pelo seu dono. Contacte o suporte se quiser repô-la.",
+    "tooManyAttempts": "Demasiadas tentativas a partir da sua ligação. Espere um minuto e tente de novo."
   },
   "logoAlt": "Logótipo da AFC",
   "phoneInput": {
