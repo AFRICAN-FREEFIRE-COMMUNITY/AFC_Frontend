@@ -40,12 +40,16 @@ import {
   IconUsers,
   IconShield,
   IconEye,
+  IconUserMinus,
 } from "@tabler/icons-react";
 import { TeamsAdminContent } from "../_components/TeamsAdminContent";
 import { PlayersAdminContent } from "../_components/PlayersAdminContent";
 import { ReportsAdminContent } from "../_components/ReportsAdminContent";
 import { BlacklistsTable } from "../blacklists/_components/BlacklistsTable";
 import { WatchlistAdminContent } from "../watchlist/_components/WatchlistAdminContent";
+// Deleted accounts (owner 2026-09-14, inbox #20): head admins restore them from here.
+import { DeletedAccountsAdminContent } from "../_components/DeletedAccountsAdminContent";
+import { NewBadge } from "@/components/NewBadge";
 import { DownloadEsportMediaDialog } from "@/components/esport-media";
 
 // Each tab declares the roles that may see it (mirrors the old standalone nav-links
@@ -59,6 +63,9 @@ const TAB_DEFS = [
   { value: "reports", roles: ["teams_admin"] },
   // Watchlist standalone allowed event_admin/teams_admin/organizer_admin (+ head_admin).
   { value: "watchlist", roles: ["event_admin", "teams_admin", "organizer_admin"] },
+  // Deleted accounts: an empty role list means head_admin / super_admin only (canSeeTab), which
+  // is exactly who the backend lets restore (afc_auth/views_account_deletion.py).
+  { value: "deleted", roles: [] },
 ] as const;
 
 export default function TeamsAndPlayersPage() {
@@ -141,6 +148,12 @@ export default function TeamsAndPlayersPage() {
                 <IconEye className="h-4 w-4" /> Watchlist
               </TabsTrigger>
             )}
+            {visibleTabs.includes("deleted") && (
+              <TabsTrigger value="deleted">
+                <IconUserMinus className="h-4 w-4" /> Deleted
+                <NewBadge since="2026-09-17" />
+              </TabsTrigger>
+            )}
           </ScrollableTabsList>
           {showMediaExport && (
             <Button type="button" variant="outline" size="sm" onClick={() => setMediaOpen(true)}>
@@ -175,6 +188,11 @@ export default function TeamsAndPlayersPage() {
         {visibleTabs.includes("watchlist") && (
           <TabsContent value="watchlist">
             <WatchlistAdminContent />
+          </TabsContent>
+        )}
+        {visibleTabs.includes("deleted") && (
+          <TabsContent value="deleted">
+            <DeletedAccountsAdminContent />
           </TabsContent>
         )}
       </Tabs>
