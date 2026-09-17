@@ -186,7 +186,8 @@
     "passwordReqSpecial": "Pelo menos 1 caractere especial",
     "passwordRequirements": "Requisitos da senha",
     "requirementMet": " - Requisito atendido",
-    "requirementNotMet": " - Requisito não atendido"
+    "requirementNotMet": " - Requisito não atendido",
+    "accountDeleted": "Esta conta foi eliminada pelo seu dono. Contacte o suporte se quiser repô-la."
   },
   "logoAlt": "Logótipo da AFC",
   "phoneInput": {

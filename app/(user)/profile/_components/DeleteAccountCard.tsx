@@ -107,7 +107,10 @@ export function DeleteAccountCard() {
       setOpen(false);
       toast.success(t("deletedToast"));
       logout();
-      router.replace("/");
+      // A hard navigation, not router.replace: this page sits inside ProtectedRoute, which
+      // bounces a signed-out viewer to /login?redirect=/profile/security the moment logout()
+      // clears the user, and that is a door they can never open again. Home is where they go.
+      window.location.assign("/");
     } catch (err: any) {
       const data = err?.response?.data;
       const code: string | undefined = data?.code;
@@ -177,13 +180,18 @@ export function DeleteAccountCard() {
                 <Label htmlFor="delete-confirm">
                   {t("dialog.confirmLabel", { username: preflight.username })}
                 </Label>
-                <Input id="delete-confirm" autoComplete="off" value={confirm}
+                {/* name + autoComplete="off": without them Chrome pairs this text box with the
+                    password box below and drops the SAVED login (an email) in here. Seen on the
+                    first walk. */}
+                <Input id="delete-confirm" name="confirm-ign" autoComplete="off" value={confirm}
                   onChange={(e) => setConfirm(e.target.value)} placeholder={preflight.username} />
               </div>
               {preflight.needs_password && (
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="delete-password">{t("dialog.passwordLabel")}</Label>
-                  <Input id="delete-password" type="password" autoComplete="current-password"
+                  {/* new-password on purpose: current-password makes the password manager fill
+                      this AND the box above. A destructive confirmation is typed by hand. */}
+                  <Input id="delete-password" type="password" autoComplete="new-password"
                     value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
               )}

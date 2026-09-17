@@ -171,5 +171,6 @@
   "teamRoles.coach": "Coach",
   "teamRoles.manager": "Manager",
   "teamRoles.analyst": "Analyst",
-  "nav.polls": "Polls"
+  "nav.polls": "Polls",
+  "auth.accountDeleted": "This account was deleted by its owner. Contact support if you want it restored."
 }
