@@ -186,7 +186,8 @@
     "passwordReqSpecial": "Au moins 1 caractère spécial",
     "passwordRequirements": "Exigences du mot de passe",
     "requirementMet": " - Exigence satisfaite",
-    "requirementNotMet": " - Exigence non satisfaite"
+    "requirementNotMet": " - Exigence non satisfaite",
+    "accountDeleted": "Ce compte a été supprimé par son propriétaire. Contactez le support si vous voulez le restaurer."
   },
   "logoAlt": "Logo de l'AFC",
   "phoneInput": {

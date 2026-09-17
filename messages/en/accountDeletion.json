@@ -1,0 +1,69 @@
+{
+  "preflightFailed": "Could not check your account. Try again.",
+  "deleteFailed": "Your account was not deleted. Try again.",
+  "deletedToast": "Your account has been deleted. We have emailed you the details.",
+  "card": {
+    "title": "Delete my account",
+    "body": "Your account is hidden and you are signed out everywhere. Your in-game name, email, UID and WhatsApp number become free for a new account.",
+    "restore": "Nothing is thrown away: a head admin can restore your account exactly as it was, as long as nobody has taken your name or email in the meantime.",
+    "button": "Delete my account"
+  },
+  "dialog": {
+    "title": "Delete your account?",
+    "description": "This signs you out everywhere and hides your account from the site.",
+    "checking": "Checking your account...",
+    "blockedTitle": "Settle this first",
+    "keeps": "Your match results and team history stay in AFC's records under a hidden name.",
+    "releases": "Your in-game name, email, UID and WhatsApp number are released for a new account to use. A head admin can restore everything later if you ask.",
+    "confirmLabel": "Type your in-game name ({username}) to confirm",
+    "passwordLabel": "Your password",
+    "reasonLabel": "Why are you leaving? (optional)",
+    "reasonPlaceholder": "Helps us fix what pushed you out.",
+    "cancel": "Keep my account",
+    "confirm": "Delete my account",
+    "deleting": "Deleting..."
+  },
+  "blockers": {
+    "account_suspended": "Your account is suspended. Contact support.",
+    "account_banned": "Your account is banned. It cannot be deleted while the ban runs.",
+    "account_is_staff": "You hold a staff role. Ask a head admin to remove it first.",
+    "owns_team": "You own a team. Transfer ownership or disband it first.",
+    "in_team": "Leave your team first.",
+    "owns_organization": "You own an organization. Hand it to another member first.",
+    "owns_sponsor": "You own a sponsor account. Hand it to another member first.",
+    "owns_shop": "You have a shop. Ask support to close it first."
+  },
+  "errors": {
+    "confirm_mismatch": "Type your in-game name exactly as it appears.",
+    "password_wrong": "That password is wrong.",
+    "password_required": "Your password is required."
+  },
+  "admin": {
+    "title": "Deleted accounts",
+    "description": "Accounts people deleted themselves. Restore puts one back exactly as it was, unless another account has taken its name, email, UID or WhatsApp number since.",
+    "searchPlaceholder": "Search name, email or UID",
+    "showRestored": "Show restored too",
+    "showingRestored": "Showing restored too",
+    "count": "{count, plural, =0 {No accounts} one {# account} other {# accounts}}",
+    "loadFailed": "Could not load the deleted accounts.",
+    "retry": "Try again",
+    "empty": "Nobody has deleted their account.",
+    "colWho": "Who",
+    "colContact": "Contact",
+    "colWhen": "Deleted",
+    "colReason": "Reason",
+    "colState": "State",
+    "colActions": "Actions",
+    "bySelf": "by themself",
+    "byAdmin": "by an admin",
+    "stateDeleted": "Deleted",
+    "stateRestored": "Restored by {by}",
+    "stateTaken": "Taken since: {fields}",
+    "restore": "Restore",
+    "restoring": "Restoring...",
+    "restored": "{username} is back.",
+    "restoreConflict": "Another account now uses: {fields}. Resolve that first.",
+    "restoreFailed": "Could not restore the account.",
+    "loadMore": "Load more"
+  }
+}
