@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import {
   Pagination,
   PaginationContent,
@@ -41,6 +42,7 @@ import { Loader } from "@/components/Loader";
 
 interface Coupon {
   id: number;
+  slug?: string; // the address /a/shop/coupons/<slug> (owner rule R22)
   code: string;
   discount_type: "percent" | "fixed";
   discount_value: string;
@@ -120,12 +122,8 @@ export default function CouponMetricsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [couponsPage, setCouponsPage] = useState(1);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
+  // Money goes through lib/money (the active UI locale, the currency's own decimals).
+  const formatCurrency = (amount: number) => formatMoney(amount, "USD");
 
   useEffect(() => {
     const fetchCoupons = async () => {
@@ -293,7 +291,7 @@ export default function CouponMetricsPage() {
                         <TableRow key={coupon.id} className="cursor-pointer">
                           <TableCell>
                             <Link
-                              href={`/a/shop/coupons/${coupon.id}`}
+                              href={`/a/shop/coupons/${coupon.slug || coupon.id}`}
                               className="font-mono font-medium text-primary hover:underline"
                               data-tour="shop-coupons-coupon-link"
                             >

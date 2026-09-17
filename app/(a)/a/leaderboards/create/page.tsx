@@ -2,6 +2,8 @@
 
 import React, { useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+// ?event=<slug> is the preselected event's address (owner rule R22); the wizard keys on the id.
+import { useEventRef } from "@/lib/addressRef";
 import { PageHeader } from "@/components/PageHeader";
 import { BasicInfoStep } from "../_components/BasicInfoStep";
 import { ConfigurePointSystem } from "../_components/ConfigurePointSystem";
@@ -40,8 +42,13 @@ interface FormData {
 export default function CreateLeaderboardPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Read ?event_id=... from the URL (set by the leaderboards list page)
-  const preselectedEventId = searchParams.get("event_id") ?? "";
+  // Read ?event=<slug> from the URL (set by the leaderboards list page; owner rule R22). The
+  // wizard below keys on the numeric id, so the slug is resolved once here. ?event_id= from an
+  // old link still works: a numeric ref answers at once.
+  const preselectedEventId = useEventRef(
+    searchParams.get("event") ?? searchParams.get("event_id") ?? undefined,
+    (slug) => `/a/leaderboards/create?event=${slug}`,
+  ).id;
 
   const [currentStep, setCurrentStep] = useState(1);
   type MatchView = "method" | "manual" | "image_upload" | "room_file_upload";

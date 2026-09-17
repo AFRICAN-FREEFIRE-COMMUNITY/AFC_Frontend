@@ -72,6 +72,52 @@ export function OrganizerProvider({
   );
 }
 
+// ── Co-organized events: the permissions that apply to ONE event ─────────────
+// (owner 2026-09-13, inbox #8: "they should only be able to see, edit and access what they
+// were given access to by the admin/org that invited them.")
+//
+// An event the org OWNS: the member's own permissions, and an owner has all of them. An event
+// the org CO-ORGANIZES (an accepted EventCoOrganizer row; the row arrives on get-all-events as
+// `co_organizer_grant`, on get-event-details as `my_co_organizer_grants`): the GRANT the
+// inviting org made, AND the member's own permissions. So the co-org's owner gets exactly the
+// grant, never more, and a sub-organizer gets the grant minus what their own owner withheld.
+// The backend enforces the same rule in afc_organizers.permissions.org_can_event; this only
+// decides what the portal renders, so a control the grant does not cover is never drawn.
+
+export const PERMISSION_KEYS: (keyof OrgPermissions)[] = [
+  "can_create_events",
+  "can_edit_events",
+  "can_upload_results",
+  "can_manage_registrations",
+  "can_submit_designs",
+  "can_view_metrics",
+  "can_view_reviews",
+  "can_manage_members",
+];
+
+export type CoOrganizerGrant = Partial<OrgPermissions> | null | undefined;
+
+export function eventPermissions(
+  membership: OrgMembership,
+  isOwner: boolean,
+  grant: CoOrganizerGrant,
+): OrgPermissions {
+  const own = {} as OrgPermissions;
+  for (const k of PERMISSION_KEYS) own[k] = isOwner || !!membership.permissions?.[k];
+  if (!grant) return own;
+  const out = {} as OrgPermissions;
+  for (const k of PERMISSION_KEYS) out[k] = own[k] && !!grant[k];
+  return out;
+}
+
+/** The grant for the selected org out of get-event-details' `my_co_organizer_grants`. */
+export function myGrantFor(
+  grants: (Partial<OrgPermissions> & { organization_slug: string })[] | undefined,
+  orgSlug: string,
+): CoOrganizerGrant {
+  return (grants ?? []).find((g) => g.organization_slug === orgSlug) ?? null;
+}
+
 // Hook the portal pages call to read the selected org + permissions.
 export function useOrganizer() {
   const ctx = useContext(OrganizerContext);

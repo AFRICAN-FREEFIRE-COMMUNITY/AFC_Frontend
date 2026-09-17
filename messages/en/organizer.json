@@ -309,7 +309,8 @@
     "selectOrgPlaceholder": "Select organization",
     "back": "Back",
     "logout": "Log out",
-    "overlays": "Live Overlays"
+    "overlays": "Live Overlays",
+    "invites": "Invitations"
   },
   "overview": {
     "title": "Overview",
@@ -322,7 +323,13 @@
     },
     "logoAlt": "{name} logo",
     "members": "Members",
-    "events": "Events"
+    "events": "Events",
+    "invites": {
+      "title": "Event invitations",
+      "pending": "{count, plural, one {# invitation is waiting for your answer} other {# invitations are waiting for your answer}}",
+      "none": "No invitations waiting.",
+      "open": "Review invitations"
+    }
   },
   "design": {
     "title": "Design",
@@ -772,7 +779,9 @@
       "loadFailed": "Failed to load your events.",
       "unpublished": "Event unpublished. It is now a draft.",
       "unpublishFailed": "Failed to unpublish event."
-    }
+    },
+    "coOrganizedBadge": "Co-organizing with {name}",
+    "coOrganizedHint": "Your organization was invited to this event. You can only do what {name} granted."
   },
   "drafts": {
     "title": "Drafts",
@@ -1546,5 +1555,41 @@
     "downloaded": "Kit downloaded.",
     "downloadFailed": "Could not build the kit.",
     "noTeams": "No teams registered yet."
+  },
+  "invites": {
+    "title": "Event invitations",
+    "description": "Other organizations can invite yours to co-organize an event. Accept to take part with exactly the access they granted; decline to pass.",
+    "loading": "Loading invitations...",
+    "loadError": "Could not load your invitations.",
+    "ownerOnly": "Only the owner of your organization can answer invitations.",
+    "pendingTitle": "Waiting for your answer",
+    "historyTitle": "Answered",
+    "empty": "No invitations yet. When another organization invites yours to co-organize an event, it will show up here.",
+    "invitedBy": "Invited by {name}",
+    "forOrg": "For {name}",
+    "openEvent": "Open event",
+    "grantedTitle": "What you would be able to do",
+    "grantedNothing": "View only.",
+    "payout": "{percent}% of the registration revenue",
+    "accept": "Accept",
+    "decline": "Decline",
+    "accepted": "Accepted. The event now appears in your Events list.",
+    "declined": "Declined.",
+    "respondFailed": "Could not send your answer.",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "declined": "Declined"
+    },
+    "perms": {
+      "can_create_events": "Create events",
+      "can_edit_events": "Edit the event",
+      "can_upload_results": "Enter results and manage the leaderboard",
+      "can_manage_registrations": "Manage registrations, groups and sponsors",
+      "can_submit_designs": "Submit leaderboard designs",
+      "can_view_metrics": "See the metrics",
+      "can_view_reviews": "See the reviews",
+      "can_manage_members": "Manage members"
+    }
   }
 }

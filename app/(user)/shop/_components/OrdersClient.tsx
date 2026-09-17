@@ -66,6 +66,9 @@ export interface OrderItem {
 
 interface Order {
   order_id: number;
+  // The address /orders/<public_token> (owner rule R22). Empty on a row minted before the
+  // backfill ran; the link falls back to the id, which the page still resolves and rewrites.
+  public_token?: string;
   status: string;
   subtotal: string;
   total: string;
@@ -319,7 +322,7 @@ export default function OrdersClient() {
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" asChild>
-                          <Link href={`/orders/${order.order_id}`}>
+                          <Link href={`/orders/${order.public_token || order.order_id}`}>
                             {t("orders.table.details")}
                           </Link>
                         </Button>

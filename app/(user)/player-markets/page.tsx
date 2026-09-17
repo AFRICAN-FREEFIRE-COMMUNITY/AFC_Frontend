@@ -2314,7 +2314,7 @@ function PlayerMarketPage() {
                           </Button>
                           <Button size="sm" variant="outline" asChild>
                             <Link
-                              href={`/player-markets/applications/${app.id}`}
+                              href={`/player-markets/applications/${app.public_token || app.id}`}
                             >
                               <IconChevronRight className="h-3.5 w-3.5 mr-1" />
                               {t("common.view")}
@@ -2437,7 +2437,7 @@ function PlayerMarketPage() {
 
                       <div className="flex justify-end pt-1">
                         <Button size="sm" variant="outline" asChild>
-                          <Link href={`/player-markets/applications/${app.id}`}>
+                          <Link href={`/player-markets/applications/${app.public_token || app.id}`}>
                             <IconChevronRight className="h-3.5 w-3.5 mr-1" />
                             {t("common.view")}
                           </Link>

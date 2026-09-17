@@ -1,5 +1,6 @@
 "use client";
 
+import { formatNumber } from "@/lib/i18n/number";
 import React, {
   useCallback,
   useEffect,
@@ -172,7 +173,7 @@ const ROOM_FLAG_OPS: { value: Op; labelKey: string }[] = [
   { value: "is_off", labelKey: "ops.isOff" },
 ];
 const isNumeric = (f: Field) => f !== "format" && !isRoomFlag(f);
-const ngn = (n: number) => "₦" + Math.round(n).toLocaleString();
+const ngn = (n: number) => "₦" + formatNumber(Math.round(n));
 
 // The currency every prize threshold is COMPARED in, whatever it was authored in. Mirrors
 // afc_rankings/scoring/currency.BASE_CURRENCY; the list response echoes it as `base_currency`.
@@ -214,7 +215,7 @@ function thresholdInNgn(c: Condition, rates: Record<string, number>): number | n
  */
 function thresholdText(c: Condition): string {
   const cur = (c.currency || BASE_CURRENCY).toUpperCase();
-  return cur === BASE_CURRENCY ? ngn(c.value) : `${c.value.toLocaleString()} ${cur}`;
+  return cur === BASE_CURRENCY ? ngn(c.value) : `${formatNumber(c.value)} ${cur}`;
 }
 
 // Where the backend hangs a tier-rule contradiction. afc_rankings/scoring/validation.py

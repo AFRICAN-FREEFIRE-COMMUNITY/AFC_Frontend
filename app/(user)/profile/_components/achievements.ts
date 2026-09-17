@@ -37,6 +37,7 @@
 // CONSUMED BY: ProfileContent.tsx (the Achievements tab).
 // ──────────────────────────────────────────────────────────────────────────────
 
+import { formatNumber } from "@/lib/i18n/number";
 import {
   IconTrophy,
   IconAward,
@@ -132,7 +133,7 @@ function ladder(
   return tiers.map((t) => ({
     id: `${metric}_${t.threshold}`,
     title: t.title,
-    description: `Reach ${t.threshold.toLocaleString()} ${group.toLowerCase()}.`,
+    description: `Reach ${formatNumber(t.threshold)} ${group.toLowerCase()}.`,
     category: "lifetime" as const,
     group,
     points: t.points,

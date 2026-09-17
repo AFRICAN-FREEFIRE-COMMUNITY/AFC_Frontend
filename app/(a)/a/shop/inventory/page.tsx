@@ -119,6 +119,7 @@ interface ProductCategory {
 
 interface Product {
   id: number;
+  slug?: string; // the address /a/shop/inventory/<slug> (owner rule R22)
   name: string;
   type: string;
   category: ProductCategory | null;
@@ -142,6 +143,7 @@ interface Product {
 
 interface Coupon {
   id: number;
+  slug?: string; // the address /a/shop/coupons/<slug> (owner rule R22)
   code: string;
   discount_type: "percent" | "fixed";
   discount_value: string;
@@ -520,7 +522,7 @@ export default function InventoryManagementPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/a/shop/inventory/${product.id}`}>
+                            <Link href={`/a/shop/inventory/${product.slug || product.id}`}>
                               <IconPencil />
                               Edit
                             </Link>
@@ -755,14 +757,14 @@ export default function InventoryManagementPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild>
-                                <Link href={`/a/shop/coupons/${coupon.id}`}>
+                                <Link href={`/a/shop/coupons/${coupon.slug || coupon.id}`}>
                                   <IconDeviceDesktopAnalytics />
                                   View Stats
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild>
                                 <Link
-                                  href={`/a/shop/coupons/${coupon.id}/edit`}
+                                  href={`/a/shop/coupons/${coupon.slug || coupon.id}/edit`}
                                 >
                                   <IconPencil />
                                   Edit

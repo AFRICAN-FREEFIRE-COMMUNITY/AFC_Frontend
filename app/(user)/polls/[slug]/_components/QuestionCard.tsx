@@ -27,6 +27,7 @@
  */
 
 import Link from "next/link";
+import { formatNumber } from "@/lib/i18n/number";
 import {
   IconArrowDown,
   IconArrowUp,
@@ -197,7 +198,7 @@ function PublishedResult({
           </div>
           {typeof question.published_winner_votes === "number" && (
             <span className="ml-auto shrink-0 text-lg font-bold tabular-nums text-gold">
-              {question.published_winner_votes.toLocaleString()}
+              {formatNumber(question.published_winner_votes)}
             </span>
           )}
         </div>

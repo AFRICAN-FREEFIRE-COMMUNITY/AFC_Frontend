@@ -63,6 +63,8 @@ type TFn = ReturnType<typeof useTranslations>;
 
 interface ApplicationDetails {
   id: number;
+  // The address /player-markets/applications/<public_token> (owner rule R22).
+  public_token?: string;
   status: string;
   applied_at: string;
   updated_at: string;
@@ -289,17 +291,22 @@ export default function ApplicationDetailPage({
     // Live refresh (owner 2026-07-02): background refreshes (tick > 0) skip the loading
     // flag + error toast so the page never flashes while typing in the chat below.
     if (tick === 0) setLoadingDetails(true);
+    // `ref` is the application's public token or a legacy numeric id (owner rule R22); a move
+    // comes back on the envelope as `moved_to` and the address is rewritten in place.
     axios
       .get(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/application-details/?application_id=${id}`,
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/player-market/application-details/?ref=${encodeURIComponent(id)}`,
         { headers: { Authorization: `Bearer ${token}` } },
       )
-      .then((res) => setDetails(res.data))
+      .then((res) => {
+        setDetails(res.data);
+        if (res.data.moved_to && res.data.moved_to !== `/player-markets/applications/${id}`) router.replace(res.data.moved_to);
+      })
       .catch(() => {
         if (tick === 0) toast.error(t("toast.loadFailed"));
       })
       .finally(() => setLoadingDetails(false));
-  }, [token, id, tick]);
+  }, [token, id, tick, router]);
 
   // ── Fetch + poll messages ─────────────────────────────────────────────────
   useEffect(() => {
@@ -518,7 +525,7 @@ export default function ApplicationDetailPage({
               <div>
                 <p className="text-muted-foreground mb-1.5">{t("post.rolesNeeded")}</p>
                 <div className="flex flex-wrap gap-1">
-                  {details.post.roles_needed.map((r) => (
+                  {(details.post.roles_needed ?? []).map((r) => (
                     <Badge key={r} variant="secondary" className="text-xs">
                       {r}
                     </Badge>

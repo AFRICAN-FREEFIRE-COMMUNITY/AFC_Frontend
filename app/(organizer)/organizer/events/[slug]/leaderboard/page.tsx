@@ -146,7 +146,7 @@ import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
-import { useOrganizer } from "../../../_components/OrganizerContext";
+import { eventPermissions, useOrganizer, type CoOrganizerGrant } from "../../../_components/OrganizerContext";
 
 // ── Reused ADMIN leaderboard components (Approach A) ──────────────────────────
 // View + edit-results surface (same imports the admin [id] page uses).
@@ -393,20 +393,23 @@ export default function OrganizerEventLeaderboardPage({
   // i18n: organizer-facing page, keys under the "organizer" namespace (eventLeaderboard.*).
   const t = useTranslations("organizer");
 
+  // Co-organized (owner 2026-09-13): the inviting org's grant when this org does not own the
+  // event (null on its own events). Every gate below is the EFFECTIVE permission: the grant AND
+  // the member's own, so a co-org owner gets exactly the grant and never more.
+  const [grant, setGrant] = useState<CoOrganizerGrant>(null);
+  const perms = eventPermissions(membership, isOwner, grant);
   // The org permission the backend enforces for results upload.
-  const canUploadResults =
-    membership.permissions.can_upload_results || isOwner;
+  const canUploadResults = perms.can_upload_results;
   // MVPs / tie-breakers / debugger backfill are gated server-side by _broadcast_gate
   // (org can_edit_events), NOT can_upload_results - so those tabs only show when the
   // member holds that permission (owner 2026-07-02 organizer parity).
-  const canEditEvents = membership.permissions.can_edit_events || isOwner;
+  const canEditEvents = perms.can_edit_events;
   // "Add player to event roster" is gated server-side by add_player_to_event_roster on
   // AFC event admin OR org can_manage_registrations (NOT can_upload_results) - so the inline
   // "Add player" control below only shows for a member holding that permission. Same precedent
   // as the MVP / tie-breaker tabs gating on canEditEvents: gate each control on the exact
   // permission its backend endpoint enforces, not blindly on can_upload_results.
-  const canManageRegistrations =
-    membership.permissions.can_manage_registrations || isOwner;
+  const canManageRegistrations = perms.can_manage_registrations;
   const organizationId = membership.organization.organization_id;
 
   // ── slug → event resolution state ──
@@ -553,6 +556,7 @@ export default function OrganizerEventLeaderboardPage({
         if (!match) {
           setNotMine(true);
         } else {
+          setGrant(match.co_organizer_grant ?? null);
           setEventId(String(match.event_id));
           setEventNameFromList(match.event_name ?? "");
           setEventSlug(match.slug ?? routeSlug);
@@ -2020,7 +2024,7 @@ export default function OrganizerEventLeaderboardPage({
                 or a COMBINE of many) is driven from the overlay card, not the URL. */}
             {eventId && (
               <Button variant="outline" size="sm" asChild>
-                <Link href={`/organizer/overlays/${eventId}`}>
+                <Link href={`/organizer/overlays/${routeSlug}`}>
                   <IconBroadcast className="size-4" /> {t("studio.openStudioLink")}
                 </Link>
               </Button>

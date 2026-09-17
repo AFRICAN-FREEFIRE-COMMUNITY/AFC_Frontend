@@ -212,7 +212,7 @@ export function StandaloneLeaderboardList({
                     <TableCell className="p-2 text-xs">
                       <div className="flex items-center justify-end gap-1.5">
                         <Button asChild variant="outline" size="sm">
-                          <Link href={`${viewHrefBase}/${lb.id}`}>
+                          <Link href={`${viewHrefBase}/${lb.slug || lb.id}`}>
                             <IconEye className="size-4" /> View
                           </Link>
                         </Button>
