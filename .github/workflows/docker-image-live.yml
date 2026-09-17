@@ -38,6 +38,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the design lint's CHANGED tier needs git to answer (see checks.yml)
       # First, before any build minute is spent: the registry of bugs this codebase has produced
       # more than once (scripts/known-bugs.json). A hit here means nothing deploys.
       - name: Every checker (known-bugs, check-datetime, the debt ledger)

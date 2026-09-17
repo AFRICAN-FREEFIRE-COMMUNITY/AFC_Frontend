@@ -126,6 +126,12 @@ function LoginFormContent() {
           toast.error(t("login.accountDeleted"));
           return;
         }
+        // 429 comes from nginx (owner rule R59, 2026-09-17): too many sign-in attempts from this
+        // address. Its body is HTML, so say it ourselves rather than fall to "login failed".
+        if (error.response?.status === 429) {
+          toast.error(t("login.tooManyAttempts"));
+          return;
+        }
         if (error.response?.status === 403) {
           // User hasn't confirmed their email
           const email = data.ign_or_uid.includes("@") ? data.ign_or_uid : "";

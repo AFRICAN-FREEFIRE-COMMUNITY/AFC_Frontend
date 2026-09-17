@@ -244,12 +244,15 @@ export function CreateAccountForm() {
         // while older validation responses use `error`. Read whichever is present.
         // whatsapp_taken (owner 2026-09-14, inbox #21: one number, one account) carries a code,
         // so the sentence is ours in every language; older refusals are matched by wording below.
+        // 429 from nginx (R59): too many signups or codes from this address in a minute.
         const backendMessage: string =
-          error?.response?.data?.code === "whatsapp_taken"
-            ? t("register.whatsappTaken")
-            : error?.response?.data?.message ||
-              error?.response?.data?.error ||
-              t("register.genericError");
+          error?.response?.status === 429
+            ? t("register.tooManyAttempts")
+            : error?.response?.data?.code === "whatsapp_taken"
+              ? t("register.whatsappTaken")
+              : error?.response?.data?.message ||
+                error?.response?.data?.error ||
+                t("register.genericError");
 
         // Surface the message INLINE next to the field it concerns, so the user fixes just
         // the one thing. We keep the form fully intact (no reset) so nothing they typed is

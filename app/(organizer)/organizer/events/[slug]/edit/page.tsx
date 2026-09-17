@@ -1461,7 +1461,7 @@ export default function OrganizerEditEventPage({
         JSON.stringify(sponsorForm.sponsor_usernames ?? []),
       );
       formData.append(
-        "requirement_description",
+        "sponsor_requirement_description",  // the contract field; "requirement_description" was never read (2026-09-17)
         sponsorForm.requirement_description || "",
       );
       formData.append(
@@ -1606,7 +1606,7 @@ export default function OrganizerEditEventPage({
         JSON.stringify(sponsorForm.sponsor_usernames ?? []),
       );
       formData.append(
-        "requirement_description",
+        "sponsor_requirement_description",  // the contract field; "requirement_description" was never read (2026-09-17)
         sponsorForm.requirement_description || "",
       );
       formData.append(
@@ -1942,7 +1942,7 @@ export default function OrganizerEditEventPage({
           JSON.stringify(data.sponsor_usernames ?? []),
         );
         formData.append(
-          "requirement_description",
+          "sponsor_requirement_description",  // the contract field; "requirement_description" was never read (2026-09-17)
           data.requirement_description || "",
         );
         formData.append(

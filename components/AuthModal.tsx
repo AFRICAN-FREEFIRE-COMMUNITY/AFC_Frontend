@@ -274,6 +274,11 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
           toast.error(t("auth.accountDeleted"));
           return;
         }
+        // 429 from nginx (R59): too many sign-in attempts from this address.
+        if (error.response?.status === 429) {
+          toast.error(t("auth.tooManyAttempts"));
+          return;
+        }
         if (error.response?.status === 403) {
           // User hasn't confirmed their email
           const email = data.ign_or_uid.includes("@") ? data.ign_or_uid : "";

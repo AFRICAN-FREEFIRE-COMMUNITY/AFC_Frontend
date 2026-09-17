@@ -20,7 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # Full history: the design lint's CHANGED tier judges the files this branch touched
+      # (git diff origin/master...HEAD). A depth-1 checkout cannot answer that, and the lint then
+      # treats every file as touched and fails on debt this branch never went near.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20

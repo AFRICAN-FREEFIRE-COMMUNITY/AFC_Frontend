@@ -545,6 +545,24 @@ export function generatePageMetadata({
   };
 }
 
+/**
+ * Metadata for a PRIVATE page: one the visitor reaches only signed in, or only through a link
+ * that carries a token (an order, a support ticket, a team's settings, a checkout success). It
+ * gets a real title for the tab and the bookmark, and `noindex, nofollow`, because a search
+ * result that lands on a login wall serves nobody and Search Console reports it as a soft 404.
+ *
+ * Owner rule R23 (2026-09-13): a public page is in the sitemap, a private one is noindex, and
+ * scripts/check-seo.mjs fails when a page is neither. A "use client" page cannot export
+ * metadata, so for those this is exported from a sibling layout.tsx (the same pattern the
+ * fantasy, polls and awards sections use for their public metadata).
+ */
+export function privatePageMetadata(title: string): Metadata {
+  return {
+    title: `${title} | ${siteConfig.name}`,
+    robots: { index: false, follow: false },
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared link-embed (Open Graph + Twitter Card) plumbing
 //

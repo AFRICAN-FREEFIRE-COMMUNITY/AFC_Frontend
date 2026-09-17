@@ -8,9 +8,10 @@ import WishlistClient from "../_components/WishlistClient";
 
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Saved Items | African Free Fire Community",
-};
+import { privatePageMetadata } from "@/lib/seo";
+
+// Signed-in only, so noindex (owner rule R23; scripts/check-seo.mjs holds it).
+export const metadata: Metadata = privatePageMetadata("Saved Items");
 
 const page = () => {
   return (
