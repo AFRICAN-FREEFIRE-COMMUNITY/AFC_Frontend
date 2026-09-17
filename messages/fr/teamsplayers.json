@@ -68,7 +68,9 @@
     "tabMostActive": "Les plus actives",
     "mostActiveTitle": "Equipes les plus actives",
     "mostActiveDescription": "Classees selon les evenements reellement joues, pas selon les inscriptions.",
-    "activityLine": "{events} evenements joues, {matches} matchs"
+    "activityLine": "{events} evenements joues, {matches} matchs",
+    "messageCount": "{count} / {max}",
+    "messageTooLong": "Votre message est trop long. La limite est de {max} caractères."
   },
   "teamCreate": {
     "pageTitle": "Créer une nouvelle équipe",

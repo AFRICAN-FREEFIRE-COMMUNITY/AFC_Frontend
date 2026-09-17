@@ -68,7 +68,9 @@
     "tabMostActive": "Most active",
     "mostActiveTitle": "Most active teams",
     "mostActiveDescription": "Ranked by events actually played, not by events entered.",
-    "activityLine": "{events} events played, {matches} matches"
+    "activityLine": "{events} events played, {matches} matches",
+    "messageCount": "{count} / {max}",
+    "messageTooLong": "Your message is too long. The limit is {max} characters."
   },
   "teamCreate": {
     "pageTitle": "Create a New Team",

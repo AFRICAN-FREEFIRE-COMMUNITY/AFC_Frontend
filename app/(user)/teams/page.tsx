@@ -54,6 +54,9 @@ import { matchesSearch } from "@/lib/search";
 import UnclaimedProfiles from "./_components/UnclaimedProfiles";
 import { NewBadge } from "@/components/NewBadge";
 
+// Mirrors JoinRequest.message max_length on the backend (afc_team/models.py).
+const JOIN_MESSAGE_MAX = 150;
+
 function page() {
   // i18n: teams browse list copy (messages/en/teamsplayers.json -> "teamsList").
   const t = useTranslations("teamsplayers");
@@ -189,7 +192,12 @@ function page() {
         setSelectedTeam(null);
         setApplicationMessage("");
       } catch (error: any) {
-        toast.error(error.response.data.message);
+        // join_message_too_long carries a code, so the sentence is ours in every language.
+        toast.error(
+          error?.response?.data?.code === "join_message_too_long"
+            ? t("teamsList.messageTooLong", { max: JOIN_MESSAGE_MAX })
+            : error?.response?.data?.message || t("teamsList.loadError"),
+        );
       }
     });
   };
@@ -375,14 +383,24 @@ function page() {
                                     >
                                       {t("teamsList.messageLabel")}
                                     </Label>
+                                    {/* 150 = JoinRequest.message on the backend. Without the cap a
+                                        longer note reached MySQL and came back as "An error
+                                        occurred" (inbox #23, 20 times in a week). */}
                                     <Textarea
                                       id="application-message"
                                       value={applicationMessage}
+                                      maxLength={JOIN_MESSAGE_MAX}
                                       onChange={(e) =>
-                                        setApplicationMessage(e.target.value)
+                                        setApplicationMessage(e.target.value.slice(0, JOIN_MESSAGE_MAX))
                                       }
                                       placeholder={t("teamsList.messagePlaceholder")}
                                     />
+                                    <p className="mt-1 text-right text-xs tabular-nums text-muted-foreground">
+                                      {t("teamsList.messageCount", {
+                                        count: applicationMessage.length,
+                                        max: JOIN_MESSAGE_MAX,
+                                      })}
+                                    </p>
                                   </div>
                                 </div>
                                 <DialogFooter>
