@@ -680,5 +680,7 @@
   "organization.reportSuccess": "Report submitted. AFC will review it.",
   "organization.reportFailed": "Failed to submit your report",
   "organization.loadFailed": "Failed to load organization",
-  "playerProfile.esportImage": "Esport image"
+  "playerProfile.esportImage": "Esport image",
+  "teamsList.messageCount": "{count} / {max}",
+  "teamsList.messageTooLong": "Your message is too long. The limit is {max} characters."
 }
