@@ -68,14 +68,15 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { rankingsAdminApi } from "@/lib/rankingsAdmin";
 import {
-  IconAdjustmentsBolt, IconAlertTriangle, IconBrandInstagram, IconCoin, IconDeviceFloppy,
-  IconFlag, IconHistory, IconInfinity, IconInfoCircle, IconPlus, IconRotateClockwise2,
-  IconSkull, IconStack2, IconStairsUp, IconSwords, IconTargetArrow, IconTrophy, IconUser,
-  IconUsersGroup,
+  IconAdjustmentsBolt, IconAlertTriangle, IconBrandInstagram, IconCheck, IconCoin,
+  IconDeviceFloppy, IconFlag, IconHistory, IconInfinity, IconInfoCircle, IconPlus,
+  IconRefresh, IconRotateClockwise2, IconSkull, IconStack2, IconStairsUp, IconSwords,
+  IconTargetArrow, IconTrophy, IconUser, IconUsersGroup,
 } from "@tabler/icons-react";
+import { LocalTime } from "@/components/LocalTime";
 import {
-  Bracket, ConfigVersion, FieldMeta, Issue, IssueCount, IssueList, NumberBox, RowControls,
-  ScoringBlob, SeasonScope, TextBox, ThresholdRow, TierRow, clone, countLeafDiffs,
+  Bracket, ConfigVersion, FieldMeta, Issue, IssueCount, IssueList, NumberBox, RebuildState,
+  RowControls, ScoringBlob, SeasonScope, TextBox, ThresholdRow, TierRow, clone, countLeafDiffs,
   currencyPrefix, issuesAt, issuesUnder, move, removeAt, replaceAt, toIssues,
 } from "./_components/editor-primitives";
 import { SaveConfigDialog } from "./_components/SaveConfigDialog";
@@ -368,6 +369,11 @@ export default function ScoringConfigPage() {
   const [activeVersion, setActiveVersion] = useState("-");
   const [lastEdited, setLastEdited] = useState("-");
   const [lastEditedBy, setLastEditedBy] = useState("-");
+  // The score rebuild that followed the last save. Set from the full load, then refreshed on
+  // its own by pollRebuild below while it is queued or running, so the blob under the admin's
+  // edits is never reloaded by a poll.
+  const [rebuild, setRebuild] = useState<RebuildState | null>(null);
+  const [rebuildBusy, setRebuildBusy] = useState(false);
 
   const metaText = useMetaText(meta);
 
@@ -422,6 +428,46 @@ export default function ScoringConfigPage() {
     }, 220);
   }, []);
 
+  /* ── the rebuild strip ────────────────────────────────────────────────────────────────
+   * Since 2026-09-17 a save answers as soon as the version has committed, and the scores are
+   * rebuilt on the rankings worker afterwards (it takes minutes on production, longer than a
+   * request may live). The page shows that rebuild's state here and polls GET
+   * scoring-config/rebuild/ every few seconds while it is queued or running. A poll touches
+   * ONLY the rebuild state, never the blob, so an edit in progress is never reloaded away.
+   * ─────────────────────────────────────────────────────────────────────────────────── */
+  const rebuildActive = rebuild != null
+    && (rebuild.state === "queued" || rebuild.state === "running") && !rebuild.is_stale;
+
+  useEffect(() => {
+    if (!rebuildActive) return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const res = await rankingsAdminApi.scoringConfigRebuild();
+        if (!cancelled && res?.rebuild) setRebuild(res.rebuild as RebuildState);
+      } catch {
+        // A missed poll is not an error the admin can act on; the next tick tries again.
+      }
+    };
+    const timer = window.setInterval(tick, 5000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [rebuildActive]);
+
+  const runRebuildAgain = useCallback(async () => {
+    setRebuildBusy(true);
+    try {
+      const res = await rankingsAdminApi.rebuildScoringConfig();
+      setRebuild((res?.recalculated ?? null) as RebuildState | null);
+      toast.success(t("admin.scoringConfig.rebuild.queuedToast"));
+    } catch (err: any) {
+      const data = err?.response?.data;
+      if (data?.recalculated) setRebuild(data.recalculated as RebuildState);
+      toast.error(data?.message || t("admin.scoringConfig.rebuild.runFailed"));
+    } finally {
+      setRebuildBusy(false);
+    }
+  }, [t]);
+
   /* ── load ── */
   const load = useCallback(async () => {
     setLoading(true);
@@ -443,6 +489,7 @@ export default function ScoringConfigPage() {
       setLastEdited(res?.created_at ? String(res.created_at).slice(0, 10) : "-");
       setLastEditedBy(res?.created_by ?? (res?.is_default
         ? t("admin.scoringConfig.shippedDefaults") : "-"));
+      setRebuild((res?.rebuild ?? null) as RebuildState | null);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || t("admin.scoringConfig.loadFailed"));
     } finally {
@@ -665,6 +712,11 @@ export default function ScoringConfigPage() {
           sub={t("admin.scoringConfig.statProblemsSub", { errors: errorCount, warnings: warningCount })}
           tone={errorCount > 0 ? "text-destructive" : warningCount > 0 ? "text-orange-500" : "text-green-500"} />
       </div>
+
+      {/* the score rebuild that followed the last save: queued / running / done / failed */}
+      {rebuild && rebuild.state !== "none" && (
+        <RebuildStrip rebuild={rebuild} busy={rebuildBusy} onRunAgain={runRebuildAgain} />
+      )}
 
       {/* explainer */}
       <p className="flex items-start gap-2 rounded-md border border-blue-600/20 bg-blue-500/5 p-3 text-xs text-muted-foreground">
@@ -1276,6 +1328,68 @@ export default function ScoringConfigPage() {
         onLocateIssue={locateIssue}
         onSaved={load}
       />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────── rebuild strip */
+
+/**
+ * One line about the score rebuild, in the state's own tone. A filled surface, no stroke.
+ * Queued and running spin the icon (real feedback: work is in progress). Failed and stale
+ * carry the Run again button; done just says when, so the admin can tell the standings on
+ * the public pages already reflect the rules on this screen.
+ */
+function RebuildStrip({ rebuild, busy, onRunAgain }: {
+  rebuild: RebuildState; busy: boolean; onRunAgain: () => void;
+}) {
+  const t = useTranslations("rankings");
+  const stale = rebuild.state === "running" && rebuild.is_stale;
+  const failed = rebuild.state === "failed";
+  const working = !stale && (rebuild.state === "queued" || rebuild.state === "running");
+  const tone = failed || stale
+    ? "bg-destructive/10 text-destructive"
+    : working ? "bg-blue-500/10 text-blue-400" : "bg-green-500/10 text-green-500";
+  const counts = { seasons: rebuild.seasons ?? 0, months: rebuild.months ?? 0 };
+
+  let sentence: React.ReactNode;
+  if (stale) {
+    sentence = t("admin.scoringConfig.rebuild.stale");
+  } else if (failed) {
+    sentence = t("admin.scoringConfig.rebuild.failed", { error: rebuild.error ?? "" });
+  } else if (rebuild.state === "queued") {
+    sentence = t("admin.scoringConfig.rebuild.queued", counts);
+  } else if (rebuild.state === "running") {
+    sentence = (
+      <>
+        {t("admin.scoringConfig.rebuild.running", counts)}{" "}
+        {rebuild.started_at && <LocalTime value={rebuild.started_at} mode="time" />}
+      </>
+    );
+  } else {
+    sentence = (
+      <>
+        {t("admin.scoringConfig.rebuild.done", counts)}{" "}
+        {rebuild.finished_at && <LocalTime value={rebuild.finished_at} mode="datetime" />}
+      </>
+    );
+  }
+
+  return (
+    <div data-testid="rebuild-strip" data-state={stale ? "stale" : rebuild.state}
+      className={cn("flex flex-wrap items-center gap-2 rounded-md p-3 text-xs", tone)}>
+      {failed || stale
+        ? <IconAlertTriangle className="size-4 shrink-0" />
+        : working
+          ? <IconRefresh className="size-4 shrink-0 animate-spin" />
+          : <IconCheck className="size-4 shrink-0" />}
+      <span className="min-w-0 flex-1 text-foreground">{sentence}</span>
+      {(failed || stale) && (
+        <Button size="sm" variant="secondary" onClick={onRunAgain} disabled={busy}>
+          <IconRefresh className={cn("mr-1.5 size-4", busy && "animate-spin")} />
+          {t("admin.scoringConfig.rebuild.runAgain")}
+        </Button>
+      )}
     </div>
   );
 }
