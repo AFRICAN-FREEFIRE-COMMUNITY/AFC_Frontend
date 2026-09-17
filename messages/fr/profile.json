@@ -340,7 +340,8 @@
       "successRequest": "Le code a été envoyé. Vérifiez votre boîte de réception.",
       "successConfirm": "Votre adresse e-mail a été mise à jour.",
       "genericError": "Une erreur s'est produite. Veuillez réessayer."
-    }
+    },
+    "whatsappTaken": "Ce numéro WhatsApp est déjà sur un autre compte AFC. Chaque numéro ne peut appartenir qu'à un seul compte, comme un e-mail ou un nom en jeu."
   },
   "password": {
     "title": "Changer le mot de passe",

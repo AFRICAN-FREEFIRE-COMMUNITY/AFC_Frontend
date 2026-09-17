@@ -324,8 +324,11 @@ const Page = () => {
         }
         router.push(`/profile`);
       } catch (error: any) {
+        // whatsapp_taken (inbox #21): another account already holds that number.
         toast.error(
-          error?.response?.data?.message || t("edit.internalError"),
+          error?.response?.data?.code === "whatsapp_taken"
+            ? t("edit.whatsappTaken")
+            : error?.response?.data?.message || t("edit.internalError"),
         );
         return;
       }

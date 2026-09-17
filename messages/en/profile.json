@@ -340,7 +340,8 @@
       "successRequest": "Code sent. Check your new email inbox.",
       "successConfirm": "Your email has been updated.",
       "genericError": "Something went wrong. Please try again."
-    }
+    },
+    "whatsappTaken": "That WhatsApp number is already on another AFC account. Each number can belong to one account, like an email or an in-game name."
   },
   "password": {
     "title": "Change Password",
