@@ -82,7 +82,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useOrganizer } from "../../../_components/OrganizerContext";
+import { eventPermissions, useOrganizer, type CoOrganizerGrant } from "../../../_components/OrganizerContext";
 
 // One row of get-all-competitors-and-their-sponsor-id (same shape the admin page reads).
 interface Competitor {
@@ -120,8 +120,12 @@ export default function OrganizerSponsorsPage({
 
   // Same org permission the backend enforces on all three sponsor-review endpoints
   // (org_can_event(user, "can_manage_registrations", event)).
-  const canManageRegistrations =
-    membership.permissions.can_manage_registrations || isOwner;
+  // Co-organized (owner 2026-09-13): the inviting org's grant when this org does not own the
+  // event (null on its own events). Every gate below is the EFFECTIVE permission: the grant AND
+  // the member's own, so a co-org owner gets exactly the grant and never more.
+  const [grant, setGrant] = useState<CoOrganizerGrant>(null);
+  const perms = eventPermissions(membership, isOwner, grant);
+  const canManageRegistrations = perms.can_manage_registrations;
   const organizationId = membership.organization.organization_id;
 
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
@@ -178,13 +182,14 @@ export default function OrganizerSponsorsPage({
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/get-all-events/`,
           { ...config, params: { organization_id: organizationId } },
         );
-        const owned = (mine.data?.events ?? []).some(
+        const row = (mine.data?.events ?? []).find(
           (e: any) => e.slug === slug,
         );
-        if (!owned) {
+        if (!row) {
           setNotMine(true);
           return;
         }
+        setGrant(row.co_organizer_grant ?? null);
         // 2. Event details for the numeric event_id + the sponsor-ID column label
         //    (same call the admin sponsors page makes).
         const res = await axios.post(

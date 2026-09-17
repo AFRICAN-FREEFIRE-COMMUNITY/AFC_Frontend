@@ -60,6 +60,7 @@
 "use client";
 
 import React, { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 // One rule for "is this Clash Squad?" (lib/eventFormats).
 import { isClashSquadFormat } from "@/lib/eventFormats";
 import Image from "next/image";
@@ -164,7 +165,7 @@ import { RoundRobinResultsModal } from "@/app/(a)/a/events/_components/RoundRobi
 import { DeleteEventModal } from "@/app/(a)/a/events/_components/DeleteEventModal";
 // Live refresh heartbeat: re-pulls this page's read-only data while the tab is visible.
 import { useLiveTick } from "@/hooks/useLiveTick";
-import { useOrganizer } from "../../_components/OrganizerContext";
+import { eventPermissions, useOrganizer, type CoOrganizerGrant } from "../../_components/OrganizerContext";
 
 type Params = { slug: string };
 
@@ -291,11 +292,16 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
   const t = useTranslations("organizer");
   const API = env.NEXT_PUBLIC_BACKEND_API_URL;
 
+  // Co-organized (owner 2026-09-13): the inviting org's grant when this org does not own the
+  // event (null on its own events). Every gate below is the EFFECTIVE permission: the grant AND
+  // the member's own, so a co-org owner gets exactly the grant and never more.
+  const [grant, setGrant] = useState<CoOrganizerGrant>(null);
+  const perms = eventPermissions(membership, isOwner, grant);
   // ── permission gates (mirror the backend per surface; see header comment) ──
-  const canEdit = membership.permissions.can_edit_events || isOwner;
-  const canViewMetrics = membership.permissions.can_view_metrics || isOwner;
-  const canManageRegs = membership.permissions.can_manage_registrations || isOwner;
-  const canUploadResults = membership.permissions.can_upload_results || isOwner;
+  const canEdit = perms.can_edit_events;
+  const canViewMetrics = perms.can_view_metrics;
+  const canManageRegs = perms.can_manage_registrations;
+  const canUploadResults = perms.can_upload_results;
   // Page access matches the get-event-details-for-admin organizer gate.
   const canAccess = canEdit || canViewMetrics;
   const organizationId = membership.organization.organization_id;
@@ -362,11 +368,12 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
             ...config,
             params: { organization_id: organizationId },
           });
-          const owned = (mine.data?.events ?? []).some((e: any) => e.slug === slug);
-          if (!owned) {
+          const row = (mine.data?.events ?? []).find((e: any) => e.slug === slug);
+          if (!row) {
             setNotMine(true);
             return;
           }
+          setGrant(row.co_organizer_grant ?? null);
           ownedRef.current = true;
         }
         // 2. Both payloads in parallel (public detail + staff metrics).
@@ -654,7 +661,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
   // Prizepool can be a plain number ("500") or free text; only prefix $ + group
   // digits when numeric (same rule as the admin view page).
   const formattedPrizepool = /^\d+(\.\d+)?$/.test(details.prizepool)
-    ? `$${parseFloat(details.prizepool).toLocaleString()}`
+    ? `$${formatNumber(parseFloat(details.prizepool))}`
     : details.prizepool;
 
   const stageStatus = adminDetails.stage_progress;

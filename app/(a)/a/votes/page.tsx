@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 import { getActiveLocale, getBrowserTimeZone } from "@/lib/i18n/time";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; the voting analytics + the
 // categories/nominees/sections lists re-fetch on each tick (and on tab return) so the
@@ -907,7 +908,7 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics?.totalVotes?.toLocaleString() || "0"}
+              {formatNumber(metrics?.totalVotes ?? 0)}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
               Across all categories
@@ -922,7 +923,7 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics?.totalVoters?.toLocaleString() || "0"}
+              {formatNumber(metrics?.totalVoters ?? 0)}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
               Unique participants
@@ -943,7 +944,7 @@ export default function Page() {
               {metrics?.votingCompletionRate || 0}%
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              {metrics?.completedVotes?.toLocaleString() || "0"} completed
+              {formatNumber(metrics?.completedVotes ?? 0)} completed
             </div>
           </CardContent>
         </Card>
@@ -974,7 +975,7 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {contentCreatorTotalVotes.toLocaleString()}
+              {formatNumber(contentCreatorTotalVotes)}
             </div>
           </CardContent>
         </Card>
@@ -985,7 +986,7 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {esportsTotalVotes.toLocaleString()}
+              {formatNumber(esportsTotalVotes)}
             </div>
           </CardContent>
         </Card>
@@ -1189,7 +1190,7 @@ export default function Page() {
                                 </span>
                               </div>
                               <div className="text-3xl font-bold text-primary">
-                                {totalVotes.toLocaleString()}
+                                {formatNumber(totalVotes)}
                               </div>
                             </div>
                           </div>
@@ -1315,7 +1316,7 @@ export default function Page() {
                         </div>
                         <div className="flex items-center">
                           <span className="text-sm text-muted-foreground">
-                            {category.votes.toLocaleString()} votes
+                            {formatNumber(category.votes)} votes
                           </span>
                           <Badge className="justify-center">
                             {Math.round(category.percentage)}%
@@ -1485,7 +1486,7 @@ export default function Page() {
                           Total Votes
                         </p>
                         <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                          {filteredTotalVotes.toLocaleString()}
+                          {formatNumber(filteredTotalVotes)}
                         </p>
                       </div>
                       <div className="bg-purple-50 dark:bg-purple-900/20 rounded-md p-4 border border-purple-200 dark:border-purple-800">
@@ -1494,9 +1495,9 @@ export default function Page() {
                         </p>
                         <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                           {sortedNominees.length > 0
-                            ? Math.round(
+                            ? formatNumber(Math.round(
                                 filteredTotalVotes / sortedNominees.length
-                              ).toLocaleString()
+                              ))
                             : "0"}
                         </p>
                       </div>
@@ -1579,7 +1580,7 @@ export default function Page() {
                                     <Vote className="h-3 w-3 text-blue-500" />
                                     <span className="font-semibold">
                                       {nominee.total_votes > 0
-                                        ? nominee.total_votes.toLocaleString()
+                                        ? formatNumber(nominee.total_votes)
                                         : "-"}
                                     </span>
                                   </div>
@@ -1968,7 +1969,7 @@ export default function Page() {
                               <div className="flex items-center gap-2">
                                 <Vote className="h-4 w-4 text-blue-500" />
                                 <span className="font-semibold">
-                                  {(nominee.votes || 0).toLocaleString()}
+                                  {formatNumber(nominee.votes || 0)}
                                 </span>
                               </div>
                             </TableCell>
@@ -2206,7 +2207,7 @@ export default function Page() {
                                     <div className="flex items-center gap-2">
                                       <Vote className="h-4 w-4 text-blue-500" />
                                       <span className="font-semibold">
-                                        {totalVotes.toLocaleString()}
+                                        {formatNumber(totalVotes)}
                                       </span>
                                     </div>
                                   </TableCell>

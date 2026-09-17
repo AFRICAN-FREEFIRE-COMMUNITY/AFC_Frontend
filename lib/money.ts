@@ -15,6 +15,7 @@
  */
 
 import { currencyFractionDigits } from "@/lib/currencies";
+import { getActiveLocale } from "@/lib/i18n/time";
 
 export type FxRates = Record<string, number>;
 
@@ -47,7 +48,7 @@ export function formatMoney(amount: number, currency: string): string {
   // TND/LYD two decimals instead of three and DJF/KMF/MGA/SOS two instead of none.
   const fractionDigits = currencyFractionDigits(cur);
   try {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat(getActiveLocale(), {
       style: "currency",
       currency: cur,
       // narrowSymbol -> "₦29.99" / "$3.63" instead of the ISO code "NGN 29.99" (the browser locale
@@ -58,7 +59,7 @@ export function formatMoney(amount: number, currency: string): string {
     }).format(Number(amount) || 0);
   } catch {
     // Unknown/invalid ISO code -> fall back to "<CODE> 1,234.56".
-    return `${cur} ${(Number(amount) || 0).toLocaleString(undefined, {
+    return `${cur} ${(Number(amount) || 0).toLocaleString(getActiveLocale(), {
       minimumFractionDigits: fractionDigits,
       maximumFractionDigits: fractionDigits,
     })}`;

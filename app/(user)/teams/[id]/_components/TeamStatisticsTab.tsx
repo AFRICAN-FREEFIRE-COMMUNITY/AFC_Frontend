@@ -48,6 +48,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 import axios from "axios";
 import { useTranslations } from "next-intl";
 // Multi-currency display chokepoint: prizes/earnings are stored in NGN and must render in the
@@ -711,7 +712,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
         />
         <StatCard
           label={t("teamStats.totalKills")}
-          value={cardStats.totalKills.toLocaleString()}
+          value={formatNumber(cardStats.totalKills)}
           sub={t("teamStats.inRange")}
           valueClass="text-primary"
         />

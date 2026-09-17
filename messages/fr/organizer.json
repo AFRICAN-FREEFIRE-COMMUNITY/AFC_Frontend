@@ -309,7 +309,8 @@
     "back": "Retour",
     "logout": "Se déconnecter",
     "overlays": "Superpositions en direct",
-    "help": "Centre d'aide"
+    "help": "Centre d'aide",
+    "invites": "Invitations"
   },
   "overview": {
     "title": "Présentation générale",
@@ -322,7 +323,13 @@
     },
     "logoAlt": "Logo de {name}",
     "members": "Membres",
-    "events": "Événements"
+    "events": "Événements",
+    "invites": {
+      "title": "Invitations à des événements",
+      "pending": "{count, plural, one {# invitation attend votre réponse} other {# invitations attendent votre réponse}}",
+      "none": "Aucune invitation en attente.",
+      "open": "Voir les invitations"
+    }
   },
   "design": {
     "title": "Design",
@@ -772,7 +779,9 @@
       "loadFailed": "Impossible de charger vos événements.",
       "unpublished": "Événement dépublié. C'est désormais un brouillon.",
       "unpublishFailed": "Échec de la dépublication de l'événement."
-    }
+    },
+    "coOrganizedBadge": "Co-organisé avec {name}",
+    "coOrganizedHint": "Votre organisation a été invitée à cet événement. Vous ne pouvez faire que ce que {name} a accordé."
   },
   "drafts": {
     "title": "Brouillons",
@@ -1514,7 +1523,18 @@
     "size": "Taille",
     "format": "Format",
     "noFace": "Cette image ne comporte aucun visage identifiable. Une image e-sport de joueur doit être une photo du joueur, et non un logo.",
-    "uploadAnyway": "Importer quand même"
+    "uploadAnyway": "Importer quand même",
+    "check": {
+      "badge": "À vérifier",
+      "looksFine": "C'est bon",
+      "cleared": "Marquée comme correcte. Elle ne sera plus listée.",
+      "clearError": "Impossible de marquer cette image comme correcte.",
+      "summary": "{count, plural, one {# image de joueur à vérifier avant la diffusion} other {# images de joueurs à vérifier avant la diffusion}}",
+      "reason": {
+        "no_face": "Aucun visage trouvé sur cette image. C'est souvent un logo, une capture de jeu ou un fond d'écran.",
+        "face_too_small": "Le visage est minuscule dans le cadre. Une image esport doit être un portrait en buste."
+      }
+    }
   },
   "broadcastKit": {
     "title": "Kit de diffusion",
@@ -1535,5 +1555,41 @@
     "downloaded": "Kit téléchargé.",
     "downloadFailed": "Impossible de générer le kit.",
     "noTeams": "Aucune équipe n'est encore inscrite."
+  },
+  "invites": {
+    "title": "Invitations à des événements",
+    "description": "D'autres organisations peuvent inviter la vôtre à co-organiser un événement. Acceptez pour y participer avec exactement les accès accordés, refusez pour passer.",
+    "loading": "Chargement des invitations...",
+    "loadError": "Impossible de charger vos invitations.",
+    "ownerOnly": "Seul le propriétaire de votre organisation peut répondre aux invitations.",
+    "pendingTitle": "En attente de votre réponse",
+    "historyTitle": "Traitées",
+    "empty": "Aucune invitation pour le moment. Quand une autre organisation invitera la vôtre à co-organiser un événement, elle apparaîtra ici.",
+    "invitedBy": "Invité par {name}",
+    "forOrg": "Pour {name}",
+    "openEvent": "Ouvrir l'événement",
+    "grantedTitle": "Ce que vous pourriez faire",
+    "grantedNothing": "Consultation seulement.",
+    "payout": "{percent} % des revenus d'inscription",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "accepted": "Acceptée. L'événement apparaît maintenant dans votre liste d'événements.",
+    "declined": "Refusée.",
+    "respondFailed": "Impossible d'envoyer votre réponse.",
+    "status": {
+      "pending": "En attente",
+      "accepted": "Acceptée",
+      "declined": "Refusée"
+    },
+    "perms": {
+      "can_create_events": "Créer des événements",
+      "can_edit_events": "Modifier l'événement",
+      "can_upload_results": "Saisir les résultats et gérer le classement",
+      "can_manage_registrations": "Gérer les inscriptions, les groupes et les sponsors",
+      "can_submit_designs": "Soumettre des designs de classement",
+      "can_view_metrics": "Voir les statistiques",
+      "can_view_reviews": "Voir les avis",
+      "can_manage_members": "Gérer les membres"
+    }
   }
 }

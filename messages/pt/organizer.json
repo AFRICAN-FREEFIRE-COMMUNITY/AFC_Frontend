@@ -309,7 +309,8 @@
     "back": "Voltar",
     "logout": "Sair",
     "overlays": "Sobreposições em tempo real",
-    "help": "Centro de ajuda"
+    "help": "Centro de ajuda",
+    "invites": "Convites"
   },
   "overview": {
     "title": "Visão geral",
@@ -322,7 +323,13 @@
     },
     "logoAlt": "{name} logótipo",
     "members": "Membros",
-    "events": "Eventos"
+    "events": "Eventos",
+    "invites": {
+      "title": "Convites para eventos",
+      "pending": "{count, plural, one {# convite aguarda a sua resposta} other {# convites aguardam a sua resposta}}",
+      "none": "Nenhum convite pendente.",
+      "open": "Ver convites"
+    }
   },
   "design": {
     "title": "Design",
@@ -772,7 +779,9 @@
       "loadFailed": "Não foi possível carregar os seus eventos.",
       "unpublished": "O evento foi retirado da publicação. Agora é um rascunho.",
       "unpublishFailed": "Não foi possível retirar o evento da publicação."
-    }
+    },
+    "coOrganizedBadge": "Coorganizado com {name}",
+    "coOrganizedHint": "A sua organização foi convidada para este evento. Só pode fazer o que {name} concedeu."
   },
   "drafts": {
     "title": "Rascunhos",
@@ -1514,7 +1523,18 @@
     "size": "Tamanho",
     "format": "Formato",
     "noFace": "Esta imagem não apresenta nenhum rosto identificável. Uma imagem de um jogador de e-sport deve ser uma fotografia do jogador, e não um logótipo.",
-    "uploadAnyway": "Carregar na mesma"
+    "uploadAnyway": "Carregar na mesma",
+    "check": {
+      "badge": "Verificar",
+      "looksFine": "Está bem",
+      "cleared": "Marcada como correta. Não voltará a ser listada.",
+      "clearError": "Não foi possível marcar essa imagem como correta.",
+      "summary": "{count, plural, one {# imagem de jogador precisa de ser vista antes da transmissão} other {# imagens de jogadores precisam de ser vistas antes da transmissão}}",
+      "reason": {
+        "no_face": "Nenhum rosto encontrado nesta imagem. Costuma ser um logótipo, uma captura do jogo ou um fundo de ecrã.",
+        "face_too_small": "O rosto é minúsculo no enquadramento. Uma imagem esport deve ser um retrato de busto."
+      }
+    }
   },
   "broadcastKit": {
     "title": "Kit de transmissão",
@@ -1535,5 +1555,41 @@
     "downloaded": "Kit descarregado.",
     "downloadFailed": "Não foi possível montar o kit.",
     "noTeams": "Ainda não há equipas inscritas."
+  },
+  "invites": {
+    "title": "Convites para eventos",
+    "description": "Outras organizações podem convidar a sua para coorganizar um evento. Aceite para participar exatamente com os acessos concedidos, recuse para passar.",
+    "loading": "A carregar convites...",
+    "loadError": "Não foi possível carregar os seus convites.",
+    "ownerOnly": "Apenas o proprietário da sua organização pode responder aos convites.",
+    "pendingTitle": "À espera da sua resposta",
+    "historyTitle": "Respondidos",
+    "empty": "Ainda sem convites. Quando outra organização convidar a sua para coorganizar um evento, ele aparecerá aqui.",
+    "invitedBy": "Convidado por {name}",
+    "forOrg": "Para {name}",
+    "openEvent": "Abrir evento",
+    "grantedTitle": "O que poderia fazer",
+    "grantedNothing": "Apenas consulta.",
+    "payout": "{percent}% da receita de inscrições",
+    "accept": "Aceitar",
+    "decline": "Recusar",
+    "accepted": "Aceite. O evento aparece agora na sua lista de eventos.",
+    "declined": "Recusado.",
+    "respondFailed": "Não foi possível enviar a sua resposta.",
+    "status": {
+      "pending": "Pendente",
+      "accepted": "Aceite",
+      "declined": "Recusado"
+    },
+    "perms": {
+      "can_create_events": "Criar eventos",
+      "can_edit_events": "Editar o evento",
+      "can_upload_results": "Inserir resultados e gerir a classificação",
+      "can_manage_registrations": "Gerir inscrições, grupos e patrocinadores",
+      "can_submit_designs": "Enviar designs de classificação",
+      "can_view_metrics": "Ver as métricas",
+      "can_view_reviews": "Ver as avaliações",
+      "can_manage_members": "Gerir os membros"
+    }
   }
 }

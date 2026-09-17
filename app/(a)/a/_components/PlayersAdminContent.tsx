@@ -789,7 +789,7 @@ export const PlayersAdminContent = () => {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button asChild size="sm" variant="outline">
-                          <Link href={`/a/players/${player.user_id}`}>
+                          <Link href={`/a/players/${player.name}`}>
                             View
                           </Link>
                         </Button>

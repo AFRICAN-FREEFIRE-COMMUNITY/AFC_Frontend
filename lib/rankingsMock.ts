@@ -1,3 +1,4 @@
+import { formatNumber } from "@/lib/i18n/number";
 /**
  * Shared MOCK data for the admin /a/rankings dashboard mockup.
  * Coherent across all sub-pages (same teams/seasons). Swapped for the real
@@ -88,4 +89,4 @@ export const mockTransferLog = [
 ];
 
 export const TIER_LABELS: Record<number, string> = { 0: "Tier 1", 1: "Tier 2", 2: "Tier 3", 3: "Tier 4" };
-export const ngn = (n: number) => "₦" + n.toLocaleString();
+export const ngn = (n: number) => "₦" + formatNumber(n);

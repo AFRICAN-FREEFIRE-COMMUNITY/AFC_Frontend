@@ -34,6 +34,7 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -291,7 +292,7 @@ function TeamAchievementCard({
   const achTitle = tCat(`title.${achievement.id}`);
   const achDescription = isLadder
     ? tCat("ladderDesc", {
-        count: achievement.threshold!.toLocaleString(),
+        count: formatNumber(achievement.threshold!),
         unit: unitLabel,
       })
     : tCat(`desc.${achievement.id}`);
@@ -377,8 +378,8 @@ function TeamAchievementCard({
             </div>
             <p className="text-xs text-primary font-medium mt-1">
               {t("teamAchievements.progressLabel", {
-                value: (value as number).toLocaleString(),
-                threshold: achievement.threshold!.toLocaleString(),
+                value: formatNumber(value as number),
+                threshold: formatNumber(achievement.threshold!),
                 unit: progressUnit,
               })}
             </p>

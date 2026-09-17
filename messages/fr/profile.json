@@ -285,7 +285,14 @@
       "uploading": "Téléchargement de l'image esport...",
       "saved": "Image esport enregistrée.",
       "uploadFailed": "Échec du téléchargement de l'image esport.",
-      "tooLarge": "Cette image est trop volumineuse. La taille maximale autorisée est de 15 Mo. Veuillez choisir une photo plus petite (une photo prise avec un téléphone portable suffit)."
+      "tooLarge": "Cette image est trop volumineuse. La taille maximale autorisée est de 15 Mo. Veuillez choisir une photo plus petite (une photo prise avec un téléphone portable suffit).",
+      "check": {
+        "toast": "Enregistrée, mais lisez la note sur votre image.",
+        "generic": "Enregistrée, mais nous n'avons pas vu de photo nette de votre visage. Un organisateur va vérifier cette image. Ce doit être une photo de VOUS : envoyer la photo de quelqu'un d'autre, un logo ou toute image qui n'est pas votre propre visage peut entraîner votre bannissement et celui de votre équipe.",
+        "no_face": "Enregistrée, mais nous n'avons trouvé aucun visage sur cette image. Un organisateur va la vérifier. Ce doit être une photo de VOUS : envoyer la photo de quelqu'un d'autre, un logo ou toute image qui n'est pas votre propre visage peut entraîner votre bannissement et celui de votre équipe.",
+        "face_too_small": "Enregistrée, mais votre visage est très petit sur cette image. Une image esport doit être un portrait en buste. Un organisateur va la vérifier, et une image qui n'est pas votre propre visage peut entraîner votre bannissement et celui de votre équipe.",
+        "not_a_person": "Cela ne ressemble pas à une photo de personne, elle n'a donc pas été envoyée. Votre image esport doit être une photo de VOUS, en buste, le visage bien visible : pas un logo, pas une capture de jeu, pas un fond d'écran."
+      }
     },
     "identityLocked": "Verrouillé tant que vous êtes inscrit à un événement. Vous pourrez le modifier à nouveau une fois vos événements terminés.",
     "identityLockedIn": "{count, plural, =1 {Verrouillé tant que vous participez à {events}. Vous pourrez le modifier à nouveau une fois l'événement terminé.} other {Verrouillé tant que vous participez à {events}. Vous pourrez le modifier à nouveau une fois ces événements terminés.}}",
