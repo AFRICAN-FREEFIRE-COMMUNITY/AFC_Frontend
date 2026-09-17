@@ -242,10 +242,14 @@ export function CreateAccountForm() {
         // The backend now returns friendly copy. New conflict responses use `message`
         // ("That in-game name is already taken.", "That email is already registered."),
         // while older validation responses use `error`. Read whichever is present.
+        // whatsapp_taken (owner 2026-09-14, inbox #21: one number, one account) carries a code,
+        // so the sentence is ours in every language; older refusals are matched by wording below.
         const backendMessage: string =
-          error?.response?.data?.message ||
-          error?.response?.data?.error ||
-          t("register.genericError");
+          error?.response?.data?.code === "whatsapp_taken"
+            ? t("register.whatsappTaken")
+            : error?.response?.data?.message ||
+              error?.response?.data?.error ||
+              t("register.genericError");
 
         // Surface the message INLINE next to the field it concerns, so the user fixes just
         // the one thing. We keep the form fully intact (no reset) so nothing they typed is

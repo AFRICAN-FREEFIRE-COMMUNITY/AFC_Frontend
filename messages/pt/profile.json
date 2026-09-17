@@ -333,7 +333,8 @@
       "successRequest": "O código foi enviado. Verifique a sua caixa de entrada de e-mail.",
       "successConfirm": "O seu endereço de e-mail foi atualizado.",
       "genericError": "Ocorreu um erro. Por favor, tente novamente."
-    }
+    },
+    "whatsappTaken": "Esse número de WhatsApp já está noutra conta AFC. Cada número só pode pertencer a uma conta, como um e-mail ou um nome no jogo."
   },
   "password": {
     "title": "Alterar Senha",

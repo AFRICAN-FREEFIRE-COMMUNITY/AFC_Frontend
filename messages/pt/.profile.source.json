@@ -307,5 +307,6 @@
   "password.validation.currentRequired": "Current password is required",
   "password.validation.minLength": "Password must be at least 8 characters",
   "password.validation.confirmRequired": "Please confirm your new password",
-  "password.validation.mismatch": "Passwords do not match"
+  "password.validation.mismatch": "Passwords do not match",
+  "edit.whatsappTaken": "That WhatsApp number is already on another AFC account. Each number can belong to one account, like an email or an in-game name."
 }
