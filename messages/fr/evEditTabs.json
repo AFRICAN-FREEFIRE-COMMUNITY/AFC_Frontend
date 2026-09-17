@@ -321,6 +321,8 @@
     "complete": "Terminer",
     "reopenEvent": "Rouvrir l'événement",
     "reopenEventDesc": "Remettez cet événement terminé en statut « actif » afin de pouvoir corriger ou ajouter des résultats.",
+    "reopenRosterNote": "Les dates de cet événement sont déjà passées : le rouvrir ne verrouille pas les effectifs. Les joueurs peuvent toujours quitter leur équipe, en être retirés ou être remplacés pendant qu'il est ouvert.",
+    "toastReopenRosterOpen": "Rouvert. Les effectifs restent modifiables, car les dates sont passées.",
     "reopen": "Rouvrir",
     "endedLocked": "Ce tournoi est terminé. Les résultats sont désormais verrouillés.",
     "seedingTitle": "Répartition et progression",

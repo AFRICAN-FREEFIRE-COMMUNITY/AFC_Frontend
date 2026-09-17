@@ -288,6 +288,7 @@
       "tooLarge": "Essa imagem é demasiado grande. O tamanho máximo é de 15 MB - por favor, escolha uma fotografia mais pequena (uma fotografia normal tirada com o telemóvel serve)."
     },
     "identityLocked": "Bloqueado enquanto estiver registado para um evento. Pode editar isto novamente assim que os seus eventos terminarem.",
+    "identityLockedIn": "{count, plural, =1 {Bloqueado enquanto estiver a participar em {events}. Pode editar isto novamente assim que o evento terminar.} other {Bloqueado enquanto estiver a participar em {events}. Pode editar isto novamente assim que estes eventos terminarem.}}",
     "statsVisible": {
       "label": "Mostrar as minhas estatísticas aos outros",
       "description": "As tuas estatísticas são privadas por predefinição. Ativa esta opção para permitir que outras pessoas as vejam."
