@@ -654,5 +654,32 @@
     "toastClosed": "Sorteio fechado.",
     "toastReset": "Sorteio reposto.",
     "toastCloseTimeInvalid": "Escolhe uma hora de fecho no futuro."
+  },
+  "discordReminders": {
+    "title": "Lembretes no Discord",
+    "description": "O bot da AFC envia uma mensagem no Discord a cada jogador inscrito que tenha o Discord ligado, antes de o evento começar. Escolhe a frequência. Só no Discord.",
+    "frequencyLabel": "Com que frequência",
+    "noteLabel": "Uma nota em cada lembrete (opcional)",
+    "notePlaceholder": "Os detalhes da sala chegam ao site 30 minutos antes.",
+    "recipientsNow": "{count, plural, =0 {Nenhum jogador inscrito tem o Discord ligado ainda.} one {# jogador inscrito tem o Discord ligado.} other {# jogadores inscritos têm o Discord ligado.}}",
+    "save": "Guardar lembretes",
+    "saving": "A guardar...",
+    "saved": "Lembretes no Discord guardados.",
+    "saveFailed": "Não foi possível guardar os lembretes.",
+    "loadFailed": "Não foi possível carregar os lembretes.",
+    "retry": "Tentar de novo",
+    "noStart": "Defina primeiro a data e a hora de início: os lembretes são contados a partir daí.",
+    "planTitle": "Plano",
+    "before": "{hours} h antes",
+    "sent": "enviado a {delivered} de {recipients}",
+    "skipped": "ignorado: o seu momento já tinha passado",
+    "planned": "previsto",
+    "freq": {
+      "off": "Desligado",
+      "once_24h": "Uma vez, 24 horas antes",
+      "daily_3d": "Todos os dias nos últimos 3 dias",
+      "every_12h_2d": "De 12 em 12 horas nos últimos 2 dias",
+      "every_6h_1d": "De 6 em 6 horas no último dia"
+    }
   }
 }

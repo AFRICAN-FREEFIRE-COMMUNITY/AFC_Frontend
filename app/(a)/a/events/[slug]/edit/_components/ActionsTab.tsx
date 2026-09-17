@@ -51,6 +51,9 @@ import { BroadcastHistory } from "@/app/(a)/a/_components/BroadcastHistory";
 // Group draw (owner 2026-09-12): teams turn over a sealed card to pick their own group. Its own
 // card below the seeding one; it talks to afc_draws through lib/draws.ts.
 import { GroupDrawCard } from "./GroupDrawCard";
+// Discord reminders the organizer sets (owner 2026-09-14, inbox #22): cadence + note, the bot
+// DMs the rostered players. Self-contained (loads events/<id>/discord-reminders/ itself).
+import { DiscordRemindersCard } from "./DiscordRemindersCard";
 import {
   CheckCircle2,
   ChevronRight,
@@ -1091,6 +1094,12 @@ export default function ActionsTab({
         stages={eventDetails.stages}
         onRefresh={onRefresh}
       />
+
+      {/* 2a' ── Discord reminders (owner 2026-09-14, inbox #22) ─────────────
+          The organizer picks how often the AFC bot reminds the rostered players on Discord
+          before the start; the backend sweep does the sending. Discord only, by the owner's
+          words. Both edit pages render this tab, so admins see it too. */}
+      <DiscordRemindersCard eventId={eventDetails.event_id} />
 
       {/* 2b ── Seeding Management (owner 2026-06-15) ──────────────────────
           Undo/redo group seeding and delete a group/stage with a disposition

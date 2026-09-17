@@ -654,5 +654,32 @@
     "toastClosed": "Draw closed.",
     "toastReset": "Draw reset.",
     "toastCloseTimeInvalid": "Pick a close time in the future."
+  },
+  "discordReminders": {
+    "title": "Discord reminders",
+    "description": "The AFC bot sends a Discord message to every rostered player who has Discord connected, before the event starts. You pick how often. Discord only.",
+    "frequencyLabel": "How often",
+    "noteLabel": "A note for every reminder (optional)",
+    "notePlaceholder": "Room details land on the site 30 minutes before.",
+    "recipientsNow": "{count, plural, =0 {No rostered player has Discord connected yet.} one {# rostered player has Discord connected.} other {# rostered players have Discord connected.}}",
+    "save": "Save reminders",
+    "saving": "Saving...",
+    "saved": "Discord reminders saved.",
+    "saveFailed": "Could not save the reminders.",
+    "loadFailed": "Could not load the reminders.",
+    "retry": "Try again",
+    "noStart": "Set the event's start date and time first: reminders are timed from it.",
+    "planTitle": "Plan",
+    "before": "{hours} h before",
+    "sent": "sent to {delivered} of {recipients}",
+    "skipped": "skipped: its moment had already passed",
+    "planned": "planned",
+    "freq": {
+      "off": "Off",
+      "once_24h": "Once, 24 hours before",
+      "daily_3d": "Every day for the last 3 days",
+      "every_12h_2d": "Every 12 hours for the last 2 days",
+      "every_6h_1d": "Every 6 hours on the last day"
+    }
   }
 }

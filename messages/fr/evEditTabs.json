@@ -654,5 +654,32 @@
     "toastClosed": "Tirage clôturé.",
     "toastReset": "Tirage réinitialisé.",
     "toastCloseTimeInvalid": "Choisissez une heure de fermeture à venir."
+  },
+  "discordReminders": {
+    "title": "Rappels Discord",
+    "description": "Le bot AFC envoie un message Discord à chaque joueur inscrit qui a connecté Discord, avant le début de l'événement. Vous choisissez la fréquence. Discord uniquement.",
+    "frequencyLabel": "À quelle fréquence",
+    "noteLabel": "Une note dans chaque rappel (facultatif)",
+    "notePlaceholder": "Les détails de la room arrivent sur le site 30 minutes avant.",
+    "recipientsNow": "{count, plural, =0 {Aucun joueur inscrit n'a encore connecté Discord.} one {# joueur inscrit a connecté Discord.} other {# joueurs inscrits ont connecté Discord.}}",
+    "save": "Enregistrer les rappels",
+    "saving": "Enregistrement...",
+    "saved": "Rappels Discord enregistrés.",
+    "saveFailed": "Impossible d'enregistrer les rappels.",
+    "loadFailed": "Impossible de charger les rappels.",
+    "retry": "Réessayer",
+    "noStart": "Définissez d'abord la date et l'heure de début : les rappels sont calés dessus.",
+    "planTitle": "Programme",
+    "before": "{hours} h avant",
+    "sent": "envoyé à {delivered} sur {recipients}",
+    "skipped": "ignoré : son moment était déjà passé",
+    "planned": "prévu",
+    "freq": {
+      "off": "Désactivé",
+      "once_24h": "Une fois, 24 heures avant",
+      "daily_3d": "Chaque jour pendant les 3 derniers jours",
+      "every_12h_2d": "Toutes les 12 heures pendant les 2 derniers jours",
+      "every_6h_1d": "Toutes les 6 heures le dernier jour"
+    }
   }
 }
