@@ -1,0 +1,45 @@
+{
+  "$comment": "How AFC_Frontend meets owner rules R55 to R61 (2026-09-17). A Next.js client of the AFC-B API: no database, no paid service, no login handler of its own. Secrets never live here (R55); the API's ownership rules and their runtime IDOR cases live in AFC-B/security/. Read by ~/.claude/skills/security-rules/scripts/check-security.mjs.",
+  "frontend": [
+    "app/",
+    "components/",
+    "lib/",
+    "contexts/",
+    "hooks/"
+  ],
+  "server": [],
+  "ignore": [
+    ".next/",
+    ".next-*/",
+    "node_modules/",
+    "public/downloads/"
+  ],
+  "db": null,
+  "migrations": [],
+  "rls": null,
+  "rateLimit": {
+    "middleware": [],
+    "edge": [],
+    "live": null
+  },
+  "ownership": {
+    "markers": [],
+    "cases": "security/idor-cases.json"
+  },
+  "billing": {
+    "register": "security/billing-caps.md",
+    "maxAgeDays": 90
+  },
+  "allow": [
+    {
+      "rule": "R61",
+      "path": "app/(organizer)/organizer/ai-key/page.tsx",
+      "reason": "not SQL: a next-intl message key built from the provider id (t.raw(`guides.${provider.id}.steps`)); nothing runs as a query or a command"
+    },
+    {
+      "rule": "R55",
+      "path": ".env",
+      "reason": "tracked on purpose: it holds only NEXT_PUBLIC_* values (the API origin, the site origin, the Google client id, feature flags), which ship in the bundle anyway; a secret never goes here, .env.local is git-ignored for those"
+    }
+  ]
+}

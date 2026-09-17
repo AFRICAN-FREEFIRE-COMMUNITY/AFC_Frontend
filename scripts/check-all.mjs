@@ -20,6 +20,7 @@
  *   check-signed-out scripts/check-signed-out.mjs  blocking: two possibly-absent identities compared
  *   check-slugs     scripts/check-slugs.mjs        ledgered: a numeric id in a visible address
  *   endpoint-callers ../<backend>/tools/endpoint_callers.py  blocking; skipped with no backend tree beside this one
+ *   security-ledger  ~/.claude/skills/security-rules (R55 to R61)  blocking when a HIGH count rose; skipped without the checker
  *
  * Usage:
  *   node scripts/check-all.mjs            run everything, print the table, exit 1 on a breach
@@ -113,6 +114,34 @@ const CHECKERS = [
       try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["check-parity: could not run"], counts: {} }; }
       const blocking = (parsed.failures || []).map((f) => `PARITY ${f.capability}: built on ${f.have.join(", ") || "no side"}, missing on ${f.lack.join(", ")}`);
       return { blocking, counts: {}, note: `${parsed.ok} rows on both sides${parsed.skipped.length ? `, ${parsed.skipped.length} skipped` : ""}` };
+    },
+  },
+  {
+    // The owner's security rules R55 to R61 (2026-09-17): the global checker's ledger for THIS
+    // tree and, when it sits beside us, the backend tree. `--ledger` fails only when a HIGH count
+    // has RISEN since security/debt.json was written (owner rule R32); a count that fell is
+    // written back. The checker lives with the owner's skills, so a machine without it (CI, a
+    // fresh clone) reports "skipped" rather than blocking. Onboarding: security-rules.json and
+    // security/ in each repo; the mapping table is WEBSITE/CLAUDE.md "Owner rules 55 to 61".
+    id: "security-ledger",
+    run() {
+      const home = process.env.USERPROFILE || process.env.HOME || "";
+      const checker = join(home, ".claude", "skills", "security-rules", "scripts", "check-security.mjs");
+      if (!existsSync(checker)) return { blocking: [], counts: {}, note: "skipped: check-security.mjs is not installed on this machine" };
+      const trees = [".", ...["../wt-be-ocr", "../backend"].filter((d) => existsSync(join(d, "security-rules.json")))];
+      const blocking = [], notes = [];
+      for (const dir of trees) {
+        const r = spawnSync("node", [checker, "--ledger", "--quiet", "--project", dir], { encoding: "utf8" });
+        const out = ((r.stdout || "") + (r.stderr || "")).trim();
+        // The ledger prints one row per rule: "R60     1/0           1/0" = HIGH/MEDIUM now, then
+        // at the baseline. Sum the HIGH column for the one-line note; the full table is a
+        // `check-security --ledger` away.
+        const highs = [...out.matchAll(/^\s*R\d\d\s+(\d+)\/(\d+)/gm)].reduce((n, m) => n + Number(m[1]), 0);
+        const rows = [...out.matchAll(/^\s*R\d\d\s+\d+\/\d+/gm)].length;
+        if (r.status !== 0) blocking.push(`${dir}: ${out.split(String.fromCharCode(10)).filter(Boolean).pop() || "ledger failed"}`);
+        else notes.push(`${dir === "." ? "frontend" : "backend"} ${rows} rules, ${highs} high`);
+      }
+      return { blocking, counts: {}, note: notes.join("; ") };
     },
   },
 ];
