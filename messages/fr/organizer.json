@@ -1523,7 +1523,18 @@
     "size": "Taille",
     "format": "Format",
     "noFace": "Cette image ne comporte aucun visage identifiable. Une image e-sport de joueur doit être une photo du joueur, et non un logo.",
-    "uploadAnyway": "Importer quand même"
+    "uploadAnyway": "Importer quand même",
+    "check": {
+      "badge": "À vérifier",
+      "looksFine": "C'est bon",
+      "cleared": "Marquée comme correcte. Elle ne sera plus listée.",
+      "clearError": "Impossible de marquer cette image comme correcte.",
+      "summary": "{count, plural, one {# image de joueur à vérifier avant la diffusion} other {# images de joueurs à vérifier avant la diffusion}}",
+      "reason": {
+        "no_face": "Aucun visage trouvé sur cette image. C'est souvent un logo, une capture de jeu ou un fond d'écran.",
+        "face_too_small": "Le visage est minuscule dans le cadre. Une image esport doit être un portrait en buste."
+      }
+    }
   },
   "broadcastKit": {
     "title": "Kit de diffusion",
