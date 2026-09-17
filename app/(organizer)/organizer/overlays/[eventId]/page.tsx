@@ -61,7 +61,8 @@ export default function OrganizerEventOverlayStudioPage() {
         const rows = Array.isArray(res.data) ? res.data : (res.data.events ?? []);
         const ev = rows.find((e: any) => Number(e.event_id) === eventId);
         if (!cancelled) {
-          setBelongsToOrg(!!ev);
+          // ours, or co-organized with a grant that holds can_upload_results (owner 2026-09-13)
+          setBelongsToOrg(!!ev && (!ev.co_organizer_of || !!ev.co_organizer_grant?.can_upload_results));
           setEventName(ev?.event_name || `Event ${eventId}`);
           setSlug(ev?.slug || "");
         }

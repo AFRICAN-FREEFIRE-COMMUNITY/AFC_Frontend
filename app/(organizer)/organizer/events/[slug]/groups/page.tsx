@@ -77,7 +77,7 @@ import { matchesSearch } from "@/lib/search";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
-import { useOrganizer } from "../../../_components/OrganizerContext";
+import { eventPermissions, useOrganizer, type CoOrganizerGrant } from "../../../_components/OrganizerContext";
 // ── ORGANIZER PARITY F1 (owner 2026-07-04): the SAME manual group-management controls AFC admins
 // already have on the event-edit "Stages & Groups" tab, surfaced here for an organizer's OWN events.
 // All three are the SHARED admin components, reused verbatim (never rebuilt) so behaviour + backend
@@ -159,8 +159,12 @@ export default function OrganizerEventGroupsPage({
 
   // The org permission the backend enforces for this read. Same gate the events-list
   // "Groups & Rosters" button + the backend endpoint use.
-  const canView =
-    membership.permissions.can_manage_registrations || isOwner;
+  // Co-organized (owner 2026-09-13): the inviting org's grant when this org does not own the
+  // event (null on its own events). Every gate below is the EFFECTIVE permission: the grant AND
+  // the member's own, so a co-org owner gets exactly the grant and never more.
+  const [grant, setGrant] = useState<CoOrganizerGrant>(null);
+  const perms = eventPermissions(membership, isOwner, grant);
+  const canView = perms.can_manage_registrations;
   const organizationId = membership.organization.organization_id;
 
   // ── slug → event resolution state (same pattern as the leaderboard page) ──
@@ -195,6 +199,8 @@ export default function OrganizerEventGroupsPage({
         );
         if (!match) {
           setNotMine(true);
+        } else {
+          setGrant(match.co_organizer_grant ?? null);
         }
       } catch {
         // A failed resolution is treated as "not yours" rather than crashing.

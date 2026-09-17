@@ -73,7 +73,7 @@ import { formatDate, formatMoneyInput } from "@/lib/utils";
 // Shared page-size constant (15) - same value the admin list paginates by.
 import { ITEMS_PER_PAGE } from "@/constants";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOrganizer } from "../_components/OrganizerContext";
+import { eventPermissions, useOrganizer } from "../_components/OrganizerContext";
 import { useLiveTick } from "@/hooks/useLiveTick";
 // Duplicate action: clones an event into a fresh draft (config + stage/group structure
 // only) via POST /events/<id>/duplicate-event/. Shared with the admin events list; gated
@@ -95,6 +95,10 @@ import { DownloadEventMediaButton } from "@/components/esport-media";
 interface OrgEvent {
   event_id: string;
   event_name: string;
+  // Co-organized (owner 2026-09-13): the grant the inviting org made when this org does not own
+  // the event (null on its own events), and that org's name for the badge.
+  co_organizer_grant?: Record<string, boolean> | null;
+  co_organizer_of?: string | null;
   event_date: string;
   event_status: string;
   competition_type: string;
@@ -163,21 +167,14 @@ export default function OrganizerEventsPage() {
   const organizationId = membership.organization.organization_id;
   // Same gate the admin surface uses, but on the organizer permission set.
   const canCreateEvents = membership.permissions.can_create_events || isOwner;
-  // Row-action gates (mirror the backend edit_event / upload-results permissions):
-  //   • Edit                → isOwner || can_edit_events   (links to .../[slug]/edit)
-  //   • Results & Leaderboard → isOwner || can_upload_results
-  //     ("results + leaderboards" is exactly what can_upload_results covers). The
-  //     leaderboard route itself is owned/built by a sibling agent; here we only link.
-  const canEditEvents = membership.permissions.can_edit_events || isOwner;
-  const canUploadResults =
-    membership.permissions.can_upload_results || isOwner;
-  //   • Groups & Rosters → isOwner || can_manage_registrations
-  //     (links to .../[slug]/groups, the LIVE-event seeding check that shows which
-  //     teams/players sit in which group). Same permission the groups page itself and
-  //     the backend get-event-group-rosters endpoint enforce, so the button only
-  //     appears for callers the backend will actually authorise.
-  const canManageRegistrations =
-    membership.permissions.can_manage_registrations || isOwner;
+  // Row-action gates are PER ROW now (owner 2026-09-13): eventPermissions(membership, isOwner,
+  // event.co_organizer_grant) inside the row. On the org's own events that is the old
+  // "isOwner || can_*" rule; on a co-organized event it is the inviting org's grant AND the
+  // member's own permissions. The mapping stays the one the backend enforces:
+  //   • Edit / Unpublish        → can_edit_events    (Delete only on the org's OWN events)
+  //   • Results & Leaderboard   → can_upload_results
+  //   • Groups & Rosters        → can_manage_registrations
+  //   • Duplicate               → can_create_events
 
   const [events, setEvents] = useState<OrgEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -507,12 +504,25 @@ export default function OrganizerEventsPage() {
                 </TableHeader>
                 <TableBody>
                   {/* Only the current page's slice - see paginatedEvents above. */}
-                  {paginatedEvents.map((event) => (
+                  {paginatedEvents.map((event) => {
+                  // What THIS row may do: the org's own permissions on its own event, the
+                  // grant AND the own permissions on a co-organized one (owner 2026-09-13).
+                  const rowCan = eventPermissions(membership, isOwner, event.co_organizer_grant);
+                  return (
                   <TableRow key={event.event_id}>
                     {/* Name + draft badge inline so drafts read at a glance. */}
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         {event.event_name}
+                        {event.co_organizer_of && (
+                          <Badge
+                            variant="outline"
+                            className="border-primary text-primary"
+                            title={t("eventsList.coOrganizedHint", { name: event.co_organizer_of })}
+                          >
+                            {t("eventsList.coOrganizedBadge", { name: event.co_organizer_of })}
+                          </Badge>
+                        )}
                         {event.is_draft && (
                           <Badge
                             variant="outline"
@@ -552,7 +562,7 @@ export default function OrganizerEventsPage() {
                             {t("eventsList.actions.view")}
                           </Link>
                         </Button>
-                        {canEditEvents && (
+                        {rowCan.can_edit_events && (
                           <Button asChild variant="outline" size="sm">
                             <Link href={`/organizer/events/${event.slug}/edit`}>
                               <IconPencil className="size-4" />
@@ -562,7 +572,7 @@ export default function OrganizerEventsPage() {
                         )}
                         {/* Unpublish -> set the event back to a draft (hides it from every
                             public list). Same gate as Edit; mirrors the admin events list. */}
-                        {canEditEvents && (
+                        {rowCan.can_edit_events && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -580,7 +590,7 @@ export default function OrganizerEventsPage() {
                             Gated on canEditEvents (can_edit_events || isOwner) to match the
                             backend delete_event gate org_can_event(user, "can_edit_events",
                             event). onSuccess re-fetches so the deleted row drops off the list. */}
-                        {canEditEvents && (
+                        {rowCan.can_edit_events && !event.co_organizer_of && (
                           <DeleteEventModal
                             eventId={event.event_id}
                             eventName={event.event_name}
@@ -592,7 +602,7 @@ export default function OrganizerEventsPage() {
                         {/* Duplicate → clone this event into a fresh draft, then deep-link
                             into editing the copy ("/organizer/events/<new-slug>/edit"). Gated
                             on can_create_events / owner to match the backend duplicate gate. */}
-                        {canCreateEvents && (
+                        {rowCan.can_create_events && (
                           <DuplicateEventButton
                             eventId={event.event_id}
                             eventName={event.event_name}
@@ -601,7 +611,7 @@ export default function OrganizerEventsPage() {
                             }
                           />
                         )}
-                        {canUploadResults && (
+                        {rowCan.can_upload_results && (
                           <Button asChild variant="outline" size="sm">
                             <Link
                               href={`/organizer/events/${event.slug}/leaderboard`}
@@ -624,7 +634,7 @@ export default function OrganizerEventsPage() {
                         {/* Groups & Rosters: live-event seeding check (stage → group →
                             teams → players). Links to the new groups page; gated on the
                             registrations permission to match that page + the backend. */}
-                        {canManageRegistrations && (
+                        {rowCan.can_manage_registrations && (
                           <Button asChild variant="outline" size="sm">
                             <Link
                               href={`/organizer/events/${event.slug}/groups`}
@@ -640,7 +650,8 @@ export default function OrganizerEventsPage() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
                 </TableBody>
               </Table>
               {/* Pagination footer - same control + "Showing X-Y of Z" summary the admin

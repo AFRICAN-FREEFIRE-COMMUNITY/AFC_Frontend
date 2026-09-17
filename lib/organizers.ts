@@ -25,6 +25,21 @@ import { authHeaders, optionalAuthHeaders } from "@/lib/http";
 
 const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
 
+// One co-organizer invite as GET organizers/co-organizers/mine/ returns it (owner 2026-09-13):
+// the invited side's view. `permissions` is the grant the inviting org made; on acceptance the
+// portal scopes itself to it (OrganizerContext.eventPermissions).
+export interface CoOrganizerInvite {
+  id: number;
+  status: "pending" | "accepted" | "declined";
+  event: { event_id: number; event_name: string; slug: string; start_date: string; end_date: string };
+  organization: { organization_id: number; name: string; slug: string };
+  invited_by: { name: string; slug: string | null };
+  permissions: Record<string, boolean>;
+  payout_percent: number;
+  created_at: string;
+  responded_at: string | null;
+}
+
 const url = (path: string) => `${BASE}/organizers/${path}`;
 
 async function aGet<T = any>(path: string, params?: Record<string, any>): Promise<T> {
@@ -94,6 +109,9 @@ export const organizersApi = {
   }) => aPost("co-organizers/invite/", body),
   respondCoOrganizer: (coOrganizerId: number, action: "accept" | "decline") =>
     aPost("co-organizers/respond/", { co_organizer_id: coOrganizerId, action }),
+  // The invited side (owner 2026-09-13): every invite addressed to an org the caller OWNS.
+  // Consumed by /organizer/invites and the overview's invitations card.
+  myCoOrganizerInvites: () => aGet<{ invites: CoOrganizerInvite[] }>("co-organizers/mine/"),
   revokeCoOrganizer: (coOrganizerId: number) =>
     aPost("co-organizers/revoke/", { co_organizer_id: coOrganizerId }),
 

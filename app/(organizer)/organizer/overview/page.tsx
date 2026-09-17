@@ -19,7 +19,10 @@ import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { IconBuilding, IconCalendarEvent, IconUsers } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import { IconBuilding, IconCalendarEvent, IconMailForward, IconUsers } from "@tabler/icons-react";
+import Link from "next/link";
+import { NewBadge } from "@/components/NewBadge";
 import { organizersApi } from "@/lib/organizers";
 import { useOrganizer } from "../_components/OrganizerContext";
 
@@ -79,6 +82,23 @@ export default function OrganizerOverviewPage() {
   const [memberCount, setMemberCount] = useState(0);
   const [eventCount, setEventCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  // Co-organizer invites waiting for this org's owner (owner 2026-09-13). mine/ answers every
+  // org the caller owns; only the selected org's pending ones are counted here.
+  const [pendingInvites, setPendingInvites] = useState(0);
+
+  useEffect(() => {
+    let live = true;
+    organizersApi
+      .myCoOrganizerInvites()
+      .then((res) => {
+        if (!live) return;
+        setPendingInvites((res?.invites ?? []).filter((i) => i.status === "pending" && i.organization.slug === slug).length);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [slug]);
 
   // ── Load the selected org's detail (and its member/event lists for counts). ──
   useEffect(() => {
@@ -159,6 +179,30 @@ export default function OrganizerOverviewPage() {
               </p>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Event invitations (owner 2026-09-13): other organizations inviting this one to
+          co-organize an event. The owner answers on /organizer/invites. */}
+      <Card>
+        <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <IconMailForward className="size-5" />
+          </div>
+          <div className="flex flex-1 flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold">{t("overview.invites.title")}</h2>
+              <NewBadge since="2026-09-13" />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {pendingInvites > 0
+                ? t("overview.invites.pending", { count: pendingInvites })
+                : t("overview.invites.none")}
+            </p>
+          </div>
+          <Button asChild variant={pendingInvites > 0 ? "default" : "outline"} size="sm">
+            <Link href="/organizer/invites">{t("overview.invites.open")}</Link>
+          </Button>
         </CardContent>
       </Card>
 

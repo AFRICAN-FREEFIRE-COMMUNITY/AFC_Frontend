@@ -100,7 +100,7 @@ import { IconCheck, IconLock, IconTrash, IconRefresh, IconTrophy } from "@tabler
 // the Review dialog so organizers get the SAME correct-and-commit surface admins do.
 // It PATCHes/commits via ocrApi against /events/ocr-session/<id>/ (+ /commit/).
 import { OCRReviewTable } from "@/app/(a)/a/leaderboards/_components/OCRReviewTable";
-import { useOrganizer } from "../../../_components/OrganizerContext";
+import { eventPermissions, useOrganizer, type CoOrganizerGrant } from "../../../_components/OrganizerContext";
 
 type Params = { slug: string };
 
@@ -144,7 +144,12 @@ export default function OrganizerOcrPage({ params }: { params: Promise<Params> }
 
   // Same org permission the backend enforces on every OCR endpoint
   // (org_can_event(user, "can_upload_results", event)).
-  const canUploadResults = membership.permissions.can_upload_results || isOwner;
+  // Co-organized (owner 2026-09-13): the inviting org's grant when this org does not own the
+  // event (null on its own events). Every gate below is the EFFECTIVE permission: the grant AND
+  // the member's own, so a co-org owner gets exactly the grant and never more.
+  const [grant, setGrant] = useState<CoOrganizerGrant>(null);
+  const perms = eventPermissions(membership, isOwner, grant);
+  const canUploadResults = perms.can_upload_results;
   const organizationId = membership.organization.organization_id;
 
   // ── slug → event resolution state (same pattern as the sibling pages) ──
@@ -186,6 +191,7 @@ export default function OrganizerOcrPage({ params }: { params: Promise<Params> }
         if (!match) {
           setNotMine(true);
         } else {
+          setGrant(match.co_organizer_grant ?? null);
           setEventId(String(match.event_id));
           setEventName(match.event_name ?? slug);
         }

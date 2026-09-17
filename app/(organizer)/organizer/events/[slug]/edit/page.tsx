@@ -96,7 +96,7 @@ import {
 } from "@/lib/eventChangeSummary";
 import axios from "axios";
 import { FullLoader } from "@/components/Loader";
-import { useOrganizer } from "../../../_components/OrganizerContext";
+import { eventPermissions, myGrantFor, useOrganizer, type CoOrganizerGrant } from "../../../_components/OrganizerContext";
 
 // Reuse the admin edit schema + helpers + every admin edit tab/modal (Approach A).
 // Importing from the admin edit folder keeps a single source of truth - the organizer
@@ -287,8 +287,12 @@ export default function OrganizerEditEventPage({
   // ── Org context: gate the page + verify the event belongs to THIS org ────────
   const { slug: orgSlug, membership, isOwner } = useOrganizer();
   const organizationId = membership.organization.organization_id;
-  // Same shape the backend edit_event already authorises: owner OR can_edit_events.
-  const canEditEvents = membership.permissions.can_edit_events || isOwner;
+  // Same shape the backend edit_event already authorises: owner OR can_edit_events, AND on a
+  // co-organized event the inviting org's grant (owner 2026-09-13). The grant arrives with the
+  // event (get-event-details my_co_organizer_grants); until then the member's own rule holds,
+  // which is what decides whether the event is fetched at all.
+  const [grant, setGrant] = useState<CoOrganizerGrant>(null);
+  const canEditEvents = eventPermissions(membership, isOwner, grant).can_edit_events;
 
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -796,7 +800,11 @@ export default function OrganizerEditEventPage({
       // context slug, the event isn't this org's → show the "not yours" state and
       // never load it. This works for drafts too (the events-list-based guard would
       // not, since that list omits drafts).
-      if (!ed || ed.organization_slug !== orgSlug) {
+      // A co-organized event (owner 2026-09-13): the selected org is one of the event's
+      // ACCEPTED co-organizers and its grant holds can_edit_events. Anything else is not ours.
+      const coGrant = ed ? myGrantFor(ed.my_co_organizer_grants, orgSlug) : null;
+      if (ed && ed.organization_slug !== orgSlug && coGrant) setGrant(coGrant);
+      if (!ed || (ed.organization_slug !== orgSlug && !(coGrant && coGrant.can_edit_events))) {
         setNotMyOrgEvent(true);
         setLoadingEvent(false);
         setInitialLoading(false);
@@ -2273,8 +2281,10 @@ export default function OrganizerEditEventPage({
                   the PRIMARY org's OWNER (or an AFC admin) invite/revoke, so it renders only for
                   isOwner - a can_edit_events member would just get 403s from every action in it.
                   primaryOrgSlug = the context org's slug (the org guard above already proved the
-                  event is homed to it), so the picker excludes the owning org itself. */}
-              {isOwner && (
+                  event is homed to it), so the picker excludes the owning org itself. A co-org
+                  owner editing under a grant (owner 2026-09-13) is not the primary org, so the
+                  panel is not theirs either. */}
+              {isOwner && !grant && (
                 <CoOrganizersPanel
                   eventId={eventDetails.event_id}
                   primaryOrgSlug={orgSlug}
