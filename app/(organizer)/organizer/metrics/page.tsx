@@ -45,6 +45,7 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 import { formatLocalTime, getActiveLocale, getBrowserTimeZone } from "@/lib/i18n/time";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -255,10 +256,10 @@ const PIE_COLORS = [
 
 // "$12,450" style for whole-dollar prize amounts (mirrors TeamStatisticsTab.fmtMoney).
 const fmtMoney = (n: number): string =>
-  "$" + (n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  "$" + formatNumber(n || 0, { maximumFractionDigits: 0 });
 
 // "1,234" thousands-separated integer.
-const fmtInt = (n: number): string => (n || 0).toLocaleString();
+const fmtInt = (n: number): string => formatNumber(n || 0);
 
 // "YYYY-MM" → "Mon YY" e.g. "2026-06" → "Jun 26" for compact axis labels.
 const fmtMonth = (key: string): string => {

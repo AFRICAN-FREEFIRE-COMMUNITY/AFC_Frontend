@@ -184,7 +184,13 @@ export default function OrganizerLeaderboardsPage() {
           ),
         ]);
 
-        setEvents(eventsRes.data?.events ?? []);
+        // A co-organized event (owner 2026-09-13) is listed only when the inviting org granted
+        // can_upload_results; results and leaderboards are exactly what this surface is.
+        setEvents(
+          (eventsRes.data?.events ?? []).filter(
+            (e: any) => !e.co_organizer_of || !!e.co_organizer_grant?.can_upload_results,
+          ),
+        );
         setLeaderboards(leaderboardsRes.data?.leaderboards ?? []);
       } catch (err: any) {
         if (!background)

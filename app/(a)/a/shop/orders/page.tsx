@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import {
   Pagination,
   PaginationContent,
@@ -77,13 +78,8 @@ export default function page() {
     if (token) fetchAllOrders();
   }, [token]);
 
-  const formatPrice = (price: string | number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      minimumFractionDigits: 0,
-    }).format(Number(price));
-  };
+  // Money goes through lib/money (the active UI locale, NGN's own decimals).
+  const formatPrice = (price: string | number) => formatMoney(Number(price), "NGN");
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -287,7 +283,7 @@ export default function page() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
                           <Link
-                            href={`/a/shop/orders/${order.order_id}`}
+                            href={`/a/shop/orders/${order.public_token || order.order_id}`}
                             data-tour="shop-orders-view-details"
                           >
                             <IconEye />

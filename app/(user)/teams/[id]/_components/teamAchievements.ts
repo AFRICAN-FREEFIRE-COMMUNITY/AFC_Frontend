@@ -57,6 +57,7 @@
 // CONSUMED BY: TeamAchievementsTab.tsx (the new Achievements tab body).
 // ──────────────────────────────────────────────────────────────────────────────
 
+import { formatNumber } from "@/lib/i18n/number";
 import {
   IconTrophy,
   IconMedal,
@@ -141,7 +142,7 @@ function ladder(
   return tiers.map((t) => ({
     id: `${metric}_${t.threshold}`,
     title: t.title,
-    description: `Reach ${t.threshold.toLocaleString()} ${unit}.`,
+    description: `Reach ${formatNumber(t.threshold)} ${unit}.`,
     category: "lifetime" as const,
     group,
     points: t.points,

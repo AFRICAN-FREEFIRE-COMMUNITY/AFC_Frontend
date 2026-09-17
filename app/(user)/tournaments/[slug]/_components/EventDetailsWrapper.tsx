@@ -1,5 +1,6 @@
 "use client";
 
+import { formatNumber } from "@/lib/i18n/number";
 import React, {
   useState,
   useEffect,
@@ -183,7 +184,7 @@ const ZERO_DECIMAL_CCY = new Set(["JPY", "KRW", "VND", "CLP", "XOF", "XAF"]);
 const fmtFee = (amount: number, currency: string) => {
   const ccy = (currency || "USD").toUpperCase();
   const digits = ZERO_DECIMAL_CCY.has(ccy) ? 0 : 2;
-  return `${ccy} ${amount.toLocaleString(undefined, {
+  return `${ccy} ${formatNumber(amount, {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   })}`;
@@ -2311,7 +2312,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               <p>
                 {t("register.info.prizePool", {
                   value: /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
-                    ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+                    ? `$${formatNumber(parseFloat(eventDetails.prizepool))}`
                     : eventDetails.prizepool,
                 })}
               </p>
@@ -5733,7 +5734,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           <p>
             {t("detail.prizePool", {
               value: /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
-                ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+                ? `$${formatNumber(parseFloat(eventDetails.prizepool))}`
                 : eventDetails.prizepool,
             })}
           </p>
@@ -6615,7 +6616,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               {Object.entries(eventDetails.prize_distribution)?.map(
                 ([place, prize]) => (
                   <li key={place}>
-                    {place.toUpperCase()}: {prize.toLocaleString()}
+                    {place.toUpperCase()}: {formatNumber(prize)}
                   </li>
                 ),
               )}

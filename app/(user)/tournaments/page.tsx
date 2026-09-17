@@ -1,5 +1,6 @@
 "use client";
 import { FullLoader, Loader } from "@/components/Loader";
+import { formatNumber } from "@/lib/i18n/number";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -131,9 +132,7 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
     typeof event.registration_fee === "number" &&
     event.registration_fee > 0;
   const paidFeeLabel = isPaid
-    ? `${event.registration_fee_currency || "USD"} ${Number(
-        event.registration_fee,
-      ).toLocaleString(undefined, {
+    ? `${event.registration_fee_currency || "USD"} ${formatNumber(Number(event.registration_fee), {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })}`

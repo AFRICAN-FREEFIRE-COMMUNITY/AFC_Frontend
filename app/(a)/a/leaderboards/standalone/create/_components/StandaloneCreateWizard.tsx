@@ -29,6 +29,8 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+// ?ref=<slug> is the edit deep link's address (owner rule R22); the wizard keys on the id.
+import { useStandaloneRef } from "@/lib/addressRef";
 import { PageHeader } from "@/components/PageHeader";
 import { FullLoader } from "@/components/Loader";
 import { cn } from "@/lib/utils";
@@ -86,7 +88,12 @@ function StandaloneCreateWizardInner({
   // existed the wizard ignored the param, so editing a draft meant re-typing the basics and
   // "Create and continue" minted a SECOND draft (owner 2026-06-12). Now the draft is loaded
   // into the wizard state and BasicsStep runs in edit mode (prefilled, PATCH, "Continue").
-  const editId = useSearchParams().get("id");
+  // ?ref=<slug> is the address (owner rule R22); ?id= from an old link still answers.
+  const searchParams = useSearchParams();
+  const editId = useStandaloneRef(
+    searchParams.get("ref") ?? searchParams.get("id") ?? undefined,
+    (slug) => `${basePath}/create?ref=${slug}`,
+  ).id || null;
 
   // 1-based step index. Step 1 is always reachable; steps 2-4 unlock once the draft exists.
   const [step, setStep] = useState(1);
@@ -156,7 +163,7 @@ function StandaloneCreateWizardInner({
   // Step 4 publish done -> jump to the view page. basePath keeps this surface-correct:
   // admin -> /a/leaderboards/standalone/<id>, organizer -> /organizer/leaderboards/standalone/<id>.
   const handlePublished = () => {
-    if (leaderboard) router.push(`${basePath}/${leaderboard.id}`);
+    if (leaderboard) router.push(`${basePath}/${leaderboard.slug || leaderboard.id}`);
   };
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { FullLoader } from "@/components/Loader";
+import { formatNumber } from "@/lib/i18n/number";
 import { formatLocalTime } from "@/lib/i18n/time";
 // One rule for "is this Clash Squad?" - the plain "cs" format the picker
 // writes since 2026-08-13 does not match the old "cs - " literals.
@@ -885,7 +886,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   } = calculatedData;
 
   const formattedPrizepool = /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
-    ? `$${parseFloat(eventDetails.prizepool).toLocaleString()}`
+    ? `$${formatNumber(parseFloat(eventDetails.prizepool))}`
     : eventDetails.prizepool;
 
   // Get stage status
@@ -991,10 +992,10 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             </Button>
           )}
           {/* Jump to THIS event's leaderboard (results, standings, OBS overlay link, broadcast control).
-              The leaderboard edit route is keyed by the numeric event id (owner 2026-07-01). */}
+              The leaderboard edit route is keyed by the event slug (owner rule R22, 2026-09-13). */}
           {!allStagesCs && (
             <Button className="flex-1 lg:flex-none" asChild variant="outline">
-              <Link href={`/a/leaderboards/${eventDetails.event_id}/edit`}>
+              <Link href={`/a/leaderboards/${slug}/edit`}>
                 <IconChartBar />
                 Leaderboard
               </Link>

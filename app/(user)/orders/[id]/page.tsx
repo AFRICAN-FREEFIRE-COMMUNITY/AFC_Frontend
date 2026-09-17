@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -46,6 +46,7 @@ export default function OrderDetailsPage() {
   const t = useTranslations("shop");
   const { rates, currency } = useCurrency();
   const { id } = useParams();
+  const router = useRouter();
   const { token } = useAuth();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -57,11 +58,14 @@ export default function OrderDetailsPage() {
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
+        // `ref` is the order's public token or a legacy numeric id (owner rule R22); a move comes
+        // back on the envelope as `moved_to` and the address is rewritten in place, no second fetch.
         const response = await axios.get(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-order-details/?order_id=${id}`,
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/get-order-details/?ref=${encodeURIComponent(String(id))}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         setOrder(response.data.order);
+        if (response.data.moved_to && response.data.moved_to !== `/orders/${id}`) router.replace(response.data.moved_to);
       } catch (error) {
         console.error("Error fetching order:", error);
       } finally {
@@ -70,7 +74,7 @@ export default function OrderDetailsPage() {
     };
 
     if (token && id) fetchOrderDetails();
-  }, [tick, id, token]);
+  }, [tick, id, token, router]);
 
   if (loading) {
     return (

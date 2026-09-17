@@ -199,7 +199,7 @@ export default function VendorOrdersPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button asChild variant="outline" size="sm">
-                        <Link href={`/vendor/orders/${order.order_id}`}>
+                        <Link href={`/vendor/orders/${order.public_token || order.order_id}`}>
                           Open
                         </Link>
                       </Button>

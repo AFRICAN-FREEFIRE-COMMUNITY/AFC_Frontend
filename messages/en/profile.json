@@ -285,7 +285,14 @@
       "uploading": "Uploading esport image...",
       "saved": "Esport image saved.",
       "uploadFailed": "Failed to upload the esport image.",
-      "tooLarge": "That image is too large. The maximum size is 15MB - please pick a smaller photo (a normal phone picture works)."
+      "tooLarge": "That image is too large. The maximum size is 15MB - please pick a smaller photo (a normal phone picture works).",
+      "check": {
+        "toast": "Saved, but please read the note on your image.",
+        "generic": "Saved, but we could not see a clear photo of your face in it. An organizer will review this image. It must be a photo of YOU: uploading somebody else's picture, a logo or any image that is not your own face can get you and your team banned.",
+        "no_face": "Saved, but we could not find a face in this picture. An organizer will review it. It must be a photo of YOU: uploading somebody else's picture, a logo or any image that is not your own face can get you and your team banned.",
+        "face_too_small": "Saved, but your face is very small in this picture. An esport image should be a head and shoulders shot. An organizer will review it, and an image that is not your own face can get you and your team banned.",
+        "not_a_person": "That does not look like a photo of a person, so it was not uploaded. Your esport image has to be a photo of YOU, head and shoulders, with your face clearly visible: not a logo, a game screenshot or a wallpaper."
+      }
     },
     "identityLocked": "Locked while you're registered for an event. You can edit this again once your events are over.",
     "identityLockedIn": "{count, plural, =1 {Locked while you're playing {events}. You can edit this again once it is over.} other {Locked while you're playing {events}. You can edit this again once they are over.}}",

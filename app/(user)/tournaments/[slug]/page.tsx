@@ -1,4 +1,5 @@
 import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
+import { formatNumber } from "@/lib/i18n/number";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { env } from "@/lib/env";
@@ -75,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (data.competition_type && data.participant_type)
     parts.push(`${data.competition_type} • ${data.participant_type}`);
   if (data.prizepool && parseFloat(data.prizepool) > 0)
-    parts.push(`Prize Pool: $${parseFloat(data.prizepool).toLocaleString()}`);
+    parts.push(`Prize Pool: $${formatNumber(parseFloat(data.prizepool))}`);
   if (data.start_date) parts.push(`Starts: ${data.start_date}`);
   if (data.event_status) parts.push(`Status: ${data.event_status}`);
   const description =

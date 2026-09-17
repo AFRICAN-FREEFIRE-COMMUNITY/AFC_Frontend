@@ -22,6 +22,7 @@
 // sidebar entry (constants/nav-links.ts).
 
 import { useCallback, useEffect, useState } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 import { toast } from "sonner";
 
 import { FullLoader } from "@/components/Loader";
@@ -108,7 +109,7 @@ function ReleaseStatusBadge({ status }: { status: string }) {
 // Format an amount + currency for display (e.g. "USD 5.00"). Kept simple/locale-aware
 // without assuming the currency symbol, since the fee currency is configurable.
 function formatAmount(amount: number, currency: string) {
-  return `${currency} ${Number(amount).toLocaleString(undefined, {
+  return `${currency} ${formatNumber(Number(amount), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;

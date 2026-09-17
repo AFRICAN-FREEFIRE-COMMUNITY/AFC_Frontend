@@ -9,6 +9,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+// The address is the event's slug (owner rule R22); the studio needs the numeric id.
+import { useEventRef } from "@/lib/addressRef";
 import { toast } from "sonner";
 import axios from "axios";
 
@@ -20,10 +22,11 @@ import { EventOverlayStudio } from "@/components/overlay/EventOverlayStudio";
 export default function AdminEventOverlayStudioPage() {
   const { token } = useAuth();
   const params = useParams<{ eventId: string }>();
-  const eventId = Number(params?.eventId);
+  const eventId = Number(useEventRef(params?.eventId, (slug) => `/a/overlays/${slug}`).id);
 
   const [loading, setLoading] = useState(true);
   const [eventName, setEventName] = useState("");
+  const [eventSlug, setEventSlug] = useState("");
   const [orgId, setOrgId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -39,6 +42,7 @@ export default function AdminEventOverlayStudioPage() {
         const ev = rows.find((e: any) => Number(e.event_id) === eventId);
         if (!cancelled) {
           setEventName(ev?.event_name || `Event ${eventId}`);
+          setEventSlug(ev?.slug || "");
           setOrgId(ev?.organization ?? ev?.organization_id ?? null);
         }
       } catch {
@@ -60,7 +64,7 @@ export default function AdminEventOverlayStudioPage() {
       eventName={eventName}
       organizationId={orgId}
       backHref="/a/overlays"
-      leaderboardHref={`/a/leaderboards/${eventId}/edit`}
+      leaderboardHref={`/a/leaderboards/${eventSlug || eventId}/edit`}
     />
   );
 }

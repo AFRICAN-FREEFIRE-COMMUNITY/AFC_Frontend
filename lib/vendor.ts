@@ -66,6 +66,9 @@ export interface VendorOrderItem {
 // One order row as returned by GET /shop/fulfilment/my-orders/.
 export interface VendorOrder {
   order_id: number;
+  /** The address /vendor/orders/<public_token> (owner rule R22). Empty on a row minted before
+   *  the backfill ran; the link falls back to the id, which the page still resolves. */
+  public_token?: string;
   fulfilment_state: FulfilmentState | null;
   ship_date: string | null; // "YYYY-MM-DD" once set, else null
   buyer_name: string;

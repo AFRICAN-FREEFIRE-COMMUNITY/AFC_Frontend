@@ -131,7 +131,7 @@ export function StandaloneLeaderboardView({
                 defaultTitle={leaderboard.name}
               />
               <Button asChild variant="outline" size="sm">
-                <Link href={`${basePath}/create?id=${leaderboard.id}`}>
+                <Link href={`${basePath}/create?ref=${leaderboard.slug || leaderboard.id}`}>
                   <IconPencil className="size-4" /> Edit
                 </Link>
               </Button>

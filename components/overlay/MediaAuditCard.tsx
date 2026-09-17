@@ -40,7 +40,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IconFlag, IconLoader2, IconPhotoOff, IconPhotoCheck, IconUpload, IconDownload } from "@tabler/icons-react";
+import { IconFlag, IconLoader2, IconPhotoOff, IconPhotoCheck, IconUpload, IconDownload, IconEyeQuestion } from "@tabler/icons-react";
+// The picture check's queue is new on this card, so it wears the shared self-expiring NEW tag.
+import { NewBadge } from "@/components/NewBadge";
 
 // Size presets for the per-item Download control (owner 2026-07-04). "original" keeps source dims;
 // "custom" reveals width/height inputs. The named presets mirror the Free Fire asset slots so a
@@ -71,6 +73,13 @@ interface PlayerRow {
   image_url: string | null;
   suppressed: boolean;
   flagged: boolean;
+  // What the picture check saw in this player's esport image (owner 2026-09-13, backend
+  // afc_auth/face_check.py): "" never checked, "ok", "cleared" (a human said it is fine),
+  // "no_face" or "face_too_small". The backend decides what counts as needing a look, so the
+  // card renders `image_needs_review` rather than re-deriving the rule here. Optional: an older
+  // backend build simply reports nothing and the column disappears.
+  image_check?: string;
+  image_needs_review?: boolean;
 }
 
 // ── DownloadControl: a popover on a media row to download that ONE logo/image with a chosen file
@@ -201,6 +210,10 @@ const MediaRow = ({
     uploadingState,
     t,
     onZoom,
+    needsReview,
+    checkReason,
+    onLooksFine,
+    clearingState,
   }: {
     label: string;
     sub?: string | null;
@@ -215,6 +228,11 @@ const MediaRow = ({
     uploadingState?: boolean;
     t: ReturnType<typeof useTranslations>;
     onZoom: (src: string, label: string) => void;
+    // The picture check flagged this image and nobody has settled it yet (owner 2026-09-13).
+    needsReview?: boolean;
+    checkReason?: string;
+    onLooksFine?: () => void;
+    clearingState?: boolean;
   }) => (
     <div className="flex items-center gap-2 py-1.5">
       {img ? (
@@ -267,6 +285,34 @@ const MediaRow = ({
               )}
             </span>
           </label>
+        ) : null}
+        {/* The picture check wants a human to look (owner 2026-09-13). It sits BEFORE the other
+            controls because it is the one that needs a decision, and it carries the reason in
+            plain words: a detector cannot tell a photo of the player from a photo of anybody
+            else, so the person reading this is the one who decides. */}
+        {needsReview && !missing ? (
+          <>
+            <Badge
+              variant="outline"
+              className="rounded-full border-orange-500/60 px-2 py-0 text-[0.6rem] text-orange-500"
+              title={checkReason}
+            >
+              <IconEyeQuestion className="mr-0.5 size-3" />
+              {t("mediaAudit.check.badge")}
+            </Badge>
+            {onLooksFine ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 px-1.5 text-[0.65rem]"
+                onClick={onLooksFine}
+                disabled={clearingState}
+              >
+                {clearingState ? <IconLoader2 className="size-3 animate-spin" /> : null}
+                {t("mediaAudit.check.looksFine")}
+              </Button>
+            ) : null}
+          </>
         ) : null}
         {missing ? (
           <Badge variant="outline" className="rounded-full border-amber-500/50 px-2 py-0 text-[0.6rem] text-amber-500">
@@ -385,6 +431,8 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
   const [loading, setLoading] = useState(true);
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [players, setPlayers] = useState<PlayerRow[]>([]);
+  // Which player's flag is being cleared right now (disables that one button only).
+  const [clearing, setClearing] = useState<number | null>(null);
 
   const base = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}`;
 
@@ -420,6 +468,30 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
     }
   };
 
+  // "This picture is fine" (owner 2026-09-13). The picture check flagged a player's esport
+  // image and the person looking at it disagrees - which is the normal case for a logo with a
+  // cartoon face, or a real photo the detector could not read. It settles that image for good:
+  // POST events/<id>/media-image-check/clear/ writes "cleared" on the profile and no re-check
+  // overrules it. No confirm dialog: it is reversible by uploading a new picture, and the person
+  // doing it is looking straight at the thumbnail. Gated server-side by the same broadcast gate
+  // that let them open this studio.
+  const clearImageCheck = async (userId: number) => {
+    setClearing(userId);
+    try {
+      await axios.post(
+        `${base}/media-image-check/clear/`,
+        { user_id: userId },
+        { headers: authHeaders() },
+      );
+      toast.success(t("mediaAudit.check.cleared"));
+      load();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("mediaAudit.check.clearError"));
+    } finally {
+      setClearing(null);
+    }
+  };
+
   const suppress = async (
     kind: "team_logo" | "esports_image",
     id: number,
@@ -451,6 +523,8 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
 
   const missingTeams = teams.filter((x) => !x.has_logo);
   const missingPlayers = players.filter((x) => !x.has_image);
+  // Rostered players whose esport image the picture check flagged and nobody has settled.
+  const reviewPlayers = players.filter((x) => x.image_needs_review);
 
 
   return (
@@ -466,6 +540,15 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
         </span>
       </div>
       <p className="text-muted-foreground mb-3 text-xs">{t("mediaAudit.description")}</p>
+      {/* The picture check's queue (owner 2026-09-13). Only drawn when there is something to do,
+          so a clean event never carries a scary orange line. */}
+      {reviewPlayers.length > 0 ? (
+        <p className="mb-3 flex flex-wrap items-center gap-1.5 text-xs text-orange-500">
+          <IconEyeQuestion className="size-3.5" />
+          {t("mediaAudit.check.summary", { count: reviewPlayers.length })}
+          <NewBadge since="2026-09-13" />
+        </p>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
@@ -520,6 +603,14 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
                   uploadingState={uploading === `player_image-${x.user_id}`}
                   t={t}
                   onZoom={(src, label) => setLightbox({ src, label })}
+                  needsReview={x.image_needs_review}
+                  checkReason={
+                    x.image_check && t.has(`mediaAudit.check.reason.${x.image_check}`)
+                      ? t(`mediaAudit.check.reason.${x.image_check}`)
+                      : undefined
+                  }
+                  onLooksFine={() => clearImageCheck(x.user_id)}
+                  clearingState={clearing === x.user_id}
                 />
               ))
             )}

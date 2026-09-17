@@ -16,6 +16,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { use } from "react";
+import { FullLoader } from "@/components/Loader";
+import { useStandaloneRef } from "@/lib/addressRef";
 import { StandaloneLeaderboardView } from "../_components/StandaloneLeaderboardView";
 
 type Params = { id: string };
@@ -25,7 +27,10 @@ export default function StandaloneLeaderboardViewPage({
 }: {
   params: Promise<Params>;
 }) {
-  const { id } = use(params);
-  // Admin default basePath -> "Edit" deep-link to /a/leaderboards/standalone/create?id=<id>.
+  const { id: ref } = use(params);
+  // The address is the leaderboard's slug (owner rule R22); the view needs the numeric id.
+  const { id } = useStandaloneRef(ref, (slug) => `/a/leaderboards/standalone/${slug}`);
+  // Admin default basePath -> "Edit" deep-link to /a/leaderboards/standalone/create?ref=<slug>.
+  if (!id) return <FullLoader />;
   return <StandaloneLeaderboardView id={id} />;
 }
