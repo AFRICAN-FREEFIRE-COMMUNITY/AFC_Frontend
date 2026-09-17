@@ -1,0 +1,82 @@
+{
+  "title": "Apoio",
+  "subtitle": "Todas as mensagens que as pessoas enviam à AFC, e as respostas que seguem.",
+  "search": "Procurar nome, e-mail, ticket ou texto",
+  "refresh": "Atualizar",
+  "loading": "A carregar",
+  "queue": "Tickets",
+  "empty": "Ainda não há tickets nesta vista.",
+  "pickOne": "Escolha um ticket à esquerda para o ler.",
+  "noAccess": "Não tem acesso ao apoio. Peça a um head admin o papel de apoio.",
+  "counts": "{open} à espera de nós, {total} em vista",
+  "openedOn": "Aberto a",
+  "account": "Conta: {name}",
+  "assignedTo": "Com {name}",
+  "hasDiscord": "No Discord",
+  "theirPage": "Abrir a página que eles veem",
+  "filters": {
+    "all": "Todos os estados"
+  },
+  "status": {
+    "open": "À espera de nós",
+    "waiting": "À espera deles",
+    "resolved": "Resolvido",
+    "closed": "Fechado",
+    "changed": "Estado guardado."
+  },
+  "thread": {
+    "empty": "Ainda não há nada nesta conversa.",
+    "fromAfc": "Apoio AFC",
+    "fromSender": "Eles",
+    "automatic": "(automático)"
+  },
+  "composer": {
+    "placeholder": "Escreva a sua mensagem",
+    "staffPlaceholder": "Escreva a sua resposta. Segue por e-mail e, quando temos, também pelo Discord.",
+    "attach": "Anexar ficheiros",
+    "limits": "Até 6 ficheiros, 20 MB cada. Fotografias, vídeo ou documentos.",
+    "removeFile": "Remover {name}",
+    "send": "Enviar",
+    "sending": "A enviar"
+  },
+  "reply": {
+    "sent": "Resposta enviada por e-mail.",
+    "sentWithDiscord": "Resposta enviada por e-mail e pelo Discord.",
+    "explainer": "A sua resposta segue para o e-mail deles e, se tiverem o Discord ligado, como mensagem do bot da AFC. Tudo o que acontece aqui fica no ticket."
+  },
+  "errors": {
+    "queue": "Não foi possível carregar os tickets.",
+    "ticket": "Não foi possível abrir esse ticket.",
+    "reply": "A sua resposta não foi enviada. Tente novamente.",
+    "status": "O estado não ficou guardado.",
+    "audit": "Não foi possível carregar a auditoria.",
+    "rejected": {
+      "type": "{name} não foi aceite: esse tipo de ficheiro não é permitido.",
+      "size": "{name} não foi aceite: tem mais de 20 MB.",
+      "count": "{name} não foi aceite: o limite é de seis ficheiros."
+    }
+  },
+  "audit": {
+    "title": "Auditoria do apoio",
+    "subtitle": "Cada mensagem nos dois sentidos, cada ficheiro, com a data e a hora exatas.",
+    "noAccess": "Só os head admins podem abrir a auditoria do apoio.",
+    "search": "Procurar texto, ticket, nome ou e-mail",
+    "everything": "Tudo",
+    "fromPeople": "Das pessoas",
+    "fromAfc": "Da AFC",
+    "counts": "{messages} mensagens em {tickets} tickets, {files} ficheiros",
+    "empty": "Ainda não foi enviado nada.",
+    "more": "Carregar mais",
+    "rowFromAfc": "AFC, por {who}",
+    "rowFromPerson": "{who} escreveu"
+  },
+  "public": {
+    "title": "O seu ticket de apoio",
+    "subtitle": "Leia a conversa e acrescente o que se esqueceu, ficheiros incluídos.",
+    "ticket": "Ticket {number}",
+    "notFound": "Não encontrámos esse ticket. Verifique a ligação no seu e-mail, ou escreva-nos de novo pela pagina de Contacto.",
+    "placeholder": "Acrescentar à sua mensagem",
+    "replySent": "A sua resposta foi adicionada.",
+    "explainer": "Tudo o que acrescentar aqui chega à equipa da AFC que está a tratar do seu ticket. Guarde esta ligação: é assim que volta a esta página."
+  }
+}

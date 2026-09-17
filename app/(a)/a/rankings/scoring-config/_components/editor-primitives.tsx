@@ -114,6 +114,26 @@ export type ConfigVersion = {
   seasons_bound: number;
 };
 
+/**
+ * The state of the score rebuild that follows a save (serialize_rebuild on the backend). The
+ * rebuild runs on the rankings worker, so the save answers before the scores move; the page
+ * polls this while `queued` or `running`. `is_stale` = running for longer than the worker
+ * would take, which is what a deploy mid-rebuild looks like: the UI then offers Run again.
+ */
+export type RebuildState = {
+  state: "none" | "queued" | "running" | "done" | "failed";
+  season_ids: number[];
+  seasons: number;
+  months: number;
+  ghost_teams: number | null;
+  ghost_players: number | null;
+  error: string | null;
+  task_id: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  is_stale: boolean;
+};
+
 /* ────────────────────────────────────────────────────── problems, by row */
 
 /**

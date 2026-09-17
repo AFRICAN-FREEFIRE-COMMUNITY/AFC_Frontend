@@ -1,0 +1,82 @@
+{
+  "title": "Assistance",
+  "subtitle": "Tous les messages envoyés à AFC, et les réponses qui repartent.",
+  "search": "Rechercher un nom, un e-mail, un ticket ou un texte",
+  "refresh": "Actualiser",
+  "loading": "Chargement",
+  "queue": "Tickets",
+  "empty": "Aucun ticket ne correspond à cette vue pour l'instant.",
+  "pickOne": "Choisissez un ticket à gauche pour le lire.",
+  "noAccess": "Vous n'avez pas accès à l'assistance. Demandez le rôle support a un head admin.",
+  "counts": "{open} en attente chez nous, {total} affichés",
+  "openedOn": "Ouvert le",
+  "account": "Compte : {name}",
+  "assignedTo": "Suivi par {name}",
+  "hasDiscord": "Sur Discord",
+  "theirPage": "Ouvrir la page qu'ils voient",
+  "filters": {
+    "all": "Tous les statuts"
+  },
+  "status": {
+    "open": "En attente chez nous",
+    "waiting": "En attente chez eux",
+    "resolved": "Résolu",
+    "closed": "Fermé",
+    "changed": "Statut enregistré."
+  },
+  "thread": {
+    "empty": "Rien dans cette conversation pour l'instant.",
+    "fromAfc": "Assistance AFC",
+    "fromSender": "Eux",
+    "automatic": "(automatique)"
+  },
+  "composer": {
+    "placeholder": "Écrivez votre message",
+    "staffPlaceholder": "Écrivez votre réponse. Elle part par e-mail, et sur Discord quand nous l'avons.",
+    "attach": "Joindre des fichiers",
+    "limits": "Jusqu'à 6 fichiers, 20 Mo chacun. Photos, vidéos ou documents.",
+    "removeFile": "Retirer {name}",
+    "send": "Envoyer",
+    "sending": "Envoi"
+  },
+  "reply": {
+    "sent": "Réponse envoyée par e-mail.",
+    "sentWithDiscord": "Réponse envoyée par e-mail et sur Discord.",
+    "explainer": "Votre réponse part vers leur e-mail et, s'ils ont connecté Discord, en message du bot AFC. Tout ce qui se passe ici reste sur le ticket."
+  },
+  "errors": {
+    "queue": "Impossible de charger les tickets.",
+    "ticket": "Impossible d'ouvrir ce ticket.",
+    "reply": "Votre réponse n'est pas partie. Réessayez.",
+    "status": "Le statut n'a pas été enregistré.",
+    "audit": "Impossible de charger l'audit.",
+    "rejected": {
+      "type": "{name} n'a pas été accepté : ce type de fichier n'est pas autorisé.",
+      "size": "{name} n'a pas été accepté : il dépasse 20 Mo.",
+      "count": "{name} n'a pas été accepté : six fichiers au maximum."
+    }
+  },
+  "audit": {
+    "title": "Audit de l'assistance",
+    "subtitle": "Chaque message dans les deux sens, chaque fichier, avec la date et l'heure exactes.",
+    "noAccess": "Seuls les head admins peuvent ouvrir l'audit de l'assistance.",
+    "search": "Rechercher un texte, un ticket, un nom ou un e-mail",
+    "everything": "Tout",
+    "fromPeople": "Des utilisateurs",
+    "fromAfc": "D'AFC",
+    "counts": "{messages} messages sur {tickets} tickets, {files} fichiers",
+    "empty": "Rien n'a encore été envoyé.",
+    "more": "Charger plus",
+    "rowFromAfc": "AFC, par {who}",
+    "rowFromPerson": "{who} a écrit"
+  },
+  "public": {
+    "title": "Votre ticket d'assistance",
+    "subtitle": "Relisez la conversation et ajoutez ce que vous avez oublié, fichiers compris.",
+    "ticket": "Ticket {number}",
+    "notFound": "Nous n'avons pas trouvé ce ticket. Vérifiez le lien dans votre e-mail, ou écrivez-nous à nouveau depuis la page Contact.",
+    "placeholder": "Compléter votre message",
+    "replySent": "Votre réponse a été ajoutée.",
+    "explainer": "Tout ce que vous ajoutez ici arrive à l'équipe AFC qui suit votre ticket. Gardez ce lien : c'est ainsi que vous revenez sur cette page."
+  }
+}

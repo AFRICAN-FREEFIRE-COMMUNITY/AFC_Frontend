@@ -140,6 +140,17 @@ export default function ActionsTab({
   const etT = useTranslations("evEditTabs");
   const API = env.NEXT_PUBLIC_BACKEND_API_URL;
   const status = eventDetails.event_status;
+  // Reopening an event whose dates have PASSED does not lock rosters again (owner 2026-09-14).
+  // The roster lock and the identity lock both ask the clock now, precisely because a reopened
+  // event never auto-completes and used to hold players forever, so the honest thing is to say so
+  // before the click as well as after it. Local calendar date, built by hand rather than through
+  // toLocale* so the datetime checker stays quiet: this is a comparison, not something rendered.
+  const _now = new Date();
+  const _todayLocal = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-${String(
+    _now.getDate(),
+  ).padStart(2, "0")}`;
+  const eventDatesPassed =
+    !!eventDetails.end_date && String(eventDetails.end_date).slice(0, 10) < _todayLocal;
   const isTeam = eventDetails.participant_type !== "solo";
   const authHeader = { Authorization: `Bearer ${token}` };
 
@@ -348,6 +359,9 @@ export default function ActionsTab({
         { headers: authHeader },
       );
       toast.success(res.data.message);
+      // roster_unlocked comes from reopen_event: true when the event is past its end instant, the
+      // case where players can still change their roster while it is open.
+      if (res.data?.roster_unlocked) toast.info(etT("actions.toastReopenRosterOpen"));
       setReopenOpen(false);
       onRefresh?.();
     } catch (e: any) {
@@ -1608,6 +1622,13 @@ export default function ActionsTab({
               <b>&quot;{eventDetails.event_name}&quot;</b>{" "}
               {etT("actions.confirmReopenDesc")}
             </DialogDescription>
+            {eventDatesPassed && (
+              <div className="mt-3 rounded-md bg-amber-500/10 p-3 text-left">
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  {etT("actions.reopenRosterNote")}
+                </p>
+              </div>
+            )}
             <div className="flex gap-3 mt-6">
               <Button
                 variant="outline"

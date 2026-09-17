@@ -288,6 +288,7 @@
       "tooLarge": "That image is too large. The maximum size is 15MB - please pick a smaller photo (a normal phone picture works)."
     },
     "identityLocked": "Locked while you're registered for an event. You can edit this again once your events are over.",
+    "identityLockedIn": "{count, plural, =1 {Locked while you're playing {events}. You can edit this again once it is over.} other {Locked while you're playing {events}. You can edit this again once they are over.}}",
     "statsVisible": {
       "label": "Show my stats to others",
       "description": "Your stats are private by default. Turn this on to let others see them."

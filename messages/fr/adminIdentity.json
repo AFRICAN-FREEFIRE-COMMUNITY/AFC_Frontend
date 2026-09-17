@@ -95,6 +95,7 @@
     "placeholder": "Pourquoi effectuez-vous ce changement ?",
     "hint": "Enregistré dans le journal d'audit avec votre nom, l'ancienne et la nouvelle valeur."
   },
+  "lockedIn": "Ce joueur participe à {events}",
   "cancel": "Annuler",
   "loadFailed": "Échec du chargement des informations du compte"
 }
