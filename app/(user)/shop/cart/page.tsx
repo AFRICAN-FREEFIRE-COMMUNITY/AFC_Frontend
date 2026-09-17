@@ -2,15 +2,16 @@ import { Suspense } from "react";
 import CartDetails from "../_components/CartDetails";
 
 import type { Metadata } from "next";
+
+import { privatePageMetadata } from "@/lib/seo";
 // i18n: this is a Server Component, so it reads copy via getTranslations (the async
 // server-side counterpart of useTranslations) from the `shop` namespace. Used only
 // for the Suspense fallback below; CartDetails itself is a client component that
 // pulls its own copy via useTranslations("shop").
 import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Cart | African Free Fire Community",
-};
+// Signed-in only, so noindex (owner rule R23; scripts/check-seo.mjs holds it).
+export const metadata: Metadata = privatePageMetadata("Cart");
 
 const page = async () => {
   const t = await getTranslations("shop");

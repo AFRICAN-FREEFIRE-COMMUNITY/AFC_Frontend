@@ -20,6 +20,9 @@
  *   check-signed-out scripts/check-signed-out.mjs  blocking: two possibly-absent identities compared
  *   check-slugs     scripts/check-slugs.mjs        ledgered: a numeric id in a visible address
  *   endpoint-callers ../<backend>/tools/endpoint_callers.py  blocking; skipped with no backend tree beside this one
+ *   event-forms     scripts/check-event-forms.mjs       blocking on a key the contract does not know; ledgered: writable fields no form sends (R24)
+ *   refusal-codes   ../<backend>/tools/check_refusal_codes.py  ledgered: 4xx refusals with no code (R35)
+ *   seo             scripts/check-seo.mjs               blocking: a page with no metadata, an indexable static page not in the sitemap, a noindex page in it; ledgered: entity pages without JSON-LD (R23)
  *   design-lint     tools/design-lint.mjs              blocking on BLOCK / CHANGED breaches; NOTE reported (R30)
  *   security-ledger  ~/.claude/skills/security-rules (R55 to R61)  blocking when a HIGH count rose; skipped without the checker
  *
@@ -115,6 +118,50 @@ const CHECKERS = [
       try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["check-parity: could not run"], counts: {} }; }
       const blocking = (parsed.failures || []).map((f) => `PARITY ${f.capability}: built on ${f.have.join(", ") || "no side"}, missing on ${f.lack.join(", ")}`);
       return { blocking, counts: {}, note: `${parsed.ok} rows on both sides${parsed.skipped.length ? `, ${parsed.skipped.length} skipped` : ""}` };
+    },
+  },
+  {
+    // The four event forms against the backend's event contract (owner rule R24, the frontend
+    // half, 2026-09-17): a key a form sends that the contract does not know blocks (a typo or a
+    // dropped field: the backend ignores it silently, and on 2026-09-17 that was the sponsor
+    // requirement text never saving); a writable field no screen can set is ledgered; a stale
+    // lib/eventContract.generated.json blocks where the backend tree is beside us.
+    id: "event-forms",
+    run() {
+      const r = run("scripts/check-event-forms.mjs", ["--json"]);
+      let parsed = null;
+      try { parsed = JSON.parse(r.out.trim().split(String.fromCharCode(10)).pop()); } catch { return { blocking: ["event-forms: could not run"], counts: {} }; }
+      const blocking = parsed.unknown.map((u) => `UNKNOWN ${u.file} sends "${u.key}"`);
+      if (parsed.stale) blocking.push(`STALE ${parsed.stale}`);
+      return { blocking, counts: { "event.forms.missing": parsed.missing.length }, note: `${Object.values(parsed.forms).join("/")} keys sent by the four forms` };
+    },
+  },
+  {
+    // Owner rule R23, the SEO half: every public page is in the sitemap or says noindex, and an
+    // entity page carries JSON-LD. scripts/check-seo.mjs resolves each page's metadata the way
+    // Next does (page, else nearest layout) and reads the sitemap's static list; the three
+    // contradictions block, the missing schemas are ledgered as seo.entity.no_jsonld.
+    id: "seo",
+    run() {
+      const r = run("scripts/check-seo.mjs", ["--json"]);
+      let parsed = null;
+      try { parsed = JSON.parse(r.out.trim().split(String.fromCharCode(10)).pop()); } catch { return { blocking: ["seo: could not run"], counts: {} }; }
+      return { blocking: parsed.blocking, counts: { "seo.entity.no_jsonld": parsed.noJsonLd.length }, note: `${parsed.indexable} of ${parsed.pages} public pages indexable` };
+    },
+  },
+  {
+    // A refusal without a code cannot be translated (owner rules R35 / R44). The backend's
+    // tools/check_refusal_codes.py counts `Response({"message": ...}, status=4xx)` bodies with no
+    // "code"; the number is ledgered here as refusals.uncoded (2,844 on 2026-09-17) so it can only
+    // fall. Needs the backend tree beside this one, like endpoint-callers.
+    id: "refusal-codes",
+    run() {
+      const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "check_refusal_codes.py")));
+      if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
+      const py = spawnSync("python", [join(backend, "tools", "check_refusal_codes.py"), "--json"], { encoding: "utf8", cwd: backend });
+      let parsed = null;
+      try { parsed = JSON.parse((py.stdout || "").trim().split(String.fromCharCode(10)).pop()); } catch { return { blocking: ["refusal-codes: could not run (python + the backend tree are needed)"], counts: {} }; }
+      return { blocking: [], counts: { "refusals.uncoded": parsed.uncoded }, note: `${parsed.coded} refusals carry a code` };
     },
   },
   {
