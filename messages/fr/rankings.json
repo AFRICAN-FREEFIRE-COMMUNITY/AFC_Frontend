@@ -264,7 +264,20 @@
         "confirm": "Enregistrer et créer la version",
         "savingBusy": "Enregistrement",
         "saved": "Enregistré en v{version}. {seasons, plural, =0 {Aucune saison recalculée} one {# saison recalculée} other {# saisons recalculées}}.",
-        "failed": "Échec de l'enregistrement de la configuration des points"
+        "failed": "Échec de l'enregistrement de la configuration des points",
+        "savedQueued": "Enregistré en v{version}. Les scores de {seasons, plural, one {# saison} other {# saisons}} sont en cours de recalcul ; cette page indiquera quand ce sera terminé.",
+        "savedRebuildFailed": "Enregistré en v{version}, mais le recalcul des scores n'a pas pu démarrer. Utilisez Relancer sur la page.",
+        "savedNoRebuild": "Enregistré en v{version}. Aucun score n'a été recalculé."
+      },
+      "rebuild": {
+        "queued": "Recalcul des scores de {seasons, plural, one {# saison} other {# saisons}} ({months, plural, one {# mois} other {# mois}}). Cela prend quelques minutes ; la page vérifie d'elle-même.",
+        "running": "Recalcul des scores de {seasons, plural, one {# saison} other {# saisons}}, commencé à",
+        "done": "Scores recalculés pour {seasons, plural, one {# saison} other {# saisons}} ({months, plural, one {# mois} other {# mois}}) le",
+        "failed": "Le recalcul des scores a échoué : {error}. Les règles sont enregistrées ; les classements gardent les anciens chiffres jusqu'à une nouvelle exécution.",
+        "stale": "Un recalcul des scores a commencé sans jamais rendre compte (un déploiement l'a probablement interrompu). Relancez-le.",
+        "runAgain": "Relancer",
+        "queuedToast": "Recalcul des scores mis en file d'attente.",
+        "runFailed": "Impossible de lancer le recalcul des scores."
       }
     },
     "overview": {

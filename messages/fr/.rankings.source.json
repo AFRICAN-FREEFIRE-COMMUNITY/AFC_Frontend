@@ -678,5 +678,16 @@
   "admin.tournamentTiers.saveDialog.minChars": "At least {min} characters required ({count}/{min}).",
   "admin.tournamentTiers.saveDialog.reasonLogged": "Logged to the ranking audit trail.",
   "admin.tournamentTiers.saveDialog.cancel": "Cancel",
-  "admin.tournamentTiers.saveDialog.saving": "Saving…"
+  "admin.tournamentTiers.saveDialog.saving": "Saving…",
+  "admin.scoringConfig.save.savedQueued": "Saved as v{version}. Scores for {seasons, plural, one {# season} other {# seasons}} are being rebuilt; this page will say when it is done.",
+  "admin.scoringConfig.save.savedRebuildFailed": "Saved as v{version}, but the score rebuild could not start. Use Run again on the page.",
+  "admin.scoringConfig.save.savedNoRebuild": "Saved as v{version}. No scores were rebuilt.",
+  "admin.scoringConfig.rebuild.queued": "Rebuilding scores for {seasons, plural, one {# season} other {# seasons}} ({months, plural, one {# month} other {# months}}). This takes a few minutes; the page checks by itself.",
+  "admin.scoringConfig.rebuild.running": "Rebuilding scores for {seasons, plural, one {# season} other {# seasons}}, started at",
+  "admin.scoringConfig.rebuild.done": "Scores rebuilt for {seasons, plural, one {# season} other {# seasons}} ({months, plural, one {# month} other {# months}}) on",
+  "admin.scoringConfig.rebuild.failed": "The score rebuild failed: {error}. The rules are saved; the standings keep the old numbers until it is run again.",
+  "admin.scoringConfig.rebuild.stale": "A score rebuild started but never reported back (a deploy probably interrupted it). Run it again.",
+  "admin.scoringConfig.rebuild.runAgain": "Run again",
+  "admin.scoringConfig.rebuild.queuedToast": "Score rebuild queued.",
+  "admin.scoringConfig.rebuild.runFailed": "Could not start the score rebuild."
 }

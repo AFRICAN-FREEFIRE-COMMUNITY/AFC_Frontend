@@ -127,6 +127,12 @@ export const rankingsAdminApi = {
   // 400 = the config would break scoring (body.errors); 409 = a closed/published season was
   // opted in without acknowledge_published (body.impact names them).
   saveScoringConfig: (body: any) => aPost("scoring-config/", body),
+  // The score rebuild after a save runs on the rankings worker (2026-09-17: it used to run in
+  // the request and outlived gunicorn's timeout, so a committed save read as failed). The save
+  // answers with `recalculated.state` = queued; the editor polls this light read until it is
+  // done or failed, and Run again re-queues it (409 while one is running and not stale).
+  scoringConfigRebuild: () => aGet("scoring-config/rebuild/"),
+  rebuildScoringConfig: (body: any = {}) => aPost("scoring-config/rebuild/", body),
 
   // ── Tournament tier rules + classifier ───────────────────────────────────
   // TWO SETS (owner 2026-08-16): tournaments and scrims keep separate rules, chosen by the
