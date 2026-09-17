@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { formatNumber } from "@/lib/i18n/number";
 import { useTranslations } from "next-intl";
 import { Wand2 } from "lucide-react";
 
@@ -134,7 +135,7 @@ export function PrizeSuggestionDialog({
 
   // Format for display only. The values written into the form stay as plain unformatted number
   // strings (see buildSuggestedDistribution) because the amount fields are <Input type="number">.
-  const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const fmt = (n: number) => formatNumber(n, { maximumFractionDigits: 2 });
 
   // Rows to render: every place in the suggestion, plus any EXISTING place beyond it so an
   // organizer shrinking the table can see exactly which lines they are dropping.

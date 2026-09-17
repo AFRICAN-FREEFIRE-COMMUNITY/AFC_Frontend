@@ -97,6 +97,9 @@ import {
 } from "@/lib/scoreInput";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
+// The address is the event's slug (owner rule R22); every endpoint below takes the numeric id,
+// so the slug is resolved once here and an old numeric link is rewritten in place.
+import { useEventRef } from "@/lib/addressRef";
 import { PageHeader } from "@/components/PageHeader";
 import { EventStageExportGraphicDialog } from "@/app/(organizer)/organizer/events/[slug]/leaderboard/_components/EventStageExportGraphicDialog";
 import Link from "next/link";
@@ -305,7 +308,8 @@ export default function EditLeaderboardPage({
   params: Promise<Params>;
 }) {
   const resolvedParams = use(params);
-  const { id } = resolvedParams;
+  const { id: ref } = resolvedParams;
+  const { id, slug: eventAddress } = useEventRef(ref, (slug) => `/a/leaderboards/${slug}/edit`);
   const { token } = useAuth();
 
   const [eventData, setEventData] = useState<any>(null);
@@ -516,6 +520,7 @@ export default function EditLeaderboardPage({
   };
 
   useEffect(() => {
+    if (!id) return; // the slug is still resolving
     fetchData();
   }, [id, token]);
 
@@ -1319,7 +1324,7 @@ export default function EditLeaderboardPage({
             stages) is driven from the overlay card, not baked into the URL. */}
         {eventData && (
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/a/overlays/${id}`}>
+            <Link href={`/a/overlays/${eventAddress || ref}`}>
               <IconBroadcast className="size-4" /> Live overlays
             </Link>
           </Button>

@@ -2020,7 +2020,7 @@ export default function OrganizerEventLeaderboardPage({
                 or a COMBINE of many) is driven from the overlay card, not the URL. */}
             {eventId && (
               <Button variant="outline" size="sm" asChild>
-                <Link href={`/organizer/overlays/${eventId}`}>
+                <Link href={`/organizer/overlays/${routeSlug}`}>
                   <IconBroadcast className="size-4" /> {t("studio.openStudioLink")}
                 </Link>
               </Button>

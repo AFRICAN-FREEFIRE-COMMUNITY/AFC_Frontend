@@ -251,6 +251,7 @@ type Props = { params: Promise<{ id: string }> };
 
 const Page = ({ params }: Props) => {
   const { id } = use(params);
+  const router = useRouter();
   const { token } = useAuth();
   const [player, setPlayer] = useState<PlayerDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -263,16 +264,20 @@ const Page = ({ params }: Props) => {
   // views.require_head_admin, so a support or moderator account still gets a 403 from the server.
   // When it is false the identity fetch is skipped entirely, so no 403 is ever fired.
   const canRepair = useCanRepairIdentity();
-  const { identity, refresh: refreshIdentity } = useAccountIdentity(id, canRepair);
+  // The identity endpoints are keyed by the numeric user id, which arrives with the player row
+  // (the address is the username, owner rule R22), so they wait for it.
+  const { identity, refresh: refreshIdentity } = useAccountIdentity(player?.player_id ?? 0, canRepair && !!player);
 
   const fetchPlayer = async () => {
     try {
+      // `ref` is the username or a legacy numeric id; a move comes back as `moved_to`.
       const res = await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/player/get-player-details/`,
-        { player_id: id },
+        { ref: id },
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setPlayer(res.data);
+      if (res.data.moved_to && res.data.moved_to !== `/a/players/${id}`) router.replace(res.data.moved_to);
     } catch {
       toast.error("Failed to load player details");
     } finally {

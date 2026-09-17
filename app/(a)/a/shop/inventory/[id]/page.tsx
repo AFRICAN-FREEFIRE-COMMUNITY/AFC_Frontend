@@ -158,14 +158,19 @@ const Page = ({ params }: { params: Params }) => {
       setLoadingProduct(true);
       const decodedId = decodeURIComponent(id);
 
+      // `ref` is the slug, a retired slug or a legacy id (owner rule R22); a move comes back on
+      // the envelope as `moved_to` (a public path), and this admin address follows the same slug.
       const res = await axios.get(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/shop/view-product-details/`,
         {
-          params: { product_id: decodedId },
+          params: { ref: decodedId },
         },
       );
 
       setProductDetails(res.data.product);
+      if (res.data.product?.slug && res.data.product.slug !== decodedId) {
+        router.replace(`/a/shop/inventory/${res.data.product.slug}`);
+      }
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Failed to fetch product details";

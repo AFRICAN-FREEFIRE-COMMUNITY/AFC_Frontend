@@ -12,6 +12,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+// The address is the event's slug (owner rule R22); the studio needs the numeric id.
+import { useEventRef } from "@/lib/addressRef";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import axios from "axios";
@@ -30,7 +32,7 @@ export default function OrganizerEventOverlayStudioPage() {
   const organizationId = membership?.organization?.organization_id ?? null;
 
   const params = useParams<{ eventId: string }>();
-  const eventId = Number(params?.eventId);
+  const eventId = Number(useEventRef(params?.eventId, (slug) => `/organizer/overlays/${slug}`).id);
 
   const [loading, setLoading] = useState(true);
   const [eventName, setEventName] = useState("");

@@ -32,7 +32,8 @@
 
 "use client";
 
-import { use, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
@@ -80,14 +81,18 @@ export default function VendorOrderDetailPage({
   params: Promise<Params>;
 }) {
   const { id } = use(params);
-  const orderId = Number(id);
+  const router = useRouter();
   const { orders, refetch } = useVendor();
 
-  // The order this page is about, read out of the shared queue by id.
+  // The order this page is about, read out of the shared queue by its public token (the
+  // address, owner rule R22) or by its numeric id (an old link, rewritten below).
   const order: VendorOrder | undefined = useMemo(
-    () => orders.find((o) => o.order_id === orderId),
-    [orders, orderId],
+    () => orders.find((o) => o.public_token === id || String(o.order_id) === id),
+    [orders, id],
   );
+  useEffect(() => {
+    if (order?.public_token && order.public_token !== id) router.replace(`/vendor/orders/${order.public_token}`);
+  }, [order, id, router]);
 
   // Action-in-flight flag so buttons disable + show progress while a POST runs.
   const [submitting, setSubmitting] = useState(false);

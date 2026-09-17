@@ -379,20 +379,20 @@ export const LeaderboardsAdminContent = () => {
                           size="sm"
                         >
                           <Link
-                            href={`/a/leaderboards/create?event_id=${event.event_id}`}
+                            href={`/a/leaderboards/create?event=${event.slug || event.event_id}`}
                           >
                             <IconPlus />
                             Create
                           </Link>
                         </Button>
                         <Button asChild variant={"outline"} size="sm">
-                          <Link href={`/a/leaderboards/${event.event_id}`}>
+                          <Link href={`/a/leaderboards/${event.slug || event.event_id}`}>
                             <IconEye />
                             View
                           </Link>
                         </Button>
                         <Button asChild variant={"outline"} size="sm">
-                          <Link href={`/a/leaderboards/${event.event_id}/edit`}>
+                          <Link href={`/a/leaderboards/${event.slug || event.event_id}/edit`}>
                             <IconPencil />
                             Edit
                           </Link>

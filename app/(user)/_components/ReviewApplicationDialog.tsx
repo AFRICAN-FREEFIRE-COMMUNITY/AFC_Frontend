@@ -40,6 +40,9 @@ import { PlayerLink } from "@/components/ui/entity-link";
 
 export interface ApplicationRecord {
   id: number;
+  // The address /player-markets/applications/<public_token> (owner rule R22). Empty on a row
+  // minted before the backfill ran; the link falls back to the id, which the page rewrites.
+  public_token?: string;
   player: string;
   team: string;
   post_id: number;
@@ -353,7 +356,7 @@ export function ReviewApplicationDialog({
 
             {isTrialOngoing ? (
               <Button size="sm" className="flex-1" asChild>
-                <Link href={`/player-markets/applications/${app.id}`}>
+                <Link href={`/player-markets/applications/${app.public_token || app.id}`}>
                   <IconMessage className="h-4 w-4 mr-1.5" />
                   {t("reviewApplication.viewChat")}
                 </Link>
