@@ -269,6 +269,11 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
           toast.error(t("auth.genericError"));
         }
       } catch (error: any) {
+        // A deleted account (inbox #20) also answers 403, but it is not an unconfirmed email.
+        if (error.response?.data?.code === "account_deleted") {
+          toast.error(t("auth.accountDeleted"));
+          return;
+        }
         if (error.response?.status === 403) {
           // User hasn't confirmed their email
           const email = data.ign_or_uid.includes("@") ? data.ign_or_uid : "";

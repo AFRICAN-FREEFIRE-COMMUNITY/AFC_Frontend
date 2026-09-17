@@ -1,0 +1,69 @@
+{
+  "preflightFailed": "Não foi possível verificar a sua conta. Tente de novo.",
+  "deleteFailed": "A sua conta não foi eliminada. Tente de novo.",
+  "deletedToast": "A sua conta foi eliminada. Enviámos-lhe os detalhes por e-mail.",
+  "card": {
+    "title": "Eliminar a minha conta",
+    "body": "A sua conta fica oculta e a sessão é terminada em todo o lado. O seu nome no jogo, e-mail, UID e número de WhatsApp ficam livres para uma nova conta.",
+    "restore": "Nada é deitado fora: um head admin pode repor a sua conta exatamente como estava, desde que ninguém tenha ficado com o seu nome ou e-mail entretanto.",
+    "button": "Eliminar a minha conta"
+  },
+  "dialog": {
+    "title": "Eliminar a sua conta?",
+    "description": "Termina a sessão em todo o lado e oculta a sua conta do site.",
+    "checking": "A verificar a sua conta...",
+    "blockedTitle": "Resolva isto primeiro",
+    "keeps": "Os seus resultados de partidas e o histórico de equipa ficam nos registos da AFC sob um nome oculto.",
+    "releases": "O seu nome no jogo, e-mail, UID e número de WhatsApp ficam livres para uma nova conta. Um head admin pode repor tudo mais tarde se pedir.",
+    "confirmLabel": "Escreva o seu nome no jogo ({username}) para confirmar",
+    "passwordLabel": "A sua palavra-passe",
+    "reasonLabel": "Porque está a sair? (opcional)",
+    "reasonPlaceholder": "Ajuda-nos a corrigir o que o fez sair.",
+    "cancel": "Manter a minha conta",
+    "confirm": "Eliminar a minha conta",
+    "deleting": "A eliminar..."
+  },
+  "blockers": {
+    "account_suspended": "A sua conta está suspensa. Contacte o suporte.",
+    "account_banned": "A sua conta está banida. Não pode ser eliminada enquanto o banimento durar.",
+    "account_is_staff": "Tem uma função na equipa da AFC. Peça a um head admin que a retire primeiro.",
+    "owns_team": "É dono de uma equipa. Transfira a propriedade ou dissolva-a primeiro.",
+    "in_team": "Saia primeiro da sua equipa.",
+    "owns_organization": "É dono de uma organização. Entregue-a primeiro a outro membro.",
+    "owns_sponsor": "É dono de uma conta de patrocinador. Entregue-a primeiro a outro membro.",
+    "owns_shop": "Tem uma loja. Peça primeiro ao suporte que a feche."
+  },
+  "errors": {
+    "confirm_mismatch": "Escreva o seu nome no jogo exatamente como aparece.",
+    "password_wrong": "Essa palavra-passe está errada.",
+    "password_required": "A sua palavra-passe é obrigatória."
+  },
+  "admin": {
+    "title": "Contas eliminadas",
+    "description": "Contas que as pessoas eliminaram por si próprias. Repor coloca uma de volta exatamente como estava, a menos que outra conta tenha ficado com o nome, e-mail, UID ou número de WhatsApp entretanto.",
+    "searchPlaceholder": "Procurar nome, e-mail ou UID",
+    "showRestored": "Mostrar também as repostas",
+    "showingRestored": "A mostrar também as repostas",
+    "count": "{count, plural, =0 {Nenhuma conta} one {# conta} other {# contas}}",
+    "loadFailed": "Não foi possível carregar as contas eliminadas.",
+    "retry": "Tentar de novo",
+    "empty": "Ninguém eliminou a sua conta.",
+    "colWho": "Quem",
+    "colContact": "Contacto",
+    "colWhen": "Eliminada em",
+    "colReason": "Motivo",
+    "colState": "Estado",
+    "colActions": "Ações",
+    "bySelf": "pela própria pessoa",
+    "byAdmin": "por um admin",
+    "stateDeleted": "Eliminada",
+    "stateRestored": "Reposta por {by}",
+    "stateTaken": "Ocupado entretanto: {fields}",
+    "restore": "Repor",
+    "restoring": "A repor...",
+    "restored": "{username} está de volta.",
+    "restoreConflict": "Outra conta usa agora: {fields}. Resolva isso primeiro.",
+    "restoreFailed": "Não foi possível repor a conta.",
+    "loadMore": "Carregar mais"
+  }
+}

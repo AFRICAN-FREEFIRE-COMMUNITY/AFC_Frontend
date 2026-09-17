@@ -1,0 +1,69 @@
+{
+  "preflightFailed": "Impossible de vérifier votre compte. Réessayez.",
+  "deleteFailed": "Votre compte n'a pas été supprimé. Réessayez.",
+  "deletedToast": "Votre compte a été supprimé. Les détails vous ont été envoyés par e-mail.",
+  "card": {
+    "title": "Supprimer mon compte",
+    "body": "Votre compte est masqué et vous êtes déconnecté partout. Votre nom en jeu, votre e-mail, votre UID et votre numéro WhatsApp deviennent libres pour un nouveau compte.",
+    "restore": "Rien n'est jeté : un head admin peut restaurer votre compte exactement comme il était, tant que personne n'a pris votre nom ou votre e-mail entre-temps.",
+    "button": "Supprimer mon compte"
+  },
+  "dialog": {
+    "title": "Supprimer votre compte ?",
+    "description": "Vous serez déconnecté partout et votre compte sera masqué sur le site.",
+    "checking": "Vérification de votre compte...",
+    "blockedTitle": "À régler d'abord",
+    "keeps": "Vos résultats de matchs et votre historique d'équipe restent dans les archives d'AFC sous un nom masqué.",
+    "releases": "Votre nom en jeu, votre e-mail, votre UID et votre numéro WhatsApp sont libérés pour un nouveau compte. Un head admin pourra tout restaurer plus tard si vous le demandez.",
+    "confirmLabel": "Tapez votre nom en jeu ({username}) pour confirmer",
+    "passwordLabel": "Votre mot de passe",
+    "reasonLabel": "Pourquoi partez-vous ? (facultatif)",
+    "reasonPlaceholder": "Cela nous aide à corriger ce qui vous a fait partir.",
+    "cancel": "Garder mon compte",
+    "confirm": "Supprimer mon compte",
+    "deleting": "Suppression..."
+  },
+  "blockers": {
+    "account_suspended": "Votre compte est suspendu. Contactez le support.",
+    "account_banned": "Votre compte est banni. Il ne peut pas être supprimé pendant le bannissement.",
+    "account_is_staff": "Vous avez un rôle dans l'équipe AFC. Demandez à un head admin de le retirer d'abord.",
+    "owns_team": "Vous possédez une équipe. Transférez la propriété ou dissolvez-la d'abord.",
+    "in_team": "Quittez d'abord votre équipe.",
+    "owns_organization": "Vous possédez une organisation. Confiez-la d'abord à un autre membre.",
+    "owns_sponsor": "Vous possédez un compte sponsor. Confiez-le d'abord à un autre membre.",
+    "owns_shop": "Vous avez une boutique. Demandez d'abord au support de la fermer."
+  },
+  "errors": {
+    "confirm_mismatch": "Tapez votre nom en jeu exactement comme il apparaît.",
+    "password_wrong": "Ce mot de passe est incorrect.",
+    "password_required": "Votre mot de passe est requis."
+  },
+  "admin": {
+    "title": "Comptes supprimés",
+    "description": "Les comptes que les personnes ont supprimés elles-mêmes. Restaurer remet un compte exactement comme il était, sauf si un autre compte a pris son nom, son e-mail, son UID ou son numéro WhatsApp depuis.",
+    "searchPlaceholder": "Rechercher un nom, un e-mail ou un UID",
+    "showRestored": "Afficher aussi les restaurés",
+    "showingRestored": "Restaurés affichés aussi",
+    "count": "{count, plural, =0 {Aucun compte} one {# compte} other {# comptes}}",
+    "loadFailed": "Impossible de charger les comptes supprimés.",
+    "retry": "Réessayer",
+    "empty": "Personne n'a supprimé son compte.",
+    "colWho": "Qui",
+    "colContact": "Contact",
+    "colWhen": "Supprimé le",
+    "colReason": "Raison",
+    "colState": "État",
+    "colActions": "Actions",
+    "bySelf": "par la personne",
+    "byAdmin": "par un admin",
+    "stateDeleted": "Supprimé",
+    "stateRestored": "Restauré par {by}",
+    "stateTaken": "Pris depuis : {fields}",
+    "restore": "Restaurer",
+    "restoring": "Restauration...",
+    "restored": "{username} est de retour.",
+    "restoreConflict": "Un autre compte utilise maintenant : {fields}. Réglez cela d'abord.",
+    "restoreFailed": "Impossible de restaurer le compte.",
+    "loadMore": "Charger plus"
+  }
+}

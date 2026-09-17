@@ -15,6 +15,9 @@
 // security" card on /profile (ProfileContent.tsx).
 import { ProtectedRoute } from "../../_components/ProtectedRoute";
 import { TwoFactorSecurity } from "../_components/TwoFactorSecurity";
+// "Delete my account" (owner 2026-09-14, inbox #20) lives at the bottom of this page: it is
+// the account-level control next to the other account-level control, two-step sign-in.
+import { DeleteAccountCard } from "../_components/DeleteAccountCard";
 
 import type { Metadata } from "next";
 
@@ -26,6 +29,7 @@ const page = () => {
   return (
     <ProtectedRoute>
       <TwoFactorSecurity />
+      <DeleteAccountCard />
     </ProtectedRoute>
   );
 };

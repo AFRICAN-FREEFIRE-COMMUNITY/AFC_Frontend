@@ -119,5 +119,6 @@
   "whatsappReset.cta": "Recover my account with WhatsApp",
   "needsAccount": "Sign in to {action}.",
   "needsAccountLink": "Sign in",
+  "login.accountDeleted": "This account was deleted by its owner. Contact support if you want it restored.",
   "register.whatsappTaken": "That WhatsApp number is already on another AFC account. Each number can belong to one account, like an email or an in-game name."
 }
