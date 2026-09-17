@@ -38,7 +38,7 @@
 //   node tools/design-lint.mjs --baseline   rewrite the baseline from what is here now
 // ─────────────────────────────────────────────────────────────────────────────
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative, sep } from "node:path";
 
@@ -150,9 +150,10 @@ function stripComments(text) {
 function changedFiles() {
   for (const base of ["origin/master", "origin/main", "HEAD~1"]) {
     try {
-      const out = execSync(`git diff --name-only ${base}...HEAD`, { cwd: ROOT, stdio: ["ignore", "pipe", "ignore"] })
+      // execFileSync with an argument array (owner rule R61): no shell, nothing interpolated into one.
+      const out = execFileSync("git", ["diff", "--name-only", `${base}...HEAD`], { cwd: ROOT, stdio: ["ignore", "pipe", "ignore"] })
         .toString().trim();
-      const staged = execSync("git diff --name-only HEAD", { cwd: ROOT, stdio: ["ignore", "pipe", "ignore"] })
+      const staged = execFileSync("git", ["diff", "--name-only", "HEAD"], { cwd: ROOT, stdio: ["ignore", "pipe", "ignore"] })
         .toString().trim();
       const all = [out, staged].filter(Boolean).join("\n").split("\n").filter(Boolean);
       if (all.length) return new Set(all.map((f) => f.split("/").join(sep)));

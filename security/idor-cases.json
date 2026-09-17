@@ -1,0 +1,6 @@
+{
+  "$comment": "Owner rule R58. This repo is the browser client; every record is read or written through the AFC-B API, so the user-A / user-B cases live there: AFC-B/security/idor-cases.json (run against the scratch stack). Nothing to run here.",
+  "baseUrl": "",
+  "users": {},
+  "cases": []
+}
