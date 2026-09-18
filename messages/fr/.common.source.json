@@ -175,5 +175,7 @@
   "auth.accountDeleted": "This account was deleted by its owner. Contact support if you want it restored.",
   "auth.tooManyAttempts": "Too many attempts from your connection. Wait a minute and try again.",
   "states.errorDetail": "The page hit an error. Nothing you did was lost; try again, or go back to the home page.",
-  "states.goHome": "Go home"
+  "states.goHome": "Go home",
+  "nav.wagers": "Wagers",
+  "nav.winnings": "Winnings"
 }

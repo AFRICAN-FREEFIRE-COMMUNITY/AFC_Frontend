@@ -158,6 +158,24 @@ export const homeNavLinksMobile: NavLinks[] = [
     newLink: true,
     addedAt: "2026-08-16",
   },
+  // Wagers and Winnings (owner 2026-09-18, inbox #33): stakes on AFC matches paid in naira, and
+  // the withdraw-only balance the payouts land in. Both wear NEW for 5 days from the go-live date.
+  {
+    slug: "/wagers",
+    label: "Wagers",
+    navKey: "wagers",
+    icon: IconTrophy,
+    newLink: true,
+    addedAt: "2026-09-18",
+  },
+  {
+    slug: "/winnings",
+    label: "Winnings",
+    navKey: "winnings",
+    icon: IconShoppingCart,
+    newLink: true,
+    addedAt: "2026-09-18",
+  },
   { slug: "/about", label: "About Us", navKey: "about", icon: IconInfoCircle },
   { slug: "/contact", label: "Contact", navKey: "contact", icon: IconMessage },
   // Glossary sits under Contact in the hamburger menu (owner request 2026-06-10).

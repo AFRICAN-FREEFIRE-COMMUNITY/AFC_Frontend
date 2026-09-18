@@ -90,6 +90,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/glossary", changeFrequency: "monthly", priority: 0.5 },
     { path: "/polls", changeFrequency: "weekly", priority: 0.5 },
     { path: "/fantasy", changeFrequency: "monthly", priority: 0.4 },
+    { path: "/wagers", changeFrequency: "daily", priority: 0.7 },
     { path: "/brand", changeFrequency: "yearly", priority: 0.3 },
     { path: "/partners/api", changeFrequency: "monthly", priority: 0.4 },
     { path: "/partners/apply", changeFrequency: "monthly", priority: 0.4 },
@@ -106,14 +107,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // ── DYNAMIC entities (fetched in parallel; each independently safe) ─────────
-  const [eventsData, teamsData, orgsData, newsData, productsData] =
+  const [eventsData, teamsData, orgsData, newsData, productsData, wagerMarkets] =
     await Promise.all([
       getJson("/events/get-all-events/"),
       getJson("/team/get-all-teams/"),
       getJson("/organizers/get-organizations-public/"),
       getJson("/auth/get-all-news/"),
       getJson("/shop/view-active-products/"),
+      // Wager markets that players can read (open, locked, settled), by slug (owner 2026-09-18).
+      getJson("/wagers/markets/?status=open&limit=100"),
     ]);
+
+  const marketRows: any[] = Array.isArray(wagerMarkets?.results) ? wagerMarkets.results : [];
+  const marketEntries: MetadataRoute.Sitemap = marketRows
+    .filter((m) => m?.slug)
+    .map((m) => ({
+      url: `${base}/wagers/${m.slug}`,
+      lastModified: toDate(m.lock_at),
+      changeFrequency: "hourly",
+      priority: 0.6,
+    }));
 
   // Tournaments → /tournaments/<slug>. lastmod uses event_date (no updated_at
   // is exposed on this list endpoint). Only events that carry a slug are linked.
@@ -187,6 +200,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticEntries,
     ...eventEntries,
+    ...marketEntries,
     ...teamEntries,
     ...orgEntries,
     ...newsEntries,

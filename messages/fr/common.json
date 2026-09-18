@@ -41,7 +41,9 @@
     "myOrders": "Mes commandes",
     "about": "À propos de nous",
     "contact": "Contact",
-    "fantasy": "Fantasy"
+    "fantasy": "Fantasy",
+    "wagers": "Paris",
+    "winnings": "Gains"
   },
   "states": {
     "empty": "Rien ici pour l'instant",

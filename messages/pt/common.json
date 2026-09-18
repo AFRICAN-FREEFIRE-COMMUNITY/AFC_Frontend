@@ -41,7 +41,9 @@
     "myOrders": "As minhas encomendas",
     "about": "Sobre nós",
     "contact": "Contacto",
-    "fantasy": "Fantasy"
+    "fantasy": "Fantasy",
+    "wagers": "Apostas",
+    "winnings": "Ganhos"
   },
   "states": {
     "empty": "Nada aqui ainda",

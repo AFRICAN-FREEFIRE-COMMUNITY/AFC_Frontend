@@ -41,7 +41,9 @@
     "myOrders": "My Orders",
     "about": "About Us",
     "contact": "Contact",
-    "fantasy": "Fantasy"
+    "fantasy": "Fantasy",
+    "wagers": "Wagers",
+    "winnings": "Winnings"
   },
   "states": {
     "empty": "Nothing here yet",
