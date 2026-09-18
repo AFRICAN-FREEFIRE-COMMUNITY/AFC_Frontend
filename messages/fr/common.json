@@ -46,7 +46,9 @@
   "states": {
     "empty": "Rien ici pour l'instant",
     "error": "Une erreur est survenue",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "errorDetail": "La page a rencontré une erreur. Rien de ce que vous avez fait n'est perdu ; réessayez, ou revenez à l'accueil.",
+    "goHome": "Accueil"
   },
   "brand": {
     "name": "African Free Fire Community",

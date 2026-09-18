@@ -14,7 +14,7 @@
  *
  * HOW IT CONNECTS: rendered on the profile edit page (app/(user)/profile/edit/page.tsx) beside the now
  * read-only email field. Uses the same axios + Bearer-token pattern as that page's save, and calls
- * AuthContext.login(token) on success so the displayed email refreshes immediately (get-user-profile).
+ * AuthContext.refreshUser() on success so the displayed email refreshes immediately (get-user-profile).
  * Locked-out users who can't log in at all are recovered separately by an admin (admin_set_user_email,
  * surfaced on the admin player-detail page). i18n: `profile` namespace, edit.changeEmail.* keys.
  */
@@ -39,7 +39,7 @@ import {
 
 export function ChangeEmailDialog() {
   const t = useTranslations("profile");
-  const { token, login } = useAuth();
+  const { token, refreshUser } = useAuth();
 
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"request" | "confirm">("request");
@@ -101,9 +101,7 @@ export function ChangeEmailDialog() {
         authHeaders,
       );
       toast.success(t("edit.changeEmail.successConfirm"));
-      const storedToken =
-        typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-      if (storedToken) await login(storedToken);
+      await refreshUser(); // the displayed email comes from get-user-profile (R66: cookie, no localStorage)
       onOpenChange(false);
     } catch (err: any) {
       toast.error(errMessage(err));

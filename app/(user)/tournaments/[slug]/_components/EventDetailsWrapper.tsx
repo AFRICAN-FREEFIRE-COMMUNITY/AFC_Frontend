@@ -3573,7 +3573,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // refreshUser (owner 2026-08-02): re-pulls get-user-profile and RETURNS the fresh user, which the
   // ROSTER_REQUIREMENTS "Re-check and continue" needs - reading the `user` from this render would
   // still be the stale pre-fix profile and would wrongly keep a solo registrant blocked.
-  const { token, user, login, refreshUser, loading: authLoading } = useAuth();
+  const { token, user, refreshUser, loading: authLoading } = useAuth();
   const { openAuthModal } = useAuthModal();
   const router = useRouter();
 
@@ -4872,8 +4872,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         formData,
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      const storedToken = localStorage.getItem("authToken");
-      if (storedToken) await login(storedToken);
+      await refreshUser(); // the saved UID rides on get-user-profile (R66: cookie, no localStorage)
       setModalStep("RULES");
     } catch (error: any) {
       toast.error(
@@ -4882,7 +4881,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     } finally {
       setSavingUid(false);
     }
-  }, [uidInput, user, token, login, t]);
+  }, [uidInput, user, token, refreshUser, t]);
 
   const handleTeamContinueToRules = useCallback(() => {
     // Store selected team members data

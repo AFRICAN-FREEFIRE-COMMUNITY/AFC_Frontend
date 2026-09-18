@@ -46,7 +46,9 @@
   "states": {
     "empty": "Nothing here yet",
     "error": "Something went wrong",
-    "retry": "Try again"
+    "retry": "Try again",
+    "errorDetail": "The page hit an error. Nothing you did was lost; try again, or go back to the home page.",
+    "goHome": "Go home"
   },
   "brand": {
     "name": "African Free Fire Community",

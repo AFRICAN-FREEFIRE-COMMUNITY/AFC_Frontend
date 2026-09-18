@@ -123,6 +123,28 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Security headers on every response the app renders (owner rules R76 / R77, 2026-09-18).
+  // They live HERE, with the app, so a preview deploy carries them too; nginx in front of the
+  // container (AFC-B deploy/vps/nginx-afc.conf) sends only X-AFC-Host for the site and leaves
+  // these to Next, so the two never disagree and no header is sent twice. HSTS is a year with
+  // subdomains: the API host is a subdomain and is HTTPS only as well. The CSP is the frame rule
+  // only; a full script and style policy is a project of its own (Google sign-in, Paystack,
+  // YouTube embeds and inline Next chunks all have to be listed) and is not here yet.
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
