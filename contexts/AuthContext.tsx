@@ -654,6 +654,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             "teams_admin",
             "event_admin",
             "partner_admin",
+            "wager_admin",
+            "finance_admin",
           ].includes(role),
         ))
     : false;
@@ -672,6 +674,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           "teams_admin",
           "event_admin",
           "partner_admin",
+          "wager_admin",
+          "finance_admin",
           "sponsor",
         ]))
     : false;

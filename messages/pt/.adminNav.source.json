@@ -25,5 +25,7 @@
   "vendorDashboard": "Vendor Dashboard",
   "backToUserDashboard": "Back to user dashboard",
   "polls": "Polls",
-  "support": "Support"
+  "support": "Support",
+  "wagers": "Wagers",
+  "winnings": "Winnings"
 }

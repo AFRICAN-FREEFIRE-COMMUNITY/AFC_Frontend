@@ -4,6 +4,8 @@ import {
   IconBroadcast,
   IconBuilding,
   IconCalendar,
+  IconCash,
+  IconTargetArrow,
   IconChartBarPopular,
   IconTrophy,
   IconFolder,
@@ -229,6 +231,27 @@ export const adminNavLinks: AdminNavLink[] = [
     navKey: "playerMarkets",
     allowedRoles: ["head_admin"],
     icon: IconUsers,
+  },
+  {
+    // Wager markets (inbox #33, 2026-09-18): create, publish, lock, settle from the match
+    // result. Page app/(a)/a/wagers; backend afc_wager.views_admin MARKET_ROLES. The money side
+    // is the next entry, gated to the finance role, so a market admin never sees balances.
+    label: "Wagers",
+    navKey: "wagers",
+    slug: "/a/wagers",
+    icon: IconTargetArrow,
+    allowedRoles: ["head_admin", "wager_admin"],
+    newSince: "2026-09-18",
+  },
+  {
+    // Winnings (inbox #33): what the house earns and owes, players' balances, the withdrawal
+    // queue, adjustments, KYC, the ledger. Page app/(a)/a/winnings; backend FINANCE_ROLES.
+    label: "Winnings",
+    navKey: "winnings",
+    slug: "/a/winnings",
+    icon: IconCash,
+    allowedRoles: ["head_admin", "finance_admin"],
+    newSince: "2026-09-18",
   },
   // Player + team reports triage now lives UNDER "Teams & Players" as a Reports tab
   // (owner 2026-06-20), so there is no standalone sidebar entry. /a/player-reports
@@ -481,6 +504,8 @@ export const adminNavLinks: AdminNavLink[] = [
       "teams_admin",
       "shop_admin",
       "partner_admin",
+      "wager_admin",
+      "finance_admin",
     ],
   },
 ];
