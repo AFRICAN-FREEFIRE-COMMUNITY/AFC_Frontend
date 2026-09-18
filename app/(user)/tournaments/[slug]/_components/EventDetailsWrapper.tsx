@@ -5849,7 +5849,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                     )}
                   </p>
                   {(eventDetails.waitlist_competitors?.length ?? 0) > 0 ? (
-                    <ul className="mt-3 divide-y rounded-md border">
+                    <ul className="mt-3 rounded-md bg-muted/30">
                       {eventDetails.waitlist_competitors!.map((w, i) => (
                         <li
                           key={i}
@@ -6095,7 +6095,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               )}
             </>
           ) : (
-            <div className="p-10 text-center border-2 border-dashed border-zinc-900 rounded-2xl text-zinc-500">
+            <div className="rounded-2xl bg-muted/30 p-10 text-center text-zinc-500">
               {t("detail.noStages")}
             </div>
           )}
