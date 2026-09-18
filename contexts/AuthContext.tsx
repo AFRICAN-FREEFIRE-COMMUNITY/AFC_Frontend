@@ -566,8 +566,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (token: string): Promise<User> => {
-    // Store token in cookie instead of localStorage
-    localStorage.setItem("authToken", token);
+    // The cookie is the ONLY place the token lives (owner rule R66, 2026-09-18). Until then a
+    // copy also sat in localStorage["authToken"], readable by any script on the page, and three
+    // screens re-logged-in from it just to refresh the profile; they call refreshUser() now.
     // Clear any stale duplicate auth_token cookie FIRST so the freshly-set canonical cookie
     // is the only one (a leftover deeper-path cookie would otherwise shadow it and 401 every
     // call). Then set the canonical path-"/" cookie + mirror into the in-memory token.
@@ -581,9 +582,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = useCallback(() => {
     // Remove the cookie (every copy, incl. stale duplicates) + clear the in-memory token.
     clearAuthCookieEverywhere();
-    // Also clear the localStorage mirror (owner 2026-07-04 random-logout hardening): login() writes
-    // localStorage["authToken"], and two surfaces (profile/edit, EventDetailsWrapper) re-login FROM
-    // it. If logout left it behind, a later re-login could fire with a DEAD token -> 401 -> logout.
+    // The localStorage mirror of the token is gone (R66, 2026-09-18); this removal stays for one
+    // release so a browser that still holds the old copy is cleaned on its next logout.
     try {
       localStorage.removeItem("authToken");
     } catch {

@@ -48,3 +48,10 @@ public/downloads/*
 !public/downloads/AFC-Capture.exe
 _fe_ghost.log
 _be_ghost.log
+
+# keys and credential files never belong in the repo (owner rule R62)
+*.pem
+*.key
+*.p12
+*service-account*.json
+credentials.json

@@ -94,7 +94,7 @@ const Page = () => {
   // Active locale, used to join several locking event names the way the language does it (see the
   // identity lock note below).
   const locale = useLocale();
-  const { user, token, login } = useAuth();
+  const { user, token, refreshUser } = useAuth();
   const router = useRouter();
 
   const [pending, startTransition] = useTransition();
@@ -312,13 +312,11 @@ const Page = () => {
         // auth_token cookie pattern from contexts/AuthContext.tsx.
         const savedLanguage = response.data?.language ?? data.language;
         Cookies.set(LOCALE_COOKIE_NAME, savedLanguage, LOCALE_COOKIE_OPTIONS);
-        // Re-fetch the profile so AuthContext.user.language reflects the saved value immediately
-        // (login() -> fetchUser() under the hood). This is the existing refresh path; the language
-        // now rides along in that same get-user-profile payload.
-        const storedToken = localStorage.getItem("authToken");
-        if (storedToken) {
-          await login(storedToken);
-        } else {
+        // Re-fetch the profile so AuthContext.user.language reflects the saved value immediately.
+        // refreshUser() reads the session cookie (the token's only home since 2026-09-18, R66);
+        // null means the session is gone, which is the one case that needs a sign-in.
+        const refreshed = await refreshUser();
+        if (!refreshed) {
           toast.error(t("edit.reloginError"));
           router.push("/login");
         }

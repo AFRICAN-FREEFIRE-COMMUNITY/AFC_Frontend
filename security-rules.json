@@ -40,6 +40,15 @@
       "rule": "R55",
       "path": ".env",
       "reason": "tracked on purpose: it holds only NEXT_PUBLIC_* values (the API origin, the site origin, the Google client id, feature flags), which ship in the bundle anyway; a secret never goes here, .env.local is git-ignored for those"
+    },
+    {
+      "rule": "R62",
+      "path": ".env",
+      "reason": "tracked on purpose and holds only NEXT_PUBLIC_* values (the API origin, the site origin, a Google OAuth client id, which is public by design, and two feature flags); git log -p over every commit of the file shows no other key ever in it (checked 2026-09-18); secrets live in .env.local, which is ignored"
     }
-  ]
+  ],
+  "https": {
+    "enforcedBy": "nginx on the VPS, in the backend repo's deploy kit (AFC-B deploy/vps/nginx-afc.conf): port 80 answers 301 to https; HSTS max-age=31536000 includeSubDomains on the site and the API host; read back live 2026-09-18",
+    "verified": "2026-09-18"
+  }
 }

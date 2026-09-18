@@ -43,8 +43,15 @@ const LEDGER = join(ROOT, "scripts", "debt-ledger.json");
 const STUCK_DAYS = 7;
 const today = new Date().toISOString().slice(0, 10);
 
+// The pre-commit hook runs this with GIT_DIR / GIT_INDEX_FILE / GIT_WORK_TREE set to THIS repo.
+// A child that runs git in the backend tree beside us (the security checker's R62 reads history)
+// would then read the frontend's history as the backend's and report a HIGH that is not there
+// (seen 2026-09-18: a commit blocked by "a HIGH count rose" that no direct run could reproduce).
+// Every child gets an environment with those keys removed.
+const CHILD_ENV = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^GIT_/.test(k)));
+
 function run(cmd, cmdArgs) {
-  const r = spawnSync(process.execPath, [cmd, ...cmdArgs], { cwd: ROOT, encoding: "utf8" });
+  const r = spawnSync(process.execPath, [cmd, ...cmdArgs], { cwd: ROOT, encoding: "utf8", env: CHILD_ENV });
   return { code: r.status ?? 1, out: (r.stdout || "") + (r.stderr || "") };
 }
 
@@ -99,7 +106,7 @@ const CHECKERS = [
     run() {
       const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "endpoint_callers.py")));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
-      const py = spawnSync("python", [join(backend, "tools", "endpoint_callers.py"), "--frontend", ".", "--json"], { encoding: "utf8" });
+      const py = spawnSync("python", [join(backend, "tools", "endpoint_callers.py"), "--frontend", ".", "--json"], { encoding: "utf8", env: CHILD_ENV });
       let parsed = null;
       try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["endpoint-callers: could not run (python + the backend tree are needed)"], counts: {} }; }
       const blocking = (parsed.unexplained || []).map((p) => `UNCALLED ${p}  (no frontend caller, not named in tools/endpoint_consumers.json)`);
@@ -113,7 +120,7 @@ const CHECKERS = [
     run() {
       const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "check_parity.py")));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
-      const py = spawnSync("python", [join(backend, "tools", "check_parity.py"), "--frontend", ".", "--json"], { encoding: "utf8" });
+      const py = spawnSync("python", [join(backend, "tools", "check_parity.py"), "--frontend", ".", "--json"], { encoding: "utf8", env: CHILD_ENV });
       let parsed = null;
       try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["check-parity: could not run"], counts: {} }; }
       const blocking = (parsed.failures || []).map((f) => `PARITY ${f.capability}: built on ${f.have.join(", ") || "no side"}, missing on ${f.lack.join(", ")}`);
@@ -158,7 +165,7 @@ const CHECKERS = [
     run() {
       const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "check_refusal_codes.py")));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
-      const py = spawnSync("python", [join(backend, "tools", "check_refusal_codes.py"), "--json"], { encoding: "utf8", cwd: backend });
+      const py = spawnSync("python", [join(backend, "tools", "check_refusal_codes.py"), "--json"], { encoding: "utf8", cwd: backend, env: CHILD_ENV });
       let parsed = null;
       try { parsed = JSON.parse((py.stdout || "").trim().split(String.fromCharCode(10)).pop()); } catch { return { blocking: ["refusal-codes: could not run (python + the backend tree are needed)"], counts: {} }; }
       return { blocking: [], counts: { "refusals.uncoded": parsed.uncoded }, note: `${parsed.coded} refusals carry a code` };
@@ -171,10 +178,10 @@ const CHECKERS = [
     // 2026-09-03 audit was a one-off until now; this makes it run on every commit.
     id: "design-lint",
     run() {
-      const r = spawnSync("node", ["tools/design-lint.mjs", "--json"], { encoding: "utf8" });
+      const r = spawnSync("node", ["tools/design-lint.mjs", "--json"], { encoding: "utf8", env: CHILD_ENV });
       let findings = [];
       try { findings = JSON.parse(r.stdout || "[]"); } catch { return { blocking: ["design-lint: could not run"], counts: {} }; }
-      const gate = spawnSync("node", ["tools/design-lint.mjs"], { encoding: "utf8" });
+      const gate = spawnSync("node", ["tools/design-lint.mjs"], { encoding: "utf8", env: CHILD_ENV });
       const blocking = gate.status === 0 ? [] : (gate.stdout || "").split(String.fromCharCode(10)).filter((l) => /^\s+\S+:\d+\s+\[/.test(l)).map((l) => l.trim());
       if (gate.status !== 0 && !blocking.length) blocking.push("design-lint: blocking breaches (run node tools/design-lint.mjs)");
       const notes = findings.filter((f) => f.tier === "NOTE").length;
@@ -196,7 +203,7 @@ const CHECKERS = [
       const trees = [".", ...["../wt-be-ocr", "../backend"].filter((d) => existsSync(join(d, "security-rules.json")))];
       const blocking = [], notes = [];
       for (const dir of trees) {
-        const r = spawnSync("node", [checker, "--ledger", "--quiet", "--project", dir], { encoding: "utf8" });
+        const r = spawnSync("node", [checker, "--ledger", "--quiet", "--project", dir], { encoding: "utf8", env: CHILD_ENV });
         const out = ((r.stdout || "") + (r.stderr || "")).trim();
         // The ledger prints one row per rule: "R60     1/0           1/0" = HIGH/MEDIUM now, then
         // at the baseline. Sum the HIGH column for the one-line note; the full table is a

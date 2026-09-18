@@ -111,7 +111,8 @@ const RULES = [
     where: "code",
     // Structure drawn with a line. The bare `border` utility is excluded on purpose: the shadcn
     // primitives carry it, which is the 299 files, and rewriting those is not what was asked for.
-    test: /\bring-[12]\b|\bdivide-[xy]\b|\bborder-dashed\b|<hr\b|\boutline:\s*1px/,
+    // A `focus-visible:` ring is the one ring the design rule allows (keyboard focus, a11y).
+    test: /(?<!focus-visible:)\bring-[12]\b|\bdivide-[xy]\b|\bborder-dashed\b|<hr\b|\boutline:\s*1px/,
     says: "structure drawn with a line. Use a filled surface and space instead.",
   },
   {
@@ -156,7 +157,10 @@ function changedFiles() {
       const staged = execFileSync("git", ["diff", "--name-only", "HEAD"], { cwd: ROOT, stdio: ["ignore", "pipe", "ignore"] })
         .toString().trim();
       const all = [out, staged].filter(Boolean).join("\n").split("\n").filter(Boolean);
-      if (all.length) return new Set(all.map((f) => f.split("/").join(sep)));
+      // Forward slashes, the same form `rel` is normalised to below. Until 2026-09-18 this
+      // joined with `sep`, so on Windows the two never matched and the CHANGED tier silently
+      // checked nothing locally while CI (Linux) checked it: a passing zero with two meanings.
+      if (all.length) return new Set(all);
       return new Set();
     } catch {
       /* try the next base */
