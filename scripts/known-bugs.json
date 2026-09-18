@@ -37,7 +37,7 @@
         "2026-09-04: the design lint found six more that had crept back in"
       ],
       "fix": "a hyphen with spaces, a comma, a colon, parentheses, or reword",
-      "fixture": "const label = \"Teams \u2014 all\";",
+      "fixture": "const label = \"Teams — all\";",
       "fixtureOk": "const label = \"Teams - all\";",
       "kind": "regex",
       "pattern": "[\\u2014\\u2013]",
@@ -133,6 +133,26 @@
         "hooks/**/*.tsx",
         "lib/**/*.ts",
         "lib/**/*.tsx"
+      ]
+    },
+    {
+      "id": "fe-fetch-answer-unread",
+      "title": "A fetch whose answer is never read, followed by a success toast",
+      "why": "`await fetch(...)` alone never throws on a 4xx or 5xx; fetch resolves with the response and only rejects on a network failure. A save written as `await fetch(...); toast.success(...)` tells the person it saved whatever the server said. Read `res.ok` and the body's message and code; a call that really is fire-and-forget says so on the line.",
+      "seen": [
+        "2026-09-18 the organizer edit page's Sponsor tab: the whole form 400s on prizepool_cash_value and the screen says 'Sponsor settings saved!' (found on the Chrome walk of the sponsor requirement fix)",
+        "2026-09-18 the same shape on the admin Sponsor tab and the organizer Waitlist tab (three sites, one pattern)"
+      ],
+      "fix": "const res = await fetch(...); if (!res.ok) { const body = await res.json().catch(() => ({})); throw Object.assign(new Error(body?.message || res.statusText), { response: { data: body } }); } ... or mark a deliberate one with `// fire-and-forget: <why>` on the await line",
+      "kind": "regex",
+      "pattern": "^\\s*await fetch\\(",
+      "ignoreLineRegex": "fire-and-forget",
+      "globs": [
+        "app/**/*.tsx",
+        "app/**/*.ts",
+        "components/**/*.tsx",
+        "contexts/**/*.tsx",
+        "lib/**/*.ts"
       ]
     }
   ]
