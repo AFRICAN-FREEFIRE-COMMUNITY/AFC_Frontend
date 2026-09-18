@@ -380,7 +380,10 @@ export default function PartnerApplicationsPanel() {
 
       {/* ── The review sheet ──────────────────────────────────────────────────────────── */}
       <Dialog open={detail !== null} onOpenChange={(open) => !open && setDetail(null)}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        {/* sm:max-w-3xl, not max-w-3xl: DialogContent already carries sm:max-w-lg, and at >=640px
+            the breakpoint class wins, so the sheet was 512px wide while its two-column grids
+            need ~556px and it scrolled sideways on every desktop review (found 2026-09-18). */}
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
           {detail && (
             <>
               <DialogHeader>
