@@ -419,7 +419,7 @@ export default function EditLeaderboardPage({
       // groups" step. Idempotent + gated (admin/organizer) on the backend; errors are ignored so the
       // page always loads. Endpoint: seeding_management.sync_entry_stage_seeding.
       try {
-        await fetch(
+        await fetch( // fire-and-forget: errors are ignored on purpose, the page loads either way
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seeding/sync-entry-stage/`,
           {
             method: "POST",

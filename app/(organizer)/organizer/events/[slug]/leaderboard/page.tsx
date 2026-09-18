@@ -584,7 +584,7 @@ export default function OrganizerEventLeaderboardPage({
       // Idempotent + gated (organizer with can_manage_registrations OR admin) on the backend; errors
       // are ignored so the page still loads. Endpoint: seeding_management.sync_entry_stage_seeding.
       try {
-        await fetch(
+        await fetch( // fire-and-forget: errors are ignored on purpose, the page loads either way
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/seeding/sync-entry-stage/`,
           {
             method: "POST",
@@ -1364,7 +1364,7 @@ export default function OrganizerEventLeaderboardPage({
     }
 
     try {
-      await fetch(endpoint, {
+      await fetch(endpoint, { // fire-and-forget: non-fatal, the config is already stored
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -2265,7 +2265,7 @@ export default function OrganizerEventLeaderboardPage({
                   </TableBody>
                 </Table>
                 {getTableData().length === 0 && (
-                  <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                  <div className="rounded-lg bg-muted/30 py-14 text-center italic text-muted-foreground">
                     {t("eventLeaderboard.noResult")}
                   </div>
                 )}
@@ -2387,7 +2387,7 @@ export default function OrganizerEventLeaderboardPage({
                     </TableBody>
                   </Table>
                   {getTableData().length === 0 && (
-                    <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                    <div className="rounded-lg bg-muted/30 py-14 text-center italic text-muted-foreground">
                       {t("eventLeaderboard.noResult")}
                     </div>
                   )}
@@ -2453,7 +2453,7 @@ export default function OrganizerEventLeaderboardPage({
                     </TableBody>
                   </Table>
                   {getPlayerData().length === 0 && (
-                    <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                    <div className="rounded-lg bg-muted/30 py-14 text-center italic text-muted-foreground">
                       {t("eventLeaderboard.noPlayerData")}
                     </div>
                   )}

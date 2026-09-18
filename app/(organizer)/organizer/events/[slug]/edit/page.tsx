@@ -1469,11 +1469,18 @@ export default function OrganizerEditEventPage({
         sponsorForm.sponsor_field_label || "Player UUID",
       );
 
-      await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
+      const res = await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
+      // The answer decides, never the fact that the request was sent: until 2026-09-18 this
+      // toasted "saved" over a 400 (the whole form is posted, and one bad field elsewhere on it
+      // refuses the lot). The server's sentence names the field (`message`, `field`).
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw Object.assign(new Error(body?.message || res.statusText), { response: { data: body } });
+      }
 
       toast.success(t("toast.sponsorSaved"));
       setEventDetails((prev) =>
@@ -1658,11 +1665,18 @@ export default function OrganizerEditEventPage({
         String(Number(waitlistForm.min_letter_avatars ?? 0) || 0),
       );
 
-      await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
+      const res = await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
+      // The answer decides, never the fact that the request was sent: until 2026-09-18 this
+      // toasted "saved" over a 400 (the whole form is posted, and one bad field elsewhere on it
+      // refuses the lot). The server's sentence names the field (`message`, `field`).
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw Object.assign(new Error(body?.message || res.statusText), { response: { data: body } });
+      }
 
       toast.success(t("toast.waitlistSaved"));
       setEventDetails((prev) =>

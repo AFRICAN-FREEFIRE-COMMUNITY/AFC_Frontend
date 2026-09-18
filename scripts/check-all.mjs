@@ -182,7 +182,10 @@ const CHECKERS = [
       let findings = [];
       try { findings = JSON.parse(r.stdout || "[]"); } catch { return { blocking: ["design-lint: could not run"], counts: {} }; }
       const gate = spawnSync("node", ["tools/design-lint.mjs"], { encoding: "utf8", env: CHILD_ENV });
-      const blocking = gate.status === 0 ? [] : (gate.stdout || "").split(String.fromCharCode(10)).filter((l) => /^\s+\S+:\d+\s+\[/.test(l)).map((l) => l.trim());
+      // Only the BLOCKING section: the lint prints its NOTES after a "NOTES" heading, and those are
+      // reported, never blocking (they were swept into this list until 2026-09-18).
+      const blockingSection = (gate.stdout || "").split(/^NOTES/m)[0];
+      const blocking = gate.status === 0 ? [] : blockingSection.split(String.fromCharCode(10)).filter((l) => /^\s+\S+:\d+\s+\[/.test(l)).map((l) => l.trim());
       if (gate.status !== 0 && !blocking.length) blocking.push("design-lint: blocking breaches (run node tools/design-lint.mjs)");
       const notes = findings.filter((f) => f.tier === "NOTE").length;
       return { blocking, counts: {}, note: `${findings.length - notes} blocking-tier, ${notes} note(s)` };
