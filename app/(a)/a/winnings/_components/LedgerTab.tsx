@@ -9,9 +9,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { IconDownload } from "@tabler/icons-react";
 
 import { LocalTime } from "@/components/LocalTime";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +22,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { naira } from "@/lib/api/wagers";
 import { listAdminLedger, type AdminLedgerRow } from "@/lib/api/wagersAdmin";
 
-import { Pager, useAdminRefusal } from "../../wagers/_components/shared";
+import { downloadCsv, Pager, useAdminRefusal } from "../../wagers/_components/shared";
 
 const LIMIT = 50;
 const KINDS = ["ALL", "PAYOUT", "VOID_REFUND", "CANCEL_REFUND", "WITHDRAWAL_HOLD", "WITHDRAWAL_PAID", "WITHDRAWAL_RELEASED", "ADJUSTMENT_CREDIT", "ADJUSTMENT_DEBIT", "HOUSE_RAKE", "HOUSE_CANCEL_FEE", "HOUSE_DUST"] as const;
@@ -55,6 +57,22 @@ export function LedgerTab({ user: fixedUser }: { user?: string } = {}) {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { setOffset(0); }, [kind, user, ref, house]);
 
+  // The current filter, up to 200 lines, as a file for the accountant.
+  const exportCsv = async () => {
+    try {
+      const page = await listAdminLedger({
+        kind: kind === "ALL" ? undefined : kind, user: user.trim() || undefined, ref: ref.trim() || undefined,
+        house: house ? "1" : undefined, limit: 200, offset: 0,
+      });
+      downloadCsv(`wager-ledger-${new Date().toISOString().slice(0, 10)}.csv`,
+        ["when", "account", "kind", "amount_naira", "held_delta_naira", "balance_after_naira", "ref_kind", "ref", "label", "reason", "note", "by"],
+        page.results.map((e) => [e.created_at, e.is_house ? "house" : e.user ?? "", e.kind, (e.amount_kobo / 100).toFixed(2), (e.held_delta_kobo / 100).toFixed(2),
+          e.is_house ? "" : (e.balance_after_kobo / 100).toFixed(2), e.ref_kind, e.ref, e.label, e.reason, e.note, e.created_by ?? ""]));
+    } catch (err) {
+      refuse(err);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-2 md:grid-cols-4">
@@ -65,6 +83,9 @@ export function LedgerTab({ user: fixedUser }: { user?: string } = {}) {
         {!fixedUser && <Input value={user} onChange={(e) => setUser(e.target.value)} placeholder={t("ledger.user")} aria-label={t("ledger.user")} />}
         <Input value={ref} onChange={(e) => setRef(e.target.value)} placeholder={t("ledger.ref")} aria-label={t("ledger.ref")} />
         {!fixedUser && <label className="flex items-center gap-2 text-sm"><Switch checked={house} onCheckedChange={setHouse} />{t("ledger.houseOnly")}</label>}
+      </div>
+      <div className="flex justify-end">
+        <Button size="sm" variant="secondary" onClick={() => void exportCsv()}><IconDownload />{t("common.exportCsv")}</Button>
       </div>
       {rows === null ? (
         <Skeleton className="h-40 w-full" />

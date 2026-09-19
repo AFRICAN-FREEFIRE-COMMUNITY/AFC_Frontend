@@ -39,6 +39,13 @@ export function naira(kobo: number | null | undefined): string {
 }
 
 /** Whole naira typed in a field -> kobo for the wire. */
+/** A market image as the API serialises it is a media path ("/media/..."); make it absolute
+ *  against the API host so next/image can load it from the same place the shop's images come from. */
+export function mediaUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  return path.startsWith("http") ? path : `${env.NEXT_PUBLIC_BACKEND_API_URL}${path}`;
+}
+
 export function nairaToKobo(naira: string | number): number {
   const n = Number(String(naira).replace(/[^\d.]/g, ""));
   if (!Number.isFinite(n) || n <= 0) return 0;

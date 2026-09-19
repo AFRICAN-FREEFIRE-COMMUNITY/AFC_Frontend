@@ -17,6 +17,7 @@
  * Addressed by slug; an old slug answers {status: "moved"} and the page replaces the URL (R22).
  */
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -35,7 +36,8 @@ import { Button } from "@/components/ui/button";
 import { useViewer } from "@/lib/gating";
 import { getErrorMessage } from "@/lib/http";
 import {
-  cancelWager, getLimits, getMarket, naira, refusalOf, verifyPayment, type Limits, type MarketDetail, type Wager,
+  cancelWager, getLimits, getMarket, getSettings, mediaUrl, naira, refusalOf, verifyPayment, type Limits, type MarketDetail, type Wager,
+  type WagerSettingsPublic,
 } from "@/lib/api/wagers";
 
 import { PlaceWagerSheet } from "../_components/PlaceWagerSheet";
@@ -53,6 +55,8 @@ function MarketPageInner() {
   const [busy, setBusy] = useState(false);
   // A player on a break or self-excluded sees why the button is gone, not a refusal after typing.
   const [limits, setLimits] = useState<Limits | null>(null);
+  // The kill switch: while wagering is paused the button gives way to the maintenance message.
+  const [settings, setSettings] = useState<WagerSettingsPublic | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -77,6 +81,11 @@ function MarketPageInner() {
     if (sessionLoading || !signedIn) return;
     getLimits().then(setLimits).catch(() => setLimits(null));
   }, [sessionLoading, signedIn]);
+
+  useEffect(() => {
+    getSettings().then(setSettings).catch(() => setSettings(null));
+  }, []);
+  const paused = settings !== null && !settings.wagering_enabled;
 
   const now = Date.now();
   const excludedUntil = limits?.self_excluded_until && new Date(limits.self_excluded_until).getTime() > now ? limits.self_excluded_until : null;
@@ -182,6 +191,10 @@ function MarketPageInner() {
         <div className="bg-muted mt-4 rounded-md px-4 py-3 text-sm">{t("detail.voidReason", { reason: market.void_reason })}</div>
       )}
 
+      {mediaUrl(market.image) && (
+        <Image src={mediaUrl(market.image)!} alt="" width={1200} height={675} unoptimized className="mt-4 aspect-video w-full rounded-md object-cover lg:max-h-72" />
+      )}
+
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
         {/* ── options ── */}
         <section className="bg-card rounded-md p-4 shadow-sm">
@@ -233,7 +246,9 @@ function MarketPageInner() {
 
         {/* ── the viewer's side ── */}
         <aside className="flex flex-col gap-4">
-          {canStake && (excludedUntil || breakUntil) ? (
+          {canStake && paused ? (
+            <div className="bg-card rounded-md p-4 text-sm shadow-sm">{settings?.maintenance_message || t("paused")}</div>
+          ) : canStake && (excludedUntil || breakUntil) ? (
             <div className="bg-card rounded-md p-4 text-sm shadow-sm">
               <p>
                 {excludedUntil

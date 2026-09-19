@@ -284,6 +284,15 @@ export async function saveMarket(slug: string, body: MarketInput): Promise<{ mes
   return data;
 }
 
+/** The market image on its own: a multipart PATCH carrying only the file (the JSON form
+ *  never carries files, and a multipart body would turn the options list into a string). */
+export async function uploadMarketImage(slug: string, file: File): Promise<{ message: string; market: AdminMarketDetail }> {
+  const form = new FormData();
+  form.append("image", file);
+  const { data } = await axios.patch(`${API}/markets/${encodeURIComponent(slug)}/`, form, h());
+  return data;
+}
+
 const marketAction = async (slug: string, action: string, body: Record<string, unknown> = {}) => {
   const { data } = await axios.post(`${API}/markets/${encodeURIComponent(slug)}/${action}/`, body, h());
   return data as { message: string; market: AdminMarketDetail; settlement?: Settlement };

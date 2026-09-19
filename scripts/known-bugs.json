@@ -154,6 +154,32 @@
         "contexts/**/*.tsx",
         "lib/**/*.ts"
       ]
+    },
+    {
+      "id": "fe-inline-component",
+      "title": "A component defined inside another component (remounts on every render)",
+      "why": "`const Row = (...) => <.../>` inside a component is a NEW component type on every render, so React unmounts and remounts its subtree each time the parent re-renders: an <Input> inside it loses focus and its typed value on every keystroke and on every toast. The KYC code field on /winnings refused the RIGHT code because it was empty by the time the click fired; the wager settings fields would have dropped focus per digit.",
+      "seen": [
+        "2026-09-19 app/(user)/winnings/page.tsx Verify: `const Row = ...` around the WhatsApp code input (hoisted to VerifyRow)",
+        "2026-09-19 app/(a)/a/wagers/_components/SettingsTab.tsx: `const Field = ...` around every settings input (replaced by a module-level SettingsField)"
+      ],
+      "fix": "hoist the helper to module level (a plain `function Name(props)` below the page component) and pass what it needs as props; call useTranslations inside it if it needs copy",
+      "fixture": "  const Row = ({ title }: { title: string }) => (",
+      "fixtureOk": "function Row({ title }: { title: string }) {",
+      "kind": "regex",
+      "pattern": "^  const [A-Z][A-Za-z0-9]* = \\((\\{|\\)|[a-z])",
+      "globs": [
+        "app/**/*.tsx",
+        "components/**/*.tsx"
+      ],
+      "ignoreLineRegex": "^\\s*//",
+      "allowFiles": [
+        "app/(a)/a/broadcasts/_components/AudienceBuilder.tsx",
+        "app/(user)/rankings/page.tsx",
+        "app/(user)/shop/_components/OrdersClient.tsx",
+        "app/overlay/view/[token]/[overlayId]/page.tsx"
+      ],
+      "allowFilesWhy": "2026-09-19: six display-only helpers that predate the entry (FilterChips, Section, ItemThumb, MatchCard, RoundColumn, CompetitorCard); none holds an input, so the remount costs render time, not data. Hoist them when those files are next touched, then shorten this list."
     }
   ]
 }

@@ -161,6 +161,26 @@ export default function AdminMarketPage() {
         )}
       </Panel>
 
+      {/* ── the timeline: every stamp the market carries, in order ── */}
+      <Panel title={t("detail.timeline")}>
+        <ul className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3">
+          {([
+            ["created", m.created_at, m.created_by],
+            ["opens", m.open_at, null],
+            ["locks", m.locked_at ?? m.lock_at, null],
+            ["suggested", m.suggested_at, null],
+            ["settled", m.settled_at, s?.confirmed_by ?? null],
+          ] as [string, string | null, string | null][]).filter(([, at]) => at).map(([key, at, who]) => (
+            <li key={key} className="flex justify-between gap-2">
+              <span className="text-muted-foreground">{t(`detail.stamp.${key}`)}</span>
+              <span><LocalTime value={at} mode="datetime" />{who ? ` · ${who}` : ""}</span>
+            </li>
+          ))}
+        </ul>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {m.image && <img src={m.image} alt="" className="mt-2 h-24 w-40 rounded-md object-cover" />}
+      </Panel>
+
       <Tabs defaultValue="options">
         <TabsList className="w-full">
           <TabsTrigger value="options" className="w-full">{t("detail.tabOptions")}</TabsTrigger>

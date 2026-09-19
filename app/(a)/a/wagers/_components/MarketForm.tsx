@@ -24,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  createMarket, getAdminSettings, listTemplates, pickerEvent, pickerEvents, saveMarket,
+  createMarket, getAdminSettings, listTemplates, pickerEvent, pickerEvents, saveMarket, uploadMarketImage,
   type AdminMarketDetail, type MarketInput, type MarketTemplate, type PickerEvent, type PickerEventDetail,
 } from "@/lib/api/wagersAdmin";
 
@@ -68,6 +68,8 @@ export function MarketForm({ existing, onSaved }: Props) {
   const [teamIds, setTeamIds] = useState<number[]>([]);
   const [playerIds, setPlayerIds] = useState<number[]>([]);
   const [custom, setCustom] = useState<string[]>(existing && existing.template_detail.option_source === "custom" ? existing.options.map((o) => o.label) : ["", ""]);
+  // The card image travels on its own multipart request after the JSON save (see uploadMarketImage).
+  const [image, setImage] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   const tpl = templates?.find((x) => x.code === template) ?? existing?.template_detail ?? null;
@@ -142,7 +144,8 @@ export function MarketForm({ existing, onSaved }: Props) {
       body.options = optionsPayload;
     }
     try {
-      const out = editing ? await saveMarket(existing!.slug, body) : await createMarket(body);
+      let out = editing ? await saveMarket(existing!.slug, body) : await createMarket(body);
+      if (image) out = await uploadMarketImage(out.market.slug, image);
       toast.success(out.message);
       onSaved(out.market);
     } catch (err) {
@@ -291,6 +294,11 @@ export function MarketForm({ existing, onSaved }: Props) {
             </Select>
           </div>
           <label className="flex items-center gap-3 self-end text-sm"><Switch checked={featured} onCheckedChange={setFeatured} />{t("form.featured")}</label>
+          <div className="flex flex-col gap-1 md:col-span-2">
+            <Label>{t("form.image")} ({t("common.optional")})</Label>
+            <Input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] ?? null)} />
+            <p className="text-muted-foreground text-[11px]">{existing?.image ? t("form.imageCurrent") : t("form.imageHint")}</p>
+          </div>
         </div>
       </Panel>
 

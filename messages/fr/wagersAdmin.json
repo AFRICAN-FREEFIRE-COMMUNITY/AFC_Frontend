@@ -31,7 +31,8 @@
     "yes": "Oui",
     "no": "Non",
     "backToMarkets": "Retour aux marchés",
-    "backToPlayers": "Retour aux joueurs"
+    "backToPlayers": "Retour aux joueurs",
+    "exportCsv": "Exporter en CSV"
   },
   "pager": {
     "pageOf": "Page {page} sur {pages} · {total} lignes",
@@ -117,7 +118,16 @@
     "colPool": "Cagnotte",
     "colWagers": "Paris",
     "colLock": "Verrouillage",
-    "colSuggested": "Résultat / suggestion"
+    "colSuggested": "Résultat / suggestion",
+    "eventFilter": "Événement",
+    "allEvents": "Tous les événements",
+    "templateFilter": "Type",
+    "allTemplates": "Tous les types",
+    "lockSelected": "Verrouiller {n, plural, one {# marché} other {# marchés}}",
+    "voidSelected": "Annuler {n, plural, one {# marché} other {# marchés}}",
+    "bulkLocked": "{n, plural, one {# marché verrouillé} other {# marchés verrouillés}}.",
+    "bulkVoided": "{n, plural, one {# marché annulé} other {# marchés annulés}} ; chaque mise remboursée.",
+    "bulkVoidIntro": "Chaque mise sur ces marchés retourne intégralement aux joueurs. Un seul motif pour tous."
   },
   "queue": {
     "intro": "Les marchés verrouillés attendent le résultat du match ; dès qu'il est saisi, la suggestion apparaît avec ses preuves. Confirmez-la, ou choisissez un autre gagnant avec un motif.",
@@ -143,7 +153,9 @@
     "suggestAgain": "Interroger les stats",
     "totalKills": "Total de kills {total}, ligne {line}",
     "mvp": "MVP enregistré : {name}",
-    "kills": "{n} kills"
+    "kills": "{n} kills",
+    "preview": "{net} vont au côté gagnant après {rake} de commission, répartis sur {n, plural, one {# ligne} other {# lignes}} au prorata des mises.",
+    "previewSolo": "Seul ce côté a misé : chaque mise est rendue intégralement, sans commission."
   },
   "void": {
     "title": "Annuler {title}",
@@ -198,7 +210,15 @@
     "colPlaced": "Placé",
     "on": "sur",
     "refund": "Remboursement",
-    "settlement": "Règlement"
+    "settlement": "Règlement",
+    "timeline": "Chronologie",
+    "stamp": {
+      "created": "Créé",
+      "opens": "Ouverture",
+      "locks": "Verrouillage",
+      "suggested": "Suggestion",
+      "settled": "Réglé"
+    }
   },
   "form": {
     "newTitle": "Nouveau marché",
@@ -248,7 +268,10 @@
     "moneyTitle": "Argent",
     "moneyHint": "Ces valeurs partent des réglages par défaut. Pourcentages et nairas entiers.",
     "saveDraft": "Enregistrer en brouillon",
-    "publish": "Publier maintenant"
+    "publish": "Publier maintenant",
+    "image": "Image de la carte",
+    "imageHint": "Facultatif. Affichée sur la carte et la page du marché. JPEG, PNG ou WEBP jusqu'à 10 Mo.",
+    "imageCurrent": "Un nouveau fichier remplace l'image actuelle."
   },
   "templates": {
     "intro": "Un type de marché associe qui peut être soutenu à la façon dont le gagnant est lu dans les stats du match.",
@@ -383,7 +406,9 @@
     "rejectTitle": "Refuser ce retrait",
     "rejectIntro": "{amount} pour {user} retourne dans ses Gains disponibles. Le joueur lit le motif.",
     "rejectReason": "Motif",
-    "rejectPlaceholder": "Par exemple : le nom du compte ne correspond pas au profil."
+    "rejectPlaceholder": "Par exemple : le nom du compte ne correspond pas au profil.",
+    "approveSelected": "Approuver {n, plural, one {# sélectionné} other {# sélectionnés}}",
+    "approvedN": "{n, plural, =0 {Rien d'approuvé} one {# retrait approuvé} other {# retraits approuvés}}."
   },
   "adjustments": {
     "intro": "Crédits et débits faits par des admins. Faites-en un depuis la page d'un joueur.",
@@ -506,6 +531,8 @@
     "self_excluded": "Ce joueur s'est auto-exclu.",
     "limit_invalid": "Les limites doivent être des montants entiers en nairas.",
     "period_invalid": "Choisissez un nombre de jours entre 1 et 30.",
-    "winnings_frozen": "Ce compte est gelé."
+    "winnings_frozen": "Ce compte est gelé.",
+    "not_an_image": "Ce fichier n'est pas une image.",
+    "image_too_large": "L'image dépasse 10 Mo."
   }
 }

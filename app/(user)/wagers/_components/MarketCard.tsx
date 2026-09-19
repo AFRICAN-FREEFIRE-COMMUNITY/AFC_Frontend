@@ -9,12 +9,13 @@
  *
  * CONNECTS TO: lib/api/wagers.ts MarketSummary; copy in messages/*\/wagers.json ("card", "status").
  */
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
 import { LocalTime } from "@/components/LocalTime";
-import { naira, type MarketSummary } from "@/lib/api/wagers";
+import { mediaUrl, naira, type MarketSummary } from "@/lib/api/wagers";
 
 function statusVariant(m: MarketSummary): "default" | "secondary" | "destructive" | "pending" {
   if (m.status === "OPEN" && m.is_open_for_stakes) return "default";
@@ -27,12 +28,16 @@ export function MarketCard({ market }: { market: MarketSummary }) {
   const t = useTranslations("wagers");
   const open = market.status === "OPEN" && market.is_open_for_stakes;
   const status = open ? "OPEN" : market.status === "OPEN" ? "LOCKED" : market.status;
+  const image = mediaUrl(market.image);
 
   return (
     <Link
       href={`/wagers/${market.slug}`}
       className="bg-card text-card-foreground flex min-w-0 flex-col gap-3 rounded-md p-4 shadow-sm focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none"
     >
+      {image && (
+        <Image src={image} alt="" width={640} height={360} unoptimized className="aspect-video w-full rounded-md object-cover" />
+      )}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-muted-foreground truncate text-[11px] uppercase tracking-wide">{market.event.name}</p>

@@ -154,3 +154,16 @@ export const nairaInputToKobo = (v: string) => Math.round((Number(v) || 0) * 100
 /** bps <-> percent for the rate fields. */
 export const bpsToPercentInput = (bps: number | null | undefined) => (bps || bps === 0 ? String(bps / 100) : "");
 export const percentInputToBps = (v: string) => Math.round((Number(v) || 0) * 100);
+
+/** A CSV file the browser saves: quoted cells, UTF-8 with a BOM so Excel reads the naira sign. */
+export function downloadCsv(filename: string, header: string[], rows: (string | number | null | undefined)[][]) {
+  const cell = (v: string | number | null | undefined) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const text = [header, ...rows].map((r) => r.map(cell).join(",")).join("\r\n");
+  const blob = new Blob(["﻿" + text], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}

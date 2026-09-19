@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 import { LocalTime } from "@/components/LocalTime";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,12 +41,14 @@ export function WithdrawalsTab() {
   const [rejecting, setRejecting] = useState<StaffWithdrawal | null>(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
 
   const load = useCallback(async () => {
     try {
       const page = await listWithdrawals({ status: filter === "ALL" ? undefined : filter, limit: LIMIT, offset });
       setRows(page.results);
       setTotal(page.total_count);
+      setSelected([]);
     } catch (err) {
       refuse(err);
       setRows([]);
@@ -70,6 +73,24 @@ export function WithdrawalsTab() {
   };
 
   const canApprove = (w: StaffWithdrawal) => w.status === "REQUESTED" || w.status === "PENDING_COSIGN" || w.status === "FAILED";
+  const approvable = (rows ?? []).filter((w) => selected.includes(w.token) && canApprove(w));
+  // Batch approve: one call per withdrawal so each keeps its own audit line and its own answer
+  // (a co-sign refusal on one does not stop the rest).
+  const approveSelected = async () => {
+    setBusy("batch");
+    let ok = 0;
+    for (const w of approvable) {
+      try {
+        await approveWithdrawal(w.token);
+        ok += 1;
+      } catch (err) {
+        refuse(err);
+      }
+    }
+    setBusy(null);
+    toast.success(t("withdrawals.approvedN", { n: ok }));
+    await load();
+  };
   const canReject = (w: StaffWithdrawal) => w.status === "REQUESTED" || w.status === "PENDING_COSIGN" || w.status === "FAILED";
   const canMarkPaid = (w: StaffWithdrawal) => isHead && w.status === "APPROVED";
 
@@ -77,12 +98,15 @@ export function WithdrawalsTab() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-muted-foreground text-xs">{t("withdrawals.intro")}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          {approvable.length > 0 && <Button size="sm" disabled={busy !== null} onClick={() => void approveSelected()}>{t("withdrawals.approveSelected", { n: approvable.length })}</Button>}
         <Select value={filter} onValueChange={setFilter}>
           <SelectTrigger className="w-56" aria-label={t("withdrawals.filter")}><SelectValue /></SelectTrigger>
           <SelectContent>
             {FILTERS.map((f) => <SelectItem key={f} value={f}>{f === "OPEN" ? t("withdrawals.open") : f === "ALL" ? t("withdrawals.all") : t(`withdrawalStatus.${f}`)}</SelectItem>)}
           </SelectContent>
         </Select>
+        </div>
       </div>
       {rows === null ? (
         <Skeleton className="h-40 w-full" />
@@ -94,6 +118,9 @@ export function WithdrawalsTab() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-8">
+                    <Checkbox aria-label={t("form.selectAll")} checked={rows.filter(canApprove).length > 0 && selected.length === rows.filter(canApprove).length} onCheckedChange={(v) => setSelected(v ? rows.filter(canApprove).map((w) => w.token) : [])} />
+                  </TableHead>
                   <TableHead>{t("players.colPlayer")}</TableHead>
                   <TableHead className="text-right">{t("withdrawals.colAmount")}</TableHead>
                   <TableHead>{t("withdrawals.colBank")}</TableHead>
@@ -106,6 +133,7 @@ export function WithdrawalsTab() {
               <TableBody>
                 {rows.map((w, i) => (
                   <TableRow key={w.token} className={i % 2 ? "bg-muted/40" : ""}>
+                    <TableCell>{canApprove(w) && <Checkbox aria-label={w.token} checked={selected.includes(w.token)} onCheckedChange={() => setSelected((s) => (s.includes(w.token) ? s.filter((x) => x !== w.token) : [...s, w.token]))} />}</TableCell>
                     <TableCell className="font-medium"><Link href={`/a/winnings/players/${w.user}`} className="hover:underline">{w.user}</Link></TableCell>
                     <TableCell className="text-right font-semibold">{naira(w.amount_kobo)}</TableCell>
                     <TableCell>

@@ -31,7 +31,8 @@
     "yes": "Yes",
     "no": "No",
     "backToMarkets": "Back to markets",
-    "backToPlayers": "Back to players"
+    "backToPlayers": "Back to players",
+    "exportCsv": "Export CSV"
   },
   "pager": {
     "pageOf": "Page {page} of {pages} · {total} rows",
@@ -117,7 +118,16 @@
     "colPool": "Pool",
     "colWagers": "Wagers",
     "colLock": "Locks",
-    "colSuggested": "Result / suggestion"
+    "colSuggested": "Result / suggestion",
+    "eventFilter": "Event",
+    "allEvents": "Every event",
+    "templateFilter": "Kind",
+    "allTemplates": "Every kind",
+    "lockSelected": "Lock {n, plural, one {# market} other {# markets}}",
+    "voidSelected": "Void {n, plural, one {# market} other {# markets}}",
+    "bulkLocked": "{n, plural, one {# market locked} other {# markets locked}}.",
+    "bulkVoided": "{n, plural, one {# market voided} other {# markets voided}}; every stake refunded.",
+    "bulkVoidIntro": "Every stake on these markets goes back to the players in full. One reason for all of them."
   },
   "queue": {
     "intro": "Locked markets wait for the match result; once it is in, the suggestion appears with its evidence. Confirm it, or pick another winner with a reason.",
@@ -143,7 +153,9 @@
     "suggestAgain": "Ask the stats again",
     "totalKills": "Total kills {total}, line {line}",
     "mvp": "Recorded MVP: {name}",
-    "kills": "{n} kills"
+    "kills": "{n} kills",
+    "preview": "{net} goes to the winning side after {rake} rake, split across {n, plural, one {# line} other {# lines}} by stake.",
+    "previewSolo": "Only this side has stakes: every stake is returned in full, no rake."
   },
   "void": {
     "title": "Void {title}",
@@ -198,7 +210,15 @@
     "colPlaced": "Placed",
     "on": "on",
     "refund": "Refund",
-    "settlement": "Settlement"
+    "settlement": "Settlement",
+    "timeline": "Timeline",
+    "stamp": {
+      "created": "Created",
+      "opens": "Opens",
+      "locks": "Locks",
+      "suggested": "Suggestion",
+      "settled": "Settled"
+    }
   },
   "form": {
     "newTitle": "New market",
@@ -248,7 +268,10 @@
     "moneyTitle": "Money",
     "moneyHint": "These start from the settings defaults. Percentages and whole naira.",
     "saveDraft": "Save as draft",
-    "publish": "Publish now"
+    "publish": "Publish now",
+    "image": "Card image",
+    "imageHint": "Optional. Shown on the market card and page. JPEG, PNG or WEBP up to 10 MB.",
+    "imageCurrent": "A new file replaces the current image."
   },
   "templates": {
     "intro": "A kind of market pairs who can be backed with how the winner is read from the match stats.",
@@ -383,7 +406,9 @@
     "rejectTitle": "Reject this withdrawal",
     "rejectIntro": "{amount} for {user} goes back to their available Winnings. They read the reason.",
     "rejectReason": "Reason",
-    "rejectPlaceholder": "For example: the account name does not match the profile."
+    "rejectPlaceholder": "For example: the account name does not match the profile.",
+    "approveSelected": "Approve {n, plural, one {# selected} other {# selected}}",
+    "approvedN": "{n, plural, =0 {Nothing approved} one {# withdrawal approved} other {# withdrawals approved}}."
   },
   "adjustments": {
     "intro": "Credits and debits admins made. Make one from a player's page.",
@@ -506,6 +531,8 @@
     "self_excluded": "This player is self-excluded.",
     "limit_invalid": "Limits must be whole naira amounts.",
     "period_invalid": "Pick a number of days from 1 to 30.",
-    "winnings_frozen": "This account is frozen."
+    "winnings_frozen": "This account is frozen.",
+    "not_an_image": "That file is not an image.",
+    "image_too_large": "The image is over 10 MB."
   }
 }

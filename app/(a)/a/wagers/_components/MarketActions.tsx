@@ -107,6 +107,17 @@ export function SettleDialog({ market, open, onOpenChange, onDone }: {
             </SelectContent>
           </Select>
           {chosen && chosen.pool_kobo === 0 && <p className="text-muted-foreground text-xs">{t("settle.noWinnerNote")}</p>}
+          {chosen && chosen.pool_kobo > 0 && (
+            <p className="text-xs">
+              {chosen.pool_kobo >= market.pool_kobo
+                ? t("settle.previewSolo")
+                : t("settle.preview", {
+                    net: naira(market.pool_kobo - Math.floor(market.pool_kobo * market.rake_bps / 10000)),
+                    rake: naira(Math.floor(market.pool_kobo * market.rake_bps / 10000)),
+                    n: chosen.line_count,
+                  })}
+            </p>
+          )}
         </div>
         {differs && (
           <div className="flex flex-col gap-1">

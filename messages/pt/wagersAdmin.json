@@ -31,7 +31,8 @@
     "yes": "Sim",
     "no": "Não",
     "backToMarkets": "Voltar aos mercados",
-    "backToPlayers": "Voltar aos jogadores"
+    "backToPlayers": "Voltar aos jogadores",
+    "exportCsv": "Exportar CSV"
   },
   "pager": {
     "pageOf": "Página {page} de {pages} · {total} linhas",
@@ -117,7 +118,16 @@
     "colPool": "Bolsa",
     "colWagers": "Apostas",
     "colLock": "Bloqueia",
-    "colSuggested": "Resultado / sugestão"
+    "colSuggested": "Resultado / sugestão",
+    "eventFilter": "Evento",
+    "allEvents": "Todos os eventos",
+    "templateFilter": "Tipo",
+    "allTemplates": "Todos os tipos",
+    "lockSelected": "Bloquear {n, plural, one {# mercado} other {# mercados}}",
+    "voidSelected": "Anular {n, plural, one {# mercado} other {# mercados}}",
+    "bulkLocked": "{n, plural, one {# mercado bloqueado} other {# mercados bloqueados}}.",
+    "bulkVoided": "{n, plural, one {# mercado anulado} other {# mercados anulados}}; cada aposta devolvida.",
+    "bulkVoidIntro": "Cada aposta nestes mercados volta por inteiro aos jogadores. Um só motivo para todos."
   },
   "queue": {
     "intro": "Os mercados bloqueados esperam pelo resultado da partida; assim que entra, a sugestão aparece com as suas provas. Confirme-a, ou escolha outro vencedor com um motivo.",
@@ -143,7 +153,9 @@
     "suggestAgain": "Consultar as estatísticas",
     "totalKills": "Total de kills {total}, linha {line}",
     "mvp": "MVP registado: {name}",
-    "kills": "{n} kills"
+    "kills": "{n} kills",
+    "preview": "{net} vão para o lado vencedor depois de {rake} de comissão, repartidos por {n, plural, one {# linha} other {# linhas}} na proporção das apostas.",
+    "previewSolo": "Só este lado tem apostas: cada aposta é devolvida por inteiro, sem comissão."
   },
   "void": {
     "title": "Anular {title}",
@@ -198,7 +210,15 @@
     "colPlaced": "Feita",
     "on": "em",
     "refund": "Devolução",
-    "settlement": "Liquidação"
+    "settlement": "Liquidação",
+    "timeline": "Cronologia",
+    "stamp": {
+      "created": "Criado",
+      "opens": "Abre",
+      "locks": "Bloqueia",
+      "suggested": "Sugestão",
+      "settled": "Liquidado"
+    }
   },
   "form": {
     "newTitle": "Novo mercado",
@@ -248,7 +268,10 @@
     "moneyTitle": "Dinheiro",
     "moneyHint": "Estes valores partem das definições por defeito. Percentagens e nairas inteiros.",
     "saveDraft": "Guardar como rascunho",
-    "publish": "Publicar agora"
+    "publish": "Publicar agora",
+    "image": "Imagem do cartão",
+    "imageHint": "Opcional. Mostrada no cartão e na página do mercado. JPEG, PNG ou WEBP até 10 MB.",
+    "imageCurrent": "Um novo ficheiro substitui a imagem atual."
   },
   "templates": {
     "intro": "Um tipo de mercado junta quem pode ser apoiado à forma como o vencedor é lido das estatísticas da partida.",
@@ -383,7 +406,9 @@
     "rejectTitle": "Recusar este levantamento",
     "rejectIntro": "{amount} de {user} volta aos seus Ganhos disponíveis. O jogador lê o motivo.",
     "rejectReason": "Motivo",
-    "rejectPlaceholder": "Por exemplo: o nome da conta não corresponde ao perfil."
+    "rejectPlaceholder": "Por exemplo: o nome da conta não corresponde ao perfil.",
+    "approveSelected": "Aprovar {n, plural, one {# selecionado} other {# selecionados}}",
+    "approvedN": "{n, plural, =0 {Nada aprovado} one {# levantamento aprovado} other {# levantamentos aprovados}}."
   },
   "adjustments": {
     "intro": "Créditos e débitos feitos por admins. Faça um a partir da página de um jogador.",
@@ -506,6 +531,8 @@
     "self_excluded": "Este jogador autoexcluiu-se.",
     "limit_invalid": "Os limites têm de ser montantes inteiros em nairas.",
     "period_invalid": "Escolha um número de dias entre 1 e 30.",
-    "winnings_frozen": "Esta conta está congelada."
+    "winnings_frozen": "Esta conta está congelada.",
+    "not_an_image": "Esse ficheiro não é uma imagem.",
+    "image_too_large": "A imagem passa de 10 MB."
   }
 }
