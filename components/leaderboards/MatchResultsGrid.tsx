@@ -725,7 +725,7 @@ export function MatchResultsGrid({
                                           (AFC Capture / debugger log). Read-only: the boxes to the
                                           right are the organizer's; this line is the log's. */}
                                       {player.rich && (
-                                        <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                                        <span className="mt-0.5 block w-60 max-w-full text-xs font-normal break-words whitespace-normal text-muted-foreground sm:w-auto sm:max-w-none">
                                           {richStatsLine(player.rich, L)}
                                         </span>
                                       )}
