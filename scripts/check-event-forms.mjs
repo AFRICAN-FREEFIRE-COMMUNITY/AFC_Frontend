@@ -73,15 +73,27 @@ for (const rel of FORMS) {
 }
 const unknown = [];
 for (const [rel, keys] of sent) for (const k of keys) if (!known.has(k)) unknown.push({ file: rel, key: k });
+
+// ── each form reads the ONE list (owner 2026-09-22, inbox #41) ──
+// A form that stops calling appendRemainingEventFields is back to repeating the field list by
+// hand, which is the drift this check exists to stop. The helper appends only what the form has
+// not already appended, so it can never fight a hand-written line; losing it is always a
+// regression. See lib/eventFields.ts.
+const notWired = [];
+for (const rel of FORMS) {
+  const text = readFileSync(join(ROOT, rel), "utf8");
+  if (!/appendRemainingEventFields\s*\(/.test(text)) notWired.push(rel);
+}
 const everSent = new Set([...sent.values()].flatMap((s) => [...s]));
 const missing = [...writable].filter((k) => !everSent.has(k)).sort();
 
-const result = { unknown, missing, stale, forms: Object.fromEntries([...sent].map(([k, v]) => [k, v.size])) };
+const result = { unknown, missing, stale, notWired, forms: Object.fromEntries([...sent].map(([k, v]) => [k, v.size])) };
 if (process.argv.includes("--json")) {
   console.log(JSON.stringify(result));
   process.exit(0);
 }
 for (const u of unknown) console.log(`UNKNOWN ${u.file}  sends "${u.key}", which the contract does not know`);
+for (const rel of notWired) console.log(`NOT WIRED ${rel}  does not call appendRemainingEventFields: it is repeating the field list by hand again (lib/eventFields.ts)`);
 if (stale) console.log(`STALE ${stale}`);
-console.log(`${unknown.length} unknown key(s); ${missing.length} writable field(s) no form sends${missing.length ? ": " + missing.join(", ") : ""}`);
-process.exit(unknown.length || stale ? 1 : 0);
+console.log(`${unknown.length} unknown key(s); ${notWired.length} form(s) not reading the shared list; ${missing.length} writable field(s) no form sends${missing.length ? ": " + missing.join(", ") : ""}`);
+process.exit(unknown.length || notWired.length || stale ? 1 : 0);

@@ -116,11 +116,16 @@ export async function sendContactMessage(input: {
   email: string;
   message: string;
   files?: File[];
+  // Cloudflare Turnstile token (owner 2026-09-22). The server verifies it before a ticket
+  // exists or staff are emailed; empty in an environment with no site key, which the server
+  // also treats as "no check configured".
+  botToken?: string;
 }) {
   const form = new FormData();
   form.append("name", input.name);
   form.append("email", input.email);
   form.append("message", input.message);
+  if (input.botToken) form.append("cf_turnstile_response", input.botToken);
   (input.files ?? []).forEach((f) => form.append("files", f));
   const { data } = await axios.post(`${API}/support/contact/`, form);
   return data as {

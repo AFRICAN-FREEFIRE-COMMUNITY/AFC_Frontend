@@ -140,6 +140,7 @@ import CoOrganizersPanel from "@/app/(a)/a/events/[slug]/edit/_components/CoOrga
 import { LinkedEventsCard } from "@/components/event-links";
 import { SeedStageModal } from "@/app/(a)/a/events/_components/SeedStageModal";
 import { ConfirmStartTournamentModal } from "@/app/(a)/a/events/_components/ConfirmStartTournamentModal";
+import { appendRemainingEventFields } from "@/lib/eventFields";
 // Shared Round-Robin config types + default (sub-project B).
 import {
   DEFAULT_ROUND_ROBIN_CONFIG,
@@ -1980,6 +1981,12 @@ export default function OrganizerEditEventPage({
           "waitlist_mode",
           waitlistForm.waitlist_mode || "first_registered",
         );
+
+        // Everything else the contract says this role may write, in one line instead of five
+        // save sites (owner 2026-09-22, inbox #41). It appends ONLY what this FormData does
+        // not already carry, so every hand-written append above wins and a NEW plain field
+        // reaches this save with no edit here. See lib/eventFields.ts.
+        appendRemainingEventFields(formData, form.getValues() as Record<string, unknown>, "organizer");
 
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,

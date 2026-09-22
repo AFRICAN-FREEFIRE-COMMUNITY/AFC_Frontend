@@ -50,5 +50,10 @@
   "https": {
     "enforcedBy": "nginx on the VPS, in the backend repo's deploy kit (AFC-B deploy/vps/nginx-afc.conf): port 80 answers 301 to https; HSTS max-age=31536000 includeSubDomains on the site and the API host; read back live 2026-09-18",
     "verified": "2026-09-18"
+  },
+  "botProtection": {
+    "verifiedBy": "AFC-B afc_auth/bot_protection.py (Cloudflare Turnstile siteverify, called first in signup, support_contact, submit_feedback and submit_application)",
+    "verified": "2026-09-22",
+    "note": "this tree only renders the widget (components/BotCheck.tsx) and posts the token as cf_turnstile_response; the decision is the backend's, proven by AFC-B afc_auth/tests_bot_protection.py"
   }
 }

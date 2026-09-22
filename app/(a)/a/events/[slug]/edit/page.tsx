@@ -85,6 +85,7 @@ import WaitlistTab from "./_components/WaitlistTab";
 // self-loads (eventLinksApi.list) and self-saves (create/fire/cancel/decide), so we only mount it
 // with the event id + its stages.
 import { LinkedEventsCard } from "@/components/event-links";
+import { appendRemainingEventFields } from "@/lib/eventFields";
 
 // ── Paid-vs-free registration payload helper (non-payment phase) ─────────────────
 // Appends registration_type (+ fee/currency when paid) onto the edit-event FormData.
@@ -2012,6 +2013,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           "waitlist_mode",
           waitlistForm.waitlist_mode || "first_registered",
         );
+
+        // Everything else the contract says this role may write, in one line instead of five
+        // save sites (owner 2026-09-22, inbox #41). It appends ONLY what this FormData does
+        // not already carry, so every hand-written append above wins and a NEW plain field
+        // reaches this save with no edit here. See lib/eventFields.ts.
+        appendRemainingEventFields(formData, form.getValues() as Record<string, unknown>, "admin");
 
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,

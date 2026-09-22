@@ -55,6 +55,7 @@ import {
   PhoneInput,
 } from "@/components/PhoneNumberInput";
 import { NewBadge } from "@/components/NewBadge";
+import { BotCheck } from "@/components/BotCheck";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -172,6 +173,8 @@ export function CreateAccountForm() {
   const password = form.watch("password");
   const acceptTerms = form.watch("acceptTerms"); // Watch the new field
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  // The Cloudflare Turnstile token this form must send with its post (owner 2026-09-22).
+  const [botToken, setBotToken] = useState("");
   const [isConfirmVisible, setConfirmIsVisible] = useState<boolean>(false);
   const toggleVisibility = () => setIsVisible((prevState) => !prevState);
   const toggleConfirmVisibility = () =>
@@ -231,7 +234,9 @@ export function CreateAccountForm() {
         };
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/signup/`,
-          { ...authData },
+          // The bot-check token rides with the body; the server asks Cloudflare about it
+          // before it creates anything or sends any mail (owner 2026-09-22).
+          { ...authData, cf_turnstile_response: botToken },
         );
 
         // Success: the typed draft is no longer needed, so we drop it before leaving.
@@ -574,6 +579,9 @@ export function CreateAccountForm() {
             </FormItem>
           )}
         />
+
+        {/* Bot check (owner 2026-09-22). Renders nothing when this environment has no site key. */}
+        <BotCheck onToken={setBotToken} className="mb-3" />
 
         <Button
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90"

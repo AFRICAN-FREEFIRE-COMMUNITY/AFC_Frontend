@@ -61,6 +61,7 @@ import { Loader } from "@/components/Loader";
 import { IconStar, IconStarFilled, IconCheck } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+import { BotCheck } from "@/components/BotCheck";
 
 /** One question, exactly as afc_feedback/views.py::_serialize_field returns it. */
 interface FeedbackFieldSchema {
@@ -101,6 +102,7 @@ export function FeedbackDialog({
   const { user } = useAuth();
 
   const [schema, setSchema] = useState<FeedbackFormSchema | null>(null);
+  const [botToken, setBotToken] = useState("");
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
@@ -208,6 +210,8 @@ export function FeedbackDialog({
           // feedback: "confusing" is noise, "confusing, from /tournaments/x/register" is a bug report.
           page_path: pathname,
           locale: Cookies.get("NEXT_LOCALE") || "",
+          // Bot check (owner 2026-09-22), verified server side before the row is stored.
+          cf_turnstile_response: botToken,
         },
         token ? { headers: { Authorization: `Bearer ${token}` } } : undefined,
       );
@@ -383,6 +387,9 @@ export function FeedbackDialog({
                 </p>
               </div>
             )}
+
+            {/* Bot check (owner 2026-09-22): nothing renders without a site key. */}
+            <BotCheck onToken={setBotToken} className="mt-2" />
 
             <DialogFooter className="gap-2 sm:gap-0">
               <Button
