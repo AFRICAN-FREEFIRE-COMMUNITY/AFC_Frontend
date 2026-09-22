@@ -44,6 +44,7 @@ import {
 } from "@/lib/eventFormats";
 // Upload size gate + honest failure messages (owner-reported 2026-08-05).
 import { checkUploadSize, describeSubmitFailure } from "@/lib/upload-limits";
+import { appendRemainingEventFields } from "@/lib/eventFields";
 // ── Sponsor-system P2: post-create sponsor attach loop. ──
 // StepSponsorRequirement's builder holds SponsorshipDraft rows in the `sponsorships`
 // form field; after create-event returns the new event_id, onSubmit below attaches +
@@ -1230,6 +1231,12 @@ export default function CreateEventPage() {
             Number((form.getValues("min_letter_avatars" as never) as unknown as number) ?? 0) || 0,
           ),
         );
+
+        // Everything else the contract says this role may write, in one line instead of four files
+        // (owner 2026-09-22, inbox #41). It appends ONLY fields this FormData does not already
+        // carry, so every hand-written append above wins; a NEW plain field reaches all four
+        // event forms as soon as the form state holds it. See lib/eventFields.ts.
+        appendRemainingEventFields(formData, form.getValues() as Record<string, unknown>, "admin");
 
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`,
