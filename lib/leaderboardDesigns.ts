@@ -235,6 +235,15 @@ export interface LeaderboardDesign {
 // The two export canvas sizes the renderer supports (afc_leaderboard.graphic.CANVAS).
 export type GraphicSize = "instagram" | "youtube";
 
+// What the one-click AFC default generator can build (owner 2026-09-22, inbox #38: "default designs
+// that can be used for any event as overlay"). 12 / 15 / 24 are the standings board sized by team
+// count, as before. The four scene names each produce a finished design for one LIVE overlay scene,
+// carrying that scene's design_type so the overlay renders through it instead of its built-in
+// layout. "set" builds the whole kit in one request: the 15-team standings board plus all four
+// scenes. Backend: afc_organizers.views_leaderboard_design._DEFAULT_PRESETS / _SCENE_PRESETS.
+export type DefaultDesignPreset =
+  | 12 | 15 | 24 | "booyah" | "mvp" | "top_killers" | "h2h" | "set";
+
 // ══ BOARD CHROME geometry (owner 2026-08-05, backlog #2) ═══════════════════════════════════════
 // A VERBATIM mirror of afc_leaderboard/graphic.py's chrome constants + _column_edges. It lives here,
 // not in a component, because BOTH surfaces that have to match the downloaded PNG import it:
@@ -381,12 +390,12 @@ export const leaderboardDesignsApi = {
   // library. `note` explains how the AFC + org logos were handled. Backed by
   // afc_organizers.views_leaderboard_design.create_default_design. Consumed by
   // LeaderboardDesignsManager's "Create default AFC design" 12/15/24 buttons.
-  createDefault: (preset: 12 | 15 | 24, organizationId?: number | null) => {
+  createDefault: (preset: DefaultDesignPreset, organizationId?: number | null) => {
     const fd = new FormData();
     fd.append("preset", String(preset));
     if (organizationId != null) fd.append("organization_id", String(organizationId));
     return axios
-      .post<{ design: LeaderboardDesign; note?: string }>(
+      .post<{ design: LeaderboardDesign; designs?: LeaderboardDesign[]; note?: string }>(
         `${BASE}/organizers/leaderboard-designs/create-default/`,
         fd,
         { headers: authHeaders() },

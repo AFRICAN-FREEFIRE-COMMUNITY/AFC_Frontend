@@ -321,6 +321,17 @@
       "body": "\"{name}\" will be permanently removed. Leaderboards that used it will fall back to the default or a plain background. This cannot be undone.",
       "cancel": "Cancel",
       "confirm": "Delete"
+    },
+    "createScene": "Live scene designs",
+    "createSet": "Whole kit",
+    "createSetTitle": "Create the whole overlay kit: standings, booyah, MVP, top killers and head to head",
+    "createSceneTitle": "Create the AFC default design for {scene}",
+    "defaultSetCreated": "{count} default designs created",
+    "scene": {
+      "booyah": "Booyah",
+      "mvp": "MVP",
+      "top_killers": "Top killers",
+      "h2h": "Head to head"
     }
   },
   "exportGraphic": {
