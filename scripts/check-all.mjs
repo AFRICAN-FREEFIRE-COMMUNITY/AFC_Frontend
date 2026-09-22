@@ -104,13 +104,18 @@ const CHECKERS = [
     // only the frontend. Blocking: an endpoint with no caller and no named consumer.
     id: "endpoint-callers",
     run() {
-      const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "endpoint_callers.py")));
+      // Which backend tree: AFC_BACKEND_TREE when set (a worktree on the matching branch), else
+      // ../backend. Never a sibling worktree picked by name: on 2026-09-22 this list still led with
+      // ../wt-be-ocr (the wager worktree of 19 Sep), so every frontend commit on the machine was
+      // judged against the wager branch's 34 endpoints and blocked.
+      const candidates = [process.env.AFC_BACKEND_TREE, "../backend"].filter(Boolean);
+      const backend = candidates.find((d) => existsSync(join(d, "tools", "endpoint_callers.py")));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
       const py = spawnSync("python", [join(backend, "tools", "endpoint_callers.py"), "--frontend", ".", "--json"], { encoding: "utf8", env: CHILD_ENV });
       let parsed = null;
       try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["endpoint-callers: could not run (python + the backend tree are needed)"], counts: {} }; }
       const blocking = (parsed.unexplained || []).map((p) => `UNCALLED ${p}  (no frontend caller, not named in tools/endpoint_consumers.json)`);
-      return { blocking, counts: {}, note: `${parsed.called} of ${parsed.endpoints} endpoints called; ${parsed.uncalled} named` };
+      return { blocking, counts: {}, note: `${parsed.called} of ${parsed.endpoints} endpoints called; ${parsed.uncalled} named (backend tree ${backend})` };
     },
   },
   {

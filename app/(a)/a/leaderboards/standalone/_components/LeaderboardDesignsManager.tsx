@@ -103,6 +103,7 @@ import { NewBadge } from "@/components/NewBadge";
 import { useLiveTick } from "@/hooks/useLiveTick";
 import {
   leaderboardDesignsApi,
+  type DefaultDesignPreset,
   type LeaderboardDesign,
   type GraphicSize,
   type LogoSize,
@@ -234,7 +235,7 @@ export function LeaderboardDesignsManager({
 
   // One-click AFC default-design generator (owner 2026-07-04): which preset (12 | 15 | 24) is being
   // created right now, or null. Drives the per-button spinner + disables the trio while in flight.
-  const [creatingDefault, setCreatingDefault] = useState<12 | 15 | 24 | null>(null);
+  const [creatingDefault, setCreatingDefault] = useState<DefaultDesignPreset | null>(null);
 
   // ── Load the library. ──
   // Live refresh (owner 2026-07-02): background=true skips the "Loading designs..." state
@@ -543,12 +544,19 @@ export function LeaderboardDesignsManager({
   // BOOYAHS, TOTAL POINTS) pre-placed for the chosen size: 12/15 = one column, 24 = two 12-row
   // columns. On success we reload the library so the new design appears; it is then editable in the
   // DesignFieldsEditor like any other. The org-scoping (organizationId) matches the manager's library.
-  const handleCreateDefault = async (preset: 12 | 15 | 24) => {
+  const handleCreateDefault = async (preset: DefaultDesignPreset) => {
     if (!canManage || creatingDefault !== null) return;
     setCreatingDefault(preset);
     try {
       const res = await leaderboardDesignsApi.createDefault(preset, organizationId);
-      toast.success(t("defaultCreated", { name: res.design.name }));
+      // "set" returns the whole kit; name the count rather than just the first design, so the
+      // operator knows five looks landed and not one.
+      const made = res.designs?.length ?? 1;
+      toast.success(
+        made > 1
+          ? t("defaultSetCreated", { count: made })
+          : t("defaultCreated", { name: res.design.name }),
+      );
       load();
     } catch (err: any) {
       toast.error(
@@ -615,6 +623,47 @@ export function LeaderboardDesignsManager({
                     <IconLoader2 className="size-4 animate-spin" />
                   ) : (
                     preset
+                  )}
+                </Button>
+              ))}
+            </div>
+            {/* The live-scene defaults + the whole kit (owner 2026-09-22, inbox #38: "default
+                designs that can be used for any event as overlay"). The buttons above size the
+                STANDINGS board by team count; these give the booyah moment, the MVP, the top
+                killers and the head to head a finished AFC look, and "kit" creates all five at
+                once. Every one stays editable afterwards, like any other design. */}
+            <div className="flex items-center gap-1.5">
+              <span className="hidden text-xs text-muted-foreground sm:inline">
+                {t("createScene")}
+                <NewBadge since="2026-09-22" className="ml-1.5" />
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={creatingDefault !== null}
+                onClick={() => handleCreateDefault("set")}
+                title={t("createSetTitle")}
+              >
+                {creatingDefault === "set" ? (
+                  <IconLoader2 className="size-4 animate-spin" />
+                ) : (
+                  t("createSet")
+                )}
+              </Button>
+              {(["booyah", "mvp", "top_killers", "h2h"] as const).map((scene) => (
+                <Button
+                  key={scene}
+                  variant="outline"
+                  size="sm"
+                  disabled={creatingDefault !== null}
+                  onClick={() => handleCreateDefault(scene)}
+                  title={t("createSceneTitle", { scene: t(`scene.${scene}`) })}
+                  aria-label={t("createSceneTitle", { scene: t(`scene.${scene}`) })}
+                >
+                  {creatingDefault === scene ? (
+                    <IconLoader2 className="size-4 animate-spin" />
+                  ) : (
+                    t(`scene.${scene}`)
                   )}
                 </Button>
               ))}
@@ -848,7 +897,7 @@ export function LeaderboardDesignsManager({
                     <div
                       key={lg.key}
                       onPointerDown={(e) => startDrag(e, lg.key)}
-                      className="absolute cursor-grab touch-none rounded-sm ring-1 ring-white/40 active:cursor-grabbing"
+                      className="absolute cursor-grab touch-none rounded-sm bg-white/15 active:cursor-grabbing"
                       style={{
                         left: `${lg.x_pct}%`,
                         top: `${lg.y_pct}%`,
@@ -1275,7 +1324,7 @@ function BackgroundField({
       </Label>
       {!preview ? (
         <div
-          className={`flex ${aspectClass} cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed border-border bg-muted p-3 text-center transition-colors hover:border-primary`}
+          className={`flex ${aspectClass} cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md bg-muted p-3 text-center transition-colors hover:bg-muted/70`}
           onClick={() => inputRef.current?.click()}
         >
           <div className="flex size-8 items-center justify-center rounded-full bg-primary/10">

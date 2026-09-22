@@ -241,6 +241,7 @@ import { WatchTag } from "@/components/WatchTag";
 // reused from the component so the seed helpers below stay type-aligned with the grid.
 import {
   MatchResultsGrid,
+  richFromRawPlayer,
   type EditRow as GridEditRow,
   type PlayerEditRow as GridPlayerEditRow,
   type TeamPlayerGroup as GridTeamPlayerGroup,
@@ -378,6 +379,7 @@ function statToTeamPlayerGroup(stat: GridRawStat): GridTeamPlayerGroup {
       damage: p.damage ?? 0,
       assists: p.assists ?? 0,
       played: true,
+      rich: richFromRawPlayer(p),
     })),
   };
 }
@@ -1971,6 +1973,19 @@ export default function OrganizerEventLeaderboardPage({
     saving: t("eventLeaderboard.tools.saving"),
     watchLabel: t("eventLeaderboard.watch.label"),
     watchReason: t("eventLeaderboard.watch.reason"),
+    richKnocks: t("eventLeaderboard.matchResults.rich.knocks"),
+    richKnocked: t("eventLeaderboard.matchResults.rich.knocked"),
+    richDeaths: t("eventLeaderboard.matchResults.rich.deaths"),
+    richHeadshots: t("eventLeaderboard.matchResults.rich.headshots"),
+    richKnockAssists: t("eventLeaderboard.matchResults.rich.knockAssists"),
+    richRespawns: t("eventLeaderboard.matchResults.rich.respawns"),
+    richGrenades: t("eventLeaderboard.matchResults.rich.grenades"),
+    richGrenadeKills: t("eventLeaderboard.matchResults.rich.grenadeKills"),
+    richGloo: t("eventLeaderboard.matchResults.rich.gloo"),
+    richMedkits: t("eventLeaderboard.matchResults.rich.medkits"),
+    richSurvived: t("eventLeaderboard.matchResults.rich.survived"),
+    richFromCapture: t("eventLeaderboard.matchResults.rich.fromCapture"),
+    richFromBackfill: t("eventLeaderboard.matchResults.rich.fromBackfill"),
   };
 
   // Localised copy for the stored-evidence panel under the grid (owner 2026-07-07).

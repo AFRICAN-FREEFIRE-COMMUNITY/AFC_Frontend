@@ -147,7 +147,7 @@ import { ScoringConfigPanel } from "../../_components/ScoringConfigPanel";
 // the Total Leaderboard + Scoring tabs), so the grid is fully controlled: it receives that state +
 // the handlers below and renders identically. No `labels` are passed here, so it renders the exact
 // English the tab always shipped (admin surface is i18n-exempt). Zero behaviour change.
-import { MatchResultsGrid } from "@/components/leaderboards/MatchResultsGrid";
+import { MatchResultsGrid, richFromRawPlayer } from "@/components/leaderboards/MatchResultsGrid";
 import { MatchEvidencePanel } from "@/components/leaderboards/MatchEvidencePanel";
 import { readJson } from "@/lib/readJson";
 
@@ -237,6 +237,9 @@ interface PlayerEditRow {
   damage: ScoreValue;
   assists: ScoreValue;
   played: boolean;
+  // Read-only per-player stats the game log recorded (AFC Capture / backfill); see the grid's
+  // RichPlayerStats. Never sent back on save.
+  rich?: ReturnType<typeof richFromRawPlayer>;
 }
 
 interface TeamPlayerGroup {
@@ -274,6 +277,7 @@ function statToTeamPlayerGroup(stat: RawStat): TeamPlayerGroup {
       damage: p.damage ?? 0,
       assists: p.assists ?? 0,
       played: true,
+      rich: richFromRawPlayer(p),
     })),
   };
 }

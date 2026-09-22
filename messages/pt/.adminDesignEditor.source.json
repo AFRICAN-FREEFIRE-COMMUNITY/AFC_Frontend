@@ -294,5 +294,21 @@
   "exportGraphic.loadFailed": "Failed to load designs.",
   "exportGraphic.downloaded": "Graphic downloaded.",
   "exportGraphic.downloadedPages": "{count, plural, one {Downloaded # image.} other {Downloaded # images.}}",
-  "exportGraphic.downloadFailed": "Failed to export the graphic."
+  "exportGraphic.downloadFailed": "Failed to export the graphic.",
+  "fields.knocked": "TIMES KNOCKED",
+  "fields.grenades_used": "GRENADES THROWN",
+  "fields.grenade_kills": "GRENADE KILLS",
+  "manager": {
+    "createScene": "Live scene designs",
+    "createSet": "Whole kit",
+    "createSetTitle": "Create the whole overlay kit: standings, booyah, MVP, top killers and head to head",
+    "createSceneTitle": "Create the AFC default design for {scene}",
+    "defaultSetCreated": "{count} default designs created",
+    "scene": {
+      "booyah": "Booyah",
+      "mvp": "MVP",
+      "top_killers": "Top killers",
+      "h2h": "Head to head"
+    }
+  }
 }
