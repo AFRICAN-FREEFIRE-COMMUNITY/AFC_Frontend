@@ -1255,7 +1255,22 @@
       "savedSomeMaps": "{ok} de {total} mapas guardados. Falha em {failed}: {reason}",
       "saveGroupError": "Não foi possível guardar os mapas do grupo",
       "retryHint": "abre o mapa que não está a funcionar e tenta novamente",
-      "missingPlacement": "Nenhuma colocação final inserida para: {names}. Escreva a colocação de cada um (1 para o vencedor, depois 2, 3, e assim por diante), ou desmarque Jogou, e guarde novamente."
+      "missingPlacement": "Nenhuma colocação final inserida para: {names}. Escreva a colocação de cada um (1 para o vencedor, depois 2, 3, e assim por diante), ou desmarque Jogou, e guarde novamente.",
+      "rich": {
+        "knocks": "derrubadas",
+        "knocked": "vezes derrubado",
+        "deaths": "mortes",
+        "headshots": "tiros na cabeça",
+        "knockAssists": "assistências de derrubada",
+        "respawns": "renascimentos",
+        "grenades": "granadas",
+        "grenadeKills": "abates com granada",
+        "gloo": "paredes gloo",
+        "medkits": "medkits",
+        "survived": "de sobrevivência",
+        "fromCapture": "registado pelo AFC Capture",
+        "fromBackfill": "registado a partir de um log do depurador"
+      }
     }
   },
   "exportGraphic": {

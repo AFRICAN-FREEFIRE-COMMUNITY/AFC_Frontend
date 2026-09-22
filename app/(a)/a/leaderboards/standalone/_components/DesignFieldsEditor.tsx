@@ -202,6 +202,11 @@ const FIELD_LABELS: Record<FieldType, string> = {
   revives_received: "REVIVES RECEIVED",
   gloowall_used: "GLOOWALL USED",
   medkit_used: "MEDKIT USED",
+  // AFC Capture 1.4.0 (owner 2026-09-22): stored on the site with each map's result, so they show in
+  // LIVE and in the official feed alike.
+  knocked: "TIMES KNOCKED",
+  grenades_used: "GRENADES THROWN",
+  grenade_kills: "GRENADE KILLS",
 };
 
 // Canonical display order for the palette chips. Rich LIVE-only stats trail the per-round stats so the
@@ -214,6 +219,7 @@ const FIELD_ORDER: FieldType[] = [
   "player_name", "damage", "assists", "mvp_count", "match_map",
   "deaths", "knockdowns", "headshots", "most_used_weapon", "survival_time",
   "revives_received", "gloowall_used", "medkit_used",
+  "knocked", "grenades_used", "grenade_kills",
 ];
 
 // Default x_pct per field type when first added to group 0 (group 1 offset by ~43).
@@ -230,6 +236,7 @@ const DEFAULT_X: Record<FieldType, number> = {
   // drags each to its final X per column group after adding.
   deaths: 52.0, knockdowns: 55.0, headshots: 58.0, most_used_weapon: 62.0,
   survival_time: 66.0, revives_received: 60.0, gloowall_used: 64.0, medkit_used: 68.0,
+  knocked: 56.0, grenades_used: 70.0, grenade_kills: 72.0,
 };
 
 // Default text alignment when a field is first added (left for name/logo, center for numbers).
@@ -313,6 +320,9 @@ function mockCellValue(rankIndex: number, field: FieldType): string {
     case "revives_received": return String(rankIndex % 4);
     case "gloowall_used": return String(3 + (rankIndex % 5));
     case "medkit_used": return String(2 + (rankIndex % 4));
+    case "knocked": return String(kp + 1);
+    case "grenades_used": return String(1 + (rankIndex % 6));
+    case "grenade_kills": return String(rankIndex % 2);
     // Player-row columns (owner 2026-08-06). A TEAM standings row carries none of these, so the
     // leaderboard preview shows them blank - which is exactly what the live overlay does.
     case "player_name": return "";

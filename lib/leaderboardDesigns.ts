@@ -80,12 +80,15 @@ export type FieldType =
   // per-round MatchResult / round_robin standings. So a design column bound to one of these renders a
   // real value while the overlay feed is in LIVE mode (events/overlay/feed/?live=1 -> the Redis
   // snapshot at overlay:live:<event>:<stage>:<group>) and 0/blank in the official per-round feed.
-  // Only the stats VERIFIED available in the client logs are exposed (we never add damage,
-  // grenades-thrown, or revive-giver, whose data does not exist anywhere in the client). Added to the
-  // DesignFieldsEditor palette + the CopyOverlayLinkDialog column chooser, rendered by DesignBoard via
-  // row[field.field_type].
+  // Only the stats VERIFIED available in the client logs are exposed (damage and the revive-giver do
+  // not exist anywhere in the client; re-checked on OB55, 2026-09-22). Since 2026-09-22 these are also
+  // STORED on the site (AFC Capture attaches them to each map's result upload), so the official feed
+  // sums them per team as well. Added to the DesignFieldsEditor palette + the CopyOverlayLinkDialog
+  // column chooser, rendered by DesignBoard via row[field.field_type].
   | "deaths" | "knockdowns" | "headshots" | "most_used_weapon" | "survival_time"
-  | "revives_received" | "gloowall_used" | "medkit_used";
+  | "revives_received" | "gloowall_used" | "medkit_used"
+  // AFC Capture 1.4.0 (owner 2026-09-22): times knocked, knock assists, grenades thrown, grenade kills.
+  | "knocked" | "grenades_used" | "grenade_kills";
 
 export type TextAlign = "left" | "center" | "right";
 
@@ -272,6 +275,9 @@ export const COLUMN_HEADER_LABELS: Partial<Record<FieldType, string>> = {
   revives_received: "REVIVES",
   gloowall_used: "GLOO",
   medkit_used: "MEDKITS",
+  knocked: "KNOCKED",
+  grenades_used: "GRENADES",
+  grenade_kills: "NADE KILLS",
 };
 
 export const HEADER_ROW_GAP = 1.15; // row-heights above row 1 (graphic.HEADER_ROW_GAP)

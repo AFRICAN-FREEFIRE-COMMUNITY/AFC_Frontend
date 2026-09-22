@@ -31,7 +31,10 @@
     "survival_time": "TEMPS DE SURVIE",
     "revives_received": "RÉANIMATIONS REÇUES",
     "gloowall_used": "GLOO UTILISÉS",
-    "medkit_used": "MEDKITS UTILISÉS"
+    "medkit_used": "MEDKITS UTILISÉS",
+    "knocked": "FOIS MIS À TERRE",
+    "grenades_used": "GRENADES LANCÉES",
+    "grenade_kills": "ÉLIMINATIONS À LA GRENADE"
   },
   "size": {
     "label": "Mise en page éditée :",

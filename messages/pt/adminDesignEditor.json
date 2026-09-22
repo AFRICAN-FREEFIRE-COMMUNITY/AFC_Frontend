@@ -31,7 +31,10 @@
     "survival_time": "TEMPO DE SOBREVIVÊNCIA",
     "revives_received": "REVIVES RECEBIDOS",
     "gloowall_used": "GLOO USADAS",
-    "medkit_used": "MEDKITS USADOS"
+    "medkit_used": "MEDKITS USADOS",
+    "knocked": "VEZES DERRUBADO",
+    "grenades_used": "GRANADAS LANÇADAS",
+    "grenade_kills": "ABATES COM GRANADA"
   },
   "size": {
     "label": "Layout em edição:",

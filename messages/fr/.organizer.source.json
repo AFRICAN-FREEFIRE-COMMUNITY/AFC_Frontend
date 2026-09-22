@@ -1239,5 +1239,18 @@
   "mediaAudit.check.clearError": "Could not mark that image as fine.",
   "mediaAudit.check.summary": "{count, plural, one {# player image needs a look before broadcast} other {# player images need a look before broadcast}}",
   "mediaAudit.check.reason.no_face": "No face found in this picture. It is usually a logo, a game screenshot or a wallpaper.",
-  "mediaAudit.check.reason.face_too_small": "The face is tiny in the frame. An esport image should be a head and shoulders shot."
+  "mediaAudit.check.reason.face_too_small": "The face is tiny in the frame. An esport image should be a head and shoulders shot.",
+  "eventLeaderboard.matchResults.rich.knocks": "knocks",
+  "eventLeaderboard.matchResults.rich.knocked": "knocked",
+  "eventLeaderboard.matchResults.rich.deaths": "deaths",
+  "eventLeaderboard.matchResults.rich.headshots": "headshots",
+  "eventLeaderboard.matchResults.rich.knockAssists": "knock assists",
+  "eventLeaderboard.matchResults.rich.respawns": "respawns",
+  "eventLeaderboard.matchResults.rich.grenades": "grenades",
+  "eventLeaderboard.matchResults.rich.grenadeKills": "grenade kills",
+  "eventLeaderboard.matchResults.rich.gloo": "gloo walls",
+  "eventLeaderboard.matchResults.rich.medkits": "medkits",
+  "eventLeaderboard.matchResults.rich.survived": "survived",
+  "eventLeaderboard.matchResults.rich.fromCapture": "recorded by AFC Capture",
+  "eventLeaderboard.matchResults.rich.fromBackfill": "recorded from a debugger log"
 }

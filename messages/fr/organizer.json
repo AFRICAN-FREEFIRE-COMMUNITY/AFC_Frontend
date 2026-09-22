@@ -1255,7 +1255,22 @@
       "savedSomeMaps": "{ok} carte(s) sur {total} enregistrée(s). Échec pour {failed} : {reason}",
       "saveGroupError": "Impossible d'enregistrer les cartes du groupe",
       "retryHint": "ouvrez la carte qui pose problème et réessayez",
-      "missingPlacement": "Aucune position finale saisie pour : {names}. Indiquez la position de chacun (1 pour le vainqueur, puis 2, 3, etc.), ou décochez Joué, puis enregistrez à nouveau."
+      "missingPlacement": "Aucune position finale saisie pour : {names}. Indiquez la position de chacun (1 pour le vainqueur, puis 2, 3, etc.), ou décochez Joué, puis enregistrez à nouveau.",
+      "rich": {
+        "knocks": "mises à terre",
+        "knocked": "fois à terre",
+        "deaths": "morts",
+        "headshots": "tirs à la tête",
+        "knockAssists": "assists de mise à terre",
+        "respawns": "réapparitions",
+        "grenades": "grenades",
+        "grenadeKills": "éliminations à la grenade",
+        "gloo": "murs gloo",
+        "medkits": "medkits",
+        "survived": "de survie",
+        "fromCapture": "enregistré par AFC Capture",
+        "fromBackfill": "enregistré depuis un journal du débogueur"
+      }
     }
   },
   "exportGraphic": {

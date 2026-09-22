@@ -31,7 +31,10 @@
     "survival_time": "SURVIVAL TIME",
     "revives_received": "REVIVES RECEIVED",
     "gloowall_used": "GLOOWALL USED",
-    "medkit_used": "MEDKIT USED"
+    "medkit_used": "MEDKIT USED",
+    "knocked": "TIMES KNOCKED",
+    "grenades_used": "GRENADES THROWN",
+    "grenade_kills": "GRENADE KILLS"
   },
   "size": {
     "label": "Editing layout:",

@@ -67,6 +67,7 @@ import {
   scoreOrZero,
   type ScoreValue,
 } from "@/lib/scoreInput";
+import { richFromRawPlayer, richStatsLine } from "@/components/leaderboards/MatchResultsGrid";
 
 // ── Shapes (subset of the leaderboard-details API rows) ──────────────────────
 interface RawPlayer {
@@ -121,6 +122,8 @@ interface PlayerEditRow {
   damage: ScoreValue;
   assists: ScoreValue;
   played: boolean;
+  // Read-only per-player stats the game log recorded (AFC Capture / backfill), never sent on save.
+  rich?: ReturnType<typeof richFromRawPlayer>;
 }
 interface TeamPlayerGroup {
   teamId: number;
@@ -155,6 +158,7 @@ function statToTeamPlayerGroup(stat: RawStat): TeamPlayerGroup {
       damage: p.damage ?? 0,
       assists: p.assists ?? 0,
       played: true,
+      rich: richFromRawPlayer(p),
     })),
   };
 }
@@ -443,7 +447,7 @@ export function GroupResultsEditor({
             </div>
 
             {currentRows.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground border-2 border-dashed rounded-lg">
+              <p className="py-10 text-center text-sm text-muted-foreground rounded-lg bg-muted/40">
                 No results entered for this map yet. Use the per-map editor or bulk
                 upload to enter them first.
               </p>
@@ -606,6 +610,11 @@ export function GroupResultsEditor({
                                       <TableRow key={player.player_id}>
                                         <TableCell className="font-medium">
                                           {player.username}
+                                          {player.rich && (
+                                            <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                                              {richStatsLine(player.rich)}
+                                            </span>
+                                          )}
                                         </TableCell>
                                         <TableCell>
                                           <Input

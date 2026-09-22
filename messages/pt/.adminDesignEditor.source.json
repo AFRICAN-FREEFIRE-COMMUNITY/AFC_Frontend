@@ -294,5 +294,8 @@
   "exportGraphic.loadFailed": "Failed to load designs.",
   "exportGraphic.downloaded": "Graphic downloaded.",
   "exportGraphic.downloadedPages": "{count, plural, one {Downloaded # image.} other {Downloaded # images.}}",
-  "exportGraphic.downloadFailed": "Failed to export the graphic."
+  "exportGraphic.downloadFailed": "Failed to export the graphic.",
+  "fields.knocked": "TIMES KNOCKED",
+  "fields.grenades_used": "GRENADES THROWN",
+  "fields.grenade_kills": "GRENADE KILLS"
 }

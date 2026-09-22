@@ -115,6 +115,49 @@ export interface PlayerEditRow {
   damage: ScoreValue;
   assists: ScoreValue;
   played: boolean;
+  /** The per-player stats AFC Capture (or a debugger-log backfill) recorded for this map. Read-only
+   *  here: they come from the game's own log, not from the organizer. Absent when nothing was
+   *  recorded, so "0" and "no data" never look the same. (owner 2026-09-22, inbox #36) */
+  rich?: RichPlayerStats;
+}
+
+export interface RichPlayerStats {
+  deaths: number;
+  knockdowns: number;
+  knocked: number;
+  headshots: number;
+  assists: number;
+  revives: number;
+  grenades_used: number;
+  grenade_kills: number;
+  gloowall_used: number;
+  medkit_used: number;
+  survival_seconds: number;
+  most_used_weapon: string;
+  source: "capture" | "backfill" | "";
+}
+
+/** Build the read-only rich stats from a backend player row (get_all_leaderboard_details_for_event
+ *  players[], which carries capture_rich_stats.RICH_PLAYER_FIELDS), or undefined when that map's row
+ *  was never filled. Shared by the admin, organizer and group editors so all three read one shape. */
+export function richFromRawPlayer(p: any): RichPlayerStats | undefined {
+  if (!p || !p.rich_stats_filled) return undefined;
+  const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : Number(v) || 0);
+  return {
+    deaths: n(p.deaths),
+    knockdowns: n(p.knockdowns),
+    knocked: n(p.knocked),
+    headshots: n(p.headshots),
+    assists: n(p.assists),
+    revives: n(p.revives_received),
+    grenades_used: n(p.grenades_used),
+    grenade_kills: n(p.grenade_kills),
+    gloowall_used: n(p.gloowall_used),
+    medkit_used: n(p.medkit_used),
+    survival_seconds: n(p.survival_seconds),
+    most_used_weapon: String(p.most_used_weapon ?? ""),
+    source: p.rich_stats_source === "backfill" ? "backfill" : "capture",
+  };
 }
 
 export interface TeamPlayerGroup {
@@ -199,6 +242,20 @@ export interface MatchResultsGridLabels {
   /** Watchlist badge label (defaults to the WatchTag default "Watch"). */
   watchLabel?: string;
   watchReason: string;
+  /** The read-only line under a player when AFC Capture recorded the map (owner 2026-09-22). */
+  richKnocks: string;
+  richKnocked: string;
+  richDeaths: string;
+  richHeadshots: string;
+  richKnockAssists: string;
+  richRespawns: string;
+  richGrenades: string;
+  richGrenadeKills: string;
+  richGloo: string;
+  richMedkits: string;
+  richSurvived: string;
+  richFromCapture: string;
+  richFromBackfill: string;
 }
 
 // Exact English the admin tab shipped with. The admin passes no `labels`, so it renders these.
@@ -251,7 +308,44 @@ const DEFAULT_LABELS: MatchResultsGridLabels = {
   saveThisMap: "Save this map",
   saving: "Saving…",
   watchReason: "On the advisory watchlist",
+  richKnocks: "knocks",
+  richKnocked: "knocked",
+  richDeaths: "deaths",
+  richHeadshots: "headshots",
+  richKnockAssists: "knock assists",
+  richRespawns: "respawns",
+  richGrenades: "grenades",
+  richGrenadeKills: "grenade kills",
+  richGloo: "gloo walls",
+  richMedkits: "medkits",
+  richSurvived: "survived",
+  richFromCapture: "recorded by AFC Capture",
+  richFromBackfill: "recorded from a debugger log",
 };
+
+/** "3 knocks · 1 death · 12:40 survived · recorded by AFC Capture": the read-only stats line under a
+ *  player. Only non-zero counts are shown so the line stays short; the source is always named. */
+export function richStatsLine(r: RichPlayerStats, L: MatchResultsGridLabels = DEFAULT_LABELS): string {
+  const parts: string[] = [];
+  const add = (v: number, label: string) => { if (v > 0) parts.push(`${v} ${label}`); };
+  add(r.knockdowns, L.richKnocks);
+  add(r.knocked, L.richKnocked);
+  add(r.deaths, L.richDeaths);
+  add(r.headshots, L.richHeadshots);
+  add(r.assists, L.richKnockAssists);
+  add(r.revives, L.richRespawns);
+  add(r.grenades_used, L.richGrenades);
+  add(r.grenade_kills, L.richGrenadeKills);
+  add(r.gloowall_used, L.richGloo);
+  add(r.medkit_used, L.richMedkits);
+  if (r.survival_seconds > 0) {
+    const m = Math.floor(r.survival_seconds / 60);
+    const s = String(r.survival_seconds % 60).padStart(2, "0");
+    parts.push(`${m}:${s} ${L.richSurvived}`);
+  }
+  parts.push(r.source === "backfill" ? L.richFromBackfill : L.richFromCapture);
+  return parts.join(" · ");
+}
 
 export interface MatchResultsGridProps {
   participantType: "solo" | "team";
@@ -621,6 +715,14 @@ export function MatchResultsGrid({
                                           />
                                         )}
                                       </span>
+                                      {/* What the game itself recorded for this player on this map
+                                          (AFC Capture / debugger log). Read-only: the boxes to the
+                                          right are the organizer's; this line is the log's. */}
+                                      {player.rich && (
+                                        <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
+                                          {richStatsLine(player.rich, L)}
+                                        </span>
+                                      )}
                                     </TableCell>
                                     <TableCell>
                                       <Input
