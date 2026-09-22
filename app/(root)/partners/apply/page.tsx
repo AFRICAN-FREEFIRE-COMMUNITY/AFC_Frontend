@@ -70,6 +70,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { env } from "@/lib/env";
 import { getErrorMessage } from "@/lib/http";
 import { submitApplication } from "@/lib/partnerApply";
+import { BotCheck } from "@/components/BotCheck";
 
 /** The shape the form holds locally. Kept flat and all-strings (plus the two product booleans)
  * because every value goes into a FormData, and FormData carries strings anyway. */
@@ -126,6 +127,8 @@ export default function PartnerApplyPage() {
   const locale = useLocale();
 
   const [form, setForm] = useState<FormState>(EMPTY);
+  // The Cloudflare Turnstile token this form must send with its post (owner 2026-09-22).
+  const [botToken, setBotToken] = useState("");
   const [logo, setLogo] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   // Set once the application lands. The form is replaced by the reference rather than reset, so
@@ -162,6 +165,8 @@ export default function PartnerApplyPage() {
       // organisation is not answered in English.
       data.append("locale", locale);
       if (logo) data.append("logo", logo);
+      // Bot check (owner 2026-09-22), verified server side before the application is stored.
+      if (botToken) data.append("cf_turnstile_response", botToken);
 
       const result = await submitApplication(data);
       setReference(result.reference);
@@ -462,6 +467,8 @@ export default function PartnerApplyPage() {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">{t("form.footnote")}</p>
+              {/* Bot check (owner 2026-09-22): nothing renders without a site key. */}
+              <BotCheck onToken={setBotToken} />
               <Button type="submit" disabled={submitting} className="sm:w-auto">
                 {submitting ? t("form.sending") : t("form.submit")}
               </Button>

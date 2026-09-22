@@ -41,12 +41,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { BotCheck } from "@/components/BotCheck";
 
 export const ContactForm = () => {
   // Strings for the shared "Get in Touch" contact card + its success dialog
   // (namespace == messages/en/home.json).
   const t = useTranslations("home");
   const [openModal, setOpenModal] = useState<boolean>(false);
+  // The Cloudflare Turnstile token this form must send with its post (owner 2026-09-22).
+  const [botToken, setBotToken] = useState("");
   // What the desk answered: the number the person quotes back at us, and the address of their own
   // ticket page. Shown in the success dialog so they leave with both.
   const [ticket, setTicket] = useState<{ number: string; url: string } | null>(null);
@@ -68,7 +71,9 @@ export const ContactForm = () => {
   function onSubmit(data: ContactFormSchemaType) {
     startTransition(async () => {
       try {
-        const res = await sendContactMessage({ ...data, files });
+        // Bot check (owner 2026-09-22): the token goes with the message, and the server
+        // verifies it with Cloudflare before a ticket exists or staff are emailed.
+        const res = await sendContactMessage({ ...data, files, botToken });
         // A refused file is NAMED rather than dropped in silence: the desk tells us which one and
         // why, and the person can send it another way instead of assuming it arrived.
         res.rejected_files?.forEach((f) =>
@@ -195,6 +200,8 @@ export const ContactForm = () => {
                   </div>
                 )}
               </div>
+              {/* Bot check (owner 2026-09-22): nothing renders without a site key. */}
+              <BotCheck onToken={setBotToken} className="mb-3" />
               <Button disabled={pending} type="submit" className="w-full">
                 {pending ? (
                   <Loader text={t("contactForm.sending")} />
