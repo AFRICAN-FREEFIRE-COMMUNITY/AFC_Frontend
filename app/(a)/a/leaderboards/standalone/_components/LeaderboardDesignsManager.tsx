@@ -601,7 +601,7 @@ export function LeaderboardDesignsManager({
             {/* One-click AFC default designs (owner 2026-07-04): each button creates a ready-to-use
                 design for a team-capacity preset (12 / 15 = one column; 24 = two 12-row columns) and
                 refreshes the list. Handy starting point that stays fully editable afterwards. */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
               <span className="hidden text-xs text-muted-foreground sm:inline">
                 {t("createDefault")}
               </span>
@@ -632,7 +632,9 @@ export function LeaderboardDesignsManager({
                 STANDINGS board by team count; these give the booyah moment, the MVP, the top
                 killers and the head to head a finished AFC look, and "kit" creates all five at
                 once. Every one stays editable afterwards, like any other design. */}
-            <div className="flex items-center gap-1.5">
+            {/* wrap, not overflow: at 390 the four scene buttons ran past the edge of the row and
+                Top killers and Head to head were unreachable (walked on production 2026-09-22). */}
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
               <span className="hidden text-xs text-muted-foreground sm:inline">
                 {t("createScene")}
                 <NewBadge since="2026-09-22" className="ml-1.5" />
