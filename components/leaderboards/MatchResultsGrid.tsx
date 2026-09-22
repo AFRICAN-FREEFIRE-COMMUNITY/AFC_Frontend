@@ -308,16 +308,17 @@ const DEFAULT_LABELS: MatchResultsGridLabels = {
   saveThisMap: "Save this map",
   saving: "Saving…",
   watchReason: "On the advisory watchlist",
-  richKnocks: "knocks",
+  // "singular|plural": the line picks the form by count.
+  richKnocks: "knock|knocks",
   richKnocked: "knocked",
-  richDeaths: "deaths",
-  richHeadshots: "headshots",
-  richKnockAssists: "knock assists",
-  richRespawns: "respawns",
-  richGrenades: "grenades",
-  richGrenadeKills: "grenade kills",
-  richGloo: "gloo walls",
-  richMedkits: "medkits",
+  richDeaths: "death|deaths",
+  richHeadshots: "headshot|headshots",
+  richKnockAssists: "knock assist|knock assists",
+  richRespawns: "respawn|respawns",
+  richGrenades: "grenade|grenades",
+  richGrenadeKills: "grenade kill|grenade kills",
+  richGloo: "gloo wall|gloo walls",
+  richMedkits: "medkit|medkits",
   richSurvived: "survived",
   richFromCapture: "recorded by AFC Capture",
   richFromBackfill: "recorded from a debugger log",
@@ -327,7 +328,12 @@ const DEFAULT_LABELS: MatchResultsGridLabels = {
  *  player. Only non-zero counts are shown so the line stays short; the source is always named. */
 export function richStatsLine(r: RichPlayerStats, L: MatchResultsGridLabels = DEFAULT_LABELS): string {
   const parts: string[] = [];
-  const add = (v: number, label: string) => { if (v > 0) parts.push(`${v} ${label}`); };
+  // a label may carry "singular|plural"; a lone form serves both counts
+  const form = (label: string, n: number) => {
+    const [one, many] = label.split("|");
+    return n === 1 || many === undefined ? one : many;
+  };
+  const add = (v: number, label: string) => { if (v > 0) parts.push(`${v} ${form(label, v)}`); };
   add(r.knockdowns, L.richKnocks);
   add(r.knocked, L.richKnocked);
   add(r.deaths, L.richDeaths);
