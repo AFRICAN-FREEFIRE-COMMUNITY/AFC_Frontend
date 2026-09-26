@@ -83,6 +83,8 @@ import {
 import { OwnStatsTab } from "./OwnStatsTab";
 // "My reports" tab body (owner 2026-06-20): reports this user filed + admin answers.
 import { MyPlayerReports } from "./MyPlayerReports";
+import { ReferralsTab } from "@/components/referrals/ReferralsTab";
+import { REFERRALS_LAUNCH_DATE } from "@/lib/referrals";
 
 // ── i18n: achievement-group display string -> message key ─────────────────────
 // The achievements CATALOG (achievements.ts) stores group/title/description in
@@ -137,6 +139,12 @@ export const ProfileContent = () => {
   const [activeTab, setActiveTab] = useState<string>(
     searchParams.get("tab") || "overview",
   );
+  // /profile#referrals (the link in a referral prize notification) opens the Referrals tab. Read after
+  // mount: the hash never reaches the server, so the first render cannot know it.
+  const tRef = useTranslations("referrals");
+  useEffect(() => {
+    if (window.location.hash === "#referrals") setActiveTab("referrals");
+  }, []);
   // Report-feature copy (messages/en/playerReports.json) for the My-reports tab label.
   const tReports = useTranslations("playerReports");
 
@@ -387,7 +395,7 @@ export const ProfileContent = () => {
               ) : (
                 <Link
                   href="/profile/edit"
-                  className="flex h-28 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-dashed p-2 text-center text-[11px] leading-tight text-muted-foreground transition-colors hover:bg-muted/40 sm:h-32 sm:w-24"
+                  className="flex h-28 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-md bg-muted/60 p-2 text-center text-[11px] leading-tight text-muted-foreground transition-colors hover:bg-muted sm:h-32 sm:w-24"
                 >
                   <span>{t("card.esportsImageEmpty")}</span>
                   <span className="text-primary">{t("card.esportsImageHint")}</span>
@@ -637,6 +645,12 @@ export const ProfileContent = () => {
                 {/* Player reports the user filed + the admin's answers. */}
                 <TabsTrigger value="reports">
                   {tReports("mine.tabLabel")}
+                </TabsTrigger>
+                {/* Referrals (inbox #47): the player's link, numbers and prizes. Opened by
+                    /profile#referrals, which is where a prize notification points. */}
+                <TabsTrigger value="referrals" className="gap-1.5">
+                  {tRef("tab.label")}
+                  <NewBadge since={REFERRALS_LAUNCH_DATE} />
                 </TabsTrigger>
                 {user.role === "admin" && (
                   <TabsTrigger value="admin">{t("tabs.admin")}</TabsTrigger>
@@ -936,6 +950,9 @@ export const ProfileContent = () => {
                   (the component fetches /auth/my-player-reports/ on mount). */}
               <TabsContent value="reports">
                 <MyPlayerReports />
+              </TabsContent>
+              <TabsContent value="referrals">
+                <ReferralsTab />
               </TabsContent>
             </Tabs>
         </CardContent>
@@ -1249,17 +1266,17 @@ function AchievementCard({
     ? Math.min(100, Math.round(((value as number) / achievement.threshold!) * 100))
     : 0;
 
-  // Card container treatment: earned (green), next-to-chase (primary ring), else
-  // a plain muted card.
+  // Card container treatment: earned (green fill), next-to-chase (lighter green fill), else a
+  // plain muted fill. Filled surfaces, no outlines or rings (design rule 2026-08-17).
   const containerClass = earned
-    ? "border-primary/40 bg-primary/5"
+    ? "bg-primary/15"
     : isNext && !goal
-      ? "border-primary/60 bg-primary/[0.03] ring-1 ring-primary/30"
-      : "border-border bg-card hover:bg-muted/30";
+      ? "bg-primary/10"
+      : "bg-muted/60 hover:bg-muted";
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-md border px-3 py-3 transition-colors ${containerClass}`}
+      className={`flex items-start gap-3 rounded-md px-3 py-3 transition-colors ${containerClass}`}
     >
       {/* icon chip: green when earned, muted otherwise */}
       <div

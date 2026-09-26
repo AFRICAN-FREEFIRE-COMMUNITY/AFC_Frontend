@@ -1,0 +1,108 @@
+{
+  "loadError": "Impossible de charger ceci. Vérifiez votre connexion et réessayez.",
+  "retry": "Réessayer",
+  "landing": {
+    "metaTitle": "Vous êtes invité sur AFC",
+    "invitedBy": "Invité par",
+    "title": "Rejoignez AFC grâce à l'invitation de {name}",
+    "titleProgram": "Rejoignez AFC",
+    "partOf": "Dans le cadre de <b>{program}</b>, jusqu'au <date></date>.",
+    "ended": "Cette invitation vient de <b>{program}</b>, qui s'est terminé le <date></date>. Vous pouvez tout de même créer un compte.",
+    "pitch": "Créez un compte gratuit pour jouer aux tournois et aux scrims, rejoindre une équipe et utiliser la boutique.",
+    "welcomeTitle": "Votre récompense de bienvenue",
+    "welcomeGiven": "Remise dès que votre parrainage est comptabilisé.",
+    "createAccount": "Créer votre compte",
+    "haveAccount": "J'ai déjà un compte",
+    "signedIn": "Vous êtes connecté. Les invitations sont réservées aux nouveaux comptes : celle-ci ne change rien pour vous.",
+    "howTitle": "Comment ça marche",
+    "step1": "Créez votre compte avec ce lien ouvert, ou saisissez le code <code></code> lors de l'inscription.",
+    "step3Welcome": "Votre récompense de bienvenue apparaît ensuite dans Profil, Parrainages.",
+    "step3": "Votre parrain le voit ensuite sur son profil.",
+    "fine": "Un parrainage par compte. Les comptes qui existaient avant l'invitation ne sont pas comptabilisés.",
+    "notFoundTitle": "Ce lien d'invitation n'existe pas",
+    "notFoundBody": "Vérifiez le lien, ou créez un compte sans lui."
+  },
+  "rules": {
+    "signup": "Comptabilisé quand le nouveau joueur confirme son compte.",
+    "team": "Comptabilisé quand le nouveau joueur rejoint ou crée une équipe.",
+    "event": "Comptabilisé quand le nouveau joueur s'inscrit à un événement.",
+    "eventNamed": "Comptabilisé quand le nouveau joueur s'inscrit à {event}.",
+    "purchase": "Comptabilisé quand le nouveau joueur passe sa première commande en boutique."
+  },
+  "prizeLabel": {
+    "shopItem": "Article de la boutique",
+    "couponPercent": "{value} % de réduction sur une commande",
+    "couponFixed": "<amount></amount> de réduction sur une commande",
+    "cash": "<amount></amount> en espèces"
+  },
+  "prizeWhen": {
+    "milestone": "{count, plural, one {à # parrainage comptabilisé} other {à # parrainages comptabilisés}}",
+    "rank": "meilleur parrain n°{rank} à la fin du programme",
+    "welcome": "pour chaque personne que vous amenez, une fois son parrainage comptabilisé"
+  },
+  "claim": {
+    "ok": "Votre invitation a été enregistrée. Bienvenue sur AFC !",
+    "refused": {
+      "bad_code": "Le code de parrainage utilisé n'existe pas.",
+      "program_not_active": "Ce programme de parrainage est terminé : le code n'a pas été utilisé.",
+      "not_eligible": "Ce code de parrainage n'est plus valable.",
+      "self_referral": "Vous ne pouvez pas utiliser votre propre code de parrainage.",
+      "account_not_new": "Les codes de parrainage sont réservés aux nouveaux comptes : le code n'a pas été utilisé.",
+      "already_referred": "Votre compte a déjà un parrainage."
+    }
+  },
+  "signup": {
+    "codeLabel": "Code de parrainage (facultatif)",
+    "codeHelp": "Un ami ou un stream vous a donné un code ? Saisissez-le ici.",
+    "codeHelpLink": "Rempli depuis un lien d'invitation. Effacez-le si vous ne voulez pas être compté comme filleul de quelqu'un."
+  },
+  "tab": {
+    "label": "Parrainages",
+    "running": "En cours",
+    "until": "jusqu'au <date></date>",
+    "yourLink": "Votre lien",
+    "copy": "Copier",
+    "linkCopied": "Lien copié",
+    "yourCode": "Votre code",
+    "copyCode": "Copier le code",
+    "codeCopied": "Code copié",
+    "copyFailed": "Copie impossible. Sélectionnez le texte et copiez-le à la main.",
+    "whatsapp": "WhatsApp",
+    "share": "Partager",
+    "downloadQr": "Télécharger le QR",
+    "shareText": "Rejoins-moi sur AFC, la communauté africaine de Free Fire : {link}",
+    "stats": {
+      "clicks": "Lien ouvert",
+      "signups": "Inscrits",
+      "counted": "Comptabilisés",
+      "rank": "Votre rang"
+    },
+    "pendingNote": "{count, plural, one {# personne s'est inscrite mais n'est pas encore comptabilisée.} other {# personnes se sont inscrites mais ne sont pas encore comptabilisées.}}",
+    "nextPrize": "Prochaine récompense",
+    "nextOf": "{counted} sur {threshold}",
+    "nextMore": "{count, plural, one {Encore # parrainage comptabilisé pour <prize></prize>.} other {Encore # parrainages comptabilisés pour <prize></prize>.}}",
+    "allMilestones": "Vous avez atteint tous les paliers de ce programme.",
+    "prizesTitle": "Récompenses de ce programme",
+    "each": "Chacun",
+    "earned": "Obtenue",
+    "rewardsTitle": "Vos récompenses",
+    "rewardStatus": {
+      "pending": "En cours de livraison",
+      "delivered": "Livrée",
+      "ready": "Prête"
+    },
+    "couponCode": "Code <code></code>, un seul usage",
+    "couponCopied": "Coupon copié",
+    "rewardFrom": "{program}, obtenue le <date></date>",
+    "joinedThrough": "Vous avez rejoint AFC grâce à l'invitation de <b>{referrer}</b> ({program}).",
+    "joinedThroughProgram": "Vous avez rejoint AFC grâce à {program}.",
+    "referralStatus": {
+      "pending": "En attente.",
+      "counted": "Comptabilisé.",
+      "rejected": "Non comptabilisé.",
+      "flagged": "En cours de vérification."
+    },
+    "emptyTitle": "Aucun programme de parrainage ne vous est ouvert pour le moment.",
+    "emptyBody": "Quand AFC en lancera un auquel vous pouvez participer, votre lien apparaîtra ici."
+  }
+}

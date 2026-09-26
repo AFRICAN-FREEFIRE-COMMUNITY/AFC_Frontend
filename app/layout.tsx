@@ -19,6 +19,7 @@ import { AuthModalProvider } from "@/components/AuthModal";
 // Client Component via useTranslations(). See components/I18nProvider.tsx.
 import { getLocale, getMessages } from "next-intl/server";
 import { I18nProvider } from "@/components/I18nProvider";
+import { ReferralClaimer } from "@/components/referrals/ReferralClaimer";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -127,6 +128,8 @@ export default async function RootLayout({
                   <CartProvider>{children}</CartProvider>
                 </CurrencyProvider>
                 <Toaster position="bottom-center" />
+                {/* Sends a waiting referral code once its owner is signed in (inbox #47). Renders nothing. */}
+                <ReferralClaimer />
               </ThemeProvider>
             </AuthModalProvider>
           </AuthProvider>
