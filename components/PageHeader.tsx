@@ -50,10 +50,13 @@ export function PageHeader({
             <h1 className="text-3xl md:text-4xl font-bold text-primary break-words">
               {title}
             </h1>
+            {/* A <div>, not a <p> (2026-09-26): callers pass markup here (news passes a row of date,
+                category and votes), and a <div> inside a <p> is invalid HTML, so React failed
+                hydration on every news article and rebuilt the page on the client. */}
             {description && (
-              <p className="mt-2 text-sm md:text-base text-muted-foreground">
+              <div className="mt-2 text-sm md:text-base text-muted-foreground">
                 {description}
-              </p>
+              </div>
             )}
           </div>
         </div>

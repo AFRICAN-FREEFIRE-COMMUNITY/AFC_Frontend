@@ -18,10 +18,18 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 import { ImageResponse } from "next/og";
-import { getTranslations } from "next-intl/server";
+import { createTranslator } from "next-intl";
 import QRCode from "qrcode";
 
-import { DEFAULT_LOCALE, isLocale } from "@/i18n/config";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "@/i18n/config";
+import en from "@/messages/en/qr.json";
+import fr from "@/messages/fr/qr.json";
+import pt from "@/messages/pt/qr.json";
+
+// The card's language comes from ?lang, not from the request: the person who downloads it chose
+// it, and i18n/request.ts only reads the cookie and Accept-Language. So the three catalogues are
+// read directly rather than through getTranslations().
+const CATALOGUES: Record<Locale, typeof en> = { en, fr, pt };
 
 export const runtime = "nodejs";
 
@@ -67,7 +75,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   }
 
   const lang = new URL(request.url).searchParams.get("lang");
-  const t = await getTranslations({ locale: isLocale(lang) ? lang : DEFAULT_LOCALE, namespace: "qr" });
+  const locale: Locale = isLocale(lang) ? lang : DEFAULT_LOCALE;
+  const t = createTranslator({ locale, messages: { qr: CATALOGUES[locale] }, namespace: "qr" });
   const site = (process.env.NEXT_PUBLIC_URL || "https://africanfreefirecommunity.com").replace(/\/$/, "");
 
   const [qrSvg, logo, picture] = await Promise.all([

@@ -41,7 +41,7 @@ export default function PosterClient({ url, kind, name }: Props) {
     <main className="flex min-h-dvh flex-col items-center gap-5 px-4 py-8">
       <style>{PRINT_CSS}</style>
       <Button onClick={() => window.print()}>{t("printPoster")}</Button>
-      <div className="afc-poster w-full max-w-[560px] [container-type:inline-size]">
+      <div className="afc-poster relative z-10 w-full max-w-[560px] [container-type:inline-size]">
         <div className="flex aspect-[210/297] w-full flex-col items-center justify-between rounded-md bg-white px-[8cqw] pt-[8cqw] pb-[7cqw] text-center text-[#111]">
           <div className="flex items-center gap-[2.5cqw] text-[4.6cqw] font-extrabold text-[#0f7a3c]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
