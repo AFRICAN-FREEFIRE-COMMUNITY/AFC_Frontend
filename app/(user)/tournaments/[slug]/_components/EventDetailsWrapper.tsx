@@ -43,6 +43,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
+import { QrShareButton } from "@/components/qr/QrShareButton";
 import { TournamentStructure } from "./TournamentStructure";
 // "Combined" view (owner 2026-07-05): a third main-view tab that merges several groups/stages
 // (or the whole event) into one aggregate leaderboard via events/get-event-combined-standings/.
@@ -5515,7 +5516,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   return (
     <div>
       <Card className="p-0 bg-transparent border-0">
-        <PageHeader title={eventDetails.event_name} back />
+        {/* QR code for this event (inbox #46, 2026-09-26): anyone viewing can make one; its
+            organizers and AFC event admins also see the scan count. components/qr/QrShareButton.tsx */}
+        <PageHeader
+          title={eventDetails.event_name}
+          back
+          action={<QrShareButton targetType="event" targetRef={slug} name={eventDetails.event_name} />}
+        />
         <div className="p-0 space-y-2">
           <Image
             src={eventDetails.event_banner_url || DEFAULT_IMAGE}

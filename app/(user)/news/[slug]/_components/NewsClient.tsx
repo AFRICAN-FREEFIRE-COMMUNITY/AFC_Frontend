@@ -16,6 +16,7 @@ import Link from "next/link";
 import { RenderDescription } from "@/components/text-editor/RenderDescription";
 import { ChevronRight, ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { QrShareButton } from "@/components/qr/QrShareButton";
 // TournamentTierBadge: shared gold/green/blue tier badge (components/TournamentTierBadge.tsx),
 // the same one tournaments/page.tsx uses, so the tier accent here matches the rest of the site.
 import { TournamentTierBadge } from "@/components/TournamentTierBadge";
@@ -187,6 +188,9 @@ export function NewsClient({
         }
         title={t("detail.titleSuffix", { title: newsDetails.news_title })}
         back
+        // QR code for this article (inbox #46, 2026-09-26): anyone reading can make one; news
+        // admins also see the scan count. components/qr/QrShareButton.tsx
+        action={<QrShareButton targetType="news" targetRef={slug} name={newsDetails.news_title} />}
       />
 
       <div className="space-y-6">

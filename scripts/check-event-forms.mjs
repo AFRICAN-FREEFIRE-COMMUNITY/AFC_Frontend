@@ -13,7 +13,7 @@
  *   LEDGERED  a writable contract field that NO form sends (event.forms.missing): the field exists
  *             on the backend and no screen can set it. Counted so it can only fall.
  *   BLOCKING  lib/eventContract.generated.json is stale against the backend tree beside us
- *             (regenerate: python ../wt-be-ocr/tools/export_event_contract.py --json > lib/eventContract.generated.json).
+ *             (regenerate: python <backend tree>/tools/export_event_contract.py --json > lib/eventContract.generated.json).
  *             Skipped where no backend tree sits beside this one (CI), so the committed list rules.
  *
  * USAGE   node scripts/check-event-forms.mjs [--json]
@@ -51,7 +51,8 @@ const writable = new Set(contract.writable.admin.filter((k) => !(k in SET_ELSEWH
 
 // ── staleness: only where the backend tree is beside us ──
 let stale = null;
-const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "export_event_contract.py")));
+// Same tree choice as scripts/check-all.mjs backendTree(): AFC_BACKEND_TREE, else ../backend.
+const backend = [process.env.AFC_BACKEND_TREE, "../backend"].filter(Boolean).find((d) => existsSync(join(d, "tools", "export_event_contract.py")));
 if (backend) {
   const py = spawnSync("python", [join(backend, "tools", "export_event_contract.py"), "--json"], { encoding: "utf8", cwd: backend });
   if (py.status === 0 && py.stdout) {

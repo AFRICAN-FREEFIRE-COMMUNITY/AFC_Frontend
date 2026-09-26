@@ -55,6 +55,7 @@ import {
 // logged-in viewer can report a whole team. Posts to /auth/report-team/.
 import { ReportDialog } from "@/components/player/ReportDialog";
 // Public fan/hater reactions for the team (owner 2026-06-20).
+import { QrShareButton } from "@/components/qr/QrShareButton";
 import { FanHater } from "@/components/profile/FanHater";
 import Link from "next/link";
 import { Switch } from "@/components/ui/switch";
@@ -752,7 +753,14 @@ const Page = ({ params }: { params: Params }) => {
                   />
                 </div>
               </div>
-              <div className="space-x-2 w-full md:w-auto">
+              <div className="flex flex-col gap-2 w-full md:w-auto md:flex-row md:flex-wrap md:justify-end">
+                {/* QR code for this team (inbox #46, 2026-09-26): anyone viewing can make one; the
+                    owner also sees the scan count. components/qr/QrShareButton.tsx */}
+                <QrShareButton
+                  targetType="team"
+                  targetRef={teamDetails.team_name}
+                  name={teamDetails.team_name}
+                />
                 {/* Report this team (owner 2026-06-20): shown to LOGGED-IN viewers who do
                     not run the team (no full access). Opens the generic ReportDialog with
                     subjectType="team" -> POST /auth/report-team/. */}
@@ -1422,7 +1430,7 @@ const Page = ({ params }: { params: Params }) => {
                         a friendly empty state when the team has no links. */}
                     {!teamDetails?.social_media_links ||
                     teamDetails.social_media_links.length === 0 ? (
-                      <div className="rounded-md border-2 border-dashed border-border py-14 text-center text-sm italic text-muted-foreground">
+                      <div className="rounded-md bg-muted/40 py-14 text-center text-sm italic text-muted-foreground">
                         {t("teamDetail.noLinkFound")}
                       </div>
                     ) : (

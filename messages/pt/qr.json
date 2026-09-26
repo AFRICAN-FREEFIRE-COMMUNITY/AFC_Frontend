@@ -1,0 +1,45 @@
+{
+  "button": "Código QR",
+  "title": "Código QR de {name}",
+  "desc": {
+    "event": "Quem o ler chega à página deste evento na AFC, onde se pode inscrever.",
+    "team": "Quem o ler chega à página desta equipa na AFC.",
+    "player": "Quem o ler chega ao perfil deste jogador na AFC.",
+    "news": "Quem o ler chega a este artigo na AFC."
+  },
+  "tabs": {
+    "plain": "Simples",
+    "card": "Cartão",
+    "poster": "Cartaz"
+  },
+  "copy": "Copiar link",
+  "copied": "Copiado",
+  "copyFailed": "Não foi possível copiar o link.",
+  "downloadPng": "Descarregar PNG",
+  "downloadSvg": "Descarregar SVG",
+  "plainHint": "PNG para publicar e partilhar. O SVG mantém-se nítido em qualquer tamanho, para designers e gráficas.",
+  "downloadCard": "Descarregar cartão (PNG)",
+  "cardHint": "1200 x 630, o tamanho que o WhatsApp, o X e o Facebook mostram por inteiro.",
+  "cardAlt": "Cartão de partilha de {name} com o seu código QR",
+  "printPoster": "Imprimir cartaz",
+  "posterHint": "A4. Imprima-o, ou escolha \"Guardar como PDF\" na janela de impressão.",
+  "kind": {
+    "event": "Evento",
+    "team": "Equipa",
+    "player": "Jogador",
+    "news": "Notícia"
+  },
+  "scanToView": "Leia para ver na AFC",
+  "scans": "{count, plural, one {# leitura} other {# leituras}}",
+  "lastScan": "a última em <date></date>",
+  "neverScanned": "Ainda não foi lido",
+  "ownerOnly": "Só você vê este número.",
+  "loading": "A criar o seu código QR...",
+  "error": "Não foi possível criar o código QR. Tente novamente.",
+  "rateLimited": "Foram criados demasiados códigos QR em pouco tempo. Tente novamente dentro de uma hora.",
+  "retry": "Tentar novamente",
+  "close": "Fechar",
+  "notFoundTitle": "Este código QR já não leva a lado nenhum",
+  "notFoundBody": "A página para onde apontava foi removida ou já não é pública.",
+  "backHome": "Ir para a página inicial"
+}
