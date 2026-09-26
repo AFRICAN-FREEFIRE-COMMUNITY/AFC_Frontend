@@ -50,6 +50,16 @@ const today = new Date().toISOString().slice(0, 10);
 // Every child gets an environment with those keys removed.
 const CHILD_ENV = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^GIT_/.test(k)));
 
+// Which backend tree every backend-reading step uses: AFC_BACKEND_TREE when set (a worktree on the
+// matching branch), else ../backend. ONE choice for every step. Never a sibling worktree picked by
+// name: on 2026-09-22 the endpoint step still led with ../wt-be-ocr (the wager worktree of 19 Sep),
+// so every frontend commit on the machine was judged against the wager branch and blocked; that step
+// was fixed alone, and on 2026-09-26 the parity, refusal-codes and security steps were still reading
+// ../wt-be-ocr (the security step blocked the QR codes commit on that worktree's own ledger).
+function backendTree(file) {
+  return [process.env.AFC_BACKEND_TREE, "../backend"].filter(Boolean).find((d) => existsSync(join(d, file)));
+}
+
 function run(cmd, cmdArgs) {
   const r = spawnSync(process.execPath, [cmd, ...cmdArgs], { cwd: ROOT, encoding: "utf8", env: CHILD_ENV });
   return { code: r.status ?? 1, out: (r.stdout || "") + (r.stderr || "") };
@@ -104,12 +114,7 @@ const CHECKERS = [
     // only the frontend. Blocking: an endpoint with no caller and no named consumer.
     id: "endpoint-callers",
     run() {
-      // Which backend tree: AFC_BACKEND_TREE when set (a worktree on the matching branch), else
-      // ../backend. Never a sibling worktree picked by name: on 2026-09-22 this list still led with
-      // ../wt-be-ocr (the wager worktree of 19 Sep), so every frontend commit on the machine was
-      // judged against the wager branch's 34 endpoints and blocked.
-      const candidates = [process.env.AFC_BACKEND_TREE, "../backend"].filter(Boolean);
-      const backend = candidates.find((d) => existsSync(join(d, "tools", "endpoint_callers.py")));
+      const backend = backendTree(join("tools", "endpoint_callers.py"));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
       const py = spawnSync("python", [join(backend, "tools", "endpoint_callers.py"), "--frontend", ".", "--json"], { encoding: "utf8", env: CHILD_ENV });
       let parsed = null;
@@ -123,7 +128,7 @@ const CHECKERS = [
     // whose frontend rows can only be read with this tree beside the backend one.
     id: "check-parity",
     run() {
-      const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "check_parity.py")));
+      const backend = backendTree(join("tools", "check_parity.py"));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
       const py = spawnSync("python", [join(backend, "tools", "check_parity.py"), "--frontend", ".", "--json"], { encoding: "utf8", env: CHILD_ENV });
       let parsed = null;
@@ -168,7 +173,7 @@ const CHECKERS = [
     // fall. Needs the backend tree beside this one, like endpoint-callers.
     id: "refusal-codes",
     run() {
-      const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "check_refusal_codes.py")));
+      const backend = backendTree(join("tools", "check_refusal_codes.py"));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
       const py = spawnSync("python", [join(backend, "tools", "check_refusal_codes.py"), "--json"], { encoding: "utf8", cwd: backend, env: CHILD_ENV });
       let parsed = null;
@@ -208,7 +213,8 @@ const CHECKERS = [
       const home = process.env.USERPROFILE || process.env.HOME || "";
       const checker = join(home, ".claude", "skills", "security-rules", "scripts", "check-security.mjs");
       if (!existsSync(checker)) return { blocking: [], counts: {}, note: "skipped: check-security.mjs is not installed on this machine" };
-      const trees = [".", ...["../wt-be-ocr", "../backend"].filter((d) => existsSync(join(d, "security-rules.json")))];
+      const backend = backendTree("security-rules.json");
+      const trees = [".", ...(backend ? [backend] : [])];
       const blocking = [], notes = [];
       for (const dir of trees) {
         const r = spawnSync("node", [checker, "--ledger", "--quiet", "--project", dir], { encoding: "utf8", env: CHILD_ENV });

@@ -20,10 +20,10 @@
       "movedAt": "2026-09-13"
     },
     "refusals.uncoded": {
-      "count": 2822,
-      "ceiling": 2822,
+      "count": 2,
+      "ceiling": 2,
       "since": "2026-09-17",
-      "movedAt": "2026-09-18"
+      "movedAt": "2026-09-26"
     },
     "event.forms.missing": {
       "count": 0,
@@ -32,10 +32,10 @@
       "movedAt": "2026-09-17"
     },
     "seo.entity.no_jsonld": {
-      "count": 3,
-      "ceiling": 3,
+      "count": 0,
+      "ceiling": 0,
       "since": "2026-09-17",
-      "movedAt": "2026-09-17"
+      "movedAt": "2026-09-26"
     }
   }
 }

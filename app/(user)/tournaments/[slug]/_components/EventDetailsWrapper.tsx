@@ -43,6 +43,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
+import { QrShareButton } from "@/components/qr/QrShareButton";
 import { TournamentStructure } from "./TournamentStructure";
 // "Combined" view (owner 2026-07-05): a third main-view tab that merges several groups/stages
 // (or the whole event) into one aggregate leaderboard via events/get-event-combined-standings/.
@@ -4248,6 +4249,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       setUserTeam(null);
       return null;
     } catch (err: any) {
+      // 404 not_in_team is the ordinary answer for a signed-in viewer with no team, not a
+      // failure (owner 2026-09-26: it logged an uncaught error on every event page they opened).
+      if (err.response?.data?.code === "not_in_team") {
+        setUserTeam(null);
+        return null;
+      }
       console.error(err);
       toast.error(err.response?.data?.message || t("detail.loadTeamFailed"));
       return null;
@@ -4487,32 +4494,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
     fetchEventDetails();
 
-    if (token) {
-      const fetchUser = async () => {
-        const resCurrent = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (resCurrent.data && resCurrent.data.team) {
-          const resDetails = await axios.post(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-            { team_name: resCurrent.data.team.team_name },
-          );
-          setUserTeam(resDetails.data.team);
-        } else {
-          toast.error(t("detail.noTeam"));
-        }
-      };
-
-      fetchUser();
-    }
-  }, [fetchEventDetails, slug, token, authLoading, t]);
+    // The viewer's team, through the one fetch the Register gate also uses (fetchUserTeam above).
+    // This used to be a second copy with no error handling, so the 404 not_in_team every teamless
+    // viewer gets went uncaught.
+    if (token) void fetchUserTeam();
+  }, [fetchEventDetails, fetchUserTeam, slug, token, authLoading]);
 
   // Live refresh (owner 2026-07-02): on each site-wide tick, silently re-pull the read-only
   // event details (standings, registered teams, structure, room details, waitlist counts).
@@ -5515,7 +5501,13 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   return (
     <div>
       <Card className="p-0 bg-transparent border-0">
-        <PageHeader title={eventDetails.event_name} back />
+        {/* QR code for this event (inbox #46, 2026-09-26): anyone viewing can make one; its
+            organizers and AFC event admins also see the scan count. components/qr/QrShareButton.tsx */}
+        <PageHeader
+          title={eventDetails.event_name}
+          back
+          action={<QrShareButton targetType="event" targetRef={slug} name={eventDetails.event_name} />}
+        />
         <div className="p-0 space-y-2">
           <Image
             src={eventDetails.event_banner_url || DEFAULT_IMAGE}

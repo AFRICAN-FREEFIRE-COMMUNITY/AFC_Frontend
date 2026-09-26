@@ -104,6 +104,7 @@ import {
 import { ReportDialog } from "@/components/player/ReportDialog";
 // Public fan/hater reactions (owner 2026-06-20): counts visible to all, tap to react.
 import { FanHater } from "@/components/profile/FanHater";
+import { QrShareButton } from "@/components/qr/QrShareButton";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only public-stats
 // fetch so the profile (stats, registered events, tier) updates without a manual refresh.
 import { useLiveTick } from "@/hooks/useLiveTick";
@@ -723,9 +724,19 @@ export function PlayerClient({ username }: { username: string }) {
               </div>
             </div>
 
-            {/* owner-only actions: Edit Profile + Disconnect (hidden for public viewers) */}
+            {/* Actions column. The QR code (inbox #46, 2026-09-26) is for everyone: anyone viewing a
+                profile can make one; the player also sees its scan count. Then the owner-only
+                Edit Profile + Disconnect, or, for a signed-in visitor, Report. One column so the
+                buttons stack together on a phone instead of as separate rows. */}
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 w-full md:w-auto">
+              <QrShareButton
+                targetType="player"
+                targetRef={player.username}
+                name={player.username}
+                className="w-full sm:w-auto"
+              />
             {isOwnProfile && (
-              <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <>
                 <Button className="w-full sm:w-auto" asChild>
                   <Link href="/profile/edit">{t("player.editProfile")}</Link>
                 </Button>
@@ -763,7 +774,7 @@ export function PlayerClient({ username }: { username: string }) {
                     </AlertDialogContent>
                   </AlertDialog>
                 )}
-              </div>
+              </>
             )}
 
             {/* Report action: shown to LOGGED-IN viewers looking at SOMEONE ELSE's
@@ -771,7 +782,7 @@ export function PlayerClient({ username }: { username: string }) {
                 actions above) and for logged-out visitors (reporting needs a session).
                 Opens ReportDialog (subjectType="player"), POST /auth/report-player/. */}
             {!isOwnProfile && !!token && (
-              <div className="w-full md:w-auto">
+              <div className="w-full sm:w-auto">
                 <Button
                   variant="outline"
                   className="w-full sm:w-auto text-red-500 border-red-500/40 hover:bg-red-500/10 hover:text-red-500"
@@ -782,6 +793,7 @@ export function PlayerClient({ username }: { username: string }) {
                 </Button>
               </div>
             )}
+            </div>
           </div>
         </CardHeader>
 

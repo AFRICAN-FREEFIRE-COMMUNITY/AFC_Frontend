@@ -1,0 +1,45 @@
+{
+  "button": "Code QR",
+  "title": "Code QR pour {name}",
+  "desc": {
+    "event": "Toute personne qui le scanne arrive sur la page de cet événement sur AFC, où elle peut s'inscrire.",
+    "team": "Toute personne qui le scanne arrive sur la page de cette équipe sur AFC.",
+    "player": "Toute personne qui le scanne arrive sur le profil de ce joueur sur AFC.",
+    "news": "Toute personne qui le scanne arrive sur cet article sur AFC."
+  },
+  "tabs": {
+    "plain": "Simple",
+    "card": "Carte",
+    "poster": "Affiche"
+  },
+  "copy": "Copier le lien",
+  "copied": "Copié",
+  "copyFailed": "Le lien n'a pas pu être copié.",
+  "downloadPng": "Télécharger en PNG",
+  "downloadSvg": "Télécharger en SVG",
+  "plainHint": "Le PNG pour publier et partager. Le SVG reste net à toutes les tailles, pour les graphistes et les imprimeurs.",
+  "downloadCard": "Télécharger la carte (PNG)",
+  "cardHint": "1200 x 630, le format que WhatsApp, X et Facebook affichent en entier.",
+  "cardAlt": "Carte de partage pour {name} avec son code QR",
+  "printPoster": "Imprimer l'affiche",
+  "posterHint": "Format A4. Imprimez-la, ou choisissez « Enregistrer au format PDF » dans la fenêtre d'impression.",
+  "kind": {
+    "event": "Événement",
+    "team": "Équipe",
+    "player": "Joueur",
+    "news": "Actualité"
+  },
+  "scanToView": "Scannez pour voir sur AFC",
+  "scans": "{count, plural, one {# scan} other {# scans}}",
+  "lastScan": "dernier le <date></date>",
+  "neverScanned": "Pas encore scanné",
+  "ownerOnly": "Vous seul voyez ce nombre.",
+  "loading": "Création de votre code QR...",
+  "error": "Le code QR n'a pas pu être créé. Réessayez.",
+  "rateLimited": "Trop de codes QR créés en peu de temps. Réessayez dans une heure.",
+  "retry": "Réessayer",
+  "close": "Fermer",
+  "notFoundTitle": "Ce code QR ne mène plus nulle part",
+  "notFoundBody": "La page vers laquelle il pointait a été supprimée ou n'est plus publique.",
+  "backHome": "Aller à l'accueil"
+}

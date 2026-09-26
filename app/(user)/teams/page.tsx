@@ -145,20 +145,25 @@ function page() {
           toast.error(t("errors.generic"));
         }
 
-        const resCurrent = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (resCurrent.status >= 200 && resCurrent.status < 300) {
-          setMyTeam(resCurrent.data.team);
-        } else {
-          toast.error(t("errors.generic"));
+        // The viewer's own team, only when signed in. 404 not_in_team is the ordinary answer for
+        // a player with no team: it used to land in the catch below and show every teamless
+        // player (and, with a "Bearer null" header, every signed-out visitor) an error toast.
+        if (token) {
+          const resCurrent = await axios
+            .post(
+              `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
+              {},
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            )
+            .catch((err) => {
+              if (err?.response?.data?.code === "not_in_team") return null;
+              throw err;
+            });
+          setMyTeam(resCurrent ? resCurrent.data.team : null);
         }
       } catch (error: any) {
         toast.error(
