@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { downloadQrPng } from "@/components/qr/qrDownload";
 import { PrizeLabel, PrizeWhen } from "@/components/referrals/PrizeLabel";
 import { env } from "@/lib/env";
-import { getMine, type Mine, type MyProgram, type MyReward } from "@/lib/referrals";
+import { getMine, REFERRAL_CLAIMED_EVENT, type Mine, type MyProgram, type MyReward } from "@/lib/referrals";
 
 function useCopy() {
   const t = useTranslations("referrals");
@@ -235,6 +235,9 @@ export function ReferralsTab() {
   }, []);
   useEffect(() => {
     fetchMine();
+    // A claim that lands after this tab loaded (a new player's first page) changes what it shows
+    window.addEventListener(REFERRAL_CLAIMED_EVENT, fetchMine);
+    return () => window.removeEventListener(REFERRAL_CLAIMED_EVENT, fetchMine);
   }, [fetchMine]);
   const retry = () => {
     setFailed(false);

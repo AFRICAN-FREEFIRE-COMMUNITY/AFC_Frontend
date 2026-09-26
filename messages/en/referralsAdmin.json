@@ -122,7 +122,7 @@
     "signups": "Signed up",
     "counted": "Counted",
     "held": "Held for review",
-    "note": "{signupRate}% of opened links signed up; {countRate}% of signups counted. {pending} still pending, {flagged} held, {rejected} rejected."
+    "note": "{signupRate}% of opened links led to a signup, and {typed, plural, one {# person} other {# people}} typed the code instead. {countRate}% of all signups counted. {pending} still pending, {flagged} held, {rejected} rejected."
   },
   "tabs": {
     "board": "Leaderboard",

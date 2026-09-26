@@ -122,7 +122,7 @@
     "signups": "Inscrits",
     "counted": "Comptabilisés",
     "held": "Retenus pour vérification",
-    "note": "{signupRate} % des liens ouverts ont mené à une inscription ; {countRate} % des inscriptions sont comptabilisées. {pending} en attente, {flagged} retenues, {rejected} refusées."
+    "note": "{signupRate} % des liens ouverts ont mené à une inscription, et {typed, plural, one {# personne a} other {# personnes ont}} saisi le code à la place. {countRate} % de toutes les inscriptions sont comptabilisées. {pending} en attente, {flagged} retenues, {rejected} refusées."
   },
   "tabs": {
     "board": "Classement",

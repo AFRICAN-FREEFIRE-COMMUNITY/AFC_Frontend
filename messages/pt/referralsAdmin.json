@@ -122,7 +122,7 @@
     "signups": "Registados",
     "counted": "Contadas",
     "held": "Retidas para análise",
-    "note": "{signupRate}% dos links abertos levaram a um registo; {countRate}% dos registos contaram. {pending} pendentes, {flagged} retidas, {rejected} rejeitadas."
+    "note": "{signupRate}% dos links abertos levaram a um registo, e {typed, plural, one {# pessoa escreveu} other {# pessoas escreveram}} o código em vez disso. {countRate}% de todos os registos contaram. {pending} pendentes, {flagged} retidas, {rejected} rejeitadas."
   },
   "tabs": {
     "board": "Classificação",

@@ -32,7 +32,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
+import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import {
   errorCode,
   referralsAdmin,
@@ -222,8 +223,11 @@ export default function ReferralProgramPage({ params }: { params: Promise<{ slug
           <Stat label={t("funnel.held")} value={f.flagged} tone="gold" />
         </div>
         <p className="mt-2.5 text-sm text-muted-foreground">
+          {/* The link rate counts only signups that came through an opened link: people who typed the
+              code have no click, and dividing all signups by clicks read "200%" on the walk. */}
           {t("funnel.note", {
-            signupRate: pct(f.signups, f.clicks),
+            signupRate: pct(f.signups_via_link, f.clicks),
+            typed: f.signups_typed,
             countRate: pct(f.counted, f.signups),
             pending: f.pending,
             flagged: f.flagged,
@@ -239,7 +243,7 @@ export default function ReferralProgramPage({ params }: { params: Promise<{ slug
 
       <section className="rounded-xl bg-card p-4 md:p-6">
         <Tabs defaultValue="board">
-          <TabsList className="max-w-full overflow-x-auto">
+          <ScrollableTabsList>
             <TabsTrigger value="board">{t("tabs.board")}</TabsTrigger>
             <TabsTrigger value="held" className="gap-1.5">
               {t("tabs.held")}
@@ -250,7 +254,7 @@ export default function ReferralProgramPage({ params }: { params: Promise<{ slug
               {program.rewards_pending > 0 && <span className="rounded-full bg-muted px-1.5 text-xs">{program.rewards_pending}</span>}
             </TabsTrigger>
             <TabsTrigger value="all">{t("tabs.all")}</TabsTrigger>
-          </TabsList>
+          </ScrollableTabsList>
 
           {/* ── leaderboard ── */}
           <TabsContent value="board" className="mt-4">

@@ -101,7 +101,7 @@
   "funnel.signups": "Signed up",
   "funnel.counted": "Counted",
   "funnel.held": "Held for review",
-  "funnel.note": "{signupRate}% of opened links signed up; {countRate}% of signups counted. {pending} still pending, {flagged} held, {rejected} rejected.",
+  "funnel.note": "{signupRate}% of opened links led to a signup, and {typed, plural, one {# person} other {# people}} typed the code instead. {countRate}% of all signups counted. {pending} still pending, {flagged} held, {rejected} rejected.",
   "tabs.board": "Leaderboard",
   "tabs.held": "Held for review",
   "tabs.deliver": "Prizes to deliver",

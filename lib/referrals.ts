@@ -27,6 +27,11 @@ const COOKIE_DAYS = 30;
 // The day referrals went live: every NEW tag for the feature expires 5 days after it (lib/newBadge.ts).
 export const REFERRALS_LAUNCH_DATE = "2026-09-26";
 
+// Fired on window when a waiting referral has just been claimed. The claim and the profile's
+// Referrals tab load at the same moment on a new player's first page, so the tab listens for this and
+// reloads rather than showing numbers from before the claim (seen on the walk, 26 Sep 2026).
+export const REFERRAL_CLAIMED_EVENT = "afc:referral-claimed";
+
 export type CountRule = "signup" | "team" | "event" | "purchase";
 export type Scope = "everyone" | "countries" | "teams" | "users";
 export type PrizeKind = "milestone" | "rank" | "welcome";
@@ -107,7 +112,17 @@ export interface AdminProgram extends ProgramPublic {
   users: string[];
   program_code: string | null;
   ranks_awarded_at: string | null;
-  funnel: { clicks: number; signups: number; counted: number; pending: number; flagged: number; rejected: number };
+  funnel: {
+    clicks: number;
+    signups: number;
+    /** came through an opened link; the rest typed the code, so they have no click */
+    signups_via_link: number;
+    signups_typed: number;
+    counted: number;
+    pending: number;
+    flagged: number;
+    rejected: number;
+  };
   rewards_pending: number;
   created_at: string;
   prizes?: Prize[];
@@ -227,6 +242,7 @@ export async function claimPendingReferral(): Promise<string | null> {
   try {
     await axios.post(`${BASE}/claim/`, { code: pending.code, click_token: pending.click }, { headers });
     clearPendingReferral();
+    window.dispatchEvent(new Event(REFERRAL_CLAIMED_EVENT));
     return "ok";
   } catch (err: unknown) {
     const code = (err as { response?: { status?: number; data?: { code?: string } } })?.response;
