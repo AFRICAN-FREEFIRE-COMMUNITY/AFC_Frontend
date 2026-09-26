@@ -62,6 +62,22 @@ async function resolveImage(url: string | null): Promise<string | null> {
   }
 }
 
+// DM Sans (the site font) in the three weights the card uses; see assets/fonts/og. Read once per
+// server process: satori needs the raw TTF bytes on every render.
+const FONT_DIR = path.join(process.cwd(), "assets", "fonts", "og");
+let fonts: Promise<{ name: string; data: Buffer; weight: 600 | 700 | 800; style: "normal" }[]> | null = null;
+function loadFonts() {
+  fonts ??= Promise.all(
+    ([600, 700, 800] as const).map(async (weight) => ({
+      name: "DM Sans",
+      data: await readFile(path.join(FONT_DIR, `DMSans-${weight}.ttf`)),
+      weight,
+      style: "normal" as const,
+    })),
+  );
+  return fonts;
+}
+
 function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   return (words.length > 1 ? words[0][0] + words[1][0] : name.slice(0, 2)).toUpperCase();
@@ -79,7 +95,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
   const t = createTranslator({ locale, messages: { qr: CATALOGUES[locale] }, namespace: "qr" });
   const site = (process.env.NEXT_PUBLIC_URL || "https://africanfreefirecommunity.com").replace(/\/$/, "");
 
-  const [qrSvg, logo, picture] = await Promise.all([
+  const [qrSvg, logo, picture, fontData] = await Promise.all([
     QRCode.toString(`${site}/q/${info.token}`, {
       type: "svg",
       errorCorrectionLevel: "M",
@@ -88,6 +104,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
     }),
     readFile(path.join(process.cwd(), "public", "logo.png")).then((b) => `data:image/png;base64,${b.toString("base64")}`),
     resolveImage(info.picture || null),
+    loadFonts(),
   ]);
   const qr = `data:image/svg+xml;base64,${Buffer.from(qrSvg).toString("base64")}`;
   // Teams and players have square logos and avatars (round); events and news have wide banners.
@@ -108,7 +125,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
           background: BG,
           backgroundImage: "linear-gradient(135deg, rgba(34,197,94,0.28), rgba(16,18,22,0) 55%, rgba(251,191,36,0.22))",
           color: "white",
-          fontFamily: "sans-serif",
+          fontFamily: "DM Sans",
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 26, flex: 1, minWidth: 0 }}>
@@ -158,6 +175,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ toke
     {
       width: 1200,
       height: 630,
+      fonts: fontData,
       headers: { "Cache-Control": "public, max-age=600", "X-Robots-Tag": "noindex" },
     },
   );

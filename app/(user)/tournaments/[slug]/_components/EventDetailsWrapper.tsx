@@ -4249,6 +4249,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       setUserTeam(null);
       return null;
     } catch (err: any) {
+      // 404 not_in_team is the ordinary answer for a signed-in viewer with no team, not a
+      // failure (owner 2026-09-26: it logged an uncaught error on every event page they opened).
+      if (err.response?.data?.code === "not_in_team") {
+        setUserTeam(null);
+        return null;
+      }
       console.error(err);
       toast.error(err.response?.data?.message || t("detail.loadTeamFailed"));
       return null;
@@ -4488,32 +4494,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
     fetchEventDetails();
 
-    if (token) {
-      const fetchUser = async () => {
-        const resCurrent = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (resCurrent.data && resCurrent.data.team) {
-          const resDetails = await axios.post(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-            { team_name: resCurrent.data.team.team_name },
-          );
-          setUserTeam(resDetails.data.team);
-        } else {
-          toast.error(t("detail.noTeam"));
-        }
-      };
-
-      fetchUser();
-    }
-  }, [fetchEventDetails, slug, token, authLoading, t]);
+    // The viewer's team, through the one fetch the Register gate also uses (fetchUserTeam above).
+    // This used to be a second copy with no error handling, so the 404 not_in_team every teamless
+    // viewer gets went uncaught.
+    if (token) void fetchUserTeam();
+  }, [fetchEventDetails, fetchUserTeam, slug, token, authLoading]);
 
   // Live refresh (owner 2026-07-02): on each site-wide tick, silently re-pull the read-only
   // event details (standings, registered teams, structure, room details, waitlist counts).
