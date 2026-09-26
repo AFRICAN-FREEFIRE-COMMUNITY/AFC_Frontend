@@ -118,7 +118,7 @@ export function NavMain({ sections }: { sections: AdminNavSection[] }) {
   const close = () => setOpenMobile(false);
 
   return (
-    <SidebarGroup>
+    <SidebarGroup data-tour="admin-nav">
       <SidebarGroupContent className="flex flex-col gap-1">
         {visible.map((section) => {
           const open = isOpen(section.sectionKey);

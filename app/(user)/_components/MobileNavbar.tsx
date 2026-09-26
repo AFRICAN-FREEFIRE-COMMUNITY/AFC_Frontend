@@ -313,8 +313,8 @@ export function MobileNavbar() {
                 at). The admin SIDEBAR (components/app-sidebar.tsx) keeps its own entries. */}
             {isAdmin && (
               <>
-                <Separator className="my-2" />
-                <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
+                {/* Space, not a rule, separates the admin block (design rule 2026-08-17) */}
+                <p className="text-xs font-semibold text-muted-foreground px-2 mt-4 mb-1">
                   {t("mobileNav.sectionAdmin")}
                 </p>
                 {/* The admin pages in the same SECTIONS as the admin sidebar (inbox #54, owner
