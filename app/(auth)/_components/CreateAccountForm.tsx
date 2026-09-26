@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { env } from "@/lib/env";
 import axios from "axios";
 import { RegisterFormSchema, RegisterFormSchemaType } from "@/lib/zodSchemas";
+import { REFERRALS_LAUNCH_DATE, readPendingReferral, savePendingReferral, clearPendingReferral } from "@/lib/referrals";
 import { Loader } from "@/components/Loader";
 import {
   Select,
@@ -214,6 +215,22 @@ export function CreateAccountForm() {
     return t("passwordStrength.strong");
   };
 
+  // ── referral code (inbox #47) ─────────────────────────────────────────────────────────────
+  // Kept OUT of the form schema and the signup body on purpose: the backend's signup view knows
+  // nothing about referrals. The code goes into the afc_ref cookie instead, and
+  // components/referrals/ReferralClaimer.tsx sends it after the first sign-in (the same path a Google
+  // or Discord signup takes). Prefilled from an invite link (/r/<code>); clearing it opts out.
+  const tRef = useTranslations("referrals");
+  const [referralCode, setReferralCode] = useState("");
+  const [referralFromLink, setReferralFromLink] = useState(false);
+  useEffect(() => {
+    const pending = readPendingReferral();
+    if (pending) {
+      setReferralCode(pending.code);
+      setReferralFromLink(Boolean(pending.click));
+    }
+  }, []);
+
   function onSubmit(data: RegisterFormSchemaType) {
     // The Zod resolver already checks data.acceptTerms, so we only need to proceed here.
     startTransition(async () => {
@@ -238,6 +255,10 @@ export function CreateAccountForm() {
           // before it creates anything or sends any mail (owner 2026-09-22).
           { ...authData, cf_turnstile_response: botToken },
         );
+
+        // The referral waits in the browser for the first sign-in (see the referral block above)
+        if (referralCode.trim()) savePendingReferral(referralCode);
+        else clearPendingReferral();
 
         // Success: the typed draft is no longer needed, so we drop it before leaving.
         clearDraft();
@@ -540,6 +561,25 @@ export function CreateAccountForm() {
             </FormItem>
           )}
         />
+
+        {/* Referral code (inbox #47, approved mockup screen 2). Optional; a filled surface, not an
+            outlined box (the 2026-08-17 design rule). */}
+        <div className="space-y-2 rounded-lg bg-muted/40 p-4">
+          <label htmlFor="signup-referral-code" className="flex flex-wrap items-center gap-2 text-sm font-medium">
+            {tRef("signup.codeLabel")}
+            <NewBadge since={REFERRALS_LAUNCH_DATE} />
+          </label>
+          <p className="text-xs text-muted-foreground">
+            {referralFromLink ? tRef("signup.codeHelpLink") : tRef("signup.codeHelp")}
+          </p>
+          <Input
+            id="signup-referral-code"
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20))}
+            autoComplete="off"
+            className="font-mono tracking-widest"
+          />
+        </div>
 
         {/* NEW: Terms and Policy Checkbox */}
         <FormField

@@ -1,5 +1,6 @@
 import {
   IconHeadset,
+  IconUserShare,
   IconArticle,
   IconBroadcast,
   IconBuilding,
@@ -354,6 +355,16 @@ export const adminNavLinks: AdminNavLink[] = [
   // The support desk (owner 2026-09-14): every message anybody sends AFC, with its files and its
   // replies. app/(a)/a/support; backend afc_support. The AUDIT sibling (/a/support/audit) is head
   // admins only and is reached from the page itself, so it is deliberately not a second nav row.
+  // Referral programs (owner 2026-09-26, inbox #47): programs, links, counting and prizes.
+  // app/(a)/a/referrals; backend afc_referrals (head admins only).
+  {
+    label: "Referrals",
+    navKey: "referrals",
+    slug: "/a/referrals",
+    icon: IconUserShare,
+    allowedRoles: ["head_admin"],
+    newSince: "2026-09-26",
+  },
   {
     label: "Support",
     navKey: "support",
