@@ -91,5 +91,6 @@
     "prize": "Prize",
     "overrides": "Overrides",
     "rankingsAudit": "Audit"
-  }
+  },
+  "waiting": "{count, plural, one {# waiting} other {# waiting}}"
 }

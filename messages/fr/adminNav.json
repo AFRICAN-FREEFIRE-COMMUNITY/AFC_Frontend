@@ -91,5 +91,6 @@
     "prize": "Gains",
     "overrides": "Ajustements manuels",
     "rankingsAudit": "Journal"
-  }
+  },
+  "waiting": "{count, plural, one {# en attente} other {# en attente}}"
 }

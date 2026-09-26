@@ -91,5 +91,6 @@
     "prize": "Prémios",
     "overrides": "Ajustes manuais",
     "rankingsAudit": "Registo"
-  }
+  },
+  "waiting": "{count, plural, one {# pendente} other {# pendentes}}"
 }

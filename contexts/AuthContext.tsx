@@ -1,4 +1,5 @@
 "use client";
+import { isAdminUser, isStaffUser } from "@/lib/adminRoles";
 import { env } from "@/lib/env";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -641,40 +642,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return roles.some((role) => hasRole(role));
   };
 
-  const isAdminByRoleOrRoles = user
-    ? user.role === "admin" ||
-      (user.role === "player" &&
-        user.roles?.some((role) =>
-          [
-            "head_admin",
-            "organizer_admin",
-            "metrics_admin",
-            "shop_admin",
-            "news_admin",
-            "teams_admin",
-            "event_admin",
-            "partner_admin",
-          ].includes(role),
-        ))
-    : false;
+  // Who is staff / who may open the admin panel: one list, lib/adminRoles.ts (inbox #58). Any admin
+  // role opens the panel whatever the coarse User.role says; the old inline lists missed
+  // support_admin and super_admin and only counted granular roles on a "player".
+  const isAdminByRoleOrRoles = isStaffUser(user);
 
-  // Check if user is admin (has any admin role)
-  const isAdmin = user
-    ? user.role === "admin" ||
-      user.role === "sponsor" ||
-      (user.role === "player" &&
-        hasAnyRole([
-          "head_admin",
-          "organizer_admin",
-          "metrics_admin",
-          "shop_admin",
-          "news_admin",
-          "teams_admin",
-          "event_admin",
-          "partner_admin",
-          "sponsor",
-        ]))
-    : false;
+  const isAdmin = isAdminUser(user);
 
   // An organizer is a non-admin role that owns/runs an organization. It is NOT a
   // platform admin (deliberately kept out of the isAdmin arrays above) - pages use

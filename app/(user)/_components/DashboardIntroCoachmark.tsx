@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { env } from "@/lib/env";
 import { useAuth, type User } from "@/contexts/AuthContext";
+import { isStaffUser } from "@/lib/adminRoles";
 // Routed through lib/http authHeaders (owner bug 2026-08-29): building the header inline as
 // `Bearer ${token ?? ""}` sent "Bearer " when the cookie had lapsed, which axios trims to
 // "Bearer", so the backend reported a DEAD SESSION as a MALFORMED REQUEST (400) and nothing
@@ -70,9 +71,9 @@ const DASHBOARDS: DashboardIntro[] = [
   },
   {
     key: "admin",
-    // Platform admins (base role or any granular admin role) - mirrors MobileNavbar's isAdmin
-    // gate; sponsors are excluded here because their entry is the Sponsor Dashboard above.
-    hasAccess: (user, isAdmin) => isAdmin && user.role !== "sponsor",
+    // AFC staff: any admin role however granted (lib/adminRoles.ts, inbox #58). Sponsor-only
+    // accounts are left out because their entry is the Sponsor Dashboard above.
+    hasAccess: (user) => isStaffUser(user),
   },
 ];
 

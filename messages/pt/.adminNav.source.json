@@ -85,5 +85,6 @@
   "sub.social": "Social",
   "sub.prize": "Prize",
   "sub.overrides": "Overrides",
-  "sub.rankingsAudit": "Audit"
+  "sub.rankingsAudit": "Audit",
+  "waiting": "{count, plural, one {# waiting} other {# waiting}}"
 }

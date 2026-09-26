@@ -17,8 +17,9 @@
  * Caller: components/app-sidebar.tsx. The phone drawer is the same component (the sidebar is
  * offcanvas on small screens).
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import axios from "axios";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { IconChevronDown } from "@tabler/icons-react";
@@ -34,6 +35,9 @@ import {
 import { NewBadge } from "@/components/NewBadge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { env } from "@/lib/env";
+import { optionalAuthHeaders } from "@/lib/http";
+import { adminNavSections } from "@/constants/nav-links";
 import type { AdminNavLink, AdminNavSection, AdminNavSub } from "@/constants/nav-links";
 
 /** "Head Admin" -> "head_admin" */
@@ -54,6 +58,78 @@ export function useAdminAccess() {
     if (!allowedRoles || allowedRoles.length === 0) return true;
     return userRoles.some((role) => allowedRoles.includes(role));
   };
+}
+
+/**
+ * The pages and sub-pages one person may open, per section; a page left with no sub-page they may
+ * open is dropped, and so is a section with no pages. Read by NavMain and useAdminHome.
+ */
+export function visibleAdminSections(sections: AdminNavSection[], canAccess: (roles?: string[]) => boolean) {
+  return sections
+    .map((section) => ({
+      ...section,
+      items: section.items
+        .filter((item) => canAccess(item.allowedRoles))
+        .map((item) => ({ ...item, subs: item.subs?.filter((sub) => canAccess(sub.allowedRoles ?? item.allowedRoles)) }))
+        .filter((item) => !item.subs || item.subs.length > 0),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
+/**
+ * Where "the admin dashboard" is for this person (inbox #58): the first page their menu offers.
+ * The Dashboard itself for a head admin; for everyone else /a/dashboard (head admin only) used to
+ * answer "unauthorized", so anybody given a narrower admin role met a dead end on the way in.
+ * Read by app/(user)/_components/ProtectedRoute.tsx when /a/dashboard or /a is refused.
+ */
+export function useAdminHome(): string | null {
+  const canAccess = useAdminAccess();
+  const first = visibleAdminSections(adminNavSections, canAccess)[0]?.items[0];
+  if (!first) return null;
+  return first.subs?.[0]?.href ?? first.slug;
+}
+
+// How often the menu counts refresh while the panel is open and the tab is visible
+const COUNTS_REFRESH_MS = 60_000;
+
+/**
+ * The waiting counts on the menu (inbox #57): GET auth/admin/nav-counts/ answers
+ * {"counts": {"tickets": n, "reports": n, "approvals": n}} with only the queues this person may open
+ * (afc_auth/views_admin_nav.py). Refreshed every minute while the tab is visible and when it comes
+ * back into view. A failed read leaves the last numbers (or none): a badge is a hint, never a gate.
+ */
+export function useAdminNavCounts(): Record<string, number> {
+  const { user } = useAuth();
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    const load = () => {
+      if (document.visibilityState !== "visible") return;
+      const headers = optionalAuthHeaders();
+      if (!("Authorization" in headers)) return;
+      axios
+        .get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/admin/nav-counts/`, { headers })
+        .then((res) => {
+          if (alive) setCounts(res.data?.counts ?? {});
+        })
+        .catch(() => {});
+    };
+    load();
+    const timer = setInterval(load, COUNTS_REFRESH_MS);
+    document.addEventListener("visibilitychange", load);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", load);
+    };
+  }, [user]);
+  return counts;
+}
+
+/** A page's waiting count: the sum over the sub-pages this person may see that work a queue. */
+function pageCount(subs: AdminNavSub[], counts: Record<string, number>) {
+  return subs.reduce((sum, sub) => sum + (sub.countKey ? counts[sub.countKey] ?? 0 : 0), 0);
 }
 
 const subPath = (sub: AdminNavSub) => sub.href.split("?")[0];
@@ -97,18 +173,11 @@ export function NavMain({ sections }: { sections: AdminNavSection[] }) {
   const tab = useSearchParams().get("tab");
   const { setOpenMobile } = useSidebar();
   const canAccess = useAdminAccess();
+  const counts = useAdminNavCounts();
   const t = useTranslations("adminNav");
 
   // Pages and sub-pages this person may open, per section
-  const visible = sections
-    .map((section) => ({
-      ...section,
-      items: section.items
-        .filter((item) => canAccess(item.allowedRoles))
-        .map((item) => ({ ...item, subs: item.subs?.filter((sub) => canAccess(sub.allowedRoles ?? item.allowedRoles)) }))
-        .filter((item) => !item.subs || item.subs.length > 0),
-    }))
-    .filter((section) => section.items.length > 0);
+  const visible = visibleAdminSections(sections, canAccess);
 
   const currentSection = visible.find((s) => s.items.some((item) => pageIsCurrent(item, pathname)))?.sectionKey;
   // Sections the person opened or closed by hand; the current one is open unless they closed it
@@ -122,6 +191,8 @@ export function NavMain({ sections }: { sections: AdminNavSection[] }) {
       <SidebarGroupContent className="flex flex-col gap-1">
         {visible.map((section) => {
           const open = isOpen(section.sectionKey);
+          // A folded section still shows what waits inside it, or the number is out of sight
+          const sectionWaiting = open ? 0 : section.items.reduce((sum, item) => sum + pageCount(item.subs ?? [], counts), 0);
           return (
             <div key={section.sectionKey}>
               <button
@@ -131,6 +202,12 @@ export function NavMain({ sections }: { sections: AdminNavSection[] }) {
                 className="flex w-full items-center justify-between rounded-md px-2 pt-2 pb-1.5 text-[11px] font-bold tracking-[0.12em] text-muted-foreground uppercase hover:text-foreground"
               >
                 {t(`section.${section.sectionKey}`)}
+                {sectionWaiting > 0 && (
+                  <span className="ml-auto mr-1.5 rounded-full bg-background px-[7px] py-px text-[11px] font-bold tracking-normal tabular-nums">
+                    <span aria-hidden="true">{sectionWaiting > 99 ? "99+" : sectionWaiting}</span>
+                    <span className="sr-only">{t("waiting", { count: sectionWaiting })}</span>
+                  </span>
+                )}
                 <IconChevronDown className={cn("size-3.5 transition-transform motion-reduce:transition-none", !open && "-rotate-90")} />
               </button>
               {open && (
@@ -145,6 +222,7 @@ export function NavMain({ sections }: { sections: AdminNavSection[] }) {
                     // gets a muted fill as the parent, and the current sub-page a muted fill in bold
                     // (the approved mockup); green only if no sub-page matches the location.
                     const filled = current && (subs.length === 0 || !currentSub);
+                    const waiting = pageCount(subs, counts);
                     return (
                       <SidebarMenuItem key={item.slug}>
                         <SidebarMenuButton
@@ -166,6 +244,20 @@ export function NavMain({ sections }: { sections: AdminNavSection[] }) {
                                   filled && "border-primary-foreground/60 bg-primary-foreground/15 text-primary-foreground",
                                 )}
                               />
+                            )}
+                            {waiting > 0 && (
+                              // Filled pill, no ring (approved mockup .cnt): page bg on the sidebar,
+                              // a dark tint on the green current row
+                              <span
+                                className={cn(
+                                  "rounded-full px-[7px] py-px text-[11px] font-bold tabular-nums",
+                                  !item.newSince && "ml-auto",
+                                  filled ? "bg-black/25 text-primary-foreground" : "bg-background text-muted-foreground",
+                                )}
+                              >
+                                <span aria-hidden="true">{waiting > 99 ? "99+" : waiting}</span>
+                                <span className="sr-only">{t("waiting", { count: waiting })}</span>
+                              </span>
                             )}
                           </Link>
                         </SidebarMenuButton>

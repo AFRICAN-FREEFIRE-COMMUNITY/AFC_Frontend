@@ -190,6 +190,10 @@ export interface AdminNavSub {
   href: string;
   // narrower than the page's own gate; omitted = the page's roles
   allowedRoles?: string[];
+  // A queue this sub-page works through: its waiting count (GET auth/admin/nav-counts/, key of
+  // `counts`) is shown on the page's menu row, summed over the sub-pages the person may see
+  // (inbox #57; components/nav-main.tsx useAdminNavCounts)
+  countKey?: "tickets" | "reports" | "approvals";
 }
 
 export interface AdminNavLink {
@@ -253,7 +257,7 @@ export const adminNavSections: AdminNavSection[] = [
         subs: [
           { subKey: "teams", href: "/a/teams?tab=teams", allowedRoles: ["teams_admin"] },
           { subKey: "players", href: "/a/teams?tab=players", allowedRoles: ["teams_admin"] },
-          { subKey: "reports", href: "/a/teams?tab=reports", allowedRoles: ["teams_admin"] },
+          { subKey: "reports", href: "/a/teams?tab=reports", allowedRoles: ["teams_admin"], countKey: "reports" },
           { subKey: "blacklists", href: "/a/teams?tab=blacklists", allowedRoles: ["teams_admin", "organizer_admin"] },
           { subKey: "watchlist", href: "/a/teams?tab=watchlist", allowedRoles: ["event_admin", "teams_admin", "organizer_admin"] },
           { subKey: "deleted", href: "/a/teams?tab=deleted", allowedRoles: ["head_admin"] },
@@ -330,7 +334,7 @@ export const adminNavSections: AdminNavSection[] = [
         icon: IconHeadset,
         allowedRoles: ["head_admin", "support_admin", "support"],
         subs: [
-          { subKey: "tickets", href: "/a/support" },
+          { subKey: "tickets", href: "/a/support", countKey: "tickets" },
           { subKey: "supportAudit", href: "/a/support/audit", allowedRoles: ["head_admin"] },
         ],
       },
@@ -352,7 +356,7 @@ export const adminNavSections: AdminNavSection[] = [
           { subKey: "inventory", href: "/a/shop/inventory" },
           { subKey: "customers", href: "/a/shop/customers" },
           { subKey: "vendors", href: "/a/shop/vendors" },
-          { subKey: "approvals", href: "/a/shop/approvals" },
+          { subKey: "approvals", href: "/a/shop/approvals", countKey: "approvals" },
           { subKey: "payouts", href: "/a/shop/payouts" },
         ],
       },
@@ -440,7 +444,7 @@ export const adminSwitchLinks: AdminNavLink[] = [
     navKey: "playerSite",
     slug: "/home",
     icon: IconHome,
-    allowedRoles: ["head_admin", "admin", "event_admin", "news_admin", "teams_admin", "shop_admin", "partner_admin"],
+    // Every staff member (no list: the old one missed support, metrics, organizer and super admins)
   },
   // The organizer's own portal, for admin-and-organizer users.
   { label: "Organizer Dashboard", navKey: "organizerDashboard", slug: "/organizer/overview", icon: IconBuilding, allowedRoles: ["organizer"] },

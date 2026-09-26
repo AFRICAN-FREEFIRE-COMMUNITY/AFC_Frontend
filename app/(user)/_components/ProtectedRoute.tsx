@@ -6,6 +6,11 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { FullLoader } from "@/components/Loader";
 import { adminNavLinks } from "@/constants/nav-links";
+import { useAdminHome } from "@/components/nav-main";
+
+// "The admin dashboard" addresses: refused ones send the person to the first page their menu
+// offers (useAdminHome) instead of /unauthorized (inbox #58).
+const ADMIN_HOME_PATHS = ["/a", "/a/dashboard"];
 
 const PUBLIC_ROUTES = ["/news", "/about", "/contact", "/unauthorized", "/rankings"];
 
@@ -23,6 +28,7 @@ export function ProtectedRoute({
   const t = useTranslations("home");
   const router = useRouter();
   const pathname = usePathname();
+  const adminHome = useAdminHome();
 
   const isPublicRoute = PUBLIC_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
@@ -82,10 +88,11 @@ export function ProtectedRoute({
         adminOnly &&
         !hasRequiredAdminRole()
       ) {
-        router.replace("/unauthorized");
+        const toHome = ADMIN_HOME_PATHS.includes(pathname) && adminHome && adminHome !== pathname;
+        router.replace(toHome ? adminHome : "/unauthorized");
       }
     }
-  }, [isAuthenticated, loading, pathname, adminOnly, isAdmin]);
+  }, [isAuthenticated, loading, pathname, adminOnly, isAdmin, adminHome]);
 
   if (loading) {
     return <FullLoader text={t("protectedRoute.loading")} />;
