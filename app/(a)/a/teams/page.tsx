@@ -94,12 +94,14 @@ export default function TeamsAndPlayersPage() {
   const tabParam = searchParams.get("tab");
   const initialTab =
     tabParam && visibleTabs.includes(tabParam) ? tabParam : visibleTabs[0] ?? "teams";
-  const [tab, setTab] = useState<string>(initialTab);
+  // The address is the source of truth (inbox #54): the admin sidebar links straight to each tab
+  // (?tab=...), and a click there while already on this page must switch the tab, which state
+  // seeded once from the address never did.
+  const tab = initialTab;
   const [mediaOpen, setMediaOpen] = useState(false);
 
   // Keep the active tab in the URL so a RELOAD restores it (router.replace so back isn't spammed).
   const onTabChange = (v: string) => {
-    setTab(v);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", v);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });

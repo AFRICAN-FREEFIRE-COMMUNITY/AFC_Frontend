@@ -47,9 +47,12 @@ export function ProtectedRoute({
 
     // 3. Find the current admin route's required roles from your constants
     // This automatically checks the allowedRoles for the current URL
-    const currentConfig = adminNavLinks.find((link) =>
-      pathname.startsWith(link.slug),
-    );
+    // The LONGEST matching slug decides (inbox #54, 2026-09-26). The first match used to win, so
+    // /a/ocr-model/keys was judged by /a/ocr-model's head-admin-only rule and organizer admins were
+    // turned away from a page their menu offered them. Only whole path segments match.
+    const currentConfig = adminNavLinks
+      .filter((link) => pathname === link.slug || pathname.startsWith(`${link.slug}/`))
+      .sort((a, b) => b.slug.length - a.slug.length)[0];
 
     // If we found a config for this route and it has restricted roles
     if (currentConfig?.allowedRoles) {

@@ -21,7 +21,6 @@
 // (app/(a)/a/events/create/page.tsx) - no Suspense wrapper needed here.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { IconCalendar, IconPalette, IconTrophy } from "@tabler/icons-react";
@@ -41,12 +40,14 @@ export default function EventsAndLeaderboardsPage() {
       : tabParam === "designs"
         ? "designs"
         : "events";
-  const [tab, setTab] = useState<string>(initialTab);
+  // The address is the source of truth (inbox #54): the admin sidebar links straight to each tab
+  // (?tab=...), and a click there while already on this page must switch the tab, which state
+  // seeded once from the address never did.
+  const tab = initialTab;
 
   // Keep the active tab in the URL so a RELOAD restores it (owner 2026-06-20: reloading
   // used to bounce back to Events). router.replace + scroll:false, same as /a/teams.
   const onTabChange = (v: string) => {
-    setTab(v);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", v);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });

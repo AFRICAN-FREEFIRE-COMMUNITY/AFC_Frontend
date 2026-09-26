@@ -95,6 +95,7 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { formatWord } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { InfoTip } from "@/components/ui/info-tip";
 import { IconDownload, IconPencil } from "@tabler/icons-react";
 
@@ -199,6 +200,21 @@ const page = () => {
       return n === "head_admin" || n === "super_admin";
     }),
   );
+
+  // The open tab lives in the address (?tab=), like /a/teams and /a/events (inbox #54): the admin
+  // sidebar links straight to Admins / All users / Roles / Login history / History, and the old
+  // standalone /a/history page now redirects to ?tab=activities (next.config.ts).
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const SETTINGS_TABS = ["admins", "all-users", "roles", "login-history", ...(canSeeAudit ? ["activities"] : [])];
+  const tabParam = searchParams.get("tab") ?? "";
+  const settingsTab = SETTINGS_TABS.includes(tabParam) ? tabParam : "admins";
+  const onSettingsTab = (v: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", v);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   const [suspendPending, startSuspendTransition] = useTransition();
   const [editPending, startEditTransition] = useTransition();
@@ -758,7 +774,7 @@ const page = () => {
           </span>
         </div>
       </div>
-      <Tabs defaultValue="admins" className="space-y-4">
+      <Tabs value={settingsTab} onValueChange={onSettingsTab} className="space-y-4">
         <ScrollableTabsList className="w-full" data-tour="settings-misc-tabs-header">
           <TabsTrigger value="admins">Admin Users</TabsTrigger>
           <TabsTrigger value="all-users">All Users</TabsTrigger>

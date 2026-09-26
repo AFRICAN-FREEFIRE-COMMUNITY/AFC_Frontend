@@ -29,7 +29,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTheme } from "next-themes";
-import { adminNavLinks, homeNavLinksMobile } from "@/constants/nav-links";
+import { adminNavSections, homeNavLinksMobile } from "@/constants/nav-links";
 import { cn } from "@/lib/utils";
 // Shared-chrome strings live in messages/en/common.json under "common"; this
 // Client Component reads them via the useTranslations() hook. Note: the nav
@@ -75,6 +75,8 @@ export function MobileNavbar() {
     setOpen(false);
   };
 
+  // Admin section labels (adminNav namespace, the same keys as the admin sidebar)
+  const tAdmin = useTranslations("adminNav");
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
     {},
   );
@@ -315,35 +317,53 @@ export function MobileNavbar() {
                 <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
                   {t("mobileNav.sectionAdmin")}
                 </p>
-                {adminNavLinks
-                  .filter(
-                    (link) =>
-                      canAccess(link.allowedRoles) &&
-                      !["/a/sponsor-dashboard", "/organizer/overview"].includes(link.slug),
-                  )
-                  .map(({ icon: Icon, slug, label, comingSoon }, index) => (
-                    <Button
-                      key={index}
-                      className="justify-start"
-                      asChild={!comingSoon}
-                      disabled={comingSoon}
-                      variant={isActive(slug) ? "default" : "ghost"}
-                      onClick={comingSoon ? undefined : handleLinkClick}
-                    >
-                      {comingSoon ? (
-                        <div className="flex items-center w-full">
-                          <Icon size={18} className="mr-2" /> {label}
-                          <Badge variant="secondary" className="ml-auto">
-                            {t("mobileNav.badgeSoon")}
-                          </Badge>
-                        </div>
-                      ) : (
-                        <Link href={slug}>
-                          <Icon size={18} className="mr-2" /> {label}
-                        </Link>
-                      )}
-                    </Button>
-                  ))}
+                {/* The admin pages in the same SECTIONS as the admin sidebar (inbox #54, owner
+                    2026-09-26: "a lot on the hamburger menu now, A LOT"), folded until tapped. Each
+                    page opens its first sub-page this person may see. Source: adminNavSections. */}
+                {adminNavSections.map((section) => {
+                  const items = section.items
+                    .filter((item) => canAccess(item.allowedRoles))
+                    .map((item) => ({
+                      item,
+                      href:
+                        item.subs?.find((sub) => canAccess(sub.allowedRoles ?? item.allowedRoles))?.href ??
+                        (item.subs ? null : item.slug),
+                    }))
+                    .filter((entry): entry is { item: (typeof section.items)[number]; href: string } => entry.href !== null);
+                  if (items.length === 0) return null;
+                  const key = `admin:${section.sectionKey}`;
+                  const sectionOpen = expandedMenus[key] ?? items.some(({ item }) => isActive(item.slug));
+                  return (
+                    <div key={key}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-between"
+                        aria-expanded={sectionOpen}
+                        onClick={() => setExpandedMenus((prev) => ({ ...prev, [key]: !sectionOpen }))}
+                      >
+                        {tAdmin(`section.${section.sectionKey}`)}
+                        <IconChevronDown className={cn("size-4 transition-transform motion-reduce:transition-none", !sectionOpen && "-rotate-90")} />
+                      </Button>
+                      {sectionOpen &&
+                        items.map(({ item, href }) => {
+                          const Icon = item.icon;
+                          return (
+                            <Button
+                              key={item.slug}
+                              className="w-full justify-start pl-6"
+                              asChild
+                              variant={isActive(item.slug) ? "default" : "ghost"}
+                              onClick={handleLinkClick}
+                            >
+                              <Link href={href}>
+                                <Icon size={18} className="mr-2" /> {item.navKey ? tAdmin(item.navKey) : item.label}
+                              </Link>
+                            </Button>
+                          );
+                        })}
+                    </div>
+                  );
+                })}
               </>
             )}
 
