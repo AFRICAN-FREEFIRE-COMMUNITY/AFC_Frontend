@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { env } from "@/lib/env";
 import axios from "axios";
 import { RegisterFormSchema, RegisterFormSchemaType } from "@/lib/zodSchemas";
-import { REFERRALS_LAUNCH_DATE, readPendingReferral, savePendingReferral, clearPendingReferral } from "@/lib/referrals";
+import { REFERRALS_LAUNCH_DATE, readPendingReferral, clearPendingReferral } from "@/lib/referrals";
 import { Loader } from "@/components/Loader";
 import {
   Select,
@@ -247,6 +247,11 @@ export function CreateAccountForm() {
           // body it always did. The backend stores it on UserProfile.whatsapp_number after
           // insisting on a country code (afc_auth.views.signup -> require_international).
           ...(data.whatsappNumber ? { whatsapp_number: data.whatsappNumber } : {}),
+          // The referral goes WITH the sign-up (inbox #53): the server stores it now, so confirming
+          // the email on another phone still counts it. The click token links it to the invite visit.
+          ...(referralCode.trim()
+            ? { referral_code: referralCode.trim(), referral_click: readPendingReferral()?.code === referralCode.trim() ? readPendingReferral()?.click : "" }
+            : {}),
           // Removed data.acceptTerms from authData as it's not needed by the backend typically
         };
         const response = await axios.post(
@@ -256,9 +261,12 @@ export function CreateAccountForm() {
           { ...authData, cf_turnstile_response: botToken },
         );
 
-        // The referral waits in the browser for the first sign-in (see the referral block above)
-        if (referralCode.trim()) savePendingReferral(referralCode);
-        else clearPendingReferral();
+        // The server has the referral now (response.data.referral), so nothing waits in the browser:
+        // a leftover cookie would only make the first sign-in claim again and hear already_referred.
+        // A refusal (a mistyped code) is said once here, since the account itself was created.
+        clearPendingReferral();
+        const refused = response.data?.referral?.refused as string | undefined;
+        if (refused && tRef.has(`claim.refused.${refused}`)) toast.info(tRef(`claim.refused.${refused}`));
 
         // Success: the typed draft is no longer needed, so we drop it before leaving.
         clearDraft();
