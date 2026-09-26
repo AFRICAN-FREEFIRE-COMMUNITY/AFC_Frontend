@@ -150,7 +150,11 @@ export function QrShareButton({ targetType, targetRef, name, className }: Props)
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-[560px]">
+        {/* grid-cols-[minmax(0,1fr)]: DialogContent is a CSS grid, and a grid column grows to fit its
+            widest unbreakable line. The live short link (https://africanfreefirecommunity.com/q/...) is
+            one, so on a 390px phone the whole dialog body ran past its right edge (seen live on
+            2026-09-26; the shorter localhost link had hidden it). Capping the column lets it truncate. */}
+        <DialogContent className="max-h-[calc(100dvh-2rem)] grid-cols-[minmax(0,1fr)] overflow-y-auto sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle className="pr-6">{t("title", { name: displayName })}</DialogTitle>
             <DialogDescription>{t(`desc.${targetType}`)}</DialogDescription>
