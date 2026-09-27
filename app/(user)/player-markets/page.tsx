@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -528,7 +528,7 @@ function ScreenshotPicker({
         </div>
       )}
       {files.length < max && (
-        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground hover:bg-accent">
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground hover:bg-accent">
           <IconUpload className="h-3.5 w-3.5" />
           {labels.add}
           <input
@@ -753,6 +753,31 @@ function PlayerMarketPage() {
       }
     }
   }, [searchParams, teamPosts, playerPosts, loadingTeams, loadingPlayers]);
+
+  // ── Deep link to a tab: /player-markets?tab=my-invites (inbox #68, 2026-09-27) ──
+  // The player-market emails (afc_player_market/views.py: trial invite, trial started) link here
+  // with ?tab=; they used to point at /my-invites and /applications, pages that never existed. A tab
+  // opens only once it is actually shown to this viewer (the role arrives with the team fetch
+  // above), so nothing is decided while loading and a tab this viewer cannot see is never forced
+  // open; then the address is cleaned like ?post= above.
+  const tabLinkDone = useRef(false);
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (!tab || tabLinkDone.current) return;
+    const shown: Record<string, boolean> = {
+      teams: true,
+      players: true,
+      "my-applications": !!token && !isTeamLeader,
+      "my-invites": !!token,
+      "team-applications": !!token && isTeamLeader,
+      "my-team": !!token && !!currentTeam,
+      "my-posts": !!token,
+    };
+    if (!shown[tab]) return;
+    tabLinkDone.current = true;
+    setActiveTab(tab);
+    router.replace("/player-markets", { scroll: false });
+  }, [searchParams, token, isTeamLeader, currentTeam, router]);
 
   // My Posts membership = the server-computed is_owner flag (created_by == viewer), so BOTH a team
   // post AND a player availability post the user created show up, regardless of their current team /
