@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { NavMain } from "@/components/nav-main";
+import { NavMain, NavSwitch } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "./Logo";
 import { useAuth } from "@/contexts/AuthContext";
-import { adminNavLinks } from "@/constants/nav-links";
+import { adminNavSections, adminSwitchLinks } from "@/constants/nav-links";
 import { IconBuildingStore } from "@tabler/icons-react";
 // i18n: the "Admin Panel" header text is resolved from the adminNav namespace
 // (messages/{en,fr,pt}/adminNav.json). The nav-item labels themselves are
@@ -23,26 +23,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth();
   const t = useTranslations("adminNav");
 
-  // Vendors get a "Vendor Dashboard" entry pointing at the /vendor portal. The portal is
-  // otherwise only reachable by typing the URL (a vendor is a DB record, not a role, so it
-  // can't be gated by allowedRoles). Shown ONLY when the user is an active vendor
-  // (user.is_vendor from the get-user-profile payload), so non-vendor admins never see it.
-  // Placed directly UNDER the "Organizer Dashboard" entry (owner request 2026-06-09), or at
-  // the end if that entry is absent.
-  const navItems = (() => {
-    if (!user?.is_vendor) return adminNavLinks;
-    const vendorEntry = {
-      label: "Vendor Dashboard",
-      navKey: "vendorDashboard",
-      slug: "/vendor",
-      icon: IconBuildingStore,
-    };
-    const items = [...adminNavLinks];
-    const orgIdx = items.findIndex((i) => i.slug === "/organizer/overview");
-    if (orgIdx >= 0) items.splice(orgIdx + 1, 0, vendorEntry);
-    else items.push(vendorEntry);
-    return items;
-  })();
+  // "Switch to" links (sidebar footer, owner 2026-09-26). Vendors also get their /vendor portal
+  // here: a vendor is a DB record, not a role, so it cannot be gated by allowedRoles, and it shows
+  // only when user.is_vendor (get-user-profile) is true.
+  const switchLinks = user?.is_vendor
+    ? [
+        ...adminSwitchLinks,
+        { label: "Vendor Dashboard", navKey: "vendorDashboard", slug: "/vendor", icon: IconBuildingStore },
+      ]
+    : adminSwitchLinks;
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -55,9 +44,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavMain sections={adminNavSections} />
       </SidebarContent>
       <SidebarFooter>
+        <NavSwitch links={switchLinks} />
         <NavUser
           user={{
             name: user?.full_name || "Admin",
