@@ -138,6 +138,22 @@ const CHECKERS = [
     },
   },
   {
+    // Every link the backend puts in an email or notification opens a page of THIS tree (inbox #68,
+    // 2026-09-27: the account-deleted email's "Contact support" went to /support, a 404, and a sweep
+    // found seven such links live). The backend's tools/check_email_links.py reads both trees.
+    // Blocking: a link to a page or public file that does not exist.
+    id: "email-links",
+    run() {
+      const backend = backendTree(join("tools", "check_email_links.py"));
+      if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree with tools/check_email_links.py beside this one" };
+      const py = spawnSync("python", [join(backend, "tools", "check_email_links.py"), "--frontend", ".", "--json"], { encoding: "utf8", env: CHILD_ENV });
+      let parsed = null;
+      try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["email-links: could not run (python + the backend tree are needed)"], counts: {} }; }
+      const blocking = parsed.dead.map((d) => `DEAD-LINK ${d.path}  <- ${d.where.slice(0, 3).join(", ")}  (no page or public file of that address in this tree)`);
+      return { blocking, counts: {}, note: `${parsed.links} site links checked (backend tree ${backend})` };
+    },
+  },
+  {
     // The four event forms against the backend's event contract (owner rule R24, the frontend
     // half, 2026-09-17): a key a form sends that the contract does not know blocks (a typo or a
     // dropped field: the backend ignores it silently, and on 2026-09-17 that was the sponsor
