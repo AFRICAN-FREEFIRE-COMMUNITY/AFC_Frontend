@@ -30,7 +30,18 @@
     "appRefreshNote": "O código muda a cada 30 segundos. Se estiver prestes a mudar, aguarde pelo seguinte.",
     "useAppCode": "Usar antes a sua aplicação de autenticação",
     "rememberDevice": "Memorizar este dispositivo",
-    "rememberDeviceHelp": "Deixamos de pedir um código neste navegador durante 30 dias. Não assinale esta opção num dispositivo partilhado ou emprestado."
+    "rememberDeviceHelp": "Deixamos de pedir um código neste navegador durante 30 dias. Não assinale esta opção num dispositivo partilhado ou emprestado.",
+    "chooseTitle": "Como quer receber o seu código?",
+    "chooseDescription": "A sua palavra-passe está correta. Falta um passo.",
+    "chooseApp": "Aplicação de autenticação",
+    "chooseAppHelp": "Abra a aplicação no telemóvel e leia o código.",
+    "chooseEmail": "Enviar-me um código por e-mail",
+    "chooseEmailHelp": "Enviamo-lo para {destination}.",
+    "chooseEmailHelpNoDestination": "Enviamo-lo para o seu endereço de e-mail.",
+    "usedLast": "Usada da última vez",
+    "switching": "Um momento",
+    "switchToApp": "Usar antes a minha aplicação de autenticação",
+    "switchToEmail": "Enviar-me antes um código por e-mail"
   },
   "security": {
     "title": "Início de sessão em duas etapas",
@@ -91,14 +102,18 @@
     "methodApp": "Aplicação de autenticação",
     "backupExplainerApp": "Os códigos de recuperação deixam-no entrar se perder o telemóvel ou a aplicação. Cada um funciona uma única vez.",
     "methods": {
-      "title": "Como recebe o seu código",
-      "subtitle": "Escolha de onde vem o seu código de início de sessão. Pode alterar isto mais tarde.",
+      "title": "Formas de receber o seu código",
+      "subtitle": "Ative as que quiser. Sempre que iniciar sessão, escolhe qual usar dessa vez.",
       "inUse": "Em uso",
       "emailBody": "Enviamos um código de 6 dígitos para o seu endereço de e-mail. Funciona em qualquer dispositivo, mas precisa da sua caixa de entrada.",
       "appBody": "O seu telemóvel cria o código por si próprio, por isso funciona sem rede e sem e-mail.",
       "setUpApp": "Configurar",
       "switchToApp": "Mudar para esta",
-      "switchBackHint": "Para voltar aos códigos por e-mail, desative o início de sessão em duas etapas e ative-o novamente."
+      "switchBackHint": "Para voltar aos códigos por e-mail, desative o início de sessão em duas etapas e ative-o novamente.",
+      "notSetUp": "Não configurada",
+      "emailBodyTo": "Um código enviado para {destination}. Funciona em qualquer dispositivo, mas precisa da sua caixa de entrada.",
+      "emailAlwaysOn": "Sempre ativa enquanto o início de sessão em duas etapas estiver ativo",
+      "remove": "Remover"
     },
     "app": {
       "title": "Configurar a sua aplicação de autenticação",
@@ -120,7 +135,16 @@
       "confirm": "Ativar a aplicação de autenticação",
       "confirming": "A ativar"
     },
-    "explainerBodyApp": "Depois da palavra-passe, abre a sua aplicação de autenticação e introduz o código de 6 dígitos que aparece. Nada é enviado, por isso funciona sem rede e mesmo que o seu e-mail seja comprometido."
+    "explainerBodyApp": "Depois da palavra-passe, abre a sua aplicação de autenticação e introduz o código de 6 dígitos que aparece. Nada é enviado, por isso funciona sem rede e mesmo que o seu e-mail seja comprometido.",
+    "methodsBoth": "Código por e-mail e aplicação de autenticação",
+    "explainerBodyBoth": "Depois de introduzir a palavra-passe, escolhe como recebe o código de 6 dígitos: na aplicação de autenticação ou por e-mail. Quem roubar a sua palavra-passe continua sem conseguir entrar.",
+    "removeApp": {
+      "title": "Remover a aplicação de autenticação",
+      "step1": "Os códigos de início de sessão passam a chegar só por e-mail. Para confirmar que é você, enviamos um código para {destination}.",
+      "step2": "Introduza o código de 6 dígitos enviado para {destination}, ou use um código de recuperação.",
+      "confirm": "Remover a aplicação",
+      "success": "A aplicação de autenticação foi removida. Os códigos de início de sessão passam a chegar por e-mail."
+    }
   },
   "prompt": {
     "title": "Ative o início de sessão em duas etapas",
@@ -130,8 +154,8 @@
     "close": "Fechar"
   },
   "profileCard": {
-    "title": "Segurança do início de sessão",
-    "description": "Ative o início de sessão em duas etapas e faça a gestão dos seus códigos de recuperação.",
+    "title": "Conta e segurança",
+    "description": "Início de sessão em duas etapas, os seus dispositivos e eliminar a sua conta.",
     "manage": "Gerir"
   },
   "devices": {
@@ -167,5 +191,14 @@
       "signOutTitle": "Terminar sessão nos outros sítios?",
       "signOutDescription": "A sessão é terminada de imediato em todos os outros navegadores. Aqui continua com sessão iniciada e os dispositivos memorizados não são afetados."
     }
+  },
+  "account": {
+    "title": "Conta e segurança",
+    "subtitle": "Como inicia sessão, os dispositivos em que confia e a sua conta.",
+    "jumpLabel": "Nesta página",
+    "jumpTwoStep": "Início de sessão em duas etapas",
+    "jumpDevices": "Os seus dispositivos",
+    "jumpDelete": "Eliminar a minha conta",
+    "deleteLink": "Eliminar a minha conta"
   }
 }

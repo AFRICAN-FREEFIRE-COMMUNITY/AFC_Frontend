@@ -29,11 +29,12 @@
  * page. The page renders one card per entry in status.available_methods, so a genuinely new method
  * would appear here without a rewrite.
  *
- * SWITCHING is guarded exactly like turning 2FA off, because swapping the owner's factor for
- * somebody else's is a takeover rather than a preference change. Moving TO the app is one guarded
- * step (TotpEnrolDialog collects proof of the current factor). Moving BACK to email is turn off,
- * then turn on: both halves are already guarded, and building a third proof path to save one click
- * would be more security surface for less clarity.
+ * BOTH AT ONCE (inbox #61, owner 2026-09-27, approved mockup mockups/account-and-2fa): the two
+ * ways are no longer either/or. Email stays on for as long as two-step sign-in is on (the safety
+ * net for a lost phone); the app is ADDED next to it (TotpEnrolDialog, still guarded by proof of
+ * the account as it stands) and REMOVED on its own (the "removeApp" flow below: a proof by email
+ * or a recovery code, then POST two-factor/totp/remove/). Which one to use is picked at each
+ * sign-in (app/(auth)/_components/TwoFactorStep.tsx), so there is no "switch" here any more.
  *
  * HOW IT CONNECTS
  *   - Data: lib/twoFactor.ts -> /auth/two-factor/ (afc_auth/views_two_factor.py).
@@ -73,9 +74,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PageHeader } from "@/components/PageHeader";
-// Shared, self-expiring NEW tag (owner rule: any new page wears one for 5 days).
-import { NewBadge } from "@/components/NewBadge";
 import { FullLoader } from "@/components/Loader";
 import { LocalTime } from "@/components/LocalTime";
 import { useAuth } from "@/contexts/AuthContext";
@@ -91,7 +89,9 @@ import {
   getTwoFactorStatus,
   methodSendsCode,
   regenerateBackupCodes,
+  removeTotp,
   sendTwoFactorProofCode,
+  type TwoFactorMethod,
   type TwoFactorStatus,
 } from "@/lib/twoFactor";
 
@@ -102,7 +102,7 @@ const BACKUP_CODE_TOTAL = 10;
 const LOW_BACKUP_THRESHOLD = 3;
 
 /** Which multi-step dialog is open, if any. */
-type Flow = null | "enable" | "disable" | "regenerate";
+type Flow = null | "enable" | "disable" | "regenerate" | "removeApp";
 
 export function TwoFactorSecurity() {
   const t = useTranslations("twoFactor");
@@ -161,11 +161,11 @@ export function TwoFactorSecurity() {
 
   // Step one of every flow: ask the backend to email a proof code. Enabling uses purpose "enable"
   // (prove the method reaches you); disabling and regenerating use "disable" (prove it is you).
-  async function sendProofCode(purpose: "enable" | "disable") {
+  async function sendProofCode(purpose: "enable" | "disable", method?: TwoFactorMethod) {
     if (!token) return;
     setBusy(true);
     try {
-      const data = await sendTwoFactorProofCode(token, purpose);
+      const data = await sendTwoFactorProofCode(token, purpose, method);
       setChallengeToken(data.challenge_token);
       setFlowStep("code");
     } catch (err) {
@@ -206,6 +206,28 @@ export function TwoFactorSecurity() {
       setStatus(data);
       closeFlow();
       toast.success(t("security.disable.success"));
+    } catch (err) {
+      toast.error(errMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Take the app off, keep email (inbox #61). Proved by email or a recovery code, never by the app
+  // alone: somebody removing it is often somebody who lost the phone it lives on.
+  async function confirmRemoveApp() {
+    if (!token) return;
+    setBusy(true);
+    try {
+      const data = await removeTotp(
+        token,
+        backupCode.trim()
+          ? { backupCode: backupCode.trim() }
+          : { challengeToken, code: code.trim() },
+      );
+      setStatus(data);
+      closeFlow();
+      toast.success(t("security.removeApp.success"));
     } catch (err) {
       toast.error(errMessage(err));
     } finally {
@@ -264,23 +286,22 @@ export function TwoFactorSecurity() {
   // Which method is guarding the account, and whether it SENDS anything. The second one drives
   // every "check your email" sentence on this page: none of them are true for an authenticator.
   const activeSends = methodSendsCode(status?.method ?? "email");
-  const activeMethodLabel = activeSends
-    ? t("security.methodEmail")
-    : t("security.methodApp");
+  // Every way on (inbox #61); both on is labelled as both, never as the one used last.
+  const methodsOn = status?.methods_on ?? (enabled ? [status?.method ?? "email"] : []);
+  const bothOn = methodsOn.includes("email") && methodsOn.includes("totp");
+  const activeMethodLabel = bothOn
+    ? t("security.methodsBoth")
+    : activeSends
+      ? t("security.methodEmail")
+      : t("security.methodApp");
+  const emailDestination = status?.email_destination ?? status?.destination ?? "";
 
   return (
-    <div className="container mx-auto py-6">
-      {/* NEW tag: the whole Sign-in security page shipped 2026-08-06. flex-wrap so on a
-          phone the pill drops below the heading instead of widening the page. */}
-      <PageHeader
-        title={
-          <span className="flex flex-wrap items-center gap-2">
-            {t("security.title")}
-            <NewBadge since="2026-08-06" />
-          </span>
-        }
-        description={t("security.subtitle")}
-      />
+    // #two-step is a jump target of AccountSecurityHeader (inbox #60); the page title moved there
+    // when the page became "Account and security", and this is now its first section.
+    <div id="two-step" className="container mx-auto scroll-mt-24 py-6">
+      <h2 className="text-xl font-bold">{t("security.title")}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">{t("security.subtitle")}</p>
 
       {failed ? (
         <Card className="mt-4">
@@ -345,9 +366,11 @@ export function TwoFactorSecurity() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {/* "AFC emails you a code" is simply false once an authenticator is guarding the
                       account, and this is the paragraph a confused user reads first. */}
-                  {activeSends
-                    ? t("security.explainerBody")
-                    : t("security.explainerBodyApp")}
+                  {bothOn
+                    ? t("security.explainerBodyBoth")
+                    : activeSends
+                      ? t("security.explainerBody")
+                      : t("security.explainerBodyApp")}
                 </p>
               </div>
 
@@ -393,15 +416,14 @@ export function TwoFactorSecurity() {
               </div>
 
               {(status?.available_methods ?? ["email"]).map((method) => {
-                const isActive = enabled && status?.method === method;
+                // One row per way; each is simply on or off (inbox #61). Filled rows, no outline.
+                const isOn = enabled && methodsOn.includes(method);
                 const isApp = method === "totp";
                 return (
                   <div
                     key={method}
                     // Stacks on a phone so the action button stays a full-width tap target.
-                    className={`flex flex-col gap-3 rounded-md border p-3 sm:flex-row sm:items-center ${
-                      isActive ? "border-primary/50 bg-primary/5" : ""
-                    }`}
+                    className="flex flex-col gap-3 rounded-md bg-muted/40 p-3 sm:flex-row sm:items-center"
                   >
                     <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
                       {isApp ? (
@@ -416,44 +438,54 @@ export function TwoFactorSecurity() {
                         <p className="text-sm font-medium">
                           {isApp ? t("security.methodApp") : t("security.methodEmail")}
                         </p>
-                        {/* The authenticator app is the new option, so it wears the dated tag.
-                            It expires by itself 5 days after 2026-08-07 (CLAUDE.md hard rule);
-                            nothing here has to be removed later. */}
-                        {isApp ? <NewBadge since="2026-08-07" /> : null}
-                        {isActive ? (
-                          <Badge
-                            variant="outline"
-                            className="rounded-full border-primary/60 px-2 py-0.5 text-xs text-primary"
+                        {enabled ? (
+                          <span
+                            className={
+                              isOn
+                                ? "rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary"
+                                : "rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground"
+                            }
                           >
-                            {t("security.methods.inUse")}
-                          </Badge>
+                            {isOn ? t("security.statusOn") : t("security.methods.notSetUp")}
+                          </span>
                         ) : null}
                       </div>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {isApp
                           ? t("security.methods.appBody")
-                          : t("security.methods.emailBody")}
+                          : emailDestination
+                            ? t("security.methods.emailBodyTo", { destination: emailDestination })
+                            : t("security.methods.emailBody")}
                       </p>
                     </div>
 
-                    {/* Only the app has an action here. Moving BACK to email is turn off then turn
-                        on (both already guarded), and the hint says so rather than offering a
-                        button that would need a third proof path to exist. */}
-                    {isApp && !isActive ? (
+                    {/* Email has no switch of its own: it stays on while two-step sign-in is on,
+                        so a lost phone never locks anybody out. The app is added or removed. */}
+                    {!isApp && isOn ? (
+                      <p className="text-xs text-muted-foreground sm:max-w-[12rem] sm:text-right">
+                        {t("security.methods.emailAlwaysOn")}
+                      </p>
+                    ) : null}
+                    {isApp && !isOn ? (
                       <Button
-                        variant={enabled ? "outline" : "default"}
+                        variant={enabled ? "secondary" : "default"}
                         className="w-full sm:w-auto"
                         onClick={() => setTotpOpen(true)}
                       >
-                        {enabled
-                          ? t("security.methods.switchToApp")
-                          : t("security.methods.setUpApp")}
+                        {t("security.methods.setUpApp")}
                       </Button>
                     ) : null}
-                    {!isApp && !isActive && enabled ? (
-                      <p className="text-xs text-muted-foreground sm:max-w-[11rem]">
-                        {t("security.methods.switchBackHint")}
-                      </p>
+                    {isApp && isOn && methodsOn.includes("email") ? (
+                      <Button
+                        variant="secondary"
+                        className="w-full sm:w-auto"
+                        onClick={() => {
+                          setFlow("removeApp");
+                          setFlowStep("send");
+                        }}
+                      >
+                        {t("security.methods.remove")}
+                      </Button>
                     ) : null}
                   </div>
                 );
@@ -521,7 +553,9 @@ export function TwoFactorSecurity() {
                  the code screen skips the second step for 30 days, and this is where they can see
                  and remove those. Renders its own two cards, and hides the device one while 2FA is
                  off (a list of things that skip a step that does not exist is a puzzle). */}
-          <TrustedDevices twoFactorEnabled={enabled} />
+          <div id="devices" className="scroll-mt-24">
+            <TrustedDevices twoFactorEnabled={enabled} />
+          </div>
         </>
       )}
 
@@ -536,13 +570,19 @@ export function TwoFactorSecurity() {
                 ? t("security.enable.title")
                 : flow === "disable"
                   ? t("security.disable.title")
-                  : t("security.regenerate")}
+                  : flow === "removeApp"
+                    ? t("security.removeApp.title")
+                    : t("security.regenerate")}
             </DialogTitle>
             <DialogDescription>
               {/* The "enable" flow is always email (an authenticator is turned on through
                   TotpEnrolDialog instead), so only the disable/regenerate copy has to know that
                   nothing is sent when the account is guarded by an app. */}
-              {flowStep === "send"
+              {flow === "removeApp"
+                ? flowStep === "send"
+                  ? t("security.removeApp.step1", { destination: emailDestination })
+                  : t("security.removeApp.step2", { destination: emailDestination })
+                : flowStep === "send"
                 ? flow === "enable"
                   ? t("security.enable.step1Description", {
                       destination: status?.destination ?? "",
@@ -587,7 +627,7 @@ export function TwoFactorSecurity() {
               </div>
               {/* Disabling also accepts a recovery code, because someone who has lost their inbox
                   needs a way to switch the factor off, not only a way to sign in. */}
-              {flow === "disable" ? (
+              {flow === "disable" || flow === "removeApp" ? (
                 <div className="space-y-1.5">
                   <Label htmlFor="tfa-settings-backup">{t("step.backupLabel")}</Label>
                   <Input
@@ -610,7 +650,11 @@ export function TwoFactorSecurity() {
               <Button
                 type="button"
                 disabled={busy}
-                onClick={() => sendProofCode(flow === "enable" ? "enable" : "disable")}
+                onClick={() =>
+                  flow === "removeApp"
+                    ? sendProofCode("disable", "email")
+                    : sendProofCode(flow === "enable" ? "enable" : "disable")
+                }
               >
                 {/* Turning it ON is always the email flow (an authenticator is turned on through
                     TotpEnrolDialog), so that keeps "Send me a code". Turning it OFF or regenerating
@@ -619,7 +663,7 @@ export function TwoFactorSecurity() {
                     arrives. */}
                 {busy
                   ? t("security.enable.sending")
-                  : flow === "enable" || activeSends
+                  : flow === "enable" || flow === "removeApp" || activeSends
                     ? t("security.enable.sendCode")
                     : t("security.app.readyForProof")}
               </Button>
@@ -628,7 +672,7 @@ export function TwoFactorSecurity() {
                 type="button"
                 disabled={
                   busy ||
-                  (flow === "disable"
+                  (flow === "disable" || flow === "removeApp"
                     ? code.trim().length !== 6 && backupCode.trim().length < 8
                     : code.trim().length !== 6)
                 }
@@ -637,7 +681,9 @@ export function TwoFactorSecurity() {
                     ? confirmEnable
                     : flow === "disable"
                       ? confirmDisable
-                      : confirmRegenerate
+                      : flow === "removeApp"
+                        ? confirmRemoveApp
+                        : confirmRegenerate
                 }
               >
                 {flow === "enable"
@@ -648,7 +694,9 @@ export function TwoFactorSecurity() {
                     ? busy
                       ? t("security.disable.confirming")
                       : t("security.disable.confirm")
-                    : t("security.regenerate")}
+                    : flow === "removeApp"
+                      ? t("security.removeApp.confirm")
+                      : t("security.regenerate")}
               </Button>
             )}
           </DialogFooter>

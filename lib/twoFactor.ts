@@ -103,6 +103,17 @@ export type TwoFactorChallenge = {
   /** Seconds until another send is allowed. 0 when a code just went out. */
   retry_after: number;
   message: string;
+  /**
+   * BOTH WAYS ON (inbox #61, owner 2026-09-27): every way this account can get a code, and whether
+   * to ask which one. With choose_method true nothing was sent yet: the screen asks, and email goes
+   * out only through switchTwoFactorMethod. last_method is marked "used last time". Optional so a
+   * response from a backend older than this client still reads as the one-way flow.
+   */
+  methods?: TwoFactorMethod[];
+  choose_method?: boolean;
+  last_method?: TwoFactorMethod;
+  /** Masked address for the chooser's "Email me a code" line, before anything is sent. */
+  email_destination?: string;
 };
 
 /**
@@ -135,6 +146,12 @@ export type TwoFactorStatus = {
   /** Masked destination a code would go to. Empty for "totp". */
   destination: string;
   backup_codes_remaining: number;
+  /** Every way that works right now (inbox #61: email and the app can both be on). */
+  methods_on?: TwoFactorMethod[];
+  /** The way used last, marked on the sign-in chooser. */
+  last_method?: TwoFactorMethod | null;
+  /** Masked address the email code goes to, whatever way was used last. */
+  email_destination?: string;
 };
 
 /** Status plus the one-time plaintext recovery codes, returned by enable + regenerate. */
@@ -262,6 +279,23 @@ export async function resendTwoFactorCode(challengeToken: string): Promise<{
   return res.data;
 }
 
+/**
+ * Sign-in step two with both ways on: swap the challenge for one of `method` (inbox #61).
+ * POST /auth/two-factor/switch-method/ (views_two_factor.two_factor_switch_method). Picking email
+ * SENDS the code; picking the app sends nothing. The response carries a NEW challenge_token that
+ * replaces the old one, which is burned.
+ */
+export async function switchTwoFactorMethod(
+  challengeToken: string,
+  method: TwoFactorMethod,
+): Promise<ProofCodeSent> {
+  const res = await axios.post<ProofCodeSent>(url("switch-method/"), {
+    challenge_token: challengeToken,
+    method,
+  });
+  return res.data;
+}
+
 // ── Authenticated: managing your own two-step sign-in ────────────────────────
 
 /** Whether 2FA is on, which method, and how many recovery codes are left. */
@@ -285,10 +319,33 @@ export async function getTwoFactorStatus(
 export async function sendTwoFactorProofCode(
   token: string,
   purpose: "enable" | "disable",
+  // Which way proves it (inbox #61). Only for "disable"-purpose proofs with both ways on, so
+  // somebody who lost the phone can prove by email. Omitted = the way used last.
+  method?: TwoFactorMethod,
 ): Promise<ProofCodeSent> {
   const res = await axios.post<ProofCodeSent>(
     url("send-code/"),
-    { purpose },
+    { purpose, ...(method ? { method } : {}) },
+    { headers: bearer(token) },
+  );
+  return res.data;
+}
+
+/**
+ * Take the authenticator app off and keep two-step sign-in on with email (inbox #61).
+ * POST /auth/two-factor/totp/remove/ with a "disable" proof or a recovery code.
+ */
+export async function removeTotp(
+  token: string,
+  args: { challengeToken?: string; code?: string; backupCode?: string },
+): Promise<TwoFactorStatus & { message: string }> {
+  const res = await axios.post(
+    url("totp/remove/"),
+    {
+      ...(args.challengeToken ? { challenge_token: args.challengeToken } : {}),
+      ...(args.code ? { code: args.code } : {}),
+      ...(args.backupCode ? { backup_code: args.backupCode } : {}),
+    },
     { headers: bearer(token) },
   );
   return res.data;

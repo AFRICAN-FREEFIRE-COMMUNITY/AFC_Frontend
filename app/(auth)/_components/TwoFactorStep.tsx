@@ -38,8 +38,17 @@
  *   • It is shown on the recovery-code path too. Somebody using a recovery code is exactly the
  *     person who least wants to be back on this screen next week.
  *
+ * ── BOTH WAYS ON: PICK ONE EACH TIME (inbox #61, owner 2026-09-27, approved mockup
+ *    mockups/account-and-2fa) ─────────────────────────────────────────────────────────────────
+ * An account with the email code AND the app on gets `choose_method: true` from login, and nothing
+ * has been sent yet. This screen then opens on a chooser ("How do you want to get your code?"), the
+ * way used last marked. Picking the app goes straight to the code box (the login challenge already
+ * is the app's); picking email calls switchTwoFactorMethod, which sends the code and hands back a
+ * new challenge token. On the code screen one link switches to the other way. `method` is STATE
+ * for that reason: it changes under the person's hand. One way on: none of this shows.
+ *
  * HOW IT CONNECTS
- *   - Data: lib/twoFactor.ts (verifyTwoFactor, resendTwoFactorCode) -> /auth/two-factor/.
+ *   - Data: lib/twoFactor.ts (verifyTwoFactor, resendTwoFactorCode, switchTwoFactorMethod) -> /auth/two-factor/.
  *   - Session: the caller passes the token to AuthContext.login(), which is the same call a
  *     one-step login makes, so nothing downstream knows 2FA happened.
  *   - Device token: the CALLER stores it (lib/twoFactor.ts saveDeviceToken) alongside signing in,
@@ -69,9 +78,11 @@ import { Loader } from "@/components/Loader";
 import {
   methodSendsCode,
   resendTwoFactorCode,
+  switchTwoFactorMethod,
   verifyTwoFactor,
   type LoginSuccess,
   type TwoFactorChallenge,
+  type TwoFactorMethod,
 } from "@/lib/twoFactor";
 
 interface TwoFactorStepProps {
@@ -90,10 +101,18 @@ export function TwoFactorStep({
 }: TwoFactorStepProps) {
   const t = useTranslations("twoFactor");
 
-  // Does this account's method SEND anything? False for an authenticator app, and that single
-  // boolean is what removes the resend control, the cooldown timer, the spam-folder note and the
-  // "check your inbox" wording - none of which mean anything when the code is already on the phone.
-  const sendsCode = methodSendsCode(challenge.method);
+  // The way this challenge uses. State, because with both ways on the person can switch it
+  // (inbox #61); `methods` is every way on, and the chooser shows while `choosing` is true.
+  const [method, setMethod] = useState<TwoFactorMethod>(challenge.method);
+  const methods = challenge.methods ?? [challenge.method];
+  const canSwitch = methods.includes("email") && methods.includes("totp");
+  const [choosing, setChoosing] = useState(!!challenge.choose_method && canSwitch);
+  const [switching, setSwitching] = useState(false);
+
+  // Does this way SEND anything? False for an authenticator app, and that single boolean is what
+  // removes the resend control, the cooldown timer, the spam-folder note and the "check your
+  // inbox" wording - none of which mean anything when the code is already on the phone.
+  const sendsCode = methodSendsCode(method);
 
   // The challenge token is STATE, not just a prop: resending issues a new code and therefore a NEW
   // challenge token (the old one is invalidated server-side). Holding the prop would leave the user
@@ -181,6 +200,99 @@ export function TwoFactorStep({
     } finally {
       setResending(false);
     }
+  }
+
+  // Move this sign-in to the other way (inbox #61). Email SENDS a code here; the app sends nothing.
+  async function pickMethod(next: TwoFactorMethod) {
+    if (next === method && !methodSendsCode(next)) {
+      // The app's challenge is already the live one (login starts there): just show the code box.
+      setChoosing(false);
+      return;
+    }
+    setSwitching(true);
+    try {
+      const data = await switchTwoFactorMethod(challengeToken, next);
+      setChallengeToken(data.challenge_token);
+      setMethod(data.method);
+      setDestination(data.destination);
+      setCooldown(data.retry_after || 0);
+      setDeliveryFailed(!!data.delivery_failed);
+      setAttemptsLeft(null);
+      setCode("");
+      setUsingBackup(false);
+      setChoosing(false);
+      if (data.delivery_failed) toast.error(t("step.deliveryFailed"));
+    } catch (err) {
+      toast.error(errMessage(err));
+    } finally {
+      setSwitching(false);
+    }
+  }
+
+  // ── The chooser: both ways on, nothing sent yet ──
+  if (choosing) {
+    const emailLine = challenge.email_destination
+      ? t("step.chooseEmailHelp", { destination: challenge.email_destination })
+      : t("step.chooseEmailHelpNoDestination");
+    const options: { way: TwoFactorMethod; title: string; help: string; Icon: typeof IconMail }[] = [
+      { way: "totp", title: t("step.chooseApp"), help: t("step.chooseAppHelp"), Icon: IconDeviceMobile },
+      { way: "email", title: t("step.chooseEmail"), help: emailLine, Icon: IconMail },
+    ];
+    // The way used last goes first, so the usual choice is the first tap.
+    if (challenge.last_method === "email") options.reverse();
+    return (
+      <div className="space-y-5">
+        <div className="space-y-2 text-center">
+          <h2 className="text-lg font-semibold">{t("step.chooseTitle")}</h2>
+          <p className="text-sm text-muted-foreground">{t("step.chooseDescription")}</p>
+        </div>
+        <div className="flex flex-col gap-3">
+          {options.map(({ way, title, help, Icon }) => (
+            <button
+              key={way}
+              type="button"
+              disabled={switching}
+              onClick={() => pickMethod(way)}
+              className="flex w-full items-center gap-3 rounded-lg bg-muted/60 p-4 text-left hover:bg-muted disabled:opacity-60"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background">
+                <Icon className="size-5 text-primary" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-2 font-semibold">
+                  {title}
+                  {challenge.last_method === way ? (
+                    <span className="rounded-full bg-background px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
+                      {t("step.usedLast")}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="mt-0.5 block text-sm text-muted-foreground">{help}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+        {switching ? <Loader text={t("step.switching")} /> : null}
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="w-full"
+            onClick={() => {
+              setChoosing(false);
+              setUsingBackup(true);
+            }}
+          >
+            {t("step.useBackupCode")}
+          </Button>
+          <Button type="button" variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onCancel}>
+            <IconArrowLeft className="size-4" />
+            {t("step.backToLogin")}
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const canSubmit = usingBackup
@@ -357,6 +469,20 @@ export function TwoFactorStep({
             : t("step.useBackupCode")}
         </Button>
       </div>
+
+      {/* Both ways on (inbox #61): one tap moves this sign-in to the other way. */}
+      {canSwitch && !usingBackup ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="w-full text-primary"
+          disabled={switching}
+          onClick={() => pickMethod(sendsCode ? "totp" : "email")}
+        >
+          {switching ? t("step.switching") : sendsCode ? t("step.switchToApp") : t("step.switchToEmail")}
+        </Button>
+      ) : null}
 
       <Button
         type="button"

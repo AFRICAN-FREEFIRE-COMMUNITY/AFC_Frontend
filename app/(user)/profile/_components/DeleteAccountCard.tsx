@@ -58,6 +58,17 @@ export function DeleteAccountCard() {
   const { logout } = useAuth();
 
   const [open, setOpen] = useState(false);
+
+  // Arriving at /profile/security#delete: the sections above load their data after the first
+  // paint and push this card down, so the browser's own jump lands too high. Scroll again once
+  // they have settled (inbox #60).
+  useEffect(() => {
+    if (window.location.hash !== "#delete") return;
+    const timers = [300, 900, 1800].map((ms) =>
+      setTimeout(() => document.getElementById("delete")?.scrollIntoView({ block: "start" }), ms),
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []);
   const [preflight, setPreflight] = useState<DeletionPreflight | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirm, setConfirm] = useState("");
@@ -127,7 +138,9 @@ export function DeleteAccountCard() {
   };
 
   return (
-    <div className="container mx-auto pb-6">
+    // #delete: the jump target of AccountSecurityHeader and of the profile page's "Delete my
+    // account" link (/profile/security#delete, inbox #60)
+    <div id="delete" className="container mx-auto scroll-mt-24 pb-6">
       <Card className="mt-4">
         <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-destructive/10">
@@ -177,7 +190,8 @@ export function DeleteAccountCard() {
                 <p className="mt-1">{t("dialog.releases")}</p>
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="delete-confirm">
+                {/* normal-case: labels draw uppercase, and the name must be typed exactly as it is */}
+                <Label htmlFor="delete-confirm" className="normal-case">
                   {t("dialog.confirmLabel", { username: preflight.username })}
                 </Label>
                 {/* name + autoComplete="off": without them Chrome pairs this text box with the
