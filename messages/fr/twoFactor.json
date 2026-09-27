@@ -30,7 +30,18 @@
     "appRefreshNote": "Le code change toutes les 30 secondes. S'il est sur le point de changer, attendez le suivant.",
     "useAppCode": "Utiliser plutôt votre application d'authentification",
     "rememberDevice": "Se souvenir de cet appareil",
-    "rememberDeviceHelp": "Nous ne demanderons plus de code sur ce navigateur pendant 30 jours. Laissez cette case décochée sur un appareil partagé ou emprunté."
+    "rememberDeviceHelp": "Nous ne demanderons plus de code sur ce navigateur pendant 30 jours. Laissez cette case décochée sur un appareil partagé ou emprunté.",
+    "chooseTitle": "Comment voulez-vous recevoir votre code ?",
+    "chooseDescription": "Votre mot de passe est correct. Encore une étape.",
+    "chooseApp": "Application d'authentification",
+    "chooseAppHelp": "Ouvrez l'application sur votre téléphone et lisez le code.",
+    "chooseEmail": "M'envoyer un code par e-mail",
+    "chooseEmailHelp": "Nous l'envoyons à {destination}.",
+    "chooseEmailHelpNoDestination": "Nous l'envoyons à votre adresse e-mail.",
+    "usedLast": "Utilisée la dernière fois",
+    "switching": "Un instant",
+    "switchToApp": "Utiliser plutôt mon application d'authentification",
+    "switchToEmail": "M'envoyer plutôt un code par e-mail"
   },
   "security": {
     "title": "Connexion en deux étapes",
@@ -91,14 +102,18 @@
     "methodApp": "Application d'authentification",
     "backupExplainerApp": "Les codes de secours vous permettent d'entrer si vous perdez votre téléphone ou l'application. Chacun ne fonctionne qu'une fois.",
     "methods": {
-      "title": "Comment vous recevez votre code",
-      "subtitle": "Choisissez d'où vient votre code de connexion. Vous pourrez le changer plus tard.",
+      "title": "Façons de recevoir votre code",
+      "subtitle": "Activez-en autant que vous voulez. À chaque connexion, vous choisissez laquelle utiliser.",
       "inUse": "Utilisé",
       "emailBody": "Nous envoyons un code à 6 chiffres à votre adresse e-mail. Fonctionne sur tout appareil, mais exige votre boîte mail.",
       "appBody": "Votre téléphone fabrique le code lui-même : il fonctionne sans réseau et sans e-mail.",
       "setUpApp": "Configurer",
       "switchToApp": "Passer à ceci",
-      "switchBackHint": "Pour revenir aux codes par e-mail, désactivez la connexion en deux étapes, puis réactivez-la."
+      "switchBackHint": "Pour revenir aux codes par e-mail, désactivez la connexion en deux étapes, puis réactivez-la.",
+      "notSetUp": "Non configurée",
+      "emailBodyTo": "Un code envoyé à {destination}. Fonctionne sur tout appareil, mais exige votre boîte mail.",
+      "emailAlwaysOn": "Toujours active tant que la connexion en deux étapes l'est",
+      "remove": "Retirer"
     },
     "app": {
       "title": "Configurer votre application d'authentification",
@@ -120,7 +135,16 @@
       "confirm": "Activer l'application d'authentification",
       "confirming": "Activation en cours"
     },
-    "explainerBodyApp": "Après votre mot de passe, vous ouvrez votre application d’authentification et saisissez le code à 6 chiffres affiché. Rien n’est envoyé : cela fonctionne sans réseau et même si votre e-mail est piraté"
+    "explainerBodyApp": "Après votre mot de passe, vous ouvrez votre application d’authentification et saisissez le code à 6 chiffres affiché. Rien n’est envoyé : cela fonctionne sans réseau et même si votre e-mail est piraté",
+    "methodsBoth": "Code par e-mail et application d'authentification",
+    "explainerBodyBoth": "Après votre mot de passe, vous choisissez comment recevoir votre code à 6 chiffres : dans votre application d'authentification ou par e-mail. Quelqu'un qui vole votre mot de passe ne peut toujours pas entrer.",
+    "removeApp": {
+      "title": "Retirer l'application d'authentification",
+      "step1": "Les codes de connexion arriveront ensuite uniquement par e-mail. Pour confirmer que c'est vous, nous enverrons un code à {destination}.",
+      "step2": "Saisissez le code à 6 chiffres envoyé à {destination}, ou utilisez un code de secours.",
+      "confirm": "Retirer l'application",
+      "success": "L'application d'authentification est retirée. Les codes de connexion arrivent désormais par e-mail."
+    }
   },
   "prompt": {
     "title": "Activez la connexion en deux étapes",
@@ -130,8 +154,8 @@
     "close": "Fermer"
   },
   "profileCard": {
-    "title": "Sécurité de la connexion",
-    "description": "Activez la connexion en deux étapes et gérez vos codes de secours.",
+    "title": "Compte et sécurité",
+    "description": "Connexion en deux étapes, vos appareils et la suppression de votre compte.",
     "manage": "Gérer"
   },
   "devices": {
@@ -167,5 +191,14 @@
       "signOutTitle": "Se déconnecter partout ailleurs ?",
       "signOutDescription": "Tous les autres navigateurs sont déconnectés immédiatement. Vous restez connecté ici, et les appareils mémorisés ne sont pas touchés."
     }
+  },
+  "account": {
+    "title": "Compte et sécurité",
+    "subtitle": "Comment vous vous connectez, les appareils de confiance et votre compte.",
+    "jumpLabel": "Sur cette page",
+    "jumpTwoStep": "Connexion en deux étapes",
+    "jumpDevices": "Vos appareils",
+    "jumpDelete": "Supprimer mon compte",
+    "deleteLink": "Supprimer mon compte"
   }
 }

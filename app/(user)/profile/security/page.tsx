@@ -14,6 +14,8 @@
 // /auth/two-factor/ endpoints in afc_auth/views_two_factor.py. Linked from the "Sign-in
 // security" card on /profile (ProfileContent.tsx).
 import { ProtectedRoute } from "../../_components/ProtectedRoute";
+// "Account and security" title + jump links (inbox #60, owner 2026-09-27: delete was hard to find)
+import { AccountSecurityHeader } from "../_components/AccountSecurityHeader";
 import { TwoFactorSecurity } from "../_components/TwoFactorSecurity";
 // "Delete my account" (owner 2026-09-14, inbox #20) lives at the bottom of this page: it is
 // the account-level control next to the other account-level control, two-step sign-in.
@@ -22,12 +24,13 @@ import { DeleteAccountCard } from "../_components/DeleteAccountCard";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign-in Security | African Free Fire Community",
+  title: "Account and Security | African Free Fire Community",
 };
 
 const page = () => {
   return (
     <ProtectedRoute>
+      <AccountSecurityHeader />
       <TwoFactorSecurity />
       <DeleteAccountCard />
     </ProtectedRoute>

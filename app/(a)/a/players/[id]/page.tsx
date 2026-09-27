@@ -65,6 +65,8 @@ import {
 } from "../../_components/AccountIdentityMore";
 // Shared, self-expiring NEW tag (owner rule: a new control wears one for 5 days).
 import { NewBadge } from "@/components/NewBadge";
+// Head admins delete an account for a player who asked (inbox #59)
+import { AdminDeleteAccountDialog } from "./_components/AdminDeleteAccountDialog";
 
 interface PlayerDetails {
   player_id: number;
@@ -324,13 +326,18 @@ const Page = ({ params }: Props) => {
             </span>
           }
         />
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <SendMessageModal
             targetType="player"
             targetId={player.player_id}
             targetName={player.name}
           />
           <BanPlayerModal player={player} onSuccess={fetchPlayer} />
+          {/* Head admins only, the same gate the endpoint enforces (views_account_deletion
+              admin_delete_account): canRepair is useCanRepairIdentity, head_admin / super_admin. */}
+          {canRepair ? (
+            <AdminDeleteAccountDialog userId={player.player_id} username={player.name} />
+          ) : null}
         </div>
       </div>
 

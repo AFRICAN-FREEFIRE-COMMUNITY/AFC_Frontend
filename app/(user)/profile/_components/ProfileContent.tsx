@@ -488,6 +488,11 @@ export const ProfileContent = () => {
               <Button variant="secondary" className="w-full" asChild>
                 <Link href="/profile/connected-apps">{t("card.manageConnections")}</Link>
               </Button>
+              {/* Account and security (inbox #60, owner 2026-09-27: "its hard to find the delete my
+                  account"): two-step sign-in, devices and deleting the account, one tap away. */}
+              <Button variant="secondary" className="w-full" asChild>
+                <Link href="/profile/security">{tTwoFactor("account.title")}</Link>
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -1020,11 +1025,11 @@ export const ProfileContent = () => {
               {/* NEW tag on the card title: two-step sign-in shipped 2026-08-06, and this
                   card is the only way an ordinary player finds it, so it is exactly the
                   "returning user would not otherwise notice it" case the rule is for.
-                  Expires by itself 5 days on. Kept through the profile redesign: the
-                  redesign is not itself a new feature and gets no badge of its own. */}
+                  Re-dated 2026-09-27: the card became "Account and security" and now also
+                  leads to deleting the account (inbox #60). Expires by itself 5 days on. */}
               <h3 className="flex flex-wrap items-center gap-2 text-base font-semibold">
                 {tTwoFactor("profileCard.title")}
-                <NewBadge since="2026-08-06" />
+                <NewBadge since="2026-09-27" />
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 {tTwoFactor("profileCard.description")}
@@ -1037,6 +1042,17 @@ export const ProfileContent = () => {
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      {/* A quiet way straight to deleting the account (inbox #60): the card lands at the bottom
+          of /profile/security, DeleteAccountCard scrolls to it (#delete). */}
+      <div className="mt-8 text-center">
+        <Link
+          href="/profile/security#delete"
+          className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          {tTwoFactor("account.deleteLink")}
+        </Link>
       </div>
     </div>
   );

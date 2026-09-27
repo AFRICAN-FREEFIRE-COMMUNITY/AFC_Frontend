@@ -30,7 +30,18 @@
     "appRefreshNote": "The code changes every 30 seconds. If it is about to change, wait for the next one.",
     "useAppCode": "Use your authenticator app instead",
     "rememberDevice": "Remember this device",
-    "rememberDeviceHelp": "We will stop asking for a code on this browser for 30 days. Leave it off on a shared or borrowed device."
+    "rememberDeviceHelp": "We will stop asking for a code on this browser for 30 days. Leave it off on a shared or borrowed device.",
+    "chooseTitle": "How do you want to get your code?",
+    "chooseDescription": "Your password was right. One more step.",
+    "chooseApp": "Authenticator app",
+    "chooseAppHelp": "Open the app on your phone and read the code.",
+    "chooseEmail": "Email me a code",
+    "chooseEmailHelp": "We send it to {destination}.",
+    "chooseEmailHelpNoDestination": "We send it to your email address.",
+    "usedLast": "Used last time",
+    "switching": "One moment",
+    "switchToApp": "Use my authenticator app instead",
+    "switchToEmail": "Email me a code instead"
   },
   "security": {
     "title": "Two-step sign-in",
@@ -91,14 +102,18 @@
     "methodApp": "Authenticator app",
     "backupExplainerApp": "Recovery codes get you in if you lose your phone or the app. Each one works once.",
     "methods": {
-      "title": "How you get your code",
-      "subtitle": "Pick where your sign-in code comes from. You can change this later.",
+      "title": "Ways to get your code",
+      "subtitle": "Turn on as many as you like. When you sign in, you pick which one to use that time.",
       "inUse": "In use",
       "emailBody": "We send a 6 digit code to your email address. Works on any device, needs your inbox.",
       "appBody": "Your phone makes the code itself, so it keeps working with no signal and no email.",
       "setUpApp": "Set up",
       "switchToApp": "Switch to this",
-      "switchBackHint": "To go back to email codes, turn two-step sign-in off, then turn it on again."
+      "switchBackHint": "To go back to email codes, turn two-step sign-in off, then turn it on again.",
+      "notSetUp": "Not set up",
+      "emailBodyTo": "A code sent to {destination}. Works on any device, needs your inbox.",
+      "emailAlwaysOn": "Always on while two-step sign-in is on",
+      "remove": "Remove"
     },
     "app": {
       "title": "Set up your authenticator app",
@@ -120,7 +135,16 @@
       "confirm": "Turn on the authenticator app",
       "confirming": "Turning it on"
     },
-    "explainerBodyApp": "After you enter your password, you open your authenticator app and type the 6 digit code it shows. Nothing is sent, so it works with no signal and even if your email is taken over."
+    "explainerBodyApp": "After you enter your password, you open your authenticator app and type the 6 digit code it shows. Nothing is sent, so it works with no signal and even if your email is taken over.",
+    "methodsBoth": "Email code and authenticator app",
+    "explainerBodyBoth": "After you enter your password, you pick how to get your 6 digit code: from your authenticator app, or by email. Anyone who steals your password still cannot get in.",
+    "removeApp": {
+      "title": "Remove the authenticator app",
+      "step1": "Sign-in codes will then come by email only. To confirm it is you, we will email a code to {destination}.",
+      "step2": "Enter the 6 digit code sent to {destination}, or use a recovery code.",
+      "confirm": "Remove the app",
+      "success": "The authenticator app is removed. Sign-in codes now come by email."
+    }
   },
   "prompt": {
     "title": "Turn on two-step sign-in",
@@ -130,8 +154,8 @@
     "close": "Dismiss"
   },
   "profileCard": {
-    "title": "Sign-in security",
-    "description": "Turn on two-step sign-in and manage your recovery codes.",
+    "title": "Account and security",
+    "description": "Two-step sign-in, your devices, and deleting your account.",
     "manage": "Manage"
   },
   "devices": {
@@ -167,5 +191,14 @@
       "signOutTitle": "Sign out everywhere else?",
       "signOutDescription": "Every other browser is signed out straight away. You stay signed in here, and remembered devices are left alone."
     }
+  },
+  "account": {
+    "title": "Account and security",
+    "subtitle": "How you sign in, the devices you trust, and your account.",
+    "jumpLabel": "On this page",
+    "jumpTwoStep": "Two-step sign-in",
+    "jumpDevices": "Your devices",
+    "jumpDelete": "Delete my account",
+    "deleteLink": "Delete my account"
   }
 }

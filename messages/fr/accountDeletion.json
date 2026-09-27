@@ -65,5 +65,46 @@
     "restoreConflict": "Un autre compte utilise maintenant : {fields}. Réglez cela d'abord.",
     "restoreFailed": "Impossible de restaurer le compte.",
     "loadMore": "Charger plus"
+  },
+  "adminDelete": {
+    "button": "Supprimer le compte",
+    "title": "Supprimer le compte de {username} ?",
+    "description": "Uniquement si le joueur l'a demandé. Son compte est masqué et il est déconnecté partout.",
+    "releases": "Son nom en jeu, son e-mail, son UID et son numéro WhatsApp sont libérés pour un nouveau compte. Restaurez-le depuis Comptes supprimés, tant que personne ne les a pris entre-temps.",
+    "howLabel": "Comment l'a-t-il demandé ?",
+    "channels": {
+      "ticket": "Ticket de support",
+      "email": "E-mail",
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "in_person": "En personne"
+    },
+    "refLabel": "Numéro de ticket ou lien du message (facultatif)",
+    "refPlaceholder": "AFC-30D8E2",
+    "reasonLabel": "Raison",
+    "reasonPlaceholder": "Le joueur a demandé la fermeture du compte, il ne joue plus.",
+    "reasonHelp": "Enregistrée dans l'historique admin avec votre nom.",
+    "notify": "Lui envoyer un e-mail indiquant que son compte a été supprimé à sa demande, et comment le récupérer",
+    "confirmLabel": "Saisissez son nom en jeu ({username}) pour confirmer",
+    "cancel": "Garder le compte",
+    "confirm": "Supprimer le compte",
+    "success": "Le compte de {username} est supprimé. Restaurez-le depuis Comptes supprimés.",
+    "loadFailed": "Impossible de vérifier ce compte. Réessayez.",
+    "blockers": {
+      "account_suspended": "Le compte est suspendu. Levez d'abord la suspension.",
+      "account_banned": "Le compte est banni. Il ne peut pas être supprimé tant que le bannissement court.",
+      "account_is_staff": "Il a un rôle staff. Retirez-le d'abord dans Paramètres > Admins.",
+      "owns_team": "Il possède une équipe. Elle doit d'abord être transmise ou dissoute.",
+      "in_team": "Il est dans une équipe. Retirez-le d'abord de l'équipe, ou demandez-lui de la quitter.",
+      "owns_organization": "Il possède une organisation. Elle doit d'abord être transmise à un autre membre.",
+      "owns_sponsor": "Il possède un compte sponsor. Il doit d'abord être transmis à un autre membre.",
+      "owns_shop": "Il a une boutique. Fermez-la d'abord."
+    },
+    "errors": {
+      "channel_invalid": "Choisissez comment le joueur l'a demandé.",
+      "reason_required": "Écrivez une raison.",
+      "confirm_mismatch": "Saisissez son nom en jeu exactement comme il apparaît."
+    },
+    "keeps": "Ses résultats de matchs et son historique d'équipe restent dans les archives d'AFC sous un nom masqué."
   }
 }
