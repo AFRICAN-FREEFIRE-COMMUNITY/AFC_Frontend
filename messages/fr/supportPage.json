@@ -1,0 +1,36 @@
+{
+  "title": "Assistance",
+  "lead": "Écrivez à AFC et suivez chacune de vos conversations avec nous.",
+  "mine": {
+    "title": "Mes tickets",
+    "subtitle": "Les tickets envoyés depuis votre compte ou depuis <b>{email}</b>. Ouvrez-en un pour le lire et répondre.",
+    "count": "{total, plural, one {# ticket} other {# tickets}}",
+    "waiting": "{count, plural, one {# en attente de votre réponse} other {# en attente de votre réponse}}",
+    "empty": "Vous n'avez pas encore écrit à AFC. Quand vous le ferez, la conversation apparaîtra ici, avec chaque réponse.",
+    "error": "Vos tickets n'ont pas pu être chargés. Rien n'est perdu, réessayez dans un instant.",
+    "retry": "Réessayer",
+    "more": "Afficher plus",
+    "loading": "Chargement de vos tickets",
+    "noSubject": "(sans objet)",
+    "open": "Ouvrir le ticket {number}"
+  },
+  "status": {
+    "waiting": "AFC a répondu, à vous",
+    "open": "En attente d'AFC",
+    "resolved": "Résolu",
+    "closed": "Fermé"
+  },
+  "signedOut": {
+    "text": "Connectez-vous pour voir chaque message envoyé à AFC, et chaque réponse.",
+    "login": "Se connecter"
+  },
+  "form": {
+    "subtitle": "Vous recevez un numéro de ticket par e-mail, et chaque réponse d'AFC arrive aussi par e-mail.",
+    "prefilled": "Rempli depuis votre compte. Modifiez-le si vous voulez recevoir les réponses ailleurs."
+  },
+  "profile": {
+    "link": "Mes tickets d'assistance",
+    "hint": "Chaque message envoyé à AFC, et chaque réponse."
+  },
+  "menuWaiting": "{count, plural, one {# ticket en attente de votre réponse} other {# tickets en attente de votre réponse}}"
+}

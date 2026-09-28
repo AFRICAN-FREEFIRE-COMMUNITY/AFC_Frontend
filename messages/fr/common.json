@@ -41,7 +41,8 @@
     "myOrders": "Mes commandes",
     "about": "À propos de nous",
     "contact": "Contact",
-    "fantasy": "Fantasy"
+    "fantasy": "Fantasy",
+    "support": "Assistance"
   },
   "states": {
     "empty": "Rien ici pour l'instant",
@@ -92,7 +93,7 @@
     "aboutUs": "À propos de nous",
     "contact": "Contact",
     "news": "Actualités",
-    "support": "Support",
+    "support": "Assistance",
     "termsOfService": "Conditions d'utilisation",
     "privacyPolicy": "Politique de confidentialité",
     "rules": "Règles",

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -42,8 +42,22 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { BotCheck } from "@/components/BotCheck";
+import { cn } from "@/lib/utils";
 
-export const ContactForm = () => {
+// Used by the /support page (app/(user)/support/page.tsx via components/support/SupportPageBody.tsx;
+// /contact redirects there, inbox #71). Signed in, the page passes the account's name and email:
+// they fill the EMPTY fields once, never what the person has typed, and the hint says where they
+// came from. The page also passes a subtitle and its card classes (a filled surface, no outline).
+type ContactFormProps = {
+  accountPrefill?: { name: string; email: string } | null;
+  subtitle?: string;
+  prefilledHint?: string;
+  className?: string;
+  // Classes for the name / email / message fields (the /support page passes filled, no outline)
+  fieldClassName?: string;
+};
+
+export const ContactForm = ({ accountPrefill = null, subtitle, prefilledHint, className, fieldClassName }: ContactFormProps = {}) => {
   // Strings for the shared "Get in Touch" contact card + its success dialog
   // (namespace == messages/en/home.json).
   const t = useTranslations("home");
@@ -68,6 +82,15 @@ export const ContactForm = () => {
       message: "",
     },
   });
+  // Fill the empty name / email from the account once it is known (the session loads after the page)
+  const [prefilled, setPrefilled] = useState(false);
+  useEffect(() => {
+    if (!accountPrefill || prefilled) return;
+    if (!form.getValues("name") && accountPrefill.name) form.setValue("name", accountPrefill.name);
+    if (!form.getValues("email") && accountPrefill.email) form.setValue("email", accountPrefill.email);
+    setPrefilled(true);
+  }, [accountPrefill, prefilled, form]);
+
   function onSubmit(data: ContactFormSchemaType) {
     startTransition(async () => {
       try {
@@ -96,9 +119,10 @@ export const ContactForm = () => {
   }
   return (
     <>
-      <Card>
+      <Card className={className}>
         <CardHeader>
           <CardTitle>{t("contactForm.title")}</CardTitle>
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -110,7 +134,7 @@ export const ContactForm = () => {
                   <FormItem>
                     <FormLabel>{t("contactForm.name")}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t("contactForm.namePlaceholder")} {...field} />
+                      <Input className={fieldClassName} placeholder={t("contactForm.namePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -125,10 +149,14 @@ export const ContactForm = () => {
                     <FormControl>
                       <Input
                         type="email"
+                        className={fieldClassName}
                         placeholder={t("contactForm.emailPlaceholder")}
                         {...field}
                       />
                     </FormControl>
+                    {prefilled && prefilledHint && (
+                      <p className="text-xs text-muted-foreground">{prefilledHint}</p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -142,7 +170,7 @@ export const ContactForm = () => {
                     <FormControl>
                       <Textarea
                         placeholder={t("contactForm.messagePlaceholder")}
-                        className="resize-none"
+                        className={cn("resize-none", fieldClassName)}
                         {...field}
                       />
                     </FormControl>
@@ -167,7 +195,7 @@ export const ContactForm = () => {
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => fileInput.current?.click()}
                   >

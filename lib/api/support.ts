@@ -11,6 +11,7 @@
  *   POST support/contact/                     public, multipart, files allowed
  *   GET  support/t/<token>/                   public, the requester's thread
  *   POST support/t/<token>/reply/             public, multipart
+ *   GET  support/mine/                        signed in: the player's own tickets (the /support page)
  *   GET  support/access/                      what may the caller do here
  *   GET  support/tickets/                     staff queue
  *   GET  support/tickets/<number>/            staff, one thread
@@ -150,6 +151,32 @@ export async function replyAsRequester(token: string, message: string, files: Fi
     form,
   );
   return data as { message: string; rejected_files: RejectedFile[]; ticket: SupportTicket };
+}
+
+// ── signed in: my own tickets (inbox #71, 2026-09-28) ──────────────────────────────────────────
+// One row of GET support/mine/ (afc_support.views.support_mine): only what the list shows. `token`
+// addresses the ticket's own page, app/(user)/support/t/[token].
+export interface MySupportTicket {
+  ticket_number: string;
+  token: string;
+  subject: string;
+  status: SupportTicket["status"];
+  created_at: string;
+  last_message_at: string;
+}
+
+export interface MySupportTickets {
+  results: MySupportTicket[];
+  has_more: boolean;
+  next_offset: number;
+  total_count: number;
+  // Tickets AFC has answered that now wait on the player (status "waiting"): the menu count.
+  waiting_count: number;
+}
+
+export async function getMySupportTickets(token: string, params: { limit?: number; offset?: number } = {}) {
+  const { data } = await axios.get(`${API}/support/mine/`, { headers: bearer(token), params });
+  return data as MySupportTickets;
 }
 
 // ── staff ────────────────────────────────────────────────────────────────────────────────────

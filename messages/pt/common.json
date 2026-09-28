@@ -41,7 +41,8 @@
     "myOrders": "As minhas encomendas",
     "about": "Sobre nós",
     "contact": "Contacto",
-    "fantasy": "Fantasy"
+    "fantasy": "Fantasy",
+    "support": "Apoio"
   },
   "states": {
     "empty": "Nada aqui ainda",
@@ -92,7 +93,7 @@
     "aboutUs": "Sobre nós",
     "contact": "Contato",
     "news": "Notícias",
-    "support": "Suporte",
+    "support": "Apoio",
     "termsOfService": "Termos de Serviço",
     "privacyPolicy": "Política de Privacidade",
     "rules": "Regras",

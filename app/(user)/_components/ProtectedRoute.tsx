@@ -12,7 +12,7 @@ import { useAdminHome } from "@/components/nav-main";
 // offers (useAdminHome) instead of /unauthorized (inbox #58).
 const ADMIN_HOME_PATHS = ["/a", "/a/dashboard"];
 
-const PUBLIC_ROUTES = ["/news", "/about", "/contact", "/unauthorized", "/rankings"];
+const PUBLIC_ROUTES = ["/news", "/about", "/contact", "/support", "/unauthorized", "/rankings"];
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

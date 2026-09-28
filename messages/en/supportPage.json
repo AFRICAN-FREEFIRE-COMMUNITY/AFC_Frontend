@@ -1,0 +1,36 @@
+{
+  "title": "Support",
+  "lead": "Write to AFC, and follow every conversation you have had with us.",
+  "mine": {
+    "title": "My tickets",
+    "subtitle": "Tickets sent from your account or from <b>{email}</b>. Open one to read it and reply.",
+    "count": "{total, plural, one {# ticket} other {# tickets}}",
+    "waiting": "{count, plural, one {# waiting on you} other {# waiting on you}}",
+    "empty": "You have not written to AFC yet. When you do, the conversation will be listed here, with every reply.",
+    "error": "Your tickets could not be loaded. Nothing is lost; try again in a moment.",
+    "retry": "Try again",
+    "more": "Show more",
+    "loading": "Loading your tickets",
+    "noSubject": "(no subject)",
+    "open": "Open ticket {number}"
+  },
+  "status": {
+    "waiting": "AFC replied, over to you",
+    "open": "Waiting on AFC",
+    "resolved": "Resolved",
+    "closed": "Closed"
+  },
+  "signedOut": {
+    "text": "Log in to see every message you have sent AFC, and every reply.",
+    "login": "Log in"
+  },
+  "form": {
+    "subtitle": "You get a ticket number by email, and every reply from AFC arrives by email too.",
+    "prefilled": "Filled in from your account. Change it if you want replies somewhere else."
+  },
+  "profile": {
+    "link": "My support tickets",
+    "hint": "Every message you have sent AFC, and every reply."
+  },
+  "menuWaiting": "{count, plural, one {# ticket waiting on you} other {# tickets waiting on you}}"
+}

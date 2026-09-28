@@ -94,11 +94,12 @@ export const Footer = () => {
                 </Link>
               </li>
               <li>
+                {/* Contact became Support (inbox #71, 2026-09-28); /contact redirects there */}
                 <Link
-                  href="/contact"
+                  href="/support"
                   className="hover:text-primary transition-colors"
                 >
-                  {t("footer.contact")}
+                  {t("footer.support")}
                 </Link>
               </li>
               <li>
