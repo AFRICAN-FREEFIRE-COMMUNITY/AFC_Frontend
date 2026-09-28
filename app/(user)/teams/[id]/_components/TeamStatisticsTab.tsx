@@ -274,8 +274,8 @@ const tierChipClass = (tier: number | null, label: string | null): string => {
   // Prefer the numeric tier; fall back to parsing a "Tier N" label.
   const n =
     tier ?? (label ? parseInt(label.replace(/[^0-9]/g, ""), 10) : NaN);
-  if (n === 1) return "text-gold border-gold/55";
-  if (n === 2) return "text-primary border-primary/50";
+  if (n === 1) return "text-gold bg-gold/10";
+  if (n === 2) return "text-primary bg-primary/10";
   return "text-muted-foreground";
 };
 
@@ -617,13 +617,13 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
     // Still resolving the authed verdict for a logged-in viewer -> wait, don't flash.
     if (resolvingStats) {
       return (
-        <div className="rounded-md border bg-card px-6 py-12 text-center text-sm text-muted-foreground shadow-sm">
+        <div className="rounded-md bg-card px-6 py-12 text-center text-sm text-muted-foreground shadow-sm">
           {t("teamStats.loading")}
         </div>
       );
     }
     return (
-      <div className="rounded-md border bg-card px-6 py-12 shadow-sm flex flex-col items-center justify-center text-center">
+      <div className="rounded-md bg-card px-6 py-12 shadow-sm flex flex-col items-center justify-center text-center">
         <div className="mb-3 rounded-full bg-muted p-3">
           <IconLock className="size-6 text-muted-foreground" />
         </div>
@@ -1306,7 +1306,7 @@ const StatCard = ({
   sub: string;
   valueClass?: string;
 }) => (
-  <div className="rounded-md border bg-card px-4 py-4 shadow-sm">
+  <div className="rounded-md bg-card px-4 py-4 shadow-sm">
     <p className="text-xs text-muted-foreground">{label}</p>
     <p className={`mt-1 text-2xl font-bold ${valueClass ?? ""}`}>{value}</p>
     <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>
@@ -1315,7 +1315,7 @@ const StatCard = ({
 
 // A small summary box inside the expanded tournament detail row.
 const SummaryBox = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-md border bg-card px-3 py-2.5">
+  <div className="rounded-md bg-card px-3 py-2.5">
     <p className="text-[0.68rem] text-muted-foreground">{label}</p>
     <p className="mt-0.5 text-base font-bold">{value}</p>
   </div>

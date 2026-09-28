@@ -98,7 +98,7 @@ function CredentialsView() {
 
         {credentials ? (
           // ── Shown once ─────────────────────────────────────────────────────────────────
-          <Card className="mt-6 border-primary/40">
+          <Card className="mt-6 bg-primary/10">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-primary">
                 <IconLock className="size-5" />
@@ -136,7 +136,7 @@ function CredentialsView() {
                   sensitive
                 />
               )}
-              <p className="rounded-md border border-gold/40 bg-gold/5 p-3 text-xs text-gold">
+              <p className="rounded-md bg-gold/5 p-3 text-xs text-gold">
                 {t("credentials.lastWarning")}
               </p>
             </CardContent>
@@ -149,7 +149,7 @@ function CredentialsView() {
               <CardDescription>{t("credentials.collectDescription")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <div className="rounded-md border border-gold/40 bg-gold/5 p-4 text-sm">
+              <div className="rounded-md bg-gold/5 p-4 text-sm">
                 <p className="mb-1 flex items-center gap-1.5 font-medium text-gold">
                   <IconAlertTriangle className="size-4" />
                   {t("credentials.beforeYouClickTitle")}
@@ -220,7 +220,7 @@ function Secret({
     <div className="flex flex-col gap-2">
       <Label className="font-mono text-xs">{label}</Label>
       <div
-        className={`flex items-start gap-2 rounded-md border p-3 ${
+        className={`flex items-start gap-2 rounded-md p-3 ${
           sensitive ? "border-gold/50 bg-gold/5" : "bg-muted/40"
         }`}
       >

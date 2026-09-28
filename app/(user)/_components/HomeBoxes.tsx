@@ -58,7 +58,7 @@ export const HomeBoxes = () => {
 
   return (
     <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4 mb-4">
-      <Card className="border-primary">
+      <Card className="bg-primary/10">
         <CardHeader>
           <IconTrophy className="h-8 w-8 text-gold mb-1" />
           <CardTitle>{t("boxes.totalKills")}</CardTitle>
@@ -69,7 +69,7 @@ export const HomeBoxes = () => {
           </p>
         </CardContent>
       </Card>
-      <Card className="border-primary">
+      <Card className="bg-primary/10">
         <CardHeader>
           <IconUsers className="h-8 w-8 text-gold mb-1" />
           <CardTitle>{t("boxes.activePlayers")}</CardTitle>
@@ -80,7 +80,7 @@ export const HomeBoxes = () => {
           </p>
         </CardContent>
       </Card>
-      <Card className="border-primary">
+      <Card className="bg-primary/10">
         <CardHeader>
           <IconCalendar className="h-8 w-8 text-gold mb-1" />
           <CardTitle>{t("boxes.hostedTournaments")}</CardTitle>
@@ -91,7 +91,7 @@ export const HomeBoxes = () => {
           </p>
         </CardContent>
       </Card>
-      <Card className="border-primary">
+      <Card className="bg-primary/10">
         <CardHeader>
           <IconMoneybag className="h-8 w-8 text-gold mb-1" />
           <CardTitle>{t("boxes.totalPrizePool")}</CardTitle>

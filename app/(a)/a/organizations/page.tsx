@@ -473,7 +473,7 @@ export default function OrganizationsAdminPage() {
               />
               {/* Autocomplete dropdown: matching users to pick the exact owner account. */}
               {ownerOpen && (ownerSearching || ownerResults.length > 0) && (
-                <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-popover shadow-md">
+                <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md bg-popover shadow-md">
                   {ownerSearching && (
                     <p className="px-3 py-2 text-xs text-muted-foreground">
                       Searching...

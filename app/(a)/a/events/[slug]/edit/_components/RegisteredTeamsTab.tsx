@@ -635,7 +635,7 @@ export default function RegisteredTeamsTab({
             className="pl-9"
           />
         </div>
-        <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+        <div className="overflow-x-auto rounded-md max-h-96 overflow-y-auto bg-muted/30">
           <Table>
             <TableHeader>
               <TableRow>

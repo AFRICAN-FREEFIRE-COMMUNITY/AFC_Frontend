@@ -244,7 +244,7 @@ export default function TeamRolePermissionsPage({ params }: { params: Params }) 
                   return (
                     <div
                       key={capability}
-                      className="flex items-center justify-between gap-3 rounded-lg border p-3"
+                      className="flex items-center justify-between gap-3 rounded-lg p-3 bg-muted/30"
                     >
                       <div className="space-y-0.5">
                         <Label htmlFor={inputId} className="text-sm font-medium">

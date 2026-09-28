@@ -179,7 +179,7 @@ export function ClaimGhostDialog({
                 <p className="text-sm text-muted-foreground">{t("claimGhost.loadingTeams")}</p>
               ) : teams.length === 0 ? (
                 // No team = nothing to claim for. The backend would 403, so block here with a clear note.
-                <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-300">
+                <div className="flex items-start gap-2 rounded-md bg-orange-500/10 p-3 text-xs text-orange-300">
                   <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
                   <span>{t("claimGhost.noTeamWarning")}</span>
                 </div>
@@ -201,7 +201,7 @@ export function ClaimGhostDialog({
             </div>
           ) : (
             // ── player claim: a self-confirmation note (no picker, the requester is the target) ──
-            <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-sm">
+            <div className="flex items-start gap-2 rounded-md bg-muted/30 p-3 text-sm">
               <IconUser className="mt-0.5 size-4 shrink-0 text-primary" />
               <span className="text-muted-foreground">
                 {/* t.rich embeds the emphasized "yourself" inline. */}

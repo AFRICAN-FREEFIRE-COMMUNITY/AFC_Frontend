@@ -490,7 +490,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                                 setPreviewUrl(URL.createObjectURL(file));
                               }
                             }}
-                            className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                            className={`bg-muted rounded-md p-12 text-center transition-colors cursor-pointer ${
                               isDragging
                                 ? "border-primary bg-primary/5"
                                 : "border-gray-300 bg-gray-50"
@@ -517,7 +517,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
+                            <div className="relative w-full aspect-video bg-gray-50 rounded-md flex items-center justify-center overflow-hidden">
                               <Image
                                 width={1000}
                                 height={1000}
@@ -633,7 +633,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
               {/* Pin to homepage (backlog item 22) - mirrors the create form. Turning it off
                   unpins: the article stays published and readable in News, it just leaves the
                   Notices block. Nothing is deleted. */}
-              <div className="space-y-2 rounded-md border p-4">
+              <div className="space-y-2 rounded-md p-4 bg-muted/30">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <FormLabel htmlFor="news-pin">{t("form.pin.label")}</FormLabel>

@@ -398,7 +398,7 @@ export function TwoFactorStep({
           The second line is not decoration. "Remember this device" alone does not tell somebody on
           a borrowed phone what they are agreeing to, so the consequence is spelled out with the
           real number of days. */}
-      <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border bg-muted/30 p-3 text-sm">
+      <label className="flex cursor-pointer items-start gap-3 rounded-md bg-muted/30 p-3 text-sm">
         <Checkbox
           id="tfa-remember-device"
           checked={rememberDevice}

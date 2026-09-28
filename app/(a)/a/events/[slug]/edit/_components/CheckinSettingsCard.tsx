@@ -158,7 +158,7 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
       <CardContent className="space-y-4">
         <p className="text-muted-foreground text-sm">{t("checkin.desc")}</p>
 
-        <div className="flex items-center justify-between rounded-md border p-3">
+        <div className="flex items-center justify-between rounded-md p-3 bg-muted/30">
           <Label htmlFor="checkin-enabled" className="text-sm">{t("checkin.enableLabel")}</Label>
           <Switch id="checkin-enabled" checked={enabled} onCheckedChange={setEnabled} disabled={loading} />
         </div>
@@ -203,7 +203,7 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
 
         {/* Live progress once enabled: who has / hasn't checked in. */}
         {enabled && (teams.length > 0 || solos.length > 0) && (
-          <div className="max-h-64 space-y-1 overflow-y-auto rounded-md border p-2">
+          <div className="max-h-64 space-y-1 overflow-y-auto rounded-md p-2 bg-muted/30">
             {teams.map((tm) => (
               <div key={tm.tournament_team_id} className="space-y-0.5">
                 <div className="flex items-center justify-between text-xs">

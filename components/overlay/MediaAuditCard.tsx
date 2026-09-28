@@ -245,10 +245,10 @@ const MediaRow = ({
           aria-label={`${t("mediaAudit.viewLarger")}: ${label}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={img} alt="" className="size-7 rounded border object-contain" />
+          <img src={img} alt="" className="size-7 rounded object-contain bg-muted/30" />
         </button>
       ) : (
-        <IconPhotoOff className="text-muted-foreground size-7 rounded border p-1" />
+        <IconPhotoOff className="text-muted-foreground size-7 rounded p-1 bg-muted/30" />
       )}
       <div className="min-w-0">
         <p className="truncate text-xs font-medium">{label}</p>
@@ -512,7 +512,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
 
   if (loading) {
     return (
-      <div className="bg-card rounded-md border p-4 shadow-sm">
+      <div className="bg-card rounded-md p-4 shadow-sm">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <IconLoader2 className="size-4 animate-spin" />
           {t("mediaAudit.loading")}
@@ -528,7 +528,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
 
 
   return (
-    <div className="bg-card rounded-md border p-4 shadow-sm">
+    <div className="bg-card rounded-md p-4 shadow-sm">
       <div className="mb-2 flex items-center gap-2">
         <IconPhotoCheck className="text-primary size-4" />
         <h3 className="text-primary text-sm font-semibold">{t("mediaAudit.title")}</h3>
@@ -628,7 +628,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
             <img
               src={lightbox.src}
               alt={lightbox.label}
-              className="max-h-[70vh] w-full rounded-md border object-contain"
+              className="max-h-[70vh] w-full rounded-md object-contain bg-muted/30"
             />
           ) : null}
         </DialogContent>

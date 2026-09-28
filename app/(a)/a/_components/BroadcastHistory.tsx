@@ -131,7 +131,7 @@ export function BroadcastHistory({
               ? b.stage_name
               : "";
         return (
-          <div key={b.id} className="rounded-md border bg-card p-3 shadow-sm">
+          <div key={b.id} className="rounded-md bg-card p-3 shadow-sm">
             <div className="flex items-start justify-between gap-2">
               <div className="flex flex-wrap items-center gap-1.5">
                 <Badge variant="outline" className="rounded-full text-[11px]">

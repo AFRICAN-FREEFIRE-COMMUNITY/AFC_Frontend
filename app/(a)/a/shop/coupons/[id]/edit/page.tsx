@@ -454,7 +454,7 @@ const Page = ({ params }: { params: Params }) => {
               <CardTitle>Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-primary/10 rounded-md p-8 flex flex-col items-center justify-center text-center space-y-2 border border-primary/20">
+              <div className="bg-primary/10 rounded-md p-8 flex flex-col items-center justify-center text-center space-y-2">
                 <h4 className="text-muted-foreground text-sm font-semibold tracking-widest uppercase opacity-50">
                   {watchedValues.code || "COUPONCODE"}
                 </h4>

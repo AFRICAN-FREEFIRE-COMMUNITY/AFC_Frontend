@@ -348,7 +348,7 @@ function CountryMultiSelect({
     <div className="relative">
       {/* Trigger */}
       <div
-        className={`min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm flex flex-wrap gap-1.5 ${
+        className={`min-h-10 w-full rounded-md bg-background px-3 py-2 text-sm flex flex-wrap gap-1.5 ${
           disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
         }`}
         onClick={() => !disabled && setOpen((o) => !o)}
@@ -380,7 +380,7 @@ function CountryMultiSelect({
 
       {/* Dropdown */}
       {open && !disabled && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+        <div className="absolute z-50 mt-1 w-full rounded-md bg-popover shadow-md">
           <div className="p-2">
             <Input
               placeholder={searchPlaceholder ?? t("countrySelect.searchPlaceholder")}
@@ -405,7 +405,7 @@ function CountryMultiSelect({
                     className="w-full flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent text-left"
                   >
                     <div
-                      className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${
+                      className={`h-4 w-4 rounded flex items-center justify-center shrink-0 ${
                         value.includes(c)
                           ? "bg-primary border-primary"
                           : "border-input"
@@ -507,7 +507,7 @@ function ScreenshotPicker({
           {previews.map((src, idx) => (
             <div
               key={idx}
-              className="relative h-20 w-20 overflow-hidden rounded-md border bg-muted"
+              className="relative h-20 w-20 overflow-hidden rounded-md bg-muted"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -1510,7 +1510,7 @@ function PlayerMarketPage() {
       <TransferWindowBanner />
 
       {/* Info Banner */}
-      <Card className="bg-primary/5 border-primary/20">
+      <Card className="bg-primary/5">
         <CardContent className="flex items-start gap-3">
           <IconInfoCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
           <div className="text-sm text-muted-foreground">
@@ -1525,7 +1525,7 @@ function PlayerMarketPage() {
           (lib/help-content.ts keys: player_market.one_active_post / tryout_limit /
           report_rules / rules_summary). Backend enforcement lives in views.py (J1/J2)
           and views_moderation.py (J4/J5). No em dashes (AFC hard rule). */}
-      <Card className="bg-card border">
+      <Card className="bg-card">
         <CardContent className="space-y-2">
           <div className="flex items-center gap-1.5">
             <h3 className="text-sm font-semibold">{t("rules.heading")}</h3>
@@ -1565,7 +1565,7 @@ function PlayerMarketPage() {
       </Card>
 
       {/* Temporary Tier Disclaimer */}
-      <Card className="border-yellow-500/50 bg-yellow-500/5">
+      <Card className="bg-yellow-500/5">
         <CardContent className="flex items-start gap-1">
           <IconInfoCircle className="size-3 text-yellow-500 shrink-0" />
           <div className="text-xs text-muted-foreground">
@@ -1696,7 +1696,7 @@ function PlayerMarketPage() {
               {filteredTeams.map((team) => (
                 <Card
                   key={team.id}
-                  className="hover:border-primary/50 transition-colors"
+                  className="transition-colors hover:bg-primary/10"
                 >
                   <CardContent className="space-y-3">
                     {/* Team header */}
@@ -1956,7 +1956,7 @@ function PlayerMarketPage() {
               {filteredPlayers.map((player) => (
                 <Card
                   key={player.id}
-                  className="hover:border-primary/50 transition-colors"
+                  className="transition-colors hover:bg-primary/10"
                 >
                   <CardContent className="space-y-3">
                     {/* Player header */}
@@ -2003,7 +2003,7 @@ function PlayerMarketPage() {
                             key={img.id}
                             src={img.url}
                             alt={t("screenshots.heading")}
-                            className="h-16 w-16 rounded-md border object-cover"
+                            className="h-16 w-16 rounded-md object-cover bg-muted/30"
                           />
                         ))}
                       </div>
@@ -2141,7 +2141,7 @@ function PlayerMarketPage() {
           <TabsContent value="my-invites" className="mt-4 space-y-3">
             {/* J2: tryout-cap rule note on the Trial Invites area. Accepting an invite
                 while already in 2 ongoing trials is rejected server-side. No em dashes. */}
-            <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-2.5 text-xs text-muted-foreground">
+            <div className="flex items-start gap-2 rounded-md bg-muted/30 p-2.5 text-xs text-muted-foreground">
               <IconInfoCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               <span className="flex items-center gap-1">
                 {t("invitesTab.maxTryouts")}
@@ -2179,7 +2179,7 @@ function PlayerMarketPage() {
                 return (
                   <Card
                     key={invite.invite_id}
-                    className="hover:border-primary/50 transition-colors"
+                    className="transition-colors hover:bg-primary/10"
                   >
                     <CardContent className="space-y-3">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -2222,7 +2222,7 @@ function PlayerMarketPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-red-400 border-red-800 hover:bg-red-900/20"
+                              className="text-red-400 hover:bg-red-900/20 bg-red-800/10"
                               disabled={
                                 isRespondingToInvite === invite.invite_id
                               }
@@ -2302,7 +2302,7 @@ function PlayerMarketPage() {
                 return (
                   <Card
                     key={app.id}
-                    className="hover:border-primary/50 transition-colors"
+                    className="transition-colors hover:bg-primary/10"
                   >
                     <CardContent className="space-y-3">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -2401,7 +2401,7 @@ function PlayerMarketPage() {
                 return (
                   <Card
                     key={app.id}
-                    className="hover:border-primary/50 transition-colors"
+                    className="transition-colors hover:bg-primary/10"
                   >
                     <CardContent className="space-y-3">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -2483,7 +2483,7 @@ function PlayerMarketPage() {
               <CardContent className="space-y-5">
                 {/* Header */}
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16 rounded-lg border">
+                  <Avatar className="h-16 w-16 rounded-lg bg-muted/30">
                     <AvatarImage src={currentTeam.team_logo ?? undefined} />
                     <AvatarFallback className="rounded-lg text-lg font-bold">
                       {currentTeam.team_name?.charAt(0) ?? "T"}
@@ -2549,7 +2549,7 @@ function PlayerMarketPage() {
 
                 {/* Stats grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("myTeamTab.yourRole")}
                     </p>
@@ -2558,7 +2558,7 @@ function PlayerMarketPage() {
                         t("myTeamTab.member")}
                     </p>
                   </div>
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("myTeamTab.owner")}
                     </p>
@@ -2567,7 +2567,7 @@ function PlayerMarketPage() {
                       <PlayerLink name={currentTeam.team_owner} />
                     </p>
                   </div>
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("myTeamTab.joined")}
                     </p>
@@ -2580,7 +2580,7 @@ function PlayerMarketPage() {
                     </p>
                   </div>
                   {currentTeam.in_game_role && (
-                    <div className="rounded-lg border bg-muted/30 p-3">
+                    <div className="rounded-lg bg-muted/30 p-3">
                       <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                         {t("myTeamTab.inGameRole")}
                       </p>
@@ -2589,7 +2589,7 @@ function PlayerMarketPage() {
                       </p>
                     </div>
                   )}
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("myTeamTab.joining")}
                     </p>
@@ -2647,7 +2647,7 @@ function PlayerMarketPage() {
                     {myTeamPosts.map((post) => (
                       <Card
                         key={post.id}
-                        className="hover:border-primary/50 transition-colors"
+                        className="transition-colors hover:bg-primary/10"
                       >
                         <CardContent className="space-y-3">
                           <div className="flex items-center gap-3">
@@ -2762,7 +2762,7 @@ function PlayerMarketPage() {
                     {myPlayerPosts.map((post) => (
                       <Card
                         key={post.id}
-                        className="hover:border-primary/50 transition-colors"
+                        className="transition-colors hover:bg-primary/10"
                       >
                         <CardContent className="space-y-3">
                           <div className="flex items-center gap-3">
@@ -2900,14 +2900,14 @@ function PlayerMarketPage() {
             <>
               {/* J1: spell out the one-active-post rule before the user picks a type, so
                   they understand why a create might be blocked (server enforces it). */}
-              <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs text-muted-foreground">
+              <div className="flex items-start gap-2 rounded-md bg-primary/5 p-2.5 text-xs text-muted-foreground">
                 <IconInfoCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                 <p>{t("createDialog.oneActiveNotice")}</p>
               </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
               <button
                 onClick={() => setCreatePostType("team")}
-                className="flex flex-col items-center gap-2 p-6 rounded-lg border-2 border-muted hover:border-primary/50 transition-all text-center"
+                className="flex flex-col items-center gap-2 p-6 rounded-lg transition-all text-center hover:bg-primary/10 bg-muted/30"
               >
                 <IconUsers className="h-8 w-8 text-primary" />
                 <span className="font-semibold">{t("createDialog.teamRecruiting")}</span>
@@ -2917,7 +2917,7 @@ function PlayerMarketPage() {
               </button>
               <button
                 onClick={() => setCreatePostType("player")}
-                className="flex flex-col items-center gap-2 p-6 rounded-lg border-2 border-muted hover:border-primary/50 transition-all text-center"
+                className="flex flex-col items-center gap-2 p-6 rounded-lg transition-all text-center hover:bg-primary/10 bg-muted/30"
               >
                 <IconUser className="h-8 w-8 text-primary" />
                 <span className="font-semibold">{t("createDialog.playerAvailable")}</span>
@@ -3552,7 +3552,7 @@ function PlayerMarketPage() {
                         return (
                           <div
                             key={img.id}
-                            className="relative h-20 w-20 overflow-hidden rounded-md border bg-muted"
+                            className="relative h-20 w-20 overflow-hidden rounded-md bg-muted"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
@@ -3872,7 +3872,7 @@ function PlayerMarketPage() {
                         <img
                           src={img.url}
                           alt={t("screenshots.heading")}
-                          className="h-28 w-28 rounded-md border object-cover transition-opacity hover:opacity-90"
+                          className="h-28 w-28 rounded-md object-cover transition-opacity hover:opacity-90 bg-muted/30"
                         />
                       </button>
                     ))}
@@ -3909,10 +3909,10 @@ function PlayerMarketPage() {
                       embed.provider === "youtube" ||
                       embed.provider === "facebook" ||
                       embed.provider === "drive"
-                        ? "aspect-video w-full rounded-md border"
+                        ? "aspect-video w-full rounded-md bg-muted/30"
                         : embed.provider === "twitter"
-                          ? "h-[600px] w-full max-w-[550px] rounded-md border"
-                          : "h-[480px] w-full max-w-[325px] rounded-md border";
+                          ? "h-[600px] w-full max-w-[550px] rounded-md bg-muted/30"
+                          : "h-[480px] w-full max-w-[325px] rounded-md bg-muted/30";
                     return (
                       <iframe
                         src={embed.embedUrl}

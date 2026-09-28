@@ -106,8 +106,8 @@ const COUNTRIES = [
 // side, so the two share one label.
 const statusMeta: Record<ClaimStatus, { labelKey: string; cls: string }> = {
   unclaimed: { labelKey: "status.unclaimed", cls: "border-muted-foreground/30 text-muted-foreground" },
-  pending: { labelKey: "status.pending", cls: "border-orange-500/40 text-orange-400" },
-  claimed: { labelKey: "status.claimed", cls: "border-green-600/50 text-green-400" },
+  pending: { labelKey: "status.pending", cls: "text-orange-400 bg-orange-500/10" },
+  claimed: { labelKey: "status.claimed", cls: "text-green-400 bg-green-600/10" },
   revoked: { labelKey: "status.unclaimed", cls: "border-muted-foreground/30 text-muted-foreground" },
 };
 
@@ -182,7 +182,7 @@ function ReasonDialog({
         </DialogHeader>
 
         {warning && (
-          <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-300">
+          <div className="flex items-start gap-2 rounded-md bg-orange-500/10 p-3 text-xs text-orange-300">
             <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
             <span>{warning}</span>
           </div>
@@ -265,7 +265,7 @@ function RosterEditor({
               type="button"
               variant="outline"
               size="icon"
-              className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
               disabled={players.length <= 1}
               onClick={() => remove(p.id)}
               aria-label={t("roster.removePlayer", { n: i + 1 })}
@@ -551,7 +551,7 @@ export default function GhostTeamsAdminPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                             onClick={() => setDel(r)}
                           >
                             {t("actions.delete")}

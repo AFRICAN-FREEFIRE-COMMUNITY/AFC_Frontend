@@ -205,7 +205,7 @@ export function ManageCategoriesModal({
         </DialogHeader>
 
         {/* ── Add category row ── */}
-        <div className="rounded-md border p-4 space-y-3">
+        <div className="rounded-md p-4 space-y-3 bg-muted/30">
           <h4 className="text-sm font-semibold">Add a category</h4>
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-3 items-end">
             <div className="space-y-1.5">
@@ -248,7 +248,7 @@ export function ManageCategoriesModal({
         </div>
 
         {/* ── Existing categories table ── */}
-        <div className="rounded-md border">
+        <div className="rounded-md bg-muted/30">
           <Table>
             <TableHeader>
               <TableRow>

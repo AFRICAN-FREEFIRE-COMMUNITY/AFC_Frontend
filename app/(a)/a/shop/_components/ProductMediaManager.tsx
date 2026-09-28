@@ -171,7 +171,7 @@ export function ProductMediaManager({
       </div>
 
       {media.length === 0 ? (
-        <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <div className="rounded-md p-6 text-center text-sm text-muted-foreground bg-muted/30">
           No media yet. Upload images and videos to build a gallery.
         </div>
       ) : (
@@ -179,7 +179,7 @@ export function ProductMediaManager({
           {media.map((m) => (
             <div
               key={m.id}
-              className="relative aspect-square rounded-md overflow-hidden border bg-muted group"
+              className="relative aspect-square rounded-md overflow-hidden bg-muted group"
             >
               {m.media_type === "video" ? (
                 <div className="relative size-full">

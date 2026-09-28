@@ -194,7 +194,7 @@ export default function WaitlistTab({
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Toggle */}
-          <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="flex items-center justify-between rounded-lg p-4 bg-muted/30">
             <div className="space-y-0.5">
               <Label htmlFor="waitlist-toggle">{t("waitlist.enableWaitlist")}</Label>
               <p className="text-xs text-muted-foreground">
@@ -245,9 +245,9 @@ export default function WaitlistTab({
                         setWaitlistForm((p) => ({ ...p, waitlist_mode: opt.value }))
                       }
                       className={cn(
-                        "rounded-md border p-3 text-left text-xs transition-colors",
+                        "rounded-md p-3 text-left text-xs transition-colors bg-muted/30",
                         mode === opt.value
-                          ? "border-primary bg-primary/10 text-primary"
+                          ? "bg-primary/10 text-primary"
                           : "hover:bg-muted",
                       )}
                     >
@@ -318,9 +318,9 @@ export default function WaitlistTab({
               </Button>
             )}
           </CardHeader>
-          <CardContent className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+          <CardContent className="overflow-x-auto rounded-md max-h-96 overflow-y-auto bg-muted/30">
             {mode === "fcfs_room" && roster.length > 0 && (
-              <p className="mb-3 rounded-md border border-dashed p-2 text-xs text-muted-foreground">
+              <p className="mb-3 rounded-md p-2 text-xs text-muted-foreground bg-muted/30">
                 {t("waitlist.fcfsNotice")}
               </p>
             )}

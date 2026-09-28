@@ -2,12 +2,15 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
+// No stroke (owner design rule 2026-08-17, applied to every card 2026-09-28: "use the no
+// outlines rule"). The card reads as a surface one step off the page, never as a drawn box. A
+// call site that still passes a border-<colour> gets nothing drawn: there is no border width.
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-4 rounded-md border py-6 shadow-sm",
+        "bg-card text-card-foreground flex flex-col gap-4 rounded-md py-6 shadow-sm in-data-[slot=card]:bg-muted/40",
         className
       )}
       {...props}

@@ -141,8 +141,8 @@ function StatusBadge({ status }: { status: string }) {
   const normalized = (status || "").toLowerCase();
   const colour =
     normalized === "active"
-      ? "border-green-500 text-green-600"
-      : "border-yellow-500 text-yellow-600";
+      ? "text-green-600 bg-green-500/10"
+      : "text-yellow-600 bg-yellow-500/10";
   return (
     <Badge variant="outline" className={`capitalize ${colour}`}>
       {status || "-"}
@@ -377,7 +377,7 @@ export default function OrganizerMembersPage() {
                   {/* Permission switches. */}
                   <div className="space-y-2">
                     <Label>{t("members.permissionsLabel")}</Label>
-                    <div className="flex flex-col gap-2.5 rounded-md border p-3">
+                    <div className="flex flex-col gap-2.5 rounded-md p-3 bg-muted/30">
                       {PERMISSION_FIELDS.map((field) => (
                         <div
                           key={field.key}
@@ -521,7 +521,7 @@ export default function OrganizerMembersPage() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="text-red-600 border-red-200 hover:bg-red-50 h-8 text-xs"
+                                    className="text-red-600 hover:bg-red-50 h-8 text-xs bg-red-200/10"
                                     disabled={isBusy}
                                   >
                                     {isBusy ? (

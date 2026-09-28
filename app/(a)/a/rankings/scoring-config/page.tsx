@@ -200,7 +200,7 @@ function BracketTable({
     <div className="space-y-2">
       {/* The table scrolls inside its own container (components/ui/table.tsx wraps every table
           in overflow-x-auto), so a phone never scrolls the whole page sideways. */}
-      <div className="rounded-md border">
+      <div className="rounded-md bg-muted/30">
         <Table className="min-w-[380px]">
           <TableHeader>
             <TableRow>
@@ -719,7 +719,7 @@ export default function ScoringConfigPage() {
       )}
 
       {/* explainer */}
-      <p className="flex items-start gap-2 rounded-md border border-blue-600/20 bg-blue-500/5 p-3 text-xs text-muted-foreground">
+      <p className="flex items-start gap-2 rounded-md bg-blue-500/5 p-3 text-xs text-muted-foreground">
         <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-blue-400" />
         <span>{t("admin.scoringConfig.explainer")}</span>
       </p>
@@ -737,7 +737,7 @@ export default function ScoringConfigPage() {
           path="tiers"
           action={<AddRowButton label={t("admin.scoringConfig.addTournamentTier")} onClick={addTournamentTier} />}
         >
-          <div className="rounded-md border">
+          <div className="rounded-md bg-muted/30">
             <Table className="min-w-[680px]">
               <TableHeader>
                 <TableRow>
@@ -862,7 +862,7 @@ export default function ScoringConfigPage() {
           {/* Mode picker, built from field_meta.tier_thresholds.modes: the frontend never
               hardcodes which modes exist or what they are called. */}
           {modes.length > 0 && (
-            <div className="mb-3 flex flex-col gap-2 rounded-md border bg-muted/20 p-3 sm:flex-row sm:items-center">
+            <div className="mb-3 flex flex-col gap-2 rounded-md bg-muted/20 p-3 sm:flex-row sm:items-center">
               <div className="min-w-0 flex-1">
                 <Label className="text-xs text-muted-foreground">
                   {t("admin.scoringConfig.tierModeLabel")}
@@ -888,7 +888,7 @@ export default function ScoringConfigPage() {
             </div>
           )}
 
-          <div className="rounded-md border">
+          <div className="rounded-md bg-muted/30">
             <Table className="min-w-[660px]">
               <TableHeader>
                 <TableRow>
@@ -1039,7 +1039,7 @@ export default function ScoringConfigPage() {
           path="placement_points"
           action={<AddRowButton label={t("admin.scoringConfig.addPosition")} onClick={addPlacementPosition} />}
         >
-          <div className="rounded-md border">
+          <div className="rounded-md bg-muted/30">
             <Table className="min-w-[340px]">
               <TableHeader>
                 <TableRow>
@@ -1249,7 +1249,7 @@ export default function ScoringConfigPage() {
                 {t("admin.scoringConfig.historyEmpty")}
               </p>
             ) : (
-              <div className="rounded-md border">
+              <div className="rounded-md bg-muted/30">
                 <Table className="min-w-[600px]">
                   <TableHeader>
                     <TableRow>
@@ -1298,7 +1298,7 @@ export default function ScoringConfigPage() {
 
       {/* dirty footer */}
       {dirtyCount > 0 && (
-        <div className="flex flex-col items-start justify-between gap-2 rounded-md border border-orange-500/30 bg-orange-500/5 p-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start justify-between gap-2 rounded-md bg-orange-500/5 p-3 sm:flex-row sm:items-center">
           <p className="flex items-center gap-2 text-xs text-muted-foreground">
             <IconAlertTriangle className="size-4 shrink-0 text-orange-500" />
             <span>{t("admin.scoringConfig.dirtyFooter", { count: dirtyCount, version: activeVersion })}</span>

@@ -87,8 +87,8 @@ export function PublishNotice({ published, tiersPublished, seasonName }: Publish
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-md border p-3 text-xs sm:flex-row sm:items-start sm:justify-between",
-        published ? "border-green-600/20 bg-green-600/5" : "border-amber-500/20 bg-amber-500/5",
+        "flex flex-col gap-3 rounded-md p-3 text-xs sm:flex-row sm:items-start sm:justify-between bg-muted/30",
+        published ? "bg-green-600/5" : "bg-amber-500/5",
       )}
     >
       <div className="flex items-start gap-2">

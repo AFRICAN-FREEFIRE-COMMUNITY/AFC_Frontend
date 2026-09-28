@@ -120,7 +120,7 @@ export default function PollsPage() {
 function PollGrid({ polls, emptyText }: { polls: PollCard[]; emptyText: string }) {
   if (polls.length === 0) {
     return (
-      <Card className="bg-card rounded-md border py-6 shadow-sm">
+      <Card className="bg-card rounded-md py-6 shadow-sm">
         <CardContent className="text-center text-sm text-muted-foreground">{emptyText}</CardContent>
       </Card>
     );
@@ -140,7 +140,7 @@ function PollCardItem({ poll }: { poll: PollCard }) {
 
   return (
     <Link href={`/polls/${poll.slug}`} className="group block">
-      <Card className="h-full bg-card rounded-md border py-6 shadow-sm transition-colors group-hover:border-primary/50">
+      <Card className="h-full bg-card rounded-md py-6 shadow-sm transition-colors group-hover:bg-primary/10">
         <CardContent className="flex h-full flex-col gap-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">

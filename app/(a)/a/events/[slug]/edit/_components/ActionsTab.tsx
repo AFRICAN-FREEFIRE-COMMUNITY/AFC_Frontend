@@ -1051,7 +1051,7 @@ export default function ActionsTab({
 
                 {/* dry_run preview: one block per rule, listing who routes into which stage. */}
                 {branchPreview && Array.isArray(branchPreview.routed) && (
-                  <div className="mt-2 space-y-2 rounded-md border bg-muted/30 p-3">
+                  <div className="mt-2 space-y-2 rounded-md bg-muted/30 p-3">
                     {branchPreview.routed.length === 0 && (
                       <p className="text-xs text-muted-foreground">
                         {etT("actions.noRouteYet")}
@@ -1137,7 +1137,7 @@ export default function ActionsTab({
                 variant="outline"
                 type="button"
                 onClick={() => setReseedShuffle((v) => !v)}
-                className={cn(reseedShuffle && "border-primary text-primary")}
+                className={cn(reseedShuffle && "text-primary bg-primary/10")}
               >
                 <Shuffle className="h-4 w-4 mr-1" />
 {reseedShuffle ? etT("actions.shuffleOn") : etT("actions.shuffleOff")}
@@ -1386,7 +1386,7 @@ export default function ActionsTab({
             <div className="flex flex-wrap items-center gap-2">
               <input
                 type="datetime-local"
-                className="h-9 rounded-md border bg-background px-3 text-sm"
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 value={rosterUntilInput}
                 max={
                   eventDetails.end_date
@@ -1747,9 +1747,9 @@ export default function ActionsTab({
                       setAnnGroupId("");
                     }}
                     className={cn(
-                      "border rounded-md p-2.5 text-xs text-center transition-colors",
+                      "rounded-md p-2.5 text-xs text-center transition-colors bg-muted/30",
                       annScope === opt.value
-                        ? "border-primary bg-primary/10 text-primary"
+                        ? "bg-primary/10 text-primary"
                         : "hover:bg-muted",
                     )}
                   >
@@ -1826,9 +1826,9 @@ export default function ActionsTab({
                     key={opt.value}
                     onClick={() => setAnnDelivery(opt.value)}
                     className={cn(
-                      "border rounded-md p-2.5 text-xs text-center transition-colors",
+                      "rounded-md p-2.5 text-xs text-center transition-colors bg-muted/30",
                       annDelivery === opt.value
-                        ? "border-primary bg-primary/10 text-primary"
+                        ? "bg-primary/10 text-primary"
                         : "hover:bg-muted",
                     )}
                   >
@@ -1930,9 +1930,9 @@ export default function ActionsTab({
                 type="button"
                 onClick={() => setDelGroupMode(opt.value)}
                 className={cn(
-                  "w-full text-left border rounded-md p-3 transition-colors",
+                  "w-full text-left rounded-md p-3 transition-colors bg-muted/30",
                   delGroupMode === opt.value
-                    ? "border-primary bg-primary/10"
+                    ? "bg-primary/10"
                     : "hover:bg-muted",
                 )}
               >
@@ -1997,9 +1997,9 @@ export default function ActionsTab({
                 type="button"
                 onClick={() => setDelStageMode(opt.value)}
                 className={cn(
-                  "w-full text-left border rounded-md p-3 transition-colors",
+                  "w-full text-left rounded-md p-3 transition-colors bg-muted/30",
                   delStageMode === opt.value
-                    ? "border-primary bg-primary/10"
+                    ? "bg-primary/10"
                     : "hover:bg-muted",
                 )}
               >

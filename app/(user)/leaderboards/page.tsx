@@ -237,7 +237,7 @@ const LeaderboardPage = () => {
           <FullLoader />
         </div>
       ) : eventDetails === "not_found" ? (
-        <Card className="bg-zinc-900 border-zinc-800 p-20 text-center text-zinc-500">
+        <Card className="bg-zinc-900 p-20 text-center text-zinc-500">
           {t("noLeaderboardConfig")}
         </Card>
       ) : eventDetails ? (

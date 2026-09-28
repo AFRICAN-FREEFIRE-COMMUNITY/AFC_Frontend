@@ -686,7 +686,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                         </p>
                         <div className="space-y-2">
                           {withRoom.map((m: any) => (
-                            <div key={m.match_id} className="rounded-md border bg-card px-3 py-2 text-xs">
+                            <div key={m.match_id} className="rounded-md bg-card px-3 py-2 text-xs">
                               <span className="font-medium">
                                 {t("structure.roomMatch", { n: m.match_number })}
                                 {m.match_map ? ` · ${m.match_map}` : ""}

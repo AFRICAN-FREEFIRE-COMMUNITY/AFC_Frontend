@@ -592,7 +592,7 @@ export function ManualMatchResultStep({
             enter matches in the order they were actually played. Amber-tinted
             alert div (matches the repo's inline-alert idiom). */}
         {championPointEnabled && (
-          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+          <div className="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
             Champion-Point stage: enter matches in the order they were played -
             the entry order decides the champion.
           </div>
@@ -707,7 +707,7 @@ export function ManualMatchResultStep({
             teamResults.map((team, ti) => (
               <div
                 key={team.tournament_team_id}
-                className="rounded-lg border p-4 space-y-4"
+                className="rounded-lg p-4 space-y-4 bg-muted/30"
               >
                 <div className="flex items-center gap-3">
                   <Checkbox
@@ -776,7 +776,7 @@ export function ManualMatchResultStep({
                       {team.players.map((player, pi) => (
                         <div
                           key={player.user_id}
-                          className="rounded-md border px-3 py-2 space-y-2"
+                          className="rounded-md px-3 py-2 space-y-2 bg-muted/30"
                         >
                           <div className="flex items-center gap-2">
                             <Checkbox
@@ -855,7 +855,7 @@ export function ManualMatchResultStep({
               {soloResults.map((solo, si) => (
                 <div
                   key={solo.competitor_id}
-                  className="rounded-md border px-3 py-2 space-y-2"
+                  className="rounded-md px-3 py-2 space-y-2 bg-muted/30"
                 >
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -1018,7 +1018,7 @@ export function ManualMatchResultStep({
               addPlayerCandidates.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                  className="flex items-center justify-between rounded-md px-3 py-2 bg-muted/30"
                 >
                   <span className="text-xs font-medium">{c.username}</span>
                   <Button

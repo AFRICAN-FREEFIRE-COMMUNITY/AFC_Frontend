@@ -434,7 +434,7 @@ export function AudienceBuilder() {
         <div className="space-y-4">
           {/* Send to the entire site. Kept first and visually distinct because it is the one
               option that ignores every other control, and the one with the largest blast radius. */}
-          <label className="flex items-start gap-3 rounded-md border p-3">
+          <label className="flex items-start gap-3 rounded-md p-3 bg-muted/30">
             <Checkbox
               checked={everyone}
               onCheckedChange={(v) => setEveryone(v === true)}
@@ -489,7 +489,7 @@ export function AudienceBuilder() {
 
             {/* Category filters. Each chip carries its own count so the admin can see the size of
                 a bucket before committing to it. */}
-            <div className="space-y-3 rounded-md border p-3">
+            <div className="space-y-3 rounded-md p-3 bg-muted/30">
               <p className="text-xs font-medium">{t("filters.title")}</p>
               <FilterChips
                 label={t("filters.tier")}
@@ -532,7 +532,7 @@ export function AudienceBuilder() {
         {/* ── 2. HOW MANY - the count, before anything is sent ───────────────── */}
         {/* This block is the whole point of the screen. It is deliberately the loudest thing
             here, and Send stays disabled until it holds a number for the CURRENT selection. */}
-        <div className="rounded-md border bg-muted/30 p-4">
+        <div className="rounded-md bg-muted/30 p-4">
           {!hasSelection ? (
             <p className="text-sm text-muted-foreground">{t("count.none")}</p>
           ) : previewing ? (
@@ -561,10 +561,10 @@ export function AudienceBuilder() {
               {wantsEmail && preview.email_volume.level !== "ok" && (
                 <div
                   className={cn(
-                    "flex items-start gap-2 rounded-md border p-3 text-xs",
+                    "flex items-start gap-2 rounded-md p-3 text-xs bg-muted/30",
                     emailBlocked
-                      ? "border-destructive/50 bg-destructive/10 text-destructive"
-                      : "border-amber-500/50 bg-amber-500/10 text-amber-600",
+                      ? "bg-destructive/10 text-destructive"
+                      : "bg-amber-500/10 text-amber-600",
                   )}
                 >
                   <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
@@ -585,7 +585,7 @@ export function AudienceBuilder() {
 
               {/* A small sample so the admin can spot a filter that caught the wrong people. */}
               {preview.sample.length > 0 && (
-                <div className="overflow-x-auto rounded-md border">
+                <div className="overflow-x-auto rounded-md bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>

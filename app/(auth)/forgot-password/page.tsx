@@ -49,7 +49,7 @@ const page = async () => {
           improves the honest answer for nearly everyone is still a human.
 
           NEW badge: brand new surface, dated, and it expires by itself. */}
-      <div className="mt-6 rounded-md border bg-card p-4 text-center">
+      <div className="mt-6 rounded-md bg-card p-4 text-center">
         <p className="flex flex-wrap items-center justify-center gap-2 text-sm font-medium">
           {t("whatsappReset.title")}
           <NewBadge since="2026-08-08" />

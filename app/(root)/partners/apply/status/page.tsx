@@ -54,10 +54,10 @@ import {
 /** Badge colour per status. Outline variant with a coloured border, matching the tier badges
  * elsewhere on AFC rather than inventing a second badge language. */
 const STATUS_CLASS: Record<ApplicationStatus, string> = {
-  pending: "border-blue-500/60 text-blue-400",
-  changes_requested: "border-gold/60 text-gold",
-  approved: "border-primary/60 text-primary",
-  rejected: "border-destructive/60 text-destructive",
+  pending: "text-blue-400 bg-blue-500/10",
+  changes_requested: "text-gold bg-gold/10",
+  approved: "text-primary bg-primary/10",
+  rejected: "text-destructive bg-destructive/10",
 };
 
 /**
@@ -209,7 +209,7 @@ function StatusView() {
 
                 {/* AFC's message to them: the rejection reason, or what to fix. */}
                 {application.decision_note && (
-                  <div className="rounded-md border border-gold/40 bg-gold/5 p-4">
+                  <div className="rounded-md bg-gold/5 p-4">
                     <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-gold">
                       <IconAlertTriangle className="size-3.5" />
                       {t("status.fromAfc")}
@@ -221,7 +221,7 @@ function StatusView() {
                 {/* Approved: the public half of the credentials, plus the collect link. The
                     secret itself is never here; it exists only on the credentials page, once. */}
                 {application.status === "approved" && (
-                  <div className="rounded-md border border-primary/40 bg-primary/5 p-4">
+                  <div className="rounded-md bg-primary/5 p-4">
                     <p className="mb-2 flex items-center gap-1.5 text-xs font-medium text-primary">
                       <IconCircleCheck className="size-3.5" />
                       {t("status.approvedTitle")}

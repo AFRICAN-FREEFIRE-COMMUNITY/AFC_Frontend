@@ -502,7 +502,7 @@ export default function IndividualLeaderboardPage({
                 </Select>
               </div>
 
-              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <div className="p-3 bg-primary/5 rounded-lg">
                 <p className="text-[10px] font-semibold text-primary uppercase">
                   Current Kill Points
                 </p>

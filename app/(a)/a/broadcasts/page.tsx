@@ -246,7 +246,7 @@ export default function AdminBroadcastsPage() {
             // Long enough to warrant a "Show more" toggle (otherwise the 4-line clamp shows it all).
             const isLong = b.message.length > 240 || b.message.split("\n").length > 4;
             return (
-              <div key={b.id} className="rounded-md border bg-card p-3 shadow-sm">
+              <div key={b.id} className="rounded-md bg-card p-3 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Badge variant="outline" className="rounded-full text-[11px]">

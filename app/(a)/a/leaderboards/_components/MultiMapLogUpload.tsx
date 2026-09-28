@@ -353,7 +353,7 @@ export function MultiMapLogPanel({
 
         {/* Rows: one per file */}
         {rows.map((row, idx) => (
-          <div key={row.id} className="rounded-lg border p-3 text-xs">
+          <div key={row.id} className="rounded-lg p-3 text-xs bg-muted/30">
             <div className="flex items-center gap-2">
               <IconFile size={16} className="shrink-0 text-primary" />
               <span className="flex-1 truncate font-medium">{row.file.name}</span>
@@ -438,7 +438,7 @@ export function MultiMapLogPanel({
               row.preview &&
               row.status !== "error" &&
               (row.preview.missingTeams?.length ?? 0) > 0 && (
-                <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-2">
+                <div className="mt-2 rounded-md bg-amber-500/5 p-2">
                   <p className="flex items-center gap-1 text-[11px] text-amber-600">
                     <IconAlertTriangle size={12} />
                     {t("uploadSteps.logUpload.teamsNotFound", {
@@ -572,7 +572,7 @@ function RowStatusBadge({ status }: { status: RowStatus }) {
     },
     reviewed: {
       label: t("uploadSteps.logUpload.status.reviewed"),
-      cls: "border-primary text-primary",
+      cls: "text-primary bg-primary/10",
     },
     applying: {
       label: t("uploadSteps.logUpload.status.applying"),
@@ -580,11 +580,11 @@ function RowStatusBadge({ status }: { status: RowStatus }) {
     },
     applied: {
       label: t("uploadSteps.logUpload.status.applied"),
-      cls: "border-primary text-primary",
+      cls: "text-primary bg-primary/10",
     },
     error: {
       label: t("uploadSteps.logUpload.status.error"),
-      cls: "border-destructive text-destructive",
+      cls: "text-destructive bg-destructive/10",
     },
   };
   const s = map[status];

@@ -1378,7 +1378,7 @@ export default function EditLeaderboardPage({
       {/* CS bracket note (P1#3): the selected stage is a Clash Squad bracket, so the BR editor
           below does not apply. Send the admin to the bracket on the event page instead. */}
       {isCsStage && (
-        <Card className="border-primary/40">
+        <Card className="bg-primary/10">
           <CardContent className="flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <IconTrophy className="mt-0.5 size-5 shrink-0 text-primary" />
@@ -1565,7 +1565,7 @@ export default function EditLeaderboardPage({
                 </p>
               ) : (
                 <>
-                  <div className="rounded-md border overflow-hidden">
+                  <div className="rounded-md overflow-hidden bg-muted/30">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -1941,7 +1941,7 @@ export default function EditLeaderboardPage({
               addPlayerCandidates.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                  className="flex items-center justify-between rounded-md px-3 py-2 bg-muted/30"
                 >
                   <span className="text-xs font-medium">{c.username}</span>
                   <Button

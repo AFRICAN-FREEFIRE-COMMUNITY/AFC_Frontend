@@ -120,7 +120,7 @@ function TeamChip({
     <div
       ref={setNodeRef}
       className={cn(
-        "flex items-center gap-1.5 rounded-md border bg-card px-2 py-2 text-xs select-none group/chip",
+        "flex items-center gap-1.5 rounded-md bg-card px-2 py-2 text-xs select-none group/chip",
         isDragging && "opacity-40",
       )}
     >
@@ -204,7 +204,7 @@ function GroupColumn({
         ref={setNodeRef}
         className={cn(
           "min-h-16 space-y-1.5 rounded-md transition-colors",
-          isOver && "ring-2 ring-primary/60 bg-primary/5",
+          isOver && "bg-primary/15",
         )}
       >
         {teams.length === 0 ? (
@@ -480,7 +480,7 @@ export default function GroupTeamMover({ eventId }: { eventId: number }) {
           })}
           <DragOverlay>
             {activeTeam ? (
-              <div className="flex items-center gap-1.5 rounded-md border bg-card px-2 py-1.5 text-xs shadow-lg">
+              <div className="flex items-center gap-1.5 rounded-md bg-card px-2 py-1.5 text-xs shadow-lg">
                 <IconGripVertical size={13} className="text-muted-foreground" />
                 {/* Flag beside the team name on the drag overlay (team's country). */}
                 <CountryFlag country={activeTeam.team_country} className="shrink-0" />

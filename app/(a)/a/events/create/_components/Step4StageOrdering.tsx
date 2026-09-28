@@ -70,7 +70,7 @@ export function Step4StageOrdering({
             return (
               <div
                 key={index}
-                className="flex items-center justify-between p-4 bg-primary/10 border border-primary/50 rounded-lg"
+                className="flex items-center justify-between p-4 bg-primary/10 rounded-lg"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-zinc-500">::</span>

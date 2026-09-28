@@ -109,7 +109,7 @@ export default function AutoSeedCard({
         <p className="text-muted-foreground text-sm">
           {t("autoSeed.desc")}
         </p>
-        <div className="flex items-center justify-between rounded-md border p-3">
+        <div className="flex items-center justify-between rounded-md p-3 bg-muted/30">
           <Label htmlFor="auto-seed" className="text-sm">{t("autoSeed.toggleLabel")}</Label>
           <Switch
             id="auto-seed"
@@ -122,7 +122,7 @@ export default function AutoSeedCard({
         {/* WHEN it fires. Shown only while the draw is on, because a moment for something that
             does not happen is a question with no consequence. */}
         {enabled && (
-          <div className="flex flex-col gap-2 rounded-md border p-3">
+          <div className="flex flex-col gap-2 rounded-md p-3 bg-muted/30">
             <Label htmlFor="auto-seed-trigger" className="text-sm">
               {t("autoSeed.triggerLabel")}
             </Label>

@@ -469,7 +469,7 @@ export default function BasicInfoTab({
             Backed by the same requirementsForm state and the same Save, so an organizer does
             not have to find a second button. Off by default. Copy lives in the teamResults
             namespace beside the two screens it switches on. */}
-        <div className="space-y-3 rounded-lg border p-4">
+        <div className="space-y-3 rounded-lg p-4 bg-muted/30">
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-0.5">
               <Label htmlFor="allow-team-results">{tr("settings.label")}</Label>
@@ -508,7 +508,7 @@ export default function BasicInfoTab({
           </div>
         </div>
 
-        <div className="space-y-3 rounded-lg border p-4">
+        <div className="space-y-3 rounded-lg p-4 bg-muted/30">
           <div>
             <Label>{t("basicInfo.requirementsTitle")}</Label>
             <p className="text-xs text-muted-foreground">
@@ -683,7 +683,7 @@ export default function BasicInfoTab({
                           setPreviewUrl(URL.createObjectURL(file));
                         }
                       }}
-                      className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                      className={`bg-muted rounded-md p-12 text-center transition-colors cursor-pointer ${
                         isDragging
                           ? "border-primary bg-primary/5"
                           : "border-gray-300 bg-gray-50"
@@ -710,7 +710,7 @@ export default function BasicInfoTab({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
+                      <div className="relative w-full aspect-video bg-gray-50 rounded-md flex items-center justify-center overflow-hidden">
                         <Image
                           width={1000}
                           height={1000}
@@ -1083,7 +1083,7 @@ export default function BasicInfoTab({
                   </div>
 
                   {registrationRestriction !== "none" && (
-                    <div className="p-4 border rounded-lg bg-card space-y-4">
+                    <div className="p-4 rounded-lg bg-card space-y-4">
                       <Label className="text-destructive">
                         {t("basicInfo.restrictionMode")}
                       </Label>
@@ -1214,7 +1214,7 @@ export default function BasicInfoTab({
             control={form.control}
             name="publish_to_tournaments"
             render={({ field }) => (
-              <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
+              <FormItem className="flex items-center gap-3 p-4 rounded-lg bg-muted/30">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -1237,7 +1237,7 @@ export default function BasicInfoTab({
             control={form.control}
             name="save_to_drafts"
             render={({ field }) => (
-              <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
+              <FormItem className="flex items-center gap-3 p-4 rounded-lg bg-muted/30">
                 <FormControl>
                   <Checkbox
                     checked={field.value}

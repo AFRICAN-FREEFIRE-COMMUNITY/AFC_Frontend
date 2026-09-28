@@ -713,7 +713,7 @@ export default function ResultMarkersPage() {
 
         {/* bulk bar */}
         {selected.size > 0 && (
-          <div className="mx-6 mb-3 flex flex-col items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mx-6 mb-3 flex flex-col items-start gap-2 rounded-md bg-primary/5 p-2 sm:flex-row sm:items-center sm:justify-between">
             <span className="px-1 text-xs font-medium tabular-nums">
               {tr("bulk.selected", { count: selected.size })}
             </span>
@@ -724,7 +724,7 @@ export default function ResultMarkersPage() {
               <Button
                 size="sm"
                 variant="outline"
-                className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                 onClick={bulkDisable}
               >
                 <IconCircleMinus className="mr-1 size-3.5" /> {tr("bulk.disable")}
@@ -891,7 +891,7 @@ export default function ResultMarkersPage() {
                           variant="outline"
                           className={cn(
                             "h-8",
-                            allOn && "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive",
+                            allOn && "text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5",
                           )}
                           onClick={() => toggleAllFlags(t)}
                         >
@@ -922,7 +922,7 @@ export default function ResultMarkersPage() {
 
           {drill && (
             <>
-              <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2 text-xs">
+              <div className="flex items-center justify-between rounded-md bg-muted/30 px-3 py-2 text-xs">
                 <span className="text-muted-foreground">{tr("drill.currentlyExcluded")}</span>
                 <span className="font-semibold text-foreground tabular-nums">
                   {drillExclusions.length}
@@ -944,7 +944,7 @@ export default function ResultMarkersPage() {
                   return (
                     <div
                       key={`${e.entityType}-${e.id}`}
-                      className="flex items-center justify-between rounded-md border border-orange-500/30 bg-orange-500/5 px-3 py-2"
+                      className="flex items-center justify-between rounded-md bg-orange-500/5 px-3 py-2"
                     >
                       <div className="flex items-center gap-2">
                         {e.entityType === "team"
@@ -977,7 +977,7 @@ export default function ResultMarkersPage() {
                   data-tour anchor: result-markers tour "Team and player exclusions" step.
                   Anchors the add-exclusion block inside the per-event drill-down (a single
                   stable element when the dialog is open, vs. the per-row Exclusions buttons). */}
-              <div data-tour="result-markers-exclusions" className="space-y-3 rounded-md border bg-muted/20 p-3">
+              <div data-tour="result-markers-exclusions" className="space-y-3 rounded-md bg-muted/20 p-3">
                 <p className="flex items-center text-xs font-semibold text-foreground">
                   {tr("drill.addTitle")}
                   <InfoTip id="rankings.results.exclusions" className="ml-1" />
@@ -1006,7 +1006,7 @@ export default function ResultMarkersPage() {
                       className="h-9"
                     />
                     {addQuery.trim().length > 0 && addEntityId == null && (
-                      <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
+                      <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-56 overflow-y-auto rounded-md bg-popover p-1 shadow-md">
                         {addMatches.length === 0 ? (
                           <p className="px-2 py-1.5 text-sm text-muted-foreground">{tr("drill.noMatches")}</p>
                         ) : (
@@ -1046,7 +1046,7 @@ export default function ResultMarkersPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                   disabled={!addIdValid || !addReasonValid || adding}
                   onClick={addExclusion}
                 >

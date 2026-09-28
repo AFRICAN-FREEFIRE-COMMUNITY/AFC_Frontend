@@ -181,7 +181,7 @@ export default function OrderSuccess() {
               <CardDescription className="text-base">
                 {t("success.confirmed")}
               </CardDescription>
-              <div className="bg-muted p-4 rounded-md text-left w-full space-y-2 border">
+              <div className="bg-muted p-4 rounded-md text-left w-full space-y-2">
                 {/* Paystack carries a reference; Stripe carries a session id. Show whichever exists. */}
                 {(reference || stripeSessionId) && (
                   <div className="flex justify-between text-sm">
@@ -206,7 +206,7 @@ export default function OrderSuccess() {
                   </div>
                 )}
               </div>
-              <p className="text-xs text-amber-700 bg-amber-50 rounded-md p-3 border border-amber-200">
+              <p className="text-xs text-amber-700 bg-amber-50 rounded-md p-3">
                 {t("success.redemptionNote")}
               </p>
             </>
@@ -221,7 +221,7 @@ export default function OrderSuccess() {
                   {reference || stripeSessionId || stripeOrderId}
                 </span>
               </CardDescription>
-              <div className="text-sm bg-muted p-3 rounded-md border">
+              <div className="text-sm bg-muted p-3 rounded-md">
                 {t.rich("success.autoRetry", {
                   strong: (chunks) => <strong>{chunks}</strong>,
                 })}

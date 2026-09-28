@@ -1333,7 +1333,7 @@ export default function CreateEventPage() {
         back
       />
       {duplicateSlug && (
-        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+        <div className="mb-4 rounded-md bg-blue-50 px-4 py-3 text-sm text-blue-700">
           {t("header.duplicateHint")}
         </div>
       )}

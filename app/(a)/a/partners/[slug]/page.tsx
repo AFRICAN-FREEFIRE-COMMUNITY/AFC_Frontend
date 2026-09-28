@@ -730,7 +730,7 @@ export default function PartnerDetailPage({
               {/* data-tour="orgs-misc-partners-native-afc": admin-tour anchor (orgs-misc area). */}
               <label
                 data-tour="orgs-misc-partners-native-afc"
-                className="flex items-center justify-between gap-2 rounded-md border px-3 py-2.5"
+                className="flex items-center justify-between gap-2 rounded-md px-3 py-2.5 bg-muted/30"
               >
                 <span className="flex flex-col">
                   <span className="inline-flex items-center text-sm font-medium">
@@ -769,7 +769,7 @@ export default function PartnerDetailPage({
                     className="pl-9"
                   />
                 </div>
-                <ScrollArea className="h-48 rounded-md border">
+                <ScrollArea className="h-48 rounded-md bg-muted/30">
                   <div className="p-1">
                     {filteredEvents.length === 0 ? (
                       <p className="px-3 py-6 text-center text-sm text-muted-foreground">
@@ -824,7 +824,7 @@ export default function PartnerDetailPage({
                     className="pl-9"
                   />
                 </div>
-                <ScrollArea className="h-48 rounded-md border">
+                <ScrollArea className="h-48 rounded-md bg-muted/30">
                   <div className="p-1">
                     {filteredOrgs.length === 0 ? (
                       <p className="px-3 py-6 text-center text-sm text-muted-foreground">
@@ -888,7 +888,7 @@ export default function PartnerDetailPage({
                     return (
                       <div
                         key={ev.event_id}
-                        className="flex items-center justify-between gap-3 rounded-md border px-3 py-2.5"
+                        className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5 bg-muted/30"
                       >
                         <div className="flex min-w-0 flex-col">
                           <span className="truncate text-sm font-medium">
@@ -957,7 +957,7 @@ export default function PartnerDetailPage({
                 {RESOURCE_TOGGLES.map((key) => (
                   <label
                     key={key}
-                    className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
+                    className="flex items-center justify-between gap-2 rounded-md px-3 py-2 bg-muted/30"
                   >
                     <span className="min-w-0 text-sm">
                       {t(`detail.toggles.${key}`)}
@@ -990,7 +990,7 @@ export default function PartnerDetailPage({
                 {FIELD_TOGGLES.map((key) => (
                   <label
                     key={key}
-                    className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
+                    className="flex items-center justify-between gap-2 rounded-md px-3 py-2 bg-muted/30"
                   >
                     <span className="min-w-0 text-sm">
                       {t(`detail.toggles.${key}`)}
@@ -1139,7 +1139,7 @@ export default function PartnerDetailPage({
               <div className="space-y-2">
                 <Label>{t("detail.connection.sample")}</Label>
                 <div className="flex items-start gap-2">
-                  <pre className="flex-1 overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs">
+                  <pre className="flex-1 overflow-x-auto rounded-md bg-muted/40 p-3 font-mono text-xs">
                     {SAMPLE_CURL}
                   </pre>
                   <CopyButton value={SAMPLE_CURL} />
@@ -1251,7 +1251,7 @@ export default function PartnerDetailPage({
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="border-amber-500/40 text-amber-500 hover:bg-amber-500/10 hover:text-amber-500"
+                                  className="text-amber-500 hover:bg-amber-500/10 hover:text-amber-500 bg-amber-500/5"
                                   onClick={() => setRevokeTarget(k)}
                                 >
                                   {t("detail.keys.revoke")}
@@ -1264,7 +1264,7 @@ export default function PartnerDetailPage({
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                               onClick={() => setDeleteTarget(k)}
                             >
                               <IconTrash className="size-4" />

@@ -142,7 +142,7 @@ const TeamAchievementsTab = ({ team }: TeamAchievementsTabProps) => {
 
       {/* Honest note: the boost itself is a FUTURE feature, so we only promise it is
           coming, we do not apply it. Same copy stance as the player version. */}
-      <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-2 mb-4">
+      <p className="text-xs text-muted-foreground bg-muted/40 rounded-md px-3 py-2 mb-4">
         {t("teamAchievements.comingSoonNote")}
       </p>
 

@@ -260,7 +260,7 @@ function BlacklistRow({
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border p-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="flex flex-col gap-2 rounded-md p-3 sm:flex-row sm:items-start sm:justify-between bg-muted/30">
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium">

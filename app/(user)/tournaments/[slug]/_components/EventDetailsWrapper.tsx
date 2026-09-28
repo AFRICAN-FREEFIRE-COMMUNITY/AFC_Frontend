@@ -1196,7 +1196,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                 const allRejected =
                   rejectedOnRoster.length === currentRoster.length;
                 return (
-                  <Alert className="border-destructive/50 bg-destructive/10 text-destructive">
+                  <Alert className="bg-destructive/10 text-destructive">
                     <XCircle className="h-4 w-4" />
                     <AlertDescription>
                       {allRejected ? (
@@ -1247,7 +1247,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                     return (
                       <div
                         key={member.id}
-                        className="flex items-center justify-between p-3 bg-background rounded-md border hover:border-primary transition"
+                        className="flex items-center justify-between p-3 bg-background rounded-md transition hover:bg-primary/10"
                       >
                         <div className="flex items-center gap-3">
                           <Checkbox
@@ -1604,7 +1604,7 @@ const StageResultsTable: React.FC<{
         {/* Results hidden by the organizer (owner 2026-06-29): a clean "not published yet" state in
             place of the standings table. The backend also withholds the rows; this explains why. */}
         {resultsHidden ? (
-          <div className="rounded-md border p-10 text-center">
+          <div className="rounded-md p-10 text-center bg-muted/30">
             <p className="text-sm font-medium text-muted-foreground">
               {t("stageResults.resultsNotPublished")}
             </p>
@@ -1613,7 +1613,7 @@ const StageResultsTable: React.FC<{
             </p>
           </div>
         ) : (
-        <div className="rounded-md border overflow-hidden shadow-inner">
+        <div className="rounded-md overflow-hidden shadow-inner bg-muted/30">
           <Table>
             <TableHeader>
               <TableRow>
@@ -1874,7 +1874,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                   // selecting, not only after pressing Continue.
                   <div
                     key={member.id}
-                    className="flex items-center justify-between gap-3 p-3 bg-background rounded-md border hover:border-primary transition"
+                    className="flex items-center justify-between gap-3 p-3 bg-background rounded-md transition hover:bg-primary/10"
                   >
                     <div className="flex items-center gap-3">
                       <Checkbox
@@ -3305,7 +3305,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                       return (
                         <div
                           key={result.user_id}
-                          className={`p-3 rounded-md border transition-all ${
+                          className={`p-3 rounded-md transition-all ${
                             result.ok && inAfcServer
                               ? "border-green-500/50 bg-green-500/10"
                               : "border-red-500/50 bg-red-500/10"
@@ -3383,7 +3383,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 </div>
 
                 {isCheckingDiscord && (
-                  <div className="p-3 bg-blue-600 border border-blue-600/50 rounded-md">
+                  <div className="p-3 bg-blue-600 rounded-md">
                     <p className="text-sm text-blue-100 text-center">
                       {t("register.discordStatus.checkingStatus")}
                     </p>
@@ -3393,7 +3393,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {!allMembersOk &&
                   !isCheckingDiscord &&
                   validationResults.length > 0 && (
-                    <div className="p-3 bg-yellow-600 border border-yellow-600/50 rounded-md">
+                    <div className="p-3 bg-yellow-600 rounded-md">
                       <p className="text-sm text-yellow-100 text-center">
                         {t("register.discordStatus.waiting")}
                       </p>
@@ -3401,7 +3401,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   )}
 
                 {allMembersOk && !allInAfcServer && (
-                  <div className="p-3 bg-orange-600 border border-orange-600/50 rounded-md">
+                  <div className="p-3 bg-orange-600 rounded-md">
                     <p className="text-sm text-orange-100 text-center">
                       {t("register.discordStatus.someNotJoined")}
                     </p>
@@ -3409,7 +3409,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 )}
 
                 {allMembersOk && allInAfcServer && (
-                  <div className="p-3 bg-green-600 border border-green-600/50 rounded-md">
+                  <div className="p-3 bg-green-600 rounded-md">
                     <p className="text-sm text-green-100 text-center font-medium">
                       {t("register.discordStatus.allReady")}
                     </p>
@@ -5500,7 +5500,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   return (
     <div>
-      <Card className="p-0 bg-transparent border-0">
+      <Card className="p-0 bg-muted/30">
         {/* QR code for this event (inbox #46, 2026-09-26): anyone viewing can make one; its
             organizers and AFC event admins also see the scan count. components/qr/QrShareButton.tsx */}
         <PageHeader
@@ -5518,7 +5518,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           />
           {!eventDetails.is_public && (
             <div
-              className={`flex items-center gap-2 p-3 rounded-md border ${
+              className={`flex items-center gap-2 p-3 rounded-md ${
                 isInviteConsumed
                   ? "bg-red-500/10 border-red-500/30"
                   : "bg-yellow-500/10 border-yellow-500/30"
@@ -5639,7 +5639,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   alt={orgName}
                   width={24}
                   height={24}
-                  className="size-6 rounded-full object-cover border border-border"
+                  className="size-6 rounded-full object-cover bg-muted/30"
                 />
               ) : (
                 <span className="size-6 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary">
@@ -5679,7 +5679,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                       alt={co.name}
                       width={20}
                       height={20}
-                      className="size-5 rounded-full object-cover border border-border"
+                      className="size-5 rounded-full object-cover bg-muted/30"
                     />
                   )}
                   {co.slug ? (
@@ -5821,7 +5821,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   slots are filled (the active mode) + who is waiting, with queue position. Backed by
                   eventDetails.waitlist_mode + waitlist_competitors from get-event-details. */}
               {eventDetails.is_waitlist_enabled && (
-                <div className="mb-6 rounded-md border bg-card p-4 shadow-sm">
+                <div className="mb-6 rounded-md bg-card p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-base font-bold text-primary">
                       {t("waitlist.title")}
@@ -5913,7 +5913,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                         </label>
                         <select
                           id="team-result-map"
-                          className="h-10 w-full rounded-md border bg-background px-2 text-xs sm:max-w-96"
+                          className="h-10 w-full rounded-md border border-input bg-background px-2 text-xs sm:max-w-96"
                           value={teamResultMatchId ?? undefined}
                           onChange={(e) => setTeamResultMatchId(Number(e.target.value))}
                         >
@@ -6108,7 +6108,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         );
         if (myEntry?.status !== "rejected") return null;
         return (
-          <Alert className="mt-4 border-destructive/50 bg-destructive/10 text-destructive">
+          <Alert className="mt-4 bg-destructive/10 text-destructive">
             <XCircle className="h-4 w-4" />
             <p className="text-red-900 dark:text-red-100">
               {t.rich("detail.rejectionNotice.personal", {
@@ -6139,7 +6139,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             if (rejected.length === 0) return null;
             const allRejected = rejected.length === pageRoster.length;
             return (
-              <Alert className="border-destructive/50 bg-destructive/10 text-destructive text-left">
+              <Alert className="bg-destructive/10 text-destructive text-left">
                 <XCircle className="h-4 w-4" />
                 <AlertDescription>
                   {allRejected ? (
@@ -6412,7 +6412,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               eventDetails?.registered_competitors?.map(
                 (reg: any, index: number) => (
                   <Card
-                    className="hover:border-primary group cursor-pointer"
+                    className="group cursor-pointer hover:bg-primary/10"
                     onClick={() => router.push(`/players/${reg.username}`)}
                     key={`competitor-${reg.id || index}`}
                   >
@@ -6441,7 +6441,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               eventDetails?.tournament_teams?.map(
                 (team: any, index: number) => (
                   <Card
-                    className="hover:border-primary group cursor-pointer"
+                    className="group cursor-pointer hover:bg-primary/10"
                     onClick={() => router.push(`/teams/${team.team_name}`)}
                     key={`competitor-${team.id || index}`}
                   >
@@ -6519,7 +6519,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             <div className="flex flex-wrap items-center gap-3">
               {eventDetails.public_sponsors.map((s: any) => {
                 const tile = (
-                  <span className="flex items-center gap-2.5 rounded-md border bg-background px-3 py-2">
+                  <span className="flex items-center gap-2.5 rounded-md bg-background px-3 py-2">
                     {s.logo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

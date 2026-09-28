@@ -145,11 +145,11 @@ function StatusChip({ status }: { status: MapStatus }) {
   const t = useTranslations("ocr");
   const meta: Record<MapStatus, { key: string; cls: string; spin?: boolean }> = {
     draft: { key: "status.notRead", cls: "border-muted-foreground text-muted-foreground" },
-    pending: { key: "status.queued", cls: "border-blue-500 text-blue-600", spin: true },
-    processing: { key: "status.reading", cls: "border-blue-500 text-blue-600", spin: true },
-    done: { key: "status.read", cls: "border-green-500 text-green-600" },
-    failed: { key: "status.failed", cls: "border-destructive text-destructive" },
-    applied: { key: "status.applied", cls: "border-green-500 text-green-600" },
+    pending: { key: "status.queued", cls: "text-blue-600 bg-blue-500/10", spin: true },
+    processing: { key: "status.reading", cls: "text-blue-600 bg-blue-500/10", spin: true },
+    done: { key: "status.read", cls: "text-green-600 bg-green-500/10" },
+    failed: { key: "status.failed", cls: "text-destructive bg-destructive/10" },
+    applied: { key: "status.applied", cls: "text-green-600 bg-green-500/10" },
   };
   const s = meta[status];
   return (
@@ -433,7 +433,7 @@ export function OcrBatchDialog({
 
         <div className="space-y-4">
           {maps.map((m, i) => (
-            <div key={m.localId} className="space-y-3 rounded-md border p-4">
+            <div key={m.localId} className="space-y-3 rounded-md p-4 bg-muted/30">
               {/* Card header: label + status + remove */}
               <div className="flex items-center gap-2">
                 <div className="flex-1">
@@ -477,7 +477,7 @@ export function OcrBatchDialog({
                   {m.previews.map((src, idx) => (
                     <div
                       key={src}
-                      className="relative h-16 w-24 overflow-hidden rounded-md border bg-muted/20"
+                      className="relative h-16 w-24 overflow-hidden rounded-md bg-muted/20"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -505,7 +505,7 @@ export function OcrBatchDialog({
                 <div className="space-y-2">
                   <label
                     className={cn(
-                      "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed px-4 py-5 text-center transition-colors",
+                      "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md px-4 py-5 text-center transition-colors bg-muted/30",
                       "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/20",
                     )}
                   >
@@ -540,7 +540,7 @@ export function OcrBatchDialog({
               )}
 
               {(m.status === "pending" || m.status === "processing") && (
-                <div className="flex items-center gap-2 rounded-md border border-blue-500/30 bg-blue-500/5 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
+                <div className="flex items-center gap-2 rounded-md bg-blue-500/5 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
                   <IconLoader2 size={14} className="animate-spin" />
                   {t("stdBatch.readingStatus", { count: m.imageCount })}
                 </div>
@@ -548,7 +548,7 @@ export function OcrBatchDialog({
 
               {m.status === "failed" && (
                 <div className="space-y-2">
-                  <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  <div className="flex items-start gap-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
                     <IconAlertTriangle className="size-4 shrink-0" />
                     <span>{m.error || t("stdBatch.couldNotReadMap")}</span>
                   </div>

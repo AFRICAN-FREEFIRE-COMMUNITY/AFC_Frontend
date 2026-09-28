@@ -124,14 +124,14 @@ function errorMessage(err: unknown): string | undefined {
 }
 
 const STATUS_CLASS: Record<TeamInvitation["status"], string> = {
-  pending: "text-yellow-400 border-yellow-800",
-  accepted: "text-green-400 border-green-800",
-  declined: "text-red-400 border-red-800",
+  pending: "text-yellow-400 bg-yellow-800/10",
+  accepted: "text-green-400 bg-green-800/10",
+  declined: "text-red-400 bg-red-800/10",
   cancelled: "text-muted-foreground",
   expired: "text-muted-foreground",
   // A bulk OFFER carries the campaign's own status rather than an invitation's, so these two
   // exist here as well. "open" is the offer waiting to be taken, and reads like "pending".
-  open: "text-yellow-400 border-yellow-800",
+  open: "text-yellow-400 bg-yellow-800/10",
   closed: "text-muted-foreground",
 };
 
@@ -257,7 +257,7 @@ export function EventInvitationsCard({
           return (
             <div
               key={invitation.id}
-              className="rounded-md border p-3 flex flex-col gap-2"
+              className="rounded-md p-3 flex flex-col gap-2 bg-muted/30"
             >
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div className="min-w-0">

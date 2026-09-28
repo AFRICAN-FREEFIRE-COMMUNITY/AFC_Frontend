@@ -109,10 +109,10 @@ const ENGAGEMENT_TYPE_VALUES: EngagementType[] = [
 ];
 
 const TYPE_BADGE_CLS: Record<EngagementType, string> = {
-  collect_id: "border-green-500/60 text-green-500",
-  follow_social: "border-blue-500/60 text-blue-400",
-  create_account: "border-yellow-500/60 text-yellow-500",
-  join_group: "border-orange-500/60 text-orange-500",
+  collect_id: "text-green-500 bg-green-500/10",
+  follow_social: "text-blue-400 bg-blue-500/10",
+  create_account: "text-yellow-500 bg-yellow-500/10",
+  join_group: "text-orange-500 bg-orange-500/10",
 };
 
 // The actions a follow_social engagement can ask for (server validates the same set).
@@ -380,7 +380,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
           onBlur={() => setTimeout(() => setPickerOpen(false), 150)}
         />
         {pickerOpen && (
-          <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-md border bg-popover shadow-md">
+          <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-md bg-popover shadow-md">
             {searching ? (
               <div className="flex items-center gap-2 px-3 py-3 text-sm text-muted-foreground">
                 <Loader2 className="size-4 animate-spin" /> {t("builder.searching")}
@@ -448,7 +448,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
       )}
 
       {value.map((row) => (
-        <div key={row.sponsor_id} className="rounded-md border bg-muted/20 p-3">
+        <div key={row.sponsor_id} className="rounded-md bg-muted/20 p-3">
           {/* card header: name + approval switch + remove (mockup's engrow hdr) */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-gold/90 text-xs font-bold text-background">
@@ -521,7 +521,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
             return (
               <div
                 key={`${row.sponsor_id}-${i}`}
-                className="mt-2 rounded-md border bg-background/60 p-3"
+                className="mt-2 rounded-md bg-background/60 p-3"
               >
                 {/* entry header: type badge + reorder arrows + delete */}
                 <div className="flex items-center gap-2">

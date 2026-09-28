@@ -176,7 +176,7 @@ export function TeamResultQueue({ matchId }: { matchId: number }) {
             (sum, p) => sum + (Number(p.kills) || 0), 0);
 
           return (
-            <div key={row.submission_id} className="rounded-md border p-3 space-y-2">
+            <div key={row.submission_id} className="rounded-md p-3 space-y-2 bg-muted/30">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{row.team_name}</p>
@@ -220,7 +220,7 @@ export function TeamResultQueue({ matchId }: { matchId: number }) {
               {/* A conflict lives ON the row it affects. Put in a summary elsewhere it reads as
                   background noise; here it is impossible to approve without seeing it. */}
               {(row.conflicts?.length ?? 0) > 0 && (
-                <div className="rounded-md border border-orange-500/40 bg-orange-500/10 p-2">
+                <div className="rounded-md bg-orange-500/10 p-2">
                   <p className="flex items-center gap-1.5 text-xs font-medium text-orange-500">
                     <IconAlertTriangle className="size-3.5" />
                     {t("queue.conflictTitle")}

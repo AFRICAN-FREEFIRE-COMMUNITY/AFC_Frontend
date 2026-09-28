@@ -153,7 +153,7 @@ export const AdvanceToNextStageModal = ({
 
           {/* Overwrite confirmation when the next stage already has entered results. */}
           {forceNeeded && (
-            <div className="mt-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/40 text-left">
+            <div className="mt-4 p-3 rounded-lg bg-amber-500/10 text-left">
               <p className="text-xs text-amber-700 dark:text-amber-400">
                 {t("advanceStage.overwriteWarning", {
                   name: nextStageName ?? "",

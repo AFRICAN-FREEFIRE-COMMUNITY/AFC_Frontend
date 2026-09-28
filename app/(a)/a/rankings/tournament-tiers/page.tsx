@@ -139,9 +139,9 @@ type Rule = {
 // from the shared rankings namespace via t("tier", { tier }) - the same key components/rankings/
 // TierBadge uses - so "Tier 1" becomes "Niveau 1" / "Nível 1" from a single source.
 const TIER_META: Record<Tier, { mult: string; cls: string }> = {
-  1: { mult: "2.0×", cls: "text-amber-400 border-amber-500/60" },
-  2: { mult: "1.5×", cls: "text-green-400 border-green-600/60" },
-  3: { mult: "1.0×", cls: "text-blue-400 border-blue-600/60" },
+  1: { mult: "2.0×", cls: "text-amber-400 bg-amber-500/10" },
+  2: { mult: "1.5×", cls: "text-green-400 bg-green-600/10" },
+  3: { mult: "1.0×", cls: "text-blue-400 bg-blue-600/10" },
 };
 
 // Condition builder vocabulary. These are module-level (they never change), so they carry a
@@ -449,7 +449,7 @@ function SortableRule({
           <Switch checked={rule.enabled} onCheckedChange={(v) => onChange({ ...rule, enabled: v })} aria-label={t("a11y.ruleEnabled")} />
           <Button
             variant="outline" size="icon"
-            className="size-7 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
             onClick={onDelete} aria-label={t("a11y.deleteRule")}
           >
             <IconTrash className="size-3.5" />
@@ -976,7 +976,7 @@ export default function TournamentTiersPage() {
           value={tTier("tier", { tier: defaultTier })} sub={t("stats.defaultTierSub")} tone="text-blue-400" />
       </div>
 
-      <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+      <div className="flex items-start gap-2 rounded-md bg-muted/30 p-3 text-xs text-muted-foreground">
         <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
         <span>
           {/* t.rich keeps the two emphasised fragments inline (the "first match wins" lead and the
@@ -994,7 +994,7 @@ export default function TournamentTiersPage() {
           Amber, not the orange used by the contradiction banner below - this is a consequence of a
           choice the admin made, not a problem with their rules. */}
       {usesForeignCurrency && (
-        <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-muted-foreground">
+        <div className="flex items-start gap-2 rounded-md bg-amber-500/5 p-3 text-xs text-muted-foreground">
           <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-amber-400" />
           <span>
             <span className="font-semibold text-amber-300">{t("currency.fxNoteTitle")}</span>{" "}
@@ -1008,7 +1008,7 @@ export default function TournamentTiersPage() {
           It summarises, then defers - a problem belonging to one rule is printed on that rule's
           card instead of here, so nobody has to count rows to find it. */}
       {issues.length > 0 && (
-        <div className="flex items-start gap-2 rounded-md border border-orange-500/40 bg-orange-500/5 p-3">
+        <div className="flex items-start gap-2 rounded-md bg-orange-500/5 p-3">
           <IconAlertTriangle className="mt-0.5 size-4 shrink-0 text-orange-400" />
           <div className="min-w-0 flex-1 space-y-1">
             <p className="text-sm font-semibold text-orange-300">{t("issues.title")}</p>
@@ -1187,7 +1187,7 @@ export default function TournamentTiersPage() {
               {/* Result. When the sample pool could not be converted there IS no answer, so the
                   tier is withheld rather than showing the previous sample's verdict next to the
                   numbers currently on screen. */}
-              <div className="rounded-md border bg-muted/30 p-3">
+              <div className="rounded-md bg-muted/30 p-3">
                 {testError ? (
                   <p className="text-[11px] text-orange-400">{testError}</p>
                 ) : (
@@ -1238,7 +1238,7 @@ export default function TournamentTiersPage() {
             </DialogDescription>
           </DialogHeader>
           {/* the two summary labels reuse the status-strip keys - same words, one source */}
-          <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+          <div className="rounded-md bg-muted/30 p-3 text-xs text-muted-foreground">
             <div className="flex justify-between"><span>{t("stats.activeRules")}</span><span className="font-medium text-foreground">{rules.filter((r) => r.enabled).length}</span></div>
             <div className="mt-1 flex justify-between"><span>{t("stats.defaultTier")}</span><span className="font-medium text-foreground">{tTier("tier", { tier: defaultTier })}</span></div>
           </div>

@@ -252,7 +252,7 @@ export function NotificationDropdown({
                     key={index}
                     onClick={() => unread && markRead(notification)}
                     className={cn(
-                      "rounded-md border p-3 shadow-sm transition-colors",
+                      "rounded-md p-3 shadow-sm transition-colors bg-muted/30",
                       unread
                         ? "cursor-pointer border-l-2 border-l-primary bg-muted/40 hover:bg-muted/60"
                         : "bg-card",

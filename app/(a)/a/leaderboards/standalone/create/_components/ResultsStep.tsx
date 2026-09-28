@@ -483,7 +483,7 @@ export function ResultsStep({
             existing-ghost via search, or new ghost) can be added right here. Always visible when
             there are no participants yet; collapsible behind a button otherwise. */}
         {(participants.length === 0 || showAdd) && (
-          <div className="space-y-3 rounded-md border bg-muted/20 p-3">
+          <div className="space-y-3 rounded-md bg-muted/20 p-3">
             <Label>
               {format === "team"
                 ? t("stdSteps.results.addTeamToScore")
@@ -635,7 +635,7 @@ export function ResultsStep({
           // the roster with per-player kills; the team's overall kills is the live sum.
           <div className="space-y-3">
             {currentRows.map((row, idx) => (
-              <div key={row.participant_id} className="space-y-2.5 rounded-md border p-3">
+              <div key={row.participant_id} className="space-y-2.5 rounded-md p-3 bg-muted/30">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{row.name}</span>
@@ -730,7 +730,7 @@ export function ResultsStep({
           </div>
         ) : (
           // ── SOLO format: the compact per-player table (placement + kills per participant). ──
-          <div className="overflow-hidden rounded-md border">
+          <div className="overflow-hidden rounded-md bg-muted/30">
             <Table>
               <TableHeader>
                 <TableRow className="h-10">

@@ -92,7 +92,7 @@ function PrizePoolSection({
   };
 
   return (
-    <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
       <p className="text-sm font-semibold text-primary">{label}</p>
 
       <div className="grid gap-3">
@@ -217,7 +217,7 @@ function AdvancementRoutingSection({
   };
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+    <div className="space-y-4 p-4 rounded-lg bg-muted/30">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-primary">
@@ -248,7 +248,7 @@ function AdvancementRoutingSection({
             </p>
           )}
           {list.map((rule, i) => (
-            <div key={i} className="space-y-2 rounded-md border bg-background p-3">
+            <div key={i} className="space-y-2 rounded-md bg-background p-3">
               <div className="flex flex-wrap items-end gap-2">
                 <div className="w-20">
                   <label className="text-[0.68rem] font-medium mb-1 block text-muted-foreground">
@@ -625,7 +625,7 @@ export function StageConfigModal({
                 rules about placement points across a lobby, and a Clash Squad set is won by
                 round wins in a head-to-head bracket. Same rule as the create wizard's
                 StageModal, deliberately mirrored. */}
-            <div className={`space-y-4 p-4 border rounded-lg bg-muted/30${isClashSquad ? " hidden" : ""}`}>
+            <div className={`space-y-4 p-4 rounded-lg bg-muted/30${isClashSquad ? " hidden" : ""}`}>
               <p className="text-sm font-semibold text-primary">
                 {t("scoringModes")}
               </p>
@@ -885,7 +885,7 @@ export function StageConfigModal({
                 above define the structure) or Clash Squad (a bracket has no groups), so it
                 is hidden for those formats. RR shows a note; CS is covered by ClashSquadPanel. */}
             {isRoundRobin ? (
-              <p className="text-xs text-muted-foreground rounded-md border border-dashed p-3">
+              <p className="text-xs text-muted-foreground rounded-md p-3 bg-muted/30">
                 {t("roundRobinNote")}
               </p>
             ) : isClashSquad ? null : (
@@ -1007,7 +1007,7 @@ export function StageConfigModal({
                     .map((group, i) => (
                       <div
                         key={i}
-                        className="px-3 py-1 border border-primary rounded-md text-xs"
+                        className="px-3 py-1 rounded-md text-xs bg-primary/10"
                       >
                         {group.group_name}
                       </div>
@@ -1022,7 +1022,7 @@ export function StageConfigModal({
         {stageModalStep === 2 && (
           <div className="space-y-2">
             {/* Stage summary */}
-            <div className="border border-primary/50 rounded-lg p-4">
+            <div className="rounded-lg p-4 bg-primary/10">
               <p className="text-sm">
                 <span className="font-semibold">{t("stageColon")}</span>{" "}
                 {stageModalData.stage_name}
@@ -1043,7 +1043,7 @@ export function StageConfigModal({
             </div>
 
             {tempGroups.map((group, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-4">
+              <div key={index} className="rounded-lg p-4 space-y-4 bg-muted/30">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-sm md:text-base">
                     {t("groupN", { number: index + 1 })}
@@ -1129,7 +1129,7 @@ export function StageConfigModal({
                     {t("matchCount")}
                     <InfoTip id="events.create.match_count" className="ml-1" />
                   </Label>
-                  <p className="text-sm text-muted-foreground rounded-md border border-dashed p-3">
+                  <p className="text-sm text-muted-foreground rounded-md p-3 bg-muted/30">
                     {t("matchCountNote", {
                       count: group.match_maps?.length || 0,
                     })}
@@ -1169,7 +1169,7 @@ export function StageConfigModal({
                       return (
                         <div
                           key={map}
-                          className={`flex items-center gap-1 border rounded-md px-2 py-1 text-sm ${
+                          className={`flex items-center gap-1 rounded-md px-2 py-1 text-sm ${
                             count > 0
                               ? "border-primary bg-primary/10 text-primary"
                               : "border-border bg-muted text-foreground"

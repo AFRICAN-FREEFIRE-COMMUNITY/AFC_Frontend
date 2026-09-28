@@ -569,7 +569,7 @@ export function Step1EventDetails({
                         const file = e.dataTransfer.files?.[0];
                         if (file) handleFileDrop(file);
                       }}
-                      className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                      className={`bg-muted rounded-md p-12 text-center transition-colors cursor-pointer ${
                         isDragging ? "border-primary bg-primary/5" : "border-gray-300 bg-gray-50"
                       }`}
                       onClick={() => fileInputRef.current?.click()}
@@ -589,7 +589,7 @@ export function Step1EventDetails({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="relative w-full aspect-video bg-gray-50 border rounded-md overflow-hidden">
+                      <div className="relative w-full aspect-video bg-gray-50 rounded-md overflow-hidden">
                         <Image
                           width={1000}
                           height={1000}
@@ -707,7 +707,7 @@ export function Step1EventDetails({
                   </RadioGroup>
 
                   {form.watch("registration_restriction") !== "none" && (
-                    <div className="p-4 border rounded-lg bg-card space-y-4">
+                    <div className="p-4 rounded-lg bg-card space-y-4">
                       <Label className="text-destructive">{t("restrictionMode")}</Label>
                       <RadioGroup
                         value={form.watch("restriction_mode") ?? "allow_only"}
@@ -839,7 +839,7 @@ export function Step1EventDetails({
             teams need a logo, and every registering player needs the toggled assets (esport image /
             profile image / Free Fire UID). This is a shared step-1 field set, so BOTH the admin and
             organizer create wizards get them here. (Previously lived in the later waitlist step.) */}
-        <div className="space-y-3 rounded-lg border p-4">
+        <div className="space-y-3 rounded-lg p-4 bg-muted/30">
           <div>
             <Label>
               {t("requirements")}

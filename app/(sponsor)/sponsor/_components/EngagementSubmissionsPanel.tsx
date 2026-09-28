@@ -797,7 +797,7 @@ export function EngagementSubmissionsPanel({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
+                                className="text-green-600 hover:bg-green-50 h-7 text-xs bg-green-200/10"
                                 disabled={!!rowAction}
                                 onClick={() => decide(r, "approve")}
                               >
@@ -811,7 +811,7 @@ export function EngagementSubmissionsPanel({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
+                                className="text-red-600 hover:bg-red-50 h-7 text-xs bg-red-200/10"
                                 disabled={!!rowAction}
                                 onClick={() => openRejectDialog([r])}
                               >

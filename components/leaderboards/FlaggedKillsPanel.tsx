@@ -370,7 +370,7 @@ export function FlaggedKillsPanel({
 
         {/* Combine picker: tick whole stages and/or individual groups to view flagged players across them. */}
         {pickerOpen && (
-          <div className="mt-2 space-y-2 rounded-lg border p-3">
+          <div className="mt-2 space-y-2 rounded-lg p-3 bg-muted/30">
             <p className="text-[11px] text-muted-foreground">{t("combineHint")}</p>
             {stages.length === 0 ? (
               <p className="text-[11px] text-muted-foreground">{t("noStages")}</p>
@@ -429,14 +429,14 @@ export function FlaggedKillsPanel({
                 <span className="text-[11px] font-medium text-muted-foreground">{t("bulkLabel")}</span>
                 <Button
                   type="button" size="sm" variant="outline" disabled={busy}
-                  className="h-7 gap-1 border-green-500/40 text-[11px] text-green-500 hover:text-green-500"
+                  className="h-7 gap-1 text-[11px] text-green-500 hover:text-green-500 bg-green-500/10"
                   onClick={() => bulkFlags(true)}
                 >
                   {t("bulkAcceptAll")}
                 </Button>
                 <Button
                   type="button" size="sm" variant="outline" disabled={busy}
-                  className="h-7 gap-1 border-orange-500/40 text-[11px] text-orange-400 hover:text-orange-400"
+                  className="h-7 gap-1 text-[11px] text-orange-400 hover:text-orange-400 bg-orange-500/10"
                   onClick={() => bulkFlags(false)}
                 >
                   {t("bulkRejectAll")}
@@ -541,7 +541,7 @@ export function FlaggedKillsPanel({
               {canManage && unmatched.length > 1 && (
                 <Button
                   type="button" size="sm" variant="outline" disabled={busy}
-                  className="h-7 gap-1 border-orange-500/40 text-[11px] text-orange-400 hover:text-orange-400"
+                  className="h-7 gap-1 text-[11px] text-orange-400 hover:text-orange-400 bg-orange-500/10"
                   onClick={bulkRejectTeams}
                 >
                   {t("bulkTeamsReject")}

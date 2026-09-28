@@ -119,13 +119,13 @@ interface ChatData {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
-  SHORTLISTED: "bg-cyan-900/20 text-cyan-400 border-cyan-800",
-  INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
-  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
-  TRIAL_EXTENDED: "bg-purple-900/20 text-purple-400 border-purple-800",
-  TRIAL_ONGOING: "bg-indigo-900/20 text-indigo-400 border-indigo-800",
-  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+  PENDING: "bg-yellow-900/20 text-yellow-400",
+  SHORTLISTED: "bg-cyan-900/20 text-cyan-400",
+  INVITED: "bg-blue-900/20 text-blue-400",
+  ACCEPTED: "bg-green-900/20 text-green-400",
+  TRIAL_EXTENDED: "bg-purple-900/20 text-purple-400",
+  TRIAL_ONGOING: "bg-indigo-900/20 text-indigo-400",
+  REJECTED: "bg-red-900/20 text-red-400",
 };
 
 // Tier / commitment display labels now come from the "pmApplication" namespace
@@ -682,7 +682,7 @@ export default function ApplicationDetailPage({
 
           {/* Rejection reason */}
           {details.status === "REJECTED" && details.reason && (
-            <Card className="border-red-800/40">
+            <Card className="bg-red-800/10">
               <CardHeader className="border-b">
                 <CardTitle className="text-sm font-semibold text-red-400">
                   {t("rejectionReason")}
@@ -915,7 +915,7 @@ export default function ApplicationDetailPage({
 
       {/* ── Trial countdown ── */}
       {isTrialActive && details.invite_expires_at && (
-        <div className="rounded-lg border px-4 py-3">
+        <div className="rounded-lg px-4 py-3 bg-muted/30">
           <TrialCountdown expiryDate={details.invite_expires_at} />
         </div>
       )}

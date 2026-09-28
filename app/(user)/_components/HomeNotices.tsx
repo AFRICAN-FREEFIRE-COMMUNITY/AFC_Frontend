@@ -109,7 +109,7 @@ export function HomeNotices() {
             <Link
               key={notice.news_id}
               href={`/news/${notice.slug}`}
-              className="group flex flex-col rounded-md border bg-card p-3 transition-colors hover:border-primary/50"
+              className="group flex flex-col rounded-md bg-card p-3 transition-colors hover:bg-primary/10"
             >
               <h3 className="font-semibold text-sm leading-tight group-hover:text-primary line-clamp-2">
                 {notice.news_title}

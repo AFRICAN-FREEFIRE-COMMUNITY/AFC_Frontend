@@ -262,7 +262,7 @@ function RoleEmpty({ role }: { role: string }) {
 function RoleDataNotice() {
   const t = useTranslations("teamsplayers");
   return (
-    <div className="mb-4 flex items-start gap-2.5 rounded-md border bg-muted/40 p-3">
+    <div className="mb-4 flex items-start gap-2.5 rounded-md bg-muted/40 p-3">
       <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
       <div className="space-y-0.5">
         <p className="text-sm font-semibold">{t("rankings.roleNoDataTitle")}</p>
@@ -925,7 +925,7 @@ function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any
         <span className="ml-auto text-[11px] text-muted-foreground">{t("rankings.minPts", { min: tierMeta[tier].min })}</span>
       </div>
       {rows.length === 0 ? (
-        <Card className={cn(elite && "border-amber-500/40")}>
+        <Card className={cn(elite && "bg-amber-500/10")}>
           <CardContent className="py-6 text-center text-sm text-muted-foreground">
             {t("rankings.noEliteYet")}
           </CardContent>
@@ -934,7 +934,7 @@ function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any
         // Elite reads as elite through a warmer FILL, not a coloured bloom around the card. The
         // shadow-[0_0_40px] glow that was here came off on 2026-09-04: house rule is neutral,
         // offset elevation only, never a centred colour halo.
-        <Card className={cn(elite && "border-amber-500/50 bg-amber-500/[0.07]")}>
+        <Card className={cn(elite && "bg-amber-500/[0.07]")}>
           <CardContent className="p-0">
             {rows.map((r, i) => <TierTeamRow key={i} row={r} elite={elite} />)}
           </CardContent>

@@ -96,7 +96,7 @@ export function YourMatchCallout({ stages, isRegistered, timezone }: Props) {
     <button
       type="button"
       onClick={() => copy(value, t(labelKey))}
-      className="group inline-flex items-center gap-1.5 rounded-md border bg-card px-2.5 py-1.5 text-left transition-colors hover:border-primary/50"
+      className="group inline-flex items-center gap-1.5 rounded-md bg-card px-2.5 py-1.5 text-left transition-colors hover:bg-primary/10"
       title={t("yourMatch.copyTitle")}
     >
       <span className="text-[0.7rem] font-medium uppercase tracking-wide text-muted-foreground">
@@ -108,7 +108,7 @@ export function YourMatchCallout({ stages, isRegistered, timezone }: Props) {
   );
 
   return (
-    <section className="rounded-md border border-primary/40 bg-primary/[0.06] p-4 shadow-sm md:p-5">
+    <section className="rounded-md bg-primary/[0.06] p-4 shadow-sm md:p-5">
       <div className="mb-3 flex items-center gap-2">
         <CalendarClock className="size-4 shrink-0 text-primary" />
         <h3 className="text-sm font-bold uppercase tracking-wide text-primary">
@@ -131,7 +131,7 @@ export function YourMatchCallout({ stages, isRegistered, timezone }: Props) {
           return (
             <div
               key={group.group_id}
-              className="rounded-md border bg-card px-4 py-3"
+              className="rounded-md bg-card px-4 py-3"
             >
               {/* group + schedule */}
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">

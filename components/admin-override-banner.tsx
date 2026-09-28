@@ -36,7 +36,7 @@ export function AdminOverrideBanner({
       <Button
         size="sm"
         variant="outline"
-        className="h-7 shrink-0 border-gold/50 text-gold hover:bg-gold/20"
+        className="h-7 shrink-0 text-gold hover:bg-gold/20 bg-gold/10"
         onClick={onExit}
       >
         {exitLabel}

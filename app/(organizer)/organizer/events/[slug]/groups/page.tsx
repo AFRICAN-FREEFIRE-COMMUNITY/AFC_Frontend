@@ -419,7 +419,7 @@ export default function OrganizerEventGroupsPage({
         <Card
           key={stage.stage_id}
           data-tour="org-event-groups-stages"
-          className="bg-card rounded-md border"
+          className="bg-card rounded-md"
         >
           <CardHeader>
             <CardTitle className="flex items-center justify-between gap-2 flex-wrap">

@@ -435,7 +435,7 @@ const Page = () => {
         <CardContent className="space-y-4">
           {/* THE WARNING (owner, verbatim intent): own picture only, esport-style bust shot,
               no branded shirts - violations can ban the player AND their team. */}
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+          <div className="rounded-md bg-destructive/10 p-3 text-sm">
             <p className="font-semibold text-destructive">
               {t("edit.esport.warningTitle")}
             </p>
@@ -475,7 +475,7 @@ const Page = () => {
                   key={f}
                   src={`/esport-samples/${f}`}
                   alt={t("edit.esport.sampleAlt")}
-                  className="h-32 w-24 rounded-md border object-cover"
+                  className="h-32 w-24 rounded-md object-cover bg-muted/30"
                 />
               ))}
             </div>
@@ -483,7 +483,7 @@ const Page = () => {
 
           <div className="flex flex-wrap items-start gap-4">
             {/* Current image (or placeholder). Esport shots are portrait, so a tall preview. */}
-            <div className="h-40 w-32 overflow-hidden rounded-md border bg-muted/30">
+            <div className="h-40 w-32 overflow-hidden rounded-md bg-muted/30">
               {esportPreview || user.esport_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -678,7 +678,7 @@ const Page = () => {
                 name="stats_visible"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="flex items-center justify-between rounded-lg p-4 bg-muted/30">
                       <div className="space-y-0.5">
                         <Label htmlFor="stats-visible-toggle" className="text-sm font-medium">
                           {t("edit.statsVisible.label")}
@@ -722,7 +722,7 @@ const Page = () => {
                 name="whatsapp_number"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="space-y-2 rounded-lg border p-4">
+                    <div className="space-y-2 rounded-lg p-4 bg-muted/30">
                       <Label
                         htmlFor="whatsapp-number"
                         className="flex flex-wrap items-center gap-2 text-sm font-medium"
@@ -779,7 +779,7 @@ const Page = () => {
                   above) and rides along in the same FormData on "Save changes" (see onSubmit). The
                   picker is locale-agnostic, so its button/alt labels are passed in from the
                   `profile` namespace. NOT an RHF field (kept out of the shared zod schema). */}
-              <div className="space-y-2 rounded-lg border p-4">
+              <div className="space-y-2 rounded-lg p-4 bg-muted/30">
                 <div className="space-y-0.5">
                   <Label className="flex items-center text-sm font-medium">
                     {t("edit.letterAvatars.title")}

@@ -222,7 +222,7 @@ export function BroadcastRateNotice({ rate }: { rate: BroadcastRateStatus | null
   const countdown = `${mm}:${ss}`;
 
   return (
-    <div className="rounded-md border bg-muted/40 px-3 py-2 text-xs">
+    <div className="rounded-md bg-muted/40 px-3 py-2 text-xs">
       <p className="text-muted-foreground">
         {t("rate.left", { remaining: rate.remaining, limit: rate.limit })}
       </p>

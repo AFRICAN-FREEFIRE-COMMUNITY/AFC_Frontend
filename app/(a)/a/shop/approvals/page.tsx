@@ -371,7 +371,7 @@ export default function ProductApprovalsPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                              className="text-destructive hover:bg-destructive hover:text-white bg-destructive/10"
                               onClick={() => {
                                 setRejectTarget(product);
                                 setRejectReason("");
@@ -440,7 +440,7 @@ export default function ProductApprovalsPage() {
                     {gallery.length > 0 ? (
                       <div className="space-y-2">
                         {/* Main frame: an <img> for images, a <video> for videos. */}
-                        <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border bg-muted">
+                        <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-md bg-muted">
                           {active.media_type === "video" ? (
                             <video
                               src={active.url ?? undefined}
@@ -496,7 +496,7 @@ export default function ProductApprovalsPage() {
                       </div>
                     ) : (
                       // No gallery and no primary image: muted placeholder.
-                      <div className="flex aspect-video w-full items-center justify-center rounded-md border bg-muted text-sm text-muted-foreground">
+                      <div className="flex aspect-video w-full items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">
                         No media
                       </div>
                     )}
@@ -547,7 +547,7 @@ export default function ProductApprovalsPage() {
                         Variants ({detailTarget.variants?.length ?? 0})
                       </p>
                       {detailTarget.variants?.length ? (
-                        <div className="rounded-md border">
+                        <div className="rounded-md bg-muted/30">
                           <Table>
                             <TableHeader>
                               <TableRow>
@@ -623,7 +623,7 @@ export default function ProductApprovalsPage() {
                     <DialogFooter>
                       <Button
                         variant="outline"
-                        className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                        className="text-destructive hover:bg-destructive hover:text-white bg-destructive/10"
                         onClick={() => {
                           // Hand off to the existing reject-reason dialog. Close the
                           // detail modal first so only one dialog is open at a time.

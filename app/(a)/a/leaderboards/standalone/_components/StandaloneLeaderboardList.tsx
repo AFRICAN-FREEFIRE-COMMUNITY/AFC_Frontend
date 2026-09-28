@@ -158,7 +158,7 @@ export function StandaloneLeaderboardList({
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-md border">
+          <div className="overflow-hidden rounded-md bg-muted/30">
             <Table>
               <TableHeader>
                 <TableRow className="h-10">

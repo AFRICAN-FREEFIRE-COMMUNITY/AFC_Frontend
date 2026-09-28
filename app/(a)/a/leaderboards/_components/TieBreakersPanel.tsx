@@ -226,7 +226,7 @@ export default function TieBreakersPanel({
             {criteria.map((key, i) => (
               <div
                 key={key}
-                className="bg-muted/40 flex items-center gap-2 rounded-md border px-2 py-1.5"
+                className="bg-muted/40 flex items-center gap-2 rounded-md px-2 py-1.5"
               >
                 <span className="text-muted-foreground w-5 text-xs font-bold">{i + 1}.</span>
                 <span className="text-sm">{labelOf(key)}</span>

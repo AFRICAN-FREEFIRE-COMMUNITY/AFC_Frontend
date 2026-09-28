@@ -1860,7 +1860,7 @@ export function DesignFieldsEditor({
             edited & saved. Instagram is canonical; YouTube falls back to it until a YT layout is set. */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-medium text-foreground">{t("size.label")}</span>
-          <div className="inline-flex rounded-md border bg-muted p-0.5">
+          <div className="inline-flex rounded-md bg-muted p-0.5">
             {(["instagram", "youtube"] as EditSize[]).map((s) => (
               <button
                 key={s}
@@ -1888,7 +1888,7 @@ export function DesignFieldsEditor({
             a new page. When there are NO explicit pages we show a single "Add page" button so the
             user can start a multi-page design without any visible page-1 complexity. */}
         {pages.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1 rounded-md border bg-muted p-1">
+          <div className="flex flex-wrap items-center gap-1 rounded-md bg-muted p-1">
             {pages.map((p) => (
               // Each tab = a "switch" button + an optional "delete" button, wrapped in a flex
               // container so they form one visual unit without nesting <button> inside <button>.
@@ -1899,7 +1899,7 @@ export function DesignFieldsEditor({
                   onClick={() => setCurrentPageId(p.id)}
                   className={
                     currentPageId === p.id
-                      ? "flex items-center gap-1 rounded-l-md border border-primary bg-background px-3 py-1.5 text-xs font-medium text-primary shadow-sm"
+                      ? "flex items-center gap-1 rounded-l-md bg-background px-3 py-1.5 text-xs font-medium text-primary shadow-sm"
                       : "flex items-center gap-1 rounded-l-md px-3 py-1.5 text-xs text-muted-foreground hover:bg-background"
                   }
                 >
@@ -1917,7 +1917,7 @@ export function DesignFieldsEditor({
                       "rounded-r-md border-y border-r p-1 text-muted-foreground",
                       "hover:text-destructive hover:bg-destructive/10 disabled:opacity-50",
                       currentPageId === p.id
-                        ? "border-primary bg-background shadow-sm"
+                        ? "bg-background shadow-sm"
                         : "border-transparent",
                     ].join(" ")}
                     aria-label={t("pages.delete", { number: p.page_number })}
@@ -1980,7 +1980,7 @@ export function DesignFieldsEditor({
         {/* ── Design settings (owner 2026-07-02, studio consolidation): everything the old
             Edit-design modal held, now living where you SEE the result. Instant-saves. ── */}
         {canManage && (
-          <div className="rounded-md border bg-card p-3 space-y-3">
+          <div className="rounded-md bg-card p-3 space-y-3">
             <p className="text-xs font-medium text-foreground">{t("settings.heading")}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="col-span-2 space-y-1">
@@ -2167,7 +2167,7 @@ export function DesignFieldsEditor({
             operator to know what the rows ARE, because they are not a standings table. The preview
             canvas already shows the real shape (mockBooyahCellValue); this spells it out. ── */}
         {dsTypeIsBooyah && canManage && (
-          <div className="rounded-md border bg-card p-3 space-y-2">
+          <div className="rounded-md bg-card p-3 space-y-2">
             <p className="text-xs font-medium text-foreground">{t("booyah.heading")}</p>
             <p className="text-[0.65rem] text-muted-foreground">{t("booyah.body1")}</p>
             <p className="text-[0.65rem] text-muted-foreground">{t("booyah.body2")}</p>
@@ -2180,7 +2180,7 @@ export function DesignFieldsEditor({
             much of the ranking appears - which is how one editor serves both "the MVP, big" and
             "the top ten". The preview canvas already shows it (mockPlayerBoardCellValue). ── */}
         {dsTypeIsPlayerBoard && canManage && (
-          <div className="rounded-md border bg-card p-3 space-y-2">
+          <div className="rounded-md bg-card p-3 space-y-2">
             <p className="text-xs font-medium text-foreground">{t("playerBoard.heading")}</p>
             <p className="text-[0.65rem] text-muted-foreground">{t("playerBoard.body1")}</p>
             <p className="text-[0.65rem] text-muted-foreground">{t("playerBoard.body2")}</p>
@@ -2192,7 +2192,7 @@ export function DesignFieldsEditor({
             is two groups of ONE row at the same height, with each group's columns dragged to its own
             side of the canvas. Says so plainly, since nothing on screen would suggest it. ── */}
         {dsTypeIsH2h && canManage && (
-          <div className="rounded-md border bg-card p-3 space-y-2">
+          <div className="rounded-md bg-card p-3 space-y-2">
             <p className="text-xs font-medium text-foreground">{t("h2h.heading")}</p>
             <p className="text-[0.65rem] text-muted-foreground">{t("h2h.body1")}</p>
             <p className="text-[0.65rem] text-muted-foreground">{t("h2h.body2")}</p>
@@ -2202,7 +2202,7 @@ export function DesignFieldsEditor({
         {/* ── Versus layout (owner 2026-07-02): slots + stat rows, edited HERE in the designer
             (moved out of the Edit-design modal so the whole design lives in one place). ── */}
         {dsTypeIsVersus && canManage && (
-          <div className="rounded-md border bg-card p-3 space-y-2">
+          <div className="rounded-md bg-card p-3 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-foreground">{t("versus.heading")}</p>
               <div className="flex gap-1">
@@ -2259,7 +2259,7 @@ export function DesignFieldsEditor({
         )}
 
         {pages.length > 0 && canManage && (
-          <div className="rounded-md border bg-card p-3">
+          <div className="rounded-md bg-card p-3">
             <p className="mb-2 text-xs font-medium text-foreground">{t("backgrounds.heading")}</p>
             <div className="flex flex-wrap items-start gap-4">
 
@@ -2347,7 +2347,7 @@ export function DesignFieldsEditor({
                     onClick={() => applyAllIgInputRef.current?.click()}
                     className={[
                       "h-7 text-xs",
-                      applyAllIgFile ? "border-primary text-primary" : "",
+                      applyAllIgFile ? "text-primary bg-primary/10" : "",
                     ].join(" ")}
                     title={t("backgrounds.igFileTitle")}
                   >
@@ -2365,7 +2365,7 @@ export function DesignFieldsEditor({
                     onClick={() => applyAllYtInputRef.current?.click()}
                     className={[
                       "h-7 text-xs",
-                      applyAllYtFile ? "border-primary text-primary" : "",
+                      applyAllYtFile ? "text-primary bg-primary/10" : "",
                     ].join(" ")}
                     title={t("backgrounds.ytFileTitle")}
                   >
@@ -2381,7 +2381,7 @@ export function DesignFieldsEditor({
                     variant="outline"
                     disabled={applyingAll || (!applyAllIgFile && !applyAllYtFile)}
                     onClick={handleApplyBackgroundToAll}
-                    className="h-7 text-xs border-primary/40 text-primary hover:bg-primary/10"
+                    className="h-7 text-xs text-primary hover:bg-primary/10 bg-primary/5"
                     title={t("backgrounds.applyToAllTitle")}
                   >
                     {applyingAll ? (
@@ -2438,7 +2438,7 @@ export function DesignFieldsEditor({
           <div className="flex flex-col gap-3">
 
             {/* ── §A Palette: all field types as add/remove chips ── */}
-            <div className="rounded-md border bg-card p-3">
+            <div className="rounded-md bg-card p-3">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-medium text-foreground">
                   {t("palette.heading")}
@@ -2463,8 +2463,8 @@ export function DesignFieldsEditor({
                       key={ft}
                       className={
                         placed
-                          ? "inline-flex items-center gap-1 rounded-full border border-primary bg-primary/10 px-2.5 py-0.5 text-xs"
-                          : "inline-flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-0.5 text-xs text-muted-foreground"
+                          ? "inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs"
+                          : "inline-flex items-center gap-1 rounded-full bg-card px-2.5 py-0.5 text-xs text-muted-foreground"
                       }
                     >
                       <span className="font-medium">{fieldLabel(ft)}</span>
@@ -2521,7 +2521,7 @@ export function DesignFieldsEditor({
             >
               <div
                 ref={canvasRef}
-                className="relative mx-auto select-none overflow-hidden rounded-md border bg-[#0a0e0c]"
+                className="relative mx-auto select-none overflow-hidden rounded-md bg-[#0a0e0c]"
                 style={{ width: canvasDims.w, height: canvasDims.h }}
                 onClick={(e) => {
                   // Click on empty canvas space deselects.
@@ -2534,7 +2534,7 @@ export function DesignFieldsEditor({
                   ? versusSlots.map((sl, i) => (
                       <div
                         key={`vslot-${i}`}
-                        className="border-primary/80 bg-primary/15 text-primary absolute z-20 flex cursor-grab items-center justify-center rounded-lg border-2 text-2xl font-black select-none"
+                        className="bg-primary/15 text-primary absolute z-20 flex cursor-grab items-center justify-center rounded-lg text-2xl font-black select-none"
                         style={{
                           left: `${sl.x_pct}%`,
                           top: `${sl.y_pct}%`,
@@ -2789,7 +2789,7 @@ export function DesignFieldsEditor({
             </div>
 
             {/* ── §C Column groups editor ── */}
-            <div className="rounded-md border bg-card p-3">
+            <div className="rounded-md bg-card p-3">
               {/* flex-wrap (i18n, 2026-08-08): the heading sits beside two nowrap buttons, and in
                   French/Portuguese ("Predefinição de 2 colunas" + "Adicionar grupo") that row needs
                   398px against the 357px a 390px phone gives, which pushed the whole dialog into a
@@ -2833,7 +2833,7 @@ export function DesignFieldsEditor({
                   return (
                     <div
                       key={gi}
-                      className={`rounded-md border p-2.5 text-xs ${groupColor}`}
+                      className={`rounded-md p-2.5 text-xs ${groupColor}`}
                     >
                       <div className="mb-1.5 flex items-center justify-between">
                         <span className="font-medium text-foreground">
@@ -2873,7 +2873,7 @@ export function DesignFieldsEditor({
                                 "#ffffff"
                               }
                               onChange={(e) => setGroupColor(gi, e.target.value)}
-                              className="h-7 w-9 cursor-pointer rounded-md border bg-transparent p-1"
+                              className="h-7 w-9 cursor-pointer rounded-md border border-input bg-transparent p-1"
                               aria-label={t("groups.allColourAria", { number: gi + 1 })}
                             />
                             <button
@@ -2945,8 +2945,8 @@ export function DesignFieldsEditor({
                                   key={ft}
                                   className={
                                     placed
-                                      ? "inline-flex items-center gap-1 rounded-full border border-primary bg-primary/10 px-2 py-0.5 text-[11px]"
-                                      : "inline-flex items-center gap-1 rounded-full border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground"
+                                      ? "inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px]"
+                                      : "inline-flex items-center gap-1 rounded-full bg-card px-2 py-0.5 text-[11px] text-muted-foreground"
                                   }
                                 >
                                   <span className="font-medium">
@@ -3075,7 +3075,7 @@ export function DesignFieldsEditor({
           <div className="space-y-3">
 
             {/* ── §D Selected element style panel ── */}
-            <div className="rounded-md border bg-card p-3">
+            <div className="rounded-md bg-card p-3">
               <p className="mb-2 text-xs font-medium text-foreground">
                 {selectedField
                   ? t("style.headingField", { field: fieldLabel(selectedField.field_type) })
@@ -3132,8 +3132,8 @@ export function DesignFieldsEditor({
                           }
                           className={
                             selectedField.align === a
-                              ? "flex-1 rounded-md border border-primary bg-primary/10 py-1 text-xs font-medium text-primary"
-                              : "flex-1 rounded-md border border-border py-1 text-xs text-muted-foreground hover:bg-muted"
+                              ? "flex-1 rounded-md bg-primary/10 py-1 text-xs font-medium text-primary"
+                              : "flex-1 rounded-md py-1 text-xs text-muted-foreground hover:bg-muted bg-muted/30"
                           }
                         >
                           {t(`style.align.${a}`)}
@@ -3217,7 +3217,7 @@ export function DesignFieldsEditor({
                             color: e.target.value,
                           })
                         }
-                        className="h-8 w-10 cursor-pointer rounded-md border bg-transparent p-1"
+                        className="h-8 w-10 cursor-pointer rounded-md border border-input bg-transparent p-1"
                         aria-label={t("style.fieldColourAria")}
                       />
                       <Button
@@ -3259,7 +3259,7 @@ export function DesignFieldsEditor({
                       it on Instagram vs YouTube without touching the other size; "Apply to all" turns it
                       on for BOTH sizes (and, for a multi-page design, the same column on every page) in
                       one click via apply-field-enablement-to-all. */}
-                  <div className="space-y-2 rounded-md border border-border bg-muted/30 p-2.5">
+                  <div className="space-y-2 rounded-md bg-muted/30 p-2.5">
                     <p className="text-[0.7rem] font-medium text-foreground">
                       {t("style.shownOn")}
                     </p>
@@ -3345,8 +3345,8 @@ export function DesignFieldsEditor({
                           }
                           className={
                             selectedText.align === a
-                              ? "flex-1 rounded-md border border-primary bg-primary/10 py-1 text-xs font-medium text-primary"
-                              : "flex-1 rounded-md border border-border py-1 text-xs text-muted-foreground hover:bg-muted"
+                              ? "flex-1 rounded-md bg-primary/10 py-1 text-xs font-medium text-primary"
+                              : "flex-1 rounded-md py-1 text-xs text-muted-foreground hover:bg-muted bg-muted/30"
                           }
                         >
                           {t(`style.align.${a}`)}
@@ -3422,7 +3422,7 @@ export function DesignFieldsEditor({
                       onChange={(e) =>
                         updateText(selectedText.draftId, { color: e.target.value })
                       }
-                      className="h-8 w-10 cursor-pointer rounded-md border bg-transparent p-1"
+                      className="h-8 w-10 cursor-pointer rounded-md border border-input bg-transparent p-1"
                       aria-label={t("style.textColourAria")}
                     />
                   </div>
@@ -3483,7 +3483,7 @@ export function DesignFieldsEditor({
             </div>
 
             {/* ── §E Font library ── */}
-            <div className="rounded-md border bg-card p-3">
+            <div className="rounded-md bg-card p-3">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-medium text-foreground">
                   <IconTypography className="mr-1 inline-block size-3.5" />
@@ -3528,7 +3528,7 @@ export function DesignFieldsEditor({
                   {fonts.map((f) => (
                     <div
                       key={f.id}
-                      className="flex items-center justify-between rounded-md border p-1.5 text-xs"
+                      className="flex items-center justify-between rounded-md p-1.5 text-xs bg-muted/30"
                     >
                       <span style={{ fontFamily: `"${f.name}", DM Sans, sans-serif` }}>
                         {f.name}

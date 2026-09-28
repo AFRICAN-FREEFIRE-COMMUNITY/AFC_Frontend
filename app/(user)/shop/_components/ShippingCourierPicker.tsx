@@ -101,7 +101,7 @@ export function ShippingCourierPicker({
               <Label
                 key={c.courier_id}
                 htmlFor={`courier_${c.courier_id}`}
-                className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors ${
+                className={`flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors ${
                   selectedId === c.courier_id
                     ? "border-primary bg-primary/5"
                     : "border-border hover:bg-muted/50"

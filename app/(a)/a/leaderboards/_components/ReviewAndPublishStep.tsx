@@ -493,7 +493,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
                     participantType={participantType}
                   />
                 </div>
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md overflow-hidden bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -567,7 +567,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
                 participantType={participantType}
               />
             </div>
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md overflow-hidden bg-muted/30">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -635,7 +635,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
 
             {/* ── Team Leaderboard ──────────────────────────────────────────── */}
             <TabsContent value="team" className="mt-4">
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md overflow-hidden bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -679,7 +679,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
 
             {/* ── Player Leaderboard ────────────────────────────────────────── */}
             <TabsContent value="player" className="mt-4">
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md overflow-hidden bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>

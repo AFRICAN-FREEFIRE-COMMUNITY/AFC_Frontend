@@ -102,7 +102,7 @@ export default function AwardsPage() {
   if (editions.length === 0) {
     return (
       <div className="py-10">
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="space-y-2 text-center">
             <h1 className="text-3xl font-bold text-primary md:text-4xl">
               {t("index.empty.title")}

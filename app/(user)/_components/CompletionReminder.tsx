@@ -66,7 +66,7 @@ export function CompletionReminder() {
 
   return (
     <div className="container mt-4">
-      <div className="flex items-start gap-3 rounded-md border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm">
+      <div className="flex items-start gap-3 rounded-md bg-primary/5 px-4 py-2.5 text-sm">
         <p className="flex-1 leading-relaxed">
           <span className="text-muted-foreground">{t("intro")} </span>
           {items.map((it, idx) => (

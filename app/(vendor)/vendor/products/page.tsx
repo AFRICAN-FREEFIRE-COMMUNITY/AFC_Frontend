@@ -199,7 +199,7 @@ export default function VendorProductsPage() {
           (data-tour: Vendor Tour "how approval works" step.) */}
       <div
         data-tour="vendor-products-review"
-        className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-muted-foreground"
+        className="flex items-start gap-2 rounded-md bg-primary/5 px-3 py-2 text-sm text-muted-foreground"
       >
         <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
         <p>

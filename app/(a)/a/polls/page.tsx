@@ -131,7 +131,7 @@ function PollTable({ polls, emptyText }: { polls: PollCard[]; emptyText: string 
   const t = useTranslations("adminPolls");
   if (polls.length === 0) {
     return (
-      <Card className="bg-card rounded-md border py-6 shadow-sm">
+      <Card className="bg-card rounded-md py-6 shadow-sm">
         <CardContent className="text-center text-sm text-muted-foreground">{emptyText}</CardContent>
       </Card>
     );
@@ -139,7 +139,7 @@ function PollTable({ polls, emptyText }: { polls: PollCard[]; emptyText: string 
   return (
     // Tables scroll INSIDE their container rather than overflowing the page, which is the
     // difference between a usable and an unusable admin list at 390px.
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-md bg-muted/30">
       <Table>
         <TableHeader>
           <TableRow className="h-10">
@@ -314,13 +314,13 @@ function EditionTable({
   const t = useTranslations("adminPolls");
   if (editions.length === 0) {
     return (
-      <Card className="bg-card rounded-md border py-6 shadow-sm">
+      <Card className="bg-card rounded-md py-6 shadow-sm">
         <CardContent className="text-center text-sm text-muted-foreground">{emptyText}</CardContent>
       </Card>
     );
   }
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-md bg-muted/30">
       <Table>
         <TableHeader>
           <TableRow className="h-10">

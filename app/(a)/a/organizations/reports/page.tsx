@@ -112,9 +112,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 // dismissed=muted.
 function StatusBadge({ status }: { status: string }) {
   const colour: Record<string, string> = {
-    open: "border-red-500/60 text-gold", // red border + gold text: an open, unhandled report
-    reviewing: "border-blue-500/50 text-blue-400",
-    resolved: "border-green-600/60 text-green-400",
+    open: "text-gold bg-red-500/10", // red border + gold text: an open, unhandled report
+    reviewing: "text-blue-400 bg-blue-500/10",
+    resolved: "text-green-400 bg-green-600/10",
     dismissed: "text-muted-foreground",
   };
   return (
@@ -447,7 +447,7 @@ export default function OrgReportsAdminPage() {
             {editTarget?.evidence && (
               <div className="space-y-2">
                 <Label>Evidence</Label>
-                <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+                <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
                   {/* Reporter-supplied evidence comes from arbitrary upload hosts - plain <img>. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img

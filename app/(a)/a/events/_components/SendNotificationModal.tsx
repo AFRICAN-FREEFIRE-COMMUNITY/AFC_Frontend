@@ -252,7 +252,7 @@ export const SendNotificationModal = ({
             // ── Letter-assignment mode: no typing; auto-composed per-team message ──
             <div className="space-y-2">
               <Label>What to send</Label>
-              <p className="text-sm text-muted-foreground border rounded-md p-3 bg-muted/40">
+              <p className="text-sm text-muted-foreground rounded-md p-3 bg-muted/40">
                 <span className="inline-flex items-center gap-1 font-medium text-foreground">
                   <Hash className="h-4 w-4" /> Letter assignments
                 </span>
@@ -293,9 +293,9 @@ export const SendNotificationModal = ({
                         key={opt.value}
                         onClick={() => setMode(opt.value)}
                         className={cn(
-                          "flex flex-col items-center justify-center gap-1 border rounded-md p-3 text-xs text-center transition-colors",
+                          "flex flex-col items-center justify-center gap-1 rounded-md p-3 text-xs text-center transition-colors bg-muted/30",
                           selected
-                            ? "border-primary bg-primary/10 text-primary"
+                            ? "bg-primary/10 text-primary"
                             : "hover:bg-muted",
                         )}
                       >
@@ -336,7 +336,7 @@ export const SendNotificationModal = ({
                 </>
               ) : (
                 // Room-details mode: no typing; explain what goes out.
-                <p className="text-sm text-muted-foreground border rounded-md p-3 bg-muted/40">
+                <p className="text-sm text-muted-foreground rounded-md p-3 bg-muted/40">
                   Sends every map&apos;s saved Room ID, Room Name and Password for
                   this group to all of its players. Maps without room details set
                   are skipped.
@@ -358,9 +358,9 @@ export const SendNotificationModal = ({
                     key={opt.value}
                     onClick={() => setDelivery(opt.value)}
                     className={cn(
-                      "flex flex-col items-center justify-center gap-1 border rounded-md p-2.5 text-xs text-center transition-colors",
+                      "flex flex-col items-center justify-center gap-1 rounded-md p-2.5 text-xs text-center transition-colors bg-muted/30",
                       selected
-                        ? "border-primary bg-primary/10 text-primary"
+                        ? "bg-primary/10 text-primary"
                         : "hover:bg-muted",
                     )}
                   >

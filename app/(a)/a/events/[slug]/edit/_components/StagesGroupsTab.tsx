@@ -88,7 +88,7 @@ const MODE_LABEL_KEY: Record<string, string> = {
 //       {stages.map((stage, sIdx) => {
 //         if (!stage || typeof stage !== "object") {
 //           return (
-//             <Card key={sIdx} className="bg-yellow-50 border-yellow-200">
+//             <Card key={sIdx} className="bg-yellow-50">
 //               <CardContent className="p-4">
 //                 <p className="text-yellow-800">
 //                   ⚠️ Stage {sIdx + 1} is not configured.
@@ -662,7 +662,7 @@ export default function StagesGroupsTab({
           return (
             <SortableShell key={sIdx} id={stageSortId} disabled>
               {() => (
-                <Card className="bg-yellow-50 border-yellow-200">
+                <Card className="bg-yellow-50">
                   <CardContent className="p-4">
                     <p className="text-yellow-800">
                       {t("notConfigured", { number: sIdx + 1 })}

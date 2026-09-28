@@ -88,7 +88,7 @@ export function PrizeDistributionSummary({ distribution, cashValue, currency = "
 
   if (!hasCashValue(cashValue)) {
     return (
-      <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+      <div className="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
         {t("prizeSummary.setCashValue")}
       </div>
     );
@@ -101,13 +101,13 @@ export function PrizeDistributionSummary({ distribution, cashValue, currency = "
   const over = diff > 0;
 
   const tone = balanced
-    ? "border-primary/40 bg-primary/10 text-primary"
+    ? "bg-primary/10 text-primary"
     : over
-      ? "border-red-500/40 bg-red-500/10 text-red-500"
-      : "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400";
+      ? "bg-red-500/10 text-red-500"
+      : "bg-amber-500/10 text-amber-600 dark:text-amber-400";
 
   return (
-    <div className={`rounded-md border px-3 py-2 text-xs ${tone}`}>
+    <div className={`rounded-md px-3 py-2 text-xs ${tone}`}>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <span>
           {/* Rich text keeps the two amounts bold inside the translated sentence. */}

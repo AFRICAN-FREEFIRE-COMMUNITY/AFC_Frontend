@@ -99,15 +99,15 @@ const StatusPill: React.FC<{ status: MySubmissionRow["approval_status"] }> = ({
   const t = useTranslations("tournaments");
   const styles: Record<string, { className: string; label: string }> = {
     pending: {
-      className: "border-yellow-500/50 text-yellow-400",
+      className: "text-yellow-400 bg-yellow-500/10",
       label: t("sponsorRequirements.status.pending"),
     },
     approved: {
-      className: "border-green-500/50 text-green-500",
+      className: "text-green-500 bg-green-500/10",
       label: t("sponsorRequirements.status.approved"),
     },
     rejected: {
-      className: "border-destructive/50 text-destructive",
+      className: "text-destructive bg-destructive/10",
       label: t("sponsorRequirements.status.rejected"),
     },
     not_required: {
@@ -208,7 +208,7 @@ export const SponsorRequirementsCard: React.FC<
           );
           const isResubmitting = resubmittingId === row.id;
           return (
-            <div key={row.id} className="p-3 rounded-md border space-y-2">
+            <div key={row.id} className="p-3 rounded-md space-y-2 bg-muted/30">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">

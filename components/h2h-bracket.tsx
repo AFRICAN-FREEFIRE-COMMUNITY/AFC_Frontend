@@ -234,7 +234,7 @@ function MatchBox({
       onClick={openMain}
       onKeyDown={openMain ? (e) => { if (e.key === "Enter") openMain(); } : undefined}
       className={cn(
-        "bg-card w-48 rounded-md border text-xs shadow-sm",
+        "bg-card w-48 rounded-md text-xs shadow-sm",
         openMain && "hover:border-primary/60 cursor-pointer transition-colors",
       )}
     >
@@ -402,7 +402,7 @@ function LeagueRounds({
                   title={clickable ? t("enterResult") : openRow ? t("matchDetails") : undefined}
                   onClick={openRow}
                   className={cn(
-                    "bg-card flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs",
+                    "bg-card flex items-center gap-2 rounded-md px-2 py-1.5 text-xs",
                     openRow && "hover:border-primary/60 cursor-pointer transition-colors",
                   )}
                 >
@@ -1067,7 +1067,7 @@ export function H2HBracketCard({
               <div className="text-primary mb-2 text-sm font-semibold">{t("standings")}</div>
               {/* overflow-x-auto (P2): on a narrow phone the W-L / rounds columns must scroll inside
                   the card, not clip or push the page wide (overflow-hidden truncated them). */}
-              <div className="overflow-x-auto rounded-md border">
+              <div className="overflow-x-auto rounded-md bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1157,7 +1157,7 @@ export function H2HBracketCard({
 
             {/* Bronze match opt-in. Single elimination only - see canOfferThirdPlace. */}
             {canOfferThirdPlace && (
-              <label className="flex cursor-pointer items-start gap-2 rounded-md border p-2.5">
+              <label className="flex cursor-pointer items-start gap-2 rounded-md p-2.5 bg-muted/30">
                 <Checkbox
                   checked={thirdPlace}
                   onCheckedChange={(v) => setThirdPlace(v === true)}
@@ -1188,7 +1188,7 @@ export function H2HBracketCard({
               {seeds.length === 0 ? (
                 <p className="text-muted-foreground text-xs">{t("noTeamsYet")}</p>
               ) : (
-                <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border p-1.5">
+                <div className="max-h-72 space-y-1 overflow-y-auto rounded-md p-1.5 bg-muted/30">
                   {seeds.map((s, i) => {
                     // Seed number = position among the INCLUDED teams only.
                     const seedNo = s.included
@@ -1371,7 +1371,7 @@ export function H2HBracketCard({
               than retyping it, and whether the two of them agree - which is most of what a
               dispute comes down to. */}
           {submissions.some((s) => s.status === "pending") && (
-            <div className="space-y-2 rounded-md border p-2.5">
+            <div className="space-y-2 rounded-md p-2.5 bg-muted/30">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-primary text-sm font-semibold">{t("teamSubmissions")}</span>
                 <Badge
@@ -1653,7 +1653,7 @@ export function H2HBracketCard({
                 <IconLoader2 className="size-3.5 animate-spin" /> {t("loading")}
               </p>
             ) : involved && !canReview && detailsFor?.status !== "completed" ? (
-              <div className="space-y-2 rounded-md border p-2.5">
+              <div className="space-y-2 rounded-md p-2.5 bg-muted/30">
                 <div>
                   <p className="text-primary text-sm font-semibold">{t("submitOurResult")}</p>
                   <p className="text-muted-foreground text-xs">{t("submitOurResultHint")}</p>

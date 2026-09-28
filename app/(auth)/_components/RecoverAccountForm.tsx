@@ -243,7 +243,7 @@ export function RecoverAccountForm() {
   // changes because the same card fronts two different endings.
   const accountCard = (label: string) =>
     username ? (
-      <div className="rounded-md border bg-card p-4">
+      <div className="rounded-md bg-card p-4">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-sm font-medium break-all">{username}</p>
         {maskedEmail ? (

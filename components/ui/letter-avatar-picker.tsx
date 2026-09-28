@@ -40,7 +40,7 @@
  *
  * Design idiom (mirrors AFC tier badges + Button)
  * -----------------------------------------------
- *  - Chips reuse the outline-tier-badge look: rounded-full, text-xs, bordered.
+ *  - Chips are filled pills (never outlined): rounded-full, text-xs, muted fill.
  *  - Selected chip = bg-primary text-primary-foreground (the green primary).
  *  - Buttons reuse the shared Button (variant="outline"/"ghost", size="sm").
  *  - Count pill reuses Badge variant="outline".
@@ -201,7 +201,7 @@ export function LetterAvatarPicker({
           src="/letter-avatars/explainer.jpeg"
           alt={explainerAlt}
           onError={() => setExplainerOk(false)}
-          className="w-full max-w-md rounded-md border bg-card object-contain"
+          className="w-full max-w-md rounded-md bg-card object-contain"
         />
       ) : null}
 
@@ -260,13 +260,13 @@ export function LetterAvatarPicker({
               onClick={interactive ? () => toggle(letter) : undefined}
               className={cn(
                 // Base chip: square-ish, rounded-full, text-xs - the tier-badge idiom.
-                "flex h-9 w-full items-center justify-center rounded-full border text-xs font-semibold transition-colors outline-none",
+                "flex h-9 w-full items-center justify-center rounded-full text-xs font-semibold transition-colors outline-none",
                 "focus-visible:ring-ring/50 focus-visible:ring-[3px]",
                 isSelected
                   ? // Selected / locked-on: green primary fill.
-                    "border-transparent bg-primary text-primary-foreground"
-                  : // Unselected: outline-tier-badge look.
-                    "text-foreground hover:bg-accent hover:text-accent-foreground",
+                    "bg-primary text-primary-foreground"
+                  : // Unselected: muted fill.
+                    "bg-muted text-foreground hover:bg-accent hover:text-accent-foreground",
                 // Cursor + dimming states.
                 isLocked && "cursor-not-allowed opacity-90",
                 blockedByMax && "cursor-not-allowed opacity-50",

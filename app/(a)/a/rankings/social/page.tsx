@@ -356,7 +356,7 @@ export default function SocialVerificationPage() {
       </div>
 
       {/* self-connect info note */}
-      <p className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+      <p className="flex items-start gap-2 rounded-md bg-muted/30 p-3 text-xs text-muted-foreground">
         <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
         <span>
           {/* One message with an inline <b> lead sentence, so the emphasis can move with the
@@ -576,7 +576,7 @@ export default function SocialVerificationPage() {
                             size="sm"
                             variant="outline"
                             disabled={submitting}
-                            className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                             onClick={() => openUnverify(r)}
                           >
                             <IconShieldOff className="mr-1 size-3.5" /> {t("table.unverify")}

@@ -61,7 +61,7 @@ export function MatchMethodSelectionStep({ matchName, onSelect, onBack }: Props)
               key={m.id}
               disabled={m.disabled}
               onClick={() => onSelect(m.id)}
-              className="text-left rounded-lg border p-4 flex flex-col gap-3 hover:border-primary/60 hover:bg-muted/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="text-left rounded-lg p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-muted/30"
             >
               <div>
                 <div className="flex items-center gap-2 mb-1">

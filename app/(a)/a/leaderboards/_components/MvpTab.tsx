@@ -266,7 +266,7 @@ export default function MvpTab({
               return (
                 <div
                   key={key}
-                  className="bg-muted/40 flex items-center gap-2 rounded-md border px-2 py-1.5"
+                  className="bg-muted/40 flex items-center gap-2 rounded-md px-2 py-1.5"
                 >
                   <span className="text-muted-foreground w-5 text-xs font-bold">{i + 1}.</span>
                   <span className="text-sm">{m.label}</span>
@@ -335,7 +335,7 @@ export default function MvpTab({
                 <img
                   src={mvp.esports_image}
                   alt=""
-                  className="size-12 rounded-md border object-cover"
+                  className="size-12 rounded-md object-cover bg-muted/30"
                 />
               ) : null}
               <div>

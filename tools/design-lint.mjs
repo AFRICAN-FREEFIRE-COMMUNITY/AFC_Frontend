@@ -113,7 +113,23 @@ const RULES = [
     // primitives carry it, which is the 299 files, and rewriting those is not what was asked for.
     // A `focus-visible:` ring is the one ring the design rule allows (keyboard focus, a11y).
     test: /(?<!focus-visible:)\bring-[12]\b|\bdivide-[xy]\b|\bborder-dashed\b|<hr\b|\boutline:\s*1px/,
+    // Table rows keep their lines: owner 2026-09-28, "Standings tables: lines between rows and
+    // green stripes down the left edge. - leave like that".
+    allow: (line) => /<(table|thead|tbody|tr)\b/.test(line),
     says: "structure drawn with a line. Use a filled surface and space instead.",
+  },
+  {
+    // A box drawn with a stroke: rounded-* plus a bare border width on one class list. Removed
+    // from 639 class lists and every primitive on 2026-09-28 (owner: "use the no outlines rule");
+    // this keeps the 640th out. Form controls are the rule's own exception (their outline is the
+    // control), and side borders (border-b ...) are rules or table rows, judged elsewhere.
+    id: "outlined-box",
+    tier: "CHANGED",
+    where: "code",
+    test: /["'`][^"'`\n]*(?:\brounded(?:-[\w\[\].]+)?\b[^"'`\n]*(?<![\w-])(?:[\w-]+:)?border(?:-2|-4)?(?![\w\/-])|(?<![\w-])(?:[\w-]+:)?border(?:-2|-4)?(?![\w\/-])[^"'`\n]*\brounded\b)/,
+    allow: (line) =>
+      /<(input|select|textarea|Input|Textarea|SelectTrigger)\b|border-input|focus-visible:ring|type=["']color["']|animate-spin/.test(line),
+    says: "outlined box. Use a filled surface (bg-card, bg-muted/30) with no stroke.",
   },
   {
     id: "emoji-in-ui-copy",
@@ -266,6 +282,17 @@ function selfTest() {
     ["hairline-structure", 'className="ring-1 ring-white/10"', true],
     ["hairline-structure", "<hr />", true],
     ["hairline-structure", 'className="rounded-md bg-muted/40 p-2"', false],
+    ["hairline-structure", '<tbody className="divide-y divide-zinc-900">', false],
+    ["hairline-structure", '<div className="divide-y rounded-md">', true],
+    ["outlined-box", 'className="rounded-md border p-3"', true],
+    ["outlined-box", 'className="p-4 border rounded-lg bg-card"', true],
+    ["outlined-box", 'className="rounded-full border-2 bg-muted"', true],
+    ["outlined-box", 'className="rounded-md bg-muted/30 p-3"', false],
+    ["outlined-box", 'className="rounded-md border-b pb-2"', false],
+    ["outlined-box", 'className="rounded-md text-primary border-primary/40"', false],
+    ["outlined-box", '<input className="w-full rounded-md border px-3" />', false],
+    ["outlined-box", 'className="h-9 w-full rounded-md border border-input px-2"', false],
+    ["outlined-box", 'className="size-4 animate-spin rounded-full border-2 border-t-transparent"', false],
     ["emoji-in-ui-copy", '"openTitle": "\u{1F7E2} Transfer window is OPEN"', true],
     ["emoji-in-ui-copy", '"openTitle": "Transfer window is OPEN"', false],
   ];

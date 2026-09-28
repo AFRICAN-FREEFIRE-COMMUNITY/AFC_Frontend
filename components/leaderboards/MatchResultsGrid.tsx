@@ -498,7 +498,7 @@ export function MatchResultsGrid({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md overflow-hidden bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -642,7 +642,7 @@ export function MatchResultsGrid({
                   return (
                     <div
                       key={group.teamId}
-                      className="border rounded-lg overflow-hidden"
+                      className="rounded-lg overflow-hidden bg-muted/30"
                     >
                       {/* Team header */}
                       <button
@@ -844,7 +844,7 @@ export function MatchResultsGrid({
                 <CardDescription>{L.matchLeaderboardDesc}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1020,7 +1020,7 @@ export function MatchResultsGrid({
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="outline"
-                        className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                        className="text-destructive hover:bg-destructive/10 bg-destructive/5"
                         disabled={redoingMap || redoingAllMaps || savingMatch || savingAllMaps}
                       >
                         {redoingAllMaps ? (

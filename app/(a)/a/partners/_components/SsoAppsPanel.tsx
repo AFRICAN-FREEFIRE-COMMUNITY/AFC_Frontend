@@ -892,7 +892,7 @@ export default function SsoAppsPanel() {
                       <img
                         src={detail.logo_display_url}
                         alt={t("logo.alt")}
-                        className="size-12 shrink-0 rounded-md border object-cover"
+                        className="size-12 shrink-0 rounded-md object-cover bg-muted/30"
                       />
                     ) : (
                       <div className="flex size-12 shrink-0 items-center justify-center rounded-md text-muted-foreground bg-muted/30">
@@ -920,7 +920,7 @@ export default function SsoAppsPanel() {
                           variant="outline"
                           size="sm"
                           disabled={logoBusy}
-                          className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                           onClick={handleLogoRemove}
                         >
                           <IconTrash className="size-4" />
@@ -1030,7 +1030,7 @@ export default function SsoAppsPanel() {
                   {SSO_FIELD_TOGGLES.map((field) => (
                     <label
                       key={field}
-                      className="flex items-start justify-between gap-3 rounded-md border px-3 py-2.5"
+                      className="flex items-start justify-between gap-3 rounded-md px-3 py-2.5 bg-muted/30"
                     >
                       <span className="flex min-w-0 flex-col">
                         <span className="text-sm font-medium">
@@ -1055,7 +1055,7 @@ export default function SsoAppsPanel() {
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold">{t("suspend.sectionTitle")}</h3>
 
-                <div className="flex flex-col gap-3 rounded-md border px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 rounded-md px-3 py-3 sm:flex-row sm:items-center sm:justify-between bg-muted/30">
                   <div className="min-w-0">
                     <p className="text-sm font-medium">
                       {detail.status === "active"
@@ -1070,7 +1070,7 @@ export default function SsoAppsPanel() {
                   </div>
                   <Button
                     variant="outline"
-                    className="shrink-0 border-orange-500/40 text-orange-400 hover:bg-orange-500/10 hover:text-orange-400"
+                    className="shrink-0 text-orange-400 hover:bg-orange-500/10 hover:text-orange-400 bg-orange-500/5"
                     disabled={suspending}
                     onClick={() =>
                       detail.status === "active"
@@ -1086,14 +1086,14 @@ export default function SsoAppsPanel() {
                   </Button>
                 </div>
 
-                <div className="flex flex-col gap-3 rounded-md border px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 rounded-md px-3 py-3 sm:flex-row sm:items-center sm:justify-between bg-muted/30">
                   <div className="min-w-0">
                     <p className="text-sm font-medium">{t("rotate.button")}</p>
                     <p className="text-xs text-muted-foreground">{t("rotate.hint")}</p>
                   </div>
                   <Button
                     variant="outline"
-                    className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                     disabled={rotating}
                     onClick={() => setRotateTarget(detail)}
                   >

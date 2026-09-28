@@ -756,7 +756,7 @@ export default function OrganizationDetailPage({
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                               disabled={memberBusy === m.user_id}
                               onClick={() => setRemoveTarget(m)}
                             >
@@ -937,7 +937,7 @@ export default function OrganizationDetailPage({
                 {PERMISSION_KEYS.map((key) => (
                   <label
                     key={key}
-                    className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
+                    className="flex items-center justify-between gap-2 rounded-md px-3 py-2 bg-muted/30"
                   >
                     <span className="text-xs">{PERMISSION_LABELS[key]}</span>
                     <Switch

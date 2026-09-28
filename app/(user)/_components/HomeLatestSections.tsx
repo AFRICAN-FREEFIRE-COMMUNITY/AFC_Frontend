@@ -90,10 +90,10 @@ const STATUS_TEXT: Record<EventRow["event_status"], string> = {
 // Tier chip colours mirror player-markets getTierColor (Tier 1/2/3).
 function tierClass(tier: string) {
   if (tier?.includes("1"))
-    return "border-yellow-500/50 text-yellow-600 dark:text-yellow-400";
+    return "text-yellow-600 dark:text-yellow-400 bg-yellow-500/10";
   if (tier?.includes("2"))
-    return "border-cyan-500/50 text-cyan-600 dark:text-cyan-400";
-  return "border-purple-500/50 text-purple-600 dark:text-purple-400";
+    return "text-cyan-600 dark:text-cyan-400 bg-cyan-500/10";
+  return "text-purple-600 dark:text-purple-400 bg-purple-500/10";
 }
 
 const MAX = 4; // 4 newest per section, then "View all" (keeps the home page short)
@@ -272,7 +272,7 @@ export function HomeLatestSections() {
                 <Link
                   key={e.event_id}
                   href={`/tournaments/${encodeURIComponent(e.slug)}`}
-                  className="group rounded-md border bg-card overflow-hidden transition-colors hover:border-primary/50"
+                  className="group rounded-md bg-card overflow-hidden transition-colors hover:bg-primary/10"
                 >
                   {/* slim status-accent strip instead of a full banner (compact) */}
                   <div className={cn("h-1.5 w-full", STATUS_ACCENT[e.event_status])} />
@@ -360,7 +360,7 @@ export function HomeLatestSections() {
                   <Link
                     key={`${p.kind}-${p.id}`}
                     href="/player-markets"
-                    className="group rounded-md border bg-card p-3 transition-colors hover:border-primary/50"
+                    className="group rounded-md bg-card p-3 transition-colors hover:bg-primary/10"
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">

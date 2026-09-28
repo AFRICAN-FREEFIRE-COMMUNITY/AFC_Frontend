@@ -12,8 +12,10 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        // The quiet button (748 call sites). Filled, never outlined (design rule 2026-08-17,
+        // applied 2026-09-28): a muted surface, a stronger one on hover.
         outline:
-          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+          "bg-muted text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/50 dark:hover:bg-input/80",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         black: "bg-black text-white hover:bg-black/80",
@@ -22,8 +24,11 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // Kept as a name (Join Now, Login, View Team, the tour buttons use it) but no longer a
+        // gradient: button gradients are banned house style (owner, 2026-09-28: "fix"). It is
+        // the committed brand green, solid, with an instant fill change on hover.
         gradient:
-          "bg-gradient-to-r from-primary to-gold text-primary-foreground shadow-md hover:opacity-90",
+          "bg-primary text-primary-foreground hover:bg-primary/90",
       },
       size: {
         default: "h-12 px-6 py-2 has-[>svg]:px-3",

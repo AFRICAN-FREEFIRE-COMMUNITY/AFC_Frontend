@@ -513,13 +513,13 @@ const NewsAdminPage = () => {
                     {truncateText(extractTiptapText(newsDetails.content), 150)}
                   </p>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-md border border-green-500/20">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-md">
                       <IconThumbUp size={14} />
                       <span className="text-xs font-bold">
                         {newsDetails.likes_count || 0}
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-red-500/10 text-red-600 dark:text-red-400 rounded-md border border-red-500/20">
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-red-500/10 text-red-600 dark:text-red-400 rounded-md">
                       <IconThumbDown size={14} />
                       <span className="text-xs font-bold">
                         {newsDetails.dislikes_count || 0}

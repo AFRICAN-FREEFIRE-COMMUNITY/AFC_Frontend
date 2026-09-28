@@ -231,7 +231,7 @@ export function PlayerBoardControls({
         {/* Combine checklist: whole STAGES + individual GROUPS. A checked stage auto-includes its
             groups (shown checked + disabled), matching the leaderboard export dialog. */}
         {combineMode && stages.length > 0 ? (
-          <div className="max-h-48 w-72 space-y-2 overflow-y-auto rounded-md border p-2">
+          <div className="max-h-48 w-72 space-y-2 overflow-y-auto rounded-md p-2 bg-muted/30">
             {stages.map((s) => {
               const stageOn = stageIds.has(s.stage_id);
               return (
