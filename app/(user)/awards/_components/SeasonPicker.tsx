@@ -58,10 +58,10 @@ export function SeasonPicker({
             // change alone would say it to sighted readers only.
             aria-current={active ? "page" : undefined}
             className={cn(
-              "rounded-full border px-3 py-1 text-xs transition-colors",
+              "rounded-full px-3 py-1 text-xs transition-colors",
               active
-                ? "border-gold/60 bg-gold/10 font-medium text-gold"
-                : "border-input text-muted-foreground hover:border-primary/50 hover:text-primary",
+                ? "bg-gold/15 font-medium text-gold"
+                : "bg-muted text-muted-foreground hover:text-primary",
             )}
           >
             {edition.title}

@@ -160,13 +160,13 @@ function StatusBadge({ status }: { status: Status }) {
   const tr = useTranslations("adminRankingsResults");
   if (status === "counting")
     return (
-      <Badge variant="outline" className="rounded-full border-green-600/60 text-green-400">
+      <Badge variant="outline" className="rounded-full text-green-400">
         <IconCircleCheckFilled className="size-3" /> {tr("status.counting")}
       </Badge>
     );
   if (status === "partial")
     return (
-      <Badge variant="outline" className="rounded-full border-orange-500/40 text-orange-400">
+      <Badge variant="outline" className="rounded-full text-orange-400">
         <IconAlertTriangle className="size-3" /> {tr("status.partial")}
       </Badge>
     );
@@ -870,7 +870,7 @@ export default function ResultMarkersPage() {
                           </Badge>
                         )}
                         {excl > 0 && (
-                          <Badge variant="outline" className="rounded-full border-orange-500/40 px-1.5 py-0 text-[10px] text-orange-400 tabular-nums">
+                          <Badge variant="outline" className="rounded-full px-1.5 py-0 text-[10px] text-orange-400 tabular-nums">
                             {tr("list.exclShort", { count: excl })}
                           </Badge>
                         )}
@@ -934,7 +934,7 @@ export default function ResultMarkersPage() {
                 {drillLoading ? (
                   <p className="py-6 text-center text-xs text-muted-foreground">{tr("drill.loading")}</p>
                 ) : drillExclusions.length === 0 ? (
-                  <p className="rounded-md border border-dashed py-6 text-center text-xs text-muted-foreground">
+                  <p className="rounded-md py-6 text-center text-xs text-muted-foreground bg-muted/30">
                     {tr("drill.empty")}
                   </p>
                 ) : drillExclusions.map((e) => {
@@ -956,7 +956,7 @@ export default function ResultMarkersPage() {
                             {e.entityType === "team" ? tr("drill.entityTeam") : tr("drill.entityPlayer")}
                           </span>
                         </div>
-                        <Badge variant="outline" className="rounded-full border-orange-500/40 px-1.5 py-0 text-[10px] text-orange-400">
+                        <Badge variant="outline" className="rounded-full px-1.5 py-0 text-[10px] text-orange-400">
                           {tr("drill.excluded")}
                         </Badge>
                       </div>

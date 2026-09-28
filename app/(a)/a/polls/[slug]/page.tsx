@@ -798,10 +798,10 @@ function SeasonTierPicker({
             key={value}
             type="button"
             onClick={() => toggle(value)}
-            className={`rounded-full border px-3 py-1 text-xs ${
+            className={`rounded-full px-3 py-1 text-xs ${
               (block.values || []).includes(value)
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-input text-muted-foreground"
+                ? "bg-primary/15 font-medium text-primary"
+                : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
           >
             {t(`seasonTier.${value}`)}
@@ -850,10 +850,10 @@ function ChipGroup({
             key={option.value}
             type="button"
             onClick={() => onToggle(option.value)}
-            className={`rounded-full border px-3 py-1 text-xs ${
+            className={`rounded-full px-3 py-1 text-xs ${
               selected.includes(option.value)
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-input text-muted-foreground"
+                ? "bg-primary/15 font-medium text-primary"
+                : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
           >
             {option.label}

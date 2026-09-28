@@ -108,12 +108,12 @@ import {
 function StatusBadge({ status, label }: { status: string; label: string }) {
   if (status === "active")
     return (
-      <Badge variant="outline" className="border-green-600/60 text-green-400">
+      <Badge variant="outline" className="text-green-400">
         {label}
       </Badge>
     );
   return (
-    <Badge variant="outline" className="border-orange-500/40 text-orange-400">
+    <Badge variant="outline" className="text-orange-400">
       {label}
     </Badge>
   );
@@ -744,7 +744,7 @@ export default function SsoAppsPanel() {
 
             {/* No logo field here: it is a file upload now, and this form posts JSON.
                 The line below points staff at where it lives instead. */}
-            <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+            <p className="rounded-md px-3 py-2 text-xs text-muted-foreground bg-muted/30">
               {t("create.logoHint")}
             </p>
           </div>
@@ -895,7 +895,7 @@ export default function SsoAppsPanel() {
                         className="size-12 shrink-0 rounded-md border object-cover"
                       />
                     ) : (
-                      <div className="flex size-12 shrink-0 items-center justify-center rounded-md border border-dashed text-muted-foreground">
+                      <div className="flex size-12 shrink-0 items-center justify-center rounded-md text-muted-foreground bg-muted/30">
                         <IconPhoto className="size-5" />
                       </div>
                     )}
@@ -943,7 +943,7 @@ export default function SsoAppsPanel() {
                       lives on THEIR server and they can change it at any time, so say so
                       until staff upload a file. */}
                   {!detail.logo_image_url && detail.logo_url && (
-                    <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+                    <p className="rounded-md px-3 py-2 text-xs text-muted-foreground bg-muted/30">
                       {t("logo.legacy")}
                     </p>
                   )}
@@ -1023,7 +1023,7 @@ export default function SsoAppsPanel() {
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold">{t("edit.dataTitle")}</h3>
                 <p className="text-sm text-muted-foreground">{t("edit.dataIntro")}</p>
-                <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+                <p className="rounded-md px-3 py-2 text-xs text-muted-foreground bg-muted/30">
                   {t("edit.defaultOff")}
                 </p>
                 <div className="flex flex-col gap-2">

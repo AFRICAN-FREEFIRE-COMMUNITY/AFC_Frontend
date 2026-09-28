@@ -465,7 +465,7 @@ export default function SocialVerificationPage() {
                     <TableCell className="text-xs font-medium">
                       {r.team_name}
                       {r.dirty && (
-                        <Badge variant="outline" className="ml-2 rounded-full border-orange-500/40 px-1.5 py-0 text-[10px] text-orange-400">
+                        <Badge variant="outline" className="ml-2 rounded-full px-1.5 py-0 text-[10px] text-orange-400">
                           {t("table.unsaved")}
                         </Badge>
                       )}
@@ -475,7 +475,7 @@ export default function SocialVerificationPage() {
                     <TableCell className="text-xs">
                       {r.connected ? (
                         <div className="flex flex-col gap-0.5">
-                          <Badge variant="outline" className="w-fit rounded-full border-green-600/60 text-green-400">
+                          <Badge variant="outline" className="w-fit rounded-full text-green-400">
                             <IconPlugConnected className="size-3" /> {t("table.connected")}
                           </Badge>
                           <span className="text-[10px] text-muted-foreground tabular-nums">
@@ -523,9 +523,9 @@ export default function SocialVerificationPage() {
                       {r.connected ? (
                         <Badge variant="outline" className={cn(
                           "rounded-full font-semibold tabular-nums",
-                          pts >= 9 ? "text-amber-400 border-amber-500/60"
-                            : pts >= 5 ? "text-green-400 border-green-600/60"
-                            : "text-blue-400 border-blue-600/60",
+                          pts >= 9 ? "text-amber-400"
+                            : pts >= 5 ? "text-green-400"
+                            : "text-blue-400",
                         )}>
                           {pts} / 10
                         </Badge>
@@ -540,7 +540,7 @@ export default function SocialVerificationPage() {
                         <span className="text-muted-foreground">-</span>
                       ) : verified ? (
                         <div className="flex flex-col">
-                          <Badge variant="outline" className="w-fit rounded-full border-green-600/60 text-green-400">
+                          <Badge variant="outline" className="w-fit rounded-full text-green-400">
                             <IconCircleCheck className="size-3" /> {t("table.verified")}
                           </Badge>
                           {/* "date · who" is one translated line so the separator and the order
@@ -552,7 +552,7 @@ export default function SocialVerificationPage() {
                           </span>
                         </div>
                       ) : (
-                        <Badge variant="outline" className="rounded-full border-orange-500/40 text-orange-400">
+                        <Badge variant="outline" className="rounded-full text-orange-400">
                           <IconClock className="size-3" /> {t("table.pending")}
                         </Badge>
                       )}
@@ -630,7 +630,7 @@ export default function SocialVerificationPage() {
           </DialogHeader>
 
           {pending && (
-            <div className="rounded-md border divide-y text-sm">
+            <div className="rounded-md text-sm zebra bg-muted/20 overflow-hidden">
               {/* "Instagram" / "TikTok" are proper nouns, so those two labels stay as-is. */}
               <Row2 label="Instagram" value={fmt(pending.row.instagram_followers, locale)} icon={<IconBrandInstagram className="size-3.5" />} />
               <Row2 label="TikTok" value={fmt(pending.row.tiktok_followers, locale)} icon={<IconBrandTiktok className="size-3.5" />} />

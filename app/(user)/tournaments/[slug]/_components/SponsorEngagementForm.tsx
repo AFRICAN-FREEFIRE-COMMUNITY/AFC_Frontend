@@ -619,10 +619,10 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
                   return (
                     <label
                       key={action}
-                      className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs cursor-pointer transition ${
+                      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs cursor-pointer transition ${
                         ticked
-                          ? "border-primary text-primary bg-primary/10"
-                          : "border-input text-muted-foreground hover:border-primary/50"
+                          ? "bg-primary/15 font-medium text-primary"
+                          : "bg-muted text-muted-foreground hover:text-foreground"
                       }`}
                     >
                       <Checkbox

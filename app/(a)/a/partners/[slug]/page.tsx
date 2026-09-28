@@ -204,13 +204,13 @@ function StatusBadge({ status }: { status: string }) {
   const t = useTranslations("partners");
   if (status === "active")
     return (
-      <Badge variant="outline" className="border-green-600/60 text-green-400">
+      <Badge variant="outline" className="text-green-400">
         {t("status.active")}
       </Badge>
     );
   if (status === "suspended")
     return (
-      <Badge variant="outline" className="border-orange-500/40 text-orange-400">
+      <Badge variant="outline" className="text-orange-400">
         {t("status.suspended")}
       </Badge>
     );
@@ -874,7 +874,7 @@ export default function PartnerDetailPage({
             <CardContent className="flex flex-col gap-3 pt-4">
               <p className="text-sm text-muted-foreground">{t("detail.publish.intro")}</p>
               {scopedEvents.length === 0 ? (
-                <p className="rounded-md border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
+                <p className="rounded-md px-3 py-6 text-center text-sm text-muted-foreground bg-muted/30">
                   {t("detail.publish.empty")}
                 </p>
               ) : (
@@ -902,7 +902,7 @@ export default function PartnerDetailPage({
                           {state === true && (
                             <Badge
                               variant="outline"
-                              className="border-green-600/60 text-green-400"
+                              className="text-green-400"
                             >
                               {t("detail.publish.publishedBadge")}
                             </Badge>
@@ -1082,7 +1082,7 @@ export default function PartnerDetailPage({
               {/* Available endpoints (relative to the base URL) */}
               <div className="space-y-2">
                 <Label>{t("detail.connection.endpointsTitle")}</Label>
-                <div className="divide-y rounded-md border">
+                <div className="rounded-md zebra bg-muted/20 overflow-hidden">
                   {PARTNER_ENDPOINTS.map((ep) => (
                     <div
                       key={ep.path}
@@ -1208,7 +1208,7 @@ export default function PartnerDetailPage({
                           {k.status === "active" ? (
                             <Badge
                               variant="outline"
-                              className="border-green-600/60 text-green-400"
+                              className="text-green-400"
                             >
                               {t("detail.keys.active")}
                             </Badge>

@@ -401,10 +401,10 @@ export function AudienceBuilder() {
                   // dropping to 32px from sm: up where there is a mouse. Measured at 32px
                   // everywhere before this, which is too small for a wrapped grid of ~90
                   // chips: a mis-tap here silently retargets a broadcast to another country.
-                  "min-h-11 sm:min-h-8 rounded-full border px-3 py-1 text-xs transition-colors disabled:opacity-40",
+                  "min-h-11 sm:min-h-8 rounded-full px-3 py-1 text-xs transition-colors disabled:opacity-40",
                   isOn
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-input text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                    ? "bg-primary/15 font-medium text-primary"
+                    : "bg-muted text-muted-foreground hover:text-foreground",
                 )}
               >
                 {/* Countries send a `label` because the value is a canonical key

@@ -374,7 +374,7 @@ function WalkthroughCard({
               nobody sees a broken player. Setting videoUrl on the walkthrough in
               lib/help-center-data.ts turns this into a real embed with no other
               change anywhere. */}
-          <div className="rounded-md border border-dashed bg-muted/30 p-3">
+          <div className="rounded-md bg-muted/30 p-3">
             <div className="flex items-center gap-1.5">
               <IconVideo className="size-4 text-muted-foreground" />
               <span className="text-xs font-medium text-foreground">
@@ -493,7 +493,7 @@ function ScreenCard({
 
       {/* The controls. A stacked list, not a table: on a phone a table of five
           columns either overflows the page or shrinks the text to nothing. */}
-      <ul className="flex list-none flex-col divide-y">
+      <ul className="flex list-none flex-col zebra">
         {controls.map((c) => (
           <ControlRow key={c.id} control={c} />
         ))}
@@ -519,7 +519,7 @@ function ControlRow({ control }: { control: HelpControl }) {
         {control.destructive && (
           <Badge
             variant="outline"
-            className="gap-1 rounded-full border-orange-500/50 px-2 py-0.5 text-xs text-orange-400"
+            className="gap-1 rounded-full px-2 py-0.5 text-xs text-orange-400"
           >
             <IconAlertTriangle className="size-3" />
             {t("labels.caution")}

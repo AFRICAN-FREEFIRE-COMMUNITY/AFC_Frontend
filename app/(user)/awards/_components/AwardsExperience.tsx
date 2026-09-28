@@ -99,8 +99,9 @@ export function Portrait({
       className={cn(
         "flex shrink-0 items-center justify-center overflow-hidden rounded-full font-bold",
         tint,
-        // The gold RING is one of exactly three uses of gold on a winner band.
-        gold && "ring-2 ring-gold ring-offset-2 ring-offset-background",
+        // The gold FRAME is one of exactly three uses of gold on a winner band: a solid 3px
+        // gold fill around the photo (never a ring), dark initials when there is no photo.
+        gold && "bg-gold p-[3px] text-background",
       )}
       style={{ width: size, height: size, fontSize: Math.max(12, size / 3) }}
       aria-hidden
@@ -108,7 +109,7 @@ export function Portrait({
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element -- API-host media, not in the
         // next/image remote allow-list.
-        <img src={src} alt="" className="h-full w-full object-cover" />
+        <img src={src} alt="" className="h-full w-full rounded-full object-cover" />
       ) : (
         initials || "?"
       )}
@@ -280,12 +281,12 @@ function PhaseTimeline({ edition }: { edition: EditionDetail["edition"] }) {
         <li key={phase} className="flex items-center gap-2">
           <span
             className={cn(
-              "rounded-full border px-2 py-0.5",
+              "rounded-full px-2 py-0.5",
               index === current
-                ? "border-gold/60 bg-gold/10 font-medium text-gold"
+                ? "bg-gold/15 font-medium text-gold"
                 : index < current
-                  ? "border-primary/40 text-primary"
-                  : "border-border text-muted-foreground",
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground",
             )}
           >
             {t(`phase.${phase}`)}
@@ -742,10 +743,10 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
                 type="button"
                 onClick={() => setSection(name)}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs",
+                  "rounded-full px-3 py-1 text-xs",
                   section === name
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-input text-muted-foreground",
+                    ? "bg-primary/15 font-medium text-primary"
+                    : "bg-muted text-muted-foreground hover:text-foreground",
                 )}
               >
                 {name === "all" ? t("archive.all") : name}
@@ -839,7 +840,7 @@ function WinnerBand({
             )}
             <Badge
               variant="outline"
-              className="rounded-full border-gold/50 px-2 py-0.5 text-xs text-gold"
+              className="rounded-full px-2 py-0.5 text-xs text-gold"
             >
               <IconTrophy className="mr-1 h-3 w-3" />
               {t("winner")}
