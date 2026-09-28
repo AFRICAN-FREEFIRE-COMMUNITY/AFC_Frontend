@@ -1,0 +1,36 @@
+{
+  "title": "Apoio",
+  "lead": "Escreve à AFC e acompanha todas as tuas conversas connosco.",
+  "mine": {
+    "title": "Os meus pedidos",
+    "subtitle": "Pedidos enviados a partir da tua conta ou de <b>{email}</b>. Abre um para o ler e responder.",
+    "count": "{total, plural, one {# pedido} other {# pedidos}}",
+    "waiting": "{count, plural, one {# à espera da tua resposta} other {# à espera da tua resposta}}",
+    "empty": "Ainda não escreveste à AFC. Quando o fizeres, a conversa aparece aqui, com todas as respostas.",
+    "error": "Não foi possível carregar os teus pedidos. Nada se perdeu, tenta novamente daqui a pouco.",
+    "retry": "Tentar novamente",
+    "more": "Mostrar mais",
+    "loading": "A carregar os teus pedidos",
+    "noSubject": "(sem assunto)",
+    "open": "Abrir o pedido {number}"
+  },
+  "status": {
+    "waiting": "A AFC respondeu, é a tua vez",
+    "open": "À espera da AFC",
+    "resolved": "Resolvido",
+    "closed": "Fechado"
+  },
+  "signedOut": {
+    "text": "Inicia sessão para veres todas as mensagens que enviaste à AFC, e todas as respostas.",
+    "login": "Iniciar sessão"
+  },
+  "form": {
+    "subtitle": "Recebes um número de pedido por e-mail, e todas as respostas da AFC chegam também por e-mail.",
+    "prefilled": "Preenchido a partir da tua conta. Altera se quiseres receber as respostas noutro endereço."
+  },
+  "profile": {
+    "link": "Os meus pedidos de apoio",
+    "hint": "Todas as mensagens que enviaste à AFC, e todas as respostas."
+  },
+  "menuWaiting": "{count, plural, one {# pedido à espera da tua resposta} other {# pedidos à espera da tua resposta}}"
+}

@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 // item labels themselves come from constants/nav-links.ts (shared data also
 // consumed by the admin sidebar) and are intentionally NOT translated here.
 import { useTranslations } from "next-intl";
+import { useSupportWaiting } from "@/hooks/useSupportWaiting";
 
 export function MobileNavbar() {
   const [open, setOpen] = useState(false);
@@ -43,6 +44,10 @@ export function MobileNavbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const t = useTranslations("common");
+  // Support tickets waiting on the signed-in player (inbox #71): a gold count on the menu button
+  // and beside "Support". 0 signed out, so nothing shows.
+  const supportWaiting = useSupportWaiting();
+  const tSupport = useTranslations("supportPage");
 
   const { user, isAdmin, isOrganizer } = useAuth();
 
@@ -131,8 +136,13 @@ export function MobileNavbar() {
         }
       `}</style>
       <SheetTrigger asChild>
-        <Button size={"icon"} variant="ghost">
+        <Button size={"icon"} variant="ghost" className="relative" aria-label={supportWaiting > 0 ? tSupport("menuWaiting", { count: supportWaiting }) : undefined}>
           <IconMenu2 />
+          {supportWaiting > 0 && (
+            <span aria-hidden className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-black">
+              {supportWaiting}
+            </span>
+          )}
         </Button>
       </SheetTrigger>
       <SheetContent className="h-screen">
@@ -292,6 +302,14 @@ export function MobileNavbar() {
                   <Link href={slug!}>
                     <Icon size={20} className="mr-2" />
                     {displayLabel}
+                    {slug === "/support" && supportWaiting > 0 && (
+                      <span
+                        className="ml-2 grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1.5 text-[11px] font-bold text-black"
+                        aria-label={tSupport("menuWaiting", { count: supportWaiting })}
+                      >
+                        {supportWaiting}
+                      </span>
+                    )}
                     {showNewBadge && (
                       <Badge
                         variant="default"

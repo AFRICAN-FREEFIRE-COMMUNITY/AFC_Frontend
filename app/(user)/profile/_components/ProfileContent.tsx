@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 // `profile` namespace (messages/en/profile.json). The active locale comes from the
 // NEXT_LOCALE cookie (set on the profile edit page) and falls back to English.
 import { useTranslations, useLocale } from "next-intl";
+import { useSupportWaiting } from "@/hooks/useSupportWaiting";
 // import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -121,6 +122,9 @@ export const ProfileContent = () => {
   // because the page it points at (TwoFactorSecurity.tsx) and the login second step
   // (TwoFactorStep.tsx) share it.
   const tTwoFactor = useTranslations("twoFactor");
+  // "My support tickets" (inbox #71): its label and the count of tickets waiting on the player
+  const tSupport = useTranslations("supportPage");
+  const supportWaiting = useSupportWaiting();
   // Active UI locale, passed to formatLocalTime so the "Applied {date}" string
   // localizes month names to the chosen language (and skips the cookie read).
   const locale = useLocale();
@@ -492,6 +496,22 @@ export const ProfileContent = () => {
                   account"): two-step sign-in, devices and deleting the account, one tap away. */}
               <Button variant="secondary" className="w-full" asChild>
                 <Link href="/profile/security">{tTwoFactor("account.title")}</Link>
+              </Button>
+              {/* My support tickets (inbox #71, 2026-09-28): the player's own tickets live on
+                  /support; the gold count is the tickets AFC answered that wait on them
+                  (hooks/useSupportWaiting.ts, the same count as the menu). */}
+              <Button variant="secondary" className="w-full" asChild>
+                <Link href="/support">
+                  {tSupport("profile.link")}
+                  {supportWaiting > 0 && (
+                    <span
+                      className="ml-2 grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1.5 text-[11px] font-bold text-black"
+                      aria-label={tSupport("menuWaiting", { count: supportWaiting })}
+                    >
+                      {supportWaiting}
+                    </span>
+                  )}
+                </Link>
               </Button>
             </div>
           </div>

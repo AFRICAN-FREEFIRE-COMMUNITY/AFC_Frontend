@@ -41,7 +41,8 @@
     "myOrders": "My Orders",
     "about": "About Us",
     "contact": "Contact",
-    "fantasy": "Fantasy"
+    "fantasy": "Fantasy",
+    "support": "Support"
   },
   "states": {
     "empty": "Nothing here yet",

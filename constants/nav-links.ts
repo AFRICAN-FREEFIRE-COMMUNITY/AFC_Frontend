@@ -159,8 +159,11 @@ export const homeNavLinksMobile: NavLinks[] = [
     addedAt: "2026-08-16",
   },
   { slug: "/about", label: "About Us", navKey: "about", icon: IconInfoCircle },
-  { slug: "/contact", label: "Contact", navKey: "contact", icon: IconMessage },
-  // Glossary sits under Contact in the hamburger menu (owner request 2026-06-10).
+  // Support replaced Contact (inbox #71, 2026-09-28): the contact form plus the player's own
+  // tickets. /contact redirects to /support. MobileNavbar adds the count of tickets waiting on the
+  // player beside this row (hooks/useSupportWaiting.ts).
+  { slug: "/support", label: "Support", navKey: "support", icon: IconHeadset, newLink: true, addedAt: "2026-09-28" },
+  // Glossary sits under Support in the hamburger menu (owner request 2026-06-10).
   { slug: "/glossary", label: "Glossary", navKey: "glossary", icon: IconVocabulary },
 ];
 // ═════════════════════════════════════════════════════════════════════════════════════════════
