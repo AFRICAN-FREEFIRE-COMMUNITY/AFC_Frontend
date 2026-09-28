@@ -177,7 +177,7 @@ export default function PollBuilderPage() {
         {poll.has_responses && (
           <Badge
             variant="outline"
-            className="rounded-full border-gold/50 px-2 py-0.5 text-xs text-gold"
+            className="rounded-full px-2 py-0.5 text-xs text-gold"
           >
             {t("questions.locked")}
           </Badge>

@@ -886,14 +886,14 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                     {trend.improving ? (
                       <Badge
                         variant="outline"
-                        className="border-primary/40 text-primary"
+                        className="text-primary"
                       >
                         <IconTrendingUp className="size-3" /> {t("teamStats.improving")}
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
-                        className="border-red-500/40 text-red-400"
+                        className="text-red-400"
                       >
                         <IconTrendingDown className="size-3" /> {t("teamStats.declining")}
                       </Badge>
@@ -921,7 +921,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                   </span>
                   <Badge
                     variant="outline"
-                    className="border-gold/55 text-gold"
+                    className="text-gold"
                   >
                     {team?.team_tier || t("teamStats.unranked")}
                   </Badge>
@@ -1116,7 +1116,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                             {perf.reached_final_stage && (
                               <Badge
                                 variant="outline"
-                                className="rounded-full border-gold/60 px-2 py-0.5 text-[0.62rem] font-medium text-gold"
+                                className="rounded-full px-2 py-0.5 text-[0.62rem] font-medium text-gold"
                               >
                                 {t("teamStats.finalist")}
                               </Badge>

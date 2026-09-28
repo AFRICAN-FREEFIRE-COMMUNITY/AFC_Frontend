@@ -225,12 +225,12 @@ export function IssueCount({ issues, errorLabel, warningLabel }: {
   return (
     <span className="inline-flex gap-1">
       {errors > 0 && (
-        <Badge variant="outline" className="rounded-full border-destructive/50 px-2 py-0 text-[10px] text-destructive">
+        <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] text-destructive">
           {errorLabel}
         </Badge>
       )}
       {warnings > 0 && (
-        <Badge variant="outline" className="rounded-full border-orange-500/50 px-2 py-0 text-[10px] text-orange-300">
+        <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] text-orange-300">
           {warningLabel}
         </Badge>
       )}

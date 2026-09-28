@@ -296,7 +296,7 @@ export function TeamSearchSelect(props: Props) {
                       </span>
                       <Badge
                         variant="outline"
-                        className="shrink-0 rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                        className="shrink-0 rounded-full px-2 py-0.5 text-xs text-orange-600"
                       >
                         Ghost
                       </Badge>

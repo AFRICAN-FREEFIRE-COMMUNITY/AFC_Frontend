@@ -77,20 +77,20 @@ interface OrgRow {
 function StatusBadge({ status }: { status: string }) {
   if (status === "active")
     return (
-      <Badge variant="outline" className="border-green-600/60 text-green-400">
+      <Badge variant="outline" className="text-green-400">
         Active
       </Badge>
     );
   if (status === "suspended")
     return (
-      <Badge variant="outline" className="border-orange-500/40 text-orange-400">
+      <Badge variant="outline" className="text-orange-400">
         Suspended
       </Badge>
     );
   // F5: soft-deleted orgs stay in the admin list (red badge) so an admin can open + Restore them.
   if (status === "deleted")
     return (
-      <Badge variant="outline" className="border-red-600/50 text-red-400">
+      <Badge variant="outline" className="text-red-400">
         Deleted
       </Badge>
     );

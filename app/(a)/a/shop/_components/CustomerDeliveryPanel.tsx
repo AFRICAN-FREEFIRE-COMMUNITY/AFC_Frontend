@@ -324,7 +324,7 @@ export function CustomerDeliveryPanel() {
                           {r.saved_profile_id ? (
                             <Badge
                               variant="outline"
-                              className="border-primary text-primary"
+                              className="text-primary"
                             >
                               Saved
                             </Badge>

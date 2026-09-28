@@ -714,7 +714,7 @@ export function LeaderboardDesignsManager({
                         {d.is_default && (
                           <Badge
                             variant="outline"
-                            className="rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+                            className="rounded-full px-2 py-0.5 text-xs text-primary"
                           >
                             <IconStar className="mr-0.5 size-3" /> {t("defaultBadge")}
                           </Badge>
@@ -727,8 +727,8 @@ export function LeaderboardDesignsManager({
                           variant="outline"
                           className={
                             d.background_instagram
-                              ? "rounded-full border-blue-500 px-2 py-0.5 text-xs text-blue-600"
-                              : "rounded-full border-muted-foreground px-2 py-0.5 text-xs text-muted-foreground"
+                              ? "rounded-full px-2 py-0.5 text-xs text-blue-600"
+                              : "rounded-full px-2 py-0.5 text-xs text-muted-foreground"
                           }
                         >
                           {d.background_instagram ? t("igSet") : t("igNone")}
@@ -737,8 +737,8 @@ export function LeaderboardDesignsManager({
                           variant="outline"
                           className={
                             d.background_youtube
-                              ? "rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
-                              : "rounded-full border-muted-foreground px-2 py-0.5 text-xs text-muted-foreground"
+                              ? "rounded-full px-2 py-0.5 text-xs text-red-600"
+                              : "rounded-full px-2 py-0.5 text-xs text-muted-foreground"
                           }
                         >
                           {d.background_youtube ? t("ytSet") : t("ytNone")}

@@ -325,7 +325,7 @@ export function TransferFeed() {
                               badge, which keeps the flag meaningful. */}
                           <Badge
                             variant="outline"
-                            className="rounded-full border-destructive/60 px-2 py-0.5 text-xs text-destructive"
+                            className="rounded-full px-2 py-0.5 text-xs text-destructive"
                             title={t("transfers.window.outsideHint")}
                           >
                             <IconLock className="mr-1 h-3 w-3" />

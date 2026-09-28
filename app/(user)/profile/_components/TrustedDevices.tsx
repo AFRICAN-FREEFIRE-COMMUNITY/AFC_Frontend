@@ -306,7 +306,7 @@ export function TrustedDevices({ twoFactorEnabled }: TrustedDevicesProps) {
                 {otherSessions > 0 ? (
                   <Badge
                     variant="outline"
-                    className="rounded-full border-primary/60 px-2 py-0.5 text-xs text-primary"
+                    className="rounded-full px-2 py-0.5 text-xs text-primary"
                   >
                     {otherSessions === 1
                       ? t("devices.sessions.elsewhereOne")

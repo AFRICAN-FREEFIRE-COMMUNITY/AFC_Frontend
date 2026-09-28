@@ -2197,7 +2197,7 @@ export default function OrganizerEventLeaderboardPage({
                           {m.missing_winner && (
                             <Badge
                               variant="outline"
-                              className="rounded-full border-amber-500/60 px-2 py-0.5 text-xs text-amber-600 dark:text-amber-400"
+                              className="rounded-full px-2 py-0.5 text-xs text-amber-600 dark:text-amber-400"
                               title={t("eventLeaderboard.missingWinnerTooltip")}
                             >
                               {t("eventLeaderboard.missingWinnerBadge")}

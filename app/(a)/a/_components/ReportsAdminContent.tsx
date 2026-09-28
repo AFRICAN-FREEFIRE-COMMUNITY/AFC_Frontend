@@ -296,7 +296,7 @@ export function ReportsAdminContent() {
                         {r.is_repeat_offender && (
                           <Badge
                             variant="outline"
-                            className="border-red-500/60 text-red-500 rounded-full px-2 py-0.5 text-[10px]"
+                            className="text-red-500 rounded-full px-2 py-0.5 text-[10px]"
                             title={`${r.recent_report_count} reports in the last 2 weeks`}
                           >
                             <IconFlag className="h-3 w-3 mr-0.5" />

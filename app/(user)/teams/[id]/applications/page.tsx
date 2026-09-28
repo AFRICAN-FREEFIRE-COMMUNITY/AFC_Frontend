@@ -173,7 +173,7 @@ export default function ApplicationsPage({ params }: { params: Params }) {
                     <TableCell>{getStatusBadge(app.status)}</TableCell>
                     <TableCell>
                       {app.contact_unlocked ? (
-                        <Badge variant="outline" className="text-green-400 border-green-800 text-xs">
+                        <Badge variant="outline" className="text-green-400 text-xs">
                           {t("applications.unlocked")}
                         </Badge>
                       ) : (

@@ -340,7 +340,7 @@ export function TwoFactorSecurity() {
                       variant="outline"
                       className={
                         enabled
-                          ? "rounded-full border-primary/60 px-2 py-0.5 text-xs text-primary"
+                          ? "rounded-full px-2 py-0.5 text-xs text-primary"
                           : "rounded-full px-2 py-0.5 text-xs text-muted-foreground"
                       }
                     >

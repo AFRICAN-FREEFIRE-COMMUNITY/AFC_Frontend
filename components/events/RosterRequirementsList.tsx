@@ -120,7 +120,7 @@ export function RosterRequirementsList({
                 player. */}
             <span className="flex flex-wrap gap-1 sm:justify-end">
               {it.missing.map((k) => (
-                <Badge key={k} variant="outline" className="border-destructive text-destructive">
+                <Badge key={k} variant="outline" className="text-destructive">
                   {reqLabel(k)}
                 </Badge>
               ))}
@@ -132,7 +132,7 @@ export function RosterRequirementsList({
           <div className="flex flex-col gap-1 rounded-md bg-muted/40 p-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
             <span className="font-medium">{t("register.rosterRequirements.teamRow")}</span>
             <span className="flex flex-wrap gap-1 sm:justify-end">
-              <Badge variant="outline" className="border-destructive text-destructive">
+              <Badge variant="outline" className="text-destructive">
                 {t("register.rosterRequirements.req.teamLogo")}
               </Badge>
             </span>

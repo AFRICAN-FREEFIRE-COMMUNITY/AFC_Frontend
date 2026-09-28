@@ -826,7 +826,7 @@ export default function OverridesAndBansPage() {
                             {!t2.is_zeroed && deducted > 0 && (
                               <Badge
                                 variant="outline"
-                                className="rounded-full border-orange-500/40 px-2 py-0.5 text-[10px] font-medium text-orange-400 tabular-nums"
+                                className="rounded-full px-2 py-0.5 text-[10px] font-medium text-orange-400 tabular-nums"
                               >
                                 {t("teams.deducted", { count: deducted })}
                               </Badge>

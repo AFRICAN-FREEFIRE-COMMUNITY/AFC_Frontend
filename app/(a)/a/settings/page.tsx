@@ -1993,7 +1993,7 @@ const page = () => {
                             {entry.is_vpn && (
                               <Badge
                                 variant="outline"
-                                className="rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
+                                className="rounded-full px-2 py-0.5 text-xs text-red-600"
                                 title={entry.org || "Datacenter / VPN network"}
                               >
                                 VPN
@@ -2057,7 +2057,7 @@ const page = () => {
                             {row.is_vpn && (
                               <Badge
                                 variant="outline"
-                                className="rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
+                                className="rounded-full px-2 py-0.5 text-xs text-red-600"
                                 title={row.org || "Datacenter / VPN network"}
                               >
                                 VPN

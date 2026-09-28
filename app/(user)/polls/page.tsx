@@ -182,7 +182,7 @@ function StateBadge({ poll }: { poll: PollCard }) {
   const t = useTranslations("polls");
   if (poll.is_open) {
     return (
-      <Badge variant="outline" className="rounded-full border-primary/50 px-2 py-0.5 text-xs text-primary">
+      <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-primary">
         {t("card.open")}
       </Badge>
     );

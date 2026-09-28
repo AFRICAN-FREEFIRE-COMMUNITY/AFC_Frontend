@@ -770,7 +770,7 @@ export const SponsorEngagementForm: React.FC<SponsorEngagementFormProps> = ({
             {s.requires_approval && (
               <Badge
                 variant="outline"
-                className="rounded-full px-2 py-0.5 text-xs border-yellow-500/50 text-yellow-400 flex-shrink-0"
+                className="rounded-full px-2 py-0.5 text-xs text-yellow-400 flex-shrink-0"
               >
                 {t("sponsorForm.sponsorSection.requiresApproval")}
               </Badge>
@@ -831,21 +831,21 @@ export const SponsorEngagementPlayerSection: React.FC<
             {done ? (
               <Badge
                 variant="outline"
-                className="rounded-full px-2 py-0.5 text-xs border-green-500/50 text-green-500"
+                className="rounded-full px-2 py-0.5 text-xs text-green-500"
               >
                 {t("sponsorForm.playerSection.done")}
               </Badge>
             ) : hasDuplicate ? (
               <Badge
                 variant="outline"
-                className="rounded-full px-2 py-0.5 text-xs border-destructive/50 text-destructive"
+                className="rounded-full px-2 py-0.5 text-xs text-destructive"
               >
                 {t("sponsorForm.playerSection.duplicate")}
               </Badge>
             ) : (
               <Badge
                 variant="outline"
-                className="rounded-full px-2 py-0.5 text-xs border-yellow-500/50 text-yellow-400"
+                className="rounded-full px-2 py-0.5 text-xs text-yellow-400"
               >
                 {t("sponsorForm.playerSection.remaining", { count: remaining })}
               </Badge>

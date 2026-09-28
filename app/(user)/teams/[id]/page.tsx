@@ -1018,8 +1018,8 @@ const Page = ({ params }: { params: Params }) => {
                               variant="outline"
                               className={
                                 teamMemberLetterSet.has(letter)
-                                  ? "rounded-full text-xs border-primary text-primary"
-                                  : "rounded-full text-xs border-gold text-gold"
+                                  ? "rounded-full text-xs text-primary"
+                                  : "rounded-full text-xs text-gold"
                               }
                             >
                               {letter}
@@ -1558,7 +1558,7 @@ const Page = ({ params }: { params: Params }) => {
                                     </TableCell>
                                     <TableCell>
                                       {app.contact_unlocked ? (
-                                        <Badge variant="outline" className="text-green-400 border-green-800 text-xs">
+                                        <Badge variant="outline" className="text-green-400 text-xs">
                                           {t("teamDetail.unlocked")}
                                         </Badge>
                                       ) : (

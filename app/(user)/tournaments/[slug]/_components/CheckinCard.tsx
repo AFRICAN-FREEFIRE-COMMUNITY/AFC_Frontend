@@ -99,11 +99,11 @@ export function CheckinCard({ eventId }: { eventId: number }) {
           <IconUserCheck className="text-primary size-5" />
           <p className="font-semibold">{t("checkin.userTitle")}</p>
           {registered && checkedIn ? (
-            <Badge variant="outline" className="ml-auto border-green-600/60 text-green-500">
+            <Badge variant="outline" className="ml-auto text-green-500">
               <IconCircleCheck className="mr-1 size-3" /> {t("checkin.userDone")}
             </Badge>
           ) : registered && windowOpen ? (
-            <Badge variant="outline" className="ml-auto border-green-600/60 text-green-500">{t("checkin.userOpen")}</Badge>
+            <Badge variant="outline" className="ml-auto text-green-500">{t("checkin.userOpen")}</Badge>
           ) : null}
         </div>
 

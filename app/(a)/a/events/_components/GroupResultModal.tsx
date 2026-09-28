@@ -274,7 +274,7 @@ export const GroupResultModal = ({
                             {row.carryOverPoints > 0 && (
                               <Badge
                                 variant="outline"
-                                className="text-[9px] px-1 py-0 text-amber-300 border-amber-500/40"
+                                className="text-[9px] px-1 py-0 text-amber-300"
                               >
                                 +{row.carryOverPoints}
                               </Badge>

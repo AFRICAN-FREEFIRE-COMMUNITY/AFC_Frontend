@@ -376,8 +376,8 @@ export function HomeLatestSections() {
                         className={cn(
                           "rounded-full text-[10px]",
                           p.kind === "team"
-                            ? "border-primary/50 text-primary"
-                            : "border-gold/50 text-gold",
+                            ? "text-primary"
+                            : "text-gold",
                         )}
                       >
                         {p.kind === "team"

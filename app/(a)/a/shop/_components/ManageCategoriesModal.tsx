@@ -349,7 +349,7 @@ export function ManageCategoriesModal({
                         {cat.is_active ? (
                           <Badge
                             variant="outline"
-                            className="rounded-full px-2 py-0.5 text-xs text-primary border-primary/50"
+                            className="rounded-full px-2 py-0.5 text-xs text-primary"
                           >
                             Active
                           </Badge>

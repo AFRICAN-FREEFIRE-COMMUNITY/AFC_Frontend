@@ -271,8 +271,8 @@ function BlacklistRow({
             className={cn(
               "rounded-full px-2 py-0.5 text-xs capitalize",
               bl.status === "active"
-                ? "border-red-500 text-red-600"
-                : "border-muted-foreground/40 text-muted-foreground",
+                ? "text-red-600"
+                : "text-muted-foreground",
             )}
           >
             {bl.status}
@@ -300,7 +300,7 @@ function BlacklistRow({
         {bl.my_pending_request ? (
           <Badge
             variant="outline"
-            className="rounded-full border-amber-500 px-2 py-0.5 text-xs text-amber-600"
+            className="rounded-full px-2 py-0.5 text-xs text-amber-600"
           >
             {t("blacklistLift.liftPending")}
           </Badge>

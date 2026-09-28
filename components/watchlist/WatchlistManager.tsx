@@ -247,7 +247,7 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{e.subject_name}</span>
                         {e.source === "upload" && (
-                          <Badge variant="outline" className="rounded-full border-amber-500/60 px-2 py-0.5 text-[10px] text-amber-600 dark:text-amber-400">
+                          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-amber-600 dark:text-amber-400">
                             {labels.sourceUpload}
                           </Badge>
                         )}

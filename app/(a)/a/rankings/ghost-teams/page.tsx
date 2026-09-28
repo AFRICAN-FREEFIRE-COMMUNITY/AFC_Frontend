@@ -638,7 +638,7 @@ export default function GhostTeamsAdminPage() {
             <TabsTrigger value="pending">
               {t("tabs.pending")}
               {counts.pending > 0 && (
-                <Badge variant="outline" className="ml-1.5 rounded-full px-1.5 py-0 text-[10px] text-orange-400 border-orange-500/40">
+                <Badge variant="outline" className="ml-1.5 rounded-full px-1.5 py-0 text-[10px] text-orange-400">
                   {counts.pending}
                 </Badge>
               )}

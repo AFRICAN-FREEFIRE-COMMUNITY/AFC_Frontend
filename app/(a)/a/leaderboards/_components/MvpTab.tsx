@@ -273,7 +273,7 @@ export default function MvpTab({
                   {!m.available ? (
                     <Badge
                       variant="outline"
-                      className="rounded-full border-amber-500/50 px-2 py-0 text-[0.6rem] text-amber-500"
+                      className="rounded-full px-2 py-0 text-[0.6rem] text-amber-500"
                     >
                       needs live 3D-room data
                     </Badge>

@@ -401,7 +401,7 @@ export default function PrizeMoneyPage() {
                     <TableCell className="font-medium">
                       {r.event_name ?? "-"}
                       {r.auto_synced ? (
-                        <span className="text-primary border-primary/50 ml-2 rounded-full border px-2 py-0.5 text-[0.6rem] uppercase">
+                        <span className="text-primary bg-primary/10 ml-2 rounded-full px-2 py-0.5 text-[0.6rem] uppercase">
                           {t("table.auto")}
                         </span>
                       ) : null}

@@ -131,7 +131,7 @@ function RatingBadge({ rating }: { rating: EventRating | null }) {
     );
   }
   return (
-    <Badge variant="outline" className="border-yellow-500 text-yellow-600 gap-1">
+    <Badge variant="outline" className="text-yellow-600 gap-1">
       <IconStarFilled className="size-3" />
       {rating.average.toFixed(1)}
       <span className="text-muted-foreground">
