@@ -469,10 +469,10 @@ export default function page({ params }: { params: Params }) {
                                 setPreviewUrl(URL.createObjectURL(file));
                               }
                             }}
-                            className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                            className={`rounded-md p-12 text-center transition-colors cursor-pointer ${
                               isDragging
-                                ? "border-primary bg-primary/5"
-                                : "border-gray-300 bg-gray-50"
+                                ? "bg-primary/15"
+                                : "bg-muted/40 hover:bg-muted/60"
                             }`}
                             onClick={() => fileInputRef.current?.click()}
                           >
@@ -675,7 +675,7 @@ export default function page({ params }: { params: Params }) {
                               <Badge
                                 key={`m-${l}`}
                                 variant="outline"
-                                className="rounded-full text-xs border-primary text-primary"
+                                className="rounded-full text-xs text-primary"
                               >
                                 {l}
                               </Badge>
@@ -691,7 +691,7 @@ export default function page({ params }: { params: Params }) {
                               <Badge
                                 key={`x-${l}`}
                                 variant="outline"
-                                className="rounded-full text-xs border-gold text-gold"
+                                className="rounded-full text-xs text-gold"
                               >
                                 {l}
                               </Badge>

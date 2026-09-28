@@ -489,7 +489,7 @@ export default function RegisteredTeamsTab({
     w?.is_warning ? (
       <Badge
         variant="outline"
-        className="rounded-full px-2 py-0.5 text-[10px] border-amber-500/60 text-amber-500 inline-flex items-center gap-1"
+        className="rounded-full px-2 py-0.5 text-[10px] text-amber-500 inline-flex items-center gap-1"
         title={etT("registeredTeams.repeatNoShowTitle", {
           recent: w.recent_count,
           total: w.total,
@@ -1065,7 +1065,7 @@ export default function RegisteredTeamsTab({
                             {etT("registeredTeams.emptyRoster")}
                           </p>
                         ) : (
-                          <div className="px-6 py-2 divide-y divide-border/50">
+                          <div className="px-6 py-2 zebra">
                             {members.map((m) => (
                               <div
                                 key={m.player_id}

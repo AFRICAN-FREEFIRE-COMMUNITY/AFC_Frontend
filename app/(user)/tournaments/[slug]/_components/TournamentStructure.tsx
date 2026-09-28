@@ -254,7 +254,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
 
   if (!stages || stages.length === 0) {
     return (
-      <div className="p-10 text-center border-2 border-dashed border-border rounded-md text-muted-foreground">
+      <div className="p-10 text-center rounded-md text-muted-foreground bg-muted/30">
         {t("structure.noStages")}
       </div>
     );
@@ -294,9 +294,8 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                 <button
                   type="button"
                   onClick={() => selectStage(i)}
-                  className={`text-left min-w-[230px] flex-1 bg-card rounded-md border p-5 transition-colors
-                    ${i === sel ? "ring-1 ring-primary/40 border-primary/50" : "hover:border-primary/40"}
-                    ${isFinals ? "border-gold/50" : ""}`}
+                  className={`text-left min-w-[230px] flex-1 rounded-md p-5 transition-colors
+                    ${i === sel ? (isFinals ? "bg-gold/15" : "bg-primary/15") : "bg-card hover:bg-muted/50"}`}
                 >
                   <div
                     className={`text-[0.7rem] font-bold uppercase tracking-wider ${
@@ -336,7 +335,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                       <span>{t("structure.championCrowned")}</span>
                     ) : (
                       <>
-                        <Badge className="rounded-full gap-1 bg-primary/10 text-primary border border-primary/50">
+                        <Badge className="rounded-full gap-1 bg-primary/10 text-primary">
                           <ArrowUp className="size-3" />{" "}
                           {t("structure.topAdvance", { count: advancing })}
                         </Badge>
@@ -377,7 +376,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                             <Badge
                               key={r.id}
                               variant="outline"
-                              className="rounded-full gap-1 px-2 py-0.5 text-xs border-primary/50 text-primary"
+                              className="rounded-full gap-1 px-2 py-0.5 text-xs text-primary"
                             >
                               <span>
                                 {prefix}
@@ -463,7 +462,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                     const chip = (
                       <Badge
                         variant="outline"
-                        className="rounded-full gap-1.5 px-3 py-1 text-xs border-primary/50 text-primary transition-colors hover:bg-primary/10"
+                        className="rounded-full gap-1.5 px-3 py-1 text-xs text-primary transition-colors hover:bg-primary/10"
                       >
                         <IconArrowRight className="size-3.5 shrink-0" />
                         {label}
@@ -498,7 +497,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                     const chip = (
                       <Badge
                         variant="outline"
-                        className="rounded-full gap-1.5 px-3 py-1 text-xs border-primary/50 text-primary transition-colors hover:bg-primary/10"
+                        className="rounded-full gap-1.5 px-3 py-1 text-xs text-primary transition-colors hover:bg-primary/10"
                       >
                         {label}
                         <IconArrowRight className="size-3.5 shrink-0" />
@@ -561,7 +560,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
             registeredTeams={[]}
           />
         ) : !stage.groups || stage.groups.length === 0 ? (
-          <div className="p-10 text-center border-2 border-dashed border-border rounded-md text-muted-foreground">
+          <div className="p-10 text-center rounded-md text-muted-foreground bg-muted/30">
             {t("structure.noGroups")}
           </div>
         ) : (
@@ -574,8 +573,8 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
               return (
                 <div
                   key={g.group_id}
-                  className={`bg-card rounded-md border overflow-hidden ${
-                    g.is_my_group ? "ring-1 ring-primary/50 border-primary/50" : ""
+                  className={`rounded-md overflow-hidden ${
+                    g.is_my_group ? "bg-primary/10" : "bg-card"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b">
@@ -583,7 +582,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
                       <span className="font-bold">{g.group_name}</span>
                       {/* "Your group" highlight so a registered player spots their group instantly. */}
                       {g.is_my_group && (
-                        <Badge className="ml-2 rounded-full border border-primary/40 bg-primary/15 px-2 py-0.5 text-[0.65rem] text-primary">
+                        <Badge className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-[0.65rem] text-primary">
                           {t("structure.yourGroup")}
                         </Badge>
                       )}
@@ -843,7 +842,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
         )}
 
         {/* honest note: this is built from stored data, no invented brackets */}
-        <p className="mt-8 text-xs text-muted-foreground bg-card border border-dashed border-border rounded-md px-4 py-3.5 leading-relaxed">
+        <p className="mt-8 text-xs text-muted-foreground bg-card rounded-md px-4 py-3.5 leading-relaxed">
           {t("structure.footnote")}
         </p>
       </section>

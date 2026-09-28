@@ -394,7 +394,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
                   : t("builder.emptyCreate")}
               </div>
             ) : (
-              <div className="max-h-56 divide-y overflow-y-auto">
+              <div className="max-h-56 overflow-y-auto zebra">
                 {pickable.map((s) => (
                   <button
                     key={s.id}
@@ -442,7 +442,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
 
       {/* ── One card per attached sponsor ── */}
       {value.length === 0 && (
-        <p className="rounded-md border border-dashed px-3 py-4 text-center text-xs text-muted-foreground">
+        <p className="rounded-md px-3 py-4 text-center text-xs text-muted-foreground bg-muted/30">
           {t("builder.noneAdded")}
         </p>
       )}
@@ -457,7 +457,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
             <span className="text-sm font-semibold">{row.sponsor_name}</span>
             <Badge
               variant="outline"
-              className="rounded-full border-gold/60 px-2 py-0.5 text-xs text-gold"
+              className="rounded-full px-2 py-0.5 text-xs text-gold"
             >
               {eventId ? t("builder.attached") : t("builder.willAttach")}
             </Badge>
@@ -770,7 +770,7 @@ export function SponsorshipBuilder({ eventId, value, onChange }: SponsorshipBuil
 
       {/* multi collect_id note from the mockup */}
       {value.length > 0 && (
-        <p className="rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+        <p className="rounded-md px-3 py-2 text-xs text-muted-foreground bg-muted/30">
           {t("builder.multiCollectNote")}
         </p>
       )}

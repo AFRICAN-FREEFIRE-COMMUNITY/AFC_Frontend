@@ -161,6 +161,15 @@ html.overlay body {
 	}
 }
 
+/* Rows separated by a fill, never a line (owner design rule 2026-08-17: "table row lines ->
+   zebra fill or row padding"). Replaces divide-y on lists; every second direct child gets a
+   faint muted fill. Used by the admin lists, help center, media audit, sponsorship builder. */
+@utility zebra {
+	& > :nth-child(even) {
+		background-color: color-mix(in oklab, var(--muted) 45%, transparent);
+	}
+}
+
 /* For Chrome, Safari, Edge */
 [data-sidebar="content"]::-webkit-scrollbar {
   width: 6px; /* thin scrollbar */

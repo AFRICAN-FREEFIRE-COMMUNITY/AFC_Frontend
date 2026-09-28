@@ -448,7 +448,7 @@ export function ResultsStep({
   const ghostBadge = (
     <Badge
       variant="outline"
-      className="rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+      className="rounded-full px-2 py-0.5 text-xs text-orange-600"
     >
       {t("stdSteps.badge.ghost")}
     </Badge>
@@ -456,7 +456,7 @@ export function ResultsStep({
   const realBadge = (
     <Badge
       variant="outline"
-      className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+      className="rounded-full px-2 py-0.5 text-xs text-green-600"
     >
       {t("stdSteps.badge.real")}
     </Badge>
@@ -550,13 +550,13 @@ export function ResultsStep({
               : t("stdSteps.results.playersAdded", { count: participants.length })}
           </Label>
           {participants.length === 0 ? (
-            <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
+            <p className="rounded-md py-6 text-center text-sm text-muted-foreground bg-muted/30">
               {format === "team"
                 ? t("stdSteps.results.emptyTeams")
                 : t("stdSteps.results.emptyPlayers")}
             </p>
           ) : (
-            <div className="divide-y rounded-md border">
+            <div className="rounded-md zebra bg-muted/20 overflow-hidden">
               {participants.map((p) => (
                 <div key={p.id} className="flex items-center justify-between gap-2 p-2">
                   <div className="flex items-center gap-2">
@@ -619,13 +619,13 @@ export function ResultsStep({
         </div>
 
         {matches.length === 0 ? (
-          <p className="rounded-md border border-dashed py-10 text-center text-sm text-muted-foreground">
+          <p className="rounded-md py-10 text-center text-sm text-muted-foreground bg-muted/30">
             {t("stdSteps.results.noMaps")}
           </p>
         ) : currentRows.length === 0 ? (
           // A map exists but nobody to score yet: point at the add panel above instead of
           // rendering an empty editor.
-          <p className="rounded-md border border-dashed py-10 text-center text-sm text-muted-foreground">
+          <p className="rounded-md py-10 text-center text-sm text-muted-foreground bg-muted/30">
             {format === "team"
               ? t("stdSteps.results.noTeamsToScore")
               : t("stdSteps.results.noPlayersToScore")}

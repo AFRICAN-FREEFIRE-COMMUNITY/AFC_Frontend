@@ -470,7 +470,7 @@ export function OcrReviewTable({
 
   if (rows.length === 0) {
     return (
-      <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
+      <p className="rounded-md py-6 text-center text-sm text-muted-foreground bg-muted/30">
         {t("stdReview.emptyState")}
       </p>
     );
@@ -707,8 +707,8 @@ export function OcrReviewTable({
                           className={cn(
                             "rounded-full px-2 py-0.5 text-xs",
                             row.resolution.kind !== "real"
-                              ? "border-orange-500 text-orange-600"
-                              : "border-green-500 text-green-600",
+                              ? "text-orange-600"
+                              : "text-green-600",
                           )}
                         >
                           {row.resolution.kind !== "real" ? t("stdReview.ghost") : t("stdReview.real")}
@@ -742,7 +742,7 @@ export function OcrReviewTable({
                           {p.chosenUsername ? (
                             <Badge
                               variant="outline"
-                              className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+                              className="rounded-full px-2 py-0.5 text-xs text-green-600"
                             >
                               {p.chosenUsername}
                               {p.confidence > 0 && p.chosenUserId != null
@@ -755,7 +755,7 @@ export function OcrReviewTable({
                           ) : (
                             <Badge
                               variant="outline"
-                              className="rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                              className="rounded-full px-2 py-0.5 text-xs text-orange-600"
                             >
                               {t("stdReview.notOnPlatform")}
                             </Badge>

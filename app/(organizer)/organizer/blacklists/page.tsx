@@ -197,8 +197,8 @@ function StatusBadge({ status }: { status: string }) {
       className={cn(
         "rounded-full px-2 py-0.5 text-xs capitalize",
         isActive
-          ? "border-green-500 text-green-600"
-          : "border-muted-foreground/40 text-muted-foreground",
+          ? "text-green-600"
+          : "text-muted-foreground",
       )}
     >
       {status}
@@ -218,7 +218,7 @@ function RequestStatusBadge({ status }: { status: string }) {
       variant="outline"
       className={cn(
         "rounded-full px-2 py-0.5 text-xs capitalize",
-        map[status] ?? "border-muted-foreground/40 text-muted-foreground",
+        map[status] ?? "text-muted-foreground",
       )}
     >
       {status}
@@ -751,7 +751,7 @@ export default function OrganizerBlacklistsPage() {
                                   {t("blacklists.snapshot.empty")}
                                 </p>
                               ) : (
-                                <div className="divide-y divide-border/50 px-6 py-2">
+                                <div className="px-6 py-2 zebra">
                                   {bl.players.map((p) => (
                                     <div
                                       key={p.id}
@@ -770,8 +770,8 @@ export default function OrganizerBlacklistsPage() {
                                         className={cn(
                                           "ml-auto rounded-full px-2 py-0.5 text-[10px]",
                                           p.is_active
-                                            ? "border-red-500 text-red-600"
-                                            : "border-muted-foreground/40 text-muted-foreground",
+                                            ? "text-red-600"
+                                            : "text-muted-foreground",
                                         )}
                                       >
                                         {p.is_active ? t("blacklists.snapshot.blocked") : t("blacklists.snapshot.lifted")}

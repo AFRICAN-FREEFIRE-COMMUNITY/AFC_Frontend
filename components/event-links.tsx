@@ -290,7 +290,7 @@ export function LinkedEventsCard({
           <div>
             <CardTitle className="flex items-center gap-2">
               <IconLink className="size-5" /> Linked events
-              <Badge variant="outline" className="rounded-full border-gold px-2 py-0.5 text-xs text-gold">
+              <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-gold">
                 qualification
               </Badge>
             </CardTitle>
@@ -328,7 +328,7 @@ export function LinkedEventsCard({
                   variant="outline"
                   className={
                     n.is_focus
-                      ? "rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+                      ? "rounded-full px-2 py-0.5 text-xs text-primary"
                       : "rounded-full px-2 py-0.5 text-xs"
                   }
                 >
@@ -347,7 +347,7 @@ export function LinkedEventsCard({
                   return (
                     <div key={e.link_id} className="flex flex-wrap items-center gap-1.5 text-xs">
                       <b>{src?.event_name ?? "?"}</b>
-                      <Badge variant="outline" className="rounded-full border-blue-500 px-2 py-0.5 text-xs text-blue-500">
+                      <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-blue-500">
                         {e.source_stage_name}
                       </Badge>
                       <IconArrowRight className="size-3.5 text-primary" />
@@ -356,8 +356,8 @@ export function LinkedEventsCard({
                         variant="outline"
                         className={
                           e.status === "fired"
-                            ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
-                            : "rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                            ? "rounded-full px-2 py-0.5 text-xs text-green-600"
+                            : "rounded-full px-2 py-0.5 text-xs text-orange-600"
                         }
                       >
                         {e.status}
@@ -371,7 +371,7 @@ export function LinkedEventsCard({
         )}
 
         {outbound.length === 0 && inbound.length === 0 && (
-          <p className="rounded-md border border-dashed py-8 text-center text-sm text-muted-foreground">
+          <p className="rounded-md py-8 text-center text-sm text-muted-foreground bg-muted/30">
             No links yet. Link a stage to another event and its top teams will qualify there
             automatically.
           </p>
@@ -381,7 +381,7 @@ export function LinkedEventsCard({
         {outbound.map((link) => (
           <div key={link.id} className="space-y-2.5 rounded-md border bg-muted/20 p-3">
             <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
-              <Badge variant="outline" className="rounded-full border-blue-500 px-2 py-0.5 text-xs text-blue-500">
+              <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-blue-500">
                 {link.source_stage_name}
               </Badge>
               <IconArrowRight className="size-4 text-primary" />
@@ -395,7 +395,7 @@ export function LinkedEventsCard({
               </Badge>
               {/* Capacity advisory (P2): firing would push the target past its cap. */}
               {link.capacity_warning && (
-                <Badge variant="outline" className="rounded-full border-gold px-2 py-0.5 text-xs text-gold">
+                <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-gold">
                   target nearly full: {link.target_registered}/{link.target_capacity} + top {link.qualify_count}
                 </Badge>
               )}
@@ -404,8 +404,8 @@ export function LinkedEventsCard({
                   variant="outline"
                   className={
                     link.status === "fired"
-                      ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
-                      : "rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                      ? "rounded-full px-2 py-0.5 text-xs text-green-600"
+                      : "rounded-full px-2 py-0.5 text-xs text-orange-600"
                   }
                 >
                   {link.status === "fired" ? "fired" : "waiting on stage results"}
@@ -541,8 +541,8 @@ export function LinkedEventsCard({
                     variant="outline"
                     className={
                       link.status === "fired"
-                        ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
-                        : "rounded-full border-blue-500 px-2 py-0.5 text-xs text-blue-500"
+                        ? "rounded-full px-2 py-0.5 text-xs text-green-600"
+                        : "rounded-full px-2 py-0.5 text-xs text-blue-500"
                     }
                   >
                     {link.status === "fired" ? "arrived" : "waiting on stage"}

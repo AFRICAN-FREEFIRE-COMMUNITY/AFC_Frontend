@@ -385,12 +385,12 @@ function SortableRule({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "rounded-md border bg-card",
+        "rounded-md bg-card",
         isDragging && "z-10 opacity-80 shadow-lg",
-        matchedInTest && "ring-1 ring-primary/60",
+        matchedInTest && "bg-primary/10",
         // The whole card is tinted, not just the pill: a flagged rule has to be findable while
         // scrolling a long list, which is the part a banner alone cannot do.
-        issues.length > 0 && "border-orange-500/40",
+        issues.length > 0 && "bg-orange-500/10",
         !rule.enabled && "opacity-60",
       )}
     >
@@ -431,7 +431,7 @@ function SortableRule({
         <InfoTip id="rankings.tiers.match_mode" />
 
         {matchedInTest && (
-          <Badge variant="outline" className="rounded-full border-primary/50 text-[10px] text-primary">
+          <Badge variant="outline" className="rounded-full text-[10px] text-primary">
             {t("matchesTest")}
           </Badge>
         )}
@@ -1035,7 +1035,7 @@ export default function TournamentTiersPage() {
             add-rule button) so the highlight stays put whether or not any rules exist yet. */}
         <div data-tour="tournament-tiers-rules" className="space-y-3 lg:col-span-2">
           {rules.length === 0 ? (
-            <div className="space-y-3 rounded-md border border-dashed bg-muted/20 px-3 py-10 text-center text-sm text-muted-foreground">
+            <div className="space-y-3 rounded-md bg-muted/20 px-3 py-10 text-center text-sm text-muted-foreground">
               <p>{t("emptyRules")}</p>
               {/* A set with no rules is not neutral - it sends EVERY event of this kind to the
                   default tier. Said plainly here, with the one-click way out, because the scrims
@@ -1081,7 +1081,7 @@ export default function TournamentTiersPage() {
           )}
 
           {/* default (pinned) */}
-          <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed bg-muted/20 px-3 py-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-md bg-muted/20 px-3 py-3">
             <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">{t("defaultBadge")}</Badge>
             <span className="inline-flex items-center text-xs text-muted-foreground">
               {t("defaultRowText")}
@@ -1100,7 +1100,7 @@ export default function TournamentTiersPage() {
           </div>
 
           {/* data-tour anchor: tournament-tiers tour "Add a new rule" step. */}
-          <Button data-tour="tournament-tiers-add" variant="outline" className="w-full border-dashed" onClick={addRule}>
+          <Button data-tour="tournament-tiers-add" variant="secondary" className="w-full" onClick={addRule}>
             <IconPlus className="mr-1.5 size-4" /> {t("addRule")}
           </Button>
         </div>

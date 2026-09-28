@@ -325,7 +325,7 @@ export function FlaggedKillsPanel({
               <IconFlag className="size-4 text-orange-400" />
               {t("title")}
               {flags.length > 0 && (
-                <Badge variant="outline" className="rounded-full border-orange-500/40 px-2 py-0.5 text-[10px] text-orange-400">
+                <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-orange-400">
                   {t("flaggedBadge", { count: flags.length })}
                 </Badge>
               )}
@@ -484,7 +484,7 @@ export function FlaggedKillsPanel({
                       {/* Pending pill: a name-matched / cross-team flag explicitly held at
                           count_kills=false until an admin approves it via the Count select. */}
                       {f.count_kills === false && (
-                        <Badge variant="outline" className="rounded-full border-orange-500/40 px-2 py-0.5 text-[10px] text-orange-400">
+                        <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-orange-400">
                           {t("pending")}
                         </Badge>
                       )}
@@ -510,8 +510,8 @@ export function FlaggedKillsPanel({
                         className={
                           "rounded-full px-2 py-0.5 text-[10px] " +
                           (f.effective_count
-                            ? "border-green-500/40 text-green-400"
-                            : "border-muted-foreground/30 text-muted-foreground")
+                            ? "text-green-400"
+                            : "text-muted-foreground")
                         }
                       >
                         {f.effective_count ? t("counting") : t("excluded")}
@@ -549,7 +549,7 @@ export function FlaggedKillsPanel({
               )}
             </div>
             <p className="text-xs text-muted-foreground">{t("unmatchedSubtitle")}</p>
-            <div className="rounded-lg border divide-y">
+            <div className="rounded-lg zebra bg-muted/20 overflow-hidden">
               {unmatched.map((b) => (
                 <div
                   key={b.block_id}

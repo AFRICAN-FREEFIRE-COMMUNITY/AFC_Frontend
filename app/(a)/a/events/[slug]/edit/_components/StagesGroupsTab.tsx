@@ -276,8 +276,8 @@ const MODE_LABEL_KEY: Record<string, string> = {
 //                                           }
 //                                           className={
 //                                             match.result_inputted
-//                                               ? "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/10"
-//                                               : "text-orange-500 border-orange-500/20"
+//                                               ? "bg-green-500/10 text-green-500 hover:bg-green-500/10"
+//                                               : "text-orange-500"
 //                                           }
 //                                         >
 //                                           {match.result_inputted
@@ -343,7 +343,7 @@ const MODE_LABEL_KEY: Record<string, string> = {
 //         );
 //       })}
 
-//       <div className="flex justify-center p-4 border-2 border-dashed rounded-lg border-primary/20 hover:border-primary/50 transition-colors">
+//       <div className="flex justify-center p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors">
 //         <Button
 //           type="button"
 //           variant="ghost"
@@ -981,8 +981,8 @@ export default function StagesGroupsTab({
                                             }
                                             className={
                                               match.result_inputted
-                                                ? "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/10"
-                                                : "text-orange-500 border-orange-500/20"
+                                                ? "bg-green-500/10 text-green-500 hover:bg-green-500/10"
+                                                : "text-orange-500"
                                             }
                                           >
                                             {match.result_inputted
@@ -1075,7 +1075,7 @@ export default function StagesGroupsTab({
         </SortableContext>
       </DndContext>
 
-      <div className="flex justify-center p-4 border-2 border-dashed rounded-lg border-primary/20 hover:border-primary/50 transition-colors">
+      <div className="flex justify-center p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors">
         <Button
           type="button"
           variant="ghost"

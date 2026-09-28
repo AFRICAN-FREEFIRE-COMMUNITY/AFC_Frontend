@@ -228,7 +228,7 @@ function BracketTable({
                     <TableCell className="p-2">
                       <div className="flex min-w-0 items-center gap-1">
                         {open ? (
-                          <span className="inline-flex h-8 flex-1 items-center gap-1 rounded-md border border-dashed px-2 text-[11px] text-muted-foreground">
+                          <span className="inline-flex h-8 flex-1 items-center gap-1 rounded-md px-2 text-[11px] text-muted-foreground bg-muted/30">
                             <IconInfinity className="size-3.5" />
                             {t("admin.scoringConfig.noUpperLimit")}
                           </span>
@@ -681,7 +681,7 @@ export default function ScoringConfigPage() {
                 {t("admin.scoringConfig.saveChanges")}
                 {dirtyCount > 0 && (
                   <Badge variant="outline"
-                    className="ml-1 rounded-full border-background/40 bg-background/20 px-1.5 py-0 text-[10px] tabular-nums">
+                    className="ml-1 rounded-full bg-background/20 px-1.5 py-0 text-[10px] tabular-nums">
                     {dirtyCount}
                   </Badge>
                 )}
@@ -1267,7 +1267,7 @@ export default function ScoringConfigPage() {
                           v{v.version}
                           {v.is_active && (
                             <Badge variant="outline"
-                              className="ml-1 rounded-full border-primary/50 px-1.5 py-0 text-[10px] text-primary">
+                              className="ml-1 rounded-full px-1.5 py-0 text-[10px] text-primary">
                               {t("admin.scoringConfig.badgeActive")}
                             </Badge>
                           )}

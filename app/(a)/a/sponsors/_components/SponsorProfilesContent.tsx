@@ -345,8 +345,8 @@ export function SponsorProfilesContent() {
                           variant="outline"
                           className={
                             s.status === "active"
-                              ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
-                              : "rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                              ? "rounded-full px-2 py-0.5 text-xs text-green-600"
+                              : "rounded-full px-2 py-0.5 text-xs text-orange-600"
                           }
                         >
                           {s.status}
@@ -423,7 +423,7 @@ export function SponsorProfilesContent() {
                 placeholder="Add a member by username..."
               />
               {(manage?.members ?? []).length > 0 && (
-                <div className="divide-y rounded-md border">
+                <div className="rounded-md zebra bg-muted/20 overflow-hidden">
                   {(manage?.members ?? []).map((m) => (
                     <div key={m.member_id} className="flex items-center justify-between gap-2 p-2">
                       <span className="text-sm font-medium">{m.username}</span>
@@ -484,7 +484,7 @@ export function SponsorProfilesContent() {
                   <Label className="text-xs text-muted-foreground">
                     {t("pendingInvites", { count: invites.length })}
                   </Label>
-                  <div className="divide-y rounded-md border">
+                  <div className="rounded-md zebra bg-muted/20 overflow-hidden">
                     {invites.map((i) => (
                       <div key={i.invite_id} className="flex items-center justify-between gap-2 p-2">
                         <div className="min-w-0">
@@ -542,7 +542,7 @@ export function SponsorProfilesContent() {
                 )}
               </div>
               {manageEvents.length > 0 && (
-                <div className="divide-y rounded-md border">
+                <div className="rounded-md zebra bg-muted/20 overflow-hidden">
                   {manageEvents.map((e) => (
                     <div key={e.event_id} className="flex items-center justify-between gap-2 p-2">
                       <span className="text-sm">{e.event_name}</span>

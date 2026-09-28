@@ -120,7 +120,7 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
 function TruncatedNote() {
   const t = useTranslations("teamsplayers");
   return (
-    <div className="mb-4 flex items-start gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+    <div className="mb-4 flex items-start gap-2 rounded-md bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
       <IconInfoCircle className="mt-0.5 size-4 shrink-0" />
       <span>{t("rankings.truncatedNote")}</span>
     </div>
@@ -139,7 +139,7 @@ function TruncatedNote() {
 function PreviousPeriodNote({ shown, pending }: { shown: string; pending: string }) {
   const t = useTranslations("teamsplayers");
   return (
-    <div className="mb-4 flex items-start gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+    <div className="mb-4 flex items-start gap-2 rounded-md bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
       <IconClock className="mt-0.5 size-4 shrink-0" />
       <span>
         {t.rich("rankings.showingPrevious", {
@@ -741,7 +741,7 @@ function RankingsView() {
                               {r.claim_status === "pending" && (
                                 <Badge
                                   variant="outline"
-                                  className="rounded-full px-2 py-0.5 text-[10px] border-orange-500/40 text-orange-400"
+                                  className="rounded-full px-2 py-0.5 text-[10px] text-orange-400"
                                 >
                                   {t("rankings.claimPending")}
                                 </Badge>
@@ -1084,7 +1084,7 @@ function TiersView() {
       {tiersHidden && (
         // Rankings are published but tiers aren't graded/published yet - say so instead of
         // dropping every (null-tier) team and showing a misleading empty state.
-        <div className="mb-4 flex items-center gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+        <div className="mb-4 flex items-center gap-2 rounded-md bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
           <IconClock className="size-4 shrink-0" />
           {t("rankings.tiersComingSoon")}{" "}
           <span className="font-medium text-foreground">{season?.name ?? t("rankings.thisSeason")}</span> {t("rankings.tiersComingSoonNotPublished")}

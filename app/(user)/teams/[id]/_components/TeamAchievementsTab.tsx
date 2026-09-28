@@ -133,7 +133,7 @@ const TeamAchievementsTab = ({ team }: TeamAchievementsTabProps) => {
         {/* Trophy badge mirrors the gold accent used across AFC stat surfaces. */}
         <Badge
           variant="outline"
-          className="border-gold/60 text-gold self-start sm:self-auto"
+          className="text-gold self-start sm:self-auto"
         >
           <IconTrophy className="h-4 w-4 mr-1" />
           {t("teamAchievements.pts", { count: earnedPoints })}
@@ -319,17 +319,17 @@ function TeamAchievementCard({
   // same tCat.has() guard against milestone groups that have no unit.* key).
   const progressUnit = unitLabel;
 
-  // Card container treatment: earned (green), next-to-chase (primary ring), else a
-  // plain muted card. Identical class set to the player card.
+  // Card container treatment, fills only (no stroke): earned (green tint), next-to-chase
+  // (a stronger primary tint), else a plain card.
   const containerClass = earned
-    ? "border-primary/40 bg-primary/5"
+    ? "bg-primary/10"
     : isNext && !goal
-      ? "border-primary/60 bg-primary/[0.03] ring-1 ring-primary/30"
-      : "border-border bg-card hover:bg-muted/30";
+      ? "bg-primary/15"
+      : "bg-card hover:bg-muted/30";
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-md border px-3 py-3 transition-colors ${containerClass}`}
+      className={`flex items-start gap-3 rounded-md px-3 py-3 transition-colors ${containerClass}`}
     >
       {/* icon chip: green when earned, muted otherwise */}
       <div

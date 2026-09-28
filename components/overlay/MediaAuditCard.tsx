@@ -294,7 +294,7 @@ const MediaRow = ({
           <>
             <Badge
               variant="outline"
-              className="rounded-full border-orange-500/60 px-2 py-0 text-[0.6rem] text-orange-500"
+              className="rounded-full px-2 py-0 text-[0.6rem] text-orange-500"
               title={checkReason}
             >
               <IconEyeQuestion className="mr-0.5 size-3" />
@@ -315,13 +315,13 @@ const MediaRow = ({
           </>
         ) : null}
         {missing ? (
-          <Badge variant="outline" className="rounded-full border-amber-500/50 px-2 py-0 text-[0.6rem] text-amber-500">
+          <Badge variant="outline" className="rounded-full px-2 py-0 text-[0.6rem] text-amber-500">
             {t("mediaAudit.missing")}
           </Badge>
         ) : (
           <>
             {flaggedState ? (
-              <Badge variant="outline" className="rounded-full border-red-500/50 px-2 py-0 text-[0.6rem] text-red-500">
+              <Badge variant="outline" className="rounded-full px-2 py-0 text-[0.6rem] text-red-500">
                 {t("mediaAudit.flaggedBadge")}
               </Badge>
             ) : (
@@ -555,7 +555,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
           <p className="text-muted-foreground mb-1 text-[0.68rem] font-semibold uppercase tracking-wide">
             {t("mediaAudit.teamLogos")}
           </p>
-          <div className="divide-border max-h-64 divide-y overflow-y-auto pr-1">
+          <div className="max-h-64 overflow-y-auto pr-1 zebra">
             {teams.length === 0 ? (
               <p className="text-muted-foreground py-3 text-xs italic">{t("mediaAudit.noTeams")}</p>
             ) : (
@@ -583,7 +583,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
           <p className="text-muted-foreground mb-1 text-[0.68rem] font-semibold uppercase tracking-wide">
             {t("mediaAudit.playerImages")}
           </p>
-          <div className="divide-border max-h-64 divide-y overflow-y-auto pr-1">
+          <div className="max-h-64 overflow-y-auto pr-1 zebra">
             {players.length === 0 ? (
               <p className="text-muted-foreground py-3 text-xs italic">{t("mediaAudit.noPlayers")}</p>
             ) : (

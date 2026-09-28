@@ -473,7 +473,7 @@ export function FileUploadStep({
                     <div className="px-3 py-2 bg-muted/30 text-xs font-medium">
                       {teamName}
                     </div>
-                    <div className="divide-y">
+                    <div className="zebra">
                       {rows.map((r, i) => {
                         // A name-matched / cross-team row whose pending flag can be approved inline
                         // (name-matching feature). flag_id is null in a dry-run preview -> no approve.
@@ -500,7 +500,7 @@ export function FileUploadStep({
                             </span>
                             <Badge
                               variant="outline"
-                              className="rounded-full px-2 py-0.5 text-[10px] border-amber-500/60 text-amber-500"
+                              className="rounded-full px-2 py-0.5 text-[10px] text-amber-500"
                             >
                               {REASON_LABEL[r.reason] ?? r.reason}
                               {/* Append the other team for both legacy cross-team and the new
@@ -616,7 +616,7 @@ export function FileUploadStep({
                 showed up in the file are not on their roster. Add the team to
                 the watchlist so they are flagged for review.
               </p>
-              <div className="rounded-lg border overflow-hidden divide-y">
+              <div className="rounded-lg overflow-hidden zebra bg-muted/20">
                 {uploadResult.roster_mismatch_teams.map((t) => {
                   const key = `team:${t.site_team_id}`;
                   return (
@@ -740,7 +740,7 @@ export function FileUploadStep({
                 <IconCircleCheck size={16} />
                 Credited ({uploadResult.attributed.length})
               </div>
-              <div className="rounded-lg border max-h-48 overflow-auto divide-y">
+              <div className="rounded-lg max-h-48 overflow-auto zebra bg-muted/20">
                 {uploadResult.attributed.map((a, i) => (
                   <div
                     key={`${a.uid}-${i}`}
@@ -927,10 +927,10 @@ export function FileUploadStep({
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleFileDrop}
               className={cn(
-                "w-full rounded-lg border border-dashed p-8 flex flex-col items-center gap-2 cursor-pointer transition-colors",
+                "w-full rounded-lg p-8 flex flex-col items-center gap-2 cursor-pointer transition-colors",
                 isDragging
-                  ? "border-primary bg-primary/5 text-primary"
-                  : "text-muted-foreground hover:border-primary/60 hover:text-primary",
+                  ? "bg-primary/15 text-primary"
+                  : "bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:text-primary",
               )}
             >
               <IconUpload size={24} />
@@ -1033,8 +1033,8 @@ function ApproveRowButtons({
         className={
           "h-6 shrink-0 rounded-full px-2 text-[10px] " +
           (decision
-            ? "border-green-500/50 text-green-600 dark:text-green-400"
-            : "border-muted-foreground/30 text-muted-foreground")
+            ? "text-green-600 dark:text-green-400"
+            : "text-muted-foreground")
         }
       >
         {decision ? "Counted" : "Excluded"}

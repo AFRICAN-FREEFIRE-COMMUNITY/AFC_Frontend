@@ -36,7 +36,7 @@ export function StandaloneStandings({
 }) {
   if (!standings || standings.length === 0) {
     return (
-      <p className="rounded-md border border-dashed py-10 text-center text-sm text-muted-foreground">
+      <p className="rounded-md py-10 text-center text-sm text-muted-foreground bg-muted/30">
         No standings yet. Add participants and enter at least one map of results.
       </p>
     );
@@ -67,14 +67,14 @@ export function StandaloneStandings({
                     // Ghost = a placeholder entity created inline for someone not on the platform.
                     <Badge
                       variant="outline"
-                      className="rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                      className="rounded-full px-2 py-0.5 text-xs text-orange-600"
                     >
                       Ghost
                     </Badge>
                   ) : (
                     <Badge
                       variant="outline"
-                      className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+                      className="rounded-full px-2 py-0.5 text-xs text-green-600"
                     >
                       Real
                     </Badge>

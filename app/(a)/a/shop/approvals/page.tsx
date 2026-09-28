@@ -295,7 +295,7 @@ export default function ProductApprovalsPage() {
                       {product.vendor_name ? (
                         <Badge
                           variant="outline"
-                          className="rounded-full border-blue-500 text-blue-600"
+                          className="rounded-full text-blue-600"
                         >
                           {product.vendor_name}
                         </Badge>
@@ -466,10 +466,10 @@ export default function ProductApprovalsPage() {
                                 key={m.id}
                                 type="button"
                                 onClick={() => setDetailMediaIndex(i)}
-                                className={`relative h-14 w-14 overflow-hidden rounded-md border bg-muted transition ${
+                                className={`relative h-14 w-14 overflow-hidden rounded-md bg-muted transition ${
                                   i === activeIndex
-                                    ? "border-primary ring-1 ring-primary"
-                                    : "border-border hover:border-primary/60"
+                                    ? "opacity-100"
+                                    : "opacity-50 hover:opacity-80"
                                 }`}
                                 aria-label={`View media ${i + 1}`}
                               >
@@ -514,7 +514,7 @@ export default function ProductApprovalsPage() {
                       {detailTarget.vendor_name && (
                         <Badge
                           variant="outline"
-                          className="rounded-full border-blue-500 text-blue-600"
+                          className="rounded-full text-blue-600"
                         >
                           {detailTarget.vendor_name}
                         </Badge>
@@ -522,7 +522,7 @@ export default function ProductApprovalsPage() {
                       {detailTarget.category?.name && (
                         <Badge
                           variant="outline"
-                          className="rounded-full border-green-500 text-green-600"
+                          className="rounded-full text-green-600"
                         >
                           {detailTarget.category.name}
                         </Badge>
@@ -594,8 +594,8 @@ export default function ProductApprovalsPage() {
                                       variant="outline"
                                       className={
                                         v.is_active
-                                          ? "rounded-full border-green-500 text-green-600"
-                                          : "rounded-full border-orange-500 text-orange-600"
+                                          ? "rounded-full text-green-600"
+                                          : "rounded-full text-orange-600"
                                       }
                                     >
                                       {v.is_active ? "Active" : "Inactive"}

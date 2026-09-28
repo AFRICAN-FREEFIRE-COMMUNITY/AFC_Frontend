@@ -325,13 +325,13 @@ export function MultiMapLogPanel({
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           className={cn(
-            "flex w-full flex-col items-center gap-1 rounded-lg border border-dashed p-5 text-muted-foreground transition-colors",
+            "flex w-full flex-col items-center gap-1 rounded-lg bg-muted/30 p-5 text-muted-foreground transition-colors",
             busy || validMatches.length === 0
               ? "cursor-not-allowed opacity-50"
               : "cursor-pointer",
             isDragging
-              ? "border-primary bg-primary/5 text-primary"
-              : "hover:border-primary/60 hover:text-primary",
+              ? "bg-primary/15 text-primary"
+              : "hover:bg-muted/50 hover:text-primary",
           )}
         >
           <IconUpload size={22} />
@@ -404,7 +404,7 @@ export function MultiMapLogPanel({
                         count: row.preview.parsed,
                       })}
                 </Badge>
-                <Badge variant="outline" className="rounded-full border-primary text-primary">
+                <Badge variant="outline" className="rounded-full text-primary">
                   {isSolo
                     ? t("uploadSteps.logUpload.savedSolo", {
                         count: row.preview.saved,
@@ -416,7 +416,7 @@ export function MultiMapLogPanel({
                 {row.preview.unmatched > 0 && (
                   <Badge
                     variant="outline"
-                    className="rounded-full border-amber-500 text-amber-600"
+                    className="rounded-full text-amber-600"
                   >
                     {isSolo
                       ? t("uploadSteps.logUpload.unmatchedSolo", {
