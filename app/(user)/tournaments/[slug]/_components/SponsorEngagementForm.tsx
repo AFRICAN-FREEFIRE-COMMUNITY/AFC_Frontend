@@ -394,7 +394,7 @@ const DiscordVerificationPanel: React.FC<{
 
   if (checking) {
     return (
-      <div className="p-3 rounded-md border border-input bg-background/50 flex items-center gap-2">
+      <div className="p-3 rounded-md bg-background/50 flex items-center gap-2">
         <RefreshCw className="size-4 animate-spin text-muted-foreground flex-shrink-0" />
         <p className="text-xs text-muted-foreground">
           {t("sponsorForm.discord.checking")}
@@ -406,7 +406,7 @@ const DiscordVerificationPanel: React.FC<{
   // No result yet (e.g. the auto-check on opening the step failed silently).
   if (!status) {
     return (
-      <div className="p-3 rounded-md border border-input bg-background/50 space-y-2">
+      <div className="p-3 rounded-md bg-background/50 space-y-2">
         <p className="text-xs text-muted-foreground">
           {t("sponsorForm.discord.noResult")}
         </p>
@@ -421,7 +421,7 @@ const DiscordVerificationPanel: React.FC<{
   // ── green: connected AND in the server ──
   if (verified) {
     return (
-      <div className="p-3 rounded-md border border-green-500/50 bg-green-500/10 flex items-center justify-between gap-2">
+      <div className="p-3 rounded-md bg-green-500/10 flex items-center justify-between gap-2">
         <div className="flex items-start gap-2">
           <CheckCircle className="size-4 text-green-400 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-green-400">
@@ -436,7 +436,7 @@ const DiscordVerificationPanel: React.FC<{
   // ── red: Discord never connected on the AFC profile ──
   if (!status.discord_connected) {
     return (
-      <div className="p-3 rounded-md border border-red-500/50 bg-red-500/10 space-y-2">
+      <div className="p-3 rounded-md bg-red-500/10 space-y-2">
         <div className="flex items-start gap-2">
           <XCircle className="size-4 text-red-400 flex-shrink-0 mt-0.5" />
           <div>
@@ -458,7 +458,7 @@ const DiscordVerificationPanel: React.FC<{
   // ── orange: connected but the bot could not find them in the server ──
   if (status.in_server === false) {
     return (
-      <div className="p-3 rounded-md border border-orange-500/50 bg-orange-500/10 space-y-2">
+      <div className="p-3 rounded-md bg-orange-500/10 space-y-2">
         <div className="flex items-start gap-2">
           <AlertTriangle className="size-4 text-orange-400 flex-shrink-0 mt-0.5" />
           <div>
@@ -481,7 +481,7 @@ const DiscordVerificationPanel: React.FC<{
 
   // ── yellow: connected, but the live Discord check errored (in_server null) ──
   return (
-    <div className="p-3 rounded-md border border-yellow-500/50 bg-yellow-500/10 space-y-2">
+    <div className="p-3 rounded-md bg-yellow-500/10 space-y-2">
       <div className="flex items-start gap-2">
         <AlertTriangle className="size-4 text-yellow-400 flex-shrink-0 mt-0.5" />
         <div>
@@ -823,7 +823,7 @@ export const SponsorEngagementPlayerSection: React.FC<
       <CollapsibleTrigger asChild>
         <button
           type="button"
-          className="flex w-full items-center justify-between gap-2 p-3 bg-background rounded-md border hover:border-primary transition"
+          className="flex w-full items-center justify-between gap-2 p-3 bg-background rounded-md transition hover:bg-primary/10"
         >
           <span className="text-sm font-medium">{username}</span>
           <span className="flex items-center gap-2">

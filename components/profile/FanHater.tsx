@@ -99,7 +99,7 @@ export function FanHater({
         type="button"
         size="sm"
         variant={myStance === "fan" ? "default" : "outline"}
-        className={myStance === "fan" ? "" : "border-green-600/40 text-green-600 hover:bg-green-600/10 hover:text-green-600"}
+        className={myStance === "fan" ? "" : "text-green-600 hover:bg-green-600/10 hover:text-green-600 bg-green-600/5"}
         onClick={() => react("fan")}
         disabled={busy}
         aria-pressed={myStance === "fan"}
@@ -114,7 +114,7 @@ export function FanHater({
         type="button"
         size="sm"
         variant={myStance === "hater" ? "destructive" : "outline"}
-        className={myStance === "hater" ? "" : "border-red-500/40 text-red-500 hover:bg-red-500/10 hover:text-red-500"}
+        className={myStance === "hater" ? "" : "text-red-500 hover:bg-red-500/10 hover:text-red-500 bg-red-500/5"}
         onClick={() => react("hater")}
         disabled={busy}
         aria-pressed={myStance === "hater"}

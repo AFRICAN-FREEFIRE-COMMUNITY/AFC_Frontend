@@ -467,7 +467,7 @@ const Page = ({ params }: { params: Params }) => {
                       control={form.control}
                       name="is_limited_stock"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg p-4 bg-muted/30">
                           <div className="space-y-0.5">
                             <FormLabel>
                               Limited Stock
@@ -513,7 +513,7 @@ const Page = ({ params }: { params: Params }) => {
                     {fields.map((field, index) => (
                       <div
                         key={field.id}
-                        className="p-4 border rounded-lg space-y-4 bg-muted/20"
+                        className="p-4 rounded-lg space-y-4 bg-muted/20"
                       >
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-bold text-muted-foreground">
@@ -620,7 +620,7 @@ const Page = ({ params }: { params: Params }) => {
                             control={form.control}
                             name={`variants.${index}.is_active`}
                             render={({ field }) => (
-                              <FormItem className="flex flex-row items-center justify-between rounded-md border p-3 mt-auto">
+                              <FormItem className="flex flex-row items-center justify-between rounded-md p-3 mt-auto bg-muted/30">
                                 <FormLabel className="text-xs">
                                   Active
                                 </FormLabel>

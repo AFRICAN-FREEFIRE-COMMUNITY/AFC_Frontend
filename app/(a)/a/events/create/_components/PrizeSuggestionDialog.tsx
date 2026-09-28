@@ -171,7 +171,7 @@ export function PrizeSuggestionDialog({
 
         {!poolIsSet ? (
           // No pool to split. Say so plainly rather than rendering a table of zeroes.
-          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+          <div className="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
             {t("prizeSuggest.noPool")}
           </div>
         ) : (
@@ -225,14 +225,14 @@ export function PrizeSuggestionDialog({
 
             {!split ? (
               // Pool is set but cannot be split this many ways (e.g. 5 cents across 12 places).
-              <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+              <div className="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
                 {t("prizeSuggest.poolTooSmall", { places })}
               </div>
             ) : (
               <>
                 {/* ── the preview. Own scroll container so the footer buttons stay reachable
                      with 50 places open on a phone. ── */}
-                <div className="max-h-64 overflow-y-auto rounded-md border">
+                <div className="max-h-64 overflow-y-auto rounded-md bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -282,7 +282,7 @@ export function PrizeSuggestionDialog({
                 </div>
 
                 {/* Total, so the organizer can see at a glance that it lands on the pool. */}
-                <div className="rounded-md border border-primary/40 bg-primary/10 px-3 py-2 text-xs text-primary flex items-center justify-between gap-3">
+                <div className="rounded-md bg-primary/10 px-3 py-2 text-xs text-primary flex items-center justify-between gap-3">
                   <span>{t("prizeSuggest.totalRow")}</span>
                   <span className="font-semibold">
                     {fmt(pool)} {currency}
@@ -300,7 +300,7 @@ export function PrizeSuggestionDialog({
 
                 {/* ── overwrite guard: never replace entered money without saying so ── */}
                 {hasExistingAmounts && (
-                  <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                  <div className="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
                     {t("prizeSuggest.replaceWarning")}
                   </div>
                 )}

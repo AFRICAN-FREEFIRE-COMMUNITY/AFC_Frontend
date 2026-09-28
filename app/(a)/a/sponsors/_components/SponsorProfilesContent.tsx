@@ -526,7 +526,7 @@ export function SponsorProfilesContent() {
                   disabled={busy}
                 />
                 {pickerResults.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
+                  <div className="absolute z-10 mt-1 w-full rounded-md bg-popover shadow-md">
                     {pickerResults.map((e) => (
                       <button
                         key={e.event_id}

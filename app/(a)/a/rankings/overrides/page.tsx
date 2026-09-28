@@ -99,7 +99,7 @@ function TierOverrideDialog({
 
         <div className="space-y-4">
           {/* what we're overriding (read-only context) */}
-          <div className="flex items-center justify-between rounded-md border bg-muted/30 p-3">
+          <div className="flex items-center justify-between rounded-md bg-muted/30 p-3">
             <div className="space-y-1">
               <p className="text-xs uppercase font-semibold text-muted-foreground">{t("tierDialog.currentTier")}</p>
               <TierBadge tier={computed} />
@@ -204,7 +204,7 @@ function DeductPointsDialog({
 
         <div className="space-y-4">
           {/* live current -> resulting context */}
-          <div className="flex items-center justify-between rounded-md border bg-muted/30 p-3">
+          <div className="flex items-center justify-between rounded-md bg-muted/30 p-3">
             <div className="space-y-1">
               <p className="text-xs uppercase font-semibold text-muted-foreground">{t("deductDialog.currentScore")}</p>
               <p className="text-lg font-bold tabular-nums">{current}</p>
@@ -852,7 +852,7 @@ export default function OverridesAndBansPage() {
                                   data-tour={i === 0 ? "overrides-deduct" : undefined}
                                   size="sm"
                                   variant="outline"
-                                  className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 hover:text-orange-400"
+                                  className="text-orange-400 hover:bg-orange-500/10 hover:text-orange-400 bg-orange-500/5"
                                   onClick={() => setDeductTeam(t2)}
                                 >
                                   <IconMinus className="mr-1 size-3.5" /> {t("teams.deduct")}
@@ -888,7 +888,7 @@ export default function OverridesAndBansPage() {
                                   data-tour={i === 0 ? "overrides-ban" : undefined}
                                   size="sm"
                                   variant="outline"
-                                  className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                  className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                                   onClick={() => setBanTeam(t2)}
                                 >
                                   <IconBan className="mr-1 size-3.5" /> {t("teams.banZero")}
@@ -906,7 +906,7 @@ export default function OverridesAndBansPage() {
             </CardContent>
           </Card>
 
-          <p className="flex items-start gap-2 rounded-md border border-orange-500/20 bg-orange-500/5 p-3 text-xs text-muted-foreground">
+          <p className="flex items-start gap-2 rounded-md bg-orange-500/5 p-3 text-xs text-muted-foreground">
             <IconAlertTriangle className="mt-0.5 size-4 shrink-0 text-orange-500" />
             <span>
               {/* One message with an inline <b> lead sentence, so the emphasis can move with the
@@ -922,7 +922,7 @@ export default function OverridesAndBansPage() {
       {/* PLAYERS */}
       {tab === "players" && (
         <>
-          <p className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+          <p className="flex items-start gap-2 rounded-md bg-muted/30 p-3 text-xs text-muted-foreground">
             <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
             <span>
               {t.rich("players.note", {
@@ -981,7 +981,7 @@ export default function OverridesAndBansPage() {
                             disabled={p.zeroed}
                             className={cn(
                               !p.zeroed &&
-                                "border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive",
+                                "text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5",
                             )}
                             onClick={() => setBanPlayer(p)}
                           >

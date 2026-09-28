@@ -531,7 +531,7 @@ export function ProductFormDialog({
             {variants.map((v, index) => (
               <div
                 key={index}
-                className="relative rounded-md border p-4 space-y-4"
+                className="relative rounded-md p-4 space-y-4 bg-muted/30"
               >
                 {variants.length > 1 && (
                   <Button

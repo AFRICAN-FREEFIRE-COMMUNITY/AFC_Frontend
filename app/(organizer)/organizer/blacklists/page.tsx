@@ -209,9 +209,9 @@ function StatusBadge({ status }: { status: string }) {
 // ── Lift-request status badge (pending = amber, approved = green, denied = muted) ──
 function RequestStatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    pending: "border-amber-500 text-amber-600",
-    approved: "border-green-500 text-green-600",
-    denied: "border-red-500 text-red-600",
+    pending: "text-amber-600 bg-amber-500/10",
+    approved: "text-green-600 bg-green-500/10",
+    denied: "text-red-600 bg-red-500/10",
   };
   return (
     <Badge
@@ -615,7 +615,7 @@ export default function OrganizerBlacklistsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-md border">
+            <div className="overflow-x-auto rounded-md bg-muted/30">
               <Table data-tour="org-blacklists-table">
                 <TableHeader>
                   <TableRow>
@@ -810,7 +810,7 @@ export default function OrganizerBlacklistsPage() {
               {liftRequests.map((req) => (
                 <div
                   key={req.id}
-                  className="flex flex-col gap-3 rounded-md border p-3 sm:flex-row sm:items-start sm:justify-between"
+                  className="flex flex-col gap-3 rounded-md p-3 sm:flex-row sm:items-start sm:justify-between bg-muted/30"
                 >
                   <div className="flex flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -1116,7 +1116,7 @@ function BlacklistLookupSection() {
 
         {/* ── Result: headline counts + the per-blacklist entries table. ── */}
         {result && (
-          <div className="flex flex-col gap-3 rounded-md border p-4">
+          <div className="flex flex-col gap-3 rounded-md p-4 bg-muted/30">
             {/* Headline: "Blacklisted N times (M active)" for the looked-up target. */}
             <p className="text-sm">
               <span className="font-medium">{targetLabel}</span>{" "}
@@ -1146,7 +1146,7 @@ function BlacklistLookupSection() {
             </p>
 
             {result.entries.length > 0 && (
-              <div className="overflow-x-auto rounded-md border">
+              <div className="overflow-x-auto rounded-md bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>

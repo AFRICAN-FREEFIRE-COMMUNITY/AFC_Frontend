@@ -1365,7 +1365,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
               </CardHeader>
               <CardContent className="max-h-96 overflow-y-auto space-y-2">
                 {/* Explainer: how the shared FCFS link behaves vs single-use links. */}
-                <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
+                <div className="rounded-md bg-primary/5 p-3 text-xs text-muted-foreground">
                   <p>
                     <span className="font-medium text-foreground">
                       {t("eventDetail.invites.explainerSharedLabel")}

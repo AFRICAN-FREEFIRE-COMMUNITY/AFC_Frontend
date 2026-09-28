@@ -54,7 +54,7 @@ export function EventDraftResumeDialog({
       : null;
 
   return (
-    <div className="border-primary/40 bg-primary/5 mb-6 flex flex-col gap-3 rounded-md border px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="bg-primary/5 mb-6 flex flex-col gap-3 rounded-md px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-2">
         <IconHistory className="text-primary mt-0.5 size-5 shrink-0" />
         <div className="text-sm">

@@ -129,10 +129,10 @@ export default function OrderDetailsPage() {
                       <img
                         src={item.product_image}
                         alt={item.product_name}
-                        className="size-14 rounded-md border object-cover shrink-0 bg-muted"
+                        className="size-14 rounded-md object-cover shrink-0 bg-muted"
                       />
                     ) : (
-                      <div className="size-14 rounded-md border bg-muted shrink-0" />
+                      <div className="size-14 rounded-md bg-muted shrink-0" />
                     )}
                     <div className="space-y-1 min-w-0">
                       <p className="font-medium text-sm">{item.product_name}</p>
@@ -181,7 +181,7 @@ export default function OrderDetailsPage() {
           </Card>
 
           {order.status === "paid" && (
-            <div className="bg-green-50 dark:bg-green-950 border border-green-100 dark:border-green-900 p-4 rounded-lg flex items-start gap-3">
+            <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg flex items-start gap-3">
               <div className="h-8 w-8 bg-green-500 rounded-full flex items-center justify-center shrink-0">
                 <IconReceipt2 className="text-white h-5 w-5" />
               </div>

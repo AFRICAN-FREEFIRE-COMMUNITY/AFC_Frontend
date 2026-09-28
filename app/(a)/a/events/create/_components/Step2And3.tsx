@@ -43,7 +43,7 @@ export function Step2EventMode({ form }: Step2Props) {
                   {["virtual", "physical", "hybrid"].map((mode) => (
                     <div
                       key={mode}
-                      className="flex items-center gap-2 p-4 border border-input rounded-md"
+                      className="flex items-center gap-2 p-4 rounded-md bg-muted/30"
                     >
                       <RadioGroupItem value={mode} />
                       <span className="capitalize text-sm">

@@ -110,9 +110,9 @@ function windowState(s: Season): { open: boolean; key: WindowStateKey } {
 }
 
 const transferActionMeta: Record<string, string> = {
-  opened: "bg-green-500/10 text-green-500 border-green-500/20",
-  extended: "bg-blue-500/10 text-blue-400 border-blue-600/20",
-  closed: "text-orange-500 border-orange-500/20",
+  opened: "bg-green-500/10 text-green-500",
+  extended: "bg-blue-500/10 text-blue-400",
+  closed: "text-orange-500 bg-orange-500/10",
 };
 
 // The log badge shows the backend TransferWindowLog.action value, which is stored in English
@@ -638,7 +638,7 @@ function SeasonFormDialog({
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-md border p-3">
+          <div className="flex items-center justify-between rounded-md p-3 bg-muted/30">
             <div>
               <Label className="normal-case text-foreground">
                 {t("form.activeLabel")}
@@ -793,7 +793,7 @@ function TransferWindowDialog({
                   data-active={action === a.key}
                   onClick={() => setAction(a.key)}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-md border bg-card p-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40",
+                    "flex flex-col items-center gap-1 rounded-md bg-card p-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40",
                     a.cls
                   )}
                 >
@@ -931,7 +931,7 @@ function RunEvaluationDialog({
 
         <div className="space-y-4">
           {alreadyRun && (
-            <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-500">
+            <div className="flex items-start gap-2 rounded-md bg-orange-500/10 p-3 text-xs text-orange-500">
               <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
               <span>
                 {t("evalDialog.alreadyRun")}
@@ -940,15 +940,15 @@ function RunEvaluationDialog({
           )}
 
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-md border bg-card p-3 text-center">
+            <div className="rounded-md bg-card p-3 text-center">
               <p className="text-lg font-bold tabular-nums">{preview ? preview.teams : "-"}</p>
               <p className="text-[11px] text-muted-foreground">{t("evalDialog.teams")}</p>
             </div>
-            <div className="rounded-md border bg-card p-3 text-center">
+            <div className="rounded-md bg-card p-3 text-center">
               <p className="text-lg font-bold tabular-nums">{preview ? preview.players : "-"}</p>
               <p className="text-[11px] text-muted-foreground">{t("evalDialog.players")}</p>
             </div>
-            <div className="rounded-md border bg-card p-3 text-center">
+            <div className="rounded-md bg-card p-3 text-center">
               <p className="text-lg font-bold tabular-nums text-orange-500">{preview ? preview.below : "-"}</p>
               {/* "Entry" here is the entry-level tier a team drops to, not an entrance,
                   so fr/pt say "niveau d'entree" / "nivel de entrada" (accented in the file). */}

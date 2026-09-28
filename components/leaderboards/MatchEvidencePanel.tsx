@@ -207,7 +207,7 @@ export function MatchEvidencePanel({
               {logs.map((lg) => (
                 <li
                   key={lg.log_id}
-                  className="flex items-center gap-2 rounded-md border bg-muted/30 px-2 py-1.5 text-xs"
+                  className="flex items-center gap-2 rounded-md bg-muted/30 px-2 py-1.5 text-xs"
                 >
                   <IconFileText size={14} className="shrink-0 text-muted-foreground" />
                   <span className="min-w-0 flex-1 truncate" title={lg.file_name}>
@@ -258,7 +258,7 @@ export function MatchEvidencePanel({
                     <img
                       src={img.image_url}
                       alt={img.note || "match screenshot"}
-                      className="h-20 w-20 rounded-md border object-cover transition hover:opacity-80"
+                      className="h-20 w-20 rounded-md object-cover transition hover:opacity-80 bg-muted/30"
                     />
                   </a>
                   {canManage && (

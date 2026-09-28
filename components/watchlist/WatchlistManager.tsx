@@ -194,7 +194,7 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
 
       {/* ── Tabs (Players | Teams) - AFC pill segment ── */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex rounded-md border bg-muted p-0.5">
+        <div className="inline-flex rounded-md bg-muted p-0.5">
           <button type="button" className={pillBtn(tab === "player")} onClick={() => setTab("player")}>
             <IconUser className="mr-1 inline size-4" />
             {labels.tabPlayers}

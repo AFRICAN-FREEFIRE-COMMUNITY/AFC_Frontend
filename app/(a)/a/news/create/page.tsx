@@ -319,7 +319,7 @@ function CreateNewsPage() {
                                 setPreviewUrl(URL.createObjectURL(file));
                               }
                             }}
-                            className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                            className={`bg-muted rounded-md p-12 text-center transition-colors cursor-pointer ${
                               isDragging
                                 ? "border-primary bg-primary/5"
                                 : "border-gray-300 bg-gray-50"
@@ -346,7 +346,7 @@ function CreateNewsPage() {
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
+                            <div className="relative w-full aspect-video bg-gray-50 rounded-md flex items-center justify-center overflow-hidden">
                               <Image
                                 width={1000}
                                 height={1000}
@@ -461,7 +461,7 @@ function CreateNewsPage() {
                   place notices are published from, so there is no second admin screen to keep in
                   step. The expiry is required by design - a pin that never lapses is a pin
                   somebody has to remember to remove, and that one is still there in March. */}
-              <div className="space-y-2 rounded-md border p-4">
+              <div className="space-y-2 rounded-md p-4 bg-muted/30">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <FormLabel htmlFor="news-pin">{t("form.pin.label")}</FormLabel>

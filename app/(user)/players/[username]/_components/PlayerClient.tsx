@@ -650,7 +650,7 @@ export function PlayerClient({ username }: { username: string }) {
                   <img
                     src={player.esport_image}
                     alt=""
-                    className="size-16 rounded-md border object-cover"
+                    className="size-16 rounded-md object-cover bg-muted/30"
                   />
                 </a>
               ) : null}
@@ -785,7 +785,7 @@ export function PlayerClient({ username }: { username: string }) {
               <div className="w-full sm:w-auto">
                 <Button
                   variant="outline"
-                  className="w-full sm:w-auto text-red-500 border-red-500/40 hover:bg-red-500/10 hover:text-red-500"
+                  className="w-full sm:w-auto text-red-500 hover:bg-red-500/10 hover:text-red-500 bg-red-500/5"
                   onClick={() => setReportOpen(true)}
                 >
                   <IconFlag className="h-4 w-4 mr-1" />
@@ -978,7 +978,7 @@ export function PlayerClient({ username }: { username: string }) {
                   {t("player.noRegisteredEvents")}
                 </p>
               ) : (
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1369,7 +1369,7 @@ export function PlayerClient({ username }: { username: string }) {
               {player.per_event.length === 0 ? (
                 <NothingFound text={t("player.noEventsPlayed")} />
               ) : (
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1534,7 +1534,7 @@ export function PlayerClient({ username }: { username: string }) {
               {player.recent_matches.length === 0 ? (
                 <NothingFound text={t("player.noRecentMatches")} />
               ) : (
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1667,7 +1667,7 @@ export function PlayerClient({ username }: { username: string }) {
 function PrivateStats() {
   const t = useTranslations("teamsplayers");
   return (
-    <div className="bg-card rounded-md border py-10 px-6 shadow-sm flex flex-col items-center justify-center text-center">
+    <div className="bg-card rounded-md py-10 px-6 shadow-sm flex flex-col items-center justify-center text-center">
       <div className="rounded-full bg-muted p-3 mb-3">
         <IconLock className="h-6 w-6 text-muted-foreground" />
       </div>
@@ -1734,7 +1734,7 @@ function TournamentWinningsCard({
             </div>
 
             {/* compact per-event winnings table (text-xs density) */}
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md overflow-hidden bg-muted/30">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -2047,7 +2047,7 @@ function MiniBox({
   value: string | number;
 }) {
   return (
-    <div className="bg-card rounded-md border px-3 py-2.5">
+    <div className="bg-card rounded-md px-3 py-2.5">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-base font-bold mt-0.5">{value}</p>
     </div>

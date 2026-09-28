@@ -191,7 +191,7 @@ export function AddSoloPlayersModal({
                   : "No players match your search."}
               </p>
             ) : (
-              <ScrollArea className="h-72 rounded-md border">
+              <ScrollArea className="h-72 rounded-md bg-muted/30">
                 <div className="p-1">
                   {filtered.map((player) => {
                     const added = alreadyIn(player);

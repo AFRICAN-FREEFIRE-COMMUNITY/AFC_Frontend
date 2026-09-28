@@ -149,7 +149,7 @@ export default function PollBuilderPage() {
   if (!poll) {
     return (
       <div className="py-10">
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="text-center text-sm text-muted-foreground">
             {t("notFound")}
           </CardContent>
@@ -259,7 +259,7 @@ function BasicsTab({
   const [form, setForm] = useState<Record<string, any>>({ ...poll });
 
   return (
-    <Card className="bg-card rounded-md border py-6 shadow-sm">
+    <Card className="bg-card rounded-md py-6 shadow-sm">
       <CardContent className="space-y-5">
         <div className="space-y-1.5">
           <Label>{t("fields.title")}</Label>
@@ -366,7 +366,7 @@ function BasicsTab({
         />
 
         {form.subject === "team" && (
-          <div className="space-y-4 rounded-md border border-border p-3">
+          <div className="space-y-4 rounded-md p-3 bg-muted/30">
             <p className="text-xs font-semibold text-foreground">{t("team.heading")}</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -482,13 +482,13 @@ function QuestionsTab({
   return (
     <div className="space-y-4">
       {locked && (
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="text-xs text-muted-foreground">{t("questions.lockedHint")}</CardContent>
         </Card>
       )}
 
       {questions.map((question, index) => (
-        <Card key={question.question_id ?? `new-${index}`} className="bg-card rounded-md border py-6 shadow-sm">
+        <Card key={question.question_id ?? `new-${index}`} className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="space-y-3">
             <div className="flex items-start gap-2">
               <span className="mt-2 w-6 shrink-0 text-xs font-bold tabular-nums text-muted-foreground">
@@ -678,7 +678,7 @@ function AudienceTab({
 
   return (
     <div className="space-y-4">
-      <Card className="bg-card rounded-md border py-6 shadow-sm">
+      <Card className="bg-card rounded-md py-6 shadow-sm">
         <CardContent className="space-y-5">
           <SwitchRow
             label={t("audience.everyone")}
@@ -724,7 +724,7 @@ function AudienceTab({
               {(audience.tiers?.length > 0 || audience.season_tiers?.values?.length > 0) &&
                 audience.tiers?.length > 0 &&
                 audience.season_tiers?.values?.length > 0 && (
-                  <p className="rounded-md border border-gold/40 bg-gold/5 px-3 py-2 text-xs text-gold">
+                  <p className="rounded-md bg-gold/5 px-3 py-2 text-xs text-gold">
                     {t("audience.intersectWarning")}
                   </p>
                 )}
@@ -735,7 +735,7 @@ function AudienceTab({
               A person with an empty UID IS the audience, they simply cannot vote yet, so this
               never shrinks the count: ticking one and watching the number stay put is the
               visible form of that argument. */}
-          <div className="space-y-2 rounded-md border border-border p-3">
+          <div className="space-y-2 rounded-md p-3 bg-muted/30">
             <p className="text-sm font-medium text-foreground">{t("audience.beforeTheyVote")}</p>
             <p className="text-xs text-muted-foreground">{t("audience.beforeTheyVoteHint")}</p>
             <ChipGroup
@@ -887,7 +887,7 @@ function BranchingTab({
 
   return (
     <div className="space-y-4">
-      <Card className="bg-card rounded-md border py-6 shadow-sm">
+      <Card className="bg-card rounded-md py-6 shadow-sm">
         <CardContent className="space-y-2 text-xs text-muted-foreground">
           <p>{t("branching.intro")}</p>
           <p>{t("branching.watchable")}</p>
@@ -897,7 +897,7 @@ function BranchingTab({
       {rules.map((rule, index) => {
         const watched = saved.find((q) => q.question_id === rule.when_question_id);
         return (
-          <Card key={index} className="bg-card rounded-md border py-6 shadow-sm">
+          <Card key={index} className="bg-card rounded-md py-6 shadow-sm">
             <CardContent className="space-y-3">
               {/* The whole logic of a poll reads as a list of sentences. That readability is the
                   entire reason branching is a flat rule list rather than a node graph. */}
@@ -1144,7 +1144,7 @@ function ResultsTab({ slug, onChanged }: { slug: string; onChanged: () => void }
           Tier 1 teams identifies people whatever a small-cell floor says, and an anonymous poll
           promised that would not happen. */}
       {!results.breakdowns_available && (
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="text-xs text-muted-foreground">
             {t("results.anonymousNote")}
           </CardContent>
@@ -1158,7 +1158,7 @@ function ResultsTab({ slug, onChanged }: { slug: string; onChanged: () => void }
       </div>
 
       {results.questions.map((question: any) => (
-        <Card key={question.question_id} className="bg-card rounded-md border py-6 shadow-sm">
+        <Card key={question.question_id} className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="space-y-2">
             <p className="text-sm font-semibold text-foreground">{question.prompt}</p>
             {question.options.map((option: any) => (
@@ -1190,7 +1190,7 @@ function ResultsTab({ slug, onChanged }: { slug: string; onChanged: () => void }
       ))}
 
       {results.team_results?.length > 0 && (
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="space-y-2">
             <p className="text-sm font-semibold text-foreground">{t("results.teamResults")}</p>
             {results.team_results.map((row: any, index: number) => (
@@ -1213,7 +1213,7 @@ function ResultsTab({ slug, onChanged }: { slug: string; onChanged: () => void }
 
 function StatTile({ label, value }: { label: string; value: string | number }) {
   return (
-    <Card className="bg-card rounded-md border py-6 shadow-sm">
+    <Card className="bg-card rounded-md py-6 shadow-sm">
       <CardContent>
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{value}</p>

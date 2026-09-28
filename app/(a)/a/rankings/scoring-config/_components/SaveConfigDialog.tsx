@@ -226,7 +226,7 @@ export function SaveConfigDialog({
         </DialogHeader>
 
         {/* what is about to happen, in numbers */}
-        <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+        <div className="rounded-md bg-muted/30 p-3 text-xs text-muted-foreground">
           <div className="flex justify-between">
             <span>{t("admin.scoringConfig.save.fieldsChanged")}</span>
             <span className="font-semibold tabular-nums text-orange-400">{dirtyCount}</span>
@@ -311,7 +311,7 @@ export function SaveConfigDialog({
 
           {/* the current season: always in, never a choice */}
           {current && (
-            <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-2.5">
+            <div className="flex items-start gap-2 rounded-md bg-primary/5 p-2.5">
               <IconLock className="mt-0.5 size-4 shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium">{current.name}</p>
@@ -330,7 +330,7 @@ export function SaveConfigDialog({
               {t("admin.scoringConfig.save.noOtherSeasons")}
             </p>
           ) : (
-            <div className="max-h-52 space-y-1 overflow-y-auto rounded-md border p-1.5">
+            <div className="max-h-52 space-y-1 overflow-y-auto rounded-md p-1.5 bg-muted/30">
               {optional.map((s) => {
                 const checked = extraSeasons.includes(s.season_id);
                 const flags = seasonFlags(s);
@@ -374,7 +374,7 @@ export function SaveConfigDialog({
           {needsAck && (
             <label
               htmlFor="ack-published"
-              className="flex cursor-pointer items-start gap-2 rounded-md border border-orange-500/50 bg-orange-500/10 p-2.5"
+              className="flex cursor-pointer items-start gap-2 rounded-md bg-orange-500/10 p-2.5"
             >
               <Checkbox
                 id="ack-published"
@@ -395,7 +395,7 @@ export function SaveConfigDialog({
               nobody can see. Off exists for a batch of edits saved one after another. */}
           <label
             htmlFor="recalc-now"
-            className="flex cursor-pointer items-start gap-2 rounded-md border p-2.5"
+            className="flex cursor-pointer items-start gap-2 rounded-md p-2.5 bg-muted/30"
           >
             <Checkbox
               id="recalc-now"

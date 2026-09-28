@@ -229,7 +229,7 @@ export function TrustedDevices({ twoFactorEnabled }: TrustedDevicesProps) {
                     <div
                       key={device.id}
                       // Stacks on a phone so the remove button stays a full-width tap target.
-                      className="flex flex-col gap-3 rounded-md border p-3 sm:flex-row sm:items-center"
+                      className="flex flex-col gap-3 rounded-md p-3 sm:flex-row sm:items-center bg-muted/30"
                     >
                       <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
                         {isPhone ? (

@@ -223,7 +223,7 @@ export function GroupBulkUploadPanel({
             e.preventDefault();
             addFiles(e.dataTransfer.files);
           }}
-          className="flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-lg py-10 cursor-pointer hover:bg-muted/40 transition-colors text-center"
+          className="flex flex-col items-center justify-center gap-2 rounded-lg py-10 cursor-pointer hover:bg-muted/40 transition-colors text-center bg-muted/30"
         >
           <IconUpload size={26} className="text-muted-foreground" />
           <p className="text-sm font-medium">
@@ -252,7 +252,7 @@ export function GroupBulkUploadPanel({
             {pending.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center gap-2 border rounded-md p-2"
+                className="flex items-center gap-2 rounded-md p-2 bg-muted/30"
               >
                 <IconPhoto size={18} className="text-muted-foreground shrink-0" />
                 <span className="text-sm truncate flex-1" title={p.file.name}>

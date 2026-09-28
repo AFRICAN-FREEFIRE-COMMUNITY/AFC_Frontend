@@ -496,7 +496,7 @@ export default function page({ params }: { params: Params }) {
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
+                            <div className="relative w-full aspect-video bg-gray-50 rounded-md flex items-center justify-center overflow-hidden">
                               <Image
                                 width={1000}
                                 height={1000}
@@ -599,7 +599,7 @@ export default function page({ params }: { params: Params }) {
                   submit, it saves instantly so the owner sees clear feedback. Default
                   is private (off); turning it on lets everyone see the team's stats. */}
               {teamDetails?.can_manage_stats && (
-                <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="flex items-center justify-between rounded-lg p-4 bg-muted/30">
                   <div className="space-y-0.5">
                     <Label htmlFor="team-stats-toggle" className="text-sm font-medium">
                       {tTeam("statsVisibility.label")}
@@ -625,7 +625,7 @@ export default function page({ params }: { params: Params }) {
                   can only ADD. Saving is a separate action (NOT part of the main form submit) that
                   POSTs to /team/set-team-letters/ - mirrors the stats-visibility control above. */}
               {teamDetails?.can_manage_letters && (
-                <div className="space-y-3 rounded-md border p-4">
+                <div className="space-y-3 rounded-md p-4 bg-muted/30">
                   <div className="space-y-0.5">
                     <Label className="text-sm font-medium">
                       {tTeam("letterAvatars.label")}

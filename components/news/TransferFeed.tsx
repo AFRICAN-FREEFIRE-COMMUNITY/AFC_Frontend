@@ -277,7 +277,7 @@ export function TransferFeed() {
               return (
                 <li
                   key={row.transfer_id}
-                  className="flex items-start gap-3 rounded-md border bg-card p-3 transition-colors hover:border-primary/50"
+                  className="flex items-start gap-3 rounded-md bg-card p-3 transition-colors hover:bg-primary/10"
                 >
                   {/* Direction is carried by an icon as well as by the wording, so the feed is
                       scannable without reading every sentence. Colour alone is never the signal. */}

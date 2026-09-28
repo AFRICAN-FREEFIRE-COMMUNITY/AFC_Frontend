@@ -93,7 +93,7 @@ export function CheckinCard({ eventId }: { eventId: number }) {
   const closed = !windowOpen && !!end && new Date(end).getTime() < Date.now();
 
   return (
-    <Card className="border-primary/30">
+    <Card className="bg-primary/10">
       <CardContent className="space-y-3 p-4">
         <div className="flex items-center gap-2">
           <IconUserCheck className="text-primary size-5" />

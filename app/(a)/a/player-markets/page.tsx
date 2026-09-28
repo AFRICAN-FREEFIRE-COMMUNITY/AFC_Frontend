@@ -623,19 +623,19 @@ function getListingStatus(expiry: string): "Active" | "Expired" {
 function getTrialStatusColor(status: string): string {
   switch (status) {
     case "PENDING":
-      return "bg-yellow-500/10 text-yellow-500 border-yellow-500/20";
+      return "bg-yellow-500/10 text-yellow-500";
     case "SHORTLISTED":
-      return "bg-cyan-500/10 text-cyan-500 border-cyan-500/20";
+      return "bg-cyan-500/10 text-cyan-500";
     case "INVITED":
-      return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      return "bg-blue-500/10 text-blue-500";
     case "TRIAL_ONGOING":
-      return "bg-indigo-500/10 text-indigo-500 border-indigo-500/20";
+      return "bg-indigo-500/10 text-indigo-500";
     case "ACCEPTED":
-      return "bg-green-500/10 text-green-500 border-green-500/20";
+      return "bg-green-500/10 text-green-500";
     case "TRIAL_EXTENDED":
-      return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+      return "bg-purple-500/10 text-purple-500";
     case "REJECTED":
-      return "bg-red-500/10 text-red-500 border-red-500/20";
+      return "bg-red-500/10 text-red-500";
     default:
       return "bg-muted text-muted-foreground";
   }
@@ -674,11 +674,11 @@ const POST_TYPES = ["TEAM_RECRUITMENT", "PLAYER_AVAILABLE"];
 function ReportStatusBadge({ status }: { status: string }) {
   const t = useTranslations("adminPlayerMarket");
   const colour: Record<string, string> = {
-    open: "border-yellow-500/50 text-yellow-500",
-    reviewing: "border-cyan-500/50 text-cyan-400",
-    resolved: "border-green-600/60 text-green-400",
+    open: "text-yellow-500 bg-yellow-500/10",
+    reviewing: "text-cyan-400 bg-cyan-500/10",
+    resolved: "text-green-400 bg-green-600/10",
     dismissed: "text-muted-foreground",
-    banned: "border-red-500/60 text-red-400",
+    banned: "text-red-400 bg-red-500/10",
   };
   return (
     <Badge variant="outline" className={`rounded-full ${colour[status] ?? ""}`}>
@@ -2055,7 +2055,7 @@ export default function AdminPlayerMarketPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="border-red-500/50 text-red-500 hover:text-red-500"
+                                className="text-red-500 hover:text-red-500 bg-red-500/10"
                                 onClick={() => openBanReporter(report)}
                                 title={t("reports.banReporterTitle")}
                               >
@@ -2403,7 +2403,7 @@ export default function AdminPlayerMarketPage() {
               {resolveTarget.details && (
                 <div className="space-y-1">
                   <Label>{t("resolveDialog.reporterSaid")}</Label>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap rounded-md border border-l-2 border-l-primary bg-muted/30 p-3">
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap rounded-md bg-muted/30 p-3">
                     {resolveTarget.details}
                   </p>
                 </div>
@@ -2427,7 +2427,7 @@ export default function AdminPlayerMarketPage() {
                           key={i}
                           src={ev.url}
                           controls
-                          className="aspect-video w-full rounded-md border bg-muted object-contain"
+                          className="aspect-video w-full rounded-md bg-muted object-contain"
                         />
                       ) : (
                         <a
@@ -2435,7 +2435,7 @@ export default function AdminPlayerMarketPage() {
                           href={ev.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="relative block aspect-video w-full overflow-hidden rounded-md border bg-muted"
+                          className="relative block aspect-video w-full overflow-hidden rounded-md bg-muted"
                         >
                           {/* Reporter-supplied evidence comes from an upload host - plain <img>. */}
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2453,7 +2453,7 @@ export default function AdminPlayerMarketPage() {
                 resolveTarget.evidence && (
                   <div className="space-y-2">
                     <Label>{t("resolveDialog.evidence")}</Label>
-                    <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={resolveTarget.evidence}
@@ -2572,7 +2572,7 @@ export default function AdminPlayerMarketPage() {
                 placeholder={t("banReporterDialog.reasonPlaceholder")}
               />
             </div>
-            <p className="rounded-md border border-red-500/30 bg-red-500/5 p-3 text-sm text-muted-foreground">
+            <p className="rounded-md bg-red-500/5 p-3 text-sm text-muted-foreground">
               {t("banReporterDialog.warning")}
             </p>
           </div>

@@ -507,11 +507,11 @@ function page() {
         </TabsContent>
         <TabsContent value="my-team" className="space-y-4">
           {myTeam ? (
-            <Card className={myTeam.is_banned ? "border-destructive" : ""}>
+            <Card className={myTeam.is_banned ? "bg-destructive/10" : ""}>
               <CardContent className="space-y-5">
                 {/* Header */}
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16 rounded-lg border shrink-0">
+                  <Avatar className="h-16 w-16 rounded-lg shrink-0 bg-muted/30">
                     <AvatarImage
                       src={myTeam.team_logo}
                       alt={`${myTeam.team_name} logo`}
@@ -571,7 +571,7 @@ function page() {
 
                 {/* Stats grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("teamsList.yourRole")}
                     </p>
@@ -579,7 +579,7 @@ function page() {
                       {myTeam.user_role_in_team?.replace(/_/g, " ") ?? t("teamsList.roleMember")}
                     </p>
                   </div>
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("teamsList.owner")}
                     </p>
@@ -588,7 +588,7 @@ function page() {
                       <PlayerLink name={myTeam.team_owner} />
                     </p>
                   </div>
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("teamsList.joined")}
                     </p>
@@ -601,7 +601,7 @@ function page() {
                       )}
                     </p>
                   </div>
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("teamsList.joinPolicy")}
                     </p>
@@ -610,7 +610,7 @@ function page() {
                     </p>
                   </div>
                   {myTeam.in_game_role && (
-                    <div className="rounded-lg border bg-muted/30 p-3">
+                    <div className="rounded-lg bg-muted/30 p-3">
                       <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                         {t("teamsList.inGameRole")}
                       </p>

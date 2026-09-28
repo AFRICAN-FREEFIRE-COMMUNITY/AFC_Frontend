@@ -317,7 +317,7 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
               />
             </div>
 
-            <hr />
+            <div className="h-2" aria-hidden />
 
             {/* ── Media (images + videos): queued here, uploaded after the
                 product is created. The full gallery manager lives on the edit
@@ -355,7 +355,7 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
                   {mediaFiles.map((f, i) => (
                     <span
                       key={`${f.name}-${i}`}
-                      className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs"
+                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs bg-muted/30"
                     >
                       {f.type.startsWith("video/") ? "Video" : "Image"}:{" "}
                       {f.name.length > 18 ? f.name.slice(0, 18) + "..." : f.name}
@@ -377,7 +377,7 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
               )}
             </div>
 
-            <hr />
+            <div className="h-2" aria-hidden />
             <div className="flex justify-between items-center">
               {/* Section ⓘ inline with the variants heading. */}
               <h3 className="font-semibold text-sm flex items-center">
@@ -408,7 +408,7 @@ export const AddProductModal = ({ onSuccess }: { onSuccess: () => void }) => {
             {fields.map((item, index) => (
               <div
                 key={item.id}
-                className="p-4 border rounded-lg space-y-4 relative"
+                className="p-4 rounded-lg space-y-4 relative bg-muted/30"
               >
                 {fields.length > 1 && (
                   <Button

@@ -381,7 +381,7 @@ export const ProfileContent = () => {
                 <Link
                   href="/profile/edit"
                   title={t("card.esportImage")}
-                  className="h-28 w-20 shrink-0 overflow-hidden rounded-md border transition-colors hover:border-primary/60 sm:h-32 sm:w-24"
+                  className="h-28 w-20 shrink-0 overflow-hidden rounded-md transition-colors sm:h-32 sm:w-24 hover:bg-primary/10 bg-muted/30"
                 >
                   {/* Short alt on purpose. When the file 404s (a real state on any
                       environment whose media directory is not in sync) the browser
@@ -637,7 +637,7 @@ export const ProfileContent = () => {
           reads as a broken page, it says in plain English what the numbers mean and
           what to do about it. */}
       {richProfile && !hasOwnMatches && hasTeamMatches && (
-        <p className="mt-4 rounded-md border bg-muted/40 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+        <p className="mt-4 rounded-md bg-muted/40 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
           <span className="font-semibold text-foreground">
             {t("overview.noScorelinesTitle")}
           </span>{" "}
@@ -891,20 +891,20 @@ export const ProfileContent = () => {
                     {myApplications.map((app) => {
                       const statusColors: Record<string, string> = {
                         PENDING:
-                          "bg-yellow-900/20 text-yellow-400 border-yellow-800",
+                          "bg-yellow-900/20 text-yellow-400",
                         SHORTLISTED:
-                          "bg-cyan-900/20 text-cyan-400 border-cyan-800",
-                        INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
+                          "bg-cyan-900/20 text-cyan-400",
+                        INVITED: "bg-blue-900/20 text-blue-400",
                         ACCEPTED:
-                          "bg-green-900/20 text-green-400 border-green-800",
+                          "bg-green-900/20 text-green-400",
                         TRIAL_EXTENDED:
-                          "bg-purple-900/20 text-purple-400 border-purple-800",
-                        REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+                          "bg-purple-900/20 text-purple-400",
+                        REJECTED: "bg-red-900/20 text-red-400",
                       };
                       return (
                         <div
                           key={app.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border bg-muted/20"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg bg-muted/20"
                         >
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold truncate">{app.team}</p>
@@ -1143,7 +1143,7 @@ function AchievementsPanel({ ctx }: { ctx: AchievementContext }) {
 
       {/* Honest note: the boost itself is a FUTURE feature, so we only promise it
           is coming, we do not apply it. */}
-      <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-2 mb-4">
+      <p className="text-xs text-muted-foreground bg-muted/40 rounded-md px-3 py-2 mb-4">
         {t("achievementsPanel.comingSoonNote")}
       </p>
 

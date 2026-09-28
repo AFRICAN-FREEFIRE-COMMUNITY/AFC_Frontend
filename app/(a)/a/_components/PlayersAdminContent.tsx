@@ -154,7 +154,7 @@ const PlayerBanModal = ({
           size="sm"
           className={
             isBanned
-              ? "border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700"
+              ? "text-green-600 hover:bg-green-50 hover:text-green-700 bg-green-500/10"
               : ""
           }
         >

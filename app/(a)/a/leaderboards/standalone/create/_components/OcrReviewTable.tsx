@@ -480,7 +480,7 @@ export function OcrReviewTable({
     <div className="space-y-3">
       {/* Readiness hint */}
       {!applied && unresolvedCount > 0 && (
-        <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+        <div className="flex items-center gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
           <IconAlertTriangle className="size-4 shrink-0" />
           <span>
             {t("stdReview.readinessHint", {
@@ -491,7 +491,7 @@ export function OcrReviewTable({
         </div>
       )}
 
-      <div className="rounded-md border overflow-hidden">
+      <div className="rounded-md overflow-hidden bg-muted/30">
         <Table>
           <TableHeader>
             <TableRow className="h-10">
@@ -658,7 +658,7 @@ export function OcrReviewTable({
                       ))}
 
                     {row.showGhostForm && (
-                      <div className="space-y-2 rounded-md border bg-muted/30 p-2.5">
+                      <div className="space-y-2 rounded-md bg-muted/30 p-2.5">
                         <div className="space-y-1">
                           <Label className="text-xs">
                             {format === "team" ? t("stdReview.ghostTeamNameLabel") : t("stdReview.ignLabel")}

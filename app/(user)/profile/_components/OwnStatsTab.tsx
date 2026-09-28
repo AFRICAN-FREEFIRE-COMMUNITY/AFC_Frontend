@@ -321,7 +321,7 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
         {perEvent.length === 0 ? (
           <NothingFound text={t("ownStats.noEventsPlayed")} />
         ) : (
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-md overflow-hidden bg-muted/30">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -387,7 +387,7 @@ export function OwnStatsTab({ player }: { player: RichStats | null }) {
         {recentMatches.length === 0 ? (
           <NothingFound text={t("ownStats.noRecentMatches")} />
         ) : (
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-md overflow-hidden bg-muted/30">
             <Table>
               <TableHeader>
                 <TableRow>

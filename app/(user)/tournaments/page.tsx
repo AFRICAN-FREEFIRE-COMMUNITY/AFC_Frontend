@@ -405,14 +405,14 @@ const OrganizerCard: React.FC<{
   // a tier-specific accent (1 = gold/best, 2 = green, 3 = blue).
   const tierClass =
     org.tier === "Tier 1"
-      ? "border-gold/55 text-gold"
+      ? "text-gold bg-gold/10"
       : org.tier === "Tier 2"
-        ? "border-primary/50 text-primary"
-        : "border-blue-500/50 text-blue-500";
+        ? "text-primary bg-primary/10"
+        : "text-blue-500 bg-blue-500/10";
 
   return (
     <Card
-      className="bg-card rounded-md border p-0 gap-0 shadow-sm h-full cursor-pointer overflow-hidden transition-colors hover:border-primary/45"
+      className="bg-card rounded-md p-0 gap-0 shadow-sm h-full cursor-pointer overflow-hidden transition-colors hover:bg-primary/10"
       onClick={() => onOpen(org)}
     >
       {/* ── Banner header: the organizer's cover image so users can SEE the org's
@@ -433,7 +433,7 @@ const OrganizerCard: React.FC<{
       <CardContent className="flex flex-col gap-3 h-full p-6 pt-0">
         {/* Logo + name. The logo overlaps the banner (-mt-8). */}
         <div className="flex items-center gap-3 -mt-8">
-          <Avatar className="h-14 w-14 rounded-md border-4 border-card bg-card">
+          <Avatar className="h-14 w-14 rounded-md bg-card">
             <AvatarImage
               src={org.logo || undefined}
               alt={org.name}
@@ -491,7 +491,7 @@ const OrganizerCard: React.FC<{
 // One stat tile in the organizer detail header.
 const OrgStat: React.FC<{ value: React.ReactNode; label: string; tone?: string }> =
   ({ value, label, tone }) => (
-    <div className="bg-background border rounded-md px-4 py-2.5 text-center min-w-[88px]">
+    <div className="bg-background rounded-md px-4 py-2.5 text-center min-w-[88px]">
       <div className={`text-xl font-bold ${tone ?? ""}`}>{value}</div>
       <div className="text-[0.65rem] uppercase tracking-wide text-muted-foreground mt-0.5">
         {label}
@@ -667,7 +667,7 @@ const OrganizerDirectory: React.FC<{
         </button>
 
         {/* Organizer header: logo + name + verified + stats */}
-        <Card className="bg-card rounded-md border py-6 shadow-sm mb-4">
+        <Card className="bg-card rounded-md py-6 shadow-sm mb-4">
           <CardContent className="flex flex-col md:flex-row md:items-center gap-4">
             <Avatar className="h-16 w-16 rounded-md">
               <AvatarImage

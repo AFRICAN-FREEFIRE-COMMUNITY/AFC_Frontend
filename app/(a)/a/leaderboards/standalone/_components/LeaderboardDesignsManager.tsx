@@ -694,7 +694,7 @@ export function LeaderboardDesignsManager({
             )}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-md border">
+          <div className="overflow-hidden rounded-md bg-muted/30">
             <Table>
               <TableHeader>
                 <TableRow className="h-10">
@@ -752,12 +752,12 @@ export function LeaderboardDesignsManager({
                     <TableCell className="p-2 text-xs">
                       <div className="flex items-center gap-1.5">
                         <span
-                          className="inline-block size-4 rounded-full border"
+                          className="inline-block size-4 rounded-full bg-muted/30"
                           style={{ backgroundColor: d.text_color }}
                           title={t("textSwatch", { colour: d.text_color })}
                         />
                         <span
-                          className="inline-block size-4 rounded-full border"
+                          className="inline-block size-4 rounded-full bg-muted/30"
                           style={{ backgroundColor: d.accent_color }}
                           title={t("accentSwatch", { colour: d.accent_color })}
                         />
@@ -848,7 +848,7 @@ export function LeaderboardDesignsManager({
               <div className="flex items-center justify-between">
                 <Label>{tDlg("preview")}</Label>
                 {/* Size toggle: positions are percent-based so they carry across both. */}
-                <div className="flex overflow-hidden rounded-md border text-xs">
+                <div className="flex overflow-hidden rounded-md text-xs bg-muted/30">
                   {(["instagram", "youtube"] as GraphicSize[]).map((s) => (
                     <button
                       key={s}
@@ -871,7 +871,7 @@ export function LeaderboardDesignsManager({
               <div ref={wrapRef} className="flex w-full justify-center">
               <div
                 ref={canvasRef}
-                className="relative select-none overflow-hidden rounded-md border bg-[#0a0e0c]"
+                className="relative select-none overflow-hidden rounded-md bg-[#0a0e0c]"
                 style={{ width: canvasDims.w, height: canvasDims.h }}
               >
                 {previewBg ? (
@@ -948,7 +948,7 @@ export function LeaderboardDesignsManager({
                     {form.logos.map((lg) => (
                       <div
                         key={lg.key}
-                        className="flex items-center gap-2 rounded-md border p-1.5"
+                        className="flex items-center gap-2 rounded-md p-1.5 bg-muted/30"
                       >
                         <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1056,7 +1056,7 @@ export function LeaderboardDesignsManager({
                       onChange={(e) =>
                         setForm((f) => ({ ...f, textColor: e.target.value }))
                       }
-                      className="h-9 w-12 cursor-pointer rounded-md border bg-transparent p-1"
+                      className="h-9 w-12 cursor-pointer rounded-md border border-input bg-transparent p-1"
                       aria-label={tDlg("textColour")}
                     />
                     <span className="text-xs text-muted-foreground">
@@ -1073,7 +1073,7 @@ export function LeaderboardDesignsManager({
                       onChange={(e) =>
                         setForm((f) => ({ ...f, accentColor: e.target.value }))
                       }
-                      className="h-9 w-12 cursor-pointer rounded-md border bg-transparent p-1"
+                      className="h-9 w-12 cursor-pointer rounded-md border border-input bg-transparent p-1"
                       aria-label={tDlg("accentColour")}
                     />
                     <span className="text-xs text-muted-foreground">
@@ -1342,7 +1342,7 @@ function BackgroundField({
       ) : (
         <div className="space-y-2">
           <div
-            className={`relative ${aspectClass} w-full overflow-hidden rounded-md border bg-muted`}
+            className={`relative ${aspectClass} w-full overflow-hidden rounded-md bg-muted`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

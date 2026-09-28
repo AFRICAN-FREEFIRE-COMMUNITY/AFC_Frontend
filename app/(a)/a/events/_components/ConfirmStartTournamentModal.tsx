@@ -119,7 +119,7 @@ export const ConfirmStartTournamentModal = ({
           )}
 
           {forceNotice && (
-            <div className="mt-4 rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 text-left">
+            <div className="mt-4 rounded-lg bg-amber-500/10 p-3 text-left">
               <p className="text-sm font-medium text-amber-500">{t("confirmStart.regStillOpen")}</p>
               <p className="text-xs text-muted-foreground mt-1">{forceNotice}</p>
               <p className="text-xs text-muted-foreground mt-1">

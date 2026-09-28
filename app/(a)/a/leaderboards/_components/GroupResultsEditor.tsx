@@ -454,7 +454,7 @@ export function GroupResultsEditor({
             ) : (
               <>
                 {/* Placement table */}
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -566,7 +566,7 @@ export function GroupResultsEditor({
                       return (
                         <div
                           key={tg.teamId}
-                          className="border rounded-lg overflow-hidden"
+                          className="rounded-lg overflow-hidden bg-muted/30"
                         >
                           <button
                             type="button"

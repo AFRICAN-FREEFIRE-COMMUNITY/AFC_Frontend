@@ -700,7 +700,7 @@ const Page = ({ params }: { params: Params }) => {
           open={reportOpen}
           onOpenChange={setReportOpen}
         />
-        <Card className={teamDetails.is_banned ? "border-red-500" : ""}>
+        <Card className={teamDetails.is_banned ? "bg-red-500/10" : ""}>
           <CardHeader>
             <div className="flex flex-col md:flex-row items-start gap-4 md:gap-0 md:items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -767,7 +767,7 @@ const Page = ({ params }: { params: Params }) => {
                 {!!token && !hasFullAccess && (
                   <Button
                     variant="outline"
-                    className="w-full md:w-auto text-red-500 border-red-500/40 hover:bg-red-500/10 hover:text-red-500"
+                    className="w-full md:w-auto text-red-500 hover:bg-red-500/10 hover:text-red-500 bg-red-500/5"
                     onClick={() => setReportOpen(true)}
                   >
                     <Flag className="h-4 w-4" />
@@ -1159,7 +1159,7 @@ const Page = ({ params }: { params: Params }) => {
                                       <img
                                         src={member.esport_image}
                                         alt=""
-                                        className="size-7 rounded-md border object-cover"
+                                        className="size-7 rounded-md object-cover bg-muted/30"
                                       />
                                     </a>
                                   ) : null}
@@ -1379,7 +1379,7 @@ const Page = ({ params }: { params: Params }) => {
                       )}
                     {hasFullAccess &&
                       (teamDetails?.members?.length ?? 0) >= MAX_TEAM_MEMBERS && (
-                        <div className="mt-4 rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+                        <div className="mt-4 rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
                           {t("teamDetail.teamFull")}
                         </div>
                       )}
@@ -1474,7 +1474,7 @@ const Page = ({ params }: { params: Params }) => {
                                 href={link.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="group flex items-center gap-3 rounded-md border bg-card p-3 shadow-sm transition-colors hover:border-primary/50 hover:bg-muted/40"
+                                className="group flex items-center gap-3 rounded-md bg-card p-3 shadow-sm transition-colors hover:bg-muted/40"
                               >
                                 <span
                                   className={`flex size-10 shrink-0 items-center justify-center rounded-full ${accent}`}

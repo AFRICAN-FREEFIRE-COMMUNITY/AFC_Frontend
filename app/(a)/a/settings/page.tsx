@@ -1556,7 +1556,7 @@ const page = () => {
                                           </CardHeader>
                                           {/* <label
                                             key={role.id}
-                                            className={`flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer hover:bg-muted/50 ${
+                                            className={`flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer hover:bg-muted/50 ${
                                               selectedUser?.roles.includes(
                                                 role.name
                                               )
@@ -2128,7 +2128,7 @@ function AdminInfoCard({ token }: { token: string | null }) {
   if (!info && !loading) return null;
 
   return (
-    <Card className="border-primary/20 bg-primary/5">
+    <Card className="bg-primary/5">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />

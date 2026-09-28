@@ -296,7 +296,7 @@ export const EditMatchModal = ({
               same room. When on, the joining steps are printed under the room id and password on
               the event page and appended to the room-details broadcast, since a 3D room is not
               joined the way an ordinary custom room is. Auto-saves with everything else here. */}
-          <div className="flex items-start justify-between gap-3 rounded-md border p-3">
+          <div className="flex items-start justify-between gap-3 rounded-md p-3 bg-muted/30">
             <div className="space-y-0.5">
               <Label htmlFor={`room-3d-${matchId}`}>{t("room3d.label")}</Label>
               <p className="text-muted-foreground text-xs">{t("room3d.help")}</p>

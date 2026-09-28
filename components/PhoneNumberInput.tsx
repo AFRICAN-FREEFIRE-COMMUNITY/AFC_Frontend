@@ -52,7 +52,7 @@ export const CountrySelect = ({
   };
 
   return (
-    <div className="border-input bg-transparent text-muted-foreground focus-within:border-ring focus-within:ring-ring/50 hover:bg-accent hover:text-foreground has-aria-invalid:border-destructive/60 has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 relative inline-flex items-center self-stretch rounded-s-md border py-2 ps-3 pe-2 transition-[color,box-shadow] outline-none focus-within:z-10 focus-within:ring-[3px] has-disabled:pointer-events-none has-disabled:opacity-50">
+    <div className="bg-muted/30 text-muted-foreground focus-within:ring-ring/50 hover:bg-accent hover:text-foreground has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 relative inline-flex items-center self-stretch rounded-s-md py-2 ps-3 pe-2 transition-[color,box-shadow] outline-none focus-within:z-10 focus-within:ring-[3px] has-disabled:pointer-events-none has-disabled:opacity-50 has-aria-invalid:bg-destructive/10">
       <div className="inline-flex items-center gap-1" aria-hidden="true">
         <FlagComponent country={value} countryName={value} aria-hidden="true" />
         <span className="text-muted-foreground/80">

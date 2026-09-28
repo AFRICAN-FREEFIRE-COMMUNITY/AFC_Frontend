@@ -161,7 +161,7 @@ export function TeamMapResultPanel({
       <CardContent className="space-y-4">
         {/* Said before the form, not after it: the team should know what they are doing while
             they type, not once they have pressed send. */}
-        <p className="rounded-md border border-primary/30 bg-primary/5 p-2 text-xs">
+        <p className="rounded-md bg-primary/5 p-2 text-xs">
           {t("team.claimNotice")}
         </p>
 
@@ -241,7 +241,7 @@ export function TeamMapResultPanel({
             <p className="text-xs text-muted-foreground">{t("team.none")}</p>
           )}
           {submissions.map((s) => (
-            <div key={s.submission_id} className="rounded-md border p-2 space-y-1">
+            <div key={s.submission_id} className="rounded-md p-2 space-y-1 bg-muted/30">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs">
                   {t(`team.status.${s.status}` as any)}

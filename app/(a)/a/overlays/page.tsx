@@ -114,7 +114,7 @@ export default function AdminLiveOverlaysPage() {
       />
 
       {/* ── AFC Capture software (download + how-to) ── */}
-      <Card className="bg-card rounded-md border" data-tour="overlays-capture">
+      <Card className="bg-card rounded-md" data-tour="overlays-capture">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <IconDownload className="text-primary size-5" />
@@ -160,7 +160,7 @@ export default function AdminLiveOverlaysPage() {
       </Card>
 
       {/* ── Per-event overlay controls ── */}
-      <Card className="bg-card rounded-md border" data-tour="overlays-events">
+      <Card className="bg-card rounded-md" data-tour="overlays-events">
         <CardContent className="space-y-3 p-4">
           <div className="flex items-center gap-2">
             <IconBroadcast className="text-primary size-5" />
@@ -175,7 +175,7 @@ export default function AdminLiveOverlaysPage() {
             </span>
           </div>
 
-          <div className="divide-border divide-y">
+          <div className="zebra">
             {filtered.length === 0 ? (
               <p className="text-muted-foreground py-8 text-center text-sm">
                 No events found.

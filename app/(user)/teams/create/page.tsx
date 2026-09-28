@@ -270,7 +270,7 @@ export default function CreateTeamForm() {
                                 setPreviewUrl(URL.createObjectURL(file));
                               }
                             }}
-                            className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                            className={`bg-muted rounded-md p-12 text-center transition-colors cursor-pointer ${
                               isDragging
                                 ? "border-primary bg-primary/5"
                                 : "border-gray-300 bg-gray-50"
@@ -297,7 +297,7 @@ export default function CreateTeamForm() {
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
+                            <div className="relative w-full aspect-video bg-gray-50 rounded-md flex items-center justify-center overflow-hidden">
                               <Image
                                 width={1000}
                                 height={1000}

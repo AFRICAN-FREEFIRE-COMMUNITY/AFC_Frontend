@@ -51,7 +51,7 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Toggle */}
-        <div className="flex items-center justify-between rounded-lg border p-4">
+        <div className="flex items-center justify-between rounded-lg p-4 bg-muted/30">
           <div className="space-y-0.5">
             <Label htmlFor="waitlist-toggle">
               {t("waitlist.enable")}
@@ -104,8 +104,8 @@ export function StepWaitlist({ form, hideDiscord = false }: StepWaitlistProps) {
                       // @ts-ignore
                       onClick={() => form.setValue("waitlist_mode", opt.value)}
                       className={
-                        "rounded-md border p-3 text-left text-xs transition-colors " +
-                        (selected ? "border-primary bg-primary/10 text-primary" : "hover:bg-muted")
+                        "rounded-md p-3 text-left text-xs transition-colors bg-muted/30" +
+                        (selected ? "bg-primary/10 text-primary" : "hover:bg-muted")
                       }
                     >
                       {/* opt.value ∈ {first_registered, fcfs_room, manual_admin} (hardcoded), so all

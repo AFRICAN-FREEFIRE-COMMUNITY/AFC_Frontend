@@ -67,7 +67,7 @@ export function TeamRollup({
   };
 
   return (
-    <Card className="bg-card rounded-md border py-6 shadow-sm">
+    <Card className="bg-card rounded-md py-6 shadow-sm">
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2">
           <IconUsers className="h-4 w-4 shrink-0 text-primary" />

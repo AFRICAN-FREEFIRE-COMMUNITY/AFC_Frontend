@@ -323,7 +323,7 @@ export default function RegisterSuccessPage() {
                 {t("paymentSuccess.registerFailedBody")}
               </CardDescription>
               {paymentId && (
-                <div className="bg-muted p-4 rounded-md text-left w-full space-y-1 border">
+                <div className="bg-muted p-4 rounded-md text-left w-full space-y-1">
                   <span className="text-xs text-muted-foreground">
                     {t("paymentSuccess.paymentReference")}
                   </span>
@@ -341,7 +341,7 @@ export default function RegisterSuccessPage() {
                 {t("paymentSuccess.needsCompletionBody")}
               </CardDescription>
               {paymentId && (
-                <div className="bg-muted p-4 rounded-md text-left w-full space-y-1 border">
+                <div className="bg-muted p-4 rounded-md text-left w-full space-y-1">
                   <span className="text-xs text-muted-foreground">
                     {t("paymentSuccess.paymentReference")}
                   </span>
@@ -359,7 +359,7 @@ export default function RegisterSuccessPage() {
                 {t("paymentSuccess.pendingBody")}
               </CardDescription>
               {paymentId && (
-                <div className="text-sm bg-muted p-3 rounded-md border break-all">
+                <div className="text-sm bg-muted p-3 rounded-md break-all">
                   {t("paymentSuccess.paymentReferenceInline")}
                   <span className="font-mono font-semibold">{paymentId}</span>
                 </div>

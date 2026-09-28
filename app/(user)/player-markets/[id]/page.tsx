@@ -102,11 +102,11 @@ function label(map: Record<string, string>, value: string | null | undefined) {
 function getTierColor(tier: string) {
   switch (tier) {
     case "TIER_1":
-      return "bg-yellow-900/20 text-yellow-400 border-yellow-800";
+      return "bg-yellow-900/20 text-yellow-400";
     case "TIER_2":
-      return "bg-cyan-900/20 text-cyan-400 border-cyan-800";
+      return "bg-cyan-900/20 text-cyan-400";
     case "TIER_3":
-      return "bg-purple-900/20 text-purple-400 border-purple-800";
+      return "bg-purple-900/20 text-purple-400";
     default:
       return "";
   }
@@ -305,7 +305,7 @@ export default async function PlayerMarketPostPage({
                 alt={displayName ?? t("altPost")}
                 width={80}
                 height={80}
-                className="rounded-full object-cover border size-20"
+                className="rounded-full object-cover size-20 bg-muted/30"
                 unoptimized
               />
             </div>

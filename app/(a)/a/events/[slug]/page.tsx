@@ -1514,7 +1514,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-2">
-                <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center justify-between rounded-lg p-3 bg-muted/30">
                   <div>
                     <Label className="font-medium">
                       Enable Sponsor Requirement
@@ -1562,7 +1562,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                           No sponsors available.
                         </p>
                       ) : (
-                        <div className="rounded-md border divide-y max-h-40 overflow-y-auto">
+                        <div className="rounded-md zebra max-h-40 overflow-y-auto bg-muted/30">
                           {allSponsors.map((s) => (
                             <label
                               key={s.user_id}
@@ -2260,7 +2260,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
             <CardContent className="space-y-4">
               {adminDetails.stages.map((stage: any) => (
                 <div key={stage.stage_id} className="space-y-2">
-                  <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                  <div className="flex items-center justify-between gap-4 rounded-lg p-3 bg-muted/30">
                     <div>
                       <p className="text-sm font-medium">{stage.stage_name}</p>
                       <p className="text-xs text-muted-foreground">Get all user IDs in this stage</p>
@@ -2278,7 +2278,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
                       (owner 2026-08-12, backed by StageGroups.is_synthetic). */}
                   {stage.groups?.filter((group: any) => !group.is_synthetic).map((group: any) => (
                     <div key={group.group_id} className="ml-4 space-y-2">
-                      <div className="flex items-center justify-between gap-4 rounded-lg border border-dashed p-3">
+                      <div className="flex items-center justify-between gap-4 rounded-lg p-3 bg-muted/30">
                         <div>
                           <p className="text-sm font-medium">{group.group_name}</p>
                           <p className="text-xs text-muted-foreground">Get user IDs · Delete group notifications</p>
@@ -2364,7 +2364,7 @@ function RemoveNonNigeriaButton({ eventId, token }: { eventId: number; token: st
 
   return (
     <div className="space-y-3">
-      <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+      <div className="flex items-start justify-between gap-4 rounded-lg p-4 bg-muted/30">
         <div className="flex-1">
           <p className="text-sm font-medium">Remove Non-Nigeria Registered Competitors</p>
           <p className="text-xs text-muted-foreground">
@@ -2478,7 +2478,7 @@ function DiscordToolButton({
   };
 
   return (
-    <div className="flex items-start justify-between gap-4 rounded-lg border p-4">
+    <div className="flex items-start justify-between gap-4 rounded-lg p-4 bg-muted/30">
       <div className="space-y-0.5 flex-1">
         <p className="text-sm font-medium">{label}</p>
         <p className="text-xs text-muted-foreground">{description}</p>

@@ -53,7 +53,7 @@ export function SaveConfirmModal({
               <p className="text-sm text-muted-foreground">
                 {t("saveConfirm.changesIntro", { count: changes.length })}
               </p>
-              <div className="rounded-md border divide-y max-h-64 overflow-y-auto">
+              <div className="rounded-md zebra max-h-64 overflow-y-auto bg-muted/30">
                 {changes.map((c, i) => (
                   // break-words: a value can be a long free-text field (a description, a country
                   // list). The builder already truncates, but an unbroken 120-character string

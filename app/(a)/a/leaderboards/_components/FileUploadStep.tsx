@@ -468,7 +468,7 @@ export function FileUploadStep({
                 {Object.entries(unknownByTeam).map(([teamName, rows]) => (
                   <div
                     key={teamName}
-                    className="rounded-lg border overflow-hidden"
+                    className="rounded-lg overflow-hidden bg-muted/30"
                   >
                     <div className="px-3 py-2 bg-muted/30 text-xs font-medium">
                       {teamName}
@@ -853,7 +853,7 @@ export function FileUploadStep({
           >
             <Label
               htmlFor="match"
-              className={`flex items-start gap-2 p-4 rounded-lg border cursor-pointer transition-colors ${
+              className={`flex items-start gap-2 p-4 rounded-lg cursor-pointer transition-colors ${
                 fileType === "match_result_file"
                   ? "border-primary bg-primary/10"
                   : ""
@@ -874,7 +874,7 @@ export function FileUploadStep({
 
             <Label
               htmlFor="debug"
-              className={`flex items-start gap-2 p-4 rounded-lg border cursor-pointer transition-colors ${
+              className={`flex items-start gap-2 p-4 rounded-lg cursor-pointer transition-colors ${
                 fileType === "debugger_file"
                   ? "border-primary bg-primary/10"
                   : ""
@@ -899,7 +899,7 @@ export function FileUploadStep({
         <div className="space-y-2">
           <Label className="font-medium">Upload File</Label>
           {selectedFile ? (
-            <div className="flex items-center gap-3 rounded-lg border px-4 py-3">
+            <div className="flex items-center gap-3 rounded-lg px-4 py-3 bg-muted/30">
               <IconFile size={20} className="text-primary shrink-0" />
               <span className="text-sm flex-1 truncate">{selectedFile.name}</span>
               <button
@@ -995,7 +995,7 @@ function WatchRowButton({
       variant="outline"
       disabled={busy || added}
       onClick={onClick}
-      className="h-6 shrink-0 gap-1 rounded-full border-amber-500/60 px-2 text-[10px] text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
+      className="h-6 shrink-0 gap-1 rounded-full px-2 text-[10px] text-amber-600 hover:bg-amber-500/10 dark:text-amber-400 bg-amber-500/5"
     >
       {busy ? (
         <IconLoader2 size={12} className="animate-spin" />
@@ -1049,7 +1049,7 @@ function ApproveRowButtons({
         variant="outline"
         disabled={busy}
         onClick={onApprove}
-        className="h-6 gap-1 rounded-full border-green-500/60 px-2 text-[10px] text-green-600 hover:bg-green-500/10 dark:text-green-400"
+        className="h-6 gap-1 rounded-full px-2 text-[10px] text-green-600 hover:bg-green-500/10 dark:text-green-400 bg-green-500/5"
         title={`Approve flag #${flagId} to count`}
       >
         {busy ? (

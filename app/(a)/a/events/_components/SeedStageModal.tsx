@@ -47,7 +47,7 @@ export const SeedStageModal = ({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 pb-4">
-          <div className="bg-primary/10 p-4 rounded-md border">
+          <div className="bg-primary/10 p-4 rounded-md">
             <p className="text-sm font-medium">
               {t("qualifiedTeams", { count: activeGroup?.teams_qualifying || 0 })}
             </p>

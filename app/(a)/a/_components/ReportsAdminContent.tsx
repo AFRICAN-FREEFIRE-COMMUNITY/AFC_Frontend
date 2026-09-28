@@ -87,9 +87,9 @@ const CATEGORY_OPTIONS = [
 ] as const;
 
 const STATUS_BADGE: Record<string, string> = {
-  open: "border-primary/50 text-primary",
-  reviewing: "border-yellow-500/60 text-yellow-600 dark:text-yellow-400",
-  resolved: "border-green-600/60 text-green-600 dark:text-green-400",
+  open: "text-primary bg-primary/10",
+  reviewing: "text-yellow-600 dark:text-yellow-400 bg-yellow-500/10",
+  resolved: "text-green-600 dark:text-green-400 bg-green-600/10",
   dismissed: "border-muted-foreground/40 text-muted-foreground",
 };
 
@@ -396,7 +396,7 @@ export function ReportsAdminContent() {
           {active && (
             <div className="space-y-4">
               {active.is_repeat_offender && (
-                <div className="flex items-center gap-2 rounded-md border border-red-500/40 bg-red-500/5 p-2.5 text-xs text-red-600 dark:text-red-400">
+                <div className="flex items-center gap-2 rounded-md bg-red-500/5 p-2.5 text-xs text-red-600 dark:text-red-400">
                   <IconAlertTriangle className="h-4 w-4 shrink-0" />
                   Repeat offender: {active.recent_report_count} reports in the last 2 weeks.
                 </div>
@@ -417,7 +417,7 @@ export function ReportsAdminContent() {
                     <img
                       src={active.evidence}
                       alt="Report evidence"
-                      className="max-h-56 rounded-md border object-contain hover:opacity-90"
+                      className="max-h-56 rounded-md object-contain hover:opacity-90 bg-muted/30"
                     />
                   </a>
                 ) : (

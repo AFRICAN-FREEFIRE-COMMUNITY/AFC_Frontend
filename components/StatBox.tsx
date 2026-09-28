@@ -55,7 +55,7 @@ export function StatBox({
         : "text-foreground";
 
   return (
-    <div className="bg-card rounded-md border py-4 px-4 shadow-sm">
+    <div className="bg-card rounded-md py-4 px-4 shadow-sm">
       <p className="text-xs text-muted-foreground">{label}</p>
       {muted ? (
         <p className="mt-1 text-sm font-medium text-muted-foreground">{value}</p>

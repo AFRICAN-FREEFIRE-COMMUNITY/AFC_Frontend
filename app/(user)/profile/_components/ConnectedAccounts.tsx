@@ -252,7 +252,7 @@ export function ConnectedAccounts() {
           // border-0 is deliberate and must stay: shadcn's Card ships a 1px border, and the house
           // rule bans building structure out of hairlines. The row is separated from the page by a
           // FILLED surface one step off the background plus spacing, never by a stroke.
-          <Card key={row.provider} className="bg-card rounded-md border-0 shadow-sm">
+          <Card key={row.provider} className="bg-card rounded-md shadow-sm">
             <CardContent className="flex flex-wrap items-center gap-4 p-4">
               {/* Three cases, most specific first:
                     1. the player is connected and has an avatar THERE  -> show the person

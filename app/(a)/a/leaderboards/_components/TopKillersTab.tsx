@@ -131,7 +131,7 @@ export default function TopKillersTab({
                 <img
                   src={top.esports_image}
                   alt=""
-                  className="size-12 rounded-md border object-cover"
+                  className="size-12 rounded-md object-cover bg-muted/30"
                 />
               ) : null}
               <div>

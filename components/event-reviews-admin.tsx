@@ -189,7 +189,7 @@ export function EventReviewsCard({ eventId }: EventReviewsCardProps) {
               // backend orders them.
               <ul className="flex flex-col gap-2">
                 {comments.map((c, i) => (
-                  <li key={i} className="rounded-md border bg-muted/40 p-3">
+                  <li key={i} className="rounded-md bg-muted/40 p-3">
                     <p className="text-sm text-foreground whitespace-pre-wrap">
                       {c.text}
                     </p>

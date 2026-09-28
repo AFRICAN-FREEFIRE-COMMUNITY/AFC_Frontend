@@ -272,7 +272,7 @@ export function MarketBanDialog({
           </div>
 
           {/* Live summary so the admin confirms exactly what happens. */}
-          <div className="rounded-md border border-red-500/30 bg-red-500/5 p-3 text-sm">
+          <div className="rounded-md bg-red-500/5 p-3 text-sm">
             {summary}
           </div>
         </div>

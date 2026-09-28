@@ -122,7 +122,7 @@ function CodeBlock({
       ) : null}
       {caption ? <p className="text-sm text-muted-foreground">{caption}</p> : null}
       <div className="flex items-start gap-2">
-        <pre className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs leading-relaxed">
+        <pre className="min-w-0 flex-1 overflow-x-auto rounded-md bg-muted/40 p-3 font-mono text-xs leading-relaxed">
           {sample}
         </pre>
         <CopyButton value={sample} label={t("copyAria")} />
@@ -155,7 +155,7 @@ function GuideTableBlock({
   );
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-md bg-muted/30">
       <table className="w-full min-w-[32rem] border-collapse text-xs">
         <thead>
           <tr className="border-b bg-muted/40">
@@ -216,7 +216,7 @@ function Block({ sectionId, block }: { sectionId: string; block: GuideBlock }) {
   // that an absent field is absent rather than null.
   if (block.kind === "note" && block.id)
     return (
-      <p className="rounded-md border border-gold/40 bg-gold/5 p-3 text-sm text-muted-foreground">
+      <p className="rounded-md bg-gold/5 p-3 text-sm text-muted-foreground">
         {t(key(block.id))}
       </p>
     );
@@ -259,7 +259,7 @@ export function PartnerApiGuide() {
               {t("connect.baseUrl")}
             </p>
             <div className="flex items-center gap-2">
-              <code className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs">
+              <code className="min-w-0 flex-1 overflow-x-auto rounded-md bg-muted/40 p-3 font-mono text-xs">
                 {PARTNER_API_BASE_URL}
               </code>
               <CopyButton value={PARTNER_API_BASE_URL} label={t("copyAria")} />
@@ -270,7 +270,7 @@ export function PartnerApiGuide() {
             <p className="text-xs font-medium uppercase text-muted-foreground">
               {t("connect.authHeader")}
             </p>
-            <code className="block overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs">
+            <code className="block overflow-x-auto rounded-md bg-muted/40 p-3 font-mono text-xs">
               {PARTNER_API_AUTH_HEADER}: afcp_3f9a_...
             </code>
           </div>
@@ -295,7 +295,7 @@ export function PartnerApiGuide() {
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md border bg-muted px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-muted px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
               >
                 <IconLink className="size-3.5" />
                 {t(`sections.${section.id}.title`)}

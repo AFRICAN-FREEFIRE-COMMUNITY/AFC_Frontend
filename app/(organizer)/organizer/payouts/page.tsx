@@ -41,9 +41,9 @@ interface Earning {
 }
 
 const statusClass: Record<string, string> = {
-  owed: "border-amber-500/60 text-amber-400",
-  released: "border-blue-500/60 text-blue-400",
-  paid: "border-green-600/60 text-green-400",
+  owed: "text-amber-400 bg-amber-500/10",
+  released: "text-blue-400 bg-blue-500/10",
+  paid: "text-green-400 bg-green-600/10",
 };
 
 export default function OrganizerPayoutsPage() {
@@ -162,7 +162,7 @@ export default function OrganizerPayoutsPage() {
         <CardHeader>
           <CardTitle className="text-base">{t("payouts.earningsTitle")}</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-x-auto rounded-md border">
+        <CardContent className="overflow-x-auto rounded-md bg-muted/30">
           <Table data-tour="org-payouts-table">
             <TableHeader>
               <TableRow>

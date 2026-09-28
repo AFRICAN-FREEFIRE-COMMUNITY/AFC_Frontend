@@ -204,7 +204,7 @@ export default function PartnerApplyPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
-              <div className="rounded-md border bg-muted/40 p-4">
+              <div className="rounded-md bg-muted/40 p-4">
                 <p className="text-xs text-muted-foreground">{t("apply.referenceLabel")}</p>
                 <p className="font-mono text-xl font-bold text-primary">{reference}</p>
               </div>
@@ -237,7 +237,7 @@ export default function PartnerApplyPage() {
                   href={`${env.NEXT_PUBLIC_BACKEND_API_URL}/partner-apply/integration-guide/`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:border-primary/50 inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+                  className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-primary/10 bg-muted/30"
                 >
                   <IconFileDownload className="text-primary size-4" />
                   {t("form.intro.guideCta")}

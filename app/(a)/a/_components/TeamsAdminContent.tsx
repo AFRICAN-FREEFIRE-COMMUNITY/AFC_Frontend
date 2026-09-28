@@ -585,7 +585,7 @@ export const TeamsAdminContent = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                           onClick={() => {
                             setGhostDeleteReason("");
                             setDeleteGhost(ghost);
@@ -687,7 +687,7 @@ export const TeamsAdminContent = () => {
                       type="button"
                       variant="outline"
                       size="icon"
-                      className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                       disabled={ghostPlayers.length <= 1}
                       onClick={() => removeGhostPlayer(p.id)}
                       aria-label={`Remove player ${i + 1}`}

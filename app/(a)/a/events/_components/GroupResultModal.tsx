@@ -194,7 +194,7 @@ export const GroupResultModal = ({
         ) : (
           <>
             {/* Group Metadata */}
-            <div className="bg-primary/5 p-3 rounded-lg flex flex-wrap gap-x-6 gap-y-2 text-[11px] border border-primary/10">
+            <div className="bg-primary/5 p-3 rounded-lg flex flex-wrap gap-x-6 gap-y-2 text-[11px]">
               <p>
                 <span className="text-zinc-500 font-bold uppercase mr-1">
                   Advance:
@@ -216,7 +216,7 @@ export const GroupResultModal = ({
                 over the threshold; it also pins that competitor (champion_id) to
                 index 0 of the overall leaderboard. Only show on the overall view. */}
             {viewMatchId === "overall" && groupDetails?.is_decided && (
-              <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300">
+              <div className="flex items-center gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-300">
                 <IconCrown size={16} className="text-amber-400" />
                 Champion crowned - this group is decided.
               </div>
@@ -236,7 +236,7 @@ export const GroupResultModal = ({
               </SelectContent>
             </Select>
 
-            <div className="flex-1 overflow-auto rounded-md border border-zinc-800">
+            <div className="flex-1 overflow-auto rounded-md bg-muted/30">
               <Table>
                 <TableHeader className="bg-zinc-950 sticky top-0 z-10">
                   <TableRow>

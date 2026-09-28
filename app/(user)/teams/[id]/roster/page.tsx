@@ -298,7 +298,7 @@ export default function page({ params }: { params: Params }) {
             {/* Over-cap warning (owner 2026-06-30): a team can field at most 6 (captain + vice + 4).
                 When there are more playing members, the extras must be moved to a management role. */}
             {playingCount > MAX_PLAYERS && (
-              <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-600">
+              <div className="mb-4 flex items-start gap-2 rounded-md bg-amber-500/5 p-3 text-xs text-amber-600">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>{t("roster.capWarning", { count: playingCount, max: MAX_PLAYERS })}</p>
               </div>
@@ -505,7 +505,7 @@ export default function page({ params }: { params: Params }) {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
                   <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-amber-800 dark:text-amber-200">
                     <p className="font-medium">{t("roster.areYouSure")}</p>

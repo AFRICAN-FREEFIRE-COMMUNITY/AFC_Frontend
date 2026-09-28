@@ -187,7 +187,7 @@ export function ProductMediaGallery({
               onClick={() => setActive(i)}
               aria-label={t("media.showMedia", { index: i + 1 })}
               className={cn(
-                "relative h-16 w-16 flex-shrink-0 rounded-md overflow-hidden border-2 bg-muted",
+                "relative h-16 w-16 flex-shrink-0 rounded-md overflow-hidden bg-muted",
                 i === active
                   ? "border-primary"
                   : "border-transparent hover:border-primary/50",

@@ -427,7 +427,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
             {teamDetails.is_banned && teamDetails.ban_info && (
               <>
                 <Separator />
-                <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 space-y-1.5 text-xs">
+                <div className="rounded-md bg-destructive/10 p-3 space-y-1.5 text-xs">
                   <p><span className="text-muted-foreground">Reason: </span>{teamDetails.ban_info.reason || "No reason provided"}</p>
                   <p><span className="text-muted-foreground">Banned by: </span>{teamDetails.ban_info.banned_by}</p>
                   <p><span className="text-muted-foreground">Ban started: </span>{fmtDate(teamDetails.ban_info.ban_start_date)}</p>
@@ -908,7 +908,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
           </DialogHeader>
           <div className="space-y-4">
             {isTeamFull && (
-              <div className="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
+              <div className="flex items-start gap-2 rounded-md bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
                 <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
                 <span>
                   Team has <strong>{memberCount} members</strong>, at or above the {MAX_TEAM_MEMBERS}-member limit. Adding will override this cap.
@@ -926,7 +926,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
                 />
                 {searchLoading && <div className="flex justify-center py-2"><Spinner className="size-5" /></div>}
                 {!searchLoading && searchResults.length > 0 && (
-                  <div className="max-h-48 overflow-y-auto rounded-md border divide-y">
+                  <div className="max-h-48 overflow-y-auto rounded-md zebra bg-muted/30">
                     {searchResults.map((player) => (
                       <button
                         key={player.user_id}
@@ -951,7 +951,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
             ) : (
               <div className="space-y-2">
                 <p className="text-sm font-medium">Selected Player</p>
-                <div className="rounded-md border p-3 space-y-2">
+                <div className="rounded-md p-3 space-y-2 bg-muted/30">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-sm">{selectedPlayer.username}</p>
@@ -962,7 +962,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
                     </Button>
                   </div>
                   {selectedPlayer.current_team && (
-                    <div className="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-2 py-1.5 text-xs text-yellow-700 dark:text-yellow-400">
+                    <div className="flex items-start gap-2 rounded-md bg-yellow-500/10 px-2 py-1.5 text-xs text-yellow-700 dark:text-yellow-400">
                       <IconAlertTriangle className="mt-0.5 size-3.5 shrink-0" />
                       <span>
                         Currently on <strong>{selectedPlayer.current_team.team_name}</strong>. Confirming will remove them from that team first.

@@ -657,7 +657,7 @@ export function OCRReviewTable({
           <CardDescription>{t("reviewTable.emptyDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
-          <div className="flex items-center gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
+          <div className="flex items-center gap-2 rounded-md bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
             <IconAlertTriangle className="size-4 shrink-0" />
             <span>{t("reviewTable.emptyWarning")}</span>
           </div>
@@ -706,7 +706,7 @@ export function OCRReviewTable({
       <CardContent className="pt-4 space-y-4">
         {/* ── Readiness hints (mirror the backend's two commit guards) ── */}
         {(unresolvedCount > 0 || unacknowledgedCount > 0) && (
-          <div className="flex flex-col gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <div className="flex flex-col gap-1.5 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
             {unresolvedCount > 0 && (
               <span>
                 {t("reviewTable.needMatchedPlayer", { count: unresolvedCount })}
@@ -724,14 +724,14 @@ export function OCRReviewTable({
 
         {/* Roster fetch failed: tell the admin once why the picker degraded to suggestions only. */}
         {rosterError && (
-          <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <div className="flex items-center gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
             <IconAlertTriangle className="size-4 shrink-0" />
             <span>{t("reviewTable.rosterError")}</span>
           </div>
         )}
 
         {/* ── Review table (compact density, matches the leaderboard editor) ── */}
-        <div className="rounded-md border overflow-hidden">
+        <div className="rounded-md overflow-hidden bg-muted/30">
           <Table>
             <TableHeader>
               <TableRow>

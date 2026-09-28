@@ -157,7 +157,7 @@ const page = () => {
                 <Button
 
                   variant="outline"
-                  className="border-primary/30 text-primary hover:bg-primary/10 px-8 py-6 text-lg bg-transparent"
+                  className="text-primary hover:bg-primary/10 px-8 py-6 text-lg bg-primary/5"
                 >
                   <Trophy className="w-5 h-5 mr-2" />
                   View Tournaments
@@ -214,7 +214,7 @@ const page = () => {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="bg-background/50 backdrop-blur-sm border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10"
+                className="bg-background/50 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:bg-primary/10"
               >
                 <CardContent>
                   <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gold/20 text-gold mb-4 transition-transform hover:scale-110">

@@ -217,7 +217,7 @@ export default function OnboardingPage() {
                     key={f}
                     src={`/esport-samples/${f}`}
                     alt={t("steps.esports.sampleAlt")}
-                    className="h-28 w-20 rounded-md border object-cover"
+                    className="h-28 w-20 rounded-md object-cover bg-muted/30"
                   />
                 ))}
               </div>

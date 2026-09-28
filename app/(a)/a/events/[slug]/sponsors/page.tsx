@@ -366,7 +366,7 @@ export default function SponsorsPage({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
+                                className="text-green-600 hover:bg-green-50 h-7 text-xs bg-green-200/10"
                                 disabled={isActing}
                                 onClick={() =>
                                   handleConfirm(c.competitor_id, c.username)
@@ -384,7 +384,7 @@ export default function SponsorsPage({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
+                                className="text-red-600 hover:bg-red-50 h-7 text-xs bg-red-200/10"
                                 disabled={isActing}
                                 onClick={() =>
                                   openRejectDialog(c.competitor_id, c.username)

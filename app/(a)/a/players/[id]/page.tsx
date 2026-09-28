@@ -145,7 +145,7 @@ const BanPlayerModal = ({
           variant={isBanned ? "outline" : "destructive"}
           className={
             isBanned
-              ? "border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700"
+              ? "text-green-600 hover:bg-green-50 hover:text-green-700 bg-green-500/10"
               : ""
           }
         >
@@ -342,7 +342,7 @@ const Page = ({ params }: Props) => {
       </div>
 
       {/* Profile card */}
-      <div className="rounded-lg border bg-card p-6">
+      <div className="rounded-lg bg-card p-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Avatar name={player.name} />

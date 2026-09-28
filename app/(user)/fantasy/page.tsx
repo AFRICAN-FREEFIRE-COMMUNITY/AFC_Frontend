@@ -124,7 +124,7 @@ export default function FantasyPage() {
 
       {/* The status, said plainly and first. Somebody who reads nothing else should still leave
           knowing this does not exist yet. */}
-      <Card className="bg-card rounded-md border py-6 shadow-sm">
+      <Card className="bg-card rounded-md py-6 shadow-sm">
         <CardContent className="space-y-2 text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-gold">
             {t("comingSoon")}
@@ -137,7 +137,7 @@ export default function FantasyPage() {
       {/* How it works, because "coming soon" means nothing to somebody who has never played one. */}
       <section className="mt-6 grid gap-4 sm:grid-cols-3">
         {HOW.map(({ icon: Icon, key }) => (
-          <Card key={key} className="bg-card rounded-md border py-6 shadow-sm">
+          <Card key={key} className="bg-card rounded-md py-6 shadow-sm">
             <CardContent className="space-y-2">
               <Icon className="h-5 w-5 text-primary" aria-hidden />
               <p className="text-sm font-semibold text-foreground">{t(`how.${key}.title`)}</p>
@@ -148,7 +148,7 @@ export default function FantasyPage() {
       </section>
 
       {/* The one thing to do on this page. */}
-      <Card className="mt-6 bg-card rounded-md border py-6 shadow-sm">
+      <Card className="mt-6 bg-card rounded-md py-6 shadow-sm">
         <CardContent className="space-y-3">
           <label
             htmlFor="fantasy-interest"

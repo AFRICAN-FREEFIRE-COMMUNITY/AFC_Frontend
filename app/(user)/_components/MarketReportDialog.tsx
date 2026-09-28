@@ -156,7 +156,7 @@ export function MarketReportDialog({
                     type="button"
                     key={value}
                     onClick={() => setReason(value)}
-                    className={`flex items-start gap-3 rounded-md border p-3 text-left transition-colors ${
+                    className={`flex items-start gap-3 rounded-md p-3 text-left transition-colors ${
                       on
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/40"
@@ -164,7 +164,7 @@ export function MarketReportDialog({
                   >
                     {/* radio dot */}
                     <span
-                      className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                      className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
                         on ? "border-primary" : "border-muted-foreground"
                       }`}
                     >
@@ -246,7 +246,7 @@ export function MarketReportDialog({
                 {evidenceFiles.map((f, i) => (
                   <li
                     key={`${f.name}-${f.size}-${i}`}
-                    className="flex items-center justify-between gap-2 rounded-md border bg-muted/40 px-2 py-1 text-xs"
+                    className="flex items-center justify-between gap-2 rounded-md bg-muted/40 px-2 py-1 text-xs"
                   >
                     <span className="flex min-w-0 items-center gap-1.5">
                       {f.type.startsWith("video/") ? (
@@ -274,7 +274,7 @@ export function MarketReportDialog({
 
           {/* J5: warn the reporter that abusing reports is itself punishable. Keep it
               prominent (amber note) so users see it before submitting. No em dashes. */}
-          <div className="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/5 p-2.5 text-xs text-muted-foreground">
+          <div className="flex items-start gap-2 rounded-md bg-yellow-500/5 p-2.5 text-xs text-muted-foreground">
             <IconFlag className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
             <p>
               {/* "Report honestly." is bolded; the rest follows. t.rich keeps the

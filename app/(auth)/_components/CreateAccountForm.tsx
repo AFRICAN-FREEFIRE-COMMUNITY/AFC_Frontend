@@ -538,7 +538,7 @@ export function CreateAccountForm() {
           name="whatsappNumber"
           render={({ field }) => (
             <FormItem>
-              <div className="space-y-2 rounded-lg border p-4">
+              <div className="space-y-2 rounded-lg p-4 bg-muted/30">
                 <FormLabel
                   htmlFor="signup-whatsapp-number"
                   className="flex flex-wrap items-center gap-2 text-sm font-medium"
@@ -594,7 +594,7 @@ export function CreateAccountForm() {
           control={form.control}
           name="acceptTerms"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 rounded-lg bg-muted/30">
               <FormControl>
                 {/* NOTE: You must ensure your Checkbox component
                   handles the checked/onCheckedChange props correctly for react-hook-form.

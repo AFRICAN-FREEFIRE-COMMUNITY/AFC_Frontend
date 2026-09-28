@@ -146,7 +146,7 @@ export function DashboardIntroCoachmark() {
     <div className="fixed right-3 top-[84px] z-40 w-80 max-w-[calc(100vw-1.5rem)]">
       {/* Arrow pointing UP at the hamburger menu button (the last control in the header). */}
       <div className="absolute -top-1.5 right-4 h-3 w-3 rotate-45 border-l border-t bg-card" />
-      <div className="rounded-md border bg-card p-4 shadow-lg">
+      <div className="rounded-md bg-card p-4 shadow-lg">
         <div className="flex items-start justify-between gap-2">
           <Badge
             variant="outline"
@@ -175,7 +175,7 @@ export function DashboardIntroCoachmark() {
             label,
             section,
             menu: () => (
-              <span className="inline-flex items-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 align-middle font-medium text-foreground">
+              <span className="inline-flex items-center gap-1 rounded-md bg-muted/50 px-1.5 py-0.5 align-middle font-medium text-foreground">
                 <IconMenu2 size={12} />
                 {t("dashboardIntro.menuWord")}
               </span>

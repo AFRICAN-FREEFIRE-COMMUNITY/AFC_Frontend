@@ -213,7 +213,7 @@ export function NewsClient({
             changes. */}
         {Array.isArray(newsDetails.related_events) &&
           newsDetails.related_events.length > 0 && (
-            <section className="bg-card rounded-md border p-4 sm:p-5">
+            <section className="bg-card rounded-md p-4 sm:p-5">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
                 {t("relatedEvents.heading")}
               </h2>
@@ -225,7 +225,7 @@ export function NewsClient({
                     aria-label={t("relatedEvents.viewEvent", {
                       name: ev.event_name,
                     })}
-                    className="group flex items-center justify-between gap-3 rounded-md border bg-background p-3 transition-colors hover:border-primary"
+                    className="group flex items-center justify-between gap-3 rounded-md bg-background p-3 transition-colors hover:bg-primary/10"
                   >
                     <div className="min-w-0">
                       <p className="truncate font-medium text-foreground">

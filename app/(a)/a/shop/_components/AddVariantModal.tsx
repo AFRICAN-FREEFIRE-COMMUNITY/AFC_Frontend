@@ -260,7 +260,7 @@ export function AddVariantModal({
                 control={form.control}
                 name="is_active"
                 render={({ field }) => (
-                  <FormItem className="col-span-2 flex flex-row items-center justify-between rounded-lg border p-3">
+                  <FormItem className="col-span-2 flex flex-row items-center justify-between rounded-lg p-3 bg-muted/30">
                     <div className="space-y-0.5">
                       <FormLabel className="text-base">Active</FormLabel>
                       <p className="text-sm text-muted-foreground">

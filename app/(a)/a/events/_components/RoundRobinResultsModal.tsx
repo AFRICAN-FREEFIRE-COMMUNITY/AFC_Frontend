@@ -180,7 +180,7 @@ export const RoundRobinResultsModal = ({
               )}
             </div>
 
-            <div className="flex-1 overflow-auto rounded-md border border-zinc-800">
+            <div className="flex-1 overflow-auto rounded-md bg-muted/30">
               <Table>
                 <TableHeader className="bg-zinc-950 sticky top-0 z-10">
                   <TableRow>

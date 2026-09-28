@@ -365,7 +365,7 @@ export default function CartDetails() {
         <div key={step.id} className="flex items-center">
           <div className="flex flex-col items-center">
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2 ${
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                 currentStep >= step.id
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-background text-muted-foreground border-muted"
@@ -420,7 +420,7 @@ export default function CartDetails() {
                 key={item.id}
                 className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg"
               >
-                <div className="relative h-16 w-16 rounded-md overflow-hidden bg-background border">
+                <div className="relative h-16 w-16 rounded-md overflow-hidden bg-background">
                   <Image
                     src={item.image || DEFAULT_IMAGE}
                     alt={item.product_name}
@@ -513,7 +513,7 @@ export default function CartDetails() {
                 <Label
                   key={p.id}
                   htmlFor={`saved_${p.id}`}
-                  className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors ${
+                  className={`flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors ${
                     selectedProfileId === String(p.id)
                       ? "border-primary bg-primary/5"
                       : "border-border hover:bg-muted/50"
@@ -543,7 +543,7 @@ export default function CartDetails() {
               {/* Final option: enter a brand-new address (clears the form). */}
               <Label
                 htmlFor="saved_new"
-                className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors ${
+                className={`flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors ${
                   selectedProfileId === "new"
                     ? "border-primary bg-primary/5"
                     : "border-border hover:bg-muted/50"
@@ -708,7 +708,7 @@ export default function CartDetails() {
                 buyer can reuse them. The label Input only appears once checked. This
                 is plain component state (not part of the react-hook-form schema); it
                 is read in handleCompleteOrder. */}
-            <div className="rounded-md border p-3 space-y-3">
+            <div className="rounded-md p-3 space-y-3 bg-muted/30">
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="save_delivery_info"
@@ -767,7 +767,7 @@ export default function CartDetails() {
                 key={item.id}
                 className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg"
               >
-                <div className="relative h-12 w-12 rounded-md overflow-hidden bg-background border">
+                <div className="relative h-12 w-12 rounded-md overflow-hidden bg-background">
                   <Image
                     src={item.image || DEFAULT_IMAGE}
                     alt={item.product_name}
@@ -917,7 +917,7 @@ export default function CartDetails() {
           >
             <Label
               htmlFor="provider_paystack"
-              className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors ${
+              className={`flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors ${
                 paymentProvider === "paystack"
                   ? "border-primary bg-primary/5"
                   : "border-border hover:bg-muted/50"
@@ -939,7 +939,7 @@ export default function CartDetails() {
             </Label>
             <Label
               htmlFor="provider_stripe"
-              className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors ${
+              className={`flex cursor-pointer items-start gap-3 rounded-md p-3 transition-colors ${
                 paymentProvider === "stripe"
                   ? "border-primary bg-primary/5"
                   : "border-border hover:bg-muted/50"

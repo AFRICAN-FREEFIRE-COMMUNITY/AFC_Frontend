@@ -129,7 +129,7 @@ const RulesPage = () => {
               </div>
             ))
           ) : (
-            <div className="text-center py-20 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+            <div className="text-center py-20 text-muted-foreground italic rounded-lg bg-muted/30">
               {t("rules.noResults", { query: searchQuery })}
             </div>
           )}
@@ -153,7 +153,7 @@ const RulesPage = () => {
             </Button>
             {/* <Button
               variant="outline"
-              className="flex-1 border-zinc-800"
+              className="flex-1"
               asChild
             >
               <Link href={"#"}>Download Official PDF</Link>

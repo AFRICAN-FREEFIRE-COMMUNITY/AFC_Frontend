@@ -693,7 +693,7 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           control={form.control}
           name="acceptTerms"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 rounded-lg bg-muted/30">
               <FormControl>
                 <Checkbox
                   checked={field.value}

@@ -353,7 +353,7 @@ function WalkthroughCard({
           <ol className="flex list-none flex-col gap-3">
             {walkthrough.steps.map((stepId, i) => (
               <li key={stepId} className="flex gap-3">
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-primary/40 text-[0.65rem] font-semibold text-primary">
+                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-semibold text-primary bg-primary/10">
                   {i + 1}
                 </span>
                 <div className="min-w-0">
