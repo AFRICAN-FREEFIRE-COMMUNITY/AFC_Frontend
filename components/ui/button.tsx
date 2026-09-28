@@ -24,8 +24,11 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // Kept as a name (Join Now, Login, View Team, the tour buttons use it) but no longer a
+        // gradient: button gradients are banned house style (owner, 2026-09-28: "fix"). It is
+        // the committed brand green, solid, with an instant fill change on hover.
         gradient:
-          "bg-gradient-to-r from-primary to-gold text-primary-foreground shadow-md hover:opacity-90",
+          "bg-primary text-primary-foreground hover:bg-primary/90",
       },
       size: {
         default: "h-12 px-6 py-2 has-[>svg]:px-3",
