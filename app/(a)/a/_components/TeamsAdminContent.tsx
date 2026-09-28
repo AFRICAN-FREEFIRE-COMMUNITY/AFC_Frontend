@@ -556,14 +556,14 @@ export const TeamsAdminContent = () => {
                       {ghost.claim_status === "claimed" ? (
                         <Badge
                           variant="outline"
-                          className="border-green-600/60 text-green-400"
+                          className="text-green-400"
                         >
                           Claimed
                         </Badge>
                       ) : ghost.claim_status === "pending" ? (
                         <Badge
                           variant="outline"
-                          className="border-orange-500/40 text-orange-400"
+                          className="text-orange-400"
                         >
                           Pending
                         </Badge>

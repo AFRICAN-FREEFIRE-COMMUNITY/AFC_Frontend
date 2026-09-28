@@ -319,7 +319,7 @@ export function SaveConfigDialog({
                   {t("admin.scoringConfig.save.currentAlwaysIncluded")}
                 </p>
               </div>
-              <Badge variant="outline" className="rounded-full border-primary/50 px-2 py-0 text-[10px] text-primary">
+              <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] text-primary">
                 {t("admin.scoringConfig.save.badgeCurrent")}
               </Badge>
             </div>

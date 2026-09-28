@@ -517,8 +517,8 @@ export default function ManageVendorsPage() {
                         variant="outline"
                         className={
                           vendor.status === "active"
-                            ? "rounded-full border-green-500 text-green-600"
-                            : "rounded-full border-orange-500 text-orange-600"
+                            ? "rounded-full text-green-600"
+                            : "rounded-full text-orange-600"
                         }
                       >
                         {vendor.status === "active" ? "Active" : "Suspended"}

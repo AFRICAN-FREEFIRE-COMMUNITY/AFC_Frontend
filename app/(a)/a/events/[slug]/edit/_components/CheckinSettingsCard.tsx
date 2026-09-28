@@ -192,7 +192,7 @@ export default function CheckinSettingsCard({ eventId }: { eventId?: number }) {
             {saving ? <IconLoader2 className="mr-1 size-4 animate-spin" /> : null}
             {t("checkin.saveSettings")}
           </Button>
-          {enabled && windowOpen && <Badge variant="outline" className="border-green-600/60 text-green-500">{t("checkin.openNow")}</Badge>}
+          {enabled && windowOpen && <Badge variant="outline" className="text-green-500">{t("checkin.openNow")}</Badge>}
           {windowClosed && (
             <Button size="sm" variant="outline" onClick={relegateNow} disabled={relegating}>
               {relegating ? <IconLoader2 className="mr-1 size-4 animate-spin" /> : null}

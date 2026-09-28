@@ -591,7 +591,7 @@ export function OCRReviewTable({
       return (
         <Badge
           variant="outline"
-          className="rounded-full text-yellow-600 border-yellow-500/50"
+          className="rounded-full text-yellow-600"
         >
           {t("reviewTable.teamMismatch")}
         </Badge>

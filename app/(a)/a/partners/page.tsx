@@ -107,13 +107,13 @@ function StatusBadge({ status }: { status: string }) {
   const t = useTranslations("partners");
   if (status === "active")
     return (
-      <Badge variant="outline" className="border-green-600/60 text-green-400">
+      <Badge variant="outline" className="text-green-400">
         {t("status.active")}
       </Badge>
     );
   if (status === "suspended")
     return (
-      <Badge variant="outline" className="border-orange-500/40 text-orange-400">
+      <Badge variant="outline" className="text-orange-400">
         {t("status.suspended")}
       </Badge>
     );

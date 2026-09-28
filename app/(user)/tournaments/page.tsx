@@ -233,7 +233,7 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
             {isPaid && (
               <Badge
                 variant="outline"
-                className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+                className="rounded-full px-2 py-0.5 text-xs text-primary"
               >
                 {t("list.card.paid", { fee: paidFeeLabel })}
               </Badge>
@@ -460,7 +460,7 @@ const OrganizerCard: React.FC<{
         <div className="mt-auto flex flex-wrap items-center gap-1.5">
           <Badge
             variant="outline"
-            className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+            className="rounded-full px-2 py-0.5 text-xs text-primary"
           >
             {t("organizers.card.eventCount", { count: org.event_count })}
           </Badge>
@@ -477,7 +477,7 @@ const OrganizerCard: React.FC<{
           {org.slug === null && (
             <Badge
               variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-gold/55 text-gold"
+              className="rounded-full px-2 py-0.5 text-xs text-gold"
             >
               {t("organizers.card.afcOfficial")}
             </Badge>

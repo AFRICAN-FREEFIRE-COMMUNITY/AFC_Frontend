@@ -248,14 +248,14 @@ function MatchBox({
         </span>
         <div className="flex items-center gap-1.5">
           {match.is_bye && (
-            <Badge variant="outline" className="border-blue-500 px-1.5 py-0 text-[10px] text-blue-500">
+            <Badge variant="outline" className="px-1.5 py-0 text-[10px] text-blue-500">
               {t("bye")}
             </Badge>
           )}
           {awarded && (
             <Badge
               variant="outline"
-              className="border-orange-500 px-1.5 py-0 text-[10px] text-orange-500"
+              className="px-1.5 py-0 text-[10px] text-orange-500"
               title={match.result_note || undefined}
             >
               {dyn(t, "resultType_", match.result_type)}
@@ -428,7 +428,7 @@ function LeagueRounds({
                   {m.result_type && m.result_type !== "normal" && (
                     <Badge
                       variant="outline"
-                      className="shrink-0 rounded-full border-orange-500 px-1.5 py-0 text-[10px] text-orange-500"
+                      className="shrink-0 rounded-full px-1.5 py-0 text-[10px] text-orange-500"
                       title={m.result_note || undefined}
                     >
                       {dyn(t, "resultType_", m.result_type)}
@@ -914,7 +914,7 @@ export function H2HBracketCard({
               <IconTrophy className="text-primary size-4" />
               {t("title")}
               {generated && bracket && (
-                <Badge variant="outline" className="border-primary text-primary">
+                <Badge variant="outline" className="text-primary">
                   {fmtLabel(bracket.fmt, t)}
                 </Badge>
               )}
@@ -1378,8 +1378,8 @@ export function H2HBracketCard({
                   variant="outline"
                   className={cn(
                     "rounded-full px-2 py-0.5 text-[10px]",
-                    agreement === "agree" && "border-green-500 text-green-500",
-                    agreement === "disagree" && "border-destructive text-destructive",
+                    agreement === "agree" && "text-green-500",
+                    agreement === "disagree" && "text-destructive",
                   )}
                 >
                   {dyn(t, "agreement_", agreement)}

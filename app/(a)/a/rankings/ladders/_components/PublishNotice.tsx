@@ -34,7 +34,7 @@ export function PublishBadge({ published }: { published: boolean }) {
       variant="outline"
       className={cn(
         "rounded-full px-2 py-0.5 text-[10px] font-semibold",
-        published ? "border-green-600/60 text-green-400" : "border-amber-500/60 text-amber-400",
+        published ? "text-green-400" : "text-amber-400",
       )}
     >
       {published ? <IconWorld className="size-3" /> : <IconEyeOff className="size-3" />}
@@ -55,7 +55,7 @@ function StateChip({ label, on }: { label: string; on: boolean }) {
         variant="outline"
         className={cn(
           "rounded-full px-2 py-0.5 text-[10px] font-medium",
-          on ? "border-green-600/60 text-green-400" : "border-amber-500/60 text-amber-400",
+          on ? "text-green-400" : "text-amber-400",
         )}
       >
         {on ? t("statePublished") : t("stateHidden")}

@@ -256,7 +256,7 @@ export default function PollDetailPage() {
           variant="outline"
           className={cn(
             "rounded-full px-2 py-0.5 text-xs",
-            poll.is_open ? "border-primary/50 text-primary" : "text-muted-foreground",
+            poll.is_open ? "text-primary" : "text-muted-foreground",
           )}
         >
           {poll.is_open ? t("card.open") : poll.is_closed ? t("card.closed") : t("card.results")}

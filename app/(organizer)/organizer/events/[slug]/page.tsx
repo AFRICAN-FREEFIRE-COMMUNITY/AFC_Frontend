@@ -1429,7 +1429,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
                                 <span className="hidden sm:inline">•</span>
                                 <Badge
                                   variant="outline"
-                                  className="text-xs rounded-full border-primary text-primary"
+                                  className="text-xs rounded-full text-primary"
                                 >
                                   {t("eventDetail.invites.sharedBadge")}
                                 </Badge>

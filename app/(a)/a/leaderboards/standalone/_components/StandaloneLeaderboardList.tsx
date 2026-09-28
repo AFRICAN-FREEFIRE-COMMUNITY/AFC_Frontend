@@ -176,7 +176,7 @@ export function StandaloneLeaderboardList({
                     <TableCell className="p-2 text-xs">
                       <Badge
                         variant="outline"
-                        className="rounded-full border-blue-500 px-2 py-0.5 text-xs capitalize text-blue-600"
+                        className="rounded-full px-2 py-0.5 text-xs capitalize text-blue-600"
                       >
                         {lb.format}
                       </Badge>
@@ -187,8 +187,8 @@ export function StandaloneLeaderboardList({
                           variant="outline"
                           className={
                             lb.status === "published"
-                              ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
-                              : "rounded-full border-muted-foreground px-2 py-0.5 text-xs text-muted-foreground"
+                              ? "rounded-full px-2 py-0.5 text-xs text-green-600"
+                              : "rounded-full px-2 py-0.5 text-xs text-muted-foreground"
                           }
                         >
                           {lb.status === "published" ? "Published" : "Draft"}
@@ -199,7 +199,7 @@ export function StandaloneLeaderboardList({
                         {lb.counts_toward_rankings && (
                           <Badge
                             variant="outline"
-                            className="rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+                            className="rounded-full px-2 py-0.5 text-xs text-primary"
                           >
                             {TIER_LABELS[lb.ranking_tier] ?? "Tier 3"}
                           </Badge>

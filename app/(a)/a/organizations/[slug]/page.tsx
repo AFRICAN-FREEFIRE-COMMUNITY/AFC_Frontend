@@ -718,7 +718,7 @@ export default function OrganizationDetailPage({
                             variant="outline"
                             className={
                               m.role === "owner"
-                                ? "border-green-600/60 text-green-400 capitalize"
+                                ? "text-green-400 capitalize"
                                 : "capitalize"
                             }
                           >
@@ -815,7 +815,7 @@ export default function OrganizationDetailPage({
                           {ev.is_draft ? (
                             <Badge
                               variant="outline"
-                              className="border-orange-500/40 text-orange-400"
+                              className="text-orange-400"
                             >
                               Draft
                             </Badge>
@@ -829,7 +829,7 @@ export default function OrganizationDetailPage({
                           {ev.rankings_verified ? (
                             <Badge
                               variant="outline"
-                              className="border-green-600/60 text-green-400"
+                              className="text-green-400"
                             >
                               Verified
                             </Badge>

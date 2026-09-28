@@ -79,7 +79,7 @@ export function QualifiedFromBanner({ eventId }: { eventId: number }) {
               <Badge
                 key={name}
                 variant="outline"
-                className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+                className="rounded-full px-2 py-0.5 text-xs text-green-600"
               >
                 {name}
               </Badge>

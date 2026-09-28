@@ -224,11 +224,11 @@ function labelFor(list: { value: string; label: string }[], value: string) {
 function getTierColor(tier: string) {
   switch (tier) {
     case "TIER_1":
-      return "bg-yellow-900/20 text-yellow-400 border-yellow-800";
+      return "bg-yellow-900/20 text-yellow-400";
     case "TIER_2":
-      return "bg-cyan-900/20 text-cyan-400 border-cyan-800";
+      return "bg-cyan-900/20 text-cyan-400";
     case "TIER_3":
-      return "bg-purple-900/20 text-purple-400 border-purple-800";
+      return "bg-purple-900/20 text-purple-400";
     default:
       return "";
   }
@@ -1744,7 +1744,7 @@ function PlayerMarketPage() {
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       {team.minimum_tier_required && (
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(team.minimum_tier_required)}`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getTierColor(team.minimum_tier_required)}`}
                         >
                           <IconShield className="h-3 w-3" />
                           {labelFor(TIERS, team.minimum_tier_required)}+
@@ -2166,13 +2166,13 @@ function PlayerMarketPage() {
                 const isExpired =
                   invite.expires_at && new Date(invite.expires_at) < new Date();
                 const statusColors: Record<string, string> = {
-                  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
-                  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  PENDING: "bg-yellow-900/20 text-yellow-400",
+                  ACCEPTED: "bg-green-900/20 text-green-400",
                   // Backend uses "REJECTED" for declined invites; "DECLINED" kept as
                   // a fallback in case any older record still carries that value.
-                  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
-                  DECLINED: "bg-red-900/20 text-red-400 border-red-800",
-                  EXPIRED: "bg-muted text-muted-foreground border-border",
+                  REJECTED: "bg-red-900/20 text-red-400",
+                  DECLINED: "bg-red-900/20 text-red-400",
+                  EXPIRED: "bg-muted text-muted-foreground",
                 };
                 const displayStatus =
                   isExpired && isPending ? "EXPIRED" : invite.status;
@@ -2291,13 +2291,13 @@ function PlayerMarketPage() {
             ) : (
               teamApplications.map((app) => {
                 const statusColors: Record<string, string> = {
-                  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
-                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400 border-cyan-800",
-                  INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
-                  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  PENDING: "bg-yellow-900/20 text-yellow-400",
+                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400",
+                  INVITED: "bg-blue-900/20 text-blue-400",
+                  ACCEPTED: "bg-green-900/20 text-green-400",
                   TRIAL_EXTENDED:
-                    "bg-purple-900/20 text-purple-400 border-purple-800",
-                  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+                    "bg-purple-900/20 text-purple-400",
+                  REJECTED: "bg-red-900/20 text-red-400",
                 };
                 return (
                   <Card
@@ -2325,7 +2325,7 @@ function PlayerMarketPage() {
                           {app.contact_unlocked && (
                             <Badge
                               variant="outline"
-                              className="text-xs text-green-400 border-green-800"
+                              className="text-xs text-green-400"
                             >
                               {t("common.contactUnlocked")}
                             </Badge>
@@ -2390,13 +2390,13 @@ function PlayerMarketPage() {
             ) : (
               myApplications.map((app) => {
                 const statusColors: Record<string, string> = {
-                  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
-                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400 border-cyan-800",
-                  INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
-                  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  PENDING: "bg-yellow-900/20 text-yellow-400",
+                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400",
+                  INVITED: "bg-blue-900/20 text-blue-400",
+                  ACCEPTED: "bg-green-900/20 text-green-400",
                   TRIAL_EXTENDED:
-                    "bg-purple-900/20 text-purple-400 border-purple-800",
-                  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+                    "bg-purple-900/20 text-purple-400",
+                  REJECTED: "bg-red-900/20 text-red-400",
                 };
                 return (
                   <Card
@@ -2421,7 +2421,7 @@ function PlayerMarketPage() {
                           {app.contact_unlocked && (
                             <Badge
                               variant="outline"
-                              className="text-xs text-green-400 border-green-800"
+                              className="text-xs text-green-400"
                             >
                               {t("common.contactUnlocked")}
                             </Badge>
@@ -2685,7 +2685,7 @@ function PlayerMarketPage() {
                           <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             {post.minimum_tier_required && (
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(post.minimum_tier_required)}`}
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getTierColor(post.minimum_tier_required)}`}
                               >
                                 <IconShield className="h-3 w-3" />
                                 {labelFor(TIERS, post.minimum_tier_required)}+
@@ -2805,7 +2805,7 @@ function PlayerMarketPage() {
                             )}
                             {/* Signals the post carries a gameplay video link. */}
                             {post.video_url && (
-                              <Badge variant="outline" className="text-xs border-primary text-primary">
+                              <Badge variant="outline" className="text-xs text-primary">
                                 <IconVideo className="h-3 w-3 mr-1" />
                                 {t("common.video")}
                               </Badge>
@@ -3710,7 +3710,7 @@ function PlayerMarketPage() {
                           {t("teamsTab.minTier")}
                         </p>
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border mt-1 ${getTierColor(viewTeam.minimum_tier_required)}`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${getTierColor(viewTeam.minimum_tier_required)}`}
                         >
                           <IconShield className="h-3 w-3" />
                           {labelFor(TIERS, viewTeam.minimum_tier_required)}+

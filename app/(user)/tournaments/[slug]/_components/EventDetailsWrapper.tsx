@@ -763,7 +763,7 @@ function MemberRequirementBadges({
       );
     }
     return (
-      <Badge variant="outline" className="border-primary text-primary">
+      <Badge variant="outline" className="text-primary">
         <CheckCircle />
         {t("register.rosterRequirements.ready")}
       </Badge>
@@ -776,7 +776,7 @@ function MemberRequirementBadges({
         <Badge
           key={k}
           variant="outline"
-          className="border-destructive text-destructive"
+          className="text-destructive"
         >
           <XCircle />
           {reqLabel(k)}
@@ -785,7 +785,7 @@ function MemberRequirementBadges({
       {discordUnverified && (
         <Badge
           variant="outline"
-          className="border-amber-500 text-amber-600"
+          className="text-amber-600"
         >
           <AlertTriangle />
           {t("register.rosterRequirements.discordPending")}
@@ -5746,7 +5746,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           {eventDetails.open_roster && (
             <Badge
               variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+              className="rounded-full px-2 py-0.5 text-xs text-primary"
               title={t("detail.openRosterHint")}
             >
               {t("detail.openRosterBadge")}
@@ -5766,7 +5766,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           <div className="space-y-1">
             <Badge
               variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+              className="rounded-full px-2 py-0.5 text-xs text-primary"
             >
               {viewerFee && !viewerFee.pays
                 ? t("detail.freeForCountryBadge")
@@ -5787,7 +5787,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           <div>
             <Badge
               variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+              className="rounded-full px-2 py-0.5 text-xs text-primary"
             >
               {t("detail.discordRequiredBadge")}
             </Badge>

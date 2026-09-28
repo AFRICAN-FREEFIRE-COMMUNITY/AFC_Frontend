@@ -77,7 +77,7 @@ export function TeamRollup({
           {team.is_captain && (
             <Badge
               variant="outline"
-              className="shrink-0 rounded-full border-gold/50 px-2 py-0.5 text-xs text-gold"
+              className="shrink-0 rounded-full px-2 py-0.5 text-xs text-gold"
             >
               <IconCrown className="mr-1 h-3 w-3" />
               {t("team.captain")}

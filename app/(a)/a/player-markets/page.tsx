@@ -1124,7 +1124,7 @@ export default function AdminPlayerMarketPage() {
                     {t("overview.health.checking")}
                   </Badge>
                 ) : transferSeason.transfer_window_is_open ? (
-                  <Badge variant="outline" className="border-green-500/50 text-green-500">
+                  <Badge variant="outline" className="text-green-500">
                     {transferSeason.transfer_window_close
                       ? t("overview.health.openUntil", {
                           date: formatLocalDateOnly(transferSeason.transfer_window_close),
@@ -1132,7 +1132,7 @@ export default function AdminPlayerMarketPage() {
                       : t("overview.health.open")}
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="border-orange-500/50 text-orange-500">
+                  <Badge variant="outline" className="text-orange-500">
                     {transferSeason.transfer_window_close
                       ? t("overview.health.lockedSince", {
                           date: formatLocalDateOnly(transferSeason.transfer_window_close),
@@ -1297,7 +1297,7 @@ export default function AdminPlayerMarketPage() {
                                 }
                                 className={
                                   status === "Active"
-                                    ? "bg-green-900/20 text-green-400 border-green-800"
+                                    ? "bg-green-900/20 text-green-400"
                                     : "text-muted-foreground"
                                 }
                               >
@@ -1453,7 +1453,7 @@ export default function AdminPlayerMarketPage() {
                                 }
                                 className={
                                   status === "Active"
-                                    ? "bg-green-900/20 text-green-400 border-green-800"
+                                    ? "bg-green-900/20 text-green-400"
                                     : "text-muted-foreground"
                                 }
                               >

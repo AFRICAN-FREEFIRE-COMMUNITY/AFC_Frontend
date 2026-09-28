@@ -291,8 +291,8 @@ export default function SeasonsAdminPage() {
                             className={cn(
                               "w-fit rounded-full px-2 py-0.5 text-xs",
                               w.open
-                                ? "bg-green-500/10 text-green-500 border-green-500/20"
-                                : "text-orange-500 border-orange-500/20"
+                                ? "bg-green-500/10 text-green-500"
+                                : "text-orange-500"
                             )}
                           >
                             {t(`window.${w.key}` as never)}
@@ -307,7 +307,7 @@ export default function SeasonsAdminPage() {
                       </TableCell>
                       <TableCell>
                         {s.is_active ? (
-                          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs bg-green-500/10 text-green-500 border-green-500/20">
+                          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs bg-green-500/10 text-green-500">
                             {t("table.statusActive")}
                           </Badge>
                         ) : (
@@ -318,11 +318,11 @@ export default function SeasonsAdminPage() {
                       </TableCell>
                       <TableCell>
                         {s.tier_eval_run ? (
-                          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs bg-green-500/10 text-green-500 border-green-500/20">
+                          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs bg-green-500/10 text-green-500">
                             {t("table.evalRun")}
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-orange-500 border-orange-500/20">
+                          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-orange-500">
                             {t("table.evalPending")}
                           </Badge>
                         )}

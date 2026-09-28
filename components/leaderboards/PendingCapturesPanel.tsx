@@ -144,7 +144,7 @@ export function PendingCapturesPanel({ eventId, token, canManage = true, onChang
         <CardTitle className="flex items-center gap-2 text-base">
           <IconInbox className="size-4 text-orange-400" />
           Pending captures
-          <Badge variant="outline" className="rounded-full border-orange-500/40 px-2 py-0.5 text-[10px] text-orange-400">
+          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-orange-400">
             {pending.length}
           </Badge>
         </CardTitle>

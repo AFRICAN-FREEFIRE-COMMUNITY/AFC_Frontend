@@ -686,7 +686,7 @@ export function PlayerClient({ username }: { username: string }) {
                   {player.team && (
                     <Badge
                       variant="outline"
-                      className="border-primary/50 text-primary"
+                      className="text-primary"
                       asChild
                     >
                       <Link href={`/teams/${player.team.team_name}`}>
@@ -698,7 +698,7 @@ export function PlayerClient({ username }: { username: string }) {
                   {currentTier?.tier_label && (
                     <Badge
                       variant="outline"
-                      className="border-gold/60 text-gold"
+                      className="text-gold"
                     >
                       {currentTier.tier_label}
                     </Badge>
@@ -1063,7 +1063,7 @@ export function PlayerClient({ username }: { username: string }) {
                                 {h.tier_label && (
                                   <Badge
                                     variant="outline"
-                                    className="border-gold/60 text-gold"
+                                    className="text-gold"
                                   >
                                     {h.tier_label}
                                   </Badge>
@@ -1281,7 +1281,7 @@ export function PlayerClient({ username }: { username: string }) {
                                 {h.tier_label && (
                                   <Badge
                                     variant="outline"
-                                    className="border-gold/60 text-gold"
+                                    className="text-gold"
                                   >
                                     {h.tier_label}
                                   </Badge>

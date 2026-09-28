@@ -306,8 +306,8 @@ export function ReviewApplicationDialog({
                   variant="outline"
                   className={
                     app.is_banned
-                      ? "text-red-400 border-red-800"
-                      : "text-green-400 border-green-800"
+                      ? "text-red-400"
+                      : "text-green-400"
                   }
                 >
                   {app.is_banned

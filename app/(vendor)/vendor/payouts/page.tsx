@@ -250,7 +250,7 @@ export default function VendorPayoutsPage() {
                   {method.ready ? (
                     <Badge
                       variant="outline"
-                      className="rounded-full border-primary/40 px-2 py-0.5 text-xs text-primary"
+                      className="rounded-full px-2 py-0.5 text-xs text-primary"
                     >
                       <IconCheck className="mr-1 size-3" />
                       Ready
@@ -258,7 +258,7 @@ export default function VendorPayoutsPage() {
                   ) : (
                     <Badge
                       variant="outline"
-                      className="rounded-full border-orange-400/50 px-2 py-0.5 text-xs text-orange-500"
+                      className="rounded-full px-2 py-0.5 text-xs text-orange-500"
                     >
                       Pending
                     </Badge>

@@ -433,7 +433,7 @@ export const ProfileContent = () => {
                   {user.team && (
                     <Badge
                       variant="outline"
-                      className="border-primary/50 text-primary"
+                      className="text-primary"
                       asChild
                     >
                       <Link href={`/teams/${user.team}`}>{user.team}</Link>
@@ -450,7 +450,7 @@ export const ProfileContent = () => {
                     title={t("overview.currentTier")}
                     className={
                       currentTier?.tier_label
-                        ? "border-gold/60 text-gold"
+                        ? "text-gold"
                         : "text-muted-foreground"
                     }
                   >
@@ -949,7 +949,7 @@ export const ProfileContent = () => {
                             {app.contact_unlocked && (
                               <Badge
                                 variant="outline"
-                                className="text-xs text-green-400 border-green-800"
+                                className="text-xs text-green-400"
                               >
                                 {t("applications.contactUnlocked")}
                               </Badge>
@@ -1134,7 +1134,7 @@ function AchievementsPanel({ ctx }: { ctx: AchievementContext }) {
         {/* Trophy badge mirrors the gold accent used across AFC stat surfaces. */}
         <Badge
           variant="outline"
-          className="border-gold/60 text-gold self-start sm:self-auto"
+          className="text-gold self-start sm:self-auto"
         >
           <IconTrophy className="h-4 w-4 mr-1" />
           {t("achievementsPanel.pointsBadge", { points: earnedPoints })}

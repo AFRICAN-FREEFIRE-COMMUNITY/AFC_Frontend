@@ -232,7 +232,7 @@ export function EventInvitationsCard({
               wraps with the pending-count pill instead of stretching the card. */}
           <NewBadge since="2026-08-06" />
           {pendingCount > 0 && (
-            <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-yellow-400 border-yellow-800">
+            <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-yellow-400">
               {t("team.pendingCount", { count: pendingCount })}
             </Badge>
           )}

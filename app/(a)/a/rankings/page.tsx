@@ -578,7 +578,7 @@ function PublishRow({
           variant="outline"
           className={cn(
             "shrink-0 rounded-full px-2 py-0.5 text-xs",
-            published ? "border-green-500/50 text-green-500" : "border-orange-500/50 text-orange-500",
+            published ? "text-green-500" : "text-orange-500",
           )}
         >
           {published ? (
@@ -1254,7 +1254,7 @@ function ClaimRequestsSection() {
           {rows.length > 0 && (
             <Badge
               variant="outline"
-              className="ml-2 rounded-full px-2 py-0.5 text-[10px] border-orange-500/40 text-orange-400"
+              className="ml-2 rounded-full px-2 py-0.5 text-[10px] text-orange-400"
             >
               {t("claims.pending", { count: rows.length })}
             </Badge>
@@ -1325,7 +1325,7 @@ function ClaimRequestsSection() {
                       variant="outline"
                       className={cn(
                         "rounded-full px-2 py-0.5 text-[10px]",
-                        r.kind === "team" ? "border-green-600/50 text-green-400" : "border-blue-500/50 text-blue-400",
+                        r.kind === "team" ? "text-green-400" : "text-blue-400",
                       )}
                     >
                       {r.kind === "team" ? (

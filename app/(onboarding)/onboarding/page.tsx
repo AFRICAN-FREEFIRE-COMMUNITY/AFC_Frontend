@@ -196,7 +196,7 @@ export default function OnboardingPage() {
             <div className="flex items-center gap-2">
               <h3 className="font-semibold">{t("steps.esports.title")}</h3>
               {haveEsports && (
-                <Badge variant="outline" className="text-green-600 border-green-600/50 text-[10px]">
+                <Badge variant="outline" className="text-green-600 text-[10px]">
                   <IconCircleCheck className="h-3 w-3 mr-0.5" /> {t("doneBadge")}
                 </Badge>
               )}
@@ -232,7 +232,7 @@ export default function OnboardingPage() {
             <div className="flex items-center gap-2">
               <h3 className="font-semibold">{t("steps.uid.title")}</h3>
               {haveUid && (
-                <Badge variant="outline" className="text-green-600 border-green-600/50 text-[10px]">
+                <Badge variant="outline" className="text-green-600 text-[10px]">
                   <IconCircleCheck className="h-3 w-3 mr-0.5" /> {t("doneBadge")}
                 </Badge>
               )}
@@ -256,7 +256,7 @@ export default function OnboardingPage() {
             <div className="flex items-center gap-2">
               <h3 className="font-semibold">{t("steps.photo.title")}</h3>
               {havePhoto && (
-                <Badge variant="outline" className="text-green-600 border-green-600/50 text-[10px]">
+                <Badge variant="outline" className="text-green-600 text-[10px]">
                   <IconCircleCheck className="h-3 w-3 mr-0.5" /> {t("doneBadge")}
                 </Badge>
               )}

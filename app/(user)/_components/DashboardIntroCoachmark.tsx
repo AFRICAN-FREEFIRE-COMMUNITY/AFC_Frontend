@@ -150,7 +150,7 @@ export function DashboardIntroCoachmark() {
         <div className="flex items-start justify-between gap-2">
           <Badge
             variant="outline"
-            className="rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+            className="rounded-full px-2 py-0.5 text-xs text-primary"
           >
             <IconSparkles size={12} className="mr-1" />
             {t("dashboardIntro.badge")}

@@ -126,8 +126,8 @@ function RoleBadge({ role }: { role: string }) {
       variant="outline"
       className={
         isOwner
-          ? "border-primary text-primary capitalize"
-          : "border-blue-500 text-blue-600 capitalize"
+          ? "text-primary capitalize"
+          : "text-blue-600 capitalize"
       }
     >
       {roleLabel}
