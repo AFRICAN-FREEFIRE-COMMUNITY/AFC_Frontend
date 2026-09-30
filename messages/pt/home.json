@@ -51,6 +51,12 @@
       "subtitle": "Junte-se a milhares de jogadores competindo por glória, prêmios e o direito de se gabar no Free Fire.",
       "createAccount": "Criar Conta",
       "learnMore": "Saiba Mais"
+    },
+    "transfers": {
+      "headingHighlight": "Quem está se mexendo",
+      "headingRest": "na AFC",
+      "intro": "Sempre que um jogador entra ou sai de uma equipe que já competiu, isso aparece aqui automaticamente.",
+      "total": "{count, plural, one {# movimentação registrada até agora.} other {{formatted} movimentações registradas até agora.}}"
     }
   },
   "dashboard": {
@@ -492,5 +498,17 @@
     "title": "Avisos",
     "subtitle": "Anúncios importantes da AFC.",
     "readMore": "Leia mais"
+  },
+  "transfers": {
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "retry": "Tentar de novo",
+    "seeAll": "Ver todas as transferências",
+    "leftWhileShutHint": "Saiu com o período de transferências fechado, o que foge do normal.",
+    "window": {
+      "shutUntil": "<b>Período de transferências fechado.</b> Os jogadores podem entrar em uma equipe, mas não podem sair até ele abrir em <b>{date}</b>.",
+      "shutNoDate": "<b>Período de transferências fechado.</b> Os jogadores podem entrar em uma equipe, mas não podem sair até o próximo período abrir.",
+      "openUntil": "<b>Período de transferências aberto</b> até <b>{date}</b>. Os jogadores podem entrar e sair das equipes."
+    }
   }
 }
