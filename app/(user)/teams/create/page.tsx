@@ -33,6 +33,7 @@ import { countries } from "@/constants";
 import { useRef, useState, useTransition } from "react";
 import axios from "axios";
 import { env } from "@/lib/env";
+import { authHeaders, SessionExpiredError } from "@/lib/http";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -172,11 +173,11 @@ export default function CreateTeamForm() {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/create-team/`,
           formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
+          // authHeaders() (lib/http.ts), never a hand-built `Bearer ${token}`: with no token that
+          // string went out as "Bearer", the API answered 400 "Invalid token format" and the
+          // player could not recover (10 times on production 25 to 30 Sep, inbox #104). The helper
+          // opens the sign-in prompt instead, and the API now answers 401 for no session anyway.
+          { headers: authHeaders() },
         );
 
         if (response.status >= 200 && response.status < 300) {
@@ -186,6 +187,11 @@ export default function CreateTeamForm() {
           toast.error(t("errors.generic"));
         }
       } catch (error: any) {
+        // A lapsed session already opened the sign-in prompt (SessionExpiredError); say so plainly.
+        if (error instanceof SessionExpiredError) {
+          toast.error(t("errors.signInAgain"));
+          return;
+        }
         toast.error(error?.response?.data?.message || t("errors.internalServer"));
 
         return;

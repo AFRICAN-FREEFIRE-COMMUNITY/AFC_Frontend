@@ -28,7 +28,8 @@
   "errors": {
     "generic": "Ops! Ocorreu um erro",
     "internalServer": "Erro interno do servidor",
-    "imageType": "Apenas arquivos PNG, JPG, JPEG ou WEBP são suportados."
+    "imageType": "Apenas arquivos PNG, JPG, JPEG ou WEBP são suportados.",
+    "signInAgain": "Sua sessão expirou. Entre novamente para criar sua equipe."
   },
   "teamsList": {
     "pageTitle": "Equipes",

@@ -682,5 +682,6 @@
   "organization.loadFailed": "Failed to load organization",
   "playerProfile.esportImage": "Esport image",
   "teamsList.messageCount": "{count} / {max}",
-  "teamsList.messageTooLong": "Your message is too long. The limit is {max} characters."
+  "teamsList.messageTooLong": "Your message is too long. The limit is {max} characters.",
+  "errors.signInAgain": "Your session ended. Please sign in again to create your team."
 }
