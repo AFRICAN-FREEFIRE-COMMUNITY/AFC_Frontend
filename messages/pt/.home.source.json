@@ -306,5 +306,17 @@
   "contactForm.rejected.size": "{name} was not sent: it is over 20 MB.",
   "contactForm.rejected.count": "{name} was not sent: six files is the limit.",
   "contactForm.success.ticket": "Your ticket number is {number}.",
-  "contactForm.success.thread": "You can read the conversation and add anything you forgot here:"
+  "contactForm.success.thread": "You can read the conversation and add anything you forgot here:",
+  "transfers.today": "Today",
+  "transfers.yesterday": "Yesterday",
+  "transfers.retry": "Try again",
+  "transfers.seeAll": "See all transfers",
+  "transfers.leftWhileShutHint": "Left while the transfer window was closed, which is out of the ordinary.",
+  "transfers.window.shutUntil": "<b>Transfer window closed.</b> Players can join a team but can't leave one until it opens on <b>{date}</b>.",
+  "transfers.window.shutNoDate": "<b>Transfer window closed.</b> Players can join a team but can't leave one until the next window opens.",
+  "transfers.window.openUntil": "<b>Transfer window open</b> until <b>{date}</b>. Players can join and leave teams.",
+  "landing.transfers.headingHighlight": "Who's moving",
+  "landing.transfers.headingRest": "in AFC",
+  "landing.transfers.intro": "Every time a player joins or leaves a team that has competed, it shows up here on its own.",
+  "landing.transfers.total": "{count, plural, one {# move recorded so far.} other {{formatted} moves recorded so far.}}"
 }

@@ -51,6 +51,12 @@
       "subtitle": "Join thousands of players competing for glory, prizes, and the ultimate bragging rights in Free Fire.",
       "createAccount": "Create Account",
       "learnMore": "Learn More"
+    },
+    "transfers": {
+      "headingHighlight": "Who's moving",
+      "headingRest": "in AFC",
+      "intro": "Every time a player joins or leaves a team that has competed, it shows up here on its own.",
+      "total": "{count, plural, one {# move recorded so far.} other {{formatted} moves recorded so far.}}"
     }
   },
   "dashboard": {
@@ -492,5 +498,17 @@
     "title": "Notices",
     "subtitle": "Important announcements from AFC.",
     "readMore": "Read more"
+  },
+  "transfers": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "retry": "Try again",
+    "seeAll": "See all transfers",
+    "leftWhileShutHint": "Left while the transfer window was closed, which is out of the ordinary.",
+    "window": {
+      "shutUntil": "<b>Transfer window closed.</b> Players can join a team but can't leave one until it opens on <b>{date}</b>.",
+      "shutNoDate": "<b>Transfer window closed.</b> Players can join a team but can't leave one until the next window opens.",
+      "openUntil": "<b>Transfer window open</b> until <b>{date}</b>. Players can join and leave teams."
+    }
   }
 }

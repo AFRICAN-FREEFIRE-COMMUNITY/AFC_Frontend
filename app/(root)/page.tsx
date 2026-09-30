@@ -22,6 +22,7 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { Footer } from "../_components/Footer";
 import { Header } from "../(user)/_components/Header";
+import { LandingTransfers } from "./_components/LandingTransfers";
 
 const page = () => {
   // Translations for the public landing page (namespace == messages/en/home.json).
@@ -194,6 +195,10 @@ const page = () => {
           </div>
         </div>
       </section>
+
+      {/* Who's moving (owner-approved 2026-09-30, inbox #93 / #96): the latest player moves, public,
+          under the stats and before the feature pitch. */}
+      <LandingTransfers />
 
       {/* Features Section */}
       <section className="py-20">

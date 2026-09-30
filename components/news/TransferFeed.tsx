@@ -233,8 +233,10 @@ export function TransferFeed() {
             {rows.map((row) => {
               const joined = row.direction === "joined";
               // false means the window was CLOSED when this happened. null (no active season) is
-              // deliberately NOT flagged: there was no window to be outside of.
-              const outsideWindow = row.in_transfer_window === false;
+              // deliberately NOT flagged: there was no window to be outside of. Only a LEAVE is
+              // flagged (owner 2026-09-30, "okay"): joining while the window is shut is allowed and
+              // routine since inbox #92, so a flag on joins would sit on most rows and mean nothing.
+              const outsideWindow = !joined && row.in_transfer_window === false;
               const role = roleLabel(row.management_role);
 
               // The two halves of the sentence, rendered as links when the player/team still

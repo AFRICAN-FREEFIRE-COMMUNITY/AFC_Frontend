@@ -12,6 +12,7 @@ import { HomeNotices } from "../_components/HomeNotices";
 import { HomeLatestSections } from "../_components/HomeLatestSections";
 import { LatestNews } from "../_components/LatestNews";
 import { FeaturedShop } from "../_components/FeaturedShop";
+import { HomeTransfers } from "@/components/home/HomeTransfers";
 // Live "Rankings and Tiers" card (owner backlog #9 / #20, 2026-08-03). This block used to be
 // two inline tables fed by the hardcoded `teamRankings` / `quarterlyTiers` arrays in
 // constants/index.ts, so the home page showed a frozen snapshot of a past quarter forever.
@@ -48,10 +49,13 @@ export default function HomePage() {
           <LatestNews />
         </div>
 
-        <div>
+        <div className="space-y-2">
           {/* Real, live storefront teaser (was a mock list behind a "Coming Soon"
               overlay). Fetches active products from the public shop endpoint. */}
           <FeaturedShop />
+          {/* Player transfers (owner-approved 2026-09-30, inbox #93 / #96): fills the space that was
+              empty under the shop card beside the taller news card; after it on a phone. */}
+          <HomeTransfers />
         </div>
       </div>
       {/* Latest events + player-market posts sit below the News/Shop row and above
