@@ -49,6 +49,7 @@ import { compressImageForUpload } from "@/lib/imageCompress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 // Country-code phone input (owner 2026-07-09, bug #5): the WhatsApp number field now uses the
 // shared country-dial-code + flag picker instead of a plain text box, so users pick +234 etc. from
 // a list then type the local number. Same component + usage the Saved Addresses and Cart forms use
@@ -584,8 +585,7 @@ const Page = () => {
                       {t("edit.uid")} <InfoTip id="profile.edit.uid" />
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
+                      <UidInput
                         placeholder={t("edit.uidPlaceholder")}
                         // IDENTITY LOCK (owner 2026-06-15): UID can't change while the player is
                         // signed up for a live event (backend edit_profile enforces it too). The

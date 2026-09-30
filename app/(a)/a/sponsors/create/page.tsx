@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InfoTip } from "@/components/ui/info-tip";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -414,7 +415,7 @@ export default function CreateSponsorPage() {
                         <InfoTip id="sponsors.create.uid" className="ml-1" />
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. 123456789" {...field} />
+                        <UidInput placeholder="e.g. 123456789" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

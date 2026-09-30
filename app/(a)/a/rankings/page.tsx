@@ -55,6 +55,7 @@ import { cn } from "@/lib/utils";
 import { matchesSearch } from "@/lib/search";
 import { InfoTip } from "@/components/ui/info-tip";
 import type { HelpId } from "@/lib/help-content";
+import { playerPath, teamPath } from "@/lib/routes";
 
 const TIERS = [0, 1, 2, 3] as const;
 const MIN_REASON = 10;
@@ -1346,7 +1347,7 @@ function ClaimRequestsSection() {
                       <div className="space-y-0.5">
                         {r.requestedByName ? (
                           <Link
-                            href={`/players/${encodeURIComponent(r.requestedByName)}`}
+                            href={playerPath(r.requestedByName)}
                             className="font-medium text-foreground hover:text-primary"
                           >
                             {r.requestedByName}
@@ -1378,7 +1379,7 @@ function ClaimRequestsSection() {
                       <div className="space-y-0.5">
                         {r.targetName ? (
                           <Link
-                            href={`/teams/${r.targetId}`}
+                            href={teamPath(r.targetId)}
                             className="font-medium text-foreground hover:text-primary"
                           >
                             {r.targetName}

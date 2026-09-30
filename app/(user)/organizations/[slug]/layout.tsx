@@ -19,6 +19,7 @@ import {
   siteConfig,
   jsonLd,
 } from "@/lib/seo";
+import { readSegment } from "@/lib/routes";
 
 // WRAPPER PATTERN (same as teams/[id]/layout.tsx):
 // app/(user)/organizations/[slug]/page.tsx is a CLIENT component ("use client" - 
@@ -39,7 +40,7 @@ type Props = {
 async function getOrgData(slug: string) {
   return fetchDetail(
     `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/organizers/get-organization-public/${encodeURIComponent(
-      decodeURIComponent(slug),
+      readSegment(slug),
     )}/`,
     { next: { revalidate: 60 } },
     // The whole JSON body IS the org; require a name so an empty 200 is treated

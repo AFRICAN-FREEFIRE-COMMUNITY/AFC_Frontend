@@ -47,7 +47,7 @@
 
 //     startTransition(async () => {
 //       try {
-//         const decodedId = decodeURIComponent(id);
+//         const decodedId = readSegment(id);
 //         const res = await axios.post(
 //           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
 //           { team_name: decodedId }
@@ -233,6 +233,7 @@ import { env } from "@/lib/env";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { TeamDetailsClient } from "../_components/TeamDetailsClient";
+import { readSegment } from "@/lib/routes";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -244,7 +245,7 @@ type Props = {
  */
 async function getTeamData(teamName: string, token?: string) {
   try {
-    const decodedName = decodeURIComponent(teamName);
+    const decodedName = readSegment(teamName);
 
     const response = await fetch(
       `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,

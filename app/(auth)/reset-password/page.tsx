@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { ResetPasswordForm } from "../_components/ResetPasswordForm";
+import { readSegment } from "@/lib/routes";
 
 const page = async ({ searchParams }: { searchParams: any }) => {
   const { email, uid, token } = await searchParams;
@@ -11,9 +12,9 @@ const page = async ({ searchParams }: { searchParams: any }) => {
   const t = await getTranslations("auth");
 
   const identifier = email
-    ? decodeURIComponent(email)
+    ? readSegment(email)
     : uid
-      ? decodeURIComponent(uid)
+      ? readSegment(uid)
       : "";
   const method: "email" | "uid" = uid ? "uid" : "email";
 

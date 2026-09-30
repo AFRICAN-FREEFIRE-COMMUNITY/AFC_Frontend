@@ -35,6 +35,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 // Subtle clickable player name -> public player profile.
 import { PlayerLink } from "@/components/ui/entity-link";
+import { readSegment } from "@/lib/routes";
 
 type Params = Promise<{ id: string }>;
 
@@ -98,7 +99,7 @@ export default function ApplicationsPage({ params }: { params: Params }) {
       <PageHeader
         back
         title={t("applications.pageTitle")}
-        description={t("applications.pageDescription", { team: decodeURIComponent(id) })}
+        description={t("applications.pageDescription", { team: readSegment(id) })}
       />
 
       {/* Summary Stats */}

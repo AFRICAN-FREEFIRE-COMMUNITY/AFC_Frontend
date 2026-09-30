@@ -39,6 +39,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // attached events live on this new tab; the legacy user-keyed sponsor accounts stay on the
 // second tab until the P2 cutover. Spec: WEBSITE/tasks/sponsors-redesign-design.md.
 import { SponsorProfilesContent } from "./_components/SponsorProfilesContent";
+import { adminSponsorPath } from "@/lib/routes";
 
 interface SponsorAccount {
   user_id: number;
@@ -195,7 +196,7 @@ export default function SponsorsAdminPage() {
                       <TableCell>{s.email}</TableCell>
                       <TableCell className="text-right">
                         <Button asChild size="sm" variant="ghost">
-                          <Link href={`/a/sponsors/${s.username}/edit`}>
+                          <Link href={adminSponsorPath(s.username, "/edit")}>
                             <IconEdit className="size-4" />
                             Edit
                           </Link>

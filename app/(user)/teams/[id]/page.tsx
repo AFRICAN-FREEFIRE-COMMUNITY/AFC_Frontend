@@ -134,6 +134,8 @@ import { RequestBlacklistLift } from "./_components/RequestBlacklistLift";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only team-details +
 // join-requests + market-applications fetches so the page updates without a manual refresh.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { playerPath, readSegment, teamPath } from "@/lib/routes";
+import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -204,6 +206,7 @@ const Page = ({ params }: { params: Params }) => {
 
   const [pending, startTransition] = useTransition();
   const [pendingRequest, startRequestTransition] = useTransition();
+  const { confirmJoin, joinLockDialog } = useJoinLockConfirm();
   const [pendingApproveRequest, startApproveRequestTransition] =
     useTransition();
   const [pendingDenyRequest, startDenyRequestTransition] = useTransition();
@@ -244,7 +247,7 @@ const Page = ({ params }: { params: Params }) => {
 
     startTransition(async () => {
       try {
-        const decodedId = decodeURIComponent(id);
+        const decodedId = readSegment(id);
         // Send the viewer's token: get-team-details now gates the detailed stats
         // (tournament_performance / recent_matches / scalars) to team MEMBERS + admins.
         // Without it the backend treats the caller as anonymous and zeroes those, which
@@ -328,7 +331,11 @@ const Page = ({ params }: { params: Params }) => {
   );
   const canManageTeam = hasFullAccess || isManagerMember;
 
-  const handleJoinTeam = () => {
+  // Joining is allowed while the transfer window is shut, leaving is not, so the player is told
+  // that and the date they can leave BEFORE they commit (inbox #92, components/team/JoinLockDialog).
+  const handleJoinTeam = async () => {
+    const kind = teamDetails.join_settings === "open" ? "join" : "request";
+    if (!(await confirmJoin(kind, teamDetails.team_name))) return;
     startRequestTransition(async () => {
       try {
         if (teamDetails.join_settings === "open") {
@@ -592,7 +599,7 @@ const Page = ({ params }: { params: Params }) => {
 
     startTransition(async () => {
       try {
-        const decodedId = decodeURIComponent(id);
+        const decodedId = readSegment(id);
         // Send the viewer's token: get-team-details now gates the detailed stats
         // (tournament_performance / recent_matches / scalars) to team MEMBERS + admins.
         // Without it the backend treats the caller as anonymous and zeroes those, which
@@ -819,7 +826,7 @@ const Page = ({ params }: { params: Params }) => {
                 {/* Edit Team: owner-only */}
                 {hasFullAccess && !teamDetails?.is_banned && (
                   <Button variant={"secondary"} asChild>
-                    <Link href={`/teams/${teamDetails?.team_name}/edit`}>
+                    <Link href={teamPath(teamDetails?.team_name, "/edit")}>
                       <Edit />
                       {t("teamDetail.editTeam")}
                     </Link>
@@ -828,7 +835,7 @@ const Page = ({ params }: { params: Params }) => {
                 {/* Manage Roster: owner or coach */}
                 {canManageRoster && !teamDetails?.is_banned && (
                   <Button asChild>
-                    <Link href={`/teams/${teamDetails?.team_name}/roster`}>
+                    <Link href={teamPath(teamDetails?.team_name, "/roster")}>
                       <Users />
                       {t("teamDetail.manageRoster")}
                     </Link>
@@ -1179,7 +1186,7 @@ const Page = ({ params }: { params: Params }) => {
                               </TableCell>
                               <TableCell>
                                 <Button size="sm" variant="outline" asChild>
-                                  <Link href={`/players/${member.username}`}>
+                                  <Link href={playerPath(member.username)}>
                                     {t("teamDetail.view")}
                                   </Link>
                                 </Button>
@@ -1516,7 +1523,7 @@ const Page = ({ params }: { params: Params }) => {
                             </p>
                           </div>
                           <Button variant="outline" size="sm" className="shrink-0" asChild>
-                            <Link href={`/teams/${teamDetails?.team_name}/applications`}>
+                            <Link href={teamPath(teamDetails?.team_name, "/applications")}>
                               <IconExternalLink className="h-4 w-4 mr-1.5" />
                               {t("teamDetail.viewAllApplications")}
                             </Link>
@@ -1701,7 +1708,7 @@ const Page = ({ params }: { params: Params }) => {
                                           asChild
                                         >
                                           <Link
-                                            href={`/players/${request.requester}`}
+                                            href={playerPath(request.requester)}
                                           >
                                             {t("teamDetail.viewProfile")}
                                           </Link>
@@ -1857,7 +1864,7 @@ const Page = ({ params }: { params: Params }) => {
                         rolePermissions; the screen itself is teams/[id]/permissions and every
                         switch on it is enforced again server-side. */}
                     <Button asChild variant="secondary" className="w-full">
-                      <Link href={`/teams/${teamDetails?.team_name}/permissions`}>
+                      <Link href={teamPath(teamDetails?.team_name, "/permissions")}>
                         <span className="flex items-center gap-2">
                           {tTeam("rolePermissions.manageButton")}
                           <NewBadge since="2026-08-08" />
@@ -2098,6 +2105,7 @@ const Page = ({ params }: { params: Params }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {joinLockDialog}
       </div>
     );
 };

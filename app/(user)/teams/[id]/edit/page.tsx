@@ -47,6 +47,7 @@ import { extractSocialMediaUrls } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import Image from "next/image";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
+import { readSegment, teamPath } from "@/lib/routes";
 
 // Regex pattern for safe names (blocks fancy unicode, emojis, etc.)
 const SAFE_NAME_REGEX = /^[a-zA-Z0-9\s_\-.'@]+$/;
@@ -110,7 +111,7 @@ export default function page({ params }: { params: Params }) {
   // Kept in a dedicated namespace so fr/pt translation is scoped cleanly.
   const tTeam = useTranslations("team");
   const { id } = use(params);
-  const decodedId = decodeURIComponent(id);
+  const decodedId = readSegment(id);
   const [pending, startTransition] = useTransition();
   const [submitPending, startSubmitTransition] = useTransition();
   const [teamDetails, setTeamDetails] = useState<any>();
@@ -331,7 +332,7 @@ export default function page({ params }: { params: Params }) {
 
         if (response.status === 200) {
           toast.success(t("teamEdit.updatedSuccess"));
-          router.push(`/teams/${data.team_name}`);
+          router.push(teamPath(data.team_name));
         } else {
           toast.error(t("errors.generic"));
         }
@@ -750,7 +751,7 @@ export default function page({ params }: { params: Params }) {
               {/* Actions */}
               <div className="flex items-center justify-between gap-4">
                 <Button className="flex-1" asChild variant="outline">
-                  <Link href={`/teams/${id}`}>{t("teamEdit.back")}</Link>
+                  <Link href={teamPath(decodedId)}>{t("teamEdit.back")}</Link>
                 </Button>
                 <Button
                   className="flex-1"

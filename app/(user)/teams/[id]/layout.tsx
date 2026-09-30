@@ -19,6 +19,7 @@ import {
   siteConfig,
   jsonLd,
 } from "@/lib/seo";
+import { readSegment, teamPath } from "@/lib/routes";
 
 // NOTE ON THE WRAPPER PATTERN:
 // app/(user)/teams/[id]/page.tsx is a CLIENT component ("use client" - it uses
@@ -42,7 +43,7 @@ async function getTeamData(teamName: string) {
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ team_name: decodeURIComponent(teamName) }),
+      body: JSON.stringify({ team_name: readSegment(teamName) }),
       next: { revalidate: 60 },
     },
     (j) => j?.team,
@@ -51,7 +52,7 @@ async function getTeamData(teamName: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const teamName = decodeURIComponent(id);
+  const teamName = readSegment(id);
   const result = await getTeamData(id);
 
   // Confirmed-gone team (backend 404) → real 404, not a soft-404.
@@ -65,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return buildEntityMetadata({
       title: teamName,
       description: `View the ${teamName} Free Fire team on African Free Fire Community: roster, stats, and tournament history.`,
-      path: `/teams/${id}`,
+      path: teamPath(teamName),
       omitImage: true,
     });
   }
@@ -81,7 +82,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     `${team.team_name} is a ${tierBit}Free Fire esports team${fromCountry} on AFC.${memberBit} View roster, stats, and tournament history.`.trim();
 
   // Absolute, crawler-safe path to the team page (encode the name for the URL).
-  const path = `/teams/${encodeURIComponent(team.team_name)}`;
+  const path = teamPath(team.team_name);
 
   // NOTE: JSON-LD is NOT emitted here via `other`. Next renders `other` keys as
   // <meta> tags, and a `<meta name="script:ld+json">` is NOT valid structured
@@ -122,7 +123,7 @@ export default async function TeamDetailLayout({ children, params }: Props) {
   let teamSchema: object | null = null;
   let breadcrumbSchema: object | null = null;
   if (team) {
-    const path = `/teams/${encodeURIComponent(team.team_name)}`;
+    const path = teamPath(team.team_name);
     const tier = formatTier(team.team_tier);
     const tierBit = tier ? `${tier} ` : "";
     const description = `${team.team_name} is a ${tierBit}Free Fire esports team on AFC. View roster, stats, and tournament history.`;

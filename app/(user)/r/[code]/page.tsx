@@ -8,6 +8,7 @@ import { getTranslations } from "next-intl/server";
 
 import { privatePageMetadata } from "@/lib/seo";
 import InviteClient from "./InviteClient";
+import { readSegment } from "@/lib/routes";
 
 export async function generateMetadata() {
   const t = await getTranslations("referrals");
@@ -16,5 +17,5 @@ export async function generateMetadata() {
 
 export default async function InvitePage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
-  return <InviteClient code={decodeURIComponent(code)} />;
+  return <InviteClient code={readSegment(code)} />;
 }

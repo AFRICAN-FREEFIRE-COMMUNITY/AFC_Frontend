@@ -22,6 +22,7 @@ import {
   resolveOgImage,
   jsonLd,
 } from "@/lib/seo";
+import { readSegment } from "@/lib/routes";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -42,7 +43,7 @@ async function getEventData(slug: string, locale?: string) {
         // (cached server-side). Reading the cookie makes this route locale-dynamic.
         ...(locale && locale !== "en" && { "Accept-Language": locale }),
       },
-      body: JSON.stringify({ slug: decodeURIComponent(slug) }),
+      body: JSON.stringify({ slug: readSegment(slug) }),
       cache: "no-store",
     },
     // The endpoint returns the event under event_details (or team for the

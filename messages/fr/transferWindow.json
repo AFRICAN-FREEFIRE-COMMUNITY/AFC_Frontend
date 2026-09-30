@@ -6,5 +6,23 @@
   "openBadge": "OUVERT",
   "closedBadge": "FERMÉ",
   "windowRange": "Période de transfert de la saison : du {open} au {close}.",
-  "nextWindowOpens": "La prochaine période de transfert ouvre le {date}."
+  "nextWindowOpens": "La prochaine période de transfert ouvre le {date}.",
+  "joinWarning": {
+    "title": "Vous ne pourrez pas quitter cette équipe avant un moment",
+    "body": {
+      "join": "Le mercato est fermé. Vous pouvez quand même rejoindre {team}, mais une fois dedans, vous ne pourrez plus la quitter.",
+      "request": "Le mercato est fermé. Si {team} accepte votre demande, vous ne pourrez plus quitter l'équipe.",
+      "invite": "Le mercato est fermé. Vous pouvez quand même accepter cette invitation de {team}, mais une fois dedans, vous ne pourrez plus la quitter.",
+      "create": "Le mercato est fermé. Vous pouvez quand même créer {team}, mais vous ne pourrez ni la quitter ni la dissoudre."
+    },
+    "until": "Vous pourrez la quitter à partir du {date}, à l'ouverture du mercato.",
+    "untilUnknown": "Vous pourrez la quitter à la prochaine ouverture du mercato. Aucune date n'a encore été fixée.",
+    "cancel": "Annuler",
+    "confirm": {
+      "join": "Rejoindre quand même",
+      "request": "Envoyer la demande",
+      "invite": "Accepter l'invitation",
+      "create": "Créer l'équipe"
+    }
+  }
 }

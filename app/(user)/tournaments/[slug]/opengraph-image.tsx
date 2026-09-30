@@ -44,6 +44,7 @@ import { ImageResponse } from "next/og";
 
 import { env } from "@/lib/env";
 import { siteConfig } from "@/lib/seo";
+import { readSegment } from "@/lib/routes";
 
 // Required exports for a Next image route: fixed OG size + content type.
 export const size = { width: 1200, height: 630 };
@@ -85,7 +86,7 @@ async function getEvent(slug: string) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: decodeURIComponent(slug) }),
+        body: JSON.stringify({ slug: readSegment(slug) }),
         cache: "no-store",
       },
     );

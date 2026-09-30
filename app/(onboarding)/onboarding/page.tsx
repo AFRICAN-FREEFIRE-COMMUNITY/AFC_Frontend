@@ -31,6 +31,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -240,7 +241,7 @@ export default function OnboardingPage() {
             <p className="text-sm text-muted-foreground">{t("steps.uid.desc")}</p>
             <div className="space-y-1.5">
               <Label htmlFor="onb-uid">{t("steps.uid.label")}</Label>
-              <Input
+              <UidInput
                 id="onb-uid"
                 value={uid}
                 onChange={(e) => setUid(e.target.value)}

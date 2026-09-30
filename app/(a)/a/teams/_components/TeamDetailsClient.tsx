@@ -63,6 +63,7 @@ import {
   Shield,
   UserCog,
 } from "lucide-react";
+import { readSegment } from "@/lib/routes";
 
 const API = env.NEXT_PUBLIC_BACKEND_API_URL;
 
@@ -141,7 +142,7 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
           "Content-Type": "application/json",
           ...(token && { Authorization: `Bearer ${token}` }),
         },
-        body: JSON.stringify({ team_name: decodeURIComponent(teamId) }),
+        body: JSON.stringify({ team_name: readSegment(teamId) }),
       });
       if (!res.ok) throw new Error("Failed to fetch team details");
       const data = await res.json();

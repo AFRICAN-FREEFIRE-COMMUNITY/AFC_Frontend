@@ -49,6 +49,7 @@ import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 // (CS remediation P1#5, owner 2026-07-13).
 // One card per bracket (owner backlog item 21, 2026-08-13).
 import { H2HStageBrackets } from "@/components/h2h-bracket";
+import { readSegment } from "@/lib/routes";
 
 // Local mirrors of the Stage/StageGroup shapes from EventDetailsWrapper (kept local so
 // this component stays self-contained; `any` rows because leaderboard keys vary solo/squad).
@@ -219,7 +220,7 @@ export function TournamentStructure({ stages, participantType, eventId, timezone
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ slug: decodeURIComponent(routeSlug) }),
+            body: JSON.stringify({ slug: readSegment(routeSlug) }),
           },
         );
         if (!res.ok) return;

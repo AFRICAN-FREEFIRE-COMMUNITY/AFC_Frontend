@@ -21,6 +21,7 @@ import {
   siteConfig,
   jsonLd,
 } from "@/lib/seo";
+import { playerPath, readSegment } from "@/lib/routes";
 
 type Params = Promise<{
   username: string;
@@ -56,7 +57,7 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const { username } = await params;
-  const ign = decodeURIComponent(username);
+  const ign = readSegment(username);
 
   // Re-use the shared helper (Next de-dupes nothing for POST, but keeping ONE
   // fetch path means the metadata + the page agree on existence).
@@ -73,7 +74,7 @@ export async function generateMetadata({
       return buildEntityMetadata({
         title: ign,
         description: `View ${ign}'s Free Fire player profile, stats, and tournament history on African Free Fire Community.`,
-        path: `/players/${username}`,
+        path: playerPath(ign),
         type: "profile",
         omitImage: true,
       });
@@ -102,7 +103,7 @@ export async function generateMetadata({
     return buildEntityMetadata({
       title: player.username,
       description,
-      path: `/players/${username}`,
+      path: playerPath(ign),
       // omitImage: the sibling opengraph-image.tsx renders a branded 1200x630 card
       // (avatar + IGN + team + kills/wins/kills per match) as THE og:image. A raw avatar is
       // often small/portrait and embeds poorly; the card always reads well. This
@@ -122,7 +123,7 @@ export async function generateMetadata({
     return buildEntityMetadata({
       title: ign,
       description: `View ${ign}'s Free Fire player profile on African Free Fire Community.`,
-      path: `/players/${username}`,
+      path: playerPath(ign),
       type: "profile",
       omitImage: true,
     });
@@ -131,7 +132,7 @@ export async function generateMetadata({
 
 const Page = async ({ params }: { params: Params }) => {
   const { username } = await params;
-  const ign = decodeURIComponent(username);
+  const ign = readSegment(username);
 
   // Re-use the cached public-stats fetch to embed JSON-LD in the INITIAL HTML.
   // The interactive profile still renders via <PlayerClient> below, unaffected.
@@ -144,7 +145,7 @@ const Page = async ({ params }: { params: Params }) => {
   let playerSchema: object | null = null;
   let breadcrumbSchema: object | null = null;
   if (player) {
-    const path = `/players/${username}`;
+    const path = playerPath(ign);
     const teamName = player.team?.team_name || null;
     // Only the stats that actually exist (truthful, no fabricated numbers).
     const stats: string[] = [];

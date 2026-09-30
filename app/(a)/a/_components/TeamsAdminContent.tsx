@@ -84,6 +84,7 @@ import {
 // The ghost create/delete dialogs hold their own form state, so a background refresh
 // never touches anything mid-typing.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { adminTeamPath } from "@/lib/routes";
 
 // ── Ghost Teams (provisional placeholder teams used by Rankings & Tiering) ───
 // Shape mirrors the backend serialize_ghost() payload (afc_rankings/admin_ghost.py):
@@ -395,7 +396,7 @@ export const TeamsAdminContent = () => {
                           size="sm"
                           className="mr-2"
                         >
-                          <Link href={`/a/teams/${team.team_name}`}>View</Link>
+                          <Link href={adminTeamPath(team.team_name)}>View</Link>
                         </Button>
                         <BanModal
                           is_banned={team.is_banned}

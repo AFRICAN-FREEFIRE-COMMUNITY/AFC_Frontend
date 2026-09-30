@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { IconArrowsExchange, IconLock } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
-import { rankingsApi, Season } from "@/lib/rankings";
+import { useTransferLock } from "@/lib/useTransferLock";
 import { useTranslations } from "next-intl";
 // i18n date: render the transfer-window dates in the viewer's LANGUAGE (so months localize to
 // fr/pt) via the shared helper, instead of a hardcoded en-US toLocaleDateString. String form (not
@@ -48,56 +47,14 @@ function fmtDate(iso?: string | null) {
   return formatLocalDateOnly(iso) || iso;
 }
 
-/** Today as a LOCAL calendar date string, comparable to the bare window dates.
- *
- *  toISOString() would give the UTC date, which flips a few hours early or late depending on the
- *  viewer and would mislabel the window on the boundary day. The window dates are floating
- *  calendar dates, so compare like with like. */
-function todayIso() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
-    now.getDate(),
-  ).padStart(2, "0")}`;
-}
 
 export function TransferWindowBanner({ className }: { className?: string }) {
   // i18n namespace: "transferWindow" (messages/en|fr|pt/transferWindow.json).
   // Client component, so strings come from next-intl's useTranslations.
   const t = useTranslations("transferWindow");
-  const [season, setSeason] = useState<Season | null>(null);
-  // The open date of the NEXT window, when some future season already has one set. Null is the
-  // ordinary case and renders nothing: a season is usually created when it starts, so for most of
-  // the year there genuinely is no next window on record, and promising one would be inventing a
-  // date nobody has agreed.
-  const [nextWindowOpen, setNextWindowOpen] = useState<string | null>(null);
-
-  useEffect(() => {
-    rankingsApi.currentSeason().then((s) => setSeason(s)).catch(() => setSeason(null));
-  }, []);
-
-  useEffect(() => {
-    // Only worth asking once the current window is SPENT. While it is open, or still ahead of us,
-    // the range line below already carries the date the viewer came for, and a second request for
-    // a line that would not be shown is a request for nothing.
-    if (!season) return;
-    const spent = !!season.transfer_window_close && season.transfer_window_close < todayIso();
-    if (!spent) return;
-
-    rankingsApi
-      .seasons()
-      .then((env) => {
-        const today = todayIso();
-        // The EARLIEST future opening across every season on record, not simply the newest row:
-        // the list is not ordered by window date, and a season can be created out of order.
-        const upcoming = (env.results || [])
-          .map((s) => s.transfer_window_open)
-          .filter((d): d is string => !!d && d > today)
-          .sort();
-        setNextWindowOpen(upcoming[0] ?? null);
-      })
-      .catch(() => setNextWindowOpen(null));
-  }, [season]);
-
+  // Season + next-window date come from the shared hook, which the join warning
+  // (components/team/JoinLockDialog.tsx) reads too, so the two can never quote different dates.
+  const { season, nextWindowOpen } = useTransferLock();
   if (!season) return null; // nothing to show until a season loads
   const open = !!season.transfer_window_is_open;
 

@@ -109,6 +109,7 @@ import {
 // logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
 // modal in place.
 import { authHeaders } from "@/lib/http";
+import { readSegment } from "@/lib/routes";
 
 // ── Toggle copy lives in the i18n catalogue, keyed by toggle id ──────────────
 // Every toggle label is `partners.detail.toggles.<id>` and the few that need a helper
@@ -263,7 +264,7 @@ export default function PartnerDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug: rawSlug } = use(params);
-  const slug = decodeURIComponent(rawSlug);
+  const slug = readSegment(rawSlug);
 
   // t  = this page's own copy (partners.detail.* plus the shared partners.status.*).
   // tc = shared generic verbs (common.cancel / common.delete / common.done).

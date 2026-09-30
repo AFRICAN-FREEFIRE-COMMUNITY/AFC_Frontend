@@ -83,6 +83,7 @@ import { InfoTip } from "@/components/ui/info-tip";
 // logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
 // modal in place.
 import { authHeaders } from "@/lib/http";
+import { readSegment } from "@/lib/routes";
 
 // ── Types (mirror the adminGetOrganization payload) ──────────────────────────
 
@@ -177,7 +178,7 @@ export default function OrganizationDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug: rawSlug } = use(params);
-  const slug = decodeURIComponent(rawSlug);
+  const slug = readSegment(rawSlug);
   const router = useRouter();
 
   const [detail, setDetail] = useState<OrgDetail | null>(null);

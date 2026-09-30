@@ -39,6 +39,7 @@ import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader } from "@/components/Loader";
+import { couponPath } from "@/lib/routes";
 
 interface Coupon {
   id: number;
@@ -291,7 +292,7 @@ export default function CouponMetricsPage() {
                         <TableRow key={coupon.id} className="cursor-pointer">
                           <TableCell>
                             <Link
-                              href={`/a/shop/coupons/${coupon.slug || coupon.id}`}
+                              href={couponPath(coupon.slug || coupon.id)}
                               className="font-mono font-medium text-primary hover:underline"
                               data-tour="shop-coupons-coupon-link"
                             >

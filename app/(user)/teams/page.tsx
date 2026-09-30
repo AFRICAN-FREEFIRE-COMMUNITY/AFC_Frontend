@@ -53,6 +53,8 @@ import { matchesSearch } from "@/lib/search";
 // A ghost that is not on a ladder previously had no row anywhere, so no claim was reachable.
 import UnclaimedProfiles from "./_components/UnclaimedProfiles";
 import { NewBadge } from "@/components/NewBadge";
+import { teamPath } from "@/lib/routes";
+import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
 
 // Mirrors JoinRequest.message max_length on the backend (afc_team/models.py).
 const JOIN_MESSAGE_MAX = 150;
@@ -174,8 +176,12 @@ function page() {
   }, [token]);
 
   const [pendingRequest, startRequestTransition] = useTransition();
+  const { confirmJoin, joinLockDialog } = useJoinLockConfirm();
 
-  const handleApply = (teamId: any) => {
+  // Joining is allowed while the transfer window is shut, leaving is not: the player is told so,
+  // with the date, before the request goes (inbox #92, components/team/JoinLockDialog).
+  const handleApply = async (teamId: any) => {
+    if (!(await confirmJoin("request", selectedTeam?.team_name ?? ""))) return;
     startRequestTransition(async () => {
       try {
         const res = await axios.post(
@@ -334,7 +340,7 @@ function page() {
                             className="button-gradient flex-1"
                             asChild
                           >
-                            <Link href={`/teams/${team.team_name}`}>
+                            <Link href={teamPath(team.team_name)}>
                               {t("teamsList.viewTeam")}
                             </Link>
                           </Button>
@@ -627,7 +633,7 @@ function page() {
                     className="w-full button-gradient"
                     asChild
                   >
-                    <Link href={`/teams/${myTeam.team_name}`}>
+                    <Link href={teamPath(myTeam.team_name)}>
                       {t("teamsList.viewFullTeam")}
                     </Link>
                   </Button>
@@ -651,6 +657,7 @@ function page() {
           <UnclaimedProfiles />
         </TabsContent>
       </Tabs>
+      {joinLockDialog}
     </div>
   );
 }
