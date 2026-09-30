@@ -114,6 +114,7 @@ import {
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 // Rate-this-event + organizer-feedback widget (stars + comment box).
 import { EventReviewCard } from "./EventReviewCard";
@@ -162,6 +163,7 @@ import { QualifiedFromBanner } from "@/components/qualified-from-banner";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; the event-details fetch below re-runs
 // on each tick so standings / registered teams / structure / room details update by themselves.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { playerPath, teamPath } from "@/lib/routes";
 // localStorage key for the saved register-for-event payload, so it survives the Stripe
 // redirect. Keyed by payment_id; the success page reads `${PAID_REG_KEY_PREFIX}${payment_id}`.
 const PAID_REG_KEY_PREFIX = "afc_evt_reg_";
@@ -2009,7 +2011,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                               {
                                 teamEditLink: (chunks) => (
                                   <Link
-                                    href={`/teams/${encodeURIComponent(userTeam.team_name)}/edit`}
+                                    href={teamPath(userTeam.team_name, "/edit")}
                                     className="text-primary underline underline-offset-2"
                                   >
                                     {chunks}
@@ -2369,7 +2371,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                           ? t.rich("register.info.teamLogoNoteWithLink", {
                               teamEditLink: (chunks) => (
                                 <Link
-                                  href={`/teams/${encodeURIComponent(userTeam.team_name)}/edit`}
+                                  href={teamPath(userTeam.team_name, "/edit")}
                                   className="text-primary underline underline-offset-2"
                                 >
                                   {chunks}
@@ -2417,7 +2419,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 <Label htmlFor="uid-input">
                   {t("register.uidPrompt.label")}
                 </Label>
-                <Input
+                <UidInput
                   id="uid-input"
                   placeholder={t("register.uidPrompt.placeholder")}
                   value={uidInput}
@@ -5015,7 +5017,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             ? {
                 action: {
                   label: t("register.toast.teamLogoAction"),
-                  onClick: () => router.push(`/teams/${encodeURIComponent(userTeam.team_name)}/edit`),
+                  onClick: () => router.push(teamPath(userTeam.team_name, "/edit")),
                 },
               }
             : {}),
@@ -5110,7 +5112,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               onClick: () =>
                 router.push(
                   isTeam && userTeam?.team_id
-                    ? `/teams/${encodeURIComponent(userTeam.team_name)}/edit`
+                    ? teamPath(userTeam.team_name, "/edit")
                     : "/profile/edit",
                 ),
             },
@@ -6413,7 +6415,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 (reg: any, index: number) => (
                   <Card
                     className="group cursor-pointer hover:bg-primary/10"
-                    onClick={() => router.push(`/players/${reg.username}`)}
+                    onClick={() => router.push(playerPath(reg.username))}
                     key={`competitor-${reg.id || index}`}
                   >
                     <CardContent className="flex items-center justify-between gap-2">
@@ -6442,7 +6444,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 (team: any, index: number) => (
                   <Card
                     className="group cursor-pointer hover:bg-primary/10"
-                    onClick={() => router.push(`/teams/${team.team_name}`)}
+                    onClick={() => router.push(teamPath(team.team_name))}
                     key={`competitor-${team.id || index}`}
                   >
                     <CardContent className="flex items-center justify-between gap-2">

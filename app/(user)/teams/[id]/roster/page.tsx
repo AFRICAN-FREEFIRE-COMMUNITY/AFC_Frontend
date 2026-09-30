@@ -41,6 +41,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 // Subtle clickable player name -> public player profile.
 import { PlayerLink } from "@/components/ui/entity-link";
+import { readSegment, teamPath } from "@/lib/routes";
 
 interface MemberUpdate {
   member_id: number;
@@ -102,7 +103,7 @@ export default function page({ params }: { params: Params }) {
 
     startTransition(async () => {
       try {
-        const decodedId = decodeURIComponent(id);
+        const decodedId = readSegment(id);
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
           { team_name: decodedId }
@@ -194,7 +195,7 @@ export default function page({ params }: { params: Params }) {
         // Refresh team details
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-          { team_name: decodeURIComponent(id) }
+          { team_name: readSegment(id) }
         );
         setTeamDetails(res.data.team);
       } catch (error: any) {
@@ -245,7 +246,7 @@ export default function page({ params }: { params: Params }) {
         if (!has_errors) {
           toast.success(t("roster.rosterUpdated"));
           setRoleChanges(new Map());
-          router.push(`/teams/${id}`);
+          router.push(teamPath(readSegment(id)));
         } else {
           // Show a toast per failure so the user knows exactly what didn't save
           results.forEach((r: any) => {
@@ -262,7 +263,7 @@ export default function page({ params }: { params: Params }) {
             // Refresh so saved changes reflect immediately
             const refresh = await axios.post(
               `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-              { team_name: decodeURIComponent(id) }
+              { team_name: readSegment(id) }
             );
             setTeamDetails(refresh.data.team);
           }
@@ -446,7 +447,7 @@ export default function page({ params }: { params: Params }) {
               <Button
                 className="flex-1"
                 variant="outline"
-                onClick={() => router.push(`/teams/${id}`)}
+                onClick={() => router.push(teamPath(readSegment(id)))}
                 disabled={savePending}
               >
                 {t("roster.back")}

@@ -108,6 +108,7 @@ import { QrShareButton } from "@/components/qr/QrShareButton";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only public-stats
 // fetch so the profile (stats, registered events, tier) updates without a manual refresh.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { readSegment, teamPath } from "@/lib/routes";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types: mirror the public endpoint response exactly (do not add fields the
@@ -288,7 +289,7 @@ export function PlayerClient({ username }: { username: string }) {
   const tReport = useTranslations("playerReports");
   // route username may be URL-encoded (spaces in IGNs); decode once for both the
   // request body and the own-profile comparison.
-  const ign = useMemo(() => decodeURIComponent(username), [username]);
+  const ign = useMemo(() => readSegment(username), [username]);
 
   const { user, token } = useAuth();
 
@@ -689,7 +690,7 @@ export function PlayerClient({ username }: { username: string }) {
                       className="text-primary"
                       asChild
                     >
-                      <Link href={`/teams/${player.team.team_name}`}>
+                      <Link href={teamPath(player.team.team_name)}>
                         {player.team.team_name}
                       </Link>
                     </Badge>
@@ -853,7 +854,7 @@ export function PlayerClient({ username }: { username: string }) {
                   <p className="text-sm mt-0.5">
                     {player.team ? (
                       <Link
-                        href={`/teams/${player.team.team_name}`}
+                        href={teamPath(player.team.team_name)}
                         className="text-primary hover:underline"
                       >
                         {player.team.team_name}
@@ -1612,7 +1613,7 @@ export function PlayerClient({ username }: { username: string }) {
                     <TableRow>
                       <TableCell className="font-medium">
                         <Link
-                          href={`/teams/${player.team.team_name}`}
+                          href={teamPath(player.team.team_name)}
                           className="text-primary hover:underline inline-flex items-center gap-1"
                         >
                           <IconShieldCheck className="h-4 w-4" />

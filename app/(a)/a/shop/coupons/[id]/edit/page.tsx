@@ -44,6 +44,7 @@ import { Loader } from "@/components/Loader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { useRouter } from "next/navigation";
 import { DeleteCouponModal } from "../../../_components/DeleteCouponModal";
+import { couponPath, readSegment } from "@/lib/routes";
 
 type Params = Promise<{
   id: string;
@@ -93,7 +94,7 @@ const Page = ({ params }: { params: Params }) => {
 
     try {
       setLoadingCoupon(true);
-      const decodedId = decodeURIComponent(id);
+      const decodedId = readSegment(id);
 
       // `ref` is the coupon's slug, a retired slug or a legacy id (owner rule R22); a move
       // comes back on the envelope as `moved_to` and the address is rewritten in place.
@@ -107,7 +108,7 @@ const Page = ({ params }: { params: Params }) => {
 
       // The API wraps data in "coupon_details"
       setCouponDetails(res.data.coupon_details);
-      if (res.data.moved_to && res.data.moved_to !== `/a/shop/coupons/${decodedId}`) {
+      if (res.data.moved_to && res.data.moved_to !== couponPath(decodedId)) {
         router.replace(`${res.data.moved_to}/edit`);
       }
     } catch (error: any) {

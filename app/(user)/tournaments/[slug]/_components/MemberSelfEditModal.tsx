@@ -29,6 +29,7 @@ import { compressImageForUpload } from "@/lib/imageCompress";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/Loader";
 import {
@@ -165,7 +166,7 @@ export function MemberSelfEditModal({ event, onSuccess }: MemberSelfEditModalPro
 
           <div className="space-y-1.5">
             <Label htmlFor="self-uid">{t("register.selfEdit.uid")}</Label>
-            <Input
+            <UidInput
               id="self-uid"
               value={uid}
               onChange={(e) => setUid(e.target.value)}

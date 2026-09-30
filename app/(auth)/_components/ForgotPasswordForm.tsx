@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { env } from "@/lib/env";
 import axios from "axios";
@@ -144,7 +145,7 @@ function UidTab() {
             <FormItem>
               <FormLabel>{t("forgotPassword.uidLabel")}</FormLabel>
               <FormControl>
-                <Input
+                <UidInput
                   className="bg-input border-border"
                   placeholder={t("forgotPassword.uidPlaceholder")}
                   {...field}

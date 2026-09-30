@@ -19,6 +19,7 @@
  *   check-datetime  scripts/check-datetime.mjs     blocking on DATE faults; NUMBER notes ledgered
  *   check-signed-out scripts/check-signed-out.mjs  blocking: two possibly-absent identities compared
  *   check-slugs     scripts/check-slugs.mjs        ledgered: a numeric id in a visible address
+ *   route-segments  scripts/check-route-segments.mjs  blocking: a typed name put into or read out of an address by hand, a bare decodeURIComponent, an unclassified dynamic route (inbox #91)
  *   endpoint-callers ../<backend>/tools/endpoint_callers.py  blocking; skipped with no backend tree beside this one
  *   event-forms     scripts/check-event-forms.mjs       blocking on a key the contract does not know; ledgered: writable fields no form sends (R24)
  *   refusal-codes   ../<backend>/tools/check_refusal_codes.py  ledgered: 4xx refusals with no code (R35)
@@ -105,6 +106,20 @@ const CHECKERS = [
       let parsed = { fails: 0, notes: 0, hits: [] };
       try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["check-slugs: could not run"], counts: {} }; }
       return { blocking: [], counts: { "slugs.public": parsed.fails, "slugs.workspace": parsed.notes } };
+    },
+  },
+  {
+    // A person's name in an address (owner 2026-09-30, inbox #91, after NG.KILLA's admin page said
+    // "Player not found"). Links to player / team / sponsor / coupon / referral pages go through
+    // lib/routes.ts, typed segments are read with readSegment(), every dynamic folder is classified
+    // in lib/routeSegments.json. Blocking: it was taken to 0 the day it was written.
+    id: "route-segments",
+    run() {
+      const r = run("scripts/check-route-segments.mjs", ["--json"]);
+      let parsed = null;
+      try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["route-segments: could not run"], counts: {} }; }
+      const blocking = parsed.list.map((h) => `${h.rule} ${h.file}${h.line ? `:${h.line}` : ""}  ${h.what}`);
+      return { blocking, counts: {}, note: parsed.hits ? undefined : "0 hits" };
     },
   },
   {

@@ -19,6 +19,7 @@ import { env } from "@/lib/env";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Label } from "@/components/ui/label";
 import { IconDownload, IconLoader2, IconBroadcast } from "@tabler/icons-react";
 
@@ -170,7 +171,7 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
         </div>
         <div className="space-y-1">
           <Label className="text-[0.65rem]">{t("broadcastKit.casterUid")}</Label>
-          <Input value={casterUid} onChange={(e) => setCasterUid(e.target.value)} className="h-7 text-xs" inputMode="numeric" />
+          <UidInput value={casterUid} onChange={(e) => setCasterUid(e.target.value)} className="h-7 text-xs" />
         </div>
         <div className="space-y-1">
           <Label className="text-[0.65rem]">{t("broadcastKit.billboard")}</Label>

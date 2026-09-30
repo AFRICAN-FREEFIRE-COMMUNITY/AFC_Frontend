@@ -86,6 +86,7 @@ import { OwnStatsTab } from "./OwnStatsTab";
 import { MyPlayerReports } from "./MyPlayerReports";
 import { ReferralsTab } from "@/components/referrals/ReferralsTab";
 import { REFERRALS_LAUNCH_DATE } from "@/lib/referrals";
+import { teamPath } from "@/lib/routes";
 
 // ── i18n: achievement-group display string -> message key ─────────────────────
 // The achievements CATALOG (achievements.ts) stores group/title/description in
@@ -436,7 +437,7 @@ export const ProfileContent = () => {
                       className="text-primary"
                       asChild
                     >
-                      <Link href={`/teams/${user.team}`}>{user.team}</Link>
+                      <Link href={teamPath(user.team)}>{user.team}</Link>
                     </Badge>
                   )}
                   {/* Real published tier, or a truthful "Unranked". Never a fake rank.
@@ -806,7 +807,7 @@ export const ProfileContent = () => {
                           {/* Team name links to the public team page (same idiom
                               as the public profile). */}
                           <Link
-                            href={`/teams/${richProfile.team.team_name}`}
+                            href={teamPath(richProfile.team.team_name)}
                             className="text-primary hover:underline inline-flex items-center gap-1"
                           >
                             <IconShieldCheck className="h-4 w-4" />

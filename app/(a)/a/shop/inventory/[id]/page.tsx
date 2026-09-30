@@ -55,6 +55,7 @@ import {
   ShopCategoryLite,
   fetchActiveCategories,
 } from "@/lib/shopCategories";
+import { readSegment } from "@/lib/routes";
 
 type Params = Promise<{
   id: string;
@@ -156,7 +157,7 @@ const Page = ({ params }: { params: Params }) => {
 
     try {
       setLoadingProduct(true);
-      const decodedId = decodeURIComponent(id);
+      const decodedId = readSegment(id);
 
       // `ref` is the slug, a retired slug or a legacy id (owner rule R22); a move comes back on
       // the envelope as `moved_to` (a public path), and this admin address follows the same slug.

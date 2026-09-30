@@ -114,6 +114,7 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
+import { teamPath } from "@/lib/routes";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -2604,7 +2605,7 @@ function PlayerMarketPage() {
                   {/* Team detail route is /teams/<team_name> (plural, name-keyed): teams/[id]/page.tsx
                       reads the [id] segment and POSTs it as team_name to get-team-details. The old
                       /team/<team_id> href 404'd (no singular /team route, and it used id not name). */}
-                  <Link href={`/teams/${currentTeam.team_name}`}>
+                  <Link href={teamPath(currentTeam.team_name)}>
                     <Button size="sm">
                       {t("myTeamTab.viewFullTeam")}
                       <IconChevronRight className="h-4 w-4 ml-1" />

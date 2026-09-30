@@ -55,6 +55,7 @@ import Image from "next/image";
 import { ProtectedRoute } from "../../_components/ProtectedRoute";
 import { InfoTip } from "@/components/ui/info-tip";
 import { UserSearchSelect } from "@/components/ui/user-search-select";
+import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -66,6 +67,7 @@ export default function CreateTeamForm() {
   const t = useTranslations("teamsplayers");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { confirmJoin, joinLockDialog } = useJoinLockConfirm();
   const { user, token } = useAuth();
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
@@ -104,7 +106,10 @@ export default function CreateTeamForm() {
     }
   };
 
-  function onSubmit(data: z.infer<typeof CreateTeamFormSchema>) {
+  async function onSubmit(data: z.infer<typeof CreateTeamFormSchema>) {
+    // Creating a team is allowed while the transfer window is shut, but the creator cannot then
+    // leave or disband it: say so, with the date, first (inbox #92, components/team/JoinLockDialog).
+    if (!(await confirmJoin("create", data.team_name))) return;
     startTransition(async () => {
       try {
         // Create FormData object
@@ -564,6 +569,7 @@ export default function CreateTeamForm() {
           </Form>
         </CardContent>
       </Card>
+      {joinLockDialog}
     </ProtectedRoute>
   );
 }

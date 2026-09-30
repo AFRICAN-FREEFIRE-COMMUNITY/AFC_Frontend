@@ -38,6 +38,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/Loader";
 import { Textarea } from "@/components/ui/textarea";
@@ -288,15 +289,12 @@ export const EditUidDialog = ({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="admin-new-uid">{t("uid.new")}</Label>
-              <Input
+              {/* Digits only as typed or pasted (components/UidInput.tsx); the backend is the real check. */}
+              <UidInput
                 id="admin-new-uid"
-                // inputMode numeric so a phone opens the number pad; the backend is the real check.
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={15}
                 placeholder={t("uid.placeholder")}
                 value={uid}
-                onChange={(e) => setUid(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => setUid(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">{t("uid.hint")}</p>
             </div>

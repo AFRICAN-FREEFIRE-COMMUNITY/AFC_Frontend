@@ -6,5 +6,23 @@
   "openBadge": "ABERTO",
   "closedBadge": "ENCERRADO",
   "windowRange": "Período de transferências da época: de {open} a {close}.",
-  "nextWindowOpens": "O próximo período de transferências abre a {date}."
+  "nextWindowOpens": "O próximo período de transferências abre a {date}.",
+  "joinWarning": {
+    "title": "Não vais poder sair desta equipa durante algum tempo",
+    "body": {
+      "join": "O período de transferências está encerrado. Podes juntar-te à {team} na mesma, mas depois não podes sair.",
+      "request": "O período de transferências está encerrado. Se a {team} aceitar o teu pedido, não podes sair da equipa.",
+      "invite": "O período de transferências está encerrado. Podes aceitar este convite da {team} na mesma, mas depois não podes sair.",
+      "create": "O período de transferências está encerrado. Podes criar a {team} na mesma, mas não podes sair nem dissolver a equipa."
+    },
+    "until": "Vais poder sair a partir de {date}, quando o período de transferências abrir.",
+    "untilUnknown": "Vais poder sair quando abrir o próximo período de transferências. Ainda não há data marcada.",
+    "cancel": "Cancelar",
+    "confirm": {
+      "join": "Juntar-me na mesma",
+      "request": "Enviar pedido",
+      "invite": "Aceitar convite",
+      "create": "Criar equipa"
+    }
+  }
 }

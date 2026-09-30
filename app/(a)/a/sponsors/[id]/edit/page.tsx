@@ -38,6 +38,7 @@ import { env } from "@/lib/env";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { matchesSearch } from "@/lib/search";
+import { readSegment } from "@/lib/routes";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -97,7 +98,7 @@ export default function EditSponsorPage({
   params: Promise<{ id: string }>;
 }) {
   const { id: rawId } = use(params);
-  const sponsorUsername = decodeURIComponent(rawId);
+  const sponsorUsername = readSegment(rawId);
   const { token, loading: authLoading } = useAuth();
   const router = useRouter();
 

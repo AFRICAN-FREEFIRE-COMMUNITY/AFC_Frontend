@@ -17,6 +17,8 @@ import Link from "next/link";
 import { Footer } from "@/app/_components/Footer";
 import { Header } from "@/app/(user)/_components/Header";
 import { useTranslations } from "next-intl";
+import { teamPath } from "@/lib/routes";
+import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
 
 type TeamInviteClientProps = {
   inviteId: string;
@@ -47,6 +49,7 @@ export function TeamInviteClient({
   const [loading, setLoading] = useState(!initialData);
   const [pendingAccept, startAcceptTransition] = useTransition();
   const [pendingReject, startRejectTransition] = useTransition();
+  const { confirmJoin, joinLockDialog } = useJoinLockConfirm();
 
   // Only fetch if we don't have initialData
   useEffect(() => {
@@ -94,12 +97,15 @@ export function TeamInviteClient({
     }
   };
 
-  const handleAcceptInvite = () => {
+  const handleAcceptInvite = async () => {
     if (!user) {
       toast.error(t("invite.loginToAccept"));
       router.push(`/login?redirect=/invite/${inviteId}`);
       return;
     }
+    // Joining is allowed while the transfer window is shut, leaving is not: say so, with the date,
+    // before the invite is accepted (inbox #92, components/team/JoinLockDialog).
+    if (!(await confirmJoin("invite", teamDetails?.team_name ?? ""))) return;
 
     startAcceptTransition(async () => {
       try {
@@ -111,7 +117,7 @@ export function TeamInviteClient({
           },
         );
         toast.success(response.data.message || t("invite.joinSuccess"));
-        router.push(`/teams/${teamDetails?.team_name}`);
+        router.push(teamPath(teamDetails?.team_name));
       } catch (error: any) {
         toast.error(
           error?.response?.data?.message || t("invite.acceptFailed"),
@@ -393,6 +399,7 @@ export function TeamInviteClient({
         </CardContent>
       </Card>
       <Footer />
+      {joinLockDialog}
     </div>
   );
 }

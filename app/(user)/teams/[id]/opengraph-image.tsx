@@ -18,6 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { ImageResponse } from "next/og";
 import { formatTier } from "@/lib/seo";
+import { readSegment } from "@/lib/routes";
 
 // Required exports for a Next image route: fixed OG size + content type.
 export const size = { width: 1200, height: 630 };
@@ -41,7 +42,7 @@ async function getTeam(id: string) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ team_name: decodeURIComponent(id) }),
+        body: JSON.stringify({ team_name: readSegment(id) }),
         next: { revalidate: 3600 },
       },
     );
@@ -75,7 +76,7 @@ export default async function Image({
   const { id } = await params;
   const team = await getTeam(id);
 
-  const name = team?.team_name || decodeURIComponent(id);
+  const name = team?.team_name || readSegment(id);
   // Clean tier label ("Tier 3") from the raw code ("3"); null when no tier.
   const tier = formatTier(team?.team_tier);
   const country = team?.country || null;

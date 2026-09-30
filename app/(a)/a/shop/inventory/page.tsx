@@ -96,6 +96,7 @@ import { ToggleCouponStatusModal } from "../_components/ToggleCouponStatusModal"
 import { ManageCategoriesModal } from "../_components/ManageCategoriesModal";
 import { InfoTip } from "@/components/ui/info-tip";
 import { IconBox } from "@tabler/icons-react";
+import { couponPath } from "@/lib/routes";
 
 interface Variant {
   id: number;
@@ -757,14 +758,14 @@ export default function InventoryManagementPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild>
-                                <Link href={`/a/shop/coupons/${coupon.slug || coupon.id}`}>
+                                <Link href={couponPath(coupon.slug || coupon.id)}>
                                   <IconDeviceDesktopAnalytics />
                                   View Stats
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild>
                                 <Link
-                                  href={`/a/shop/coupons/${coupon.slug || coupon.id}/edit`}
+                                  href={couponPath(coupon.slug || coupon.id, "/edit")}
                                 >
                                   <IconPencil />
                                   Edit

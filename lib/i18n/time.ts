@@ -43,6 +43,7 @@
  *   const label = formatLocalTime(order.created_at, "datetime"); // "Jun 15, 2026, 3:42 PM"
  *   const tz = getBrowserTimeZone();                              // "Africa/Lagos"
  */
+import { readSegment } from "@/lib/routes";
 
 // The supported display modes. Mirrors the `mode` prop of <LocalTime/>.
 // - "datetime" → date + time   (default)
@@ -89,7 +90,7 @@ export function getActiveLocale(): string {
   // 1. NEXT_LOCALE cookie - the explicit UI-language choice.
   try {
     const match = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=([^;]+)/);
-    if (match?.[1]) return decodeURIComponent(match[1]);
+    if (match?.[1]) return readSegment(match[1]);
   } catch {
     // document.cookie can throw in sandboxed iframes; fall through.
   }

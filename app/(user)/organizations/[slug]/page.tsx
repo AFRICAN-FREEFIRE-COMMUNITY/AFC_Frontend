@@ -68,6 +68,7 @@ import { useTranslations } from "next-intl";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only public-org
 // fetch so the org's event list/statuses update without a manual refresh.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { readSegment } from "@/lib/routes";
 
 // ── Types - the public-endpoint payload (lib/organizers.ts getOrganizationPublic) ──
 // Only the org's own events[] entries are listed here; rating is null until
@@ -427,7 +428,7 @@ const Page = ({ params }: { params: Params }) => {
 
     (async () => {
       try {
-        const decodedSlug = decodeURIComponent(slug);
+        const decodedSlug = readSegment(slug);
         const data = await organizersApi.getOrganizationPublic(decodedSlug);
         if (active) setOrg(data);
       } catch (err: any) {

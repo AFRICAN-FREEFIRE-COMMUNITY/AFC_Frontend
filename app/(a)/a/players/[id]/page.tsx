@@ -67,6 +67,7 @@ import {
 import { NewBadge } from "@/components/NewBadge";
 // Head admins delete an account for a player who asked (inbox #59)
 import { AdminDeleteAccountDialog } from "./_components/AdminDeleteAccountDialog";
+import { readSegment } from "@/lib/routes";
 
 interface PlayerDetails {
   player_id: number;
@@ -252,7 +253,11 @@ const buildPerformanceData = (player: PlayerDetails) => [
 type Props = { params: Promise<{ id: string }> };
 
 const Page = ({ params }: Props) => {
-  const { id } = use(params);
+  const { id: rawId } = use(params);
+  // The segment arrives percent-encoded, so decode it (lib/routes.ts readSegment) before it is sent
+  // as `ref`. Without this every name with a space, an accent or a Free Fire glyph missed: NG.KILLA
+  // ends in U+F8FF and was sent as "NG.KILLA%EF%A3%BF", so the page said "Player not found" (#90).
+  const id = readSegment(rawId);
   const router = useRouter();
   const { token } = useAuth();
   const [player, setPlayer] = useState<PlayerDetails | null>(null);
@@ -279,7 +284,7 @@ const Page = ({ params }: Props) => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setPlayer(res.data);
-      if (res.data.moved_to && res.data.moved_to !== `/a/players/${id}`) router.replace(res.data.moved_to);
+      if (res.data.moved_to && res.data.moved_to !== `/a/players/${encodeURIComponent(id)}`) router.replace(res.data.moved_to);
     } catch {
       toast.error("Failed to load player details");
     } finally {
