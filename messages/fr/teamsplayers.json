@@ -28,7 +28,8 @@
   "errors": {
     "generic": "Oups ! Une erreur est survenue",
     "internalServer": "Erreur interne du serveur",
-    "imageType": "Seuls les fichiers PNG, JPG, JPEG ou WEBP sont pris en charge."
+    "imageType": "Seuls les fichiers PNG, JPG, JPEG ou WEBP sont pris en charge.",
+    "signInAgain": "Votre session a expiré. Reconnectez-vous pour créer votre équipe."
   },
   "teamsList": {
     "pageTitle": "Équipes",
