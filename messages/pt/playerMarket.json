@@ -95,11 +95,7 @@
     "twoTryouts": "No máximo, duas provas de seleção ativas ao mesmo tempo.",
     "reportHonestly": "Denuncie com sinceridade. As denúncias falsas podem levar ao seu banimento.",
     "banBlocks": "Uma restrição de acesso ao mercado impede a publicação, a candidatura e o envio de convites."
-  },
-  "tierNotice": {
-    "label": "Aviso temporário:",
-    "body": "Todas as equipas e jogadores estão atualmente classificados no Nível 3. A classificação por níveis será atualizada automaticamente ao longo do tempo, com base na atividade e no desempenho."
-  },
+  },
   "tabs": {
     "teamsRecruiting": "Equipas a recrutar",
     "playersOpen": "Jogadores disponíveis para se juntarem à equipa",

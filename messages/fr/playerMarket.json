@@ -95,11 +95,7 @@
     "twoTryouts": "Au maximum 2 essais actifs à la fois.",
     "reportHonestly": "Signalez les cas en toute honnêteté. Les signalements mensongers peuvent entraîner votre exclusion.",
     "banBlocks": "Une interdiction sur le marché empêche de publier, de postuler et d'inviter."
-  },
-  "tierNotice": {
-    "label": "Avis temporaire :",
-    "body": "Toutes les équipes et tous les joueurs se trouvent actuellement au niveau 3. Le classement par niveau sera automatiquement mis à jour au fil du temps, en fonction de l'activité et des performances."
-  },
+  },
   "tabs": {
     "teamsRecruiting": "Équipes à la recherche de nouveaux membres",
     "playersOpen": "Joueurs pouvant rejoindre l'équipe",

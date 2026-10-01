@@ -75,9 +75,7 @@
   "rules.oneActive": "One active post at a time.",
   "rules.twoTryouts": "At most 2 active tryouts at once.",
   "rules.reportHonestly": "Report honestly. False reports can get you banned.",
-  "rules.banBlocks": "A market ban blocks posting, applying, and inviting.",
-  "tierNotice.label": "Temporary Notice:",
-  "tierNotice.body": "All teams and players are currently assigned Tier 3 status. Tier standings will be automatically updated over time based on activity and performance.",
+  "rules.banBlocks": "A market ban blocks posting, applying, and inviting.",
   "tabs.teamsRecruiting": "Teams Recruiting",
   "tabs.playersOpen": "Players Open to Join",
   "tabs.myApplications": "My Applications",
