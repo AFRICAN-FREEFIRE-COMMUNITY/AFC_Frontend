@@ -1038,7 +1038,10 @@ function TiersView() {
       // and folds stylized "fancy font" team names, unlike the old .toLowerCase().includes().
       // Country filter applied alongside ("" = all countries).
       .filter((r) => matchesSearch(r.team_name, q) && (!countryFilter || r.country === countryFilter))
-      .forEach((r) => { if (r.tier != null) g[r.tier].push(r); });
+      // Only the four tier codes have a section. Any other code (a config saved with codes
+      // 1..4 on 2026-09-14 put code 4 on most teams, inbox #108) used to crash the whole tab
+      // on g[4].push; such a row is left out here, and the backend now refuses those configs.
+      .forEach((r) => { if (r.tier != null) g[r.tier]?.push(r); });
     return g;
   }, [teams, q, countryFilter]);
   const filteredTotal = byTier[0].length + byTier[1].length + byTier[2].length + byTier[3].length;

@@ -120,6 +120,7 @@
       "cannotRemoveLastBand": "Une échelle doit comporter au moins une tranche.",
       "cannotRemoveLastPosition": "Les points de placement doivent comporter au moins une position.",
       "cannotRemoveLastTier": "Au moins un niveau de classement est requis.",
+      "allTiersUsed": "Les quatre niveaux de classement sont déjà utilisés. Renommez un niveau ou modifiez son seuil.",
       "tierActive": "Actif",
       "tierRetired": "Retiré",
       "tierRetireNotDelete": "Des événements sont déjà enregistrés sur ce niveau, il ne peut donc pas être supprimé. Passez-le en Retiré à la place : les événements passés continuent d'être calculés et le niveau n'est plus proposé pour les nouveaux.",

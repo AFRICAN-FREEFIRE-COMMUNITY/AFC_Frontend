@@ -176,7 +176,8 @@ export default function AdminRankingsPage() {
 
   const dist = useMemo(() => {
     const d: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
-    teams.forEach((t) => { if (t.tier != null) d[t.tier]++; });
+    // Only the four tier codes are counted (a code outside them is the #108 config fault).
+    teams.forEach((t) => { if (t.tier != null && t.tier in d) d[t.tier]++; });
     return d;
   }, [teams]);
   const total = teams.length || 1;

@@ -120,6 +120,7 @@
       "cannotRemoveLastBand": "A scale needs at least one band.",
       "cannotRemoveLastPosition": "Placement points need at least one position.",
       "cannotRemoveLastTier": "At least one ranking tier is required.",
+      "allTiersUsed": "All four ranking tiers are in use. Rename a tier or change its cutoff instead.",
       "tierActive": "Active",
       "tierRetired": "Retired",
       "tierRetireNotDelete": "Events are already stored against this tier, so it cannot be deleted. Switch it to Retired instead: past events keep scoring and it stops being offered for new work.",

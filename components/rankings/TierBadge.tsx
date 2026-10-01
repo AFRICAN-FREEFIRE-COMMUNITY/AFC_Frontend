@@ -21,8 +21,16 @@ export const tierMeta: Record<number, { label: string; cls: string; min: number 
   3: { label: "Tier 4", cls: "text-orange-400 border-orange-600/60", min: 0 },
 };
 
+// The tier codes the whole system understands, 0 (Tier 1) to 3 (Tier 4). The backend's
+// afc_rankings/scoring/constants.TIER_CODES is the same list, and the scoring-config editor
+// offers exactly these. Inbox #108 (2026-10-01): a config saved with codes 1..4 put code 4 on
+// most teams, and `tierMeta[4].cls` crashed the admin rankings pages and the public Tiers tab.
+export const TIER_CODES = [0, 1, 2, 3] as const;
+
 interface TierBadgeProps {
-  tier: 0 | 1 | 2 | 3 | null | undefined;
+  // Typed as the four codes, but the value comes off the API: anything else is drawn as a plain
+  // grey "Tier N" rather than crashing the page (see TIER_CODES).
+  tier: number | null | undefined;
   className?: string;
 }
 
@@ -37,7 +45,8 @@ export function TierBadge({ tier, className }: TierBadgeProps) {
   }
   const m = tierMeta[tier];
   return (
-    <Badge variant="outline" className={cn("rounded-full font-semibold", m.cls, className)}>
+    <Badge variant="outline"
+      className={cn("rounded-full font-semibold", m ? m.cls : "text-muted-foreground", className)}>
       {t("tier", { tier: tier + 1 })}
     </Badge>
   );

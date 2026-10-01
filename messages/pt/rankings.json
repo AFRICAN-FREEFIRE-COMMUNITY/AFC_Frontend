@@ -120,6 +120,7 @@
       "cannotRemoveLastBand": "Uma escala precisa de pelo menos um escalão.",
       "cannotRemoveLastPosition": "Os pontos de posição precisam de pelo menos uma posição.",
       "cannotRemoveLastTier": "É necessário pelo menos um nível de classificação.",
+      "allTiersUsed": "Os quatro níveis de classificação já estão em uso. Mude o nome de um nível ou altere o seu limite.",
       "tierActive": "Ativo",
       "tierRetired": "Retirado",
       "tierRetireNotDelete": "Já existem eventos guardados neste nível, por isso não pode ser eliminado. Mude-o para Retirado: os eventos passados continuam a ser calculados e o nível deixa de ser oferecido para novos.",

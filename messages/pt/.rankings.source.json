@@ -114,6 +114,7 @@
   "admin.scoringConfig.cannotRemoveLastBand": "A scale needs at least one band.",
   "admin.scoringConfig.cannotRemoveLastPosition": "Placement points need at least one position.",
   "admin.scoringConfig.cannotRemoveLastTier": "At least one ranking tier is required.",
+  "admin.scoringConfig.allTiersUsed": "All four ranking tiers are in use. Rename a tier or change its cutoff instead.",
   "admin.scoringConfig.tierActive": "Active",
   "admin.scoringConfig.tierRetired": "Retired",
   "admin.scoringConfig.tierRetireNotDelete": "Events are already stored against this tier, so it cannot be deleted. Switch it to Retired instead: past events keep scoring and it stops being offered for new work.",
