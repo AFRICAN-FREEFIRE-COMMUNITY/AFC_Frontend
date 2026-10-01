@@ -559,15 +559,24 @@ export default function ScoringConfigPage() {
     ?? { value: "threshold", label: "", column: "min", help: "" };
   const scoreColumnLive = activeMode.column === "min";
 
-  const tierLabel = (tierInt: number) =>
-    thresholds.labels?.[String(tierInt)] ?? t("admin.scoringConfig.unnamedTier", { tier: tierInt });
+  // Tiers can be ADDED at any time (owner 2026-10-01), but they are always numbered from the
+  // top: the first cutoff row is code 0 (shown as Tier 1), each row below is the next code, and
+  // the default is the code just under the last row. The backend refuses anything else
+  // (afc_rankings/scoring/validation.py, "tier_out_of_order"). Inbox #108: the tier used to be a
+  // free number box, a config saved on 2026-09-14 numbered the rows 1..4, every team landed one
+  // tier low and the pages that draw a tier crashed. People read "Tier 1", so a code is only
+  // ever shown as code + 1.
+  const tierName = (tierInt: number) => t("admin.scoringConfig.unnamedTier", { tier: tierInt + 1 });
+  const tierLabel = (tierInt: number) => thresholds.labels?.[String(tierInt)] || tierName(tierInt);
 
-  // Every tier number the config knows about: the labelled ones, the cutoff rows, the default.
-  const knownTierInts = Array.from(new Set([
-    ...Object.keys(thresholds.labels ?? {}).map(Number),
+  // Every tier the config holds now: 0 up to the highest code any row, the default or a name uses.
+  const topTierInt = Math.max(
+    0,
+    thresholds.default_tier ?? 0,
     ...(thresholds.brackets ?? []).map((b) => b.tier),
-    thresholds.default_tier,
-  ].filter((n) => Number.isFinite(n)))).sort((a, b) => a - b);
+    ...Object.keys(thresholds.labels ?? {}).map(Number).filter(Number.isFinite),
+  );
+  const knownTierInts: number[] = Array.from({ length: topTierInt + 1 }, (_, i) => i);
 
   const setThresholds = (patch: Partial<ScoringBlob["tier_thresholds"]>) =>
     update((d) => { d.tier_thresholds = { ...d.tier_thresholds, ...patch }; });
@@ -575,8 +584,11 @@ export default function ScoringConfigPage() {
   const setBrackets = (rows: ThresholdRow[]) => setThresholds({ brackets: rows });
 
   const addRankTier = () => {
-    // A brand-new tier number, so it can never be confused with one already stored on results.
-    const nextInt = (knownTierInts.length ? Math.max(...knownTierInts) : -1) + 1;
+    // A new tier goes at the BOTTOM: the new cutoff row takes the code the default had, and the
+    // default moves one code down, so the numbering stays top-down with no gaps. The default's
+    // name moves with its tier (e.g. "Entry"), and the new bottom tier gets "Tier N" to rename.
+    const rowCount = (thresholds.brackets ?? []).length;
+    const nextInt = rowCount;
     const lowest = (thresholds.brackets ?? []).reduce(
       (min, b) => Math.min(min, Number(b.min) || 0), Number.POSITIVE_INFINITY);
     update((d) => {
@@ -588,10 +600,13 @@ export default function ScoringConfigPage() {
           count: null,
         },
       ];
-      // A cutoff whose tier has no name is refused by validation, so the name is created with it.
+      d.tier_thresholds.default_tier = nextInt + 1;
+      // A tier with no name is refused by validation, so both names are created here.
       d.tier_thresholds.labels = {
         ...(d.tier_thresholds.labels ?? {}),
-        [String(nextInt)]: t("admin.scoringConfig.newTierName", { tier: nextInt + 1 }),
+        [String(nextInt)]: d.tier_thresholds.labels?.[String(nextInt)]
+          || t("admin.scoringConfig.newTierName", { tier: nextInt + 1 }),
+        [String(nextInt + 1)]: t("admin.scoringConfig.newTierName", { tier: nextInt + 2 }),
       };
     });
   };
@@ -920,7 +935,7 @@ export default function ScoringConfigPage() {
                         <TableCell className="p-2">
                           <TextBox
                             value={thresholds.labels?.[String(row.tier)] ?? ""}
-                            placeholder={t("admin.scoringConfig.unnamedTier", { tier: row.tier })}
+                            placeholder={tierName(row.tier)}
                             dirty={baseline?.tier_thresholds?.labels?.[String(row.tier)]
                               !== thresholds.labels?.[String(row.tier)]}
                             ariaLabel={t("admin.scoringConfig.colTierName")}
@@ -932,13 +947,19 @@ export default function ScoringConfigPage() {
                           />
                         </TableCell>
                         <TableCell className="p-2">
-                          <NumberBox
-                            value={row.tier}
-                            dirty={base ? base.tier !== row.tier : true}
-                            invalid={issuesUnder(issues, `${path}.tier`).some((x) => x.severity === "error")}
-                            ariaLabel={t("admin.scoringConfig.colTierNumber")}
-                            onChange={(v) => setBrackets(replaceAt(thresholds.brackets, i, { tier: v ?? 0 }))}
-                          />
+                          <Select
+                            value={String(row.tier)}
+                            onValueChange={(v) => setBrackets(replaceAt(thresholds.brackets, i, { tier: Number(v) }))}
+                          >
+                            <SelectTrigger className="h-8 text-xs" aria-label={t("admin.scoringConfig.colTierNumber")}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {knownTierInts.map((n) => (
+                                <SelectItem key={n} value={String(n)}>{tierName(n)}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         {/* Both columns are ALWAYS rendered. The one the mode does not read is
                             greyed rather than hidden, because hiding it reads as data loss and
@@ -993,7 +1014,7 @@ export default function ScoringConfigPage() {
                   <TableCell className="p-2">
                     <TextBox
                       value={thresholds.labels?.[String(thresholds.default_tier)] ?? ""}
-                      placeholder={t("admin.scoringConfig.unnamedTier", { tier: thresholds.default_tier })}
+                      placeholder={tierName(thresholds.default_tier)}
                       dirty={baseline?.tier_thresholds?.labels?.[String(thresholds.default_tier)]
                         !== thresholds.labels?.[String(thresholds.default_tier)]}
                       ariaLabel={t("admin.scoringConfig.colTierName")}
@@ -1013,7 +1034,7 @@ export default function ScoringConfigPage() {
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {knownTierInts.map((n) => (
-                          <SelectItem key={n} value={String(n)}>{n} · {tierLabel(n)}</SelectItem>
+                          <SelectItem key={n} value={String(n)}>{tierName(n)} · {tierLabel(n)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

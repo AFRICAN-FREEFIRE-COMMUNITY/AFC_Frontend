@@ -912,7 +912,7 @@ function TierTeamRow({ row, elite }: { row: any; elite?: boolean }) {
   );
 }
 
-function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any[]; searching: boolean }) {
+function TierSection({ tier, rows, searching }: { tier: number; rows: any[]; searching: boolean }) {
   const t = useTranslations("teamsplayers");
   const elite = tier === 0;
   if (!rows.length && (tier !== 0 || searching)) return null;
@@ -922,7 +922,10 @@ function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any
         {elite && <IconCrown className="size-4 text-amber-400" />}
         <TierBadge tier={tier} />
         <span className="text-xs text-muted-foreground">{t("rankings.teamCount", { count: rows.length })}</span>
-        <span className="ml-auto text-[11px] text-muted-foreground">{t("rankings.minPts", { min: tierMeta[tier].min })}</span>
+        {/* Cutoffs are only known here for the standard four; an added tier shows none. */}
+        {tierMeta[tier] && (
+          <span className="ml-auto text-[11px] text-muted-foreground">{t("rankings.minPts", { min: tierMeta[tier].min })}</span>
+        )}
       </div>
       {rows.length === 0 ? (
         <Card className={cn(elite && "bg-amber-500/10")}>
@@ -1031,17 +1034,22 @@ function TiersView() {
     () => Array.from(new Set(teams.map((r) => r.country).filter(Boolean))).sort() as string[],
     [teams],
   );
+  // One section per tier. The four standard ones always show (Tier 1 keeps its "nobody yet"
+  // card); a tier added in the scoring config later (a code above 3) gets its own section as
+  // soon as a team holds it. Inbox #108: a fixed {0..3} map crashed the tab on g[4].push.
   const byTier = useMemo(() => {
-    const g: Record<number, any[]> = { 0: [], 1: [], 2: [], 3: [] };
+    const top = Math.max(3, ...teams.map((r) => (typeof r.tier === "number" ? r.tier : 0)));
+    const g: Record<number, any[]> = {};
+    for (let code = 0; code <= top; code++) g[code] = [];
     teams
       // Shared matchesSearch() helper (lib/search.ts): punctuation/space/accent-insensitive
       // and folds stylized "fancy font" team names, unlike the old .toLowerCase().includes().
       // Country filter applied alongside ("" = all countries).
       .filter((r) => matchesSearch(r.team_name, q) && (!countryFilter || r.country === countryFilter))
-      .forEach((r) => { if (r.tier != null) g[r.tier].push(r); });
+      .forEach((r) => { if (r.tier != null && r.tier >= 0) g[r.tier]?.push(r); });
     return g;
   }, [teams, q, countryFilter]);
-  const filteredTotal = byTier[0].length + byTier[1].length + byTier[2].length + byTier[3].length;
+  const filteredTotal = Object.values(byTier).reduce((sum, rows) => sum + rows.length, 0);
   const searching = q.trim().length > 0;
 
   return (
@@ -1110,10 +1118,9 @@ function TiersView() {
         <Card><CardContent><NoMatch q={q} /></CardContent></Card>
       ) : (
         <div className="space-y-6">
-          <TierSection tier={0} rows={byTier[0]} searching={searching} />
-          <TierSection tier={1} rows={byTier[1]} searching={searching} />
-          <TierSection tier={2} rows={byTier[2]} searching={searching} />
-          <TierSection tier={3} rows={byTier[3]} searching={searching} />
+          {Object.keys(byTier).map(Number).sort((a, b) => a - b).map((code) => (
+            <TierSection key={code} tier={code} rows={byTier[code]} searching={searching} />
+          ))}
         </div>
       )}
     </div>

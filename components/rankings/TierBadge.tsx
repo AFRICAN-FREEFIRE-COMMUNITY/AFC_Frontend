@@ -21,8 +21,14 @@ export const tierMeta: Record<number, { label: string; cls: string; min: number 
   3: { label: "Tier 4", cls: "text-orange-400 border-orange-600/60", min: 0 },
 };
 
+// Tiers can be added in the scoring config at any time (owner, 2026-10-01), so a tier code
+// above 3 is legitimate: it is drawn as "Tier N" in a plain colour, because only the first four
+// have a colour here. Inbox #108: a code tierMeta did not know used to crash the page
+// (`tierMeta[4].cls` on undefined), taking down the admin rankings pages and the public Tiers tab.
+
 interface TierBadgeProps {
-  tier: 0 | 1 | 2 | 3 | null | undefined;
+  // Any tier code the scoring config defines (0 = Tier 1). See the note above tierMeta's users.
+  tier: number | null | undefined;
   className?: string;
 }
 
@@ -37,7 +43,8 @@ export function TierBadge({ tier, className }: TierBadgeProps) {
   }
   const m = tierMeta[tier];
   return (
-    <Badge variant="outline" className={cn("rounded-full font-semibold", m.cls, className)}>
+    <Badge variant="outline"
+      className={cn("rounded-full font-semibold", m ? m.cls : "text-muted-foreground", className)}>
       {t("tier", { tier: tier + 1 })}
     </Badge>
   );

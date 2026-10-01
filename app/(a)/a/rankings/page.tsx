@@ -174,11 +174,14 @@ export default function AdminRankingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seasonId]);
 
+  // Every tier present, not just the standard four: tiers can be added in the scoring config
+  // (owner 2026-10-01). Inbox #108: a team on code 4 went uncounted into d[4] = NaN.
   const dist = useMemo(() => {
     const d: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
-    teams.forEach((t) => { if (t.tier != null) d[t.tier]++; });
+    teams.forEach((t) => { if (t.tier != null && t.tier >= 0) d[t.tier] = (d[t.tier] ?? 0) + 1; });
     return d;
   }, [teams]);
+  const distTiers = Object.keys(dist).map(Number).sort((a, b) => a - b);
   const total = teams.length || 1;
 
   // Use the shared matchesSearch helper so the teams box is punctuation/font-insensitive (a team
@@ -349,7 +352,7 @@ export default function AdminRankingsPage() {
             )}
           </CardHeader>
           <CardContent className="space-y-3">
-            {TIERS.map((t) => (
+            {distTiers.map((t) => (
               <div key={t} className="flex items-center gap-3">
                 <div className="w-28"><TierBadge tier={t} /></div>
                 <Progress value={(dist[t] / total) * 100} className="h-2 flex-1" />
@@ -837,7 +840,8 @@ function RunEvaluationDialog({
                 </div>
               </div>
               <div className="space-y-1.5">
-                {TIERS.map((t) => (
+                {Array.from(new Set([...TIERS, ...Object.keys(preview.tier_distribution ?? {}).map(Number)]))
+                  .sort((a, b) => a - b).map((t) => (
                   <div key={t} className="flex items-center justify-between text-xs">
                     <TierBadge tier={t} />
                     <span className="font-semibold tabular-nums">{preview.tier_distribution?.[t] ?? 0}</span>
