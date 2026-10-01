@@ -1532,36 +1532,38 @@ function PlayerMarketPage() {
             <h3 className="text-sm font-semibold">{t("rules.heading")}</h3>
             <InfoTip id="player_market.rules_summary" />
           </div>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+          {/* A numbered list, not icon bullets: the design rules ban checkmark bullet lists
+              (owner 2026-08-17, inbox #113). These are rules, so numbers read right. */}
+          <ol className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
             <li className="flex items-start gap-1.5">
-              <IconCheck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+              <span className="w-3 shrink-0 font-semibold text-foreground tabular-nums">1.</span>
               <span>
                 {t("rules.oneActive")}
                 <InfoTip id="player_market.one_active_post" className="ml-1" />
               </span>
             </li>
             <li className="flex items-start gap-1.5">
-              <IconCheck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+              <span className="w-3 shrink-0 font-semibold text-foreground tabular-nums">2.</span>
               <span>
                 {t("rules.twoTryouts")}
                 <InfoTip id="player_market.tryout_limit" className="ml-1" />
               </span>
             </li>
             <li className="flex items-start gap-1.5">
-              <IconFlag className="h-3.5 w-3.5 text-red-500 mt-0.5 shrink-0" />
+              <span className="w-3 shrink-0 font-semibold text-foreground tabular-nums">3.</span>
               <span>
                 {t("rules.reportHonestly")}
                 <InfoTip id="player_market.report_rules" className="ml-1" />
               </span>
             </li>
             <li className="flex items-start gap-1.5">
-              <IconShield className="h-3.5 w-3.5 text-yellow-500 mt-0.5 shrink-0" />
+              <span className="w-3 shrink-0 font-semibold text-foreground tabular-nums">4.</span>
               <span>
                 {t("rules.banBlocks")}
                 <InfoTip id="player_market.rules_summary" className="ml-1" />
               </span>
             </li>
-          </ul>
+          </ol>
         </CardContent>
       </Card>
 
