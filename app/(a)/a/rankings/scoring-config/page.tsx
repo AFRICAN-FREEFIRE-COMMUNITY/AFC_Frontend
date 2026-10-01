@@ -80,7 +80,6 @@ import {
   currencyPrefix, issuesAt, issuesUnder, move, removeAt, replaceAt, toIssues,
 } from "./_components/editor-primitives";
 import { SaveConfigDialog } from "./_components/SaveConfigDialog";
-import { TIER_CODES } from "@/components/rankings/TierBadge";
 
 /* ───────────────────────────────────────────────── field_meta driven labels */
 
@@ -158,12 +157,9 @@ function GroupCard({
 }
 
 /** "Add row" button, one shape for every list on the page. */
-function AddRowButton({ label, onClick, disabledReason }: {
-  label: string; onClick: () => void; disabledReason?: string;
-}) {
+function AddRowButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <Button type="button" variant="outline" size="sm" className="h-8" onClick={onClick}
-      disabled={Boolean(disabledReason)} title={disabledReason}>
+    <Button type="button" variant="outline" size="sm" className="h-8" onClick={onClick}>
       <IconPlus className="mr-1 size-3.5" /> {label}
     </Button>
   );
@@ -563,20 +559,24 @@ export default function ScoringConfigPage() {
     ?? { value: "threshold", label: "", column: "min", help: "" };
   const scoreColumnLive = activeMode.column === "min";
 
-  // Tier CODES are fixed: 0 is Tier 1 (best) ... 3 is Tier 4, the same four the backend allows
-  // (afc_rankings/scoring/constants.TIER_CODES) and every tier badge on the site draws
-  // (components/rankings/TierBadge tierMeta). This editor can rename a tier or move its cutoff,
-  // never invent a fifth or renumber one. Inbox #108 (2026-10-01): "Add tier" used to mint a
-  // brand-new code and the code was a free number box, so a config saved on 2026-09-14 numbered
-  // the tiers 1..4, and every page that draws a tier crashed on code 4. People read "Tier 1",
-  // so a code is only ever shown as code + 1.
+  // Tiers can be ADDED at any time (owner 2026-10-01), but they are always numbered from the
+  // top: the first cutoff row is code 0 (shown as Tier 1), each row below is the next code, and
+  // the default is the code just under the last row. The backend refuses anything else
+  // (afc_rankings/scoring/validation.py, "tier_out_of_order"). Inbox #108: the tier used to be a
+  // free number box, a config saved on 2026-09-14 numbered the rows 1..4, every team landed one
+  // tier low and the pages that draw a tier crashed. People read "Tier 1", so a code is only
+  // ever shown as code + 1.
   const tierName = (tierInt: number) => t("admin.scoringConfig.unnamedTier", { tier: tierInt + 1 });
   const tierLabel = (tierInt: number) => thresholds.labels?.[String(tierInt)] || tierName(tierInt);
 
-  const knownTierInts: number[] = [...TIER_CODES];
-  // The codes no cutoff row or the fall-through uses yet; "Add ranking tier" takes the first.
-  const unusedTierInts = knownTierInts.filter((n) =>
-    n !== thresholds.default_tier && !(thresholds.brackets ?? []).some((b) => b.tier === n));
+  // Every tier the config holds now: 0 up to the highest code any row, the default or a name uses.
+  const topTierInt = Math.max(
+    0,
+    thresholds.default_tier ?? 0,
+    ...(thresholds.brackets ?? []).map((b) => b.tier),
+    ...Object.keys(thresholds.labels ?? {}).map(Number).filter(Number.isFinite),
+  );
+  const knownTierInts: number[] = Array.from({ length: topTierInt + 1 }, (_, i) => i);
 
   const setThresholds = (patch: Partial<ScoringBlob["tier_thresholds"]>) =>
     update((d) => { d.tier_thresholds = { ...d.tier_thresholds, ...patch }; });
@@ -584,9 +584,11 @@ export default function ScoringConfigPage() {
   const setBrackets = (rows: ThresholdRow[]) => setThresholds({ brackets: rows });
 
   const addRankTier = () => {
-    // The first of the four codes nothing uses yet (never a new code: see TIER_CODES above).
-    const nextInt = unusedTierInts[0];
-    if (nextInt === undefined) return;
+    // A new tier goes at the BOTTOM: the new cutoff row takes the code the default had, and the
+    // default moves one code down, so the numbering stays top-down with no gaps. The default's
+    // name moves with its tier (e.g. "Entry"), and the new bottom tier gets "Tier N" to rename.
+    const rowCount = (thresholds.brackets ?? []).length;
+    const nextInt = rowCount;
     const lowest = (thresholds.brackets ?? []).reduce(
       (min, b) => Math.min(min, Number(b.min) || 0), Number.POSITIVE_INFINITY);
     update((d) => {
@@ -598,11 +600,13 @@ export default function ScoringConfigPage() {
           count: null,
         },
       ];
-      // A cutoff whose tier has no name is refused by validation, so the name is created with it.
+      d.tier_thresholds.default_tier = nextInt + 1;
+      // A tier with no name is refused by validation, so both names are created here.
       d.tier_thresholds.labels = {
         ...(d.tier_thresholds.labels ?? {}),
         [String(nextInt)]: d.tier_thresholds.labels?.[String(nextInt)]
           || t("admin.scoringConfig.newTierName", { tier: nextInt + 1 }),
+        [String(nextInt + 1)]: t("admin.scoringConfig.newTierName", { tier: nextInt + 2 }),
       };
     });
   };
@@ -868,8 +872,7 @@ export default function ScoringConfigPage() {
           helpId="rankings.scoring.thresholds._section"
           issues={issuesAt(issues, "tier_thresholds")}
           path="tier_thresholds"
-          action={<AddRowButton label={t("admin.scoringConfig.addRankingTier")} onClick={addRankTier}
-            disabledReason={unusedTierInts.length ? undefined : t("admin.scoringConfig.allTiersUsed")} />}
+          action={<AddRowButton label={t("admin.scoringConfig.addRankingTier")} onClick={addRankTier} />}
         >
           {/* Mode picker, built from field_meta.tier_thresholds.modes: the frontend never
               hardcodes which modes exist or what they are called. */}
@@ -952,9 +955,7 @@ export default function ScoringConfigPage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {/* A code saved before #108 outside the four stays listed so the
-                                  admin can see it and move it; validation refuses it on save. */}
-                              {[...knownTierInts, ...(knownTierInts.includes(row.tier) ? [] : [row.tier])].map((n) => (
+                              {knownTierInts.map((n) => (
                                 <SelectItem key={n} value={String(n)}>{tierName(n)}</SelectItem>
                               ))}
                             </SelectContent>
@@ -1032,7 +1033,7 @@ export default function ScoringConfigPage() {
                     >
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {[...knownTierInts, ...(knownTierInts.includes(thresholds.default_tier) ? [] : [thresholds.default_tier])].map((n) => (
+                        {knownTierInts.map((n) => (
                           <SelectItem key={n} value={String(n)}>{tierName(n)} · {tierLabel(n)}</SelectItem>
                         ))}
                       </SelectContent>
