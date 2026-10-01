@@ -95,11 +95,7 @@
     "twoTryouts": "At most 2 active tryouts at once.",
     "reportHonestly": "Report honestly. False reports can get you banned.",
     "banBlocks": "A market ban blocks posting, applying, and inviting."
-  },
-  "tierNotice": {
-    "label": "Temporary Notice:",
-    "body": "All teams and players are currently assigned Tier 3 status. Tier standings will be automatically updated over time based on activity and performance."
-  },
+  },
   "tabs": {
     "teamsRecruiting": "Teams Recruiting",
     "playersOpen": "Players Open to Join",

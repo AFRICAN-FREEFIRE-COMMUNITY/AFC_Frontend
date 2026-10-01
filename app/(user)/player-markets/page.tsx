@@ -1565,21 +1565,6 @@ function PlayerMarketPage() {
         </CardContent>
       </Card>
 
-      {/* Temporary Tier Disclaimer */}
-      <Card className="bg-yellow-500/5">
-        <CardContent className="flex items-start gap-1">
-          <IconInfoCircle className="size-3 text-yellow-500 shrink-0" />
-          <div className="text-xs text-muted-foreground">
-            <p>
-              <span className="font-medium text-yellow-600 dark:text-yellow-400">
-                {t("tierNotice.label")}
-              </span>{" "}
-              {t("tierNotice.body")}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         {/* data-tour anchor (guided welcome tour): the Teams Recruiting / Players
