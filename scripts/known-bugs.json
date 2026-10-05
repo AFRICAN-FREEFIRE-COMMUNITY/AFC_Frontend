@@ -153,7 +153,33 @@
         "components/**/*.tsx",
         "contexts/**/*.tsx",
         "lib/**/*.ts"
-      ]
+      ],
+      "fixture": "      await fetch(`${API}/events/save/`, { method: \"POST\", body });",
+      "fixtureOk": "      const res = await fetch(`${API}/events/save/`, { method: \"POST\", body });"
+    },
+    {
+      "id": "fe-forwarded-for-read",
+      "title": "The visitor's address taken from the incoming x-forwarded-for",
+      "why": "nginx APPENDS to whatever x-forwarded-for a request arrives with, so its first entry is the visitor's own choice. The API believes the first x-forwarded-for entry when the call comes from this Next.js server (AFC-B afc_auth/client_ip.py), so a route that passes the incoming chain on lets any visitor pose as any address: the QR scan counter took a new x-forwarded-for as a new phone. nginx sets x-real-ip from the connection on every proxied location, and a visitor cannot write it.",
+      "seen": [
+        "2026-09-26 app/q/[token]/route.ts (QR codes, inbox #46) forwarded the incoming x-forwarded-for to qr/scan, found 2026-10-04 (inbox #141)",
+        "2025-12-17 to 2026-09-26 the same first-entry read eight times in the backend (AFC-B be-forwarded-for-read), all found together 2026-10-04"
+      ],
+      "fix": "forward request.headers.get(\"x-real-ip\") (what nginx saw), never the incoming x-forwarded-for; the backend's afc_auth/client_ip.py decides the visitor from there",
+      "kind": "regex",
+      "pattern": "\\.get\\(\\s*[\"'`][Xx]-[Ff]orwarded-[Ff]or[\"'`]",
+      "ignoreLineRegex": "^\\s*(//|\\*|/\\*)",
+      "globs": [
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "lib/**/*.ts",
+        "lib/**/*.tsx",
+        "components/**/*.ts",
+        "components/**/*.tsx",
+        "*.ts"
+      ],
+      "fixture": "const ip = request.headers.get(\"x-forwarded-for\") ?? request.headers.get(\"x-real-ip\");",
+      "fixtureOk": "const ip = request.headers.get(\"x-real-ip\");"
     }
   ]
 }

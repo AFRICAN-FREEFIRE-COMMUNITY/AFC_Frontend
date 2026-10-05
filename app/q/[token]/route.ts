@@ -28,7 +28,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       const forwarded: Record<string, string> = {
         "user-agent": request.headers.get("user-agent") ?? "",
       };
-      const ip = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip");
+      // The scanner's address as nginx saw the connection: X-Real-IP, which every proxied location
+      // in deploy/vps/nginx-afc.conf (AFC-B) sets from $remote_addr, so a visitor cannot write it.
+      // Never the incoming x-forwarded-for: nginx APPENDS to whatever the visitor sent, so its first
+      // entry is the visitor's own choice, and the backend believes the first entry when it comes
+      // from this server (afc_auth/client_ip.py, inbox #141). A script could otherwise pose as a new
+      // phone on every scan. Without nginx in front (local dev) nothing is forwarded and the backend
+      // counts the scan against this server's own address.
+      const ip = request.headers.get("x-real-ip");
       if (ip) forwarded["x-forwarded-for"] = ip;
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/qr/scan/${token}/`, {
         method: "POST",
