@@ -12,6 +12,8 @@
  *   - paragraphs separated by a blank line
  *   - lines starting "- ", "* " or "• " as a bulleted list; "1. " as a numbered list
  *   - **bold**
+ *   - [Name](/path) becomes a link showing the name: the assistant names every event, team, player or
+ *     page it mentions this way (inbox #149); an address on this site counts as a site path
  *   - a site path such as /teams or /tournaments/some-cup becomes a link inside the site
  *   - an https:// address becomes a link that opens in a new tab (the prompt allows only the Discord invite)
  *
@@ -20,12 +22,44 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-// A site path: starts with a slash and a letter, at the start of the text or after a space or "(".
-// The character before it is captured (group 3) rather than matched with a lookbehind, because a
-// lookbehind is a SYNTAX error on iOS Safari before 16.4 and this file loads on every page.
-// Trailing punctuation is left outside the link ("see /rankings." links /rankings).
-const TOKEN_RE = /(\*\*[^*]+\*\*)|(https?:\/\/[^\s)]+)|(^|[\s(])(\/[a-z][a-z0-9\-_/%]*)/gi;
+// The tokens, in order of precedence:
+//   1. a named link [Name](target) (inbox #149, owner 2026-10-05: everything the assistant names
+//      should be a link to it). The target must be a site path, an address on this site, or an
+//      https address; anything else (javascript:, a bare word) is left as plain text.
+//   2. **bold**
+//   3. an https:// address
+//   4. a bare site path such as /teams or /tournaments/some-cup, at the start of the text or after a
+//      space or "(". The character before it is captured (group 7) rather than matched with a
+//      lookbehind, because a lookbehind is a SYNTAX error on iOS Safari before 16.4 and this file
+//      loads on every page. Trailing punctuation is left outside the link ("see /rankings." links
+//      /rankings).
+const TOKEN_RE =
+  /(\[([^\]\n]{1,160})\]\(\s*([^\s)]+)\s*\))|(\*\*[^*]+\*\*)|(https?:\/\/[^\s)]+)|(^|[\s(])(\/[a-z][a-z0-9\-_/%.~]*)/gi;
 const TRAILING_PUNCT = /[.,;:!?]+$/;
+// The model sometimes writes this site's full address; it is still a link inside the site.
+const SITE_ORIGIN = /^https?:\/\/(?:www\.)?africanfreefirecommunity\.com(?=[/?#]|$)/i;
+
+function resolveHref(raw: string): { href: string; internal: boolean } | null {
+  const onSite = SITE_ORIGIN.test(raw);
+  const path = onSite ? raw.replace(SITE_ORIGIN, "") || "/" : raw;
+  if (path.startsWith("/") && !path.startsWith("//")) return { href: path, internal: true };
+  if (!onSite && /^https:\/\//i.test(raw)) return { href: raw, internal: false };
+  return null;
+}
+
+const LINK_CLASS = "font-semibold underline underline-offset-2";
+
+function linkNode(key: string, target: { href: string; internal: boolean }, label: ReactNode): ReactNode {
+  return target.internal ? (
+    <Link key={key} href={target.href} className={LINK_CLASS}>
+      {label}
+    </Link>
+  ) : (
+    <a key={key} href={target.href} target="_blank" rel="noopener noreferrer" className={LINK_CLASS}>
+      {label}
+    </a>
+  );
+}
 
 function inline(text: string, keyBase: string): ReactNode[] {
   const out: ReactNode[] = [];
@@ -34,26 +68,21 @@ function inline(text: string, keyBase: string): ReactNode[] {
   for (const match of text.matchAll(TOKEN_RE)) {
     const start = match.index ?? 0;
     if (start > last) out.push(text.slice(last, start));
-    const [whole, bold, url, before, path] = match;
+    const [whole, named, label, target, bold, url, before, path] = match;
     const key = `${keyBase}-${i++}`;
-    if (before) out.push(before);
-    if (bold) {
+    if (named) {
+      const resolved = resolveHref(target);
+      // A name with a target we do not trust is shown as the name alone, never as raw markdown.
+      out.push(resolved ? linkNode(key, resolved, label) : label);
+    } else if (bold) {
       out.push(<strong key={key} className="font-semibold">{bold.slice(2, -2)}</strong>);
     } else {
+      if (before) out.push(before);
       const raw = (url || path) as string;
       const trail = raw.match(TRAILING_PUNCT)?.[0] ?? "";
       const href = trail ? raw.slice(0, -trail.length) : raw;
-      out.push(
-        url ? (
-          <a key={key} href={href} target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-2">
-            {href}
-          </a>
-        ) : (
-          <Link key={key} href={href} className="font-semibold underline underline-offset-2">
-            {href}
-          </Link>
-        ),
-      );
+      const resolved = resolveHref(href);
+      out.push(resolved ? linkNode(key, resolved, href) : href);
       if (trail) out.push(trail);
     }
     last = start + whole.length;
