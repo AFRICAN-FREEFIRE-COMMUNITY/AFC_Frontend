@@ -90,7 +90,8 @@
     "social": "Social",
     "prize": "Prize",
     "overrides": "Overrides",
-    "rankingsAudit": "Audit"
+    "rankingsAudit": "Audit",
+    "helpLog": "Help log"
   },
   "waiting": "{count, plural, one {# waiting} other {# waiting}}"
 }

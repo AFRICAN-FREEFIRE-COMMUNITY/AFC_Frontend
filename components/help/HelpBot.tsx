@@ -34,7 +34,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import { useAuthModal } from "@/components/AuthModal";
@@ -47,14 +47,20 @@ import {
   handOffToPerson,
   helpBotErrorCode,
   type HelpBotStatus,
+  getHelpConversation,
+  listHelpConversations,
+  type HelpConversationSummary,
 } from "@/lib/api/helpBot";
 import { useViewer } from "@/lib/gating";
+import { formatLocalTime } from "@/lib/i18n/time";
 import { cn } from "@/lib/utils";
 
 import { HelpMessageText } from "./HelpMessageText";
 
 // The day the panel went live, for the 5-day NEW tag (CLAUDE.md rule; components/NewBadge.tsx).
 const LIVE_SINCE = "2026-10-05";
+// The History view (inbox #147): its own NEW tag, from the day it ships.
+const HISTORY_SINCE = "2026-10-05";
 const VISITOR_KEY = "afc-help-visitor";
 const CHAT_KEY = "afc-help-chat";
 // Mirrors afc_helpbot.views MAX_MESSAGE_CHARS / MAX_HANDOFF_CHARS; the server refuses anything longer.
@@ -124,6 +130,11 @@ const Icon = {
       <path d="M8 9h8" /><path d="M8 13h6" /><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1-3 3h-5l-5 3v-3h-2a3 3 0 0 1-3-3v-8a3 3 0 0 1 3-3h12z" />
     </svg>
   ),
+  history: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="size-[18px]">
+      <path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l3 2" />
+    </svg>
+  ),
   plus: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="size-[18px]">
       <path d="M12 5v14" /><path d="M5 12h14" />
@@ -180,6 +191,17 @@ function HelpBotPanel() {
   const [botToken, setBotToken] = useState("");
   const [botKey, setBotKey] = useState(0);
   const [botWaitOver, setBotWaitOver] = useState(false);
+  // ── history (inbox #147) ──
+  const [view, setView] = useState<"chat" | "history">("chat");
+  const [past, setPast] = useState<HelpConversationSummary[]>([]);
+  const [pastState, setPastState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [pastNext, setPastNext] = useState<number | null>(null);
+  const [opening, setOpening] = useState("");
+  const restored = useRef(false);
+  // The page the panel is open on, sent with each question for the staff Help log (inbox #156).
+  const pathname = usePathname() || "";
+  // Dates in the History view in the site's language, not the browser's (R31).
+  const locale = useLocale();
 
   const logRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -210,6 +232,10 @@ function HelpBotPanel() {
     if (wasSignedIn.current === true && !signedIn) {
       setConversation("");
       setMessages([]);
+      setView("chat");
+      setPast([]);
+      setPastState("idle");
+      restored.current = false;
       setBlocked(null);
       setPersonOpen(false);
       writeSaved(null);
@@ -294,6 +320,72 @@ function HelpBotPanel() {
 
   const push = (m: Msg) => setMessages((list) => [...list, m].slice(-MAX_KEPT));
 
+  // ── your earlier chats (inbox #147, owner 2026-10-05: "conversations should survive a sign out and
+  //    sign in back, aso creating a new conversation should not limit the last one") ──
+  // The chats were always stored by the backend; this reads them back: GET help-bot/conversations/
+  // (an account's own, or this browser's signed-out ones) and GET help-bot/conversations/<token>/.
+  const loadPast = useCallback(
+    async (offset = 0) => {
+      if (!signedIn && !visitor) return;
+      setPastState("loading");
+      try {
+        const page = await listHelpConversations(signedIn ? token : null, visitor, { offset });
+        setPast((list) => (offset === 0 ? page.results : [...list, ...page.results]));
+        setPastNext(page.next_offset);
+        setPastState("ready");
+      } catch {
+        setPastState("error");
+      }
+    },
+    [signedIn, token, visitor],
+  );
+
+  const openHistory = () => {
+    setView("history");
+    void loadPast(0);
+  };
+
+  const openPast = useCallback(
+    async (id: string) => {
+      setOpening(id);
+      try {
+        const convo = await getHelpConversation(signedIn ? token : null, visitor, id);
+        setConversation(convo.conversation);
+        setMessages(
+          convo.messages.slice(-MAX_KEPT).map((m): Msg =>
+            m.role === "user"
+              ? { id: newId(), kind: "me", text: m.text }
+              : { id: newId(), kind: "bot", text: m.text, usedAccount: m.used_account },
+          ),
+        );
+        setPersonOpen(false);
+        setPersonError("");
+        setView("chat");
+      } catch {
+        setPastState("error");
+      } finally {
+        setOpening("");
+      }
+    },
+    [signedIn, token, visitor],
+  );
+
+  // Signed back in with nothing on screen: the latest chat comes back the first time the panel opens.
+  // Once per sign in, so a chat the person chose to leave with "New chat" is not forced back.
+  useEffect(() => {
+    if (!open || viewer.loading || !signedIn || restored.current) return;
+    restored.current = true;
+    if (conversation || messages.length > 0) return;
+    listHelpConversations(token, visitor, { limit: 1 })
+      .then((page) => {
+        if (page.results[0]) void openPast(page.results[0].conversation);
+      })
+      .catch(() => {
+        // Nothing to restore is the same as a fresh chat; the History button still works.
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only the open / session change should trigger it
+  }, [open, viewer.loading, signedIn]);
+
   // ── ask ──
   // `resend` is a retry of a question already on screen: it is sent again without a second bubble.
   const ask = async (raw: string, resend = false) => {
@@ -316,6 +408,7 @@ function HelpBotPanel() {
         conversation: conversation || undefined,
         visitor,
         turnstile: usedBotCheck ? botToken : undefined,
+        page: pathname,
       });
       setConversation(answer.conversation);
       push({
@@ -391,6 +484,7 @@ function HelpBotPanel() {
   };
 
   const newConversation = () => {
+    setView("chat");
     setConversation("");
     setMessages([]);
     setPersonOpen(false);
@@ -507,6 +601,19 @@ function HelpBotPanel() {
             </div>
             <button
               type="button"
+              onClick={view === "history" ? () => setView("chat") : openHistory}
+              aria-label={t("history.open")}
+              aria-pressed={view === "history"}
+              title={t("history.open")}
+              className={cn(
+                "grid size-[34px] place-items-center rounded-lg hover:bg-background/40 focus-visible:outline-2 focus-visible:outline-primary",
+                view === "history" && "bg-background/40",
+              )}
+            >
+              {Icon.history}
+            </button>
+            <button
+              type="button"
               onClick={newConversation}
               aria-label={t("newChat")}
               title={t("newChat")}
@@ -525,6 +632,84 @@ function HelpBotPanel() {
             </button>
           </div>
 
+          {view === "history" ? (
+            /* ── your earlier chats (inbox #147) ── */
+            <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="flex items-center gap-2 text-sm font-bold">
+                  {t("history.title")}
+                  <NewBadge since={HISTORY_SINCE} />
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setView("chat")}
+                  className="h-8 rounded-lg bg-muted px-3 text-[13px] font-semibold focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  {t("history.back")}
+                </button>
+              </div>
+              {pastState === "loading" && past.length === 0 && (
+                <div className="flex flex-col gap-1.5" aria-busy="true" aria-label={t("history.loading")}>
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="h-[58px] rounded-[10px] bg-muted/60" />
+                  ))}
+                </div>
+              )}
+              {pastState === "error" && (
+                <div className="flex flex-col items-start gap-1.5">
+                  <div className="flex items-start gap-2 rounded-[10px] bg-destructive/12 px-3 py-2.5 text-[13px] leading-snug text-[oklch(0.82_0.1_25)]">
+                    {Icon.alert}
+                    <span>{t("history.failed")}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void loadPast(0)}
+                    className="h-8 rounded-lg bg-muted px-3 text-[13px] font-semibold focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    {t("errors.retry")}
+                  </button>
+                </div>
+              )}
+              {pastState === "ready" && past.length === 0 && (
+                <p className="py-6 text-center text-sm text-muted-foreground">{t("history.empty")}</p>
+              )}
+              {past.length > 0 && (
+                <ul className="flex flex-col gap-1.5">
+                  {past.map((h) => (
+                    <li key={h.conversation}>
+                      <button
+                        type="button"
+                        onClick={() => void openPast(h.conversation)}
+                        disabled={!!opening}
+                        className="w-full rounded-[10px] bg-muted px-3 py-2.5 text-left hover:bg-muted/70 disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-primary"
+                      >
+                        <span className="line-clamp-2 text-[13px] font-medium">{h.preview}</span>
+                        <span className="mt-1 flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
+                          <span>{formatLocalTime(h.last_message_at, "datetime", locale)}</span>
+                          <span>{t("history.questions", { count: h.questions })}</span>
+                          {h.conversation === conversation && (
+                            <span className="font-semibold text-primary">{t("history.current")}</span>
+                          )}
+                          {opening === h.conversation && <span>{t("history.opening")}</span>}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {pastNext !== null && (
+                <button
+                  type="button"
+                  onClick={() => void loadPast(pastNext)}
+                  disabled={pastState === "loading"}
+                  className="h-8 self-center rounded-lg bg-muted px-3 text-[13px] font-semibold disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  {t("history.more")}
+                </button>
+              )}
+            </div>
+          ) : (
+          <>
           {/* ── conversation ── */}
           <div ref={logRef} className="flex flex-1 flex-col gap-3 overflow-y-auto p-4" aria-live="polite">
             {blocked?.code !== "help_ai_offline" && (
@@ -771,6 +956,8 @@ function HelpBotPanel() {
               </button>
             </div>
           </div>
+          </>
+          )}
         </section>
       )}
     </div>

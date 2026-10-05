@@ -71,5 +71,17 @@
     "handoffLimit": "Abriste vários pedidos na última hora. Uma pessoa vai responder a esses.",
     "ticketFailed": "Não foi possível abrir o pedido. Tenta novamente, ou usa o formulário da página Apoio.",
     "retry": "Tentar novamente"
+  },
+  "history": {
+    "open": "As tuas conversas anteriores",
+    "title": "As tuas conversas",
+    "back": "Voltar à conversa",
+    "empty": "Ainda não há conversas anteriores. Aparecem aqui depois da tua primeira pergunta.",
+    "failed": "Não foi possível carregar as tuas conversas.",
+    "loading": "A carregar as tuas conversas",
+    "questions": "{count, plural, one {# pergunta} other {# perguntas}}",
+    "current": "Aberta",
+    "opening": "A abrir...",
+    "more": "Mostrar mais"
   }
 }

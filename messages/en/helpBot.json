@@ -71,5 +71,17 @@
     "handoffLimit": "You've opened several tickets in the last hour. A person will reply to those.",
     "ticketFailed": "The ticket could not be opened. Try again, or use the form on the Support page.",
     "retry": "Try again"
+  },
+  "history": {
+    "open": "Your earlier chats",
+    "title": "Your chats",
+    "back": "Back to chat",
+    "empty": "No earlier chats yet. They show here after your first question.",
+    "failed": "Could not load your chats.",
+    "loading": "Loading your chats",
+    "questions": "{count, plural, one {# question} other {# questions}}",
+    "current": "Open now",
+    "opening": "Opening...",
+    "more": "Show more"
   }
 }

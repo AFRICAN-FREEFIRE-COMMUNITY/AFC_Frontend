@@ -339,6 +339,8 @@ export const adminNavSections: AdminNavSection[] = [
         subs: [
           { subKey: "tickets", href: "/a/support", countKey: "tickets" },
           { subKey: "supportAudit", href: "/a/support/audit", allowedRoles: ["head_admin"] },
+          // Every input to the website Help panel (inbox #156, 2026-10-05): the desk's own staff.
+          { subKey: "helpLog", href: "/a/support/help-log" },
         ],
       },
     ],

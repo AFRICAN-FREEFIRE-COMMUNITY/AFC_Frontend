@@ -78,5 +78,53 @@
     "placeholder": "Add to your message",
     "replySent": "Your reply has been added.",
     "explainer": "Anything you add here reaches the AFC team handling your ticket. Keep this link: it is how you get back to this page."
+  },
+  "helpLog": {
+    "title": "Help log",
+    "subtitle": "Every question and request typed into the Help panel, answered or not, kept 90 days.",
+    "search": "Search what was typed or answered",
+    "whoPlaceholder": "In-game name, or visitors",
+    "refresh": "Refresh",
+    "loading": "Loading the log",
+    "empty": "Nothing typed into the Help panel yet.",
+    "failed": "Could not load the Help log.",
+    "noAccess": "Only support staff can read the Help log.",
+    "count": "{count, plural, one {# entry} other {# entries}}",
+    "more": "Show more",
+    "visitor": "Visitor {id}",
+    "nothingTyped": "Nothing typed (a ticket from the chat alone)",
+    "showAnswer": "Show the answer",
+    "filter": {
+      "everything": "Every outcome",
+      "answered": "Answered",
+      "refused": "Refused or failed",
+      "ticket": "Ticket opened",
+      "allKinds": "Questions and requests"
+    },
+    "kind": {
+      "question": "Question",
+      "handoff": "Talk to a person"
+    },
+    "outcome": {
+      "answered": "Answered",
+      "ticket": "Ticket {number}"
+    },
+    "codes": {
+      "help_daily_limit": "Refused: daily limit reached",
+      "help_network_limit": "Refused: network limit reached",
+      "help_slow_down": "Refused: too many at once",
+      "help_busy": "Refused: assistant busy",
+      "help_ai_offline": "Assistant offline",
+      "help_ai_timeout": "Assistant too slow",
+      "help_ai_failed": "Assistant failed",
+      "bot_check_failed": "Refused: bot check failed",
+      "help_message_invalid": "Refused: empty or too long",
+      "help_conversation_not_found": "Refused: chat not found",
+      "help_conversation_invalid": "Refused: bad chat reference",
+      "help_visitor_required": "Refused: no browser id",
+      "help_email_invalid": "Refused: email not valid",
+      "help_handoff_empty": "Refused: nothing written",
+      "help_handoff_limit": "Refused: too many tickets"
+    }
   }
 }

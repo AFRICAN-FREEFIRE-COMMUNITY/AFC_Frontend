@@ -86,5 +86,6 @@
   "sub.prize": "Prize",
   "sub.overrides": "Overrides",
   "sub.rankingsAudit": "Audit",
-  "waiting": "{count, plural, one {# waiting} other {# waiting}}"
+  "waiting": "{count, plural, one {# waiting} other {# waiting}}",
+  "sub.helpLog": "Help log"
 }
