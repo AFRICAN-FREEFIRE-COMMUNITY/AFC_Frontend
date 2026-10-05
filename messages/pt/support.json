@@ -78,5 +78,53 @@
     "placeholder": "Acrescentar à sua mensagem",
     "replySent": "A sua resposta foi adicionada.",
     "explainer": "Tudo o que acrescentar aqui chega à equipa da AFC que está a tratar do seu ticket. Guarde esta ligação: é assim que volta a esta página."
+  },
+  "helpLog": {
+    "title": "Registo da ajuda",
+    "subtitle": "Todas as perguntas e pedidos escritos no painel de ajuda, com ou sem resposta, guardados 90 dias.",
+    "search": "Procurar no que foi escrito ou respondido",
+    "whoPlaceholder": "Nome no jogo, ou visitors",
+    "refresh": "Atualizar",
+    "loading": "A carregar o registo",
+    "empty": "Ainda nada foi escrito no painel de ajuda.",
+    "failed": "Não foi possível carregar o registo da ajuda.",
+    "noAccess": "Só a equipa de apoio pode ler o registo da ajuda.",
+    "count": "{count, plural, one {# entrada} other {# entradas}}",
+    "more": "Mostrar mais",
+    "visitor": "Visitante {id}",
+    "nothingTyped": "Nada escrito (um ticket aberto só com a conversa)",
+    "showAnswer": "Ver a resposta",
+    "filter": {
+      "everything": "Todos os resultados",
+      "answered": "Respondidas",
+      "refused": "Recusadas ou falhadas",
+      "ticket": "Ticket aberto",
+      "allKinds": "Perguntas e pedidos"
+    },
+    "kind": {
+      "question": "Pergunta",
+      "handoff": "Falar com uma pessoa"
+    },
+    "outcome": {
+      "answered": "Respondida",
+      "ticket": "Ticket {number}"
+    },
+    "codes": {
+      "help_daily_limit": "Recusado: limite diário atingido",
+      "help_network_limit": "Recusado: limite da rede atingido",
+      "help_slow_down": "Recusado: demasiadas de uma vez",
+      "help_busy": "Recusado: assistente ocupado",
+      "help_ai_offline": "Assistente offline",
+      "help_ai_timeout": "Assistente demasiado lento",
+      "help_ai_failed": "O assistente falhou",
+      "bot_check_failed": "Recusado: verificação anti-robô falhou",
+      "help_message_invalid": "Recusado: vazio ou demasiado longo",
+      "help_conversation_not_found": "Recusado: conversa não encontrada",
+      "help_conversation_invalid": "Recusado: referência de conversa inválida",
+      "help_visitor_required": "Recusado: sem identificador do navegador",
+      "help_email_invalid": "Recusado: e-mail inválido",
+      "help_handoff_empty": "Recusado: nada escrito",
+      "help_handoff_limit": "Recusado: demasiados tickets"
+    }
   }
 }

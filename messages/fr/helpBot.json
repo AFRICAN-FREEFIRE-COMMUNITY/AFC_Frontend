@@ -71,5 +71,17 @@
     "handoffLimit": "Vous avez ouvert plusieurs tickets au cours de la dernière heure. Une personne y répondra.",
     "ticketFailed": "Le ticket n'a pas pu être ouvert. Réessayez, ou utilisez le formulaire de la page Assistance.",
     "retry": "Réessayer"
+  },
+  "history": {
+    "open": "Vos discussions précédentes",
+    "title": "Vos discussions",
+    "back": "Retour à la discussion",
+    "empty": "Aucune discussion pour le moment. Elles apparaissent ici dès votre première question.",
+    "failed": "Impossible de charger vos discussions.",
+    "loading": "Chargement de vos discussions",
+    "questions": "{count, plural, one {# question} other {# questions}}",
+    "current": "Ouverte",
+    "opening": "Ouverture...",
+    "more": "Afficher plus"
   }
 }

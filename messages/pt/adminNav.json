@@ -90,7 +90,8 @@
     "social": "Redes sociais",
     "prize": "Prémios",
     "overrides": "Ajustes manuais",
-    "rankingsAudit": "Registo"
+    "rankingsAudit": "Registo",
+    "helpLog": "Registo da ajuda"
   },
   "waiting": "{count, plural, one {# pendente} other {# pendentes}}"
 }

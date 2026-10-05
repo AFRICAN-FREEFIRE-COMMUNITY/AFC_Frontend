@@ -5,8 +5,11 @@
  *   GET  help-bot/status/    is the assistant on, how many questions are left today
  *   POST help-bot/chat/      ask a question, get the answer
  *   POST help-bot/handoff/   "Talk to a person": a support ticket with the chat attached
+ *   GET  help-bot/conversations/          your earlier chats, newest first (the History view, #147)
+ *   GET  help-bot/conversations/<token>/  one of them with its messages, to reopen it
+ *   GET  help-bot/admin/log/              every input to the panel, for support staff (#156)
  *
- * All three work signed in or signed out. Signed in, the Bearer token lets the answer use the person's
+ * All of them work signed in or signed out. Signed in, the Bearer token lets the answer use the person's
  * own account; signed out, `visitor` (a random id this browser keeps, see HelpBot.tsx) is what proves a
  * conversation is theirs. The Accept-Language header the AuthContext interceptor puts on every axios
  * request tells the backend which language to answer in.
@@ -90,7 +93,7 @@ export async function getHelpBotStatus(token: string | null, visitor: string): P
 
 export async function askHelpBot(
   token: string | null,
-  input: { message: string; conversation?: string; visitor: string; turnstile?: string },
+  input: { message: string; conversation?: string; visitor: string; turnstile?: string; page?: string },
 ): Promise<HelpBotAnswer> {
   const { data } = await axios.post(
     `${API}/help-bot/chat/`,
@@ -100,9 +103,95 @@ export async function askHelpBot(
       visitor: input.visitor,
       // The field afc_auth/bot_protection.py reads (TOKEN_FIELDS).
       cf_turnstile_response: input.turnstile || undefined,
+      // The page the question was asked on, for the staff Help log (inbox #156). A path only.
+      page: input.page || undefined,
     },
     { headers: bearer(token) },
   );
+  return data;
+}
+
+export interface HelpConversationSummary {
+  conversation: string;
+  started_at: string;
+  last_message_at: string;
+  /** The first question, up to 120 characters. */
+  preview: string;
+  questions: number;
+}
+
+export interface HelpConversationPage {
+  results: HelpConversationSummary[];
+  total_count: number;
+  has_more: boolean;
+  next_offset: number | null;
+}
+
+export interface HelpConversationDetail {
+  conversation: string;
+  started_at: string;
+  ticket_number: string | null;
+  messages: { role: "user" | "assistant"; text: string; used_account: boolean; at: string }[];
+}
+
+/** Your earlier chats, newest first (inbox #147): an account's own, or this browser's signed-out ones. */
+export async function listHelpConversations(
+  token: string | null,
+  visitor: string,
+  page: { limit?: number; offset?: number } = {},
+): Promise<HelpConversationPage> {
+  const { data } = await axios.get(`${API}/help-bot/conversations/`, {
+    headers: bearer(token),
+    params: { ...(token ? {} : { visitor }), limit: page.limit ?? 20, offset: page.offset ?? 0 },
+  });
+  return data;
+}
+
+/** One of your chats with its messages, to reopen it. 404 help_conversation_not_found when it is gone. */
+export async function getHelpConversation(
+  token: string | null,
+  visitor: string,
+  conversation: string,
+): Promise<HelpConversationDetail> {
+  const { data } = await axios.get(`${API}/help-bot/conversations/${encodeURIComponent(conversation)}/`, {
+    headers: bearer(token),
+    params: token ? {} : { visitor },
+  });
+  return data;
+}
+
+export interface HelpBotLogRow {
+  id: number;
+  at: string;
+  kind: "question" | "handoff";
+  /** The account's in-game name, or null for a signed-out visitor. */
+  who: string | null;
+  signed_in: boolean;
+  /** Signed out: the first characters of the salted browser hash (never the browser id). */
+  visitor: string | null;
+  conversation: string | null;
+  page: string | null;
+  locale: string;
+  text: string;
+  answer: string;
+  /** "answered", "ticket:<number>", or the refusal code. */
+  outcome: string;
+  http_status: number;
+}
+
+export interface HelpBotLogPage {
+  results: HelpBotLogRow[];
+  total_count: number;
+  has_more: boolean;
+  next_offset: number | null;
+}
+
+/** Every input to the Help panel, newest first: support staff only (app/(a)/a/support/help-log). */
+export async function getHelpBotLog(
+  token: string,
+  params: { q?: string; who?: string; outcome?: string; kind?: string; limit?: number; offset?: number },
+): Promise<HelpBotLogPage> {
+  const { data } = await axios.get(`${API}/help-bot/admin/log/`, { headers: bearer(token), params });
   return data;
 }
 

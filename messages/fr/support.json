@@ -78,5 +78,53 @@
     "placeholder": "Compléter votre message",
     "replySent": "Votre réponse a été ajoutée.",
     "explainer": "Tout ce que vous ajoutez ici arrive à l'équipe AFC qui suit votre ticket. Gardez ce lien : c'est ainsi que vous revenez sur cette page."
+  },
+  "helpLog": {
+    "title": "Journal de l'aide",
+    "subtitle": "Chaque question et demande saisie dans le panneau d'aide, avec ou sans réponse, conservée 90 jours.",
+    "search": "Chercher dans les questions ou les réponses",
+    "whoPlaceholder": "Pseudo en jeu, ou visitors",
+    "refresh": "Actualiser",
+    "loading": "Chargement du journal",
+    "empty": "Rien n'a encore été saisi dans le panneau d'aide.",
+    "failed": "Impossible de charger le journal de l'aide.",
+    "noAccess": "Seule l'équipe du support peut lire le journal de l'aide.",
+    "count": "{count, plural, one {# entrée} other {# entrées}}",
+    "more": "Afficher plus",
+    "visitor": "Visiteur {id}",
+    "nothingTyped": "Rien de saisi (un ticket ouvert depuis la discussion seule)",
+    "showAnswer": "Voir la réponse",
+    "filter": {
+      "everything": "Tous les résultats",
+      "answered": "Répondues",
+      "refused": "Refusées ou échouées",
+      "ticket": "Ticket ouvert",
+      "allKinds": "Questions et demandes"
+    },
+    "kind": {
+      "question": "Question",
+      "handoff": "Parler à une personne"
+    },
+    "outcome": {
+      "answered": "Répondue",
+      "ticket": "Ticket {number}"
+    },
+    "codes": {
+      "help_daily_limit": "Refusé : limite du jour atteinte",
+      "help_network_limit": "Refusé : limite du réseau atteinte",
+      "help_slow_down": "Refusé : trop de questions à la fois",
+      "help_busy": "Refusé : assistant occupé",
+      "help_ai_offline": "Assistant hors ligne",
+      "help_ai_timeout": "Assistant trop lent",
+      "help_ai_failed": "Échec de l'assistant",
+      "bot_check_failed": "Refusé : vérification anti-robot échouée",
+      "help_message_invalid": "Refusé : vide ou trop long",
+      "help_conversation_not_found": "Refusé : discussion introuvable",
+      "help_conversation_invalid": "Refusé : référence de discussion invalide",
+      "help_visitor_required": "Refusé : identifiant de navigateur manquant",
+      "help_email_invalid": "Refusé : e-mail invalide",
+      "help_handoff_empty": "Refusé : rien n'a été écrit",
+      "help_handoff_limit": "Refusé : trop de tickets"
+    }
   }
 }

@@ -59,5 +59,15 @@
   "errors.handoffEmpty": "Tell us what you need help with.",
   "errors.handoffLimit": "You've opened several tickets in the last hour. A person will reply to those.",
   "errors.ticketFailed": "The ticket could not be opened. Try again, or use the form on the Support page.",
-  "errors.retry": "Try again"
+  "errors.retry": "Try again",
+  "history.open": "Your earlier chats",
+  "history.title": "Your chats",
+  "history.back": "Back to chat",
+  "history.empty": "No earlier chats yet. They show here after your first question.",
+  "history.failed": "Could not load your chats.",
+  "history.loading": "Loading your chats",
+  "history.questions": "{count, plural, one {# question} other {# questions}}",
+  "history.current": "Open now",
+  "history.opening": "Opening...",
+  "history.more": "Show more"
 }

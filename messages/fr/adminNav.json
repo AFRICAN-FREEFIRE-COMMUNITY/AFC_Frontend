@@ -90,7 +90,8 @@
     "social": "Réseaux sociaux",
     "prize": "Gains",
     "overrides": "Ajustements manuels",
-    "rankingsAudit": "Journal"
+    "rankingsAudit": "Journal",
+    "helpLog": "Journal de l'aide"
   },
   "waiting": "{count, plural, one {# en attente} other {# en attente}}"
 }
