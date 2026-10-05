@@ -133,7 +133,9 @@ const page = () => {
     { value: "general", label: t("categories.general") },
     { value: "tournament", label: t("categories.tournament") },
     { value: "education", label: t("categories.education"), newSince: "2026-08-07" },
+    { value: "team_updates", label: t("categories.team_updates"), newSince: "2026-10-05" },
     { value: "bans", label: t("categories.bans") },
+    { value: "banned_teams", label: t("categories.banned_teams"), newSince: "2026-10-05" },
     // "Transfers" is a PSEUDO-category: no News row ever carries it, and it is deliberately NOT in
     // the backend's News.CATEGORY_CHOICES (an admin must not be able to file an article under it).
     // Picking it swaps the article grid below for the automatic transfer feed. It sits last because

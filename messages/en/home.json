@@ -112,7 +112,9 @@
       "general": "General News",
       "tournament": "Tournament Updates",
       "education": "Education Updates",
-      "bans": "Banned Player/Team Updates"
+      "team_updates": "Team Updates",
+      "bans": "Banned Players",
+      "banned_teams": "Banned Teams"
     },
     "toast": {
       "error": "Oops! An error occurred"

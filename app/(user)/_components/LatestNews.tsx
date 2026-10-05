@@ -35,7 +35,9 @@ export const LatestNews = () => {
     { value: "general", label: t("latestNews.categories.general") },
     { value: "tournament", label: t("latestNews.categories.tournament") },
     { value: "education", label: t("latestNews.categories.education") },
+    { value: "team_updates", label: t("latestNews.categories.team_updates") },
     { value: "bans", label: t("latestNews.categories.bans") },
+    { value: "banned_teams", label: t("latestNews.categories.banned_teams") },
   ];
 
   const getCategoryLabel = (category: string) => {
