@@ -179,5 +179,10 @@
   "nav.support": "Support",
   "uidTaken.byName": "That UID is already used by {name}.",
   "uidTaken.byAnother": "That UID is already used by another account.",
-  "uidTaken.viewProfile": "View their profile"
+  "uidTaken.viewProfile": "View their profile",
+  "nav.teamsPlayers": "Teams & Players",
+  "pager.label": "Pages",
+  "pager.previous": "Previous",
+  "pager.next": "Next",
+  "pager.showing": "{start}-{end} of {total}"
 }

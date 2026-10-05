@@ -42,7 +42,8 @@
     "about": "About Us",
     "contact": "Contact",
     "fantasy": "Fantasy",
-    "support": "Support"
+    "support": "Support",
+    "teamsPlayers": "Teams & Players"
   },
   "states": {
     "empty": "Nothing here yet",
@@ -221,5 +222,11 @@
     "byName": "That UID is already used by {name}.",
     "byAnother": "That UID is already used by another account.",
     "viewProfile": "View their profile"
+  },
+  "pager": {
+    "label": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "{start}-{end} of {total}"
   }
 }

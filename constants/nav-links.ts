@@ -32,7 +32,8 @@ import { Award } from "lucide-react";
 // messages/{en,fr,pt}/common.json "nav" whenever a new nav entry is added here.
 export const homeNavLinks = [
   { slug: "/home", label: "Home", navKey: "home", icon: IconHome },
-  { slug: "/teams", label: "Teams", navKey: "teams", icon: IconUsers },
+  // Teams & Players (inbox #153 / #161, owner 2026-10-05): one page, a Teams tab and a Players tab.
+  { slug: "/teams", label: "Teams & Players", navKey: "teamsPlayers", icon: IconUsers },
   { slug: "/news", label: "News", navKey: "news", icon: IconArticle },
   { slug: "/glossary", label: "Glossary", navKey: "glossary", icon: IconVocabulary },
   { slug: "/awards", label: "Awards", navKey: "awards", icon: Award },
@@ -68,7 +69,7 @@ interface NavLinks {
 
 export const homeNavLinksMobile: NavLinks[] = [
   { slug: "/home", label: "Home", navKey: "home", icon: IconHome, onlyMobile: false },
-  { slug: "/teams", label: "Teams", navKey: "teams", icon: IconUsers },
+  { slug: "/teams", label: "Teams & Players", navKey: "teamsPlayers", icon: IconUsers },
   {
     slug: "/tournaments",
     label: "Tournaments & Scrims",

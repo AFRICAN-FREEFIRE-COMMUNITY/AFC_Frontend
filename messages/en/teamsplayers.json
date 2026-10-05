@@ -32,8 +32,8 @@
     "signInAgain": "Your session ended. Please sign in again to create your team."
   },
   "teamsList": {
-    "pageTitle": "Teams",
-    "pageDescription": "Explore and manage Freefire teams",
+    "pageTitle": "Teams & Players",
+    "pageDescription": "Find teams and players across Africa, open their profiles, or create your own team.",
     "createTeam": "Create Team",
     "searchPlaceholder": "Search teams...",
     "tabAllTeams": "All Teams",
@@ -746,5 +746,20 @@
     "playerCount": "{count} players",
     "noTeam": "No team recorded",
     "tabLabel": "Unclaimed profiles"
+  },
+  "playersDirectory": {
+    "tabTeams": "Teams",
+    "tabPlayers": "Players",
+    "title": "All players",
+    "description": "Players on a team or with a match on record, by name. Open a player to see their profile.",
+    "searchPlaceholder": "Search players by in-game name...",
+    "countryLabel": "Country",
+    "allCountries": "All countries",
+    "noTeam": "No team",
+    "loading": "Loading players...",
+    "error": "Could not load players.",
+    "retry": "Try again",
+    "empty": "No players to show yet.",
+    "noMatch": "No players match your search."
   }
 }
