@@ -1,0 +1,75 @@
+{
+  "button": "Ajuda",
+  "buttonClose": "Fechar",
+  "buttonAria": "Abrir a Ajuda AFC",
+  "buttonCloseAria": "Fechar a Ajuda AFC",
+  "title": "Ajuda AFC",
+  "subtitle": "Respostas dos guias da AFC, a qualquer hora",
+  "subtitleOffline": "Offline, os pedidos continuam a funcionar",
+  "newChat": "Nova conversa",
+  "close": "Fechar",
+  "greeting": {
+    "in": "Olá, {name}. Posso responder a perguntas sobre torneios, equipas, transferências, rankings e regras, e sobre a tua própria conta.",
+    "in2": "Se eu não conseguir resolver, passo a conversa a uma pessoa.",
+    "out": "Olá. Posso responder a perguntas sobre torneios, equipas, transferências, rankings e regras.",
+    "out2": "Inicia sessão e também posso verificar a tua equipa e as tuas inscrições."
+  },
+  "chips": {
+    "tiers": "Como funcionam os níveis dos torneios?",
+    "leave": "Porque não consigo sair da minha equipa?",
+    "window": "Quando abre a próxima janela de transferências?",
+    "person": "Preciso de falar com uma pessoa"
+  },
+  "placeholder": "Pergunta sobre a AFC ou a tua conta",
+  "inputLabel": "A tua pergunta",
+  "send": "Enviar",
+  "writing": "A Ajuda AFC está a escrever uma resposta",
+  "checkedAccount": "A tua conta foi verificada",
+  "signIn": "Iniciar sessão",
+  "createAccount": "Criar uma conta",
+  "talkToPerson": "Falar com uma pessoa",
+  "signInFallback": "Inicia sessão e posso verificar a tua conta.",
+  "personFallback": "Uma pessoa deve ver isto. Carrega em Falar com uma pessoa e a equipa de apoio trata do assunto.",
+  "foot": {
+    "disclaimer": "As respostas da IA podem estar erradas.",
+    "left": "As respostas da IA podem estar erradas. {count, plural, one {Resta # pergunta} other {Restam # perguntas}} hoje.",
+    "none": "Não restam perguntas hoje.",
+    "offline": "Offline"
+  },
+  "person": {
+    "introIn": "Vou abrir um pedido de apoio e anexar esta conversa, para não teres de explicar tudo outra vez.",
+    "introOut": "Para onde deve a equipa de apoio responder? Vou anexar esta conversa ao pedido.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "tu@exemplo.com",
+    "messageLabel": "Com o que precisas de ajuda?",
+    "openTicket": "Abrir um pedido",
+    "opening": "A abrir o pedido",
+    "cancel": "Cancelar"
+  },
+  "ticket": {
+    "done": "Feito. Abri um pedido de apoio e anexei esta conversa, para não teres de explicar tudo outra vez.",
+    "doneNoChat": "Feito. O teu pedido de apoio está aberto.",
+    "existing": "Esta conversa já está com a equipa de apoio. Acrescentei as mensagens mais recentes ao teu pedido.",
+    "replyIn": "Um administrador do apoio vai responder por email e em Os meus pedidos.",
+    "replyOut": "Um administrador do apoio vai responder para {email}.",
+    "openMine": "Abrir Os meus pedidos",
+    "openPage": "Abrir o pedido"
+  },
+  "errors": {
+    "limit": "Já usaste as {limit} perguntas de hoje. Podes perguntar outra vez amanhã, ou abrir um pedido e uma pessoa responde-te.",
+    "networkLimit": "Chegaram demasiadas perguntas da tua rede hoje. Inicia sessão para continuar, ou abre um pedido e uma pessoa responde-te.",
+    "offline": "O assistente está offline neste momento. Podes na mesma abrir um pedido e uma pessoa responde-te.",
+    "busy": "O assistente está ocupado. Tenta novamente daqui a uns segundos.",
+    "slowDown": "Abranda um pouco e depois pergunta outra vez.",
+    "timeout": "O assistente demorou demasiado. Tenta novamente.",
+    "failed": "O assistente não conseguiu responder. Tenta novamente, ou fala com uma pessoa.",
+    "network": "Não foi possível contactar a AFC. Verifica a tua ligação e tenta novamente.",
+    "botCheck": "Não conseguimos confirmar que és uma pessoa. Conclui a verificação e envia outra vez.",
+    "conversationGone": "Essa conversa terminou. Pergunta outra vez para começar uma nova.",
+    "emailInvalid": "Escreve um endereço de email para onde a equipa de apoio possa responder.",
+    "handoffEmpty": "Diz-nos com o que precisas de ajuda.",
+    "handoffLimit": "Abriste vários pedidos na última hora. Uma pessoa vai responder a esses.",
+    "ticketFailed": "Não foi possível abrir o pedido. Tenta novamente, ou usa o formulário da página Apoio.",
+    "retry": "Tentar novamente"
+  }
+}

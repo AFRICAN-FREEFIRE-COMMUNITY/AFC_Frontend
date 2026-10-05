@@ -60,6 +60,15 @@ export default async function SupportPage() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          {/* The Help panel (components/help/HelpBot.tsx, inbox #109): the quickest way to an answer,
+              and its "Talk to a person" opens a ticket in My tickets above. */}
+          <div>
+            <h3 className="flex items-center gap-2 text-sm text-muted-foreground">
+              {c("helpTitle")}
+              <NewBadge since="2026-10-05" />
+            </h3>
+            <p className="text-base">{c("helpBody")}</p>
+          </div>
           <div>
             <h3 className="text-sm text-muted-foreground">{c("email")}</h3>
             <a className="text-base hover:text-primary hover:underline" href="mailto:info@africanfreefirecommunity.com">
