@@ -16,11 +16,12 @@
 // join teams even inside transfer windows, they just cant leave a team").
 //
 // WHEN CAN THEY LEAVE (freeFrom)
-//   - the window is ahead of us this season           -> this season's transfer_window_open
-//   - this season's window is spent                   -> the earliest future transfer_window_open on
-//                                                        record (GET rankings/seasons/)
-//   - neither is on record                            -> null: say "the next window", never invent
-//                                                        a date nobody has set
+//   The backend answers it: GET rankings/seasons/current/ carries next_window_opens, computed by
+//   AFC-B afc_rankings.models.Season.next_window_opens, the ONE rule the refusal messages and the help
+//   bot read too (inbox #150, owner 2026-10-05: "the next open date is the day after the last day of
+//   the season"): this season's window if still ahead, else the day after the season's last day,
+//   unless a later season on record starting by then opens its window later. This hook used to work
+//   the date out itself from the whole seasons list, a second copy of the rule.
 // Dates are bare "YYYY-MM-DD" calendar dates (Django DateField) and are compared as strings against
 // the viewer's LOCAL calendar date, never toISOString() (which is the UTC date and flips early).
 // ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -53,7 +54,6 @@ export type TransferLock = {
 export function useTransferLock(): TransferLock {
   const [loaded, setLoaded] = useState(false);
   const [season, setSeason] = useState<Season | null>(null);
-  const [nextWindowOpen, setNextWindowOpen] = useState<string | null>(null);
 
   useEffect(() => {
     rankingsApi
@@ -63,34 +63,12 @@ export function useTransferLock(): TransferLock {
       .finally(() => setLoaded(true));
   }, []);
 
-  useEffect(() => {
-    // Only worth asking once the current window is SPENT: before that, this season's own open date
-    // is the answer and a second request would be a request for nothing.
-    if (!season) return;
-    const spent = !!season.transfer_window_close && season.transfer_window_close < todayIso();
-    if (!spent) return;
-    rankingsApi
-      .seasons()
-      .then((env) => {
-        const today = todayIso();
-        // The EARLIEST future opening across every season on record, not the newest row: the list
-        // is not ordered by window date, and a season can be created out of order.
-        const upcoming = (env.results || [])
-          .map((s) => s.transfer_window_open)
-          .filter((d): d is string => !!d && d > today)
-          .sort();
-        setNextWindowOpen(upcoming[0] ?? null);
-      })
-      .catch(() => setNextWindowOpen(null));
-  }, [season]);
-
   const locked = !!season && !season.transfer_window_is_open;
-  let freeFrom: string | null = null;
-  if (locked && season) {
-    freeFrom =
-      season.transfer_window_open && season.transfer_window_open > todayIso()
-        ? season.transfer_window_open
-        : nextWindowOpen;
-  }
+  const next = season?.next_window_opens ?? null;
+  const freeFrom = locked ? next : null;
+  // The banner's extra line is for a SPENT window; while this season's own window is ahead, its
+  // range line already says when it opens.
+  const spent = !!season?.transfer_window_close && season.transfer_window_close < todayIso();
+  const nextWindowOpen = locked && spent ? next : null;
   return { loaded, season, locked, freeFrom, nextWindowOpen };
 }
