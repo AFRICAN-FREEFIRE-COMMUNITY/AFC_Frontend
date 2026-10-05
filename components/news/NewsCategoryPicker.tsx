@@ -47,8 +47,15 @@ export function NewsCategoryPicker({
             )}
           >
             {t.has(`categories.${category.value}`) ? t(`categories.${category.value}`) : category.label}
-            {/* A recently added category keeps its self-expiring NEW tag, as in the old select. */}
-            {category.newSince && <NewBadge since={category.newSince} />}
+            {/* A recently added category keeps its self-expiring NEW tag, as in the old select. On
+                a picked chip the tag's own green would vanish into the green fill, so it takes
+                the chip's text colour there instead. */}
+            {category.newSince && (
+              <NewBadge
+                since={category.newSince}
+                className={on ? "bg-primary-foreground/15 text-primary-foreground" : undefined}
+              />
+            )}
           </button>
         );
       })}
