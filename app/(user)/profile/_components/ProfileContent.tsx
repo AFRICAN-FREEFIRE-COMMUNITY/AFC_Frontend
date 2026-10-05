@@ -144,6 +144,15 @@ export const ProfileContent = () => {
   const [activeTab, setActiveTab] = useState<string>(
     searchParams.get("tab") || "overview",
   );
+  // A ?tab= link followed while already on /profile (the help panel's links, inbox #159) changes
+  // the address without remounting the page, so the asked tab is applied again when it changes
+  // (during render, the same pattern as lib/useAddressTab.ts).
+  const askedTab = searchParams.get("tab");
+  const [seenTab, setSeenTab] = useState(askedTab);
+  if (askedTab !== seenTab) {
+    setSeenTab(askedTab);
+    if (askedTab) setActiveTab(askedTab);
+  }
   // /profile#referrals (the link in a referral prize notification) opens the Referrals tab. Read after
   // mount: the hash never reaches the server, so the first render cannot know it.
   const tRef = useTranslations("referrals");

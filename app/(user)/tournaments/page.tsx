@@ -23,7 +23,9 @@ import { LocalTime } from "@/components/LocalTime";
 // getActiveLocale resolves the NEXT_LOCALE cookie locale for the month-filter labels.
 import { getActiveLocale } from "@/lib/i18n/time";
 import Link from "next/link";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { Suspense, useState, useEffect, useMemo, useCallback } from "react";
+// ?tab=scrims and ?tab=organizers open those tabs, so the help bot can link them (inbox #159).
+import { useAddressTab } from "@/lib/useAddressTab";
 import {
   Pagination,
   PaginationContent,
@@ -837,8 +839,11 @@ const OrganizerDirectory: React.FC<{
 };
 
 // --- Main Component ---
+const EVENT_TABS = ["tournaments", "scrims", "organizers"] as const;
+
 const EventsPage = () => {
   const t = useTranslations("tournaments");
+  const [tab, setTab] = useAddressTab("tab", EVENT_TABS, "tournaments");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [monthFilter, setMonthFilter] = useState<MonthFilter>("all");
@@ -1089,7 +1094,11 @@ const EventsPage = () => {
       {!error && (
         // data-tour anchor (guided welcome tour): the whole events list. Targeted by
         // guided-tour-stops.ts -> tournaments stop -> "tournaments-list".
-        <Tabs defaultValue="tournaments" data-tour="tournaments-list">
+        <Tabs
+          value={tab}
+          onValueChange={(v) => setTab(v as (typeof EVENT_TABS)[number])}
+          data-tour="tournaments-list"
+        >
           {/* data-tour anchor (guided welcome tour): the Tournaments / Scrims tabs,
               which distinguish official competitions from practice matches. Targeted
               by guided-tour-stops.ts -> tournaments stop -> "tournaments-filter". */}
@@ -1129,4 +1138,12 @@ const EventsPage = () => {
   );
 };
 
-export default EventsPage;
+// Suspense because the page reads the address (useAddressTab). The fallback is the loader the
+// page shows anyway until the events arrive, so nothing changes for a visitor.
+export default function EventsPageWrapper() {
+  return (
+    <Suspense fallback={<FullLoader />}>
+      <EventsPage />
+    </Suspense>
+  );
+}
