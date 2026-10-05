@@ -45,6 +45,11 @@
       "rule": "R62",
       "path": ".env",
       "reason": "tracked on purpose and holds only NEXT_PUBLIC_* values (the API origin, the site origin, a Google OAuth client id, which is public by design, and two feature flags); git log -p over every commit of the file shows no other key ever in it (checked 2026-09-18); secrets live in .env.local, which is ignored"
+    },
+    {
+      "rule": "R80",
+      "path": "GHSA-vfj7-8cjw-p6xm",
+      "reason": "accepted by the owner 2026-10-04 (inbox #142, \"accept it\"): braces <=3.0.3 stack exhaustion on deeply nested patterns, high, with NO patched release yet (pnpm audit: patched <0.0.0). Its only path is the lint toolchain, eslint-config-next > @next/eslint-plugin-next > fast-glob > micromatch > braces; pnpm audit --prod lists no advisory at all, so it is not in the shipped site or the server, and the glob patterns it parses are our own lint config, never visitor input. Review on 2026-11-04 or as soon as a fixed braces (or a fast-glob / micromatch that drops it) is published, then upgrade and delete this line"
     }
   ],
   "https": {
