@@ -1,0 +1,75 @@
+{
+  "button": "Aide",
+  "buttonClose": "Fermer",
+  "buttonAria": "Ouvrir l'aide AFC",
+  "buttonCloseAria": "Fermer l'aide AFC",
+  "title": "Aide AFC",
+  "subtitle": "Des réponses tirées des guides AFC, à tout moment",
+  "subtitleOffline": "Hors ligne, les tickets fonctionnent toujours",
+  "newChat": "Nouvelle conversation",
+  "close": "Fermer",
+  "greeting": {
+    "in": "Bonjour {name}. Je peux répondre à vos questions sur les tournois, les équipes, les transferts, les classements et les règles, ainsi que sur votre propre compte.",
+    "in2": "Si je ne peux pas régler votre problème, je transmets la conversation à une personne.",
+    "out": "Bonjour. Je peux répondre à vos questions sur les tournois, les équipes, les transferts, les classements et les règles.",
+    "out2": "Connectez-vous et je pourrai aussi vérifier votre équipe et vos inscriptions."
+  },
+  "chips": {
+    "tiers": "Comment fonctionnent les niveaux des tournois ?",
+    "leave": "Pourquoi ne puis-je pas quitter mon équipe ?",
+    "window": "Quand ouvre la prochaine fenêtre de transfert ?",
+    "person": "J'ai besoin de parler à une personne"
+  },
+  "placeholder": "Posez une question sur AFC ou votre compte",
+  "inputLabel": "Votre question",
+  "send": "Envoyer",
+  "writing": "L'aide AFC rédige une réponse",
+  "checkedAccount": "Votre compte a été vérifié",
+  "signIn": "Se connecter",
+  "createAccount": "Créer un compte",
+  "talkToPerson": "Parler à une personne",
+  "signInFallback": "Connectez-vous et je pourrai vérifier votre compte.",
+  "personFallback": "Une personne doit examiner cela. Appuyez sur Parler à une personne et l'équipe d'assistance s'en chargera.",
+  "foot": {
+    "disclaimer": "Les réponses de l'IA peuvent être fausses.",
+    "left": "Les réponses de l'IA peuvent être fausses. {count, plural, one {# question restante} other {# questions restantes}} aujourd'hui.",
+    "none": "Plus de questions pour aujourd'hui.",
+    "offline": "Hors ligne"
+  },
+  "person": {
+    "introIn": "Je vais ouvrir un ticket d'assistance et y joindre cette conversation, pour que vous n'ayez pas à tout réexpliquer.",
+    "introOut": "Où l'équipe d'assistance doit-elle vous répondre ? Je joindrai cette conversation au ticket.",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "vous@exemple.com",
+    "messageLabel": "De quelle aide avez-vous besoin ?",
+    "openTicket": "Ouvrir un ticket",
+    "opening": "Ouverture du ticket",
+    "cancel": "Annuler"
+  },
+  "ticket": {
+    "done": "C'est fait. J'ai ouvert un ticket d'assistance et j'y ai joint cette conversation, pour que vous n'ayez pas à tout réexpliquer.",
+    "doneNoChat": "C'est fait. Votre ticket d'assistance est ouvert.",
+    "existing": "Cette conversation est déjà entre les mains de l'équipe d'assistance. J'ai ajouté les derniers messages à votre ticket.",
+    "replyIn": "Un administrateur de l'assistance vous répondra par e-mail et dans Mes tickets.",
+    "replyOut": "Un administrateur de l'assistance répondra à {email}.",
+    "openMine": "Ouvrir Mes tickets",
+    "openPage": "Ouvrir le ticket"
+  },
+  "errors": {
+    "limit": "Vous avez utilisé vos {limit} questions du jour. Vous pourrez en poser d'autres demain, ou ouvrir un ticket et une personne vous répondra.",
+    "networkLimit": "Trop de questions sont venues de votre réseau aujourd'hui. Connectez-vous pour continuer, ou ouvrez un ticket et une personne vous répondra.",
+    "offline": "L'assistant est hors ligne pour le moment. Vous pouvez toujours ouvrir un ticket et une personne vous répondra.",
+    "busy": "L'assistant est occupé. Réessayez dans quelques secondes.",
+    "slowDown": "Ralentissez un peu, puis posez à nouveau votre question.",
+    "timeout": "L'assistant a mis trop de temps. Réessayez.",
+    "failed": "L'assistant n'a pas pu répondre. Réessayez, ou parlez à une personne.",
+    "network": "Impossible de joindre AFC. Vérifiez votre connexion et réessayez.",
+    "botCheck": "Nous n'avons pas pu confirmer que vous êtes une personne. Terminez la vérification et envoyez à nouveau.",
+    "conversationGone": "Cette conversation est terminée. Posez votre question à nouveau pour en commencer une autre.",
+    "emailInvalid": "Saisissez une adresse e-mail à laquelle l'équipe d'assistance peut répondre.",
+    "handoffEmpty": "Dites-nous de quelle aide vous avez besoin.",
+    "handoffLimit": "Vous avez ouvert plusieurs tickets au cours de la dernière heure. Une personne y répondra.",
+    "ticketFailed": "Le ticket n'a pas pu être ouvert. Réessayez, ou utilisez le formulaire de la page Assistance.",
+    "retry": "Réessayer"
+  }
+}

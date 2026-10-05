@@ -20,6 +20,7 @@ import { AuthModalProvider } from "@/components/AuthModal";
 import { getLocale, getMessages } from "next-intl/server";
 import { I18nProvider } from "@/components/I18nProvider";
 import { ReferralClaimer } from "@/components/referrals/ReferralClaimer";
+import { HelpBot } from "@/components/help/HelpBot";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -130,6 +131,10 @@ export default async function RootLayout({
                 <Toaster position="bottom-center" />
                 {/* Sends a waiting referral code once its owner is signed in (inbox #47). Renders nothing. */}
                 <ReferralClaimer />
+                {/* The Help button and panel on every page (inbox #109). Inside AuthProvider and
+                    AuthModalProvider because it answers about the signed-in account and opens the
+                    sign-in modal; it renders nothing on /overlay and /qr. See components/help/HelpBot.tsx. */}
+                <HelpBot />
               </ThemeProvider>
             </AuthModalProvider>
           </AuthProvider>

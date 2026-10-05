@@ -82,10 +82,14 @@ export function BotCheck({
   onToken,
   className,
   theme = "dark",
+  appearance,
 }: {
   onToken: (token: string) => void;
   className?: string;
   theme?: "dark" | "light" | "auto";
+  /** Turnstile's own option. "interaction-only" keeps the box hidden unless Cloudflare needs the
+   *  visitor to click it (the Help panel, components/help/HelpBot.tsx). Omitted: Turnstile's default. */
+  appearance?: "always" | "execute" | "interaction-only";
 }) {
   const holder = useRef<HTMLDivElement | null>(null);
   const widgetId = useRef<string | null>(null);
@@ -104,6 +108,7 @@ export function BotCheck({
         widgetId.current = window.turnstile.render(holder.current, {
           sitekey: siteKey,
           theme,
+          ...(appearance ? { appearance } : {}),
           callback: handleToken,
           // A token lasts about five minutes; when it lapses, clear ours so the form asks again
           // rather than posting something the server will refuse.
@@ -127,7 +132,7 @@ export function BotCheck({
         }
       }
     };
-  }, [siteKey, theme, handleToken]);
+  }, [siteKey, theme, appearance, handleToken]);
 
   if (!siteKey) return null;
   return <div id={domId} ref={holder} className={className} />;

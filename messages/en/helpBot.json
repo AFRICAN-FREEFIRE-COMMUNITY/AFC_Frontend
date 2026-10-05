@@ -1,0 +1,75 @@
+{
+  "button": "Help",
+  "buttonClose": "Close",
+  "buttonAria": "Open AFC Help",
+  "buttonCloseAria": "Close AFC Help",
+  "title": "AFC Help",
+  "subtitle": "Answers from the AFC guides, any time",
+  "subtitleOffline": "Offline, tickets still work",
+  "newChat": "New conversation",
+  "close": "Close",
+  "greeting": {
+    "in": "Hi {name}. I can answer questions about tournaments, teams, transfers, rankings and rules, and about your own account.",
+    "in2": "If I can't sort it out, I'll pass the chat to a person.",
+    "out": "Hi. I can answer questions about tournaments, teams, transfers, rankings and rules.",
+    "out2": "Sign in and I can also check your own team and registrations."
+  },
+  "chips": {
+    "tiers": "How do tournament tiers work?",
+    "leave": "Why can't I leave my team?",
+    "window": "When does the next transfer window open?",
+    "person": "I need to talk to a person"
+  },
+  "placeholder": "Ask about AFC or your account",
+  "inputLabel": "Your question",
+  "send": "Send",
+  "writing": "AFC Help is writing an answer",
+  "checkedAccount": "Checked your account",
+  "signIn": "Sign in",
+  "createAccount": "Create an account",
+  "talkToPerson": "Talk to a person",
+  "signInFallback": "Sign in and I can check your account.",
+  "personFallback": "A person should look at this. Press Talk to a person and the support team will pick it up.",
+  "foot": {
+    "disclaimer": "AI answers can be wrong.",
+    "left": "AI answers can be wrong. {count, plural, one {# question} other {# questions}} left today.",
+    "none": "No questions left today.",
+    "offline": "Offline"
+  },
+  "person": {
+    "introIn": "I'll open a support ticket and attach this chat, so you won't have to explain again.",
+    "introOut": "Where should the support team reply? I'll attach this chat to the ticket.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "messageLabel": "What do you need help with?",
+    "openTicket": "Open a ticket",
+    "opening": "Opening the ticket",
+    "cancel": "Cancel"
+  },
+  "ticket": {
+    "done": "Done. I've opened a support ticket and attached this chat, so you won't have to explain again.",
+    "doneNoChat": "Done. Your support ticket is open.",
+    "existing": "This chat is already with the support team. I've added the latest messages to your ticket.",
+    "replyIn": "A support admin will reply by email and in My tickets.",
+    "replyOut": "A support admin will reply to {email}.",
+    "openMine": "Open My tickets",
+    "openPage": "Open the ticket"
+  },
+  "errors": {
+    "limit": "You've used today's {limit} questions. You can ask again tomorrow, or open a ticket and a person will reply.",
+    "networkLimit": "Too many questions have come from your network today. Sign in to keep asking, or open a ticket and a person will reply.",
+    "offline": "The assistant is offline right now. You can still open a ticket and a person will reply.",
+    "busy": "The assistant is busy. Try again in a few seconds.",
+    "slowDown": "Slow down a little, then ask again.",
+    "timeout": "The assistant took too long. Try again.",
+    "failed": "The assistant could not answer that. Try again, or talk to a person.",
+    "network": "Could not reach AFC. Check your connection and try again.",
+    "botCheck": "We could not confirm you are a person. Complete the check and send again.",
+    "conversationGone": "That conversation has ended. Ask again to start a new one.",
+    "emailInvalid": "Enter an email address the support team can reply to.",
+    "handoffEmpty": "Tell us what you need help with.",
+    "handoffLimit": "You've opened several tickets in the last hour. A person will reply to those.",
+    "ticketFailed": "The ticket could not be opened. Try again, or use the form on the Support page.",
+    "retry": "Try again"
+  }
+}
