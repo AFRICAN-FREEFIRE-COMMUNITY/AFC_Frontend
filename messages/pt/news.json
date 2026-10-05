@@ -6,7 +6,9 @@
     "general": "Notícias Gerais",
     "tournament": "Atualizações de Torneios",
     "education": "Atualizações Educativas",
-    "bans": "Atualizações de Jogadores/Equipes Banidos"
+    "team_updates": "Atualizações de Equipes",
+    "bans": "Jogadores Banidos",
+    "banned_teams": "Equipes Banidas"
   },
   "search": {
     "placeholder": "Pesquisar notícias por título, conteúdo ou autor...",

@@ -91,7 +91,9 @@ const NewsAdminPage = () => {
     { value: "general", label: tNews("categories.general") },
     { value: "tournament", label: tNews("categories.tournament") },
     { value: "education", label: tNews("categories.education") },
+    { value: "team_updates", label: tNews("categories.team_updates") },
     { value: "bans", label: tNews("categories.bans") },
+    { value: "banned_teams", label: tNews("categories.banned_teams") },
   ];
 
   const getCategoryLabel = (category: string) => {

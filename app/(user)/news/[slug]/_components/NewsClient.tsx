@@ -147,7 +147,8 @@ export function NewsClient({
   };
 
   // Category badge label. get-news-detail returns the RAW category key ("general" | "tournament" |
-  // "education" | "bans" - backend News.CATEGORY_CHOICES); this maps it to the viewer's language
+  // "education" | "team_updates" | "bans" | "banned_teams", backend News.CATEGORY_CHOICES); this
+  // maps it to the viewer's language
   // using the SAME messages/<locale>/news.json categories.* keys the /news list and the home-page
   // teaser use, so one post is labelled identically everywhere. Previously the raw key was printed,
   // which showed an English key to every viewer and would have read as a bare "Education" for the

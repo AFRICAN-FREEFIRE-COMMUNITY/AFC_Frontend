@@ -154,7 +154,11 @@ export const newsCategories: {
   { value: "general", label: "General News" },
   { value: "tournament", label: "Tournament Updates" },
   { value: "education", label: "Education Updates", newSince: "2026-08-07" },
-  { value: "bans", label: "Banned Player/Team Updates" },
+  // Inbox #145 (owner 2026-10-05, "All three"): team news, and the ban board split in two. "bans"
+  // keeps its key, so every existing ban post stays put and now reads as banned PLAYERS.
+  { value: "team_updates", label: "Team Updates", newSince: "2026-10-05" },
+  { value: "bans", label: "Banned Players" },
+  { value: "banned_teams", label: "Banned Teams", newSince: "2026-10-05" },
 ];
 
 export const relatedEvents = [

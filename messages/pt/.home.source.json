@@ -70,7 +70,7 @@
   "latestNews.categories.general": "General News",
   "latestNews.categories.tournament": "Tournament Updates",
   "latestNews.categories.education": "Education Updates",
-  "latestNews.categories.bans": "Banned Player/Team Updates",
+  "latestNews.categories.bans": "Banned Players",
   "latestNews.toast.error": "Oops! An error occurred",
   "featuredShop.title": "Featured Shop Items",
   "featuredShop.empty": "No products available yet. Check back soon.",
@@ -318,5 +318,7 @@
   "landing.transfers.headingHighlight": "Who's moving",
   "landing.transfers.headingRest": "in AFC",
   "landing.transfers.intro": "Every time a player joins or leaves a team that has competed, it shows up here on its own.",
-  "landing.transfers.total": "{count, plural, one {# move recorded so far.} other {{formatted} moves recorded so far.}}"
+  "landing.transfers.total": "{count, plural, one {# move recorded so far.} other {{formatted} moves recorded so far.}}",
+  "latestNews.categories.team_updates": "Team Updates",
+  "latestNews.categories.banned_teams": "Banned Teams"
 }
