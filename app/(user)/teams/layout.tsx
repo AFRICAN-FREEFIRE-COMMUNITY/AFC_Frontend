@@ -2,9 +2,10 @@ import { Metadata } from "next";
 import { generatePageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = generatePageMetadata({
-  title: "Teams",
+  // Teams & Players (inbox #161): the page now lists players too (the Players tab).
+  title: "Teams & Players",
   description:
-    "Explore and join Free Fire esports teams in Africa. View team rosters, rankings, and tiers. Create your own team or apply to join existing teams on AFC.",
+    "Explore Free Fire esports teams and players in Africa. View team rosters, tiers and player profiles. Create your own team or apply to join one on AFC.",
   keywords: [
     "Free Fire teams",
     "esports teams Africa",
@@ -12,6 +13,7 @@ export const metadata: Metadata = generatePageMetadata({
     "create team",
     "AFC teams",
     "Free Fire clan",
+    "Free Fire players Africa",
   ],
   url: "/teams",
 });

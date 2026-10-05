@@ -75,6 +75,28 @@
     },
     "loadMore": "Carregar mais",
     "loading": "Carregando transferências...",
-    "error": "Falha ao carregar as transferências"
+    "error": "Falha ao carregar as transferências",
+    "searchPlaceholder": "Buscar um jogador ou uma equipe...",
+    "filterLabels": {
+      "country": "País",
+      "tier": "Nível",
+      "direction": "Entrada ou saída",
+      "team": "Equipe"
+    },
+    "countryFilter": {
+      "all": "Todos os países"
+    },
+    "tierFilter": {
+      "all": "Todos os níveis",
+      "tier": "Nível {tier}"
+    },
+    "directionFilter": {
+      "all": "Entradas e saídas",
+      "joined": "Entradas",
+      "left": "Saídas"
+    },
+    "clearFilters": "Limpar filtros",
+    "emptyFiltered": "Nenhuma movimentação corresponde a esses filtros.",
+    "retry": "Tentar novamente"
   }
 }

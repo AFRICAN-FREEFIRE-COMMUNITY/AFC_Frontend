@@ -75,6 +75,28 @@
     },
     "loadMore": "Afficher plus",
     "loading": "Chargement des transferts...",
-    "error": "Échec du chargement des transferts"
+    "error": "Échec du chargement des transferts",
+    "searchPlaceholder": "Rechercher un joueur ou une équipe...",
+    "filterLabels": {
+      "country": "Pays",
+      "tier": "Niveau",
+      "direction": "Arrivée ou départ",
+      "team": "Équipe"
+    },
+    "countryFilter": {
+      "all": "Tous les pays"
+    },
+    "tierFilter": {
+      "all": "Tous les niveaux",
+      "tier": "Niveau {tier}"
+    },
+    "directionFilter": {
+      "all": "Arrivées et départs",
+      "joined": "Arrivées",
+      "left": "Départs"
+    },
+    "clearFilters": "Effacer les filtres",
+    "emptyFiltered": "Aucun mouvement ne correspond à ces filtres.",
+    "retry": "Réessayer"
   }
 }

@@ -32,8 +32,8 @@
     "signInAgain": "Votre session a expiré. Reconnectez-vous pour créer votre équipe."
   },
   "teamsList": {
-    "pageTitle": "Équipes",
-    "pageDescription": "Explorez et gérez les équipes Freefire",
+    "pageTitle": "Équipes et joueurs",
+    "pageDescription": "Trouvez des équipes et des joueurs à travers l'Afrique, ouvrez leurs profils ou créez votre équipe.",
     "createTeam": "Créer une équipe",
     "searchPlaceholder": "Rechercher des équipes...",
     "tabAllTeams": "Toutes les équipes",
@@ -746,5 +746,20 @@
     "playerCount": "{count} joueurs",
     "noTeam": "Aucune equipe relevee",
     "tabLabel": "Profils non reclames"
+  },
+  "playersDirectory": {
+    "tabTeams": "Équipes",
+    "tabPlayers": "Joueurs",
+    "title": "Tous les joueurs",
+    "description": "Les joueurs membres d'une équipe ou ayant un match enregistré, par nom. Ouvrez un joueur pour voir son profil.",
+    "searchPlaceholder": "Rechercher un joueur par pseudo en jeu...",
+    "countryLabel": "Pays",
+    "allCountries": "Tous les pays",
+    "noTeam": "Sans équipe",
+    "loading": "Chargement des joueurs...",
+    "error": "Impossible de charger les joueurs.",
+    "retry": "Réessayer",
+    "empty": "Aucun joueur à afficher pour le moment.",
+    "noMatch": "Aucun joueur ne correspond à votre recherche."
   }
 }

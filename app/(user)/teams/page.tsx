@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { Suspense, useEffect, useState, useTransition } from "react";
+// Teams & Players (inbox #153 / #161): ?tab=players opens the Players tab, so the help bot and any
+// shared link can land on it; the Players tab itself is its own component.
+import { IconUser, IconUsers } from "@tabler/icons-react";
+import { useAddressTab } from "@/lib/useAddressTab";
+import { PlayersDirectory } from "@/components/teams/PlayersDirectory";
 import {
   Pagination,
   PaginationContent,
@@ -59,9 +64,19 @@ import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
 // Mirrors JoinRequest.message max_length on the backend (afc_team/models.py).
 const JOIN_MESSAGE_MAX = 150;
 
-function page() {
-  // i18n: teams browse list copy (messages/en/teamsplayers.json -> "teamsList").
+// The two halves of the page (owner 2026-10-05: "that team page can be renamed to Teams & Players.
+// Then people can choose the teams tab or the players tab and search for and view the profiles of
+// players").
+const SECTIONS = ["teams", "players"] as const;
+type Section = (typeof SECTIONS)[number];
+// The Players tab went live on this day; its NEW tag expires by itself 5 days later.
+const PLAYERS_TAB_SINCE = "2026-10-05";
+
+function TeamsAndPlayersPage() {
+  // i18n: teams browse list copy (messages/en/teamsplayers.json -> "teamsList"), and the Players
+  // tab's own copy under "playersDirectory".
   const t = useTranslations("teamsplayers");
+  const [section, setSection] = useAddressTab<Section>("tab", SECTIONS, "teams");
   // Scoped separately so the new block owns its own keys rather than widening the shared one.
   const tu = useTranslations("teamsplayers.unclaimed");
   const [search, setSearch] = useState("");
@@ -213,8 +228,6 @@ function page() {
     });
   };
 
-  if (pending) return <FullLoader />;
-
   return (
     <div>
       <div className="flex items-start mb-4 md:items-center justify-between gap-2 flex-col md:flex-row">
@@ -229,432 +242,458 @@ function page() {
         </Button>
       </div>
 
-      {/* Transfer-window OPEN/CLOSED status - self-fetching the active ranking
-          season; when CLOSED the backend freezes leave/kick/disband (afc_team),
-          so this banner explains why those actions are blocked here. */}
-      <TransferWindowBanner className="mb-4" />
-
-      <div className="mb-4">
-        <Input
-          placeholder={t("teamsList.searchPlaceholder")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full"
-        />
-      </div>
-
-      {/* data-tour anchor (guided welcome tour): the teams browse + join list.
-          Targeted by guided-tour-stops.ts -> teams stop -> "teams-list". */}
-      <Tabs value={tab} onValueChange={setTab} className="space-y-4" data-tour="teams-list">
-        {/* WRAPS on a phone (owner 2026-08-24). Four tabs on one 390px row measured 421px and
-            scrolled the whole page sideways. Wrapping to two rows is chosen over an overflow-x
-            strip because all four stay visible: a tab a thumb has to discover by swiping is a tab
-            most people never find, and "Most active" and "Unclaimed profiles" are the two new ones.
-            h-auto because the shadcn TabsList is a fixed-height single row by default. */}
-        <TabsList className="flex h-auto w-full flex-wrap gap-1">
-          <TabsTrigger value="all-teams">{t("teamsList.tabAllTeams")}</TabsTrigger>
-          <TabsTrigger value="active" className="gap-1.5">
-            {t("teamsList.tabMostActive")}
-            <NewBadge since="2026-08-24" />
+      <Tabs value={section} onValueChange={(v) => setSection(v as Section)}>
+        <TabsList className="mb-5 h-10">
+          <TabsTrigger value="teams" className="text-sm">
+            <IconUsers className="mr-1.5 size-4" /> {t("playersDirectory.tabTeams")}
           </TabsTrigger>
-          <TabsTrigger value="my-team">{t("teamsList.tabMyTeam")}</TabsTrigger>
-          <TabsTrigger value="unclaimed" className="gap-1.5">
-            {tu("tabLabel")}
-            <NewBadge since="2026-08-24" />
+          <TabsTrigger value="players" className="gap-1.5 text-sm">
+            <IconUser className="size-4" /> {t("playersDirectory.tabPlayers")}
+            <NewBadge since={PLAYERS_TAB_SINCE} />
           </TabsTrigger>
         </TabsList>
 
-        {/* One panel serves BOTH the all-teams and most-active tabs: the card grid is identical and
-            only the ordering and the heading differ, so duplicating ~150 lines of JSX to change a
-            sort would be the worse trade. `listForTab` above decides which list is paginated. */}
-        <TabsContent value={tab === "active" ? "active" : "all-teams"} className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {tab === "active" ? t("teamsList.mostActiveTitle") : t("teamsList.allTeamsTitle")}
-              </CardTitle>
-              <CardDescription>
-                {tab === "active"
-                  ? t("teamsList.mostActiveDescription")
-                  : t("teamsList.allTeamsDescription")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                {paginatedTeams.length > 0 ? (
-                  paginatedTeams.map((team: any) => (
-                    <Card
-                      key={team.team_name}
-                      className={`card-hover gap-1.5 ${
-                        team.is_banned ? "border-destructive" : ""
-                      }`}
-                    >
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 capitalize">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage
-                              src={team.team_logo}
-                              alt={`${team.team_name} logo`}
-                              className="object-cover"
-                            />
-                            <AvatarFallback>{team.team_name[0]}</AvatarFallback>
-                          </Avatar>
-                          {/* Team name links to the public team page. */}
-                          <TeamLink
-                            name={team.team_name}
-                            country={team.country}
-                            className="uppercase text-lg md:text-xl"
-                          />
-                          {team.is_banned && (
-                            <Badge variant="destructive">{t("teamsList.banned")}</Badge>
-                          )}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="text-sm md:text-base">
-                        {/* The team's own description, which the public could not see anywhere
-                            (owner 2026-08-24): it rendered only on the owner's My Team panel and
-                            on no public surface at all, so every team's blurb was written and then
-                            hidden. Clamped to two lines so a long one cannot stretch the card. */}
-                        {team.team_description && (
-                          <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">
-                            {team.team_description}
-                          </p>
+        <TabsContent value="teams">
+          {pending ? (
+            <div className="py-12">
+              <Loader text={t("common.loading")} />
+            </div>
+          ) : (
+            <>
+              {/* Transfer-window OPEN/CLOSED status - self-fetching the active ranking
+                  season; when CLOSED the backend freezes leave/kick/disband (afc_team),
+                  so this banner explains why those actions are blocked here. */}
+              <TransferWindowBanner className="mb-4" />
+
+              <div className="mb-4">
+                <Input
+                  placeholder={t("teamsList.searchPlaceholder")}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* data-tour anchor (guided welcome tour): the teams browse + join list.
+                  Targeted by guided-tour-stops.ts -> teams stop -> "teams-list". */}
+              <Tabs value={tab} onValueChange={setTab} className="space-y-4" data-tour="teams-list">
+                {/* WRAPS on a phone (owner 2026-08-24). Four tabs on one 390px row measured 421px and
+                    scrolled the whole page sideways. Wrapping to two rows is chosen over an overflow-x
+                    strip because all four stay visible: a tab a thumb has to discover by swiping is a tab
+                    most people never find, and "Most active" and "Unclaimed profiles" are the two new ones.
+                    h-auto because the shadcn TabsList is a fixed-height single row by default. */}
+                <TabsList className="flex h-auto w-full flex-wrap gap-1">
+                  <TabsTrigger value="all-teams">{t("teamsList.tabAllTeams")}</TabsTrigger>
+                  <TabsTrigger value="active" className="gap-1.5">
+                    {t("teamsList.tabMostActive")}
+                    <NewBadge since="2026-08-24" />
+                  </TabsTrigger>
+                  <TabsTrigger value="my-team">{t("teamsList.tabMyTeam")}</TabsTrigger>
+                  <TabsTrigger value="unclaimed" className="gap-1.5">
+                    {tu("tabLabel")}
+                    <NewBadge since="2026-08-24" />
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* One panel serves BOTH the all-teams and most-active tabs: the card grid is identical and
+                    only the ordering and the heading differ, so duplicating ~150 lines of JSX to change a
+                    sort would be the worse trade. `listForTab` above decides which list is paginated. */}
+                <TabsContent value={tab === "active" ? "active" : "all-teams"} className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>
+                        {tab === "active" ? t("teamsList.mostActiveTitle") : t("teamsList.allTeamsTitle")}
+                      </CardTitle>
+                      <CardDescription>
+                        {tab === "active"
+                          ? t("teamsList.mostActiveDescription")
+                          : t("teamsList.allTeamsDescription")}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                        {paginatedTeams.length > 0 ? (
+                          paginatedTeams.map((team: any) => (
+                            <Card
+                              key={team.team_name}
+                              className={`card-hover gap-1.5 ${
+                                team.is_banned ? "border-destructive" : ""
+                              }`}
+                            >
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2 capitalize">
+                                  <Avatar className="w-10 h-10">
+                                    <AvatarImage
+                                      src={team.team_logo}
+                                      alt={`${team.team_name} logo`}
+                                      className="object-cover"
+                                    />
+                                    <AvatarFallback>{team.team_name[0]}</AvatarFallback>
+                                  </Avatar>
+                                  {/* Team name links to the public team page. */}
+                                  <TeamLink
+                                    name={team.team_name}
+                                    country={team.country}
+                                    className="uppercase text-lg md:text-xl"
+                                  />
+                                  {team.is_banned && (
+                                    <Badge variant="destructive">{t("teamsList.banned")}</Badge>
+                                  )}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="text-sm md:text-base">
+                                {/* The team's own description, which the public could not see anywhere
+                                    (owner 2026-08-24): it rendered only on the owner's My Team panel and
+                                    on no public surface at all, so every team's blurb was written and then
+                                    hidden. Clamped to two lines so a long one cannot stretch the card. */}
+                                {team.team_description && (
+                                  <p className="mb-2 line-clamp-2 text-xs text-muted-foreground">
+                                    {team.team_description}
+                                  </p>
+                                )}
+                                <p>
+                                  {t("teamsList.members", { count: team.member_count ? team.member_count : 0 })}
+                                </p>
+                                <p>{t("teamsList.tier", { tier: team.team_tier })}</p>
+                                {/* On the Most active tab, show WHY the team is on it. A rank with no
+                                    number behind it is a claim the reader cannot check. */}
+                                {tab === "active" && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {t("teamsList.activityLine", {
+                                      events: team.events_played ?? 0,
+                                      matches: team.matches_played ?? 0,
+                                    })}
+                                  </p>
+                                )}
+                                <div className="flex gap-2 justify-between mt-6">
+                                  <Button
+                                    variant={"gradient"}
+                                    className="button-gradient flex-1"
+                                    asChild
+                                  >
+                                    <Link href={teamPath(team.team_name)}>
+                                      {t("teamsList.viewTeam")}
+                                    </Link>
+                                  </Button>
+                                  {team.team_owner !== user?.in_game_name && (
+                                    <Dialog
+                                      open={
+                                        dialogOpen &&
+                                        selectedTeam?.team_id === team.team_id
+                                      }
+                                      onOpenChange={(open) => {
+                                        setDialogOpen(open);
+                                        if (!open) {
+                                          setSelectedTeam(null);
+                                          setApplicationMessage("");
+                                        }
+                                      }}
+                                    >
+                                      <DialogTrigger asChild>
+                                        <Button
+                                          variant="secondary"
+                                          onClick={() => {
+                                            setSelectedTeam(team);
+                                            setDialogOpen(true);
+                                          }}
+                                          className="flex-1"
+                                          disabled={
+                                            team.is_banned ||
+                                            team.member_count >= 6 ||
+                                            appliedTeams.has(team.team_id)
+                                          }
+                                        >
+                                          {appliedTeams.has(team.team_id)
+                                            ? t("teamsList.applied")
+                                            : t("teamsList.applyToJoin")}
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>
+                                            {t("teamsList.applyDialogTitle", { team: selectedTeam?.team_name })}
+                                          </DialogTitle>
+                                          <DialogDescription>
+                                            {t("teamsList.applyDialogDescription")}
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                          <div>
+                                            <Label
+                                              htmlFor="application-message"
+                                              className="mb-2.5"
+                                            >
+                                              {t("teamsList.messageLabel")}
+                                            </Label>
+                                            {/* 150 = JoinRequest.message on the backend. Without the cap a
+                                                longer note reached MySQL and came back as "An error
+                                                occurred" (inbox #23, 20 times in a week). */}
+                                            <Textarea
+                                              id="application-message"
+                                              value={applicationMessage}
+                                              maxLength={JOIN_MESSAGE_MAX}
+                                              onChange={(e) =>
+                                                setApplicationMessage(e.target.value.slice(0, JOIN_MESSAGE_MAX))
+                                              }
+                                              placeholder={t("teamsList.messagePlaceholder")}
+                                            />
+                                            <p className="mt-1 text-right text-xs tabular-nums text-muted-foreground">
+                                              {t("teamsList.messageCount", {
+                                                count: applicationMessage.length,
+                                                max: JOIN_MESSAGE_MAX,
+                                              })}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <DialogFooter>
+                                          <Button
+                                            type="submit"
+                                            disabled={pendingRequest}
+                                            onClick={() =>
+                                              handleApply(selectedTeam?.team_id)
+                                            }
+                                          >
+                                            {pendingRequest ? (
+                                              <Loader />
+                                            ) : (
+                                              t("teamsList.sendApplication")
+                                            )}
+                                          </Button>
+                                        </DialogFooter>
+                                      </DialogContent>
+                                    </Dialog>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))
+                        ) : (
+                          <div className="col-span-full text-center text-muted-foreground py-8">
+                            {search
+                              ? t("teamsList.noTeamsMatch")
+                              : t("teamsList.noTeamsAvailable")}
+                          </div>
                         )}
-                        <p>
-                          {t("teamsList.members", { count: team.member_count ? team.member_count : 0 })}
-                        </p>
-                        <p>{t("teamsList.tier", { tier: team.team_tier })}</p>
-                        {/* On the Most active tab, show WHY the team is on it. A rank with no
-                            number behind it is a claim the reader cannot check. */}
-                        {tab === "active" && (
-                          <p className="text-xs text-muted-foreground">
-                            {t("teamsList.activityLine", {
-                              events: team.events_played ?? 0,
-                              matches: team.matches_played ?? 0,
+                      </div>
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-between mt-4">
+                          <p className="hidden md:block text-sm text-muted-foreground">
+                            {t("teamsList.showing", {
+                              start: (currentPage - 1) * ITEMS_PER_PAGE + 1,
+                              end: Math.min(currentPage * ITEMS_PER_PAGE, filteredTeams.length),
+                              total: filteredTeams.length,
                             })}
                           </p>
+                          <Pagination className="w-full md:w-auto mx-0">
+                            <PaginationContent>
+                              <PaginationItem>
+                                <PaginationPrevious
+                                  onClick={() =>
+                                    setCurrentPage((p) => Math.max(1, p - 1))
+                                  }
+                                  className={
+                                    currentPage === 1
+                                      ? "pointer-events-none opacity-50"
+                                      : "cursor-pointer"
+                                  }
+                                />
+                              </PaginationItem>
+                              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                .filter(
+                                  (page) =>
+                                    page === 1 ||
+                                    page === totalPages ||
+                                    Math.abs(page - currentPage) <= 1,
+                                )
+                                .map((page, idx, arr) => (
+                                  <React.Fragment key={page}>
+                                    {idx > 0 && arr[idx - 1] !== page - 1 && (
+                                      <PaginationItem>
+                                        <PaginationEllipsis />
+                                      </PaginationItem>
+                                    )}
+                                    <PaginationItem>
+                                      <PaginationLink
+                                        isActive={currentPage === page}
+                                        onClick={() => setCurrentPage(page)}
+                                        className="cursor-pointer"
+                                      >
+                                        {page}
+                                      </PaginationLink>
+                                    </PaginationItem>
+                                  </React.Fragment>
+                                ))}
+                              <PaginationItem>
+                                <PaginationNext
+                                  onClick={() =>
+                                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                                  }
+                                  className={
+                                    currentPage === totalPages
+                                      ? "pointer-events-none opacity-50"
+                                      : "cursor-pointer"
+                                  }
+                                />
+                              </PaginationItem>
+                            </PaginationContent>
+                          </Pagination>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="my-team" className="space-y-4">
+                  {myTeam ? (
+                    <Card className={myTeam.is_banned ? "bg-destructive/10" : ""}>
+                      <CardContent className="space-y-5">
+                        {/* Header */}
+                        <div className="flex items-center gap-4">
+                          <Avatar className="h-16 w-16 rounded-lg shrink-0 bg-muted/30">
+                            <AvatarImage
+                              src={myTeam.team_logo}
+                              alt={`${myTeam.team_name} logo`}
+                              className="object-cover"
+                            />
+                            <AvatarFallback className="rounded-lg text-lg font-bold">
+                              {myTeam.team_name?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h2 className="text-lg font-semibold leading-tight truncate uppercase">
+                                {/* Team name links to the public team page; flag = team's auto-derived country. */}
+                                <TeamLink name={myTeam.team_name} country={myTeam.country} />
+                              </h2>
+                              {myTeam.team_tag && (
+                                <Badge variant="outline" className="text-xs shrink-0">
+                                  [{myTeam.team_tag}]
+                                </Badge>
+                              )}
+                              <Badge variant="outline" className="text-xs shrink-0">
+                                {t("teamsList.tierLabel", { tier: myTeam.team_tier })}
+                              </Badge>
+                              {myTeam.is_banned && (
+                                <Badge
+                                  variant="destructive"
+                                  className="text-xs shrink-0"
+                                >
+                                  {t("teamsList.banned")}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+                              {myTeam.country && <span>{myTeam.country}</span>}
+                              <span>
+                                {t("teamsList.memberCount", { count: myTeam.member_count ?? 0 })}
+                              </span>
+                              {myTeam.creation_date && (
+                                <span>
+                                  {/* "Founded <month year>" in the viewer's timezone + language. */}
+                                  {t.rich("teamsList.founded", {
+                                    date: () => (
+                                      <LocalTime value={myTeam.creation_date} mode="date" />
+                                    ),
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {myTeam.team_description && (
+                          <p className="text-sm text-muted-foreground leading-relaxed border-t pt-4">
+                            {myTeam.team_description}
+                          </p>
                         )}
-                        <div className="flex gap-2 justify-between mt-6">
+
+                        {/* Stats grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          <div className="rounded-lg bg-muted/30 p-3">
+                            <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                              {t("teamsList.yourRole")}
+                            </p>
+                            <p className="text-sm font-medium mt-0.5 capitalize">
+                              {myTeam.user_role_in_team?.replace(/_/g, " ") ?? t("teamsList.roleMember")}
+                            </p>
+                          </div>
+                          <div className="rounded-lg bg-muted/30 p-3">
+                            <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                              {t("teamsList.owner")}
+                            </p>
+                            <p className="text-sm font-medium mt-0.5 truncate">
+                              {/* Owner IGN links to the owner's public player profile. */}
+                              <PlayerLink name={myTeam.team_owner} />
+                            </p>
+                          </div>
+                          <div className="rounded-lg bg-muted/30 p-3">
+                            <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                              {t("teamsList.joined")}
+                            </p>
+                            <p className="text-sm font-medium mt-0.5">
+                              {/* Join date in the viewer's timezone + language. */}
+                              {myTeam.join_date ? (
+                                <LocalTime value={myTeam.join_date} mode="date" />
+                              ) : (
+                                "-"
+                              )}
+                            </p>
+                          </div>
+                          <div className="rounded-lg bg-muted/30 p-3">
+                            <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                              {t("teamsList.joinPolicy")}
+                            </p>
+                            <p className="text-sm font-medium mt-0.5 capitalize">
+                              {myTeam.join_settings?.replace(/_/g, " ") ?? "-"}
+                            </p>
+                          </div>
+                          {myTeam.in_game_role && (
+                            <div className="rounded-lg bg-muted/30 p-3">
+                              <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                                {t("teamsList.inGameRole")}
+                              </p>
+                              <p className="text-sm font-medium mt-0.5">
+                                {myTeam.in_game_role}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="pt-1">
                           <Button
-                            variant={"gradient"}
-                            className="button-gradient flex-1"
+                            variant="gradient"
+                            className="w-full button-gradient"
                             asChild
                           >
-                            <Link href={teamPath(team.team_name)}>
-                              {t("teamsList.viewTeam")}
+                            <Link href={teamPath(myTeam.team_name)}>
+                              {t("teamsList.viewFullTeam")}
                             </Link>
                           </Button>
-                          {team.team_owner !== user?.in_game_name && (
-                            <Dialog
-                              open={
-                                dialogOpen &&
-                                selectedTeam?.team_id === team.team_id
-                              }
-                              onOpenChange={(open) => {
-                                setDialogOpen(open);
-                                if (!open) {
-                                  setSelectedTeam(null);
-                                  setApplicationMessage("");
-                                }
-                              }}
-                            >
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="secondary"
-                                  onClick={() => {
-                                    setSelectedTeam(team);
-                                    setDialogOpen(true);
-                                  }}
-                                  className="flex-1"
-                                  disabled={
-                                    team.is_banned ||
-                                    team.member_count >= 6 ||
-                                    appliedTeams.has(team.team_id)
-                                  }
-                                >
-                                  {appliedTeams.has(team.team_id)
-                                    ? t("teamsList.applied")
-                                    : t("teamsList.applyToJoin")}
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    {t("teamsList.applyDialogTitle", { team: selectedTeam?.team_name })}
-                                  </DialogTitle>
-                                  <DialogDescription>
-                                    {t("teamsList.applyDialogDescription")}
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                  <div>
-                                    <Label
-                                      htmlFor="application-message"
-                                      className="mb-2.5"
-                                    >
-                                      {t("teamsList.messageLabel")}
-                                    </Label>
-                                    {/* 150 = JoinRequest.message on the backend. Without the cap a
-                                        longer note reached MySQL and came back as "An error
-                                        occurred" (inbox #23, 20 times in a week). */}
-                                    <Textarea
-                                      id="application-message"
-                                      value={applicationMessage}
-                                      maxLength={JOIN_MESSAGE_MAX}
-                                      onChange={(e) =>
-                                        setApplicationMessage(e.target.value.slice(0, JOIN_MESSAGE_MAX))
-                                      }
-                                      placeholder={t("teamsList.messagePlaceholder")}
-                                    />
-                                    <p className="mt-1 text-right text-xs tabular-nums text-muted-foreground">
-                                      {t("teamsList.messageCount", {
-                                        count: applicationMessage.length,
-                                        max: JOIN_MESSAGE_MAX,
-                                      })}
-                                    </p>
-                                  </div>
-                                </div>
-                                <DialogFooter>
-                                  <Button
-                                    type="submit"
-                                    disabled={pendingRequest}
-                                    onClick={() =>
-                                      handleApply(selectedTeam?.team_id)
-                                    }
-                                  >
-                                    {pendingRequest ? (
-                                      <Loader />
-                                    ) : (
-                                      t("teamsList.sendApplication")
-                                    )}
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          )}
                         </div>
                       </CardContent>
                     </Card>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center text-muted-foreground py-8">
-                    {search
-                      ? t("teamsList.noTeamsMatch")
-                      : t("teamsList.noTeamsAvailable")}
-                  </div>
-                )}
-              </div>
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <p className="hidden md:block text-sm text-muted-foreground">
-                    {t("teamsList.showing", {
-                      start: (currentPage - 1) * ITEMS_PER_PAGE + 1,
-                      end: Math.min(currentPage * ITEMS_PER_PAGE, filteredTeams.length),
-                      total: filteredTeams.length,
-                    })}
-                  </p>
-                  <Pagination className="w-full md:w-auto mx-0">
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() =>
-                            setCurrentPage((p) => Math.max(1, p - 1))
-                          }
-                          className={
-                            currentPage === 1
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(
-                          (page) =>
-                            page === 1 ||
-                            page === totalPages ||
-                            Math.abs(page - currentPage) <= 1,
-                        )
-                        .map((page, idx, arr) => (
-                          <React.Fragment key={page}>
-                            {idx > 0 && arr[idx - 1] !== page - 1 && (
-                              <PaginationItem>
-                                <PaginationEllipsis />
-                              </PaginationItem>
-                            )}
-                            <PaginationItem>
-                              <PaginationLink
-                                isActive={currentPage === page}
-                                onClick={() => setCurrentPage(page)}
-                                className="cursor-pointer"
-                              >
-                                {page}
-                              </PaginationLink>
-                            </PaginationItem>
-                          </React.Fragment>
-                        ))}
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() =>
-                            setCurrentPage((p) => Math.min(totalPages, p + 1))
-                          }
-                          className={
-                            currentPage === totalPages
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="my-team" className="space-y-4">
-          {myTeam ? (
-            <Card className={myTeam.is_banned ? "bg-destructive/10" : ""}>
-              <CardContent className="space-y-5">
-                {/* Header */}
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16 rounded-lg shrink-0 bg-muted/30">
-                    <AvatarImage
-                      src={myTeam.team_logo}
-                      alt={`${myTeam.team_name} logo`}
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="rounded-lg text-lg font-bold">
-                      {myTeam.team_name?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-lg font-semibold leading-tight truncate uppercase">
-                        {/* Team name links to the public team page; flag = team's auto-derived country. */}
-                        <TeamLink name={myTeam.team_name} country={myTeam.country} />
-                      </h2>
-                      {myTeam.team_tag && (
-                        <Badge variant="outline" className="text-xs shrink-0">
-                          [{myTeam.team_tag}]
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="text-xs shrink-0">
-                        {t("teamsList.tierLabel", { tier: myTeam.team_tier })}
-                      </Badge>
-                      {myTeam.is_banned && (
-                        <Badge
-                          variant="destructive"
-                          className="text-xs shrink-0"
-                        >
-                          {t("teamsList.banned")}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
-                      {myTeam.country && <span>{myTeam.country}</span>}
-                      <span>
-                        {t("teamsList.memberCount", { count: myTeam.member_count ?? 0 })}
-                      </span>
-                      {myTeam.creation_date && (
-                        <span>
-                          {/* "Founded <month year>" in the viewer's timezone + language. */}
-                          {t.rich("teamsList.founded", {
-                            date: () => (
-                              <LocalTime value={myTeam.creation_date} mode="date" />
-                            ),
-                          })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {myTeam.team_description && (
-                  <p className="text-sm text-muted-foreground leading-relaxed border-t pt-4">
-                    {myTeam.team_description}
-                  </p>
-                )}
-
-                {/* Stats grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <div className="rounded-lg bg-muted/30 p-3">
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      {t("teamsList.yourRole")}
-                    </p>
-                    <p className="text-sm font-medium mt-0.5 capitalize">
-                      {myTeam.user_role_in_team?.replace(/_/g, " ") ?? t("teamsList.roleMember")}
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-muted/30 p-3">
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      {t("teamsList.owner")}
-                    </p>
-                    <p className="text-sm font-medium mt-0.5 truncate">
-                      {/* Owner IGN links to the owner's public player profile. */}
-                      <PlayerLink name={myTeam.team_owner} />
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-muted/30 p-3">
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      {t("teamsList.joined")}
-                    </p>
-                    <p className="text-sm font-medium mt-0.5">
-                      {/* Join date in the viewer's timezone + language. */}
-                      {myTeam.join_date ? (
-                        <LocalTime value={myTeam.join_date} mode="date" />
-                      ) : (
-                        "-"
-                      )}
-                    </p>
-                  </div>
-                  <div className="rounded-lg bg-muted/30 p-3">
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                      {t("teamsList.joinPolicy")}
-                    </p>
-                    <p className="text-sm font-medium mt-0.5 capitalize">
-                      {myTeam.join_settings?.replace(/_/g, " ") ?? "-"}
-                    </p>
-                  </div>
-                  {myTeam.in_game_role && (
-                    <div className="rounded-lg bg-muted/30 p-3">
-                      <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
-                        {t("teamsList.inGameRole")}
-                      </p>
-                      <p className="text-sm font-medium mt-0.5">
-                        {myTeam.in_game_role}
-                      </p>
-                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="text-center text-muted-foreground py-12">
+                        {t("teamsList.notInTeam")}
+                      </CardContent>
+                    </Card>
                   )}
-                </div>
+                </TabsContent>
 
-                <div className="pt-1">
-                  <Button
-                    variant="gradient"
-                    className="w-full button-gradient"
-                    asChild
-                  >
-                    <Link href={teamPath(myTeam.team_name)}>
-                      {t("teamsList.viewFullTeam")}
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="text-center text-muted-foreground py-12">
-                {t("teamsList.notInTeam")}
-              </CardContent>
-            </Card>
+                {/* ── Unclaimed profiles (owner 2026-08-24) ──────────────────────────────────────────
+                    Ghost teams and players from tournaments AFC did not run. Previously reachable only
+                    from a ghost ROW on the rankings ladder, so anything not on a ladder could not be
+                    claimed at all. Same ClaimGhostDialog, reached without the ladder. */}
+                <TabsContent value="unclaimed" className="space-y-4">
+                  <UnclaimedProfiles />
+                </TabsContent>
+              </Tabs>
+            </>
           )}
         </TabsContent>
 
-        {/* ── Unclaimed profiles (owner 2026-08-24) ──────────────────────────────────────────
-            Ghost teams and players from tournaments AFC did not run. Previously reachable only
-            from a ghost ROW on the rankings ladder, so anything not on a ladder could not be
-            claimed at all. Same ClaimGhostDialog, reached without the ladder. */}
-        <TabsContent value="unclaimed" className="space-y-4">
-          <UnclaimedProfiles />
+        <TabsContent value="players">
+          <PlayersDirectory />
         </TabsContent>
       </Tabs>
       {joinLockDialog}
@@ -662,4 +701,11 @@ function page() {
   );
 }
 
-export default page;
+// Suspense because the page reads the address (useAddressTab).
+export default function TeamsPage() {
+  return (
+    <Suspense fallback={<FullLoader />}>
+      <TeamsAndPlayersPage />
+    </Suspense>
+  );
+}

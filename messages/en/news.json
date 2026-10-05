@@ -75,6 +75,28 @@
     },
     "loadMore": "Load more",
     "loading": "Loading transfers...",
-    "error": "Failed to load transfers"
+    "error": "Failed to load transfers",
+    "searchPlaceholder": "Search a player or a team...",
+    "filterLabels": {
+      "country": "Country",
+      "tier": "Tier",
+      "direction": "Joined or left",
+      "team": "Team"
+    },
+    "countryFilter": {
+      "all": "All countries"
+    },
+    "tierFilter": {
+      "all": "All tiers",
+      "tier": "Tier {tier}"
+    },
+    "directionFilter": {
+      "all": "Joined and left",
+      "joined": "Joined",
+      "left": "Left"
+    },
+    "clearFilters": "Clear filters",
+    "emptyFiltered": "No moves match these filters.",
+    "retry": "Try again"
   }
 }

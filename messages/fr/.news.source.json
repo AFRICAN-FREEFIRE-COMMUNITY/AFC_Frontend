@@ -48,5 +48,19 @@
   "transfers.loading": "Loading transfers...",
   "transfers.error": "Failed to load transfers",
   "categories.team_updates": "Team Updates",
-  "categories.banned_teams": "Banned Teams"
+  "categories.banned_teams": "Banned Teams",
+  "transfers.searchPlaceholder": "Search a player or a team...",
+  "transfers.filterLabels.country": "Country",
+  "transfers.filterLabels.tier": "Tier",
+  "transfers.filterLabels.direction": "Joined or left",
+  "transfers.filterLabels.team": "Team",
+  "transfers.countryFilter.all": "All countries",
+  "transfers.tierFilter.all": "All tiers",
+  "transfers.tierFilter.tier": "Tier {tier}",
+  "transfers.directionFilter.all": "Joined and left",
+  "transfers.directionFilter.joined": "Joined",
+  "transfers.directionFilter.left": "Left",
+  "transfers.clearFilters": "Clear filters",
+  "transfers.emptyFiltered": "No moves match these filters.",
+  "transfers.retry": "Try again"
 }
