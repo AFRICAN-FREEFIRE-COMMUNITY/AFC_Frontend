@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,16 +21,10 @@ import { EditNewsFormSchema, EditNewsFormSchemaType } from "@/lib/zodSchemas";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { RichTextEditor } from "@/components/text-editor/Editor";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { newsCategories } from "@/constants";
-// Shared, self-expiring NEW tag (owner rule: a new option in a picker wears one for 5 days).
-import { NewBadge } from "@/components/NewBadge";
+// The category field: one or several (inbox #160); it carries the NEW tags of new categories.
+import { NewsCategoryPicker } from "@/components/news/NewsCategoryPicker";
+// Reads the post's categories, falling back to its one `category` for an older post.
+import { newsCategoryKeys } from "@/lib/newsCategories";
 import { EventMultiSelect } from "@/components/news/EventMultiSelect";
 import { use, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
@@ -83,6 +78,10 @@ export default function EditNewsForm({ params }: { params: Params }) {
   // dialog, which is why those labels are translated too: an editor reading a confirmation in
   // English on an otherwise French screen would not know what they were agreeing to.
   const t = useTranslations("adminNews");
+  // Category labels for the confirm dialog's before / after (the words readers see).
+  const tNews = useTranslations("news");
+  const categoryLabels = (keys: string[]) =>
+    keys.map((key) => (tNews.has(`categories.${key}`) ? tNews(`categories.${key}`) : key)).join(", ");
   const router = useRouter();
   const { user, token } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -117,7 +116,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
     defaultValues: {
       title: "",
       content: "",
-      category: "",
+      categories: [],
       events: [],
       author: user?.full_name || "",
       images: "",
@@ -167,7 +166,7 @@ export default function EditNewsForm({ params }: { params: Params }) {
         id: newsDetails.news_id || "",
         title: newsDetails.news_title || "",
         content: newsDetails.content || "",
-        category: newsDetails.category || "",
+        categories: newsCategoryKeys(newsDetails),
         // Prefill the multi-select from get-news-detail's related_events list
         // (_serialize_related_news_events -> [{event_id, event_name, slug, tournament_tier, end_date}]);
         // the picker only needs {event_id, event_name}.
@@ -194,11 +193,13 @@ export default function EditNewsForm({ params }: { params: Params }) {
           from: newsDetails.news_title || t("changes.none"),
           to: data.title,
         });
-      if (data.category !== (newsDetails.category || ""))
+      // Categories (inbox #160): same set in the same order, or it is a change.
+      const origCategories = newsCategoryKeys(newsDetails);
+      if (origCategories.join(",") !== data.categories.join(","))
         changes.push({
           label: t("changes.category"),
-          from: newsDetails.category || t("changes.none"),
-          to: data.category,
+          from: categoryLabels(origCategories) || t("changes.none"),
+          to: categoryLabels(data.categories),
         });
       // Related events changed? Compare the selected event names against the article's current set
       // (both flattened to a comma-joined string) so the confirm modal shows a readable before/after.
@@ -277,7 +278,11 @@ export default function EditNewsForm({ params }: { params: Params }) {
         formData.append("news_id", data.id.toString());
         formData.append("news_title", data.title);
         formData.append("content", data.content);
-        formData.append("category", data.category);
+        // Categories (inbox #160): each key as a repeated `categories` field, in the admin's order
+        // (create_news / edit_news read them with _read_news_categories). The first also goes as the
+        // single legacy `category`, which a backend from before the change still needs.
+        data.categories.forEach((key) => formData.append("categories", key));
+        formData.append("category", data.categories[0]);
         formData.append("author", data.author);
 
         // Related events (News overhaul): ALWAYS send the field on edit so the backend acts on it -
@@ -391,38 +396,18 @@ export default function EditNewsForm({ params }: { params: Params }) {
               />
               <FormField
                 control={form.control}
-                name="category"
+                name="categories"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Category
+                      {t("form.categories")}
                       <InfoTip id="news.category" className="ml-1" />
                     </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("form.categoryPlaceholder")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {newsCategories.map((category, index) => (
-                          <SelectItem key={index} value={category.value}>
-                            {/* NEW tag on a recently added CATEGORY (Education Updates,
-                                2026-08-07). Same `newSince` source as the create form, so
-                                the two pickers cannot drift, and it expires by itself. */}
-                            <span className="flex items-center gap-2">
-                              {category.label}
-                              {category.newSince && (
-                                <NewBadge since={category.newSince} />
-                              )}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormDescription>{t("form.categoriesHint")}</FormDescription>
+                    {/* Prefilled from the post; same picker as the create form (inbox #160). */}
+                    <FormControl>
+                      <NewsCategoryPicker value={field.value || []} onChange={field.onChange} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

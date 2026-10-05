@@ -66,5 +66,7 @@
   "changes.updated": "(updated)",
   "changes.publishNow": "Publish now",
   "changes.notPinned": "Not pinned",
-  "changes.none": "-"
+  "changes.none": "-",
+  "form.categories": "Categories",
+  "form.categoriesHint": "Pick one or several. The article shows under each, and the first one you pick is listed first."
 }
