@@ -760,11 +760,16 @@ function PlayerMarketPage() {
   // with ?tab=; they used to point at /my-invites and /applications, pages that never existed. A tab
   // opens only once it is actually shown to this viewer (the role arrives with the team fetch
   // above), so nothing is decided while loading and a tab this viewer cannot see is never forced
-  // open; then the address is cleaned like ?post= above.
+  // open; then the address is cleaned like ?post= above. The cleaned address re-arms it, so a
+  // second ?tab= link followed from this same page (the help panel's links, inbox #159) works too.
   const tabLinkDone = useRef(false);
   useEffect(() => {
     const tab = searchParams.get("tab");
-    if (!tab || tabLinkDone.current) return;
+    if (!tab) {
+      tabLinkDone.current = false;
+      return;
+    }
+    if (tabLinkDone.current) return;
     const shown: Record<string, boolean> = {
       teams: true,
       players: true,

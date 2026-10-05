@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+// ?tab=tiers and ?subject=players open those tabs, so the help bot can link them (inbox #159).
+import { useAddressTab } from "@/lib/useAddressTab";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,6 +53,8 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 import { ClaimGhostDialog, ClaimGhostTarget } from "./_components/ClaimGhostDialog";
 
 type Subject = "teams" | "players";
+const SUBJECTS = ["teams", "players"] as const;
+const PAGE_TABS = ["rankings", "tiers"] as const;
 
 // The sentinel the role tab strip uses for "everybody". Radix Tabs cannot hold an empty value,
 // and the backend accepts "all" for the same reason (afc_rankings/player_roles.py ROLE_ALL).
@@ -291,7 +295,7 @@ function RankingsView() {
   const t = useTranslations("teamsplayers");
   // isAuthenticated gates the "Claim" button on ghost rows (only logged-in users can request a claim).
   const { isAuthenticated } = useAuth();
-  const [subject, setSubject] = useState<Subject>("teams");
+  const [subject, setSubject] = useAddressTab<Subject>("subject", SUBJECTS, "teams");
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [players, setPlayers] = useState<PlayerRow[]>([]);
   const [month, setMonth] = useState("");
@@ -1148,6 +1152,8 @@ export default function RankingsPage() {
   const t = useTranslations("teamsplayers");
   // The transfer-window banner self-fetches the current season (Phase 2c flags); the
   // per-view RankingsView/TiersView fetch their own standings data independently.
+  // The tabs sit in a Suspense boundary because they read the address (useAddressTab); the
+  // header above stays server-rendered.
   return (
     <div>
       <PageHeader
@@ -1159,20 +1165,31 @@ export default function RankingsPage() {
 
       <TransferWindowBanner className="mb-5" />
 
-      <Tabs defaultValue="rankings">
-        {/* data-tour anchor (rankings-tabs): guided-tour "Rankings" stop explains the Rankings vs
-            Tiers tabs so a player knows where the AFC ladder + tier system live. */}
-        <TabsList className="mb-5 h-10" data-tour="rankings-tabs">
-          <TabsTrigger value="rankings" className="text-sm">
-            <IconChartBar className="mr-1.5 size-4" /> {t("rankings.rankingsTabLabel")}
-          </TabsTrigger>
-          <TabsTrigger value="tiers" className="text-sm">
-            <IconStairsUp className="mr-1.5 size-4" /> {t("rankings.tiersTabLabel")}
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="rankings"><RankingsView /></TabsContent>
-        <TabsContent value="tiers"><TiersView /></TabsContent>
-      </Tabs>
+      <Suspense>
+        <PageTabs />
+      </Suspense>
     </div>
+  );
+}
+
+// ─── Rankings / Tiers tabs, opened from ?tab= ────────────────────────────────
+function PageTabs() {
+  const t = useTranslations("teamsplayers");
+  const [tab, setTab] = useAddressTab("tab", PAGE_TABS, "rankings");
+  return (
+    <Tabs value={tab} onValueChange={(v) => setTab(v as (typeof PAGE_TABS)[number])}>
+      {/* data-tour anchor (rankings-tabs): guided-tour "Rankings" stop explains the Rankings vs
+          Tiers tabs so a player knows where the AFC ladder + tier system live. */}
+      <TabsList className="mb-5 h-10" data-tour="rankings-tabs">
+        <TabsTrigger value="rankings" className="text-sm">
+          <IconChartBar className="mr-1.5 size-4" /> {t("rankings.rankingsTabLabel")}
+        </TabsTrigger>
+        <TabsTrigger value="tiers" className="text-sm">
+          <IconStairsUp className="mr-1.5 size-4" /> {t("rankings.tiersTabLabel")}
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="rankings"><RankingsView /></TabsContent>
+      <TabsContent value="tiers"><TiersView /></TabsContent>
+    </Tabs>
   );
 }
