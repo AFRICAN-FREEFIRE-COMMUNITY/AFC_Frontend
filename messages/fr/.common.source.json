@@ -176,5 +176,8 @@
   "auth.tooManyAttempts": "Too many attempts from your connection. Wait a minute and try again.",
   "states.errorDetail": "The page hit an error. Nothing you did was lost; try again, or go back to the home page.",
   "states.goHome": "Go home",
-  "nav.support": "Support"
+  "nav.support": "Support",
+  "uidTaken.byName": "That UID is already used by {name}.",
+  "uidTaken.byAnother": "That UID is already used by another account.",
+  "uidTaken.viewProfile": "View their profile"
 }

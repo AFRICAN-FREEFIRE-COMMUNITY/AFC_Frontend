@@ -216,5 +216,10 @@
     "storedIn": "Estes horários estão no fuso {tz}, o do evento, não o seu.",
     "yourTime": "Esse horário de início corresponde a {time} onde você está.",
     "noneStored": "Este evento não tem fuso horário salvo, então estes horários aparecem exatamente como foram digitados."
+  },
+  "uidTaken": {
+    "byName": "Esse UID já está sendo usado por {name}.",
+    "byAnother": "Esse UID já está sendo usado por outra conta.",
+    "viewProfile": "Ver o perfil"
   }
 }

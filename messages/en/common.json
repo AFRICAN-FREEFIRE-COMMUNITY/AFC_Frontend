@@ -216,5 +216,10 @@
     "storedIn": "These times are in {tz}, the event's timezone, not yours.",
     "yourTime": "That start time is {time} where you are.",
     "noneStored": "This event has no timezone saved, so these times are shown exactly as they were entered."
+  },
+  "uidTaken": {
+    "byName": "That UID is already used by {name}.",
+    "byAnother": "That UID is already used by another account.",
+    "viewProfile": "View their profile"
   }
 }

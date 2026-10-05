@@ -38,6 +38,7 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { toastUidTaken } from "@/lib/uidTaken";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   EditProfileFormSchema,
@@ -92,6 +93,7 @@ const LOCALE_COOKIE_OPTIONS = {
 
 const Page = () => {
   const t = useTranslations("profile");
+  const tc = useTranslations("common");
   // Active locale, used to join several locking event names the way the language does it (see the
   // identity lock note below).
   const locale = useLocale();
@@ -323,6 +325,8 @@ const Page = () => {
         }
         router.push(`/profile`);
       } catch (error: any) {
+        // A UID already on another account names that account and links it (inbox #152).
+        if (toastUidTaken(error?.response?.data, tc, (path) => router.push(path))) return;
         // whatsapp_taken (inbox #21): another account already holds that number.
         toast.error(
           error?.response?.data?.code === "whatsapp_taken"
@@ -832,11 +836,13 @@ const Page = () => {
                   </FormItem>
                 )}
               /> */}
-              <div className="flex gap-2 items-center justify-between">
+              {/* Stacked on phones: side by side, the French and Portuguese labels ("Changer le mot de
+                  passe") do not fit 390 px and pushed the page to 478 px wide (found 2026-10-05). */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 {/* data-tour anchor (guided welcome tour): the Save button. Targeted
                     by guided-tour-stops.ts -> profile stop -> "profile-save". */}
                 <Button
-                  className="flex-1"
+                  className="w-full sm:flex-1"
                   disabled={pending}
                   type="submit"
                   data-tour="profile-save"
@@ -847,7 +853,7 @@ const Page = () => {
                     t("edit.saveChanges")
                   )}
                 </Button>
-                <Button className="flex-1" variant="outline" asChild>
+                <Button className="w-full sm:flex-1" variant="outline" asChild>
                   <Link href="/profile/change-password">
                     {t("edit.changePassword")}
                   </Link>
