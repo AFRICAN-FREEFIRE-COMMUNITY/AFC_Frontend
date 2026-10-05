@@ -40,6 +40,8 @@
     "content": "Conteúdo",
     "category": "Categoria",
     "categoryPlaceholder": "Selecionar categoria",
+    "categories": "Categorias",
+    "categoriesHint": "Escolha uma ou várias. O artigo aparece em cada uma, e a primeira escolhida aparece primeiro.",
     "relatedEvents": "Eventos relacionados (opcional)",
     "images": "Imagens",
     "author": "Autor",

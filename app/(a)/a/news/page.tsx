@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+// Every category a post is in (inbox #160).
+import { newsCategoryKeys } from "@/lib/newsCategories";
 import { Search, Eye, Pencil } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -125,7 +127,8 @@ const NewsAdminPage = () => {
     // Filter by category
     if (filterCategory !== "all") {
       filtered = filtered.filter(
-        (item: any) => item.category === filterCategory,
+        // A post in several categories (inbox #160) shows under each of them.
+        (item: any) => newsCategoryKeys(item).includes(filterCategory),
       );
     }
 
@@ -430,10 +433,15 @@ const NewsAdminPage = () => {
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover aspect-video size-full"
                   />
-                  <div className="absolute top-0 left-0 right-0 flex justify-between items-start p-3">
-                    <Badge variant="secondary" className="text-xs capitalize">
-                      {getCategoryLabel(newsDetails.category)}
-                    </Badge>
+                  <div className="absolute top-0 left-0 right-0 flex justify-between items-start gap-2 p-3">
+                    {/* One tag for every category the post is in (inbox #160), via lib/newsCategories.ts. */}
+                    <div className="flex flex-wrap gap-1">
+                      {newsCategoryKeys(newsDetails).map((key) => (
+                        <Badge key={key} variant="secondary" className="text-xs">
+                          {getCategoryLabel(key)}
+                        </Badge>
+                      ))}
+                    </div>
                     <Badge
                       variant={getStatusBadgeVariant(
                         newsDetails.status || "published",

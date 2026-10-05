@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 // the server's clock with a hardcoded English ordinal format.
 import { LocalTime } from "@/components/LocalTime";
 import { Badge } from "@/components/ui/badge";
+// Every category a post is in (inbox #160).
+import { newsCategoryKeys } from "@/lib/newsCategories";
 import Image from "next/image";
 import Link from "next/link";
 import { RenderDescription } from "@/components/text-editor/RenderDescription";
@@ -172,9 +174,12 @@ export function NewsClient({
             {/* No `capitalize` here: the label is a fully-cased translated phrase, and CSS
                 capitalize would title-case every word of it (French "Mises à jour éducatives"
                 would render as "Mises À Jour Éducatives"). */}
-            <Badge variant="secondary">
-              {getCategoryLabel(newsDetails.category)}
-            </Badge>
+            {/* One tag for every category the post is in (inbox #160), via lib/newsCategories.ts. */}
+            {newsCategoryKeys(newsDetails).map((key) => (
+              <Badge key={key} variant="secondary">
+                {getCategoryLabel(key)}
+              </Badge>
+            ))}
             <div className="flex items-center gap-3 border-l pl-3 ml-1 border-muted-foreground/20">
               <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
                 <IconThumbUp size={16} stroke={2.5} />
@@ -248,7 +253,7 @@ export function NewsClient({
 
         <RenderDescription json={newsDetails?.content} />
 
-        {newsDetails.category === "tournament" &&
+        {newsCategoryKeys(newsDetails).includes("tournament") &&
           newsDetails.registrationLink && (
             <Button asChild>
               <a

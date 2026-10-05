@@ -22,16 +22,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RichTextEditor } from "@/components/text-editor/Editor";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { newsCategories } from "@/constants";
-// Shared, self-expiring NEW tag (owner rule: a new option in a picker wears one for 5 days).
-import { NewBadge } from "@/components/NewBadge";
+// The category field: one or several (inbox #160); it carries the NEW tags of new categories.
+import { NewsCategoryPicker } from "@/components/news/NewsCategoryPicker";
 import { EventMultiSelect } from "@/components/news/EventMultiSelect";
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
@@ -97,7 +89,7 @@ function CreateNewsPage() {
     defaultValues: {
       title: "",
       content: "",
-      category: "",
+      categories: [],
       events: [],
       author: user?.full_name || "",
       images: "",
@@ -115,7 +107,11 @@ function CreateNewsPage() {
         // Append all form fields to FormData
         formData.append("news_title", data.title);
         formData.append("content", data.content);
-        formData.append("category", data.category);
+        // Categories (inbox #160): each key as a repeated `categories` field, in the admin's order
+        // (create_news / edit_news read them with _read_news_categories). The first also goes as the
+        // single legacy `category`, which a backend from before the change still needs.
+        data.categories.forEach((key) => formData.append("categories", key));
+        formData.append("category", data.categories[0]);
         formData.append("author", data.author);
 
         // Related events (News overhaul): submit each selected event id as a repeated
@@ -220,40 +216,18 @@ function CreateNewsPage() {
               />
               <FormField
                 control={form.control}
-                name="category"
+                name="categories"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      {t("form.category")}
+                      {t("form.categories")}
                       <InfoTip id="news.category" className="ml-1" />
                     </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("form.categoryPlaceholder")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {newsCategories.map((category, index) => (
-                          <SelectItem key={index} value={category.value}>
-                            {/* NEW tag on a recently added CATEGORY (Education Updates,
-                                2026-08-07), so an admin who already knows this picker sees
-                                that a new option appeared in it. Driven by `newSince` on the
-                                shared constant, so this picker and the edit form stay in
-                                step, and the pill removes itself after 5 days. */}
-                            <span className="flex items-center gap-2">
-                              {category.label}
-                              {category.newSince && (
-                                <NewBadge since={category.newSince} />
-                              )}
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormDescription>{t("form.categoriesHint")}</FormDescription>
+                    {/* One or several; the first picked is listed first (inbox #160). */}
+                    <FormControl>
+                      <NewsCategoryPicker value={field.value || []} onChange={field.onChange} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

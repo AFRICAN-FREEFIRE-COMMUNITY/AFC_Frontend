@@ -16,6 +16,8 @@ import {
 } from "@/components/text-editor/RenderDescription";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+// Every category a post is in (inbox #160).
+import { newsCategoryKeys } from "@/lib/newsCategories";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -159,7 +161,8 @@ const page = () => {
     // Filter by category
     if (selectedCategory !== "all") {
       filtered = filtered.filter(
-        (item: any) => item.category === selectedCategory,
+        // A post in several categories (inbox #160) shows under each of them.
+        (item: any) => newsCategoryKeys(item).includes(selectedCategory),
       );
     }
 
@@ -427,9 +430,14 @@ const page = () => {
                     {/* No `capitalize`: getCategoryLabel already returns a fully-cased translated
                         phrase, and CSS capitalize would title-case every word of it (French
                         "Mises à jour éducatives" -> "Mises À Jour Éducatives"). */}
-                    <Badge variant="secondary" className="text-xs">
-                      {getCategoryLabel(newsDetails.category)}
-                    </Badge>
+                    {/* One tag for every category the post is in (inbox #160), via lib/newsCategories.ts. */}
+                    <div className="flex flex-wrap gap-1">
+                      {newsCategoryKeys(newsDetails).map((key) => (
+                        <Badge key={key} variant="secondary" className="text-xs">
+                          {getCategoryLabel(key)}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </Link>
                 <CardContent className="flex-grow py-4 flex flex-col">
@@ -462,7 +470,7 @@ const page = () => {
                         {t("card.readMore")}
                       </Link>
                     </Button>
-                    {newsDetails.category === "tournament" &&
+                    {newsCategoryKeys(newsDetails).includes("tournament") &&
                       newsDetails.registrationLink && (
                         <Button size="sm" asChild variant="outline">
                           <a
