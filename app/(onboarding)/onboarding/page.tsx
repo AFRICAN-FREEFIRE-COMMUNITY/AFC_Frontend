@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
+import { toastUidTaken } from "@/lib/uidTaken";
 import { env } from "@/lib/env";
 import { compressImageForUpload } from "@/lib/imageCompress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +42,7 @@ import { IconCircleCheck, IconUpload } from "@tabler/icons-react";
 
 export default function OnboardingPage() {
   const t = useTranslations("onboarding");
+  const tc = useTranslations("common");
   const router = useRouter();
   const { user, token, refreshUser, loading: authLoading } = useAuth();
 
@@ -144,6 +146,8 @@ export default function OnboardingPage() {
       toast.success(t("saved"));
       goNext();
     } catch (err: any) {
+      // A UID already on another account names that account and links it (inbox #152).
+      if (toastUidTaken(err?.response?.data, tc, (path) => router.push(path))) return;
       toast.error(err?.response?.data?.message || t("failed"));
     } finally {
       setBusy(false);

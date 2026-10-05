@@ -216,5 +216,10 @@
     "storedIn": "Ces heures sont dans le fuseau {tz}, celui de l'événement, pas le vôtre.",
     "yourTime": "Cette heure de début correspond à {time} chez vous.",
     "noneStored": "Aucun fuseau horaire n'est enregistré pour cet événement, ces heures sont donc affichées telles qu'elles ont été saisies."
+  },
+  "uidTaken": {
+    "byName": "Cet UID est déjà utilisé par {name}.",
+    "byAnother": "Cet UID est déjà utilisé par un autre compte.",
+    "viewProfile": "Voir son profil"
   }
 }

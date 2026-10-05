@@ -74,6 +74,7 @@ import { TeamMapResultPanel } from "@/components/events/TeamMapResultPanel";
 import { LocalEventTime } from "@/components/LocalEventTime";
 import { formatLocalTime, zonedWallClockToInstant } from "@/lib/i18n/time";
 import { toast } from "sonner";
+import { toastUidTaken } from "@/lib/uidTaken";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
@@ -3566,6 +3567,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const t = useTranslations("tournaments");
+  const tc = useTranslations("common");
   // Copy for the team's own result submission (owner backlog item 6). Read from the namespace the
   // organizer's queue and the per-event switch also read, so the three descriptions of one feature
   // cannot drift apart.
@@ -4863,13 +4865,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       await refreshUser(); // the saved UID rides on get-user-profile (R66: cookie, no localStorage)
       setModalStep("RULES");
     } catch (error: any) {
+      // A UID already on another account names that account and links it (inbox #152).
+      if (toastUidTaken(error?.response?.data, tc, (path) => router.push(path))) return;
       toast.error(
         error?.response?.data?.message || t("register.toast.saveUidFailed"),
       );
     } finally {
       setSavingUid(false);
     }
-  }, [uidInput, user, token, refreshUser, t]);
+  }, [uidInput, user, token, refreshUser, t, tc, router]);
 
   const handleTeamContinueToRules = useCallback(() => {
     // Store selected team members data
