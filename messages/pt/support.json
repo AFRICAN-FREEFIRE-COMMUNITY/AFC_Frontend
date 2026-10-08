@@ -126,5 +126,83 @@
       "help_handoff_empty": "Recusado: nada escrito",
       "help_handoff_limit": "Recusado: demasiados tickets"
     }
+  },
+  "desk": {
+    "subtitle": "Todas as mensagens que as pessoas enviam à AFC, agrupadas por pessoa: todos os pedidos e ficheiros de alguém no mesmo sítio, respondidos de uma só vez ou um a um.",
+    "search": "Nome, e-mail, número do ticket ou palavras",
+    "filters": {
+      "search": "Pesquisa",
+      "status": "Estado",
+      "from": "De",
+      "to": "Até",
+      "range": "Período rápido",
+      "country": "País",
+      "allCountries": "Todos os países",
+      "more": "Mais filtros",
+      "fewer": "Menos filtros",
+      "source": "Origem",
+      "anywhere": "Qualquer origem",
+      "assigned": "Atribuído a",
+      "hasFiles": "Com ficheiros",
+      "button": "Filtros ({count})"
+    },
+    "range": {
+      "today": "Hoje",
+      "week": "7 dias",
+      "month": "30 dias",
+      "all": "Tudo"
+    },
+    "source": {
+      "contact_form": "Formulário de contacto",
+      "help_bot": "Assistente de ajuda",
+      "staff": "Aberto pela equipa"
+    },
+    "assigned": {
+      "any": "Qualquer pessoa",
+      "me": "Eu",
+      "none": "Ninguém ainda"
+    },
+    "counts": "{people, plural, one {# pessoa} other {# pessoas}}, {open, plural, one {# pedido em aberto} other {# pedidos em aberto}}",
+    "requests": "{count, plural, one {# pedido} other {# pedidos}}, {open} em aberto",
+    "needsReply": "Aguarda resposta",
+    "pick": "Selecionar {name}",
+    "picked": "{count, plural, one {# pessoa selecionada} other {# pessoas selecionadas}}",
+    "replyAll": "Responder a todas",
+    "clear": "Limpar",
+    "back": "Todas as pessoas",
+    "noAccount": "Sem conta AFC",
+    "since": "Na AFC desde {date}",
+    "allRequests": "{count, plural, one {O pedido de {name}} other {Os # pedidos de {name}}}",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "replyTo": "Responder a",
+    "allOpen": "Os {count} pedidos em aberto",
+    "placeholder": "Escreva a {name}. A resposta chega por e-mail, em Os meus tickets no site e no Discord, se estiver ligado.",
+    "resolveAfter": "Marcar como resolvido depois de enviar",
+    "hintAll": "Uma só mensagem a {name}, registada nos {count} pedidos, para ninguém ter de responder duas vezes à mesma pergunta.",
+    "hintOne": "Registada apenas neste pedido.",
+    "allResolved": "Todos os pedidos de {name} estão resolvidos. Uma nova mensagem trá-lo de volta para aqui.",
+    "empty": "Nada à espera. As novas mensagens aparecem aqui assim que chegam.",
+    "noMatch": "Ninguém corresponde a estes filtros. Retire um filtro para ver mais.",
+    "pickPerson": "Escolha uma pessoa à esquerda para ler tudo o que enviou.",
+    "sentMany": "Enviado uma vez por e-mail, registado em {count} pedidos.",
+    "assignMe": "Atribuir-me",
+    "assignedToYou": "Os pedidos em aberto desta pessoa estão atribuídos a si.",
+    "openFile": "Abrir {name}",
+    "loadMore": "Mostrar mais pessoas",
+    "bulk": {
+      "title": "{count, plural, one {Responder a # pessoa} other {Responder a # pessoas}}",
+      "explain": "Cada pessoa recebe a mensagem individualmente, registada em todos os seus pedidos em aberto. Ninguém vê quem mais a recebeu.",
+      "label": "Mensagem",
+      "placeholder": "Por exemplo: a janela de transferências abre a 1 de janeiro de 2027.",
+      "send": "Enviar a {count}",
+      "cancel": "Cancelar",
+      "done": "Enviado a {people, plural, one {# pessoa} other {# pessoas}}, {requests, plural, one {# pedido respondido} other {# pedidos respondidos}}.",
+      "skipped": "{count, plural, one {# pessoa não tinha} other {# pessoas não tinham}} nada em aberto e {count, plural, one {foi ignorada} other {foram ignoradas}}."
+    },
+    "errors": {
+      "people": "Não foi possível carregar as pessoas.",
+      "person": "Não foi possível abrir esta pessoa."
+    }
   }
 }

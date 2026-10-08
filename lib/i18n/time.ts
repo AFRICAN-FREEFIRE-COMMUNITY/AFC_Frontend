@@ -330,3 +330,24 @@ export function formatTimeInZone(
     ...(opts?.withZoneName ? { timeZoneName: "short" } : {}),
   }).format(date);
 }
+
+// ── <input type="datetime-local"> in and out (owner rule R31: one timing model) ─────────────────
+// datetime-local holds "YYYY-MM-DDTHH:MM" with NO timezone: it is the viewer's own wall clock.
+// These two are the only crossing points between that and the ISO instants the API speaks.
+// First caller: the support desk's date and time filters (inbox #174).
+
+/** An ISO instant -> a datetime-local value in the viewer's timezone ("" for nothing). */
+export function isoToLocalInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** A datetime-local value (the viewer's wall clock) -> an ISO instant the backend parses, or null. */
+export function localInputToIso(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
