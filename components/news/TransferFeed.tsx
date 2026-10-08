@@ -76,6 +76,10 @@ type Feed = {
 export function TransferFeed() {
   // Namespace "news" (messages/{en,fr,pt}/news.json); every key below lives under `transfers`.
   const t = useTranslations("news");
+  // Tier options are labelled exactly as components/rankings/TierBadge.tsx labels them: the API
+  // answers ranking tier CODES ("0", "3"), and code 0 is shown as "Tier 1" (inbox #163, the
+  // filter printed the raw code, so its "Tier 3" was the Rankings page's "Tier 4").
+  const tRank = useTranslations("rankings");
   const tick = useLiveTick();
 
   const [typed, setTyped] = useState("");
@@ -227,7 +231,7 @@ export function TransferFeed() {
               "tier",
               t("transfers.filterLabels.tier"),
               t("transfers.tierFilter.all"),
-              (feed?.tiers ?? []).map((tier) => ({ value: tier, label: t("transfers.tierFilter.tier", { tier }) })),
+              (feed?.tiers ?? []).map((tier) => ({ value: tier, label: tRank("tier", { tier: Number(tier) + 1 }) })),
             )}
             {filterSelect("direction", t("transfers.filterLabels.direction"), t("transfers.directionFilter.all"), [
               { value: "joined", label: t("transfers.directionFilter.joined") },
