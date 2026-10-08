@@ -64,6 +64,7 @@ import { DiscordRegistrationGate } from "@/app/(a)/a/events/create/_components/D
 // Says WHICH timezone the times above are in (owner bug 2026-08-28: an organizer's Nigerian
 // assistants read a Johannesburg wall-clock as their own). See the component for the whole story.
 import { EventTimezoneNote } from "@/components/events/EventTimezoneNote";
+import { EVENT_NAME_MAX_LENGTH } from "@/lib/eventFields";
 
 // The registration-requirement toggles (owner correction 2026-06-22: these belong on Basic Info,
 // not the Waitlist tab). Each blocks registration until satisfied; the register flow points players
@@ -220,7 +221,7 @@ export default function BasicInfoTab({
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("basicInfo.eventName")}</FormLabel>
-              <Input {...field} />
+              <Input maxLength={EVENT_NAME_MAX_LENGTH} {...field} />
               <FormMessage />
             </FormItem>
           )}

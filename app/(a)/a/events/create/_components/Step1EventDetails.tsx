@@ -50,6 +50,7 @@ import { EventFormType, REGISTRATION_FEE_CURRENCIES } from "./types";
 // invite link). Same control the edit form (BasicInfoTab) uses, so create + edit can't
 // drift. See DiscordRegistrationGate.tsx for the full invite->verify->require flow.
 import { DiscordRegistrationGate } from "./DiscordRegistrationGate";
+import { EVENT_NAME_MAX_LENGTH } from "@/lib/eventFields";
 // Says WHICH timezone the times above are in (owner bug 2026-08-28: an organizer's Nigerian
 // assistants read a Johannesburg wall-clock as their own). See the component for the whole story.
 import { EventTimezoneNote } from "@/components/events/EventTimezoneNote";
@@ -135,7 +136,7 @@ export function Step1EventDetails({
           render={({ field }) => (
             <FormItem>
               <FormLabel>{t("eventName")}</FormLabel>
-              <Input placeholder={t("eventNamePlaceholder")} {...field} />
+              <Input placeholder={t("eventNamePlaceholder")} maxLength={EVENT_NAME_MAX_LENGTH} {...field} />
               <FormMessage />
             </FormItem>
           )}

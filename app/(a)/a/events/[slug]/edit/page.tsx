@@ -2049,9 +2049,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             }),
             { duration: 4000 },
           );
-          // Live-update (owner 2026-06-20): re-pull the saved event so the form +
-          // displays reflect the changes immediately, without a manual page reload.
-          await fetchEventDetails();
+          // A rename moves the event's address: edit_event answers the CURRENT slug, and
+          // re-reading by the old one is what showed "No Event matches the given query." after
+          // a duplicated event was renamed (inbox #171). Move to the new address; the page then
+          // loads the event from there. Otherwise re-pull in place (owner 2026-06-20) so the
+          // form + displays reflect the changes without a manual page reload.
+          if (res.slug && res.slug !== slug) {
+            router.replace(`/a/events/${encodeURIComponent(res.slug)}/edit${window.location.search}`);
+          } else {
+            await fetchEventDetails();
+          }
         } else {
           const errorMessage = res.message || res.detail || res.error;
           if (response.status === 400) {

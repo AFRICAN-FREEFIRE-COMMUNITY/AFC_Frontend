@@ -2017,9 +2017,14 @@ export default function OrganizerEditEventPage({
             }),
             { duration: 4000 },
           );
-          // Live-update (owner 2026-06-20): re-pull the saved event so changes show
-          // immediately without a manual reload (same as the admin edit page).
-          await fetchEventDetails();
+          // A rename moves the event's address (edit_event answers the current slug): go there,
+          // or the re-read by the old address 404s (inbox #171, same as the admin edit page).
+          // Otherwise re-pull in place (owner 2026-06-20) so changes show without a reload.
+          if (res.slug && res.slug !== slug) {
+            router.replace(`/organizer/events/${encodeURIComponent(res.slug)}/edit${window.location.search}`);
+          } else {
+            await fetchEventDetails();
+          }
         } else {
           const errorMessage = res.message || res.detail || res.error;
           if (response.status === 400) {
