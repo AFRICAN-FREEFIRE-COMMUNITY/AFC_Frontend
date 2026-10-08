@@ -50,6 +50,14 @@ type GeneratedContract = {
 
 const CONTRACT = contract as GeneratedContract;
 
+/**
+ * The longest event name the backend accepts: AFC-B Event.event_name is max_length 100 (was 40
+ * until 8 Oct 2026, inbox #171: a longer name crashed the save and the edit page could only say
+ * "Server error: unexpected response format"). The name inputs stop typing here, and the API
+ * refuses anything longer with code event_name_too_long. Change both together.
+ */
+export const EVENT_NAME_MAX_LENGTH = 100;
+
 /** Fields the contract says are written by hand, per role, and therefore skipped here. */
 export const HAND_WRITTEN_EVENT_FIELDS: string[] = CONTRACT.hand_written;
 
