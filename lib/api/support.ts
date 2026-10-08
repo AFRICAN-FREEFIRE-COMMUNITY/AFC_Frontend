@@ -23,6 +23,11 @@
  *   POST support/people/<key>/reply/          staff: one reply on several of their requests
  *   POST support/people/bulk-reply/           staff: the same reply to several people
  *   GET  support/attachments/<id>/            staff session, or ?t=<ticket token>
+ *   POST support/organizations/<slug>/ask/    signed in: "Ask the organizer" (inbox #175)
+ *
+ * TWO DESKS (inbox #175): every people/ call takes an optional `organization` slug. Without it the
+ * caller works AFC's desk; with it, that organization's desk (its answerers and AFC head / super
+ * admins only, decided by AFC-B afc_support/org_scope.py).
  */
 import axios from "axios";
 
@@ -63,6 +68,9 @@ export interface SupportTicket {
   created_at: string;
   last_message_at: string;
   messages?: SupportMessage[];
+  /** Inbox #175: set when the question was asked of an ORGANIZER (and the event, if one). */
+  organization?: { name: string; slug: string } | null;
+  event?: { name: string; slug: string | null } | null;
   /** Staff surfaces only. */
   user_id?: number | null;
   username?: string;
@@ -85,6 +93,8 @@ export interface SupportAuditRow {
   ticket_status: string;
   from_name: string;
   from_email: string;
+  /** Inbox #175: the organization a question was asked of, "" for AFC's own tickets. */
+  organization?: string;
   direction: SupportDirection;
   channel: string;
   author_username: string;
@@ -169,6 +179,8 @@ export async function replyAsRequester(token: string, message: string, files: Fi
 export interface MySupportTicket {
   ticket_number: string;
   token: string;
+  /** Inbox #175: "" for a message to AFC, else the organizer the player asked. */
+  organization_name?: string;
   subject: string;
   status: SupportTicket["status"];
   created_at: string;
@@ -190,9 +202,25 @@ export async function getMySupportTickets(token: string, params: { limit?: numbe
 }
 
 // ── staff ────────────────────────────────────────────────────────────────────────────────────
+/** An organizer desk the caller may open (support/access/ `organizer_desks`, inbox #175). */
+export interface SupportOrganizerDesk {
+  name: string;
+  slug: string;
+  /** Questions waiting on an answer. */
+  open_count: number;
+  /** False on a desk the caller only oversees (AFC head / super admins read, never answer). */
+  can_reply: boolean;
+}
+
+export interface SupportAccess {
+  can_work_tickets: boolean;
+  can_read_audit: boolean;
+  organizer_desks: SupportOrganizerDesk[];
+}
+
 export async function getSupportAccess(token?: string | null) {
   const { data } = await axios.get(`${API}/support/access/`, { headers: bearer(token) });
-  return data as { can_work_tickets: boolean; can_read_audit: boolean };
+  return { organizer_desks: [], ...data } as SupportAccess;
 }
 
 export async function getTicketQueue(
@@ -321,6 +349,8 @@ export interface SupportPeopleFilters {
   source?: string;
   assigned?: string;
   has_files?: string;
+  /** Inbox #175: work this organization's desk instead of AFC's. */
+  organization?: string;
   limit?: number;
   offset?: number;
 }
@@ -330,18 +360,19 @@ export async function getSupportPeople(token: string, params: SupportPeopleFilte
   return data as SupportPeople;
 }
 
-export async function getSupportPerson(token: string, key: string) {
+export async function getSupportPerson(token: string, key: string, organization?: string) {
   const { data } = await axios.get(`${API}/support/people/${encodeURIComponent(key)}/`, {
     headers: bearer(token),
+    params: organization ? { organization } : {},
   });
   return data as SupportPersonDetail;
 }
 
 /** The staff heads-up email and Discord DM link to a TICKET; this opens that ticket's person. */
-export async function getSupportPersonByTicket(token: string, ticketNumber: string) {
+export async function getSupportPersonByTicket(token: string, ticketNumber: string, organization?: string) {
   const { data } = await axios.get(`${API}/support/people/by-ticket/`, {
     headers: bearer(token),
-    params: { ticket: ticketNumber },
+    params: organization ? { ticket: ticketNumber, organization } : { ticket: ticketNumber },
   });
   return data as SupportPersonDetail;
 }
@@ -349,12 +380,13 @@ export async function getSupportPersonByTicket(token: string, ticketNumber: stri
 export async function replyToPerson(
   token: string,
   key: string,
-  input: { message: string; ticketNumbers: string[]; files?: File[]; resolve?: boolean },
+  input: { message: string; ticketNumbers: string[]; files?: File[]; resolve?: boolean; organization?: string },
 ) {
   const form = new FormData();
   form.append("message", input.message);
   form.append("ticket_numbers", input.ticketNumbers.join(","));
   if (input.resolve) form.append("resolve", "true");
+  if (input.organization) form.append("organization", input.organization);
   (input.files ?? []).forEach((f) => form.append("files", f));
   const { data } = await axios.post(`${API}/support/people/${encodeURIComponent(key)}/reply/`, form, {
     headers: bearer(token),
@@ -370,12 +402,39 @@ export async function replyToPerson(
 
 export async function bulkReplyToPeople(
   token: string,
-  input: { keys: string[]; message: string; resolve?: boolean },
+  input: { keys: string[]; message: string; resolve?: boolean; organization?: string },
 ) {
   const { data } = await axios.post(
     `${API}/support/people/bulk-reply/`,
-    { keys: input.keys, message: input.message, resolve: input.resolve ? "true" : "" },
+    {
+      keys: input.keys,
+      message: input.message,
+      resolve: input.resolve ? "true" : "",
+      ...(input.organization ? { organization: input.organization } : {}),
+    },
     { headers: bearer(token) },
   );
   return data as { message: string; people_sent: number; requests_answered: number; skipped: number };
+}
+
+// ── "Ask the organizer" (inbox #167 / #175, AFC-B afc_support/views_org.py) ─────────────────
+// A signed-in player's question to an organization, optionally about one of its events. The
+// answer comes back on the ticket page and on /support (My tickets), like a message to AFC.
+export const ORGANIZER_QUESTION_MAX_LENGTH = 4000;
+
+export async function askOrganizer(
+  token: string,
+  organizationSlug: string,
+  input: { message: string; eventSlug?: string; files?: File[] },
+) {
+  const form = new FormData();
+  form.append("message", input.message);
+  if (input.eventSlug) form.append("event", input.eventSlug);
+  (input.files ?? []).forEach((f) => form.append("files", f));
+  const { data } = await axios.post(
+    `${API}/support/organizations/${encodeURIComponent(organizationSlug)}/ask/`,
+    form,
+    { headers: bearer(token) },
+  );
+  return data as { message: string; ticket_number: string; token: string; rejected_files: RejectedFile[] };
 }

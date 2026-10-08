@@ -68,7 +68,8 @@
     "empty": "Nothing has been sent yet.",
     "more": "Load more",
     "rowFromAfc": "AFC, by {who}",
-    "rowFromPerson": "{who} wrote"
+    "rowFromPerson": "{who} wrote",
+    "toOrganizer": "To {name}"
   },
   "public": {
     "title": "Your support ticket",
@@ -77,7 +78,14 @@
     "notFound": "We could not find that ticket. Check the link in your email, or write to us again from the Contact page.",
     "placeholder": "Add to your message",
     "replySent": "Your reply has been added.",
-    "explainer": "Anything you add here reaches the AFC team handling your ticket. Keep this link: it is how you get back to this page."
+    "explainer": "Anything you add here reaches the AFC team handling your ticket. Keep this link: it is how you get back to this page.",
+    "toOrganizer": "Your question to {name}",
+    "toOrganizerAbout": "Your question to {name}, about {event}",
+    "explainerOrganizer": "Anything you add here reaches the {name} team, who answer this question. Keep this link: it is how you get back to this page.",
+    "statusOrganizer": {
+      "open": "Waiting on the organizer",
+      "waiting": "The organizer replied, over to you"
+    }
   },
   "helpLog": {
     "title": "Help log",
@@ -155,7 +163,8 @@
     "source": {
       "contact_form": "Contact form",
       "help_bot": "Help bot",
-      "staff": "Opened by staff"
+      "staff": "Opened by staff",
+      "organizer": "Ask the organizer"
     },
     "assigned": {
       "any": "Anyone",
@@ -163,7 +172,7 @@
       "none": "Nobody yet"
     },
     "counts": "{people, plural, one {# person} other {# people}}, {open, plural, one {# open request} other {# open requests}}",
-    "requests": "{count, plural, one {# request} other {# requests}}, {open} open",
+    "requests": "{count, plural, one {# request} other {# requests}}, {open, plural, other {# open}}",
     "needsReply": "Needs a reply",
     "pick": "Pick {name}",
     "picked": "{count, plural, one {# person picked} other {# people picked}}",
@@ -203,6 +212,42 @@
     "errors": {
       "people": "We could not load the people.",
       "person": "We could not open that person."
+    },
+    "aboutEvent": "About {event}",
+    "emptyOrganizer": "No questions yet. When a player asks your organization something from your page or one of your events, it lands here.",
+    "orgTitle": "Support: {name}",
+    "orgSubtitleAdmin": "Questions players sent this organizer, with their files. The organizer's team answers them; you can read them as a head or super admin.",
+    "picker": {
+      "label": "Desk",
+      "afc": "AFC support",
+      "orgWaiting": "{name} ({count} waiting)"
+    },
+    "organizer": {
+      "title": "Support",
+      "subtitle": "Questions players sent {name}, with their files. Your answer reaches them by email and on their ticket page.",
+      "noPermission": "Only the owner and members with the Answer support permission can read this organization's questions. Ask the owner to turn it on for you on the Members page."
+    },
+    "readOnly": "Read only. Only the {name} team answers these questions."
+  },
+  "ask": {
+    "button": "Ask the organizer",
+    "needsAccount": "ask the organizer a question",
+    "title": "Ask {name}",
+    "explain": "Your question goes to the {name} team, not to AFC. Their answer arrives on your ticket page, in My tickets and by email.",
+    "about": "About: {event}",
+    "label": "Your question",
+    "placeholder": "What would you like to know?",
+    "sentTitle": "Question sent",
+    "sentBody": "{name} has your question ({ticket}). You will get an email when they answer.",
+    "openQuestion": "Open my question",
+    "allMessages": "All my messages",
+    "errors": {
+      "question_empty": "Write your question first.",
+      "question_too_long": "Keep your question under {limit} characters.",
+      "too_many_questions": "You have sent this organizer several questions in the last hour. Please wait for an answer before asking again.",
+      "organization_not_found": "This organizer is not taking questions right now.",
+      "event_not_found": "That event is not one of this organizer's events.",
+      "generic": "Your question could not be sent. Nothing was lost; try again in a moment."
     }
   }
 }

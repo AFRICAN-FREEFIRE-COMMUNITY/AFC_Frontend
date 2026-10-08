@@ -149,6 +149,9 @@ const NAV_ITEMS: OrganizerNavItem[] = [
   // "Reviews" - the org's per-event ratings + ANONYMOUS comments,
   // gated per-page on can_view_reviews (or owner).
   { key: "reviews", href: "/organizer/reviews" },
+  // "Support" (inbox #175, owner 2026-10-08) - the questions players send this organization with
+  // "Ask the organizer", on the shared support desk. Gated PER-PAGE on can_answer_support (or owner).
+  { key: "support", href: "/organizer/support", newSince: "2026-10-08" },
   // "Blacklists" - block a team (and the players snapshotted on it) from registering
   // for this org's events, plus the queue of lift requests the affected party raises.
   // Gated PER-PAGE on can_manage_registrations (or owner) - the SAME permission the

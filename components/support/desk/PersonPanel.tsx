@@ -15,7 +15,15 @@
  * Talks to (lib/api/support.ts -> AFC-B afc_support):
  *   replyToPerson   POST support/people/<key>/reply/   one message on the chosen requests, ONE email
  *   setTicketStatus POST support/tickets/<n>/status/   a request's status, "assign to me"
- * Rendered by app/(a)/a/support/page.tsx, which loads the SupportPersonDetail.
+ * Rendered by components/support/desk/SupportDesk.tsx, which loads the SupportPersonDetail.
+ *
+ * ON AN ORGANIZER'S DESK (inbox #175, `organization` set): replies are signed with the
+ * organization's name (the backend does it; this shows it), the player's name links to their
+ * public profile instead of the admin page, the email address is not shown (the backend sends it
+ * blank to organizers), and each request names the event it is about when the player picked one.
+ * `readOnly` (AFC head / super admins overseeing an organizer's desk): everything is shown, but no
+ * reply box, status menu or "Assign to me", because only the organizer's own team answers (the
+ * server refuses the rest with code org_support_read_only).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -45,7 +53,7 @@ import {
   type SupportTicket,
 } from "@/lib/api/support";
 import { CountryFlag } from "@/lib/countryFlag";
-import { adminPlayerPath } from "@/lib/routes";
+import { adminPlayerPath, playerPath } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 import { STATUSES } from "./DeskFilters";
@@ -82,10 +90,15 @@ function Request({
   ticket,
   personName,
   onStatus,
+  organizationName,
+  readOnly = false,
 }: {
   ticket: SupportTicket;
   personName: string;
   onStatus: (number: string, status: string) => void;
+  /** Set on an organizer's desk: outgoing messages are signed with it. */
+  organizationName?: string;
+  readOnly?: boolean;
 }) {
   const t = useTranslations("support");
   const finished = !ANSWERABLE.has(ticket.status);
@@ -101,6 +114,11 @@ function Request({
         <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[11px]">
           {t.has(`desk.source.${ticket.source}`) ? t(`desk.source.${ticket.source}`) : ticket.source}
         </span>
+        {ticket.event ? (
+          <span className="bg-muted text-muted-foreground max-w-[220px] truncate rounded-full px-2 py-0.5 text-[11px]">
+            {t("desk.aboutEvent", { event: ticket.event.name })}
+          </span>
+        ) : null}
         <span className="flex-1" />
         <span className="text-muted-foreground text-xs">
           {t("openedOn")} <LocalTime value={ticket.created_at} />
@@ -110,18 +128,20 @@ function Request({
             {open ? t("desk.hide") : t("desk.show")}
           </button>
         ) : null}
-        <Select value={ticket.status} onValueChange={(s) => onStatus(ticket.ticket_number, s)}>
-          <SelectTrigger className="h-7 w-[150px] text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {t(`status.${s}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {readOnly ? null : (
+          <Select value={ticket.status} onValueChange={(s) => onStatus(ticket.ticket_number, s)}>
+            <SelectTrigger className="h-7 w-[150px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {t(`status.${s}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
       {open ? (
         <div className="mt-3 flex flex-col gap-2">
@@ -139,7 +159,11 @@ function Request({
                 )}
               >
                 <div className="text-muted-foreground mb-0.5 flex gap-2 text-[11px] font-semibold">
-                  <span>{m.direction === "in" ? personName : `${t("thread.fromAfc")}${m.author_username ? ` (${m.author_username})` : ""}`}</span>
+                  <span>
+                    {m.direction === "in"
+                      ? personName
+                      : `${organizationName || t("thread.fromAfc")}${m.author_username ? ` (${m.author_username})` : ""}`}
+                  </span>
                   <LocalTime value={m.created_at} />
                 </div>
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.body}</p>
@@ -164,8 +188,14 @@ export function PersonPanel({
   detail,
   onChanged,
   onBack,
+  organization,
+  readOnly = false,
 }: {
   token: string;
+  /** Inbox #175: AFC oversight of an organizer's desk reads everything and changes nothing. */
+  readOnly?: boolean;
+  /** Inbox #175: the organizer desk this panel belongs to, or undefined for AFC's desk. */
+  organization?: { slug: string; name: string };
   detail: SupportPersonDetail;
   /** Called with the fresh detail after a reply or a status change, so the list can refresh. */
   onChanged: (next: SupportPersonDetail | null) => void;
@@ -215,7 +245,13 @@ export function PersonPanel({
     if (!message.trim() || !targets.length) return;
     setSending(true);
     try {
-      const res = await replyToPerson(token, person.key, { message: message.trim(), ticketNumbers: targets, files, resolve });
+      const res = await replyToPerson(token, person.key, {
+        message: message.trim(),
+        ticketNumbers: targets,
+        files,
+        resolve,
+        organization: organization?.slug,
+      });
       res.rejected_files?.forEach((f) => toast.error(t(`errors.rejected.${f.reason}`, { name: f.name })));
       toast.success(
         res.answered.length > 1
@@ -272,16 +308,21 @@ export function PersonPanel({
             <span className="inline-flex items-center gap-1">
               <IconUser className="size-3.5" />
               {person.username ? (
-                <Link href={adminPlayerPath(person.username)} className="text-primary hover:underline">
+                <Link
+                  href={organization ? playerPath(person.username) : adminPlayerPath(person.username)}
+                  className="text-primary hover:underline"
+                >
                   @{person.username}
                 </Link>
               ) : (
                 t("desk.noAccount")
               )}
             </span>
-            <a className="hover:text-primary inline-flex items-center gap-1" href={`mailto:${person.email}`}>
-              <IconMail className="size-3.5" /> {person.email}
-            </a>
+            {person.email ? (
+              <a className="hover:text-primary inline-flex items-center gap-1" href={`mailto:${person.email}`}>
+                <IconMail className="size-3.5" /> {person.email}
+              </a>
+            ) : null}
             {person.country_name ? <span>{person.country_name}</span> : null}
             {person.has_discord ? (
               <span className="inline-flex items-center gap-1">
@@ -290,7 +331,7 @@ export function PersonPanel({
             ) : null}
           </div>
         </div>
-        {openTickets.length ? (
+        {openTickets.length && !readOnly ? (
           <Button size="sm" variant="outline" onClick={assignToMe}>
             {t("desk.assignMe")}
           </Button>
@@ -303,12 +344,23 @@ export function PersonPanel({
         </p>
         <div className="flex flex-col gap-2.5">
           {tickets.map((ticket) => (
-            <Request key={ticket.ticket_number} ticket={ticket} personName={person.name} onStatus={changeStatus} />
+            <Request
+              key={ticket.ticket_number}
+              ticket={ticket}
+              personName={person.name}
+              onStatus={changeStatus}
+              organizationName={organization?.name}
+              readOnly={readOnly}
+            />
           ))}
         </div>
       </div>
 
-      {openTickets.length ? (
+      {readOnly ? (
+        <p className="text-muted-foreground shrink-0 px-4 py-5 text-center text-sm">
+          {t("desk.readOnly", { name: organization?.name ?? "" })}
+        </p>
+      ) : openTickets.length ? (
         <div className="bg-card shrink-0 rounded-b-md px-4 pt-3 pb-4 lg:shadow-[0_-10px_18px_-14px_rgba(0,0,0,0.7)]">
           <div className="mb-2 flex flex-wrap items-center gap-1.5">
             <span className="text-muted-foreground mr-1 text-[11px] font-bold tracking-wide uppercase">

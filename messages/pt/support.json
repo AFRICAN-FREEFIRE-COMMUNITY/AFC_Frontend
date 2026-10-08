@@ -68,7 +68,8 @@
     "empty": "Ainda não foi enviado nada.",
     "more": "Carregar mais",
     "rowFromAfc": "AFC, por {who}",
-    "rowFromPerson": "{who} escreveu"
+    "rowFromPerson": "{who} escreveu",
+    "toOrganizer": "Para {name}"
   },
   "public": {
     "title": "O seu ticket de apoio",
@@ -77,7 +78,14 @@
     "notFound": "Não encontrámos esse ticket. Verifique a ligação no seu e-mail, ou escreva-nos de novo pela pagina de Contacto.",
     "placeholder": "Acrescentar à sua mensagem",
     "replySent": "A sua resposta foi adicionada.",
-    "explainer": "Tudo o que acrescentar aqui chega à equipa da AFC que está a tratar do seu ticket. Guarde esta ligação: é assim que volta a esta página."
+    "explainer": "Tudo o que acrescentar aqui chega à equipa da AFC que está a tratar do seu ticket. Guarde esta ligação: é assim que volta a esta página.",
+    "toOrganizer": "A sua pergunta a {name}",
+    "toOrganizerAbout": "A sua pergunta a {name}, sobre {event}",
+    "explainerOrganizer": "Tudo o que acrescentar aqui chega à equipa {name}, que responde a esta pergunta. Guarde esta ligação: é assim que volta a esta página.",
+    "statusOrganizer": {
+      "open": "À espera do organizador",
+      "waiting": "O organizador respondeu, é a sua vez"
+    }
   },
   "helpLog": {
     "title": "Registo da ajuda",
@@ -155,7 +163,8 @@
     "source": {
       "contact_form": "Formulário de contacto",
       "help_bot": "Assistente de ajuda",
-      "staff": "Aberto pela equipa"
+      "staff": "Aberto pela equipa",
+      "organizer": "Pergunta ao organizador"
     },
     "assigned": {
       "any": "Qualquer pessoa",
@@ -163,7 +172,7 @@
       "none": "Ninguém ainda"
     },
     "counts": "{people, plural, one {# pessoa} other {# pessoas}}, {open, plural, one {# pedido em aberto} other {# pedidos em aberto}}",
-    "requests": "{count, plural, one {# pedido} other {# pedidos}}, {open} em aberto",
+    "requests": "{count, plural, one {# pedido} other {# pedidos}}, {open, plural, other {# em aberto}}",
     "needsReply": "Aguarda resposta",
     "pick": "Selecionar {name}",
     "picked": "{count, plural, one {# pessoa selecionada} other {# pessoas selecionadas}}",
@@ -203,6 +212,42 @@
     "errors": {
       "people": "Não foi possível carregar as pessoas.",
       "person": "Não foi possível abrir esta pessoa."
+    },
+    "aboutEvent": "Sobre {event}",
+    "emptyOrganizer": "Ainda não há perguntas. Quando um jogador fizer uma pergunta à sua organização a partir da sua página ou de um dos seus eventos, ela aparece aqui.",
+    "orgTitle": "Suporte: {name}",
+    "orgSubtitleAdmin": "Perguntas que os jogadores enviaram a este organizador, com os ficheiros. A equipa do organizador responde-lhes; pode lê-las por ser head admin ou super admin.",
+    "picker": {
+      "label": "Balcão",
+      "afc": "Suporte da AFC",
+      "orgWaiting": "{name} ({count} à espera)"
+    },
+    "organizer": {
+      "title": "Suporte",
+      "subtitle": "Perguntas que os jogadores enviaram a {name}, com os ficheiros. A sua resposta chega-lhes por e-mail e na página do ticket.",
+      "noPermission": "Só o proprietário e os membros com a permissão Responder ao suporte podem ler as perguntas desta organização. Peça ao proprietário que a ative para si na página Membros."
+    },
+    "readOnly": "Só de leitura. Apenas a equipa {name} responde a estas perguntas."
+  },
+  "ask": {
+    "button": "Perguntar ao organizador",
+    "needsAccount": "fazer uma pergunta ao organizador",
+    "title": "Perguntar a {name}",
+    "explain": "A sua pergunta vai para a equipa {name}, não para a AFC. A resposta chega à página do seu ticket, à secção Os meus pedidos e por e-mail.",
+    "about": "Sobre: {event}",
+    "label": "A sua pergunta",
+    "placeholder": "O que gostaria de saber?",
+    "sentTitle": "Pergunta enviada",
+    "sentBody": "{name} recebeu a sua pergunta ({ticket}). Vai receber um e-mail quando o organizador responder.",
+    "openQuestion": "Abrir a minha pergunta",
+    "allMessages": "Todas as minhas mensagens",
+    "errors": {
+      "question_empty": "Escreva primeiro a sua pergunta.",
+      "question_too_long": "A sua pergunta tem de ter menos de {limit} caracteres.",
+      "too_many_questions": "Enviou várias perguntas a este organizador na última hora. Aguarde uma resposta antes de perguntar de novo.",
+      "organization_not_found": "Este organizador não está a receber perguntas neste momento.",
+      "event_not_found": "Esse evento não pertence a este organizador.",
+      "generic": "Não foi possível enviar a sua pergunta. Nada se perdeu; tente novamente daqui a pouco."
     }
   }
 }

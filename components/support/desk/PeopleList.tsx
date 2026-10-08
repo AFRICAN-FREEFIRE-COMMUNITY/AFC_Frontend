@@ -9,7 +9,7 @@
  * people for one shared answer (the page opens BulkReplyDialog).
  *
  * Data: SupportPerson rows from GET support/people/ (lib/api/support.ts getSupportPeople), passed
- * in by app/(a)/a/support/page.tsx, which also owns the selection and the picked set.
+ * in by components/support/desk/SupportDesk.tsx, which also owns the selection and the picked set.
  */
 import { useTranslations } from "next-intl";
 import { IconInbox, IconSend } from "@tabler/icons-react";
@@ -41,6 +41,7 @@ export function PeopleList({
   emptyText,
   hasMore,
   onLoadMore,
+  selectable = true,
 }: {
   people: SupportPerson[];
   loading: boolean;
@@ -54,6 +55,8 @@ export function PeopleList({
   emptyText: string;
   hasMore: boolean;
   onLoadMore: () => void;
+  /** False on a read-only desk (inbox #175): nobody to bulk-reply as, so no tick boxes. */
+  selectable?: boolean;
 }) {
   const t = useTranslations("support");
 
@@ -90,18 +93,21 @@ export function PeopleList({
           onClick={() => onSelect(p.key)}
           onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelect(p.key)}
           className={cn(
-            "grid cursor-pointer grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-2.5 rounded-md p-2.5",
+            "grid cursor-pointer items-start gap-2.5 rounded-md p-2.5",
+            selectable ? "grid-cols-[auto_auto_minmax(0,1fr)]" : "grid-cols-[auto_minmax(0,1fr)]",
             p.key === selected ? "bg-primary/10" : "hover:bg-muted/60",
           )}
         >
-          <input
-            type="checkbox"
-            className="accent-primary mt-2.5 size-4"
-            checked={picked.has(p.key)}
-            onClick={(e) => e.stopPropagation()}
-            onChange={() => onTogglePick(p.key)}
-            aria-label={t("desk.pick", { name: p.name })}
-          />
+          {selectable ? (
+            <input
+              type="checkbox"
+              className="accent-primary mt-2.5 size-4"
+              checked={picked.has(p.key)}
+              onClick={(e) => e.stopPropagation()}
+              onChange={() => onTogglePick(p.key)}
+              aria-label={t("desk.pick", { name: p.name })}
+            />
+          ) : null}
           <div className="bg-muted flex size-9 items-center justify-center rounded-full text-sm font-bold">
             {(p.name || "?").slice(0, 1).toUpperCase()}
           </div>

@@ -218,6 +218,8 @@ export const HELP_SCREENS: HelpScreen[] = [
   { id: "orgMetrics", route: "/organizer/metrics", area: "orgPortal", portals: ["organizer"] },
   { id: "orgPayouts", route: "/organizer/payouts", area: "orgPortal", portals: ["organizer"] },
   { id: "orgReviews", route: "/organizer/reviews", area: "orgPortal", portals: ["organizer"] },
+  // Inbox #175: players' questions to the organization ("Ask the organizer").
+  { id: "orgSupport", route: "/organizer/support", area: "orgPortal", portals: ["organizer"] },
   { id: "orgDesign", route: "/organizer/design", area: "orgPortal", portals: ["organizer"] },
   { id: "orgBlacklists", route: "/organizer/blacklists", area: "orgPortal", portals: ["organizer"] },
   { id: "orgWatchlist", route: "/organizer/watchlist", area: "orgPortal", portals: ["organizer"] },
@@ -469,6 +471,7 @@ export const HELP_CONTROLS: HelpControl[] = [
   { id: "op-earnings", screen: "orgPayouts", kind: "view", roles: ["owner"] },
   { id: "op-metrics", screen: "orgMetrics", kind: "view", roles: ["can_view_metrics"] },
   { id: "op-reviews", screen: "orgReviews", kind: "view", roles: ["can_view_reviews"] },
+  { id: "op-support", screen: "orgSupport", kind: "action", roles: ["can_answer_support"] },
   { id: "op-design", screen: "orgDesign", kind: "action", roles: ["can_submit_designs"] },
   { id: "op-blacklist", screen: "orgBlacklists", kind: "action", roles: ["can_manage_registrations"] },
   { id: "op-watchlist", screen: "orgWatchlist", kind: "view", roles: [] },

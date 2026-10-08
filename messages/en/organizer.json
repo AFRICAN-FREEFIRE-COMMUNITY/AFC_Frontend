@@ -310,7 +310,8 @@
     "back": "Back",
     "logout": "Log out",
     "overlays": "Live Overlays",
-    "invites": "Invitations"
+    "invites": "Invitations",
+    "support": "Support"
   },
   "overview": {
     "title": "Overview",
@@ -371,7 +372,8 @@
       "can_submit_designs": "Submit designs",
       "can_view_metrics": "View metrics",
       "can_view_reviews": "View reviews",
-      "can_manage_members": "Manage members"
+      "can_manage_members": "Manage members",
+      "can_answer_support": "Answer support"
     },
     "cancel": "Cancel",
     "add": "Add",

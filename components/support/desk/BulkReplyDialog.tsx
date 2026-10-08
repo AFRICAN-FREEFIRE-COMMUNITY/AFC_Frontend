@@ -8,7 +8,8 @@
  * skipped, and the result says how many.
  *
  * Talks to bulkReplyToPeople -> POST support/people/bulk-reply/ (AFC-B afc_support/views_people.py).
- * Opened from the people list's "Reply to all of them" in app/(a)/a/support/page.tsx.
+ * Opened from the people list's "Reply to all of them" in components/support/desk/SupportDesk.tsx.
+ * On an organizer's desk (inbox #175) `organization` scopes the send to that organization's people.
  */
 import { useState } from "react";
 import { useTranslations } from "next-intl";
@@ -34,8 +35,10 @@ export function BulkReplyDialog({
   open,
   onOpenChange,
   onSent,
+  organization,
 }: {
   token: string;
+  organization?: string;
   keys: string[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -50,7 +53,7 @@ export function BulkReplyDialog({
     if (!message.trim()) return;
     setSending(true);
     try {
-      const res = await bulkReplyToPeople(token, { keys, message: message.trim(), resolve });
+      const res = await bulkReplyToPeople(token, { keys, message: message.trim(), resolve, organization });
       toast.success(t("desk.bulk.done", { people: res.people_sent, requests: res.requests_answered }));
       if (res.skipped) toast.message(t("desk.bulk.skipped", { count: res.skipped }));
       setMessage("");

@@ -10,9 +10,12 @@
  * quick ranges, country. Behind "More filters": where it came from, who it is assigned to, only
  * those with files. On a phone the whole bar opens from a "Filters (n)" button.
  *
- * Owns no data: the page (app/(a)/a/support/page.tsx) holds the DeskFilterState and turns it into
- * GET support/people/ parameters (lib/api/support.ts getSupportPeople). Times are the viewer's
- * wall clock in the inputs and cross to ISO through lib/i18n/time.ts localInputToIso (R31).
+ * Owns no data: the desk (components/support/desk/SupportDesk.tsx) holds the DeskFilterState and
+ * turns it into GET support/people/ parameters (lib/api/support.ts getSupportPeople). Times are the
+ * viewer's wall clock in the inputs and cross to ISO through lib/i18n/time.ts localInputToIso (R31).
+ *
+ * On an ORGANIZER's desk (inbox #175) every request came from "Ask the organizer", so the "where it
+ * came from" filter is not drawn (`hideSource`).
  */
 import { useState } from "react";
 import { useTranslations } from "next-intl";
@@ -83,12 +86,14 @@ export function DeskFilters({
   countries,
   statusCounts,
   countLine,
+  hideSource = false,
 }: {
   value: DeskFilterState;
   onChange: (next: DeskFilterState) => void;
   countries: { value: string; label: string }[];
   statusCounts?: Partial<Record<SupportTicket["status"], number>>;
   countLine: string;
+  hideSource?: boolean;
 }) {
   const t = useTranslations("support");
   const [more, setMore] = useState(false);
@@ -215,7 +220,7 @@ export function DeskFilters({
         </Button>
 
         <div className={cn("contents", !more && "lg:hidden")}>
-          <div className="flex flex-col gap-1">
+          <div className={cn("flex flex-col gap-1", hideSource && "hidden")}>
             <span className={label}>{t("desk.filters.source")}</span>
             <Select value={value.source} onValueChange={(source) => set({ source })}>
               <SelectTrigger className="w-full sm:w-[170px]">

@@ -12,7 +12,12 @@
     "more": "Show more",
     "loading": "Loading your tickets",
     "noSubject": "(no subject)",
-    "open": "Open ticket {number}"
+    "open": "Open ticket {number}",
+    "toOrganizer": "To {name}",
+    "statusOrganizer": {
+      "open": "Waiting on the organizer",
+      "waiting": "The organizer replied, over to you"
+    }
   },
   "status": {
     "waiting": "AFC replied, over to you",
