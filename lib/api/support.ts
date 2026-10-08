@@ -18,6 +18,10 @@
  *   POST support/tickets/<number>/reply/      staff, multipart
  *   POST support/tickets/<number>/status/     staff
  *   GET  support/audit/                       head admins only
+ *   GET  support/people/                      staff: the desk by PERSON (inbox #174)
+ *   GET  support/people/<key>/                staff: one person, every ticket (by-ticket/?ticket=N too)
+ *   POST support/people/<key>/reply/          staff: one reply on several of their requests
+ *   POST support/people/bulk-reply/           staff: the same reply to several people
  *   GET  support/attachments/<id>/            staff session, or ?t=<ticket token>
  */
 import axios from "axios";
@@ -263,4 +267,115 @@ export async function getSupportAudit(
     params,
   });
   return data as SupportAudit;
+}
+
+// ── the desk by PERSON (inbox #169 / #174, AFC-B afc_support/views_people.py) ─────────────────
+// Owner 2026-10-08: "view all messages from each user in a single place without having to scroll
+// ... filter requests by dates, time, country ... reply all messages together or at least reply one
+// by one". A person is addressed by an opaque `key` (no email, no id in any URL).
+
+export interface SupportPerson {
+  key: string;
+  name: string;
+  username: string;
+  email: string;
+  /** Canonical country key ("nigeria") and its label; empty for a signed-out sender. */
+  country: string;
+  country_name: string;
+  has_discord: boolean;
+  ticket_count: number;
+  /** Requests still open or waiting on them. */
+  open_count: number;
+  /** The most urgent status among their requests. */
+  status: SupportTicket["status"];
+  /** They wrote last on something still open: the desk should answer. */
+  needs_reply: boolean;
+  last_at: string;
+  snippet: string;
+  ticket_numbers: string[];
+}
+
+export interface SupportPeople {
+  results: SupportPerson[];
+  total_count: number;
+  has_more: boolean;
+  next_offset: number;
+  countries: { value: string; label: string }[];
+  status_counts: Record<SupportTicket["status"], number>;
+}
+
+export interface SupportPersonDetail {
+  person: SupportPerson;
+  /** Newest activity first, every message, staff shape (files arrive as signed links). */
+  tickets: SupportTicket[];
+}
+
+export interface SupportPeopleFilters {
+  q?: string;
+  /** Comma list of statuses. */
+  status?: string;
+  /** ISO date-times (the viewer's local choice converted with new Date(...).toISOString()). */
+  date_from?: string;
+  date_to?: string;
+  country?: string;
+  source?: string;
+  assigned?: string;
+  has_files?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export async function getSupportPeople(token: string, params: SupportPeopleFilters = {}) {
+  const { data } = await axios.get(`${API}/support/people/`, { headers: bearer(token), params });
+  return data as SupportPeople;
+}
+
+export async function getSupportPerson(token: string, key: string) {
+  const { data } = await axios.get(`${API}/support/people/${encodeURIComponent(key)}/`, {
+    headers: bearer(token),
+  });
+  return data as SupportPersonDetail;
+}
+
+/** The staff heads-up email and Discord DM link to a TICKET; this opens that ticket's person. */
+export async function getSupportPersonByTicket(token: string, ticketNumber: string) {
+  const { data } = await axios.get(`${API}/support/people/by-ticket/`, {
+    headers: bearer(token),
+    params: { ticket: ticketNumber },
+  });
+  return data as SupportPersonDetail;
+}
+
+export async function replyToPerson(
+  token: string,
+  key: string,
+  input: { message: string; ticketNumbers: string[]; files?: File[]; resolve?: boolean },
+) {
+  const form = new FormData();
+  form.append("message", input.message);
+  form.append("ticket_numbers", input.ticketNumbers.join(","));
+  if (input.resolve) form.append("resolve", "true");
+  (input.files ?? []).forEach((f) => form.append("files", f));
+  const { data } = await axios.post(`${API}/support/people/${encodeURIComponent(key)}/reply/`, form, {
+    headers: bearer(token),
+  });
+  return data as SupportPersonDetail & {
+    message: string;
+    emailed: boolean;
+    discord_dm: boolean;
+    rejected_files: RejectedFile[];
+    answered: string[];
+  };
+}
+
+export async function bulkReplyToPeople(
+  token: string,
+  input: { keys: string[]; message: string; resolve?: boolean },
+) {
+  const { data } = await axios.post(
+    `${API}/support/people/bulk-reply/`,
+    { keys: input.keys, message: input.message, resolve: input.resolve ? "true" : "" },
+    { headers: bearer(token) },
+  );
+  return data as { message: string; people_sent: number; requests_answered: number; skipped: number };
 }

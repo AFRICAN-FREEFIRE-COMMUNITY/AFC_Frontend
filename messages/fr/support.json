@@ -126,5 +126,83 @@
       "help_handoff_empty": "Refusé : rien n'a été écrit",
       "help_handoff_limit": "Refusé : trop de tickets"
     }
+  },
+  "desk": {
+    "subtitle": "Tous les messages envoyés à AFC, regroupés par personne : toutes les demandes et tous les fichiers de quelqu'un au même endroit, avec une réponse groupée ou une par une.",
+    "search": "Nom, e-mail, numéro de ticket ou mots",
+    "filters": {
+      "search": "Recherche",
+      "status": "Statut",
+      "from": "Du",
+      "to": "Au",
+      "range": "Période rapide",
+      "country": "Pays",
+      "allCountries": "Tous les pays",
+      "more": "Plus de filtres",
+      "fewer": "Moins de filtres",
+      "source": "Provenance",
+      "anywhere": "Partout",
+      "assigned": "Attribué à",
+      "hasFiles": "Avec fichiers",
+      "button": "Filtres ({count})"
+    },
+    "range": {
+      "today": "Aujourd'hui",
+      "week": "7 jours",
+      "month": "30 jours",
+      "all": "Tout"
+    },
+    "source": {
+      "contact_form": "Formulaire de contact",
+      "help_bot": "Assistant d'aide",
+      "staff": "Ouvert par l'équipe"
+    },
+    "assigned": {
+      "any": "N'importe qui",
+      "me": "Moi",
+      "none": "Personne encore"
+    },
+    "counts": "{people, plural, one {# personne} other {# personnes}}, {open, plural, one {# demande ouverte} other {# demandes ouvertes}}",
+    "requests": "{count, plural, one {# demande} other {# demandes}}, {open} ouvertes",
+    "needsReply": "Attend une réponse",
+    "pick": "Sélectionner {name}",
+    "picked": "{count, plural, one {# personne sélectionnée} other {# personnes sélectionnées}}",
+    "replyAll": "Leur répondre à tous",
+    "clear": "Effacer",
+    "back": "Toutes les personnes",
+    "noAccount": "Pas de compte AFC",
+    "since": "Sur AFC depuis {date}",
+    "allRequests": "{count, plural, one {La demande de {name}} other {Les # demandes de {name}}}",
+    "show": "Afficher",
+    "hide": "Masquer",
+    "replyTo": "Répondre à",
+    "allOpen": "Les {count} demandes ouvertes",
+    "placeholder": "Écrivez à {name}. La réponse arrive par e-mail, dans Mes tickets sur le site, et sur Discord s'il est connecté.",
+    "resolveAfter": "Marquer comme résolu après l'envoi",
+    "hintAll": "Un seul message à {name}, enregistré sur les {count} demandes, pour que personne n'ait à répondre deux fois à la même question.",
+    "hintOne": "Enregistré sur cette demande uniquement.",
+    "allResolved": "Toutes les demandes de {name} sont résolues. Un nouveau message le ramènera ici.",
+    "empty": "Rien en attente. Les nouveaux messages apparaissent ici dès leur arrivée.",
+    "noMatch": "Personne ne correspond à ces filtres. Retirez un filtre pour en voir plus.",
+    "pickPerson": "Choisissez une personne à gauche pour lire tout ce qu'elle a envoyé.",
+    "sentMany": "Envoyé une fois par e-mail, enregistré sur {count} demandes.",
+    "assignMe": "M'attribuer",
+    "assignedToYou": "Ses demandes ouvertes vous sont attribuées.",
+    "openFile": "Ouvrir {name}",
+    "loadMore": "Afficher plus de personnes",
+    "bulk": {
+      "title": "{count, plural, one {Répondre à # personne} other {Répondre à # personnes}}",
+      "explain": "Chaque personne reçoit le message séparément, enregistré sur toutes ses demandes ouvertes. Personne ne voit qui d'autre l'a reçu.",
+      "label": "Message",
+      "placeholder": "Par exemple : le mercato ouvre le 1er janvier 2027.",
+      "send": "Envoyer à {count}",
+      "cancel": "Annuler",
+      "done": "Envoyé à {people, plural, one {# personne} other {# personnes}}, {requests, plural, one {# demande traitée} other {# demandes traitées}}.",
+      "skipped": "{count, plural, one {# personne n'avait} other {# personnes n'avaient}} rien d'ouvert et {count, plural, one {a été ignorée} other {ont été ignorées}}."
+    },
+    "errors": {
+      "people": "Impossible de charger les personnes.",
+      "person": "Impossible d'ouvrir cette personne."
+    }
   }
 }
