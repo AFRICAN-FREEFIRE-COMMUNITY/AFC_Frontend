@@ -107,9 +107,15 @@ export interface RejectedFile {
 const bearer = (token?: string | null) =>
   token ? { Authorization: `Bearer ${token}` } : {};
 
-/** Absolute URL for an attachment. `ticketToken` is how the requester's own page reads its files. */
+/**
+ * Absolute URL for an attachment. `ticketToken` is how the requester's own page reads its files.
+ * Staff rows already arrive SIGNED (`.../?s=...`, AFC-B afc_support/views.py _signed_attachment_url,
+ * inbox #168): a browser following a link sends no Authorization header, so the desk's plain links
+ * answered 404 to every admin. The URL is used as given; a token, when there is one, is added with
+ * the right separator.
+ */
 export const attachmentUrl = (att: SupportAttachment, ticketToken?: string) =>
-  `${API}${att.url}${ticketToken ? `?t=${encodeURIComponent(ticketToken)}` : ""}`;
+  `${API}${att.url}${ticketToken ? `${att.url.includes("?") ? "&" : "?"}t=${encodeURIComponent(ticketToken)}` : ""}`;
 
 // ── public ───────────────────────────────────────────────────────────────────────────────────
 export async function sendContactMessage(input: {
