@@ -17,7 +17,6 @@
   "filters": {
     "title": "Or filter by category",
     "tier": "Tier",
-    "tierValue": "Tier {tier}",
     "country": "Country",
     "role": "Role",
     "language": "Language",

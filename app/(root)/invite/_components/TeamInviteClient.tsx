@@ -17,6 +17,7 @@ import Link from "next/link";
 import { Footer } from "@/app/_components/Footer";
 import { Header } from "@/app/(user)/_components/Header";
 import { useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 import { teamPath } from "@/lib/routes";
 import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
 
@@ -37,6 +38,7 @@ export function TeamInviteClient({
   // The team data itself (name, tag, members) comes from the backend endpoint
   // /team/get-team-details-based-on-invite/<inviteId> and is not localized.
   const t = useTranslations("root");
+  const tierLabel = useTierLabel();   // published Rankings tier label (inbox #162)
   // Shared management-role labels (messages/en/common.json -> "teamRoles"), keyed by the STORED
   // role value. Used for the roster preview below, which used to print the raw database value.
   // Matters most for 'member', which stores as "member" but reads as "Player" (owner 2026-08-04,
@@ -270,14 +272,10 @@ export function TeamInviteClient({
                 </p>
               </div>
               <div className="text-center p-4 bg-muted rounded-md">
-                <Badge
-                  variant="outline"
-                  className="h-6 w-6 mx-auto mb-2 flex items-center justify-center"
-                >
-                  T{teamDetails?.team_tier || 1}
-                </Badge>
+                {/* The published Rankings tier (inbox #162). It printed the hand-set team_tier and
+                    fell back to "1", so an unranked team was advertised to invitees as Tier 1. */}
                 <p className="text-2xl font-bold">
-                  {teamDetails?.team_tier || 1}
+                  {tierLabel(teamDetails?.ranking_tier)}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {t("invite.statTier")}

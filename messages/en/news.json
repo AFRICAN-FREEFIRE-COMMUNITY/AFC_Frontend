@@ -87,8 +87,7 @@
       "all": "All countries"
     },
     "tierFilter": {
-      "all": "All tiers",
-      "tier": "Tier {tier}"
+      "all": "All tiers"
     },
     "directionFilter": {
       "all": "Joined and left",

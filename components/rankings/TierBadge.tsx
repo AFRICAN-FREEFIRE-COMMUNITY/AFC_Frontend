@@ -26,6 +26,24 @@ export const tierMeta: Record<number, { label: string; cls: string; min: number 
 // have a colour here. Inbox #108: a code tierMeta did not know used to crash the page
 // (`tierMeta[4].cls` on undefined), taking down the admin rankings pages and the public Tiers tab.
 
+/**
+ * The label TierBadge draws, as plain TEXT, for places that need words rather than a pill (a stat
+ * value, a select option, a page description). Code 0 -> "Tier 1"; null or undefined -> "Unranked".
+ * Accepts the code as a number or a numeric string, since some endpoints send "3".
+ *
+ * Inbox #162 / #165 (owner 2026-10-05 "yes", 2026-10-08 "broadcasts and polls should use the
+ * tiering everything else uses"): every tier on the site is the team's published RANKING tier,
+ * `ranking_tier` on the team endpoints (AFC-B afc_rankings/public_tiers.py). The hand-set team_tier
+ * ("3" for every team) is no longer sent. Never print a code without going through this or TierBadge.
+ */
+export function useTierLabel() {
+  const t = useTranslations("rankings");
+  return (tier: number | string | null | undefined): string =>
+    tier === null || tier === undefined || tier === ""
+      ? t("unranked")
+      : t("tier", { tier: Number(tier) + 1 });
+}
+
 interface TierBadgeProps {
   // Any tier code the scoring config defines (0 = Tier 1). See the note above tierMeta's users.
   tier: number | null | undefined;

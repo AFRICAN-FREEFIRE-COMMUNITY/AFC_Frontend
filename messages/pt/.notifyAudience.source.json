@@ -12,7 +12,6 @@
   "pick.playersHelp": "Named individuals, added on top of anything else you pick.",
   "filters.title": "Or filter by category",
   "filters.tier": "Tier",
-  "filters.tierValue": "Tier {tier}",
   "filters.country": "Country",
   "filters.role": "Role",
   "filters.language": "Language",

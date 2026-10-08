@@ -56,7 +56,6 @@
   "transfers.filterLabels.team": "Team",
   "transfers.countryFilter.all": "All countries",
   "transfers.tierFilter.all": "All tiers",
-  "transfers.tierFilter.tier": "Tier {tier}",
   "transfers.directionFilter.all": "Joined and left",
   "transfers.directionFilter.joined": "Joined",
   "transfers.directionFilter.left": "Left",

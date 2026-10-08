@@ -87,8 +87,7 @@
       "all": "Tous les pays"
     },
     "tierFilter": {
-      "all": "Tous les niveaux",
-      "tier": "Niveau {tier}"
+      "all": "Tous les niveaux"
     },
     "directionFilter": {
       "all": "Arrivées et départs",

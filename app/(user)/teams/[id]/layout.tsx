@@ -34,7 +34,7 @@ type Props = {
 
 // Server-side fetch of the team for SEO. Hits the backend base URL directly
 // (POST /team/get-team-details/, the SAME endpoint the client page reads).
-// Response: { team: { team_name, team_logo (absolute), team_tier, country,
+// Response: { team: { team_name, team_logo (absolute), ranking_tier, country,
 //   total_members, team_description, ... } }. Returns null on any failure so
 // generateMetadata can fall back gracefully (never throws).
 async function getTeamData(teamName: string) {
@@ -72,8 +72,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   // Info-rich description from the team's REAL fields: tier, country, member count.
-  // formatTier normalizes the raw tier code ("3") into a clean label ("Tier 3").
-  const tier = formatTier(team.team_tier);
+  // formatTier turns the published ranking tier code (0 = "Tier 1") into its label; null when unranked.
+  const tier = formatTier(team.ranking_tier);
   const tierBit = tier ? `${tier} ` : "";
   const fromCountry = team.country ? ` from ${team.country}` : "";
   const memberBit =
@@ -102,7 +102,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       team.team_name,
       "Free Fire team",
       team.country,
-      team.team_tier,
+      formatTier(team.ranking_tier),
       "esports team",
     ].filter(Boolean) as string[],
   });
@@ -124,7 +124,7 @@ export default async function TeamDetailLayout({ children, params }: Props) {
   let breadcrumbSchema: object | null = null;
   if (team) {
     const path = teamPath(team.team_name);
-    const tier = formatTier(team.team_tier);
+    const tier = formatTier(team.ranking_tier);
     const tierBit = tier ? `${tier} ` : "";
     const description = `${team.team_name} is a ${tierBit}Free Fire esports team on AFC. View roster, stats, and tournament history.`;
     teamSchema = generateTeamSchema({

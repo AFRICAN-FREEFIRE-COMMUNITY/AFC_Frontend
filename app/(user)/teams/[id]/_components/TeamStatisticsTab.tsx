@@ -11,7 +11,7 @@
  *
  * Data sources (all live on the `team` object passed in):
  *   - aggregate scalars: total_wins, total_losses, win_rate, average_kills,
- *     average_placement, total_earnings, team_tier
+ *     average_placement, total_earnings, ranking_tier (published Rankings tier code)
  *   - tournament_performance[]: one row per event the team played, each carrying
  *     event_date (ISO|null) and prize_earned (decimal string) NEW fields.
  *   - recent_matches[]: per-match rows we group by event_name to power the
@@ -51,6 +51,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { formatNumber } from "@/lib/i18n/number";
 import axios from "axios";
 import { useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 // Multi-currency display chokepoint: prizes/earnings are stored in NGN and must render in the
 // viewer's chosen currency (like <Money from="NGN"/> across the app), never a hardcoded "$".
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -186,7 +187,7 @@ type TeamStatisticsTabProps = {
   team: {
     // Used by this tab to re-fetch a token-gated copy of the stats (see below).
     team_name?: string;
-    team_tier?: string;
+    ranking_tier?: number | null;   // published Rankings tier code, 0 = "Tier 1" (inbox #162)
     total_earnings?: string;
     total_wins?: number;
     total_losses?: number;
@@ -282,6 +283,7 @@ const tierChipClass = (tier: number | null, label: string | null): string => {
 const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
   // i18n: detailed team statistics tab copy (teamsplayers -> "teamStats").
   const t = useTranslations("teamsplayers");
+  const tierLabel = useTierLabel();   // published Rankings tier label (inbox #162)
 
   // Prizes/earnings are stored in NGN. Render them in the viewer's chosen display currency through
   // the app-wide money chokepoint (lib/money + CurrencyContext), exactly like <Money from="NGN"/>
@@ -743,7 +745,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
         />
         <StatCard
           label={t("teamStats.currentTier")}
-          value={team?.team_tier || t("teamStats.unranked")}
+          value={tierLabel(team?.ranking_tier)}
           sub={t("teamStats.currentGrade")}
           valueClass="text-gold"
         />
@@ -923,7 +925,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                     variant="outline"
                     className="text-gold"
                   >
-                    {team?.team_tier || t("teamStats.unranked")}
+                    {tierLabel(team?.ranking_tier)}
                   </Badge>
                 </div>
                 <p className="text-xs italic text-muted-foreground">

@@ -85,6 +85,7 @@ import {
 // never touches anything mid-typing.
 import { useLiveTick } from "@/hooks/useLiveTick";
 import { adminTeamPath } from "@/lib/routes";
+import { TierBadge, useTierLabel } from "@/components/rankings/TierBadge";
 
 // ── Ghost Teams (provisional placeholder teams used by Rankings & Tiering) ───
 // Shape mirrors the backend serialize_ghost() payload (afc_rankings/admin_ghost.py):
@@ -110,6 +111,7 @@ const emptyRoster = (): GhostPlayer[] =>
 export const TeamsAdminContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTier, setFilterTier] = useState("all");
+  const tierLabel = useTierLabel();
   const [currentPage, setCurrentPage] = useState(1);
   const [pending, startTransition] = useTransition();
   const [teams, setTeams] = useState<any>();
@@ -255,6 +257,20 @@ export const TeamsAdminContent = () => {
     fetchTeams(tick > 0);
   }, [tick]);
 
+  // The tier filter offers the published Rankings tiers the listed teams actually hold (tiers are
+  // extensible, so never a fixed 1-2-3 list), plus Unranked.
+  const tierCodes = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          ((teams as any[]) ?? [])
+            .map((team) => team.ranking_tier)
+            .filter((code: unknown): code is number => typeof code === "number"),
+        ),
+      ).sort((a, b) => a - b),
+    [teams],
+  );
+
   const filteredTeams = useMemo(() => {
     if (!teams) return [];
 
@@ -262,8 +278,10 @@ export const TeamsAdminContent = () => {
       // Use the shared matcher (lib/search.ts) so the team search is punctuation,
       // accent, and fancy-font insensitive: typing "ve" finds a team named "V-E".
       const matchesTeamSearch = matchesSearch(team.team_name, searchTerm);
+      // The published Rankings tier (inbox #162); "none" = unranked.
       const matchesTier =
-        filterTier === "all" || String(team.team_tier) === filterTier;
+        filterTier === "all" ||
+        (filterTier === "none" ? team.ranking_tier == null : String(team.ranking_tier) === filterTier);
 
       return matchesTeamSearch && matchesTier;
     });
@@ -328,9 +346,10 @@ export const TeamsAdminContent = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Tiers</SelectItem>
-              <SelectItem value="1">Tier 1</SelectItem>
-              <SelectItem value="2">Tier 2</SelectItem>
-              <SelectItem value="3">Tier 3</SelectItem>
+              {tierCodes.map((code) => (
+                <SelectItem key={code} value={String(code)}>{tierLabel(code)}</SelectItem>
+              ))}
+              <SelectItem value="none">{tierLabel(null)}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -365,7 +384,7 @@ export const TeamsAdminContent = () => {
                 paginatedTeams.map((team: any) => (
                   <TableRow key={team.team_name}>
                     <TableCell>{team.team_name}</TableCell>
-                    <TableCell>{team.team_tier}</TableCell>
+                    <TableCell><TierBadge tier={team.ranking_tier} className="text-xs" /></TableCell>
                     <TableCell>
                       {team.member_count ? team.member_count : 0}
                     </TableCell>

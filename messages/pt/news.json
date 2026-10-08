@@ -87,8 +87,7 @@
       "all": "Todos os países"
     },
     "tierFilter": {
-      "all": "Todos os níveis",
-      "tier": "Nível {tier}"
+      "all": "Todos os níveis"
     },
     "directionFilter": {
       "all": "Entradas e saídas",

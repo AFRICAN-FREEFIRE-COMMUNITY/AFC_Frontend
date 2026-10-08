@@ -54,6 +54,7 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 // i18n (next-intl): this page is fully localized under the "pmApplication" namespace
 // (messages/en|fr|pt/pmApplication.json). Client component -> useTranslations.
 import { useLocale, useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -77,7 +78,7 @@ interface ApplicationDetails {
     name: string;
     tag: string | null;
     logo: string | null;
-    tier: string;
+    tier: number | null;   // the team's published Rankings tier code (inbox #162), 0 = "Tier 1"
     country: string;
   };
   post: {
@@ -257,6 +258,9 @@ export default function ApplicationDetailPage({
   const router = useRouter();
   // i18n translator for every user-facing string on this page.
   const t = useTranslations("pmApplication");
+  // The team's published Rankings tier (a code, 0 = "Tier 1"); tierLabel below is for the post's
+  // own minimum_tier_required, which is a different, self-declared value (TIER_1 .. TIER_3).
+  const rankingTierLabel = useTierLabel();
   // Passed to every formatLocalTime call below so month names follow the page's language.
   const locale = useLocale();
 
@@ -500,7 +504,7 @@ export default function ApplicationDetailPage({
                 <div>
                   <p className="text-muted-foreground">{t("team.tier")}</p>
                   <p className="font-medium text-base">
-                    {tierLabel(details.team.tier)}
+                    {rankingTierLabel(details.team.tier)}
                   </p>
                 </div>
                 <div>

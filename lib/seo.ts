@@ -648,20 +648,17 @@ export function resolveOgImage(raw?: string | null): string {
 }
 
 /**
- * Format a raw team_tier value into a clean human label for copy/badges.
- * The backend stores tier as a bare code: "3", "tier_3", or sometimes a ready
- * label like "Tier 3". This normalizes all of them to "Tier 3"; an already-nice
- * label is returned as-is, and an empty value yields null (so callers can omit it).
- * Used by the team layout description and the team OG card.
+ * A team's published RANKING tier code as the label the Rankings page shows: code 0 -> "Tier 1".
+ * null / undefined (unranked) -> null, so a description can simply leave the tier out.
+ * The code is `ranking_tier` on the team endpoints (inbox #162, 8 Oct 2026); it replaced the
+ * hand-set team_tier, which said "3" for every team. Server-side twin of components/rankings/
+ * TierBadge.tsx useTierLabel, for metadata and the OG card. Used by the team layout, the team OG
+ * card, the invite page and the admin team page descriptions.
  */
-export function formatTier(raw?: string | number | null): string | null {
-  if (raw === null || raw === undefined || raw === "") return null;
-  const s = String(raw).trim();
-  // Bare number ("3") or "tier_3"/"tier-3" → "Tier 3".
-  const m = s.match(/(?:tier[_\s-]*)?(\d+)/i);
-  if (m) return `Tier ${m[1]}`;
-  // Already a friendly label (e.g. "Pro", "Tier 1") → leave it.
-  return s;
+export function formatTier(code?: string | number | null): string | null {
+  if (code === null || code === undefined || code === "") return null;
+  const n = Number(code);
+  return Number.isFinite(n) ? `Tier ${n + 1}` : null;
 }
 
 /**

@@ -64,12 +64,6 @@
     "short_text": "Resposta curta",
     "long_text": "Resposta longa"
   },
-  "seasonTier": {
-    "0": "Elite",
-    "1": "Competitivo",
-    "2": "Em ascensão",
-    "3": "Iniciante"
-  },
   "teamRole": {
     "team_captain": "Capitão",
     "vice_captain": "Vice-capitão",
@@ -168,15 +162,12 @@
     "everyone": "Todo mundo com conta na AFC",
     "everyoneHint": "Deixe ligado para uma enquete da comunidade. Desligue para restringir.",
     "countries": "País",
-    "teamTiers": "Nível da equipe",
-    "teamTiersHint": "O nível definido à mão por um admin. Nível 1 é o mais forte.",
-    "seasonTiers": "Nível da temporada",
-    "seasonTiersHint": "O nível que o ranking calculou neste trimestre. Elite é o mais forte. Congelado quando a enquete abre, para ninguém ver a cédula e ser recusado depois.",
+    "seasonTiers": "Nível",
+    "seasonTiersHint": "O nível da equipe ou do jogador na página Classificações, da última temporada publicada pela AFC. Nível 1 é o mais forte. Congelado quando a enquete abre, para ninguém ver a cédula e ser recusado depois.",
     "scopeTeam": "O nível de temporada da equipe deles",
     "scopePlayer": "O nível de temporada deles",
     "teamRoles": "Função na equipe",
     "teamRolesHint": "Capitão conta de qualquer jeito que a equipe registre.",
-    "intersectWarning": "Escolher os dois sistemas de nível exige que os DOIS sejam verdadeiros, o que pode ser um grupo bem menor que cada um sozinho.",
     "beforeTheyVote": "Antes de poder votar",
     "beforeTheyVoteHint": "Isso não restringe o público. Quem estiver faltando um item continua convidado, só precisa preencher antes, e recebe um link que resolve.",
     "preview": "Contar",

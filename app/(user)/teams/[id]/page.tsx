@@ -76,6 +76,7 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 // LocalTime renders a stored UTC timestamp in the viewer's own timezone + language.
 import { LocalTime } from "@/components/LocalTime";
 import { z } from "zod";
@@ -166,6 +167,7 @@ const Page = ({ params }: { params: Params }) => {
   const { id } = use(params);
   // i18n: team detail page copy (messages/en/teamsplayers.json -> "teamDetail").
   const t = useTranslations("teamsplayers");
+  const tierLabel = useTierLabel();   // published Rankings tier label (inbox #162)
   // Report-dialog copy (separate namespace, messages/en/playerReports.json).
   const tReport = useTranslations("playerReports");
   // Team-feature copy (messages/en/team.json -> "letterAvatars"): the read-only letter-avatar chips
@@ -971,7 +973,7 @@ const Page = ({ params }: { params: Params }) => {
                       <div>
                         <p className="text-sm text-muted-foreground">{t("teamDetail.tierLabel")}</p>
                         <p className="text-lg md:text-xl font-semibold">
-                          {teamDetails?.team_tier}
+                          {tierLabel(teamDetails?.ranking_tier)}
                         </p>
                       </div>
                       <div>
