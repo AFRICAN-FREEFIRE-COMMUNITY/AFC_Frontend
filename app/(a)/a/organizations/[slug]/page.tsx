@@ -87,7 +87,7 @@ import { readSegment } from "@/lib/routes";
 
 // ── Types (mirror the adminGetOrganization payload) ──────────────────────────
 
-// The 8 granular organizer permission keys. Kept as a const array so the add-
+// The granular organizer permission keys. Kept as a const array so the add-
 // member switch grid, the per-member summary, and the default-permissions seed
 // all iterate the same source of truth.
 const PERMISSION_KEYS = [
@@ -99,6 +99,8 @@ const PERMISSION_KEYS = [
   "can_view_metrics",
   "can_view_reviews",
   "can_manage_members",
+  // Inbox #175: the organizer portal's Support page.
+  "can_answer_support",
 ] as const;
 
 type PermissionKey = (typeof PERMISSION_KEYS)[number];
@@ -114,6 +116,7 @@ const PERMISSION_LABELS: Record<PermissionKey, string> = {
   can_view_metrics: "View metrics",
   can_view_reviews: "View reviews",
   can_manage_members: "Manage members",
+  can_answer_support: "Answer support",
 };
 
 interface OrgSocials {

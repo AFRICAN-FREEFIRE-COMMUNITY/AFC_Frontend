@@ -125,12 +125,20 @@ export function MyTickets({ email }: { email: string }) {
                 aria-label={t("mine.open", { number: row.ticket_number })}
                 className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1.5 rounded-lg bg-muted/60 px-4 py-3 hover:bg-muted md:grid-cols-[auto_1fr_auto_auto_auto] md:gap-x-4"
               >
-                <span className="font-mono text-xs text-muted-foreground">{row.ticket_number}</span>
+                <span className="font-mono text-xs whitespace-nowrap text-muted-foreground">{row.ticket_number}</span>
                 <span className={cn("justify-self-end whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold md:order-3", STATUS_STYLE[row.status])}>
-                  {t(`status.${row.status}`)}
+                  {row.organization_name && t.has(`mine.statusOrganizer.${row.status}`)
+                    ? t(`mine.statusOrganizer.${row.status}`)
+                    : t(`status.${row.status}`)}
                 </span>
                 <span className="col-span-2 min-w-0 text-sm font-semibold md:order-2 md:col-span-1 md:truncate">
                   {row.subject || t("mine.noSubject")}
+                  {/* Inbox #175: a question asked of an organizer names who it went to. */}
+                  {row.organization_name ? (
+                    <span className="text-muted-foreground block text-xs font-normal md:inline md:pl-2">
+                      {t("mine.toOrganizer", { name: row.organization_name })}
+                    </span>
+                  ) : null}
                 </span>
                 <span className="col-span-2 text-xs text-muted-foreground tabular-nums md:order-4 md:col-span-1 md:whitespace-nowrap">
                   <LocalTime value={row.last_message_at} />

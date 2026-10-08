@@ -310,7 +310,8 @@
     "logout": "Se déconnecter",
     "overlays": "Superpositions en direct",
     "help": "Centre d'aide",
-    "invites": "Invitations"
+    "invites": "Invitations",
+    "support": "Assistance"
   },
   "overview": {
     "title": "Présentation générale",
@@ -371,7 +372,8 @@
       "can_submit_designs": "Envoyer des designs",
       "can_view_metrics": "Afficher les indicateurs",
       "can_view_reviews": "Consulter les avis",
-      "can_manage_members": "Gérer les membres"
+      "can_manage_members": "Gérer les membres",
+      "can_answer_support": "Répondre à l'assistance"
     },
     "cancel": "Annuler",
     "add": "Ajouter",

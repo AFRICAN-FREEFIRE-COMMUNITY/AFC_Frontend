@@ -1252,5 +1252,7 @@
   "eventLeaderboard.matchResults.rich.medkits": "medkit|medkits",
   "eventLeaderboard.matchResults.rich.survived": "survived",
   "eventLeaderboard.matchResults.rich.fromCapture": "recorded by AFC Capture",
-  "eventLeaderboard.matchResults.rich.fromBackfill": "recorded from a debugger log"
+  "eventLeaderboard.matchResults.rich.fromBackfill": "recorded from a debugger log",
+  "nav.support": "Support",
+  "members.permissions.can_answer_support": "Answer support"
 }

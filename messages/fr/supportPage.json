@@ -12,7 +12,12 @@
     "more": "Afficher plus",
     "loading": "Chargement de vos tickets",
     "noSubject": "(sans objet)",
-    "open": "Ouvrir le ticket {number}"
+    "open": "Ouvrir le ticket {number}",
+    "toOrganizer": "Pour {name}",
+    "statusOrganizer": {
+      "open": "En attente de l'organisateur",
+      "waiting": "L'organisateur a répondu, à vous"
+    }
   },
   "status": {
     "waiting": "AFC a répondu, à vous",

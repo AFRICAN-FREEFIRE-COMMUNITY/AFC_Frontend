@@ -111,21 +111,41 @@ export default function SupportTicketPage() {
                   : "bg-muted text-muted-foreground"
               }`}
             >
-              {t(`status.${ticket.status}` as "status.open")}
+              {/* Inbox #175: on a question to an organizer, "waiting on us" would read as AFC. */}
+              {ticket.organization && t.has(`public.statusOrganizer.${ticket.status}`)
+                ? t(`public.statusOrganizer.${ticket.status}` as "public.statusOrganizer.open")
+                : t(`status.${ticket.status}` as "status.open")}
             </span>
           </CardTitle>
+          {/* Inbox #175: a question asked of an ORGANIZER says so, and which event it is about, so
+              the player knows the answers come from the organizer and not from AFC. */}
+          {ticket.organization ? (
+            <p className="text-sm">
+              {ticket.event
+                ? t("public.toOrganizerAbout", { name: ticket.organization.name, event: ticket.event.name })
+                : t("public.toOrganizer", { name: ticket.organization.name })}
+            </p>
+          ) : null}
           <p className="text-muted-foreground text-xs">
             {t("openedOn")} <LocalTime value={ticket.created_at} />
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <SupportThread messages={ticket.messages ?? []} ticketToken={token} />
+          <SupportThread
+            messages={ticket.messages ?? []}
+            ticketToken={token}
+            answeredBy={ticket.organization?.name}
+          />
           <SupportComposer
             onSend={send}
             sending={sending}
             placeholder={t("public.placeholder")}
           />
-          <p className="text-muted-foreground text-xs">{t("public.explainer")}</p>
+          <p className="text-muted-foreground text-xs">
+            {ticket.organization
+              ? t("public.explainerOrganizer", { name: ticket.organization.name })
+              : t("public.explainer")}
+          </p>
         </CardContent>
       </Card>
     </div>

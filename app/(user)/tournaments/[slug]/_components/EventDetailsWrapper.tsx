@@ -78,6 +78,7 @@ import { toastUidTaken } from "@/lib/uidTaken";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
+import { AskOrganizerButton } from "@/components/support/AskOrganizerDialog";
 import { AFC_DISCORD_SERVER, DEFAULT_IMAGE } from "@/constants";
 import axios from "axios";
 import Image from "next/image";
@@ -391,6 +392,9 @@ interface EventDetails {
   results_imported?: boolean;
   results_imported_at?: string | null;
   event_id: number;
+  // The event's current slug (event_contract Field("slug", read=PLAYER)). "Ask the organizer"
+  // sends it so the question is filed against this event (inbox #175).
+  slug?: string | null;
   competition_type: string;
   participant_type: string;
   registered_competitors: any[];
@@ -5700,6 +5704,17 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             </div>
           );
         })()}
+        {/* ── Ask the organizer (inbox #175, owner 2026-10-08) ── a signed-in player's question to the
+            event's OWN organization, about this event; answered on the organizer portal's Support
+            page. Only on organizer events: a native AFC event already has /support. The control
+            sits inside NeedsAccount (R26). components/support/AskOrganizerDialog.tsx */}
+        {eventDetails.organization_slug && eventDetails.organization_name ? (
+          <AskOrganizerButton
+            organization={{ slug: eventDetails.organization_slug, name: eventDetails.organization_name }}
+            event={eventDetails.slug ? { slug: eventDetails.slug, name: eventDetails.event_name } : null}
+            className="w-fit"
+          />
+        ) : null}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           {/* i18n time: event start date in the viewer's timezone + language,
               injected as the <date> tag of the "Date: <date>" string (t.rich). */}

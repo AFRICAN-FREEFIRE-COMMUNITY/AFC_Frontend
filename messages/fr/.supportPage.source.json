@@ -22,5 +22,8 @@
   "form.prefilled": "Filled in from your account. Change it if you want replies somewhere else.",
   "profile.link": "My support tickets",
   "profile.hint": "Every message you have sent AFC, and every reply.",
-  "menuWaiting": "{count, plural, one {# ticket waiting on you} other {# tickets waiting on you}}"
+  "menuWaiting": "{count, plural, one {# ticket waiting on you} other {# tickets waiting on you}}",
+  "mine.toOrganizer": "To {name}",
+  "mine.statusOrganizer.open": "Waiting on the organizer",
+  "mine.statusOrganizer.waiting": "The organizer replied, over to you"
 }

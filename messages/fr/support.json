@@ -68,7 +68,8 @@
     "empty": "Rien n'a encore été envoyé.",
     "more": "Charger plus",
     "rowFromAfc": "AFC, par {who}",
-    "rowFromPerson": "{who} a écrit"
+    "rowFromPerson": "{who} a écrit",
+    "toOrganizer": "Pour {name}"
   },
   "public": {
     "title": "Votre ticket d'assistance",
@@ -77,7 +78,14 @@
     "notFound": "Nous n'avons pas trouvé ce ticket. Vérifiez le lien dans votre e-mail, ou écrivez-nous à nouveau depuis la page Contact.",
     "placeholder": "Compléter votre message",
     "replySent": "Votre réponse a été ajoutée.",
-    "explainer": "Tout ce que vous ajoutez ici arrive à l'équipe AFC qui suit votre ticket. Gardez ce lien : c'est ainsi que vous revenez sur cette page."
+    "explainer": "Tout ce que vous ajoutez ici arrive à l'équipe AFC qui suit votre ticket. Gardez ce lien : c'est ainsi que vous revenez sur cette page.",
+    "toOrganizer": "Votre question à {name}",
+    "toOrganizerAbout": "Votre question à {name}, au sujet de {event}",
+    "explainerOrganizer": "Tout ce que vous ajoutez ici arrive à l'équipe {name}, qui répond à cette question. Gardez ce lien : c'est ainsi que vous revenez sur cette page.",
+    "statusOrganizer": {
+      "open": "En attente de l'organisateur",
+      "waiting": "L'organisateur a répondu, à vous"
+    }
   },
   "helpLog": {
     "title": "Journal de l'aide",
@@ -155,7 +163,8 @@
     "source": {
       "contact_form": "Formulaire de contact",
       "help_bot": "Assistant d'aide",
-      "staff": "Ouvert par l'équipe"
+      "staff": "Ouvert par l'équipe",
+      "organizer": "Question à l'organisateur"
     },
     "assigned": {
       "any": "N'importe qui",
@@ -163,7 +172,7 @@
       "none": "Personne encore"
     },
     "counts": "{people, plural, one {# personne} other {# personnes}}, {open, plural, one {# demande ouverte} other {# demandes ouvertes}}",
-    "requests": "{count, plural, one {# demande} other {# demandes}}, {open} ouvertes",
+    "requests": "{count, plural, one {# demande} other {# demandes}}, {open, plural, one {# ouverte} other {# ouvertes}}",
     "needsReply": "Attend une réponse",
     "pick": "Sélectionner {name}",
     "picked": "{count, plural, one {# personne sélectionnée} other {# personnes sélectionnées}}",
@@ -203,6 +212,42 @@
     "errors": {
       "people": "Impossible de charger les personnes.",
       "person": "Impossible d'ouvrir cette personne."
+    },
+    "aboutEvent": "Concerne {event}",
+    "emptyOrganizer": "Aucune question pour le moment. Quand un joueur pose une question à votre organisation depuis votre page ou l'un de vos événements, elle arrive ici.",
+    "orgTitle": "Assistance : {name}",
+    "orgSubtitleAdmin": "Les questions envoyées par les joueurs à cet organisateur, avec leurs fichiers. L'équipe de l'organisateur y répond ; vous pouvez les lire en tant que head admin ou super admin.",
+    "picker": {
+      "label": "Guichet",
+      "afc": "Assistance AFC",
+      "orgWaiting": "{name} ({count} en attente)"
+    },
+    "organizer": {
+      "title": "Assistance",
+      "subtitle": "Les questions que les joueurs ont envoyées à {name}, avec leurs fichiers. Votre réponse leur parvient par e-mail et sur la page de leur ticket.",
+      "noPermission": "Seuls le propriétaire et les membres qui ont la permission Répondre à l'assistance peuvent lire les questions de cette organisation. Demandez au propriétaire de l'activer pour vous sur la page Membres."
+    },
+    "readOnly": "Lecture seule. Seule l'équipe {name} répond à ces questions."
+  },
+  "ask": {
+    "button": "Poser une question",
+    "needsAccount": "poser une question à l'organisateur",
+    "title": "Poser une question à {name}",
+    "explain": "Votre question est envoyée à l'équipe {name}, pas à AFC. Sa réponse arrive sur la page de votre ticket, dans Mes tickets et par e-mail.",
+    "about": "Concerne : {event}",
+    "label": "Votre question",
+    "placeholder": "Que souhaitez-vous savoir ?",
+    "sentTitle": "Question envoyée",
+    "sentBody": "{name} a reçu votre question ({ticket}). Vous recevrez un e-mail quand l'organisateur répondra.",
+    "openQuestion": "Ouvrir ma question",
+    "allMessages": "Tous mes messages",
+    "errors": {
+      "question_empty": "Écrivez d'abord votre question.",
+      "question_too_long": "Votre question doit faire moins de {limit} caractères.",
+      "too_many_questions": "Vous avez envoyé plusieurs questions à cet organisateur au cours de la dernière heure. Attendez une réponse avant d'en poser une autre.",
+      "organization_not_found": "Cet organisateur ne reçoit pas de questions pour le moment.",
+      "event_not_found": "Cet événement n'appartient pas à cet organisateur.",
+      "generic": "Votre question n'a pas pu être envoyée. Rien n'est perdu, réessayez dans un instant."
     }
   }
 }

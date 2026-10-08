@@ -85,6 +85,8 @@ const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string }[] = [
   { key: "can_submit_designs", label: "Submit designs" },
   { key: "can_view_metrics", label: "View metrics" },
   { key: "can_view_reviews", label: "View reviews" },
+  // Inbox #175: the Support page, where players' questions to the organization are answered.
+  { key: "can_answer_support", label: "Answer support" },
 ];
 
 // Every permission off - the starting state for a new sub-organizer.
@@ -97,6 +99,7 @@ const EMPTY_PERMISSIONS: OrgPermissions = {
   can_view_metrics: false,
   can_view_reviews: false,
   can_manage_members: false,
+  can_answer_support: false,
 };
 
 // A single member row from getOrganizationMembers(slug).results[].

@@ -12,7 +12,12 @@
     "more": "Mostrar mais",
     "loading": "A carregar os teus pedidos",
     "noSubject": "(sem assunto)",
-    "open": "Abrir o pedido {number}"
+    "open": "Abrir o pedido {number}",
+    "toOrganizer": "Para {name}",
+    "statusOrganizer": {
+      "open": "À espera do organizador",
+      "waiting": "O organizador respondeu, é a tua vez"
+    }
   },
   "status": {
     "waiting": "A AFC respondeu, é a tua vez",

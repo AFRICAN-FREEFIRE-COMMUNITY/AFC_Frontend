@@ -310,7 +310,8 @@
     "logout": "Sair",
     "overlays": "Sobreposições em tempo real",
     "help": "Centro de ajuda",
-    "invites": "Convites"
+    "invites": "Convites",
+    "support": "Suporte"
   },
   "overview": {
     "title": "Visão geral",
@@ -371,7 +372,8 @@
       "can_submit_designs": "Enviar projetos",
       "can_view_metrics": "Ver métricas",
       "can_view_reviews": "Ver comentários",
-      "can_manage_members": "Gerir membros"
+      "can_manage_members": "Gerir membros",
+      "can_answer_support": "Responder ao suporte"
     },
     "cancel": "Cancelar",
     "add": "Adicionar",
