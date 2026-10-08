@@ -43,6 +43,7 @@ import axios from "axios";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { TierBadge } from "@/components/rankings/TierBadge";
 // LocalTime renders a stored UTC timestamp in the viewer's own timezone + language.
 import { LocalTime } from "@/components/LocalTime";
 import { FullLoader, Loader } from "@/components/Loader";
@@ -354,7 +355,9 @@ function TeamsAndPlayersPage() {
                                 <p>
                                   {t("teamsList.members", { count: team.member_count ? team.member_count : 0 })}
                                 </p>
-                                <p>{t("teamsList.tier", { tier: team.team_tier })}</p>
+                                {/* The published Rankings tier, labelled as Rankings labels it (inbox #162):
+                                    it read the hand-set team_tier, "Tier: 3" on every card. */}
+                                <TierBadge tier={team.ranking_tier} className="mt-1 px-2 py-0.5 text-xs" />
                                 {/* On the Most active tab, show WHY the team is on it. A rank with no
                                     number behind it is a claim the reader cannot check. */}
                                 {tab === "active" && (
@@ -569,9 +572,7 @@ function TeamsAndPlayersPage() {
                                   [{myTeam.team_tag}]
                                 </Badge>
                               )}
-                              <Badge variant="outline" className="text-xs shrink-0">
-                                {t("teamsList.tierLabel", { tier: myTeam.team_tier })}
-                              </Badge>
+                              <TierBadge tier={myTeam.ranking_tier} className="text-xs shrink-0" />
                               {myTeam.is_banned && (
                                 <Badge
                                   variant="destructive"

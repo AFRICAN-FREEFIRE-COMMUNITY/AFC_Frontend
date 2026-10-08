@@ -116,7 +116,6 @@
   "myAppsTab.none": "No applications yet",
   "myAppsTab.emptyHint": "Browse teams recruiting and apply to join",
   "myAppsTab.inviteExpires": "Invite expires {date}",
-  "myTeamTab.tier": "Tier {tier}",
   "myTeamTab.banned": "Banned",
   "myTeamTab.members": "{count, plural, one {# member} other {# members}}",
   "myTeamTab.founded": "Founded {date}",

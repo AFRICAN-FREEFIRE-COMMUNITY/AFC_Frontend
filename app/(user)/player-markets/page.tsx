@@ -76,6 +76,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { useLocale, useTranslations } from "next-intl";
+import { TierBadge } from "@/components/rankings/TierBadge";
 // Type-to-search phone picker (curated list + free-text "Other") for the Current Mobile Device
 // field. Feature 1 of the "Player Available Post" set (owner 2026-06-29).
 import { PhoneCombobox } from "@/components/ui/phone-combobox";
@@ -2493,12 +2494,8 @@ function PlayerMarketPage() {
                           [{currentTeam.team_tag}]
                         </Badge>
                       )}
-                      <Badge
-                        variant="outline"
-                        className={`text-xs shrink-0 ${getTierColor(`TIER_${currentTeam.team_tier}`)}`}
-                      >
-                        {t("myTeamTab.tier", { tier: currentTeam.team_tier })}
-                      </Badge>
+                      {/* The published Rankings tier (inbox #162), not the hand-set team_tier. */}
+                      <TierBadge tier={currentTeam.ranking_tier} className="text-xs shrink-0" />
                       {currentTeam.is_banned && (
                         <Badge
                           variant="destructive"

@@ -64,6 +64,8 @@ import {
   UserCog,
 } from "lucide-react";
 import { readSegment } from "@/lib/routes";
+import { TierBadge } from "@/components/rankings/TierBadge";
+import Link from "next/link";
 
 const API = env.NEXT_PUBLIC_BACKEND_API_URL;
 
@@ -79,12 +81,6 @@ const MANAGEMENT_ROLES = [
   { value: "coach", label: "Coach" },
   { value: "manager", label: "Manager" },
   { value: "analyst", label: "Analyst" },
-];
-
-const TIER_OPTIONS = [
-  { value: "1", label: "Tier 1" },
-  { value: "2", label: "Tier 2" },
-  { value: "3", label: "Tier 3" },
 ];
 
 type TeamDetailsClientProps = {
@@ -110,10 +106,6 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
   const [selectedRole, setSelectedRole] = useState("member");
   const [isAdding, setIsAdding] = useState(false);
 
-  // change tier
-  const [tierValue, setTierValue] = useState("");
-  const [tierConfirmOpen, setTierConfirmOpen] = useState(false);
-  const [isSavingTier, setIsSavingTier] = useState(false);
 
   // transfer ownership
   const [transferTarget, setTransferTarget] = useState("");
@@ -147,7 +139,6 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
       if (!res.ok) throw new Error("Failed to fetch team details");
       const data = await res.json();
       setTeamDetails(data.team);
-      setTierValue(data.team.team_tier ?? "");
     } catch (err: any) {
       toast.error(err.message || "Failed to load team details");
     } finally {
@@ -254,23 +245,6 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
     finally { setIsAdding(false); }
   };
 
-  const handleChangeTier = async () => {
-    setIsSavingTier(true);
-    try {
-      const res = await fetch(`${API}/team/admin-change-team-tier/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", ...authHeader },
-        body: JSON.stringify({ team_id: teamDetails.team_id, tier: tierValue }),
-      });
-      const data = await readJson(res);
-      if (!res.ok) throw new Error(data.message);
-      toast.success(data.message);
-      setTierConfirmOpen(false);
-      fetchTeamDetails();
-    } catch (err: any) { toast.error(err.message); }
-    finally { setIsSavingTier(false); }
-  };
-
   const handleTransferOwnership = async () => {
     setIsTransferring(true);
     try {
@@ -372,7 +346,15 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
           <CardContent className="space-y-3 text-sm font-medium">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Tier</span>
-              <span>Tier {teamDetails.team_tier}</span>
+              {/* The published Rankings tier (inbox #162). The hand-set tier and its "Change Team
+                  Tier" control are gone (inbox #165): to move a team, override its tier on the
+                  season in Rankings > Overrides, which pins it on the season's own row. */}
+              <span className="flex items-center gap-2">
+                <TierBadge tier={teamDetails.ranking_tier} className="text-xs" />
+                <Link href="/a/rankings/overrides" className="text-xs text-primary hover:underline">
+                  Change in Rankings
+                </Link>
+              </span>
             </div>
             <Separator />
             <div className="flex justify-between">
@@ -758,39 +740,6 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
             <CardDescription>Administrative controls for this team.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Change Tier */}
-            <div className="space-y-2">
-              {/* Field ⓘ nested in the Label - the InfoTip's stopPropagation guard keeps the click off the field. */}
-              <Label className="text-sm font-medium">
-                Change Team Tier
-                <InfoTip id="teams.detail.change_tier" className="ml-1" />
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Current tier: <span className="font-semibold">Tier {teamDetails.team_tier}</span>. Manually override the tier assigned by the ranking system.
-              </p>
-              <div className="flex gap-2">
-                <Select value={tierValue} onValueChange={setTierValue}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Select tier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TIER_OPTIONS.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button
-                  size="sm"
-                  onClick={() => setTierConfirmOpen(true)}
-                  disabled={!tierValue || tierValue === teamDetails.team_tier}
-                >
-                  Save Tier
-                </Button>
-              </div>
-            </div>
-
-            <Separator />
-
             {/* Transfer Ownership */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">
@@ -849,26 +798,6 @@ export function TeamDetailsClient({ teamId, initialData }: TeamDetailsClientProp
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isRemoving ? "Removing..." : "Remove Member"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* ── Confirm Change Tier ───────────────────────────────────────────── */}
-      <AlertDialog open={tierConfirmOpen} onOpenChange={setTierConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Change Team Tier?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will move <strong>{teamDetails.team_name}</strong> from{" "}
-              <strong>Tier {teamDetails.team_tier}</strong> to <strong>Tier {tierValue}</strong>.
-              The team owner will be notified.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSavingTier}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleChangeTier} disabled={isSavingTier}>
-              {isSavingTier ? "Saving..." : "Confirm"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

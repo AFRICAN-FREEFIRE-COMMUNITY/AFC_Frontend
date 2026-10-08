@@ -234,6 +234,7 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { TeamDetailsClient } from "../_components/TeamDetailsClient";
 import { readSegment } from "@/lib/routes";
+import { formatTier } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -299,7 +300,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const earnings = team.total_earnings
     ? `$${team.total_earnings} in earnings`
     : "No earnings yet";
-  const description = `${team.team_name} - ${team.team_tier} tier team with ${winRate} and ${earnings}. View full stats and tournament history.`;
+  const description = `${team.team_name} - ${formatTier(team.ranking_tier) || "Unranked"} team with ${winRate} and ${earnings}. View full stats and tournament history.`;
 
   return {
     title: `${team.team_name} - Team Profile | AFC`,

@@ -78,7 +78,7 @@ export default async function Image({
 
   const name = team?.team_name || readSegment(id);
   // Clean tier label ("Tier 3") from the raw code ("3"); null when no tier.
-  const tier = formatTier(team?.team_tier);
+  const tier = formatTier(team?.ranking_tier);
   const country = team?.country || null;
   const wins = team?.total_wins ?? null;
   const avgKills = team?.average_kills ?? null;

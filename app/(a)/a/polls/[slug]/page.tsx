@@ -31,6 +31,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { IconArrowLeft, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -695,18 +696,11 @@ function AudienceTab({
                 selected={audience.countries || []}
                 onToggle={(value) => toggle("countries", value)}
               />
-              {/* TWO tier systems, never merged behind one control, and neither ever shows its raw
-                  number: team tier 1 is the BEST while season tier 0 (Elite) is the best, so an
-                  admin who read "tier 3" off one and applied it to the other would get the
-                  opposite of what they meant. */}
-              <ChipGroup
-                label={t("audience.teamTiers")}
-                hint={t("audience.teamTiersHint")}
-                values={["1", "2", "3"].map((value) => ({ value, label: `Tier ${value}` }))}
-                selected={audience.tiers || []}
-                onToggle={(value) => toggle("tiers", value)}
-              />
-              <SeasonTierPicker audience={audience} setAudience={setAudience} />
+              {/* ONE tier control (inbox #165, owner 2026-10-08: "broadcasts and polls should use
+                  the tiering everything else uses"): the published Rankings tier, for the team or
+                  the player, frozen when the poll opens. The hand-set "team tier" chips are gone;
+                  the backend folds an old `tiers` pick into this block so it freezes too. */}
+              <SeasonTierPicker audience={audience} setAudience={setAudience} tierOptions={options?.tiers} />
               <ChipGroup
                 label={t("audience.teamRoles")}
                 hint={t("audience.teamRolesHint")}
@@ -721,13 +715,6 @@ function AudienceTab({
                 selected={audience.team_roles || []}
                 onToggle={(value) => toggle("team_roles", value)}
               />
-              {(audience.tiers?.length > 0 || audience.season_tiers?.values?.length > 0) &&
-                audience.tiers?.length > 0 &&
-                audience.season_tiers?.values?.length > 0 && (
-                  <p className="rounded-md bg-gold/5 px-3 py-2 text-xs text-gold">
-                    {t("audience.intersectWarning")}
-                  </p>
-                )}
             </>
           )}
 
@@ -771,11 +758,20 @@ function AudienceTab({
 function SeasonTierPicker({
   audience,
   setAudience,
+  tierOptions,
 }: {
   audience: Record<string, any>;
   setAudience: (next: Record<string, any>) => void;
+  // The tiers somebody holds in the latest PUBLISHED season (broadcast-audience options, as
+  // string codes), so the picker offers only tiers that select anybody. Tiers are extensible.
+  tierOptions?: { value: string; count: number }[];
 }) {
   const t = useTranslations("adminPolls");
+  const tierLabel = useTierLabel();
+  // Codes already on the rule stay pickable even if nobody holds them any more.
+  const codes = Array.from(
+    new Set([...(tierOptions ?? []).map((o) => Number(o.value)), ...((audience.season_tiers?.values as number[]) ?? [])]),
+  ).sort((a, b) => a - b);
   const block = audience.season_tiers || { scope: "team", values: [] };
   const toggle = (value: number) => {
     const values: number[] = block.values || [];
@@ -793,7 +789,7 @@ function SeasonTierPicker({
           a ballot on Monday and refuse their submission on Tuesday. */}
       <p className="text-xs text-muted-foreground">{t("audience.seasonTiersHint")}</p>
       <div className="flex flex-wrap gap-1.5">
-        {[0, 1, 2, 3].map((value) => (
+        {codes.map((value) => (
           <button
             key={value}
             type="button"
@@ -804,7 +800,7 @@ function SeasonTierPicker({
                 : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
           >
-            {t(`seasonTier.${value}`)}
+            {tierLabel(value)}
           </button>
         ))}
       </div>

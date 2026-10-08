@@ -66,6 +66,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { formatNumber } from "@/lib/i18n/number";
 import { useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -141,6 +142,7 @@ function toggle(list: string[], value: string) {
 export function AudienceBuilder() {
   const { token } = useAuth();
   const t = useTranslations("notifyAudience");
+  const tierLabel = useTierLabel();
 
   // ── Filter options, loaded once (countries/tiers/roles/languages WITH counts) ──
   const [options, setOptions] = useState<AudienceOptions | null>(null);
@@ -496,7 +498,8 @@ export function AudienceBuilder() {
                 values={options?.tiers ?? []}
                 selected={tiers}
                 onToggle={(v) => setTiers((prev) => toggle(prev, v))}
-                formatValue={(v) => t("filters.tierValue", { tier: v })}
+                // Published Rankings tier codes (inbox #165), labelled the Rankings way.
+                formatValue={(v) => tierLabel(v)}
               />
               <FilterChips
                 label={t("filters.country")}

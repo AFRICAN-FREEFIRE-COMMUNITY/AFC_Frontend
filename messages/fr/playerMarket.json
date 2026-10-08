@@ -149,7 +149,6 @@
     "inviteExpires": "L'invitation expire le {date}"
   },
   "myTeamTab": {
-    "tier": "Niveau {tier}",
     "banned": "Interdit",
     "members": "{count, plural, one {# membre} other {# membres}}",
     "founded": "Fondée le {date}",

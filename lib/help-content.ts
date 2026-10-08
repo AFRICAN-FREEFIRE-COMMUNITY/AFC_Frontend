@@ -472,9 +472,7 @@ export const HELP = {
   "teams.detail.remove_member":
     "Take this player off the team. They're notified and can be re-added at any time. The owner can't be removed - transfer ownership first.",
   "teams.detail.actions._section":
-    "Admin-only controls for this team: override its tier or transfer ownership. Both notify the team and are logged.",
-  "teams.detail.change_tier":
-    "Manually move the team to a chosen tier, overriding the ranking system's assignment. The owner is notified.",
+    "Admin-only controls for this team: transfer ownership. It notifies the team and is logged. A team's tier comes from the published rankings; change it in Rankings > Overrides.",
   "teams.detail.transfer_ownership":
     "Hand ownership to another team member. The current owner becomes a regular member - undone only by transferring again.",
 
