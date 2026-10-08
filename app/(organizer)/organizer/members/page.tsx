@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { NewBadge } from "@/components/NewBadge";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,8 @@ import {
 // permission management is owner-only, so granting it to a sub_organizer would be inert and
 // misleading. The field still exists on the model/type (kept for backward compat) but is no
 // longer offered as a grant.
-const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string }[] = [
+// `newSince`: the day a permission went live; NewBadge shows NEW beside it for 5 days, then hides itself.
+const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string; newSince?: string }[] = [
   { key: "can_create_events", label: "Create events" },
   { key: "can_edit_events", label: "Edit events" },
   { key: "can_upload_results", label: "Upload results" },
@@ -86,7 +88,7 @@ const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string }[] = [
   { key: "can_view_metrics", label: "View metrics" },
   { key: "can_view_reviews", label: "View reviews" },
   // Inbox #175: the Support page, where players' questions to the organization are answered.
-  { key: "can_answer_support", label: "Answer support" },
+  { key: "can_answer_support", label: "Answer support", newSince: "2026-10-08" },
 ];
 
 // Every permission off - the starting state for a new sub-organizer.
@@ -386,8 +388,9 @@ export default function OrganizerMembersPage() {
                           key={field.key}
                           className="flex items-center justify-between"
                         >
-                          <span className="text-xs">
+                          <span className="flex items-center gap-1.5 text-xs">
                             {t(`members.permissions.${field.key}`)}
+                            {field.newSince ? <NewBadge since={field.newSince} /> : null}
                           </span>
                           <Switch
                             checked={addPermissions[field.key]}
@@ -504,6 +507,7 @@ export default function OrganizerMembersPage() {
                                     <span className="text-[11px] text-muted-foreground whitespace-nowrap">
                                       {t(`members.permissions.${field.key}`)}
                                     </span>
+                                    {field.newSince ? <NewBadge since={field.newSince} /> : null}
                                   </label>
                                 ))}
                               </div>

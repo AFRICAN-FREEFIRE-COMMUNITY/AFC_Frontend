@@ -175,7 +175,8 @@
     "orgReviews": "Organizador, Críticas",
     "orgDesign": "Organizador, Design",
     "orgBlacklists": "Organizador, Listas negras",
-    "orgWatchlist": "Organizador, Lista de observação"
+    "orgWatchlist": "Organizador, Lista de observação",
+    "orgSupport": "Organizador, Suporte"
   },
   "roles": {
     "head_admin": "Administrador principal",
@@ -196,7 +197,8 @@
     "can_submit_designs": "Organizador: submeter designs",
     "can_view_metrics": "Organizador: ver métricas",
     "can_view_reviews": "Organizador: ver críticas",
-    "can_manage_members": "Organizador: gerir membros"
+    "can_manage_members": "Organizador: gerir membros",
+    "can_answer_support": "Organizador: responder ao suporte"
   },
   "controls": {
     "ev-create": {
@@ -1198,6 +1200,10 @@
     "rk-tierCompetition": {
       "label": "Seletor Torneios / Scrims",
       "does": "Escolhe o conjunto de regras de nível que está a ver. Os dois conjuntos são totalmente separados, cada um com o seu próprio nível predefinido. Guarde ou reponha as suas alterações antes de mudar, porque mudar recarrega a página. Se um conjunto não tiver regras, cada evento desse tipo recebe o nível predefinido: uma lista vazia não é neutra."
+    },
+    "op-support": {
+      "label": "Suporte",
+      "does": "As perguntas que os jogadores enviam à sua organização com Perguntar ao organizador, a partir da sua página ou de um dos seus eventos, com os ficheiros. Tudo o que um jogador enviou fica no mesmo sítio; uma resposta pode tratar todas as perguntas em aberto ou só uma, e é assinada com o nome da sua organização. O jogador vê-a na página do ticket e recebe um e-mail."
     }
   },
   "walkthroughs": {
