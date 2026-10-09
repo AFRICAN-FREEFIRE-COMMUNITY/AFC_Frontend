@@ -17,7 +17,18 @@
     "errors": {
       "redirectRequired": "O Sign in with AFC precisa de pelo menos um URI de redirecionamento.",
       "generic": "Não foi possível enviar a sua candidatura. Verifique o formulário e tente novamente.",
-      "countryRequired": "Escolha o seu país."
+      "countryRequired": "Escolha o seu país.",
+      "chooseProduct": "Escolha pelo menos um produto antes de enviar."
+    },
+    "products": {
+      "title": "O que pretende utilizar",
+      "description": "Escolha um ou ambos. Isto apenas nos diz o que preparar, não é um pedido de acesso a dados específicos.",
+      "sso": "Sign in with AFC",
+      "ssoHint": "Permita que os jogadores da AFC iniciem sessão no seu site com a conta AFC. OpenID Connect padrão, por isso nunca lida com a palavra-passe de um jogador.",
+      "ssoGuide": "Ler o guia de integração (PDF)",
+      "dataApi": "A API de dados da AFC",
+      "dataApiHint": "Leia a partir do seu próprio servidor os resultados de torneios publicados, as classificações, os plantéis e as estatísticas dos jogadores, com uma chave emitida pela AFC.",
+      "dataApiGuide": "Ler o guia da API de dados"
     },
     "org": {
       "title": "A sua organização",
@@ -59,11 +70,6 @@
       "dataNeeded": "Do que precisam da AFC, e porquê",
       "dataNeededPlaceholder": "Por exemplo: o nome AFC de um jogador e a sua classificação atual, para os mostrarmos no perfil dele.",
       "dataNeededHint": "Descreva por palavras suas. A AFC decide a que campos isso corresponde e concede o mínimo necessário."
-    },
-    "intro": {
-      "title": "Sign in with AFC",
-      "description": "Permita que os jogadores da AFC iniciem sessão no seu site com a conta AFC. OpenID Connect padrão, por isso nunca lida com a palavra-passe de um jogador. Leia o guia antes de se candidatar se quiser ver exatamente o que está envolvido.",
-      "guideCta": "Ler o guia de integração (PDF)"
     }
   },
   "statusLabel": {
@@ -109,7 +115,7 @@
     "collectDescription": "Use a ligação que a AFC lhe enviou. Se chegou a esta página de outra forma, cole a sua referência e o código dessa ligação.",
     "tokenLabel": "Código do seu e-mail",
     "beforeYouClickTitle": "Leia isto primeiro",
-    "beforeYouClick": "O seu segredo de cliente é mostrado uma única vez no ecrã seguinte, e nunca mais. Esta ligação funciona uma só vez. Tenha um local seguro para o colar antes de continuar, como o seu gestor de palavras-passe ou o cofre de segredos do seu servidor.",
+    "beforeYouClick": "As suas credenciais secretas, um segredo de cliente, uma chave de API ou ambos, são mostradas uma única vez no ecrã seguinte, e nunca mais. Esta ligação funciona uma só vez. Tenha um local seguro para as colar antes de continuar, como o seu gestor de palavras-passe ou o cofre de segredos do seu servidor.",
     "claim": "Mostrar as minhas credenciais",
     "claiming": "A processar...",
     "failed": "Não foi possível recolher essas credenciais.",

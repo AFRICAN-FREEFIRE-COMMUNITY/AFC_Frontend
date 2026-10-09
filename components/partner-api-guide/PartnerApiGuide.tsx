@@ -158,7 +158,7 @@ function GuideTableBlock({
     <div className="overflow-x-auto rounded-md bg-muted/30">
       <table className="w-full min-w-[32rem] border-collapse text-xs">
         <thead>
-          <tr className="border-b bg-muted/40">
+          <tr className="bg-muted/40">
             {headers.map((h, i) => (
               <th
                 key={h}
@@ -171,9 +171,10 @@ function GuideTableBlock({
             ))}
           </tr>
         </thead>
-        <tbody>
+        {/* Rows told apart by a fill, never a line (owner design rule 2026-08-17). */}
+        <tbody className="zebra">
           {table.rows.map((row) => (
-            <tr key={row.id} className="border-b last:border-0">
+            <tr key={row.id}>
               {row.codes.map((code) => (
                 <td
                   key={code}
@@ -247,7 +248,7 @@ export function PartnerApiGuide() {
       {/* Connect card. Lifted above the prose because a partner arriving with a key in
           hand wants the base URL and one working call, not a preamble. */}
       <Card>
-        <CardHeader className="border-b">
+        <CardHeader>
           <CardTitle className="inline-flex items-center gap-2">
             <IconKey className="size-5 text-primary" />
             {t("connect.title")}
@@ -308,7 +309,7 @@ export function PartnerApiGuide() {
       {/* The sections. scroll-mt keeps a linked heading clear of the sticky site header. */}
       {PARTNER_API_GUIDE.map((section) => (
         <Card key={section.id} id={section.id} className="scroll-mt-24">
-          <CardHeader className="border-b">
+          <CardHeader>
             <CardTitle>{t(`sections.${section.id}.title`)}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 pt-4">

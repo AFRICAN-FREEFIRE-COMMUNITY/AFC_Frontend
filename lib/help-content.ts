@@ -791,7 +791,7 @@ export const HELP = {
 
   // ── Partners › Scope ────────────────────────────────────────────────────────
   "partners.scope_grants._section":
-    "Which events this partner may read. An event must ALSO be published to the partner API before it appears, no matter how it's granted here. Combine the three grants below freely.",
+    "Which events this partner may read. An event must ALSO be published to the partner API before it appears, no matter how it's granted here. Events publish themselves when they finish, and the Publish card below lists every event these grants reach. Combine the three grants below freely.",
   "partners.allow_all_native_afc":
     "Grant every native AFC event (one with no external organizer) in a single switch, including future ones. Leave off to grant events one by one instead.",
   "partners.allowed_events":

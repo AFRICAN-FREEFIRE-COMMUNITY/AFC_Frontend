@@ -14,7 +14,7 @@
   "sections": {
     "overview": {
       "title": "O que recebe",
-      "intro": "Uma API REST apenas de leitura sobre os dados de torneio que a AFC publicou aos parceiros, para os eventos concedidos à sua organização. Um administrador da AFC publica um evento de forma explícita, normalmente assim que os resultados estão fechados, pelo que o que lê são dados assentes e não um jogo a decorrer. Não há escrita, não há eliminação, e não há transmissão de jogos ao vivo. Tudo tem versão sob /api/v1/, pelo que uma futura alteração incompatível será publicada como /api/v2/ e deixará a sua integração intacta.",
+      "intro": "Uma API REST apenas de leitura sobre os dados de torneio que a AFC publicou aos parceiros, para os eventos concedidos à sua organização. Um evento é publicado automaticamente para os parceiros quando termina, e um administrador da AFC também pode publicar ou retirar um à mão, pelo que o que lê são dados assentes e não um jogo a decorrer. Não há escrita, não há eliminação, e não há transmissão de jogos ao vivo. Tudo tem versão sob /api/v1/, pelo que uma futura alteração incompatível será publicada como /api/v2/ e deixará a sua integração intacta.",
       "tables": {
         "resources": {
           "headers": {
@@ -46,7 +46,7 @@
     "access": {
       "title": "Porque falta um campo ou um ponto final",
       "intro": "O seu acesso tem três camadas, todas definidas pela AFC e todas fechadas por omissão. Se algo que esperava não está na resposta, uma destas três é a razão, e nenhuma delas é um erro.",
-      "published": "Primeiro, o evento tem de estar publicado para parceiros. Um administrador da AFC publica um evento explicitamente e, enquanto não o fizer, nenhum parceiro o consegue ler, por mais amplo que seja o seu âmbito. Um evento não publicado devolve 404.",
+      "published": "Primeiro, o evento tem de estar publicado para parceiros. Os eventos são publicados automaticamente quando terminam, e um administrador da AFC pode publicar ou retirar um à mão. Enquanto um evento não estiver publicado, nenhum parceiro o consegue ler, por mais amplo que seja o seu âmbito. Um evento não publicado devolve 404.",
       "resourceToggles": "Depois, os interruptores de recurso decidem que pontos finais respondem: events, stages, matches, standings, teams, players, designs. Se um estiver desligado para si, esse ponto final devolve 403 resource_not_enabled e os restantes continuam a funcionar.",
       "fieldToggles": "Por fim, os interruptores de campo decidem que campos aparecem dentro de um recurso que já pode ler.",
       "tables": {
@@ -181,7 +181,7 @@
       "absentFields": "Trate os campos ausentes. Um campo a que não tem direito está ausente do JSON, por isso leia de forma defensiva em vez de assumir que a chave existe.",
       "permanent404": "Conte que um 404 seja duradouro. Se um evento que estava a ler começa a devolver 404, a AFC despublicou-o ou alterou o seu âmbito. Repetir o pedido não resolve: contacte a AFC.",
       "slugs": "Os slugs são os identificadores. Guarde o slug do evento e não a sua posição numa lista, porque um evento novo desloca todas as posições.",
-      "help": "Contacte o seu gestor de parceiros da AFC para obter uma chave nova ou renovada, para alterar que eventos ou recursos pode ler, ou para comunicar algo que a API devolva e que pareça errado. Indique o ponto final, a data e hora, e o prefixo da sua chave, a parte afcp_3f9a, nunca a chave completa."
+      "help": "Ainda não tem chave? Candidate-se em africanfreefirecommunity.com/partners/apply e escolha A API de dados da AFC. Contacte o seu gestor de parceiros da AFC para obter uma chave nova ou renovada, para alterar que eventos ou recursos pode ler, ou para comunicar algo que a API devolva e que pareça errado. Indique o ponto final, a data e hora, e o prefixo da sua chave, a parte afcp_3f9a, nunca a chave completa."
     }
   }
 }
