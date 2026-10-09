@@ -17,7 +17,18 @@
     "errors": {
       "redirectRequired": "Sign in with AFC nécessite au moins une URI de redirection.",
       "generic": "Votre demande n'a pas pu être envoyée. Vérifiez le formulaire et réessayez.",
-      "countryRequired": "Veuillez choisir votre pays."
+      "countryRequired": "Veuillez choisir votre pays.",
+      "chooseProduct": "Choisissez au moins un produit avant d'envoyer."
+    },
+    "products": {
+      "title": "Ce que vous souhaitez utiliser",
+      "description": "Choisissez l'un ou les deux. Cela nous indique seulement quoi préparer, ce n'est pas une demande d'accès à des données particulières.",
+      "sso": "Sign in with AFC",
+      "ssoHint": "Permettez aux joueurs AFC de se connecter à votre site avec leur compte AFC. OpenID Connect standard, vous n'avez donc jamais à manipuler le mot de passe d'un joueur.",
+      "ssoGuide": "Lire le guide d'intégration (PDF)",
+      "dataApi": "L'API de données AFC",
+      "dataApiHint": "Lisez depuis votre propre serveur les résultats de tournois publiés, les classements, les compositions d'équipes et les statistiques des joueurs, avec une clé que l'AFC vous délivre.",
+      "dataApiGuide": "Lire le guide de l'API de données"
     },
     "org": {
       "title": "Votre organisation",
@@ -59,11 +70,6 @@
       "dataNeeded": "De quoi avez-vous besoin de la part de l'AFC, et pourquoi",
       "dataNeededPlaceholder": "Par exemple : le nom AFC d'un joueur et son classement actuel, afin de les afficher sur son profil.",
       "dataNeededHint": "Décrivez-le avec vos propres mots. L'AFC détermine à quels champs cela correspond et accorde le minimum nécessaire."
-    },
-    "intro": {
-      "title": "Sign in with AFC",
-      "description": "Permettez aux joueurs AFC de se connecter à votre site avec leur compte AFC. OpenID Connect standard, vous n'avez donc jamais à manipuler le mot de passe d'un joueur. Lisez le guide avant de postuler si vous voulez voir précisément ce que cela implique.",
-      "guideCta": "Lire le guide d'intégration (PDF)"
     }
   },
   "statusLabel": {

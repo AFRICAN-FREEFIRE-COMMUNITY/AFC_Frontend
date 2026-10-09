@@ -79,16 +79,28 @@
     },
     "publish": {
       "cardTitle": "Publier vers l'API partenaire",
-      "intro": "La publication rend un événement lisible via l'API partenaire. Une clé configurée ne renvoie aucun événement tant qu'ils ne sont pas publiés. Cela s'applique immédiatement et globalement à l'événement, indépendamment de l'enregistrement de la portée et des options.",
-      "empty": "Ajoutez des événements sous « Événements autorisés » ci-dessus, puis publiez-les ici pour que ce partenaire puisse les lire.",
+      "intro": "La publication rend un événement lisible via l'API partenaire. Les événements sont publiés automatiquement quand ils se terminent. Cette liste contient chaque événement que la portée enregistrée de ce partenaire atteint, par un événement choisi, une organisation ou tous les événements AFC. La publication s'applique à l'événement pour chaque partenaire qui y a accès.",
+      "empty": "La portée enregistrée de ce partenaire n'atteint encore aucun événement. Choisissez des événements ou des organisations ci-dessus, ou activez tous les événements AFC, puis appuyez sur Enregistrer la portée et les options.",
       "publishedBadge": "Publié",
-      "withdrawnBadge": "Retiré",
+      "withdrawnBadge": "Non publié",
       "withdraw": "Retirer",
       "action": "Publier vers l'API partenaire",
       "note": "Chaque ligne affiche l'état actuel de l'événement et se met à jour dès que vous appuyez sur le bouton. Republier est sans effet si l'événement est déjà publié.",
       "published": "« {name} » est maintenant lisible via l'API partenaire.",
       "withdrawn": "« {name} » a été retiré de l'API partenaire.",
-      "failed": "Échec de la mise à jour de l'état de publication."
+      "failed": "Échec de la mise à jour de l'état de publication.",
+      "scopeUnsaved": "Vous avez des modifications de portée non enregistrées. Cette liste affiche la portée enregistrée tant que vous n'appuyez pas sur Enregistrer la portée et les options.",
+      "summary": "{reachable, plural, one {# événement atteint} other {# événements atteints}}, {published} publiés, {waiting} terminés et non publiés",
+      "publishAll": "Publier tous les événements terminés ({count})",
+      "publishAllDone": "{count, plural, =0 {Aucun événement terminé n'était en attente.} one {# événement terminé publié.} other {# événements terminés publiés.}}",
+      "publishAllFailed": "Impossible de publier les événements terminés.",
+      "loadMore": "Afficher plus",
+      "loadFailed": "Impossible de charger les événements de ce partenaire.",
+      "via": {
+        "event": "Événement choisi",
+        "organization": "Organisation",
+        "native": "Tous les événements AFC"
+      }
     },
     "toggleGroups": {
       "resource": "Options de ressources",

@@ -92,6 +92,7 @@ import {
   IconWorld,
 } from "@tabler/icons-react";
 import { InfoTip } from "@/components/ui/info-tip";
+import { NewBadge } from "@/components/NewBadge";
 import { organizersApi } from "@/lib/organizers";
 import {
   partnersApi,
@@ -102,6 +103,8 @@ import {
   type PartnerKey,
   type PartnerToggle,
   type EditPartnerBody,
+  type PartnerEventsResponse,
+  type PartnerReachableEvent,
 } from "@/lib/partners";
 // Routed through lib/http authHeaders (owner bug 2026-08-29): building the header inline as
 // `Bearer ${token ?? ""}` sent "Bearer " when the cookie had lapsed, which axios trims to
@@ -294,16 +297,22 @@ export default function PartnerDetailPage({
   const [allowedOrgIds, setAllowedOrgIds] = useState<number[]>([]);
   const [savingScope, setSavingScope] = useState(false);
 
-  // ── Per-event publish state (the "Publish to partner API" card on the Scope tab) ──
-  // partner_published is a GLOBAL flag on the Event (Event.partner_published) that the
-  // read API checks FIRST: a partner reads NO event until it is published, however broad
-  // its scope. The admin detail/list payloads don't carry that flag (it is stripped from
-  // everything the partner firewall touches), so we can't preload each event's true
-  // state here. Instead we track only what the admin sets THIS session, keyed by event
-  // pk: undefined = not acted on yet (show the "Publish" action), true = published,
-  // false = withdrawn. publishingId disables the row's buttons while its call is in flight.
-  const [publishState, setPublishState] = useState<Record<number, boolean>>({});
+  // ── The "Publish to partner API" card on the Scope tab (rebuilt 2026-10-09, inbox #201/#202) ──
+  // partner_published is a GLOBAL flag on the Event that the read API checks FIRST: a partner
+  // reads NO event until it is published, however broad its scope. The card used to list only
+  // the events ticked under "Allowed events", so an event reached through a whole organization or
+  // the all-AFC-events switch could not be published from here, and a ticked event published
+  // before Save scope was published for nobody. It now reads partnersApi.partnerEvents: every
+  // event the partner's SAVED grants reach, with its real published state and a summary, which is
+  // also what the "Publish all finished events" press acts on. publishingId disables a row's
+  // button while its call is in flight; publishingAll does the same for the bulk press.
+  const [reachable, setReachable] = useState<PartnerReachableEvent[]>([]);
+  const [reachableSummary, setReachableSummary] =
+    useState<PartnerEventsResponse["summary"] | null>(null);
+  const [reachableHasMore, setReachableHasMore] = useState(false);
+  const [reachableLoading, setReachableLoading] = useState(false);
   const [publishingId, setPublishingId] = useState<number | null>(null);
+  const [publishingAll, setPublishingAll] = useState(false);
 
   // ── Scope-option catalogues (all events + all orgs to choose from) ─────────
   const [eventOptions, setEventOptions] = useState<EventOption[]>([]);
@@ -369,6 +378,31 @@ export default function PartnerDetailPage({
     fetchDetail();
   }, [fetchDetail]);
 
+  // ── The publish card's list: a page of reachable events + the summary over all of them ──
+  // offset 0 replaces the list (first load, after Save scope, after the bulk press); a later
+  // offset appends the next page ("Show more").
+  const REACHABLE_PAGE = 50;
+  const fetchReachable = useCallback(
+    async (offset = 0) => {
+      setReachableLoading(true);
+      try {
+        const res = await partnersApi.partnerEvents(slug, { limit: REACHABLE_PAGE, offset });
+        setReachable((prev) => (offset === 0 ? res.results : [...prev, ...res.results]));
+        setReachableSummary(res.summary);
+        setReachableHasMore(res.has_more);
+      } catch (err: any) {
+        toast.error(err?.response?.data?.message || t("detail.publish.loadFailed"));
+      } finally {
+        setReachableLoading(false);
+      }
+    },
+    [slug],
+  );
+
+  useEffect(() => {
+    fetchReachable(0);
+  }, [fetchReachable]);
+
   // ── Load the scope-option catalogues once (all events + all orgs) ──────────
   // These populate the two multiselects. Events come from the same /events/get-all-
   // events/ endpoint the sponsors create wizard uses; orgs from the partner-admin-
@@ -402,18 +436,19 @@ export default function PartnerDetailPage({
     [orgOptions, orgSearch],
   );
 
-  // ── Events currently in this partner's allowed_events scope, resolved to full options ──
-  // The publish card lists exactly the events the admin has picked under "Allowed events"
-  // (working state `allowedEventIds`, so it stays in sync as they tick boxes, even before
-  // Save). We resolve each id to its EventOption to get the name + slug; ids we don't have
-  // an option for (e.g. a draft hidden from the picker) are dropped. publishEvent needs
-  // the slug, which is why EventOption now carries it.
-  const scopedEvents = useMemo(() => {
-    const byId = new Map(eventOptions.map((e) => [e.event_id, e]));
-    return allowedEventIds
-      .map((id) => byId.get(id))
-      .filter((e): e is EventOption => Boolean(e));
-  }, [allowedEventIds, eventOptions]);
+  // ── Unsaved scope changes ──
+  // The publish card reads the SAVED grants, so while the working scope differs from what is
+  // saved, the card says so instead of silently showing a list the admin thinks they changed.
+  const scopeDirty = useMemo(() => {
+    if (!detail) return false;
+    const same = (a: number[], b: number[]) =>
+      a.length === b.length && a.every((id) => b.includes(id));
+    return (
+      Boolean(detail.allow_all_native_afc) !== allowAllNative ||
+      !same(allowedEventIds, detail.allowed_events ?? []) ||
+      !same(allowedOrgIds, detail.allowed_organizations ?? [])
+    );
+  }, [detail, allowAllNative, allowedEventIds, allowedOrgIds]);
 
   // ── Scope + toggles save (one whitelist-validated PATCH) ──────────────────
   // Sends ALL 14 toggles + the native switch + both id-lists. The backend whitelist
@@ -431,6 +466,8 @@ export default function PartnerDetailPage({
       await partnersApi.editPartner(slug, body);
       toast.success(t("detail.scope.saved"));
       fetchDetail(true);
+      // The grants changed, so the set of events the publish card lists did too.
+      fetchReachable(0);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || t("detail.scope.saveFailed"));
     } finally {
@@ -442,13 +479,26 @@ export default function PartnerDetailPage({
   // Flips Event.partner_published via partnersApi.publishEvent(slug, {published}). Unlike
   // the scope/toggle switches (which batch into "Save scope & toggles"), this fires
   // IMMEDIATELY (partner_published is a per-event global gate, not part of the partner's
-  // edit body). On success we record the new state in publishState so the row reflects it.
-  const handlePublishEvent = async (ev: EventOption, published: boolean) => {
-    if (publishingId !== null) return;
+  // edit body). On success the row and the summary counts are updated in place.
+  const handlePublishEvent = async (ev: PartnerReachableEvent, published: boolean) => {
+    if (publishingId !== null || publishingAll) return;
     setPublishingId(ev.event_id);
     try {
       await partnersApi.publishEvent(ev.slug, { published });
-      setPublishState((prev) => ({ ...prev, [ev.event_id]: published }));
+      if (ev.partner_published !== published) {
+        setReachable((prev) =>
+          prev.map((r) => (r.event_id === ev.event_id ? { ...r, partner_published: published } : r)),
+        );
+        const step = published ? 1 : -1;
+        setReachableSummary((s) =>
+          s && {
+            ...s,
+            published: s.published + step,
+            finished_unpublished:
+              ev.status === "completed" ? s.finished_unpublished - step : s.finished_unpublished,
+          },
+        );
+      }
       toast.success(
         published
           ? t("detail.publish.published", { name: ev.event_name })
@@ -460,6 +510,24 @@ export default function PartnerDetailPage({
       );
     } finally {
       setPublishingId(null);
+    }
+  };
+
+  // ── Publish every finished event this partner reaches, in one press (inbox #201) ──
+  // The "past events" half of the owner's ask: events that finished before automatic publishing
+  // existed (2026-10-09), or were withdrawn, come in without one click each. Refetches the list
+  // afterwards, because every row it touched changed.
+  const handlePublishAllFinished = async () => {
+    if (publishingAll || publishingId !== null) return;
+    setPublishingAll(true);
+    try {
+      const res = await partnersApi.publishFinishedEvents(slug);
+      toast.success(t("detail.publish.publishAllDone", { count: res.published_count }));
+      fetchReachable(0);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || t("detail.publish.publishAllFailed"));
+    } finally {
+      setPublishingAll(false);
     }
   };
 
@@ -874,18 +942,51 @@ export default function PartnerDetailPage({
             </CardHeader>
             <CardContent className="flex flex-col gap-3 pt-4">
               <p className="text-sm text-muted-foreground">{t("detail.publish.intro")}</p>
-              {scopedEvents.length === 0 ? (
+              {/* Unsaved grants: the list below is the SAVED scope, so say so. */}
+              {scopeDirty && (
+                <p className="rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-500">
+                  {t("detail.publish.scopeUnsaved")}
+                </p>
+              )}
+              {/* Summary + the bulk press. The count is over every reachable event, not just
+                  the rows loaded so far, and it is exactly what the press publishes. */}
+              {reachableSummary && reachableSummary.reachable > 0 && (
+                <div className="flex flex-col gap-2 rounded-md bg-muted/30 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    {t("detail.publish.summary", {
+                      reachable: reachableSummary.reachable,
+                      published: reachableSummary.published,
+                      waiting: reachableSummary.finished_unpublished,
+                    })}
+                  </span>
+                  <span className="flex items-center gap-2 self-start sm:self-auto">
+                    <NewBadge since="2026-10-09" />
+                    <Button
+                      size="sm"
+                      disabled={
+                        publishingAll || reachableSummary.finished_unpublished === 0
+                      }
+                      onClick={handlePublishAllFinished}
+                    >
+                      {publishingAll
+                        ? t("working")
+                        : t("detail.publish.publishAll", {
+                            count: reachableSummary.finished_unpublished,
+                          })}
+                    </Button>
+                  </span>
+                </div>
+              )}
+              {reachable.length === 0 ? (
                 <p className="rounded-md px-3 py-6 text-center text-sm text-muted-foreground bg-muted/30">
-                  {t("detail.publish.empty")}
+                  {reachableLoading ? t("working") : t("detail.publish.empty")}
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
-                  {scopedEvents.map((ev) => {
-                    // Live state seeded from the event's real partner_published flag (get-all-events),
-                    // with any action taken THIS session (publishState) overriding it. So the row shows
-                    // the true Published/Withdrawn state on load, then updates instantly on click.
-                    const state = publishState[ev.event_id] ?? ev.partner_published ?? false;
-                    const busy = publishingId === ev.event_id;
+                  {reachable.map((ev) => {
+                    // The real partner_published flag from the server, updated in place on a press.
+                    const state = ev.partner_published;
+                    const busy = publishingId === ev.event_id || publishingAll;
                     return (
                       <div
                         key={ev.event_id}
@@ -895,8 +996,10 @@ export default function PartnerDetailPage({
                           <span className="truncate text-sm font-medium">
                             {ev.event_name}
                           </span>
-                          <span className="text-xs capitalize text-muted-foreground">
-                            {ev.event_status}
+                          <span className="text-xs text-muted-foreground">
+                            <span className="capitalize">{ev.status}</span>
+                            {" · "}
+                            {ev.via.map((v) => t(`detail.publish.via.${v}`)).join(", ")}
                           </span>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -937,6 +1040,17 @@ export default function PartnerDetailPage({
                       </div>
                     );
                   })}
+                  {reachableHasMore && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="self-start"
+                      disabled={reachableLoading}
+                      onClick={() => fetchReachable(reachable.length)}
+                    >
+                      {reachableLoading ? t("working") : t("detail.publish.loadMore")}
+                    </Button>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     {t("detail.publish.note")}
                   </p>

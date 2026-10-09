@@ -79,16 +79,28 @@
     },
     "publish": {
       "cardTitle": "Publicar na API de parceiros",
-      "intro": "A publicação torna um evento legível através da API de parceiros. Uma chave configurada não devolve eventos enquanto não forem publicados. Isto aplica-se imediatamente e globalmente ao evento, separadamente de guardar o âmbito e as opções.",
-      "empty": "Adicione eventos em «Eventos permitidos» acima e publique-os aqui para que este parceiro os possa ler.",
+      "intro": "A publicação torna um evento legível através da API de parceiros. Os eventos são publicados automaticamente quando terminam. Esta lista contém todos os eventos que o âmbito guardado deste parceiro alcança, através de um evento escolhido, de uma organização ou de todos os eventos AFC. A publicação aplica-se ao evento para todos os parceiros com acesso a ele.",
+      "empty": "O âmbito guardado deste parceiro ainda não alcança nenhum evento. Escolha eventos ou organizações acima, ou ative todos os eventos AFC, e carregue em Guardar âmbito e opções.",
       "publishedBadge": "Publicado",
-      "withdrawnBadge": "Retirado",
+      "withdrawnBadge": "Não publicado",
       "withdraw": "Retirar",
       "action": "Publicar na API de parceiros",
       "note": "Cada linha mostra o estado atual do evento e atualiza assim que carregar no botão. Voltar a publicar não tem efeito se o evento já estiver publicado.",
       "published": "«{name}» está agora legível através da API de parceiros.",
       "withdrawn": "«{name}» foi retirado da API de parceiros.",
-      "failed": "Falha ao atualizar o estado de publicação."
+      "failed": "Falha ao atualizar o estado de publicação.",
+      "scopeUnsaved": "Tem alterações ao âmbito que não foram guardadas. Esta lista mostra o âmbito guardado até carregar em Guardar âmbito e opções.",
+      "summary": "{reachable, plural, one {# evento alcançado} other {# eventos alcançados}}, {published} publicados, {waiting} terminados e não publicados",
+      "publishAll": "Publicar todos os eventos terminados ({count})",
+      "publishAllDone": "{count, plural, =0 {Não havia eventos terminados à espera.} one {# evento terminado publicado.} other {# eventos terminados publicados.}}",
+      "publishAllFailed": "Não foi possível publicar os eventos terminados.",
+      "loadMore": "Mostrar mais",
+      "loadFailed": "Não foi possível carregar os eventos deste parceiro.",
+      "via": {
+        "event": "Evento escolhido",
+        "organization": "Organização",
+        "native": "Todos os eventos AFC"
+      }
     },
     "toggleGroups": {
       "resource": "Opções de recursos",

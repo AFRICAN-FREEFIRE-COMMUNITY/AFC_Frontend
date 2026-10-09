@@ -47,9 +47,6 @@
   "form.about.dataNeeded": "What do you need from AFC, and why",
   "form.about.dataNeededPlaceholder": "For example: a player's AFC name and their current rank, so we can show it on their profile.",
   "form.about.dataNeededHint": "Describe it in your own words. AFC decides which fields that works out to, and grants the minimum that does the job.",
-  "form.intro.title": "Sign in with AFC",
-  "form.intro.description": "Let AFC players sign in to your site with their AFC account. Standard OpenID Connect, so you never handle a player's password. Read the guide before you apply if you want to see exactly what is involved.",
-  "form.intro.guideCta": "Read the integration guide (PDF)",
   "statusLabel.pending": "With AFC",
   "statusLabel.changes_requested": "Needs your attention",
   "statusLabel.approved": "Approved",
@@ -152,5 +149,14 @@
   "admin.toggles.share_history": "Tournaments played",
   "admin.toggles.share_stats": "Match statistics",
   "admin.toggles.share_ranking": "AFC rank and points",
-  "admin.toggles.share_standing": "Account in good standing"
+  "admin.toggles.share_standing": "Account in good standing",
+  "form.products.title": "What do you want to use",
+  "form.products.description": "Pick one or both. This only tells us what to set up, it is not a request for any particular data.",
+  "form.products.sso": "Sign in with AFC",
+  "form.products.ssoHint": "Let AFC players sign in to your site with their AFC account. Standard OpenID Connect, so you never handle a player's password.",
+  "form.products.ssoGuide": "Read the integration guide (PDF)",
+  "form.products.dataApi": "The AFC Data API",
+  "form.products.dataApiHint": "Read published tournament results, standings, rosters and player stats from your own server, with a key AFC issues you.",
+  "form.products.dataApiGuide": "Read the Data API guide",
+  "form.errors.chooseProduct": "Choose at least one product before sending."
 }

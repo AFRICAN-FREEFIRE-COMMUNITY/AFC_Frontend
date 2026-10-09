@@ -14,7 +14,7 @@
   "sections": {
     "overview": {
       "title": "Ce que vous obtenez",
-      "intro": "Une API REST en lecture seule sur les données de tournoi que l'AFC a publiées à ses partenaires, pour les événements accordés à votre organisation. Un administrateur AFC publie un événement de façon explicite, en général une fois ses résultats définitifs, de sorte que ce que vous lisez est une donnée établie plutôt qu'un match en cours. Aucune écriture, aucune suppression, aucun flux de match en direct. Tout est versionné sous /api/v1/, de sorte qu'une future modification incompatible sera publiée sous /api/v2/ et laissera votre intégration intacte.",
+      "intro": "Une API REST en lecture seule sur les données de tournoi que l'AFC a publiées à ses partenaires, pour les événements accordés à votre organisation. Un événement est publié automatiquement pour les partenaires quand il se termine, et un administrateur AFC peut aussi en publier ou en retirer un à la main, de sorte que ce que vous lisez est une donnée établie plutôt qu'un match en cours. Aucune écriture, aucune suppression, aucun flux de match en direct. Tout est versionné sous /api/v1/, de sorte qu'une future modification incompatible sera publiée sous /api/v2/ et laissera votre intégration intacte.",
       "tables": {
         "resources": {
           "headers": {
@@ -46,7 +46,7 @@
     "access": {
       "title": "Pourquoi un champ ou un point de terminaison manque",
       "intro": "Votre accès comporte trois couches, toutes définies par l'AFC et toutes fermées par défaut. Si quelque chose que vous attendiez ne figure pas dans la réponse, l'une de ces trois couches en est la raison, et aucune n'est un bogue.",
-      "published": "D'abord, l'événement doit être publié pour les partenaires. Un administrateur AFC publie un événement explicitement, et tant qu'il ne l'a pas fait, aucun partenaire ne peut le lire, quelle que soit l'étendue de sa portée. Un événement non publié renvoie 404.",
+      "published": "D'abord, l'événement doit être publié pour les partenaires. Les événements sont publiés automatiquement quand ils se terminent, et un administrateur AFC peut en publier ou en retirer un à la main. Tant qu'un événement n'est pas publié, aucun partenaire ne peut le lire, quelle que soit l'étendue de sa portée. Un événement non publié renvoie 404.",
       "resourceToggles": "Ensuite, les interrupteurs de ressource décident quels points de terminaison répondent : events, stages, matches, standings, teams, players, designs. Si l'un est désactivé pour vous, ce point de terminaison renvoie 403 resource_not_enabled et les autres continuent de fonctionner.",
       "fieldToggles": "Enfin, les interrupteurs de champ décident quels champs apparaissent dans une ressource que vous pouvez déjà lire.",
       "tables": {
@@ -181,7 +181,7 @@
       "absentFields": "Gérez les champs absents. Un champ auquel vous n'avez pas droit est absent du JSON : lisez de façon défensive au lieu de supposer qu'une clé existe.",
       "permanent404": "Attendez-vous à ce qu'un 404 dure. Si un événement que vous lisiez commence à renvoyer 404, l'AFC l'a soit dépublié, soit a modifié votre portée. Réessayer ne changera rien : contactez l'AFC.",
       "slugs": "Les slugs sont les identifiants. Conservez le slug de l'événement, pas sa position dans une liste, car un nouvel événement décale toutes les positions.",
-      "help": "Contactez votre responsable partenaires AFC pour une clé nouvelle ou renouvelée, pour modifier les événements ou ressources que vous pouvez lire, ou pour signaler tout ce que l'API renvoie qui vous semble erroné. Indiquez le point de terminaison, l'horodatage et le préfixe de votre clé, la partie afcp_3f9a, jamais la clé complète."
+      "help": "Pas encore de clé ? Faites votre demande sur africanfreefirecommunity.com/partners/apply et choisissez L'API de données AFC. Contactez votre responsable partenaires AFC pour une clé nouvelle ou renouvelée, pour modifier les événements ou ressources que vous pouvez lire, ou pour signaler tout ce que l'API renvoie qui vous semble erroné. Indiquez le point de terminaison, l'horodatage et le préfixe de votre clé, la partie afcp_3f9a, jamais la clé complète."
     }
   }
 }

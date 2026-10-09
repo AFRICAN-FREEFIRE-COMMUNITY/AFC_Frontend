@@ -14,7 +14,7 @@
   "sections": {
     "overview": {
       "title": "What you get",
-      "intro": "A read-only REST API over the tournament data AFC has published to partners, for the events your organisation has been granted. An AFC admin publishes an event explicitly, normally once its results are final, so what you read is settled data rather than a match in progress. There is no write, no delete, and no live match feed. Everything is versioned under /api/v1/, so a future breaking change ships as /api/v2/ and leaves your integration alone.",
+      "intro": "A read-only REST API over the tournament data AFC has published to partners, for the events your organisation has been granted. An event is published to partners automatically when it finishes, and an AFC admin can also publish or withdraw one by hand, so what you read is settled data rather than a match in progress. There is no write, no delete, and no live match feed. Everything is versioned under /api/v1/, so a future breaking change ships as /api/v2/ and leaves your integration alone.",
       "tables": {
         "resources": {
           "headers": {
@@ -46,7 +46,7 @@
     "access": {
       "title": "Why a field or endpoint is missing",
       "intro": "Your access has three layers, all set by AFC and all closed by default. If something you expected is not in the response, one of these three is the reason, and none of them is a bug.",
-      "published": "First, the event has to be published to partners. An AFC admin publishes an event explicitly, and until they do, no partner can read it however broadly scoped. An unpublished event is a 404.",
+      "published": "First, the event has to be published to partners. Events are published automatically when they finish, and an AFC admin can publish or withdraw one by hand. Until an event is published, no partner can read it however broadly scoped. An unpublished event is a 404.",
       "resourceToggles": "Second, resource toggles decide which endpoints answer at all: events, stages, matches, standings, teams, players, designs. If one is off for you, that endpoint returns 403 resource_not_enabled and the rest keep working.",
       "fieldToggles": "Third, field toggles decide which fields appear inside a resource you can already read.",
       "tables": {
@@ -181,7 +181,7 @@
       "absentFields": "Handle absent fields. A field you are not entitled to is missing from the JSON, so read defensively rather than assuming a key exists.",
       "permanent404": "Expect a 404 to be lasting. If an event you were reading starts returning 404, AFC has either unpublished it or changed your scope. Retrying will not help, so ask AFC.",
       "slugs": "Slugs are the identifiers. Store the event slug, not the position of an event in a list, because a new event changes every position.",
-      "help": "Contact your AFC partner manager for a new or rotated key, to change which events or resources you can read, or to report anything the API returns that looks wrong. Include the endpoint, the timestamp, and your key's prefix, the afcp_3f9a part, never the full key."
+      "help": "No key yet? Apply at africanfreefirecommunity.com/partners/apply and choose The AFC Data API. Contact your AFC partner manager for a new or rotated key, to change which events or resources you can read, or to report anything the API returns that looks wrong. Include the endpoint, the timestamp, and your key's prefix, the afcp_3f9a part, never the full key."
     }
   }
 }
