@@ -115,7 +115,7 @@
     "collectDescription": "Utilisez le lien envoyé par l'AFC. Si vous êtes arrivé sur cette page autrement, collez votre référence et le code contenu dans ce lien.",
     "tokenLabel": "Code reçu par e-mail",
     "beforeYouClickTitle": "À lire avant de continuer",
-    "beforeYouClick": "Votre secret client s'affiche une seule fois à l'écran suivant, et plus jamais ensuite. Ce lien ne fonctionne qu'une fois. Prévoyez un endroit sûr où le coller avant de continuer, par exemple votre gestionnaire de mots de passe ou le coffre à secrets de votre serveur.",
+    "beforeYouClick": "Vos identifiants secrets, un secret client, une clé d'API ou les deux, s'affichent une seule fois à l'écran suivant, et plus jamais ensuite. Ce lien ne fonctionne qu'une fois. Prévoyez un endroit sûr où les coller avant de continuer, par exemple votre gestionnaire de mots de passe ou le coffre à secrets de votre serveur.",
     "claim": "Afficher mes identifiants",
     "claiming": "En cours...",
     "failed": "Ces identifiants n'ont pas pu être récupérés.",

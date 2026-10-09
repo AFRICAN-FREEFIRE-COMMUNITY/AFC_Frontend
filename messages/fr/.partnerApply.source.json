@@ -83,7 +83,7 @@
   "credentials.collectDescription": "Use the link AFC emailed you. If you opened this page some other way, paste your reference and the code from that link.",
   "credentials.tokenLabel": "Code from your email",
   "credentials.beforeYouClickTitle": "Read this first",
-  "credentials.beforeYouClick": "Your client secret is shown on the next screen once, and never again. This link works one time. Have somewhere safe to paste it before you continue, such as your password manager or your server's secret store.",
+  "credentials.beforeYouClick": "Your secret credentials, a client secret, an API key or both, are shown on the next screen once, and never again. This link works one time. Have somewhere safe to paste them before you continue, such as your password manager or your server's secret store.",
   "credentials.claim": "Show my credentials",
   "credentials.claiming": "Working...",
   "credentials.failed": "Those credentials could not be collected.",

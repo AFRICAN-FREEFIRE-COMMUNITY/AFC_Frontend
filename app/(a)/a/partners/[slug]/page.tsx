@@ -712,7 +712,7 @@ export default function PartnerDetailPage({
         {/* ── Profile tab - read-only identity + suspend kill-switch ── */}
         <TabsContent value="profile" className="mt-4 space-y-4">
           <Card>
-            <CardHeader className="border-b">
+            <CardHeader>
               <CardTitle>{t("detail.profile.cardTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 pt-4">
@@ -744,7 +744,7 @@ export default function PartnerDetailPage({
 
           {/* ── Danger zone - suspend / unsuspend (freezes every key at once) ── */}
           <Card>
-            <CardHeader className="border-b">
+            <CardHeader>
               <CardTitle>{t("detail.profile.dangerZone")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -788,7 +788,7 @@ export default function PartnerDetailPage({
 
           {/* ── Scope: which events the partner may read ── */}
           <Card>
-            <CardHeader className="border-b">
+            <CardHeader>
               <CardTitle className="inline-flex flex-wrap items-center">
                 {t("detail.scope.cardTitle")}
                 <InfoTip id="partners.scope_grants._section" className="ml-1" />
@@ -937,7 +937,7 @@ export default function PartnerDetailPage({
               These actions fire IMMEDIATELY (they are NOT part of "Save scope & toggles")
               because partner_published is a global per-event flag, not partner config. */}
           <Card>
-            <CardHeader className="border-b">
+            <CardHeader>
               <CardTitle>{t("detail.publish.cardTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 pt-4">
@@ -988,9 +988,12 @@ export default function PartnerDetailPage({
                     const state = ev.partner_published;
                     const busy = publishingId === ev.event_id || publishingAll;
                     return (
+                      // Stacked on a phone (name and how it is reached on top, state and button
+                      // below), one line from sm up. Side by side at 390 the badge and the
+                      // button left the event name a few letters wide.
                       <div
                         key={ev.event_id}
-                        className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5 bg-muted/30"
+                        className="flex flex-col gap-2 rounded-md px-3 py-2.5 bg-muted/30 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                       >
                         <div className="flex min-w-0 flex-col">
                           <span className="truncate text-sm font-medium">
@@ -1061,7 +1064,7 @@ export default function PartnerDetailPage({
 
           {/* ── Resource toggles - which endpoints respond ── */}
           <Card>
-            <CardHeader className="border-b">
+            <CardHeader>
               <CardTitle className="inline-flex flex-wrap items-center">
                 {t("detail.toggleGroups.resource")}
                 <InfoTip id="partners.resource_toggles._section" className="ml-1" />
@@ -1094,7 +1097,7 @@ export default function PartnerDetailPage({
 
           {/* ── Field toggles - which fields appear inside a readable resource ── */}
           <Card>
-            <CardHeader className="border-b">
+            <CardHeader>
               <CardTitle className="inline-flex flex-wrap items-center">
                 {t("detail.toggleGroups.field")}
                 <InfoTip id="partners.field_toggles._section" className="ml-1" />
@@ -1142,7 +1145,7 @@ export default function PartnerDetailPage({
               mirror the backend (afc/urls.py + partner_urls.py). The actual secret key is
               issued + copied in the "API keys" card below (shown only once at issue time). */}
           <Card>
-            <CardHeader className="border-b">
+            <CardHeader>
               <CardTitle className="inline-flex items-center gap-2">
                 <IconWorld className="size-5 text-primary" />
                 {t("detail.connection.title")}

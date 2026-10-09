@@ -115,7 +115,7 @@
     "collectDescription": "Use a ligação que a AFC lhe enviou. Se chegou a esta página de outra forma, cole a sua referência e o código dessa ligação.",
     "tokenLabel": "Código do seu e-mail",
     "beforeYouClickTitle": "Leia isto primeiro",
-    "beforeYouClick": "O seu segredo de cliente é mostrado uma única vez no ecrã seguinte, e nunca mais. Esta ligação funciona uma só vez. Tenha um local seguro para o colar antes de continuar, como o seu gestor de palavras-passe ou o cofre de segredos do seu servidor.",
+    "beforeYouClick": "As suas credenciais secretas, um segredo de cliente, uma chave de API ou ambos, são mostradas uma única vez no ecrã seguinte, e nunca mais. Esta ligação funciona uma só vez. Tenha um local seguro para as colar antes de continuar, como o seu gestor de palavras-passe ou o cofre de segredos do seu servidor.",
     "claim": "Mostrar as minhas credenciais",
     "claiming": "A processar...",
     "failed": "Não foi possível recolher essas credenciais.",
