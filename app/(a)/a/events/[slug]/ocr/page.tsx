@@ -56,6 +56,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { useFollowEventMove } from "@/lib/addressRef";
 import { PageHeader } from "@/components/PageHeader";
 import { LocalTime } from "@/components/LocalTime";
 import {
@@ -152,6 +153,8 @@ export default function AdminEventOcrPage({
 }) {
   const { slug } = use(params);
   const { token } = useAuth();
+  // An old address (renamed event, legacy id) moves to the current slug (inbox #209).
+  const followEventMove = useFollowEventMove();
   // i18n: admin surface, namespace "ocr", this file's group "adminPage".
   const t = useTranslations("ocr");
 
@@ -214,6 +217,7 @@ export default function AdminEventOcrPage({
         return;
       }
       setEventId(details.event_id ?? null);
+      followEventMove(res.data, (s) => `/a/events/${s}/ocr`);
       setEventName(details.event_name ?? slug);
 
       const opts: MapOption[] = [];

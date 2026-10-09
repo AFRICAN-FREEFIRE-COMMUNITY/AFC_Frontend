@@ -58,6 +58,7 @@ import Link from "next/link";
 // Broadcast media hygiene (owner 2026-07-02): also surfaced on the event view page.
 import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
 import { useRouter } from "next/navigation";
+import { useFollowEventMove } from "@/lib/addressRef";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-pulls this page's read-only data.
 import { useLiveTick } from "@/hooks/useLiveTick";
 import { use, useCallback, useEffect, useMemo, useState, useTransition } from "react";
@@ -357,6 +358,8 @@ const Page = ({ params }: { params: Promise<Params> }) => {
   const resolvedParams = use(params);
   const { slug } = resolvedParams;
   const router = useRouter();
+  // An old address (renamed event, legacy id) moves to the current slug (inbox #209).
+  const followEventMove = useFollowEventMove();
 
   // Get both token and loading state from auth context
   const { token, loading: authLoading, user, hasAnyRole } = useAuth();
@@ -469,6 +472,7 @@ const Page = ({ params }: { params: Promise<Params> }) => {
 
       setEventDetails(res.data.event_details);
       setAdminDetails(resAdmin.data);
+      followEventMove(res.data, (s) => `/a/events/${s}`);
 
       // Sync sponsor form from API data
       const ed = res.data.event_details;

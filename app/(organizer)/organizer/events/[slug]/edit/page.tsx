@@ -80,6 +80,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { IconLock, IconCalendarOff } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { useFollowEventMove } from "@/lib/addressRef";
 // Shared prize-distribution helpers (see lib/eventFormats.ts). Renumber the map to a
 // contiguous "1".."N" on every add/remove so a deleted/wrong position can always be
 // rebuilt. Same helpers used by the admin create wizard + admin edit page = parity.
@@ -281,6 +282,8 @@ export default function OrganizerEditEventPage({
   const resolvedParams = use(params);
   const { slug } = resolvedParams;
   const router = useRouter();
+  // An old address (renamed event, legacy id) moves to the current slug (inbox #209).
+  const followEventMove = useFollowEventMove();
   // Translations for this page's own chrome (header, tab labels, toasts, gates). Declared
   // early so the eventTitle useState initializer below can read the loading label.
   const t = useTranslations("evEditPage");
@@ -794,6 +797,7 @@ export default function OrganizerEditEventPage({
       );
 
       const ed = res.data.event_details;
+      followEventMove(res.data, (s) => `/organizer/events/${s}/edit`);
 
       // ── ORG GUARD ──────────────────────────────────────────────────────────
       // The event must be homed to the SELECTED org. get-event-details echoes the

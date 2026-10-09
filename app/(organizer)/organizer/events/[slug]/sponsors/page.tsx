@@ -64,6 +64,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { useOrgEventMove } from "@/lib/addressRef";
 import { matchesSearch } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import {
@@ -113,6 +114,8 @@ export default function OrganizerSponsorsPage({
 }) {
   const { slug } = use(params);
   const { token, loading: authLoading } = useAuth();
+  // An old address (renamed event, legacy id) follows the event: lib/addressRef useOrgEventMove (inbox #209).
+  const followOrgEventMove = useOrgEventMove();
   const { membership, isOwner } = useOrganizer();
   // i18n: organizer-facing surface, namespace "organizer" (eventSponsors.*);
   // English values live in messages/en/organizer.json -> fr/pt via pnpm i18n:translate.
@@ -186,6 +189,7 @@ export default function OrganizerSponsorsPage({
           (e: any) => e.slug === slug,
         );
         if (!row) {
+          if (await followOrgEventMove(mine.data?.events ?? [], slug, (s) => `/organizer/events/${s}/sponsors`)) return;
           setNotMine(true);
           return;
         }
@@ -213,7 +217,7 @@ export default function OrganizerSponsorsPage({
     };
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug, token, authLoading, organizationId, canManageRegistrations, fetchCompetitors]);
+  }, [slug, token, authLoading, organizationId, canManageRegistrations, fetchCompetitors, followOrgEventMove]);
 
   const filteredCompetitors = useMemo(() => {
     setPage(1);
