@@ -13,6 +13,7 @@
 //
 // Filled chips, the picked ones in the brand fill; never an outline (owner design rule). A real
 // <button> with aria-pressed each, so a keyboard and a screen reader get on / off for free.
+import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { newsCategories } from "@/constants";
 import { NewBadge } from "@/components/NewBadge";
@@ -26,8 +27,19 @@ export function NewsCategoryPicker({
   onChange: (next: string[]) => void;
 }) {
   const t = useTranslations("news");
-  const toggle = (key: string) =>
-    onChange(value.includes(key) ? value.filter((k) => k !== key) : [...value, key]);
+  // The picks so far, including a click the form has not rendered back yet. Built from `value`
+  // alone, two clicks in one tick both started from the same list and the second wiped the first
+  // (inbox #212). A new `value` from the form (a reset, a load) replaces it once rendered.
+  const picks = useRef(value);
+  useEffect(() => {
+    picks.current = value;
+  }, [value]);
+  const toggle = (key: string) => {
+    const now = picks.current;
+    const next = now.includes(key) ? now.filter((k) => k !== key) : [...now, key];
+    picks.current = next;
+    onChange(next);
+  };
 
   return (
     <div className="flex flex-wrap gap-2">
