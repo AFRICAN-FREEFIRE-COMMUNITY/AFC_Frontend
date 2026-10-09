@@ -4915,16 +4915,24 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     eventSponsorships,
   ]);
 
-  const handleDiscordConnect = useCallback(() => {
-    let redirectPath = `${window.location.origin}${window.location.pathname}?id=${slug}&discord=connected&step=discord`;
-    if (inviteToken) {
-      redirectPath += `&invitation=${encodeURIComponent(inviteToken)}`;
+  // Connect Discord from the registration modal (inbox #211, 9 Oct 2026). Two steps, like
+  // lib/connections.ts startConnection: ask AFC-B auth/connect-discord/ for Discord's consent
+  // address WITH the session header, then go there. This used to open the API address itself with
+  // ?session_token= in it: the token reached discord.com inside the OAuth state, and since
+  // 2026-08-26 the callback refused that state, so the step always ended on the profile page with
+  // "failed". Discord now sends the player back to this event (?discord=connected), which the
+  // effect above reads to resume at the Discord step.
+  const handleDiscordConnect = useCallback(async () => {
+    try {
+      const res = await axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/`, {
+        params: { tournament_id: slug, ...(inviteToken ? { invite_token: inviteToken } : {}) },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      window.location.href = res.data.authorize_url;
+    } catch {
+      toast.error(t("register.toast.discordFailed"));
     }
-    const redirectUrl = encodeURIComponent(redirectPath);
-
-    const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${slug}&invite_token=${inviteToken}&redirect_url=${redirectUrl}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  }, [slug, token, inviteToken]);
+  }, [slug, token, inviteToken, t]);
 
   // Build the EXACT payload register-for-event/ expects, from the collected modal state.
   // Extracted so BOTH the free direct-register path AND the paid path (which saves this
