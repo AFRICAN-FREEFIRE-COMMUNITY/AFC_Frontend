@@ -20,6 +20,7 @@ import { useTranslations } from "next-intl";
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useFollowEventMove } from "@/lib/addressRef";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 // Mobile-first section navigator (dropdown on phones, scrollable tab strip on desktop) shared with
@@ -226,6 +227,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  // An old address (renamed event, legacy id) moves to the current slug (inbox #209).
+  const followEventMove = useFollowEventMove();
   // Translations for this page's own chrome (header, tab labels, toasts, validation prompts).
   // Declared early so the eventTitle useState initializer below can read the loading label.
   const t = useTranslations("evEditPage");
@@ -780,6 +783,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         setStageNames(adminStages.map((s: any) => s.stage_name));
 
       setEventDetails(mergedDetails);
+      followEventMove(res.data, (s) => `/a/events/${s}/edit`);
 
       const ed = res.data.event_details;
       if (ed) {

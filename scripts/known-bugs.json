@@ -180,6 +180,117 @@
       ],
       "fixture": "const ip = request.headers.get(\"x-forwarded-for\") ?? request.headers.get(\"x-real-ip\");",
       "fixtureOk": "const ip = request.headers.get(\"x-real-ip\");"
+    },
+    {
+      "id": "fe-browser-api-link",
+      "title": "A link, image or window the BROWSER opens points at an API view that wants the Authorization header",
+      "why": "A browser following a link, loading an image or opening a window sends no Authorization header: the session token lives in JavaScript. A view that wants the header answers that request 401 or 404, while a test that SENDS the header stays green. The support desk's attachment links did exactly this from 2026-09-28: every staff click on a file answered 404, the production journal showed two staff GETs and no success, and the existing test passed because it supplied the header (inbox #168). Each address listed in `allow` has been read by a person and says why a browser gets in: a public view, a link the server signed, or a token carried in the address.",
+      "seen": [
+        "2026-09-28 to 2026-10-08 support desk attachment links (app/(a)/a/support), staff got 404 on every file; fixed with signed links in AFC-B #116 / FE #96 (inbox #168)",
+        "2026-10-08 the same class as lessons_test_supplies_the_input_it_wants (FOUR features passed tests that sent what reality never sends); catcher built 2026-10-09 (inbox #211)"
+      ],
+      "fix": "make the address work without the header: a public view, a link the server signs for this viewer (AFC-B afc_support/views.py _signed_attachment_url), or fetch the bytes with axios and the header and open a blob URL. Then add an `allow` entry naming the file, a piece of the expression and the reason",
+      "kind": "browser-api-link",
+      "globs": [
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "lib/**/*.ts",
+        "lib/**/*.tsx",
+        "components/**/*.ts",
+        "components/**/*.tsx",
+        "contexts/**/*.tsx",
+        "hooks/**/*.ts",
+        "hooks/**/*.tsx"
+      ],
+      "fixtures": [
+        {
+          "name": "inline href to a guarded view",
+          "hits": 1,
+          "src": "const API = env.NEXT_PUBLIC_BACKEND_API_URL;\nexport function Row({ att }) {\n  return <a href={`${API}/support/attachments/${att.id}/`}>open</a>;\n}\n"
+        },
+        {
+          "name": "through a helper and a variable",
+          "hits": 2,
+          "src": "const API = env.NEXT_PUBLIC_BACKEND_API_URL;\nexport const fileUrl = (a) => `${API}${a.url}`;\nfunction Row({ a }) {\n  const href = fileUrl(a);\n  window.open(fileUrl(a));\n  return <a href={href}>open</a>;\n}\n"
+        },
+        {
+          "name": "a helper local to the file",
+          "hits": 1,
+          "src": "const API = env.NEXT_PUBLIC_BACKEND_API_URL;\nconst markUrl = (size) => `${API}/sso/brand/mark-${size}.png`;\nexport const Mark = () => <img src={markUrl(64)} alt=\"\" />;\n"
+        },
+        {
+          "name": "window.open of a template",
+          "hits": 1,
+          "src": "const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/x/?a=1`;\nwindow.open(url, \"_blank\");\n"
+        },
+        {
+          "name": "a blob link and a .map parameter are left alone",
+          "hits": 0,
+          "src": "const API = env.NEXT_PUBLIC_BACKEND_API_URL;\nconst url = `${API}/x/`;\nasync function dl() {\n  const res = await axios.get(`${API}/export/`, { headers });\n  const url = window.URL.createObjectURL(new Blob([res.data]));\n  link.href = url;\n}\nlist.map((url, i) => <a key={i} href={url}>s</a>);\n"
+        },
+        {
+          "name": "an address read out of an API answer is left alone",
+          "hits": 0,
+          "src": "async function go() {\n  const res = await axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/`, { headers });\n  window.location.href = res.data.authorize_url;\n}\n"
+        },
+        {
+          "name": "a link built from the site's own origin is left alone",
+          "hits": 0,
+          "src": "export function A({ slug }) {\n  return <a href={`/tournaments/${slug}`}>go</a>;\n}\n"
+        }
+      ],
+      "allow": [
+        {
+          "file": "app/(a)/a/rankings/ghost-teams/page.tsx",
+          "match": "${API_BASE}${approve.claim_evidence}",
+          "why": "claim_evidence is a site-relative /media/ path; nginx serves /media/ to anyone with no header (the picture is re-encoded on upload, R87). Read 2026-10-09"
+        },
+        {
+          "file": "app/(a)/a/support/audit/page.tsx",
+          "match": "attachmentUrl(att)",
+          "why": "support_audit sends staff rows SIGNED (?s=, AFC-B afc_support/views.py _attachment_dict(for_staff=True)) and support_attachment accepts the signature without a header (inbox #168). Read 2026-10-09"
+        },
+        {
+          "file": "components/support/desk/PersonPanel.tsx",
+          "match": "{href}",
+          "why": "href = attachmentUrl(att) of a desk row, which the people/ endpoints send signed (?s=), accepted without a header (inbox #168). Read 2026-10-09"
+        },
+        {
+          "file": "components/support/SupportThread.tsx",
+          "match": "attachmentUrl(att, ticketToken)",
+          "why": "the requester's own page adds ?t=<ticket token>, which support_attachment accepts; staff rows arrive signed (inbox #168). Read 2026-10-09"
+        },
+        {
+          "file": "components/auth/DiscordSignInButton.tsx",
+          "match": "/auth/discord/sso/start/",
+          "why": "the public start of Sign in with Discord (AFC-B afc_auth discord_sso_start): nobody is signed in yet, so there is no header to send. Read 2026-10-09"
+        },
+        {
+          "file": "components/auth/VentSignInButton.tsx",
+          "match": "/auth/vent/sso/start/",
+          "why": "the public start of Sign in with v-ent.co (AFC-B afc_auth/vent_sso.py vent_sso_start): nobody is signed in yet. Read 2026-10-09"
+        },
+        {
+          "file": "components/brand/BrandKit.tsx",
+          "match": "/sso/brand/logo.svg?on=dark",
+          "why": "AFC's public brand files for partners (AFC-B afc_sso/brand.py brand_logo_svg, no sign-in). Read 2026-10-09"
+        },
+        {
+          "file": "components/brand/BrandKit.tsx",
+          "match": "{vectorUrl}",
+          "why": "vectorUrl = sso/brand/logo.svg, public brand file (afc_sso/brand.py). Read 2026-10-09"
+        },
+        {
+          "file": "components/brand/BrandKit.tsx",
+          "match": "{vectorOnDarkUrl}",
+          "why": "vectorOnDarkUrl = sso/brand/logo.svg?on=dark, public brand file (afc_sso/brand.py). Read 2026-10-09"
+        },
+        {
+          "file": "components/brand/BrandKit.tsx",
+          "match": "{markUrl(size)}",
+          "why": "markUrl = sso/brand/logo/<size>.png, public brand file (afc_sso/brand.py brand_logo). Read 2026-10-09"
+        }
+      ]
     }
   ]
 }

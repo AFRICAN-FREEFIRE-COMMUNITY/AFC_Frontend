@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { formatNumber } from "@/lib/i18n/number";
 import { useRouter, useSearchParams } from "next/navigation";
+import { writeAddressParam } from "@/lib/useAddressTab";
 // i18n: user-visible copy on the owner's own profile page is sourced from the
 // `profile` namespace (messages/en/profile.json). The active locale comes from the
 // NEXT_LOCALE cookie (set on the profile edit page) and falls back to English.
@@ -151,8 +152,14 @@ export const ProfileContent = () => {
   const [seenTab, setSeenTab] = useState(askedTab);
   if (askedTab !== seenTab) {
     setSeenTab(askedTab);
-    if (askedTab) setActiveTab(askedTab);
+    setActiveTab(askedTab || "overview");
   }
+  // A click is written into the address too, so a later link to the tab the address names is a
+  // real change (inbox #213: after a click, a link to the ?tab= already showing did nothing).
+  const chooseTab = (value: string) => {
+    setActiveTab(value);
+    writeAddressParam("tab", value, "overview");
+  };
   // /profile#referrals (the link in a referral prize notification) opens the Referrals tab. Read after
   // mount: the hash never reaches the server, so the first render cannot know it.
   const tRef = useTranslations("referrals");
@@ -663,7 +670,7 @@ export const ProfileContent = () => {
           of its height while the left column ran long. */}
       <Card className="mt-6">
         <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={chooseTab}>
               <ScrollableTabsList className="w-full mb-4">
                 <TabsTrigger value="overview">
                   {t("tabs.overview")}

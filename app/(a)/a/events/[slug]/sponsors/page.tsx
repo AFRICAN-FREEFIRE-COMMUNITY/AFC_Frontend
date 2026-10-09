@@ -30,6 +30,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { useFollowEventMove } from "@/lib/addressRef";
 import { matchesSearch } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import {
@@ -75,6 +76,8 @@ export default function SponsorsPage({
 }) {
   const { slug } = use(params);
   const { token, loading: authLoading } = useAuth();
+  // An old address (renamed event, legacy id) moves to the current slug (inbox #209).
+  const followEventMove = useFollowEventMove();
 
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,6 +131,7 @@ export default function SponsorsPage({
         setSponsorFieldLabel(
           res.data.event_details.sponsor_field_label ?? "Sponsor ID",
         );
+        followEventMove(res.data, (s) => `/a/events/${s}/sponsors`);
         await fetchCompetitors(evId);
       } catch (err: any) {
         console.error("Sponsors page load error:", err?.response?.data ?? err);

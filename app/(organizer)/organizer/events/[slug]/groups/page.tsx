@@ -69,6 +69,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { IconLock, IconTrophy, IconSearch, IconTrash } from "@tabler/icons-react";
 import { env } from "@/lib/env";
+import { useOrgEventMove } from "@/lib/addressRef";
 // Team country flag beside each team name in the organizer group-roster tree (owner 2026-07-03).
 // team_country rides on each team from get_event_group_rosters (_team_payload). Mirrors the admin
 // events group tab. CountryFlag renders nothing when the value is blank/unresolvable.
@@ -153,6 +154,8 @@ export default function OrganizerEventGroupsPage({
   params: Promise<Params>;
 }) {
   const { slug: routeSlug } = use(params);
+  // An old address (renamed event, legacy id) follows the event: lib/addressRef useOrgEventMove (inbox #209).
+  const followOrgEventMove = useOrgEventMove();
   const t = useTranslations("organizer");
   const { token } = useAuth();
   const { membership, isOwner } = useOrganizer();
@@ -197,6 +200,7 @@ export default function OrganizerEventGroupsPage({
         const match = (json.events ?? []).find(
           (e: any) => e.slug === routeSlug,
         );
+        if (!match && (await followOrgEventMove(json.events ?? [], routeSlug, (s) => `/organizer/events/${s}/groups`))) return;
         if (!match) {
           setNotMine(true);
         } else {
@@ -210,7 +214,7 @@ export default function OrganizerEventGroupsPage({
       }
     };
     resolve();
-  }, [routeSlug, organizationId, token, canView]);
+  }, [routeSlug, organizationId, token, canView, followOrgEventMove]);
 
   // ── 2) Load the group rosters for the resolved event ──────────────────────────
   // POSTs { slug } (the backend accepts slug or event_id; the organizer FE sends

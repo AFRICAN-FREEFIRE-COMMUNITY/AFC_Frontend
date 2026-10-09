@@ -36,6 +36,7 @@ import { useTranslations } from "next-intl";
 import axios from "axios";
 
 import { env } from "@/lib/env";
+import { useFollowEventMove } from "@/lib/addressRef";
 import { useAuth } from "@/contexts/AuthContext";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,6 +61,8 @@ export default function AdminEventTeamResultsPage() {
   const params = useParams<{ slug: string }>();
   const slug = params?.slug as string;
   const { token } = useAuth();
+  // An old address (renamed event, legacy id) moves to the current slug (inbox #209).
+  const followEventMove = useFollowEventMove();
 
   const [loading, setLoading] = useState(true);
   const [eventName, setEventName] = useState("");
@@ -78,6 +81,7 @@ export default function AdminEventTeamResultsPage() {
       const details = res.data?.event_details;
       if (!details) return;
       setEventName(details.event_name ?? slug);
+      followEventMove(res.data, (s) => `/a/events/${s}/team-results`);
       setAllowed(Boolean(details.allow_team_result_submissions));
 
       // Flatten every group's matches into one picker. A match IS a map here, which is why the

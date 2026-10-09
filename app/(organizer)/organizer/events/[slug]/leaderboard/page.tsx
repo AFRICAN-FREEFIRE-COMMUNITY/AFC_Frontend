@@ -143,6 +143,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
+import { useOrgEventMove } from "@/lib/addressRef";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -391,6 +392,8 @@ export default function OrganizerEventLeaderboardPage({
 }) {
   const { slug: routeSlug } = use(params);
   const { token } = useAuth();
+  // An old address (renamed event, legacy id) follows the event: lib/addressRef useOrgEventMove (inbox #209).
+  const followOrgEventMove = useOrgEventMove();
   const { membership, isOwner } = useOrganizer();
   // i18n: organizer-facing page, keys under the "organizer" namespace (eventLeaderboard.*).
   const t = useTranslations("organizer");
@@ -555,6 +558,7 @@ export default function OrganizerEventLeaderboardPage({
         const match = (data.events ?? []).find(
           (e: any) => e.slug === routeSlug,
         );
+        if (!match && (await followOrgEventMove(data.events ?? [], routeSlug, (s) => `/organizer/events/${s}/leaderboard`))) return;
         if (!match) {
           setNotMine(true);
         } else {
@@ -572,7 +576,7 @@ export default function OrganizerEventLeaderboardPage({
       }
     };
     resolve();
-  }, [routeSlug, organizationId, token, canUploadResults]);
+  }, [routeSlug, organizationId, token, canUploadResults, followOrgEventMove]);
 
   // ── 2) Load the leaderboard details for the resolved event_id ─────────────────
   // Same call the admin [id] page makes (POST get-all-leaderboard-details-for-event

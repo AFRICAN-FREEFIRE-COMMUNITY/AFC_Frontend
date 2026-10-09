@@ -1,7 +1,7 @@
 import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
 import { formatNumber } from "@/lib/i18n/number";
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { env } from "@/lib/env";
 import { cookies } from "next/headers";
 // Existence-aware detail fetch (lib/detailFetch.ts): distinguishes a CONFIRMED
@@ -26,6 +26,7 @@ import { readSegment } from "@/lib/routes";
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 // 1. Centralized Fetch Function
@@ -47,8 +48,12 @@ async function getEventData(slug: string, locale?: string) {
       cache: "no-store",
     },
     // The endpoint returns the event under event_details (or team for the
-    // legacy team shape); either present means the event loaded.
-    (j) => j?.event_details ?? j?.team,
+    // legacy team shape); either present means the event loaded. `moved_to` rides
+    // along from the envelope: the address was an old one (inbox #209).
+    (j) => {
+      const d = j?.event_details ?? j?.team;
+      return d ? { ...d, moved_to: j?.moved_to ?? null } : d;
+    },
   );
 }
 
@@ -132,7 +137,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // generateMetadata's identical request) to embed JSON-LD in the INITIAL HTML.
 // This is what search + AI crawlers read - the interactive UI still renders
 // entirely inside the client EventDetailsWrapper below, unaffected.
-const Page = async ({ params }: Props) => {
+const Page = async ({ params, searchParams }: Props) => {
   const { slug } = await params;
   const _c = await cookies();
   const result = await getEventData(slug, _c.get("NEXT_LOCALE")?.value);
@@ -141,6 +146,19 @@ const Page = async ({ params }: Props) => {
   // to data=null and render the wrapper at 200 (the client retries gracefully).
   if (result.status === "missing") notFound();
   const data = result.status === "ok" ? result.data : null;
+
+  // An old address (the event was renamed, or a legacy numeric link) answers the event PLUS
+  // `moved_to`, its current /tournaments/<slug> (AFC-B _event_at, owner rule R22). Send the
+  // reader there with a 308 so bookmarks, shared links and search engines all settle on the
+  // current address; the query (?tab=...) comes along. Inbox #209, 9 Oct 2026.
+  if (data?.moved_to) {
+    const query = new URLSearchParams();
+    for (const [k, v] of Object.entries((await searchParams) ?? {})) {
+      for (const one of Array.isArray(v) ? v : v == null ? [] : [v]) query.append(k, one);
+    }
+    const qs = query.toString();
+    permanentRedirect(qs ? `${data.moved_to}?${qs}` : data.moved_to);
+  }
 
   // Build the structured data only when the event actually loaded (graceful
   // fallback: no <script> rather than a schema full of nulls).
