@@ -185,6 +185,9 @@ function GuideTableBlock({
               ))}
               <td className="p-2 align-top text-muted-foreground">
                 {t(`${base}.rows.${row.id}`)}
+                {/* A row added to the API after the guide shipped (an endpoint, a resource)
+                    wears the shared NEW tag for five days, then it disappears by itself. */}
+                {row.newSince ? <NewBadge since={row.newSince} className="ml-2" /> : null}
               </td>
             </tr>
           ))}
@@ -300,6 +303,7 @@ export function PartnerApiGuide() {
               >
                 <IconLink className="size-3.5" />
                 {t(`sections.${section.id}.title`)}
+                {section.newSince ? <NewBadge since={section.newSince} /> : null}
               </a>
             </li>
           ))}
@@ -310,7 +314,11 @@ export function PartnerApiGuide() {
       {PARTNER_API_GUIDE.map((section) => (
         <Card key={section.id} id={section.id} className="scroll-mt-24">
           <CardHeader>
-            <CardTitle>{t(`sections.${section.id}.title`)}</CardTitle>
+            {/* A section added after the guide shipped wears the NEW tag for five days. */}
+            <CardTitle className="flex flex-wrap items-center gap-2">
+              {t(`sections.${section.id}.title`)}
+              {section.newSince ? <NewBadge since={section.newSince} /> : null}
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 pt-4">
             {section.blocks.map((block, i) => (

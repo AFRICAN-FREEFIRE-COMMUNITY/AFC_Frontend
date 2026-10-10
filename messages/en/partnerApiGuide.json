@@ -24,11 +24,12 @@
           "rows": {
             "events": "The event card: name, slug, dates, tier, status, prize pool.",
             "stages": "The structure of an event, with each stage's groups nested.",
-            "matches": "Per-match rows: match number, map, MVP, whether the result is in.",
-            "standings": "The final ranked table for an event.",
-            "teams": "Every registered team, with event-wide totals and rosters.",
+            "matches": "Per-map rows: the stage and group, match number, map, MVP, the point system, whether the result is in.",
+            "standings": "AFC's official final placement for an event, with every team's points.",
+            "teams": "Every registered team, with its country, event-wide totals and rosters.",
             "players": "Everyone who recorded stats, with their per-event stats.",
-            "designs": "Branded leaderboard templates: background art, placed logos, brand colours."
+            "designs": "Branded leaderboard templates: background art, placed logos, brand colours.",
+            "results": "The whole event in one response, laid out like the tournament page: every stage, group, bracket and map, each table with its points."
           }
         }
       },
@@ -56,24 +57,25 @@
             "h1": "Appears when AFC enables"
           },
           "rows": {
-            "placements": "Placements. The team's best finish, on teams and standings.",
-            "kills": "Kills, on teams, players and standings.",
+            "placements": "Placements. The best finish on teams, standings and map results, plus placement_points and booyahs.",
+            "kills": "Kills, on teams, players, standings and map results, plus kill_points.",
             "damage": "Damage, on teams, players and standings.",
             "assists": "Assists, on teams, players and standings.",
             "rosters": "Rosters. The player list on each team.",
             "maps": "Maps played. maps on a group, map on a match.",
             "prize": "Prize pool, on events.",
             "mvp": "MVP, on matches. The in-game handle, or null if none was recorded.",
-            "media": "Images and files. Event banners and rules files, team logos, player esport images, and design artwork.",
+            "media": "Images and files. Event banners and rules files, team logos, player esport images, and design artwork. Team logos and player esport images also appear on every standings row and bracket side.",
             "text": "Descriptions and rules text. The event rules blurb and a team's self-description."
           }
         }
       },
-      "absentNotNull": "A field you are not entitled to is absent from the JSON, not present and null. Read defensively: check that a key exists rather than assuming it does. A key that is present and null means the field is enabled for you and the underlying value is genuinely empty, for example a team that never uploaded a logo."
+      "absentNotNull": "A field you are not entitled to is absent from the JSON, not present and null. Read defensively: check that a key exists rather than assuming it does. A key that is present and null means the field is enabled for you and the underlying value is genuinely empty, for example a team that never uploaded a logo.",
+      "alwaysSent": "Always sent, whatever is switched on: each team's and player's country and country_code, every table's points with bonus_points, penalty_points, adjusted and carry_over_points, and the point system. AFC shows all of these to anyone on its public pages. other_points needs both Placements and Kills, because on its own it would give them away."
     },
     "endpoints": {
       "title": "Endpoints",
-      "intro": "Eight endpoints, all GET. Any other verb returns 405. Paths below are relative to the base URL, and the slug placeholder in each path is an event slug returned by the events list. Every list endpoint is paginated.",
+      "intro": "Nine endpoints, all GET. Any other verb returns 405. Paths below are relative to the base URL, and the slug placeholder in each path is an event slug returned by the events list. Every list endpoint is paginated; the single event and the results document are not.",
       "tables": {
         "list": {
           "headers": {
@@ -85,11 +87,12 @@
             "events": "The events you may read, newest first.",
             "event": "One event. 404 if it is not yours to read.",
             "stages": "Stages in running order, each with its groups nested.",
-            "matches": "The event's matches. Room credentials are never included.",
-            "standings": "The final ranked table, winners first.",
+            "matches": "The event's maps in running order, each with its stage, group and point system. Room credentials are never included.",
+            "standings": "AFC's official final placement, with points.",
             "teams": "Every registered team with its event-wide totals.",
             "players": "Everyone who recorded stats, scoped to this event.",
-            "designs": "Branded leaderboard templates for the event's owner."
+            "designs": "Branded leaderboard templates for the event's owner.",
+            "results": "The whole event in one document, in running order."
           }
         },
         "teamStatus": {
@@ -107,19 +110,39 @@
             "left": "Left the event.",
             "disqualified": "Removed by the organizer for a rules breach."
           }
+        },
+        "bracket": {
+          "headers": {
+            "h0": "Field",
+            "h1": "Meaning"
+          },
+          "rows": {
+            "format": "knockout, double_elimination, league or round_robin.",
+            "table": "rank, the team, wins, draws, losses, rounds_won, rounds_lost. A league or round robin adds points, 3 a win and 1 a draw; a knockout ranks by how far a team went, so it has none. rank is null for a team still alive in an unfinished bracket.",
+            "side": "winners, losers in double elimination, third for the bronze match, or league.",
+            "teams": "Each side's team, country and country_code. null is a slot waiting on an earlier match, or a bye.",
+            "score": "Rounds won by each side in the set, for example 4 and 2, never kills, and the winner's name.",
+            "result": "played, forfeit, walkover or disqualification."
+          }
         }
       },
-      "eventsSample": "Returns the standard envelope. is_native_afc tells you whether AFC ran the event itself or an organiser did, without revealing which organiser.",
-      "stagesSample": "Nests each stage's groups. order is a 1-based sequence number within the event, not a database ID.",
-      "matchesSample": "One row per match.",
-      "standingsSample": "The final table, rank ascending.",
-      "standingsRanking": "Ranking uses the same metric as AFC's official standings: placement points plus kill points plus bonus points minus penalty points, with first-place finishes and then total kills breaking ties. placement is the team's best finish across the event. Solo events are ranked by player, and each row carries username and in_game_id instead of team.",
+      "eventsSample": "Returns the standard envelope. is_native_afc tells you whether AFC ran the event itself or an organiser did, without revealing which organiser. point_system is how its maps are scored, and final_stage_has_results says whether the deciding stage's results are in.",
+      "stagesSample": "Nests each stage's groups. order is a 1-based sequence number within the event, not a database ID. Stages and their groups come in the order the tournament page shows them, and each stage carries champion_point and point_rush.",
+      "matchesSample": "One row per Battle Royale map, in running order, saying where it was played and how it was scored. Clash Squad bracket matches are not maps; they are in results.",
+      "standingsSample": "AFC's official final placement, rank ascending: the placement shown on a team's page and used for prizes.",
+      "standingsRanking": "A team is placed by the last stage it played: every team that reached the grand final ranks above every team knocked out earlier, and inside a stage teams follow that stage's own table. decided_in names that stage and every number on the row is from it, so a team knocked out in the group stage shows its group-stage points. In a single-stage event this is simply that stage's table. placement is the team's best finish on a map in that stage. Solo events rank players, each row carrying username and in_game_id instead of team, and a solo table covers every map of the event.",
       "teamsSample": "Every registered team sorted by name, with its event-wide totals.",
       "teamsStatusWhy": "This list is the full registration list, not the list of competitors. Registering for an AFC event and playing in one are different things, and a team that registered but never played returns zeroed stats and an empty roster, which is easy to mistake for a team that played badly. Read status to tell them apart before you draw a bracket, a standings card, or a team count. status is always present and does not depend on any toggle.",
       "teamsStatusPrecedence": "Only one value is returned per team. Where more than one could apply, the more specific one wins, in this order: disqualified, withdrawn, left, pending, waitlisted, no_show, played, registered. So a team that played two maps and then withdrew comes back as withdrawn, not played, and its stats are a partial record of an event it did not finish. Note also that a team can hold match rows without being played: AFC seeds teams into a map before it is contested, and a team that does not turn up keeps that row with no result.",
       "playersSample": "Scopes every stat to this event rather than to career totals. esports_image_url is the player's posed roster photo, for lower-thirds and versus cards, and is null for players who have not uploaded one.",
       "designsSample": "The branded templates behind this event's graphics, so you can produce on-brand standings cards yourself. The Designs toggle unlocks the endpoint; the artwork additionally needs Images and files.",
-      "designsCanvas": "The two canvases are Instagram portrait at 1080x1350 and YouTube landscape at 1920x1080. Logo positions are a percentage of the canvas anchored at the logo's centre, so the same pair of numbers places a logo correctly on both sizes. max_rows is how many standings rows the template is designed to hold. You only ever receive designs belonging to the event's owner: the organiser's library for an organiser-run event, or AFC's own library for a native AFC event."
+      "designsCanvas": "The two canvases are Instagram portrait at 1080x1350 and YouTube landscape at 1920x1080. Logo positions are a percentage of the canvas anchored at the logo's centre, so the same pair of numbers places a logo correctly on both sizes. max_rows is how many standings rows the template is designed to hold. You only ever receive designs belonging to the event's owner: the organiser's library for an organiser-run event, or AFC's own library for a native AFC event.",
+      "pointRushSample": "A stage with Point Rush, from DYNASTY CUP GRAND FINALS SSA: its finishing places earn the reward points, carried into the target stage.",
+      "resultsSample": "The whole event in one document, laid out like the tournament page, trimmed here to one row of each list. Use it to show an event properly, especially one that mixes structures.",
+      "resultsLevels": "Every level says what it is. Each stage gives its game, battle_royale or clash_squad, and its structure: lobbies for Battle Royale groups scored on placement and kills, round_robin when teams in base groups meet across game-day lobbies, or brackets for Clash Squad. Each stage carries its own standings, the table that decides who goes through, and its groups. A group of type lobby has its table and then every map, with its point system and every team's result on it. A group of type bracket has its table and its matches. It needs the Standings toggle and is not paginated.",
+      "resultsLobby": "In a lobby, map results list the best finish first, and a team that sat a map out has played false. A team drawn into a group that has not played yet is listed at the bottom with 0 points and matches_played 0, so an upcoming group still shows who is in it. When the stage uses Champion Point, champion names the team the rule crowned, or null until it fires.",
+      "resultsBracket": "A Clash Squad bracket is played head to head, and its scores are rounds won in the set, never kills:",
+      "resultsImages": "With Images and files on, every table row and bracket side also carries logo_url, and solo rows esports_image_url, so you can draw a leaderboard from this one response."
     },
     "pagination": {
       "title": "Pagination",
@@ -182,6 +205,48 @@
       "permanent404": "Expect a 404 to be lasting. If an event you were reading starts returning 404, AFC has either unpublished it or changed your scope. Retrying will not help, so ask AFC.",
       "slugs": "Slugs are the identifiers. Store the event slug, not the position of an event in a list, because a new event changes every position.",
       "help": "No key yet? Apply at africanfreefirecommunity.com/partners/apply and choose The AFC Data API. Contact your AFC partner manager for a new or rotated key, to change which events or resources you can read, or to report anything the API returns that looks wrong. Include the endpoint, the timestamp, and your key's prefix, the afcp_3f9a part, never the full key."
+    },
+    "numbers": {
+      "title": "Reading the numbers",
+      "intro": "Countries, points and the point system read the same way in every response. This is how.",
+      "countriesCaption": "Every team and player carries two fields.",
+      "countries": "country_code is the ISO 3166-1 alpha-2 code: store it, sort by it, draw the flag from it. country is one English name per code. A team's country is the one AFC shows beside its name, worked out from where its players are; a player's is where they play from, falling back to the country on their profile. Both are null when AFC does not know, which is never an error.",
+      "sumCaption": "Every table row, and every team's result on every map, carries points: the score it is ranked by. Its parts always add up to it exactly.",
+      "tables": {
+        "parts": {
+          "headers": {
+            "h0": "Field",
+            "h1": "What it is"
+          },
+          "rows": {
+            "placementPoints": "Points for where the team finished on each map.",
+            "killPoints": "Points for kills.",
+            "otherPoints": "Points for assists and damage, when the point system awards them; for results AFC imported from another platform, whatever that platform's total held beyond placement and kills.",
+            "bonusPoints": "Points an AFC admin or the organiser added by hand.",
+            "penaltyPoints": "Points an AFC admin or the organiser took away by hand.",
+            "carryOverPoints": "A Point Rush head start, earned in an earlier stage."
+          }
+        },
+        "why": {
+          "headers": {
+            "h0": "Fields",
+            "h1": "What happens"
+          },
+          "rows": {
+            "adjustments": "An admin or the organiser added or took away points, as above.",
+            "pointRush": "A stage hands out bonus points by finishing place, carried into a later stage.",
+            "championPoint": "The first team to win a map while already at the threshold is champion, and is listed first even with fewer points.",
+            "tieBreakers": "Teams level on points are separated by booyahs, then kills, then the place in the last map played, unless the organiser set a different order.",
+            "finalStandings": "The final standings rank by the stage that decided each place, not by a sum of every map. See standings below."
+          }
+        }
+      },
+      "adjustments": "An AFC admin or the event's organiser can add points to a team's result on a map, or take points away, for example as a penalty for breaking a rule. The table then no longer follows placements and kills alone, so the API says so: bonus_points and penalty_points carry the amounts, on the table row and on the map the change was made on, and adjusted is true on every row that includes such a change. points already includes it. AFC does not record a written reason for an adjustment, so none is sent.",
+      "corrections": "A result can be corrected after you have read it. Your next sync returns the corrected numbers, so keep polling a recent event for a while after it ends.",
+      "whyIntro": "Why a table may not look like a simple sum:",
+      "pointSystemCaption": "How an event's maps are scored. placement_points is keyed by finishing place; a place not listed scores 0.",
+      "pointSystem": "Each map carries its own point system, because an organiser can change one map; the event carries it too when every map agrees. When maps differ, the event's point_system is null and point_system_varies is true, and you read each match's own. A stage also says whether it uses Champion Point (champion_point, with its threshold) or Point Rush (point_rush, with its reward table and the target_stage the bonus is carried into); each is null when the stage does not.",
+      "complete": "Every event carries final_stage, the stage that decides it, and final_stage_has_results. When that is false the final has not been entered on AFC: the final standings then rank the last stage that does have results, and the team at the top is that stage's leader, not the champion. Some events, scrims especially, have no results on AFC at all."
     }
   }
 }

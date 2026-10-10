@@ -66,7 +66,11 @@ export interface GuideTable {
   id: string;
   /** Header labels, translated at sections.<sectionId>.tables.<id>.headers.<n>. */
   headerCount: number;
-  rows: { id: string; codes: string[] }[];
+  /**
+   * `newSince` (YYYY-MM-DD) puts the shared self-expiring NEW badge beside the row for five
+   * days (owner rule 2026-08-07): used for an endpoint or resource added to the API.
+   */
+  rows: { id: string; codes: string[]; newSince?: string }[];
 }
 
 export interface GuideBlock {
@@ -94,7 +98,13 @@ export interface GuideBlock {
 export interface GuideSection {
   id: string;
   blocks: GuideBlock[];
+  /** YYYY-MM-DD: a section added after the guide shipped wears a NEW badge for five days. */
+  newSince?: string;
 }
+
+// The day the country, points, point system and results additions went out (inbox #220 to
+// #224, 2026-10-10). One constant so every badge for that release expires together.
+const STRUCTURE_RELEASE = "2026-10-10";
 
 // The production origin every sample is written against. The guide is a PUBLIC page
 // describing the PRODUCTION API, so this is intentionally the literal production host
@@ -125,6 +135,7 @@ export const PARTNER_API_GUIDE: GuideSection[] = [
             { id: "stages", codes: ["stages"] },
             { id: "matches", codes: ["matches"] },
             { id: "standings", codes: ["standings"] },
+            { id: "results", codes: ["results"], newSince: STRUCTURE_RELEASE },
             { id: "teams", codes: ["teams"] },
             { id: "players", codes: ["players"] },
             { id: "designs", codes: ["designs"] },
@@ -183,7 +194,64 @@ export const PARTNER_API_GUIDE: GuideSection[] = [
           ],
         },
       },
+      { kind: "note", id: "alwaysSent" },
       { kind: "note", id: "absentNotNull" },
+    ],
+  },
+
+  // 3b. Reading the numbers (inbox #220 to #224, 2026-10-10): countries, how points add up,
+  //     an admin's hand adjustments, the point system, and whether a result is complete. Placed
+  //     before the endpoint reference because every endpoint below uses these fields.
+  {
+    id: "numbers",
+    newSince: STRUCTURE_RELEASE,
+    blocks: [
+      { kind: "prose", id: "intro" },
+      { kind: "code", lang: "json", id: "countriesCaption", sample: `{ "country": "Nigeria", "country_code": "NG" }` },
+      { kind: "prose", id: "countries" },
+      { kind: "code", id: "sumCaption", sample: `points = placement_points + kill_points + other_points
+       + bonus_points - penalty_points + carry_over_points` },
+      {
+        kind: "table",
+        table: {
+          id: "parts",
+          headerCount: 2,
+          rows: [
+            { id: "placementPoints", codes: ["placement_points"] },
+            { id: "killPoints", codes: ["kill_points"] },
+            { id: "otherPoints", codes: ["other_points"] },
+            { id: "bonusPoints", codes: ["bonus_points"] },
+            { id: "penaltyPoints", codes: ["penalty_points"] },
+            { id: "carryOverPoints", codes: ["carry_over_points"] },
+          ],
+        },
+      },
+      { kind: "prose", id: "adjustments" },
+      { kind: "note", id: "corrections" },
+      { kind: "prose", id: "whyIntro" },
+      {
+        kind: "table",
+        table: {
+          id: "why",
+          headerCount: 2,
+          rows: [
+            { id: "adjustments", codes: ["bonus_points, penalty_points"] },
+            { id: "pointRush", codes: ["point_rush, carry_over_points"] },
+            { id: "championPoint", codes: ["champion_point, champion"] },
+            { id: "tieBreakers", codes: ["booyahs, kills"] },
+            { id: "finalStandings", codes: ["decided_in"] },
+          ],
+        },
+      },
+      // Real: the point system of DYNASTY CUP NIGERIA's maps (every map the same).
+      { kind: "code", lang: "json", id: "pointSystemCaption", sample: `{
+  "placement_points": { "1": 12, "2": 9, "3": 8, "4": 7, "5": 6, "6": 5, "7": 4, "8": 3, "9": 2, "10": 1 },
+  "points_per_kill": 1,
+  "points_per_assist": 0,
+  "points_per_1000_damage": 0
+}` },
+      { kind: "prose", id: "pointSystem" },
+      { kind: "note", id: "complete" },
     ],
   },
 
@@ -203,6 +271,7 @@ export const PARTNER_API_GUIDE: GuideSection[] = [
             { id: "stages", codes: ["GET events/{slug}/stages/", "stages"] },
             { id: "matches", codes: ["GET events/{slug}/matches/", "matches"] },
             { id: "standings", codes: ["GET events/{slug}/standings/", "standings"] },
+            { id: "results", codes: ["GET events/{slug}/results/", "standings"], newSince: STRUCTURE_RELEASE },
             { id: "teams", codes: ["GET events/{slug}/teams/", "teams"] },
             { id: "players", codes: ["GET events/{slug}/players/", "players"] },
             { id: "designs", codes: ["GET events/{slug}/designs/", "designs"] },
@@ -224,6 +293,11 @@ export const PARTNER_API_GUIDE: GuideSection[] = [
       "start_date": "2026-06-29",
       "end_date": "2026-07-31",
       "is_native_afc": true,
+      "point_system": { "placement_points": { "1": 12, "2": 9, "3": 8 }, "points_per_kill": 1,
+                        "points_per_assist": 0, "points_per_1000_damage": 0 },
+      "point_system_varies": false,
+      "final_stage": "QUALIFIER FINALS",
+      "final_stage_has_results": true,
       "banner_url": "${PARTNER_API_ORIGIN}/media/event_banner/DYNASTY_CUP_POSTER.png",
       "rules_file_url": "${PARTNER_API_ORIGIN}/media/event_rules/AFC_RULESET.pdf",
       "rules_text": null
@@ -241,41 +315,80 @@ export const PARTNER_API_GUIDE: GuideSection[] = [
   "status": "completed",
   "start_date": "2026-06-28",
   "end_date": "2026-06-28",
+  "champion_point": null,
+  "point_rush": null,
   "groups": [
     { "group_name": "Group A", "playing_date": "2026-06-28", "maps": ["bermuda"] }
   ]
 }` },
 
-      { kind: "code", lang: "json", id: "matchesSample", endpoint: "GET events/<slug>/matches/", sample: `{
-  "match_number": 1,
-  "result_inputted": true,
-  "map": "bermuda",
-  "mvp": "ASN REAPER"
+      // Real capture (trimmed): the Point Rush stage of DYNASTY CUP GRAND FINALS SSA.
+      { kind: "code", lang: "json", id: "pointRushSample", endpoint: "GET events/<slug>/stages/", sample: `{
+  "stage_name": "RUSH POINT",
+  "order": 2,
+  "point_rush": {
+    "reward": { "1": 10, "2": 7, "3": 6, "4": 3, "5": 2, "6": 1 },
+    "target_stage": "GRAND FINALS"
+  }
 }` },
 
-      // Real capture: GET /events/dynasty-cup-nigeria/standings/?limit=3
+      // Real capture (trimmed): DYNASTY CUP GRAND FINALS SSA, the first map of the semi finals.
+      { kind: "code", lang: "json", id: "matchesSample", endpoint: "GET events/<slug>/matches/", sample: `{
+  "stage_name": "SEMI FINALS",
+  "stage_order": 1,
+  "group_name": "Day 1: A+B",
+  "match_number": 1,
+  "result_inputted": true,
+  "point_system": { "placement_points": { "1": 12, "2": 9, "3": 8 }, "points_per_kill": 1,
+                    "points_per_assist": 0, "points_per_1000_damage": 0 },
+  "map": "Bermuda",
+  "mvp": null
+}` },
+
+      // Real capture: GET /events/dynasty-cup-grand-finals-ssa/standings/?limit=1
       { kind: "code", lang: "json", id: "standingsSample", endpoint: "GET events/<slug>/standings/", sample: `{
   "results": [
-    { "rank": 1, "team": "SOLAR FLARE ESPORT", "placement": 1, "kills": 148 },
-    { "rank": 2, "team": "BERSERK GENERATION", "placement": 1, "kills": 122 },
-    { "rank": 3, "team": "V-ENT ESPORTS", "placement": 1, "kills": 113 }
+    {
+      "rank": 1,
+      "team": "NEM JOGOU",
+      "country": "Mozambique",
+      "country_code": "MZ",
+      "logo_url": "${PARTNER_API_ORIGIN}/media/teams_logos/LOGO_DA_NJ_BB_1.jpg",
+      "decided_in": "GRAND FINALS",
+      "reached_final_stage": true,
+      "points": 118,
+      "bonus_points": 0,
+      "penalty_points": 0,
+      "adjusted": false,
+      "carry_over_points": 0,
+      "placement_points": 34,
+      "kill_points": 84,
+      "other_points": 0,
+      "matches_played": 5,
+      "placement": 1,
+      "booyahs": 2,
+      "kills": 84
+    }
   ],
   "has_more": true,
-  "next_offset": 3,
-  "total_count": 37
+  "next_offset": 1,
+  "total_count": 17
 }` },
       { kind: "prose", id: "standingsRanking" },
 
       { kind: "code", lang: "json", id: "teamsSample", endpoint: "GET events/<slug>/teams/", sample: `{
   "team": "ALLSTARS NG",
   "team_tag": "ASN",
+  "country": "Nigeria",
+  "country_code": "NG",
   "status": "played",
   "logo_url": "${PARTNER_API_ORIGIN}/media/teams_logos/asn.jpg",
   "description": "We grind every night.",
   "placement": 1,
   "kills": 44,
   "roster": [
-    { "username": "ASN GABBY", "in_game_id": "3098864559", "kills": 3 }
+    { "username": "ASN GABBY", "in_game_id": "3098864559", "country": "Nigeria",
+      "country_code": "NG", "kills": 3 }
   ]
 }` },
       { kind: "prose", id: "teamsStatusWhy" },
@@ -302,9 +415,86 @@ export const PARTNER_API_GUIDE: GuideSection[] = [
       { kind: "code", lang: "json", id: "playersSample", endpoint: "GET events/<slug>/players/", sample: `{
   "username": "Ak REBORN",
   "in_game_id": "7171703030",
+  "country": "Nigeria",
+  "country_code": "NG",
   "esports_image_url": "${PARTNER_API_ORIGIN}/media/esports_pictures/reborn.jpg",
   "kills": 2
 }` },
+
+      // Real capture, trimmed to one row of each list: DYNASTY CUP GRAND FINALS SSA, a round robin,
+      // a Point Rush stage and a grand final in one event (inbox #222).
+      { kind: "code", lang: "json", id: "resultsSample", endpoint: "GET events/<slug>/results/", sample: `{
+  "event": {
+    "slug": "dynasty-cup-grand-finals-ssa",
+    "name": "DYNASTY CUP GRAND FINALS SSA",
+    "point_system": null,
+    "point_system_varies": true,
+    "final_stage": "GRAND FINALS",
+    "final_stage_has_results": true
+  },
+  "final_standings": [
+    { "rank": 1, "team": "NEM JOGOU", "country_code": "MZ", "decided_in": "GRAND FINALS",
+      "reached_final_stage": true, "points": 118 }
+  ],
+  "stages": [
+    {
+      "order": 1,
+      "stage_name": "SEMI FINALS",
+      "game": "battle_royale",
+      "structure": "round_robin",
+      "is_final_stage": false,
+      "teams_qualifying": 12,
+      "champion_point": null,
+      "point_rush": null,
+      "standings": [
+        { "rank": 1, "team": "PARADOX GAMING", "country_code": "ZA", "points": 307 }
+      ],
+      "round_robin_groups": [
+        { "label": "A", "teams": ["Alpha Wolves", "FORSE ESP"] }
+      ],
+      "groups": [
+        {
+          "group_name": "Day 1: A+B",
+          "type": "lobby",
+          "game_day": 1,
+          "standings": [
+            { "rank": 1, "team": "UNDERGROUND", "country_code": "CV", "points": 119 }
+          ],
+          "matches": [
+            {
+              "match_number": 1,
+              "map": "Bermuda",
+              "results": [
+                { "team": "UNDERGROUND", "country_code": "CV", "played": true, "points": 28,
+                  "bonus_points": 0, "penalty_points": 0, "adjusted": false,
+                  "placement_points": 12, "kill_points": 16, "placement": 1, "kills": 16 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}` },
+      { kind: "prose", id: "resultsLevels" },
+      { kind: "prose", id: "resultsLobby" },
+      { kind: "prose", id: "resultsBracket" },
+      {
+        kind: "table",
+        table: {
+          id: "bracket",
+          headerCount: 2,
+          rows: [
+            { id: "format", codes: ["bracket_format"] },
+            { id: "table", codes: ["standings"] },
+            { id: "side", codes: ["bracket"] },
+            { id: "teams", codes: ["team_a, team_b"] },
+            { id: "score", codes: ["score_a, score_b, winner"] },
+            { id: "result", codes: ["result"] },
+          ],
+        },
+      },
+      { kind: "prose", id: "resultsImages" },
 
       // Real capture: GET /events/dynasty-cup-nigeria/designs/
       { kind: "code", lang: "json", id: "designsSample", endpoint: "GET events/<slug>/designs/", sample: `{

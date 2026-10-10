@@ -24,11 +24,12 @@
           "rows": {
             "events": "La fiche de l'événement : nom, slug, dates, palier, statut, dotation.",
             "stages": "La structure d'un événement, chaque phase contenant ses groupes.",
-            "matches": "Une ligne par match : numéro, carte, MVP, résultat saisi ou non.",
-            "standings": "Le classement final d'un événement.",
-            "teams": "Toutes les équipes inscrites, avec leurs totaux sur l'événement et leurs effectifs.",
+            "matches": "Une ligne par carte : la phase et le groupe, le numéro, la carte, le MVP, le système de points, résultat saisi ou non.",
+            "standings": "Le classement final officiel de l'AFC pour un événement, avec les points de chaque équipe.",
+            "teams": "Toutes les équipes inscrites, avec leur pays, leurs totaux sur l'événement et leurs effectifs.",
             "players": "Tous ceux qui ont enregistré des statistiques, avec leurs statistiques sur l'événement.",
-            "designs": "Modèles de classement aux couleurs de la marque : visuels de fond, logos positionnés, couleurs."
+            "designs": "Modèles de classement aux couleurs de la marque : visuels de fond, logos positionnés, couleurs.",
+            "results": "L'événement entier en une seule réponse, présenté comme la page du tournoi : chaque phase, groupe, tableau et carte, chaque classement avec ses points."
           }
         }
       },
@@ -56,24 +57,25 @@
             "h1": "Apparaît lorsque l'AFC active"
           },
           "rows": {
-            "placements": "Placements. Le meilleur résultat de l'équipe, sur teams et standings.",
-            "kills": "Éliminations, sur teams, players et standings.",
+            "placements": "Placements. Le meilleur résultat sur teams, standings et les résultats par carte, ainsi que placement_points et booyahs.",
+            "kills": "Éliminations, sur teams, players, standings et les résultats par carte, ainsi que kill_points.",
             "damage": "Dégâts, sur teams, players et standings.",
             "assists": "Assistances, sur teams, players et standings.",
             "rosters": "Effectifs. La liste des joueurs de chaque équipe.",
             "maps": "Cartes jouées. maps sur un groupe, map sur un match.",
             "prize": "Dotation, sur events.",
             "mvp": "MVP, sur matches. Le pseudo en jeu, ou null si aucun n'a été enregistré.",
-            "media": "Images et fichiers. Bannières et règlements d'événements, logos d'équipes, images esport des joueurs, et visuels des modèles.",
+            "media": "Images et fichiers. Bannières et règlements d'événements, logos d'équipes, images esport des joueurs, et visuels des modèles. Les logos d'équipes et les images esport des joueurs figurent aussi sur chaque ligne de classement et chaque côté de tableau.",
             "text": "Descriptions et texte de règlement. Le texte de règlement de l'événement et la description d'une équipe."
           }
         }
       },
-      "absentNotNull": "Un champ auquel vous n'avez pas droit est absent du JSON, et non présent avec la valeur null. Lisez de façon défensive : vérifiez qu'une clé existe au lieu de le supposer. Une clé présente et nulle signifie que le champ est activé pour vous et que la valeur sous-jacente est réellement vide, par exemple une équipe qui n'a jamais téléversé de logo."
+      "absentNotNull": "Un champ auquel vous n'avez pas droit est absent du JSON, et non présent avec la valeur null. Lisez de façon défensive : vérifiez qu'une clé existe au lieu de le supposer. Une clé présente et nulle signifie que le champ est activé pour vous et que la valeur sous-jacente est réellement vide, par exemple une équipe qui n'a jamais téléversé de logo.",
+      "alwaysSent": "Toujours envoyés, quels que soient les réglages : country et country_code de chaque équipe et de chaque joueur, les points de chaque classement avec bonus_points, penalty_points, adjusted et carry_over_points, et le système de points. L'AFC montre tout cela à n'importe qui sur ses pages publiques. other_points demande à la fois Placements et Éliminations, car à lui seul il les révélerait."
     },
     "endpoints": {
       "title": "Points de terminaison",
-      "intro": "Huit points de terminaison, tous en GET. Tout autre verbe renvoie 405. Les chemins ci-dessous sont relatifs à l'URL de base, et l'emplacement du slug dans chaque chemin correspond à un slug d'événement renvoyé par la liste des événements. Chaque point de terminaison de liste est paginé.",
+      "intro": "Neuf points de terminaison, tous en GET. Tout autre verbe renvoie 405. Les chemins ci-dessous sont relatifs à l'URL de base, et l'emplacement du slug dans chaque chemin correspond à un slug d'événement renvoyé par la liste des événements. Chaque point de terminaison de liste est paginé ; l'événement seul et le document results ne le sont pas.",
       "tables": {
         "list": {
           "headers": {
@@ -85,11 +87,12 @@
             "events": "Les événements que vous pouvez lire, du plus récent au plus ancien.",
             "event": "Un événement. 404 s'il ne vous est pas accessible.",
             "stages": "Les phases dans l'ordre de déroulement, chacune contenant ses groupes.",
-            "matches": "Les matchs de l'événement. Les accès au salon ne sont jamais inclus.",
-            "standings": "Le classement final, vainqueurs en tête.",
+            "matches": "Les cartes de l'événement dans l'ordre de déroulement, chacune avec sa phase, son groupe et son système de points. Les accès au salon ne sont jamais inclus.",
+            "standings": "Le classement final officiel de l'AFC, avec les points.",
             "teams": "Toutes les équipes inscrites avec leurs totaux sur l'événement.",
             "players": "Tous ceux qui ont enregistré des statistiques, limitées à cet événement.",
-            "designs": "Modèles de classement de marque appartenant au propriétaire de l'événement."
+            "designs": "Modèles de classement de marque appartenant au propriétaire de l'événement.",
+            "results": "L'événement entier en un seul document, dans l'ordre de déroulement."
           }
         },
         "teamStatus": {
@@ -107,19 +110,39 @@
             "left": "A quitté l'événement.",
             "disqualified": "Exclue par l'organisateur pour infraction au règlement."
           }
+        },
+        "bracket": {
+          "headers": {
+            "h0": "Champ",
+            "h1": "Signification"
+          },
+          "rows": {
+            "format": "knockout, double_elimination, league ou round_robin.",
+            "table": "rank, l'équipe, wins, draws, losses, rounds_won, rounds_lost. Une ligue ou un round robin ajoute points, 3 par victoire et 1 par nul ; un tableau à élimination classe selon le parcours, il n'en a donc pas. rank vaut null pour une équipe encore en course dans un tableau inachevé.",
+            "side": "winners, losers en double élimination, third pour le match de la troisième place, ou league.",
+            "teams": "L'équipe, country et country_code de chaque côté. null est une place en attente d'un match précédent, ou une exemption.",
+            "score": "Les manches gagnées par chaque côté dans le set, par exemple 4 et 2, jamais des éliminations, et le nom du vainqueur.",
+            "result": "played, forfeit, walkover ou disqualification."
+          }
         }
       },
-      "eventsSample": "Renvoie l'enveloppe standard. is_native_afc indique si l'AFC a organisé l'événement elle-même ou si un organisateur l'a fait, sans révéler lequel.",
-      "stagesSample": "Imbrique les groupes de chaque phase. order est un numéro d'ordre commençant à 1 au sein de l'événement, pas un identifiant de base de données.",
-      "matchesSample": "Une ligne par match.",
-      "standingsSample": "Le classement final, par rang croissant.",
-      "standingsRanking": "Le classement utilise la même métrique que les classements officiels de l'AFC : points de placement plus points d'élimination plus points bonus moins points de pénalité, les premières places puis le total d'éliminations départageant les ex aequo. placement est le meilleur résultat de l'équipe sur l'ensemble de l'événement. Les événements en solo sont classés par joueur, et chaque ligne porte username et in_game_id au lieu de team.",
+      "eventsSample": "Renvoie l'enveloppe standard. is_native_afc indique si l'AFC a organisé l'événement elle-même ou si un organisateur l'a fait, sans révéler lequel. point_system indique comment ses cartes sont notées, et final_stage_has_results si les résultats de la phase décisive sont saisis.",
+      "stagesSample": "Imbrique les groupes de chaque phase. order est un numéro d'ordre commençant à 1 au sein de l'événement, pas un identifiant de base de données. Les phases et leurs groupes arrivent dans l'ordre de la page du tournoi, et chaque phase porte champion_point et point_rush.",
+      "matchesSample": "Une ligne par carte Battle Royale, dans l'ordre de déroulement, indiquant où elle a été jouée et comment elle a été notée. Les matchs de tableau Clash Squad ne sont pas des cartes ; ils se trouvent dans results.",
+      "standingsSample": "Le classement final officiel de l'AFC, par rang croissant : celui affiché sur la page d'une équipe et utilisé pour les prix.",
+      "standingsRanking": "Une équipe est classée selon la dernière phase qu'elle a jouée : toute équipe arrivée en grande finale passe devant toute équipe éliminée plus tôt, et au sein d'une phase les équipes suivent le classement de cette phase. decided_in nomme cette phase et chaque chiffre de la ligne en vient : une équipe éliminée en phase de groupes affiche ses points de phase de groupes. Dans un événement à une seule phase, c'est simplement le classement de cette phase. placement est le meilleur résultat de l'équipe sur une carte de cette phase. Les événements solo classent des joueurs, chaque ligne portant username et in_game_id au lieu de team, et un classement solo couvre toutes les cartes de l'événement.",
       "teamsSample": "Toutes les équipes inscrites triées par nom, avec leurs totaux sur l'événement.",
       "teamsStatusWhy": "Cette liste est la liste complète des inscriptions, pas la liste des concurrentes. S'inscrire à un événement AFC et y jouer sont deux choses différentes, et une équipe inscrite qui n'a jamais joué renvoie des statistiques à zéro et un effectif vide, ce qui se confond facilement avec une équipe ayant mal joué. Lisez status pour les distinguer avant de dessiner un arbre, une carte de classement ou un décompte d'équipes. status est toujours présent et ne dépend d'aucun interrupteur.",
       "teamsStatusPrecedence": "Une seule valeur est renvoyée par équipe. Lorsque plusieurs pourraient s'appliquer, la plus spécifique l'emporte, dans cet ordre : disqualified, withdrawn, left, pending, waitlisted, no_show, played, registered. Ainsi une équipe ayant joué deux cartes puis s'étant retirée revient en withdrawn, pas en played, et ses statistiques ne sont qu'un relevé partiel d'un événement qu'elle n'a pas terminé. Notez aussi qu'une équipe peut posséder des lignes de match sans être played : l'AFC place les équipes sur une carte avant qu'elle ne soit disputée, et une équipe qui ne se présente pas conserve cette ligne sans résultat.",
       "playersSample": "Limite chaque statistique à cet événement plutôt qu'aux totaux de carrière. esports_image_url est la photo posée du joueur, pour les bandeaux et les cartes de confrontation, et vaut null pour les joueurs qui n'en ont pas téléversé.",
       "designsSample": "Les modèles de marque utilisés pour les graphismes de cet événement, afin que vous puissiez produire vous-même des cartes de classement aux bonnes couleurs. L'interrupteur Modèles de classement ouvre le point de terminaison ; les visuels exigent en plus Images et fichiers.",
-      "designsCanvas": "Les deux formats sont Instagram portrait en 1080x1350 et YouTube paysage en 1920x1080. Les positions des logos sont un pourcentage du format, ancré au centre du logo, de sorte que le même couple de valeurs place correctement un logo sur les deux tailles. max_rows indique combien de lignes de classement le modèle est prévu pour contenir. Vous ne recevez que les modèles appartenant au propriétaire de l'événement : la bibliothèque de l'organisateur pour un événement organisé par un tiers, ou celle de l'AFC pour un événement AFC natif."
+      "designsCanvas": "Les deux formats sont Instagram portrait en 1080x1350 et YouTube paysage en 1920x1080. Les positions des logos sont un pourcentage du format, ancré au centre du logo, de sorte que le même couple de valeurs place correctement un logo sur les deux tailles. max_rows indique combien de lignes de classement le modèle est prévu pour contenir. Vous ne recevez que les modèles appartenant au propriétaire de l'événement : la bibliothèque de l'organisateur pour un événement organisé par un tiers, ou celle de l'AFC pour un événement AFC natif.",
+      "pointRushSample": "Une phase avec Point Rush, tirée de DYNASTY CUP GRAND FINALS SSA : ses places rapportent les points reward, reportés sur la phase cible.",
+      "resultsSample": "L'événement entier en un seul document, présenté comme la page du tournoi, réduit ici à une ligne par liste. Utilisez-le pour afficher un événement correctement, surtout quand il mélange plusieurs structures.",
+      "resultsLevels": "Chaque niveau dit ce qu'il est. Chaque phase indique son jeu, battle_royale ou clash_squad, et sa structure : lobbies pour des groupes Battle Royale notés sur le placement et les éliminations, round_robin quand des équipes de groupes de base s'affrontent dans des lobbies par journée, ou brackets pour le Clash Squad. Chaque phase porte son propre classement, celui qui décide qui se qualifie, et ses groupes. Un groupe de type lobby contient son classement puis chaque carte, avec son système de points et le résultat de chaque équipe. Un groupe de type bracket contient son classement et ses matchs. Il demande l'accès Standings et n'est pas paginé.",
+      "resultsLobby": "Dans un lobby, les résultats d'une carte commencent par la meilleure place, et une équipe qui n'a pas joué la carte a played à false. Une équipe placée dans un groupe qui n'a pas encore joué apparaît en bas avec 0 point et matches_played à 0, pour qu'un groupe à venir montre déjà qui en fait partie. Quand la phase utilise Champion Point, champion nomme l'équipe couronnée par la règle, ou null tant qu'elle ne s'est pas déclenchée.",
+      "resultsBracket": "Un tableau Clash Squad se joue en face à face, et ses scores sont des manches gagnées dans le set, jamais des éliminations :",
+      "resultsImages": "Avec Images et fichiers activé, chaque ligne de classement et chaque côté de tableau porte aussi logo_url, et les lignes solo esports_image_url, pour que vous puissiez dessiner un classement à partir de cette seule réponse."
     },
     "pagination": {
       "title": "Pagination",
@@ -182,6 +205,48 @@
       "permanent404": "Attendez-vous à ce qu'un 404 dure. Si un événement que vous lisiez commence à renvoyer 404, l'AFC l'a soit dépublié, soit a modifié votre portée. Réessayer ne changera rien : contactez l'AFC.",
       "slugs": "Les slugs sont les identifiants. Conservez le slug de l'événement, pas sa position dans une liste, car un nouvel événement décale toutes les positions.",
       "help": "Pas encore de clé ? Faites votre demande sur africanfreefirecommunity.com/partners/apply et choisissez L'API de données AFC. Contactez votre responsable partenaires AFC pour une clé nouvelle ou renouvelée, pour modifier les événements ou ressources que vous pouvez lire, ou pour signaler tout ce que l'API renvoie qui vous semble erroné. Indiquez le point de terminaison, l'horodatage et le préfixe de votre clé, la partie afcp_3f9a, jamais la clé complète."
+    },
+    "numbers": {
+      "title": "Lire les chiffres",
+      "intro": "Les pays, les points et le système de points se lisent de la même façon dans chaque réponse. Voici comment.",
+      "countriesCaption": "Chaque équipe et chaque joueur portent deux champs.",
+      "countries": "country_code est le code ISO 3166-1 alpha-2 : stockez-le, triez par lui, affichez le drapeau à partir de lui. country est un nom en anglais par code. Le pays d'une équipe est celui que l'AFC affiche à côté de son nom, déduit de l'endroit où jouent ses joueurs ; celui d'un joueur est l'endroit d'où il joue, à défaut le pays de son profil. Les deux valent null quand l'AFC ne le sait pas, ce qui n'est jamais une erreur.",
+      "sumCaption": "Chaque ligne de classement, et le résultat de chaque équipe sur chaque carte, porte points : le score qui sert au classement. Ses parties s'additionnent toujours exactement.",
+      "tables": {
+        "parts": {
+          "headers": {
+            "h0": "Champ",
+            "h1": "Ce que c'est"
+          },
+          "rows": {
+            "placementPoints": "Points pour la place obtenue sur chaque carte.",
+            "killPoints": "Points pour les éliminations.",
+            "otherPoints": "Points pour les assistances et les dégâts, quand le système de points en attribue ; pour des résultats importés d'une autre plateforme, ce que le total de cette plateforme contenait en plus du placement et des éliminations.",
+            "bonusPoints": "Points ajoutés à la main par un administrateur de l'AFC ou par l'organisateur.",
+            "penaltyPoints": "Points retirés à la main par un administrateur de l'AFC ou par l'organisateur.",
+            "carryOverPoints": "Une avance Point Rush, gagnée dans une phase précédente."
+          }
+        },
+        "why": {
+          "headers": {
+            "h0": "Champs",
+            "h1": "Ce qui se passe"
+          },
+          "rows": {
+            "adjustments": "Un administrateur ou l'organisateur a ajouté ou retiré des points, comme décrit plus haut.",
+            "pointRush": "Une phase distribue des points bonus selon la place obtenue, reportés sur une phase suivante.",
+            "championPoint": "La première équipe qui remporte une carte en ayant déjà atteint le seuil est championne, et apparaît en tête même avec moins de points.",
+            "tieBreakers": "Les équipes à égalité de points sont départagées par les booyahs, puis les éliminations, puis la place sur la dernière carte jouée, sauf si l'organisateur a choisi un autre ordre.",
+            "finalStandings": "Le classement final suit la phase qui a décidé chaque place, pas la somme de toutes les cartes. Voir standings plus bas."
+          }
+        }
+      },
+      "adjustments": "Un administrateur de l'AFC ou l'organisateur de l'événement peut ajouter des points au résultat d'une équipe sur une carte, ou en retirer, par exemple comme sanction pour une infraction au règlement. Le classement ne suit alors plus seulement les placements et les éliminations, et l'API le signale : bonus_points et penalty_points indiquent les montants, sur la ligne du classement et sur la carte concernée, et adjusted vaut true sur chaque ligne qui inclut une telle modification. points l'inclut déjà. L'AFC n'enregistre pas de motif écrit pour un ajustement, donc aucun n'est envoyé.",
+      "corrections": "Un résultat peut être corrigé après votre lecture. Votre synchronisation suivante renvoie les chiffres corrigés : continuez donc d'interroger un événement récent pendant un certain temps après sa fin.",
+      "whyIntro": "Pourquoi un classement peut ne pas ressembler à une simple somme :",
+      "pointSystemCaption": "Comment les cartes d'un événement sont notées. placement_points est indexé par place obtenue ; une place absente rapporte 0.",
+      "pointSystem": "Chaque carte porte son propre système de points, car un organisateur peut en modifier une ; l'événement le porte aussi quand toutes les cartes concordent. Quand elles diffèrent, point_system de l'événement vaut null et point_system_varies vaut true, et vous lisez celui de chaque match. Une phase indique aussi si elle utilise Champion Point (champion_point, avec son threshold) ou Point Rush (point_rush, avec sa table reward et la target_stage vers laquelle le bonus est reporté) ; chacun vaut null quand la phase ne l'utilise pas.",
+      "complete": "Chaque événement porte final_stage, la phase qui le décide, et final_stage_has_results. Quand ce dernier vaut false, la finale n'a pas été saisie sur l'AFC : le classement final suit alors la dernière phase qui a des résultats, et l'équipe en tête est la meneuse de cette phase, pas la championne. Certains événements, surtout des scrims, n'ont aucun résultat sur l'AFC."
     }
   }
 }
