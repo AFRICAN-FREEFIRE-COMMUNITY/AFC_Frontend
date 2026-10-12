@@ -237,6 +237,9 @@ export function UserSearchSelect(props: Props) {
                       key={u.user_id}
                       value={u.username}
                       onSelect={() => handlePick(u)}
+                      // data-howto: how-to clips pick a user here by username (howto/clips).
+                      data-howto="user-search-option"
+                      data-username={u.username}
                       className="flex items-center justify-between gap-2"
                     >
                       <span className="flex min-w-0 flex-col">

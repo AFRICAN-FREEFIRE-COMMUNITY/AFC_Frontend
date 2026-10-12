@@ -215,6 +215,8 @@ export default function CreateTeamForm() {
                     <FormControl>
                       <Input
                         placeholder={t("teamCreate.teamNamePlaceholder")}
+                        // data-howto: the how-to clip "create a team + invite" (howto/clips/team-invite.mjs) types here (check-howto-clips fails if it goes).
+                        data-howto="team-name"
                         onPaste={preventPaste}
                         {...field}
                       />
@@ -235,6 +237,7 @@ export default function CreateTeamForm() {
                     <FormControl>
                       <Input
                         placeholder={t("teamCreate.teamTagPlaceholder")}
+                        data-howto="team-tag"
                         onPaste={preventPaste}
                         {...field}
                       />
@@ -389,6 +392,7 @@ export default function CreateTeamForm() {
                     <FormControl>
                       <Textarea
                         placeholder={t("teamCreate.teamDescriptionPlaceholder")}
+                        data-howto="team-description"
                         className="resize-none"
                         {...field}
                       />
@@ -438,12 +442,12 @@ export default function CreateTeamForm() {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger data-howto="team-join-settings">
                           <SelectValue placeholder={t("teamCreate.selectSettings")} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value={"open"}>{t("teamCreate.open")}</SelectItem>
+                        <SelectItem value={"open"} data-howto="team-join-open">{t("teamCreate.open")}</SelectItem>
                         <SelectItem value={"by_request"}>{t("teamCreate.byRequest")}</SelectItem>
                       </SelectContent>
                     </Select>
@@ -468,7 +472,8 @@ export default function CreateTeamForm() {
                               input). Yields the selected player's username into this row's
                               `player` field; the form serializes the rows on submit. */}
                           <div className="flex items-start gap-2">
-                            <div className="flex-1">
+                            {/* data-howto: the how-to clip "create a team + invite" (howto/clips/team-invite.mjs) picks a teammate here. */}
+                            <div className="flex-1" data-howto="team-invite-search">
                               <UserSearchSelect
                                 value={formField.value || null}
                                 onChange={(u) => formField.onChange(u ?? "")}
@@ -567,7 +572,7 @@ export default function CreateTeamForm() {
                 <Button className="flex-1" asChild variant={"outline"}>
                   <Link href="/teams">{t("teamCreate.cancel")}</Link>
                 </Button>
-                <Button className="flex-1" disabled={pending} type="submit">
+                <Button className="flex-1" disabled={pending} type="submit" data-howto="team-create-submit">
                   {pending ? <Loader text={t("teamCreate.creating")} /> : t("teamCreate.createTeam")}
                 </Button>
               </div>

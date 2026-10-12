@@ -187,6 +187,9 @@ function LoginFormContent() {
                 <Input
                   className="bg-input border-border"
                   placeholder={t("login.identifierPlaceholder")}
+                  // data-howto: typed into by the how-to clip "sign up + connect Discord"
+                  // (howto/clips/signup-discord.mjs); scripts/check-howto-clips.mjs fails if it goes.
+                  data-howto="login-identifier"
                   {...field}
                 />
               </FormControl>
@@ -206,6 +209,7 @@ function LoginFormContent() {
                     type={isVisible ? "text" : "password"}
                     className="bg-input border-border"
                     placeholder={t("login.passwordPlaceholder")}
+                    data-howto="login-password"
                     {...field}
                   />
                   <Button
@@ -237,6 +241,7 @@ function LoginFormContent() {
         <Button
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
           type="submit"
+          data-howto="login-submit"
           disabled={pending}
         >
           {pending ? <Loader text={t("login.loading")} /> : t("login.submit")}

@@ -1,0 +1,60 @@
+{
+  "clips": {
+    "signupDiscord": {
+      "title": "Cadastre-se e conecte o Discord",
+      "summary": "Crie sua conta AFC, confirme seu e-mail e ligue o Discord, para a AFC poder falar com você lá.",
+      "steps": {
+        "details": "Preencha seus dados e uma senha",
+        "register": "Marque os termos e toque em Registrar",
+        "code": "Digite o código do e-mail e confirme",
+        "login": "Entre com sua nova conta",
+        "skip": "Toque em Por enquanto, ignorar",
+        "profile": "Abra o menu e depois Meu perfil",
+        "connections": "Toque em Gerir ligações",
+        "connect": "Toque em Ligar ao lado do Discord",
+        "discord": "No Discord, confira a conta e Autorize",
+        "done": "Pronto. Seu Discord está ligado à AFC"
+      }
+    },
+    "teamInvite": {
+      "title": "Criar uma equipe e convidar um colega",
+      "summary": "Crie sua equipe na AFC, convide um colega pelo nome e ele entra pelo convite.",
+      "steps": {
+        "create": "Abra Equipes e toque em Criar Equipe",
+        "details": "Preencha o nome, a tag e a bio",
+        "join": "Escolha quem pode pedir para entrar",
+        "invite": "Procure seu colega e escolha-o",
+        "submit": "Toque em Criar Equipe",
+        "teammate": "Seu colega recebe um alerta na AFC",
+        "accept": "Ele abre, toca em Ver e Aceitar",
+        "done": "Pronto. Vocês estão na mesma equipe"
+      }
+    },
+    "registerTournament": {
+      "title": "Inscrever sua equipe em um torneio",
+      "summary": "Como capitão, escolha um torneio e quem joga, aceite as regras e pronto.",
+      "steps": {
+        "find": "Abra Torneios e escolha o evento",
+        "register": "Toque em Inscrever-se no Torneio",
+        "type": "Escolha Inscrição em Equipe",
+        "members": "Marque os jogadores que vão jogar",
+        "info": "Confira sua equipe e continue",
+        "rules": "Aceite as regras e continue",
+        "done": "Pronto. Sua equipe está inscrita"
+      }
+    },
+    "organizerResults": {
+      "title": "Inserir os resultados de um mapa",
+      "summary": "Como organizador, insira a posição e os abates de cada equipe, e a classificação se atualiza.",
+      "steps": {
+        "open": "Toque em Resultados e Classificação",
+        "edit": "Toque em Editar resultados dos jogos",
+        "map": "Escolha o mapa e toque em Continuar",
+        "manual": "Escolha Manual Input",
+        "enter": "Posição e abates, depois Next team",
+        "save": "Toque em Submit Results no final",
+        "done": "Pronto. A classificação está atualizada"
+      }
+    }
+  }
+}

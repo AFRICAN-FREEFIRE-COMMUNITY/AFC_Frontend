@@ -186,6 +186,9 @@ export default function OnboardingPage() {
             className="text-muted-foreground"
             onClick={exitOnboarding}
             disabled={exiting}
+            // data-howto: pressed by the how-to clip "sign up + connect Discord"
+            // (howto/clips/signup-discord.mjs); scripts/check-howto-clips.mjs fails if it goes.
+            data-howto="onboarding-skip"
           >
             {exiting ? <Loader /> : t("skipAll")}
           </Button>

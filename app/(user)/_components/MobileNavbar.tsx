@@ -136,7 +136,8 @@ export function MobileNavbar() {
         }
       `}</style>
       <SheetTrigger asChild>
-        <Button size={"icon"} variant="ghost" className="relative" aria-label={supportWaiting > 0 ? tSupport("menuWaiting", { count: supportWaiting }) : undefined}>
+        {/* data-howto: the menu the how-to clips open (howto/clips/*.mjs); check-howto-clips fails if it goes. */}
+        <Button size={"icon"} variant="ghost" className="relative" data-howto="nav-menu" aria-label={supportWaiting > 0 ? tSupport("menuWaiting", { count: supportWaiting }) : undefined}>
           <IconMenu2 />
           {supportWaiting > 0 && (
             <span aria-hidden className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-black">
@@ -476,7 +477,7 @@ export function MobileNavbar() {
           ) : (
             <>
               <Button variant="secondary" asChild onClick={handleLinkClick}>
-                <Link href="/profile">{t("mobileNav.myProfile")}</Link>
+                <Link href="/profile" data-howto="nav-my-profile">{t("mobileNav.myProfile")}</Link>
               </Button>
               <Button onClick={handleLogout} type="submit">
                 <IconLogout />

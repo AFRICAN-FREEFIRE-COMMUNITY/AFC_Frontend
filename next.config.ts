@@ -93,6 +93,10 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // Next 16 refuses to optimize an image whose host resolves to a local address ("url" parameter
+    // is not allowed), which is every local backend below. Only the how-to clips build turns that
+    // off (HOWTO_CLIPS_BUILD=1, howto/README.md), so a production build is unchanged.
+    dangerouslyAllowLocalIP: process.env.HOWTO_CLIPS_BUILD === "1",
     remotePatterns: [
       {
         protocol: "https",
@@ -128,6 +132,18 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "127.0.0.1",
         port: "8010",
+      },
+      // The how-to clips stack (howto/README.md) runs its backend on :8094, so a banner or logo it
+      // seeds renders in the recording instead of the broken-image fallback. Same dev-only kind.
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8094",
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "8094",
       },
     ],
   },

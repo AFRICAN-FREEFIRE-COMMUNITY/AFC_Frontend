@@ -1886,6 +1886,9 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                     <div className="flex items-center gap-3">
                       <Checkbox
                         id={`member-${member.id}`}
+                        // data-howto: the how-to clip "register for a tournament" (howto/clips/register-tournament.mjs) ticks members here, by username.
+                        data-howto="register-member"
+                        data-member={member.username}
                         checked={selectedMembers.includes(member.id)}
                         onCheckedChange={() => handleMemberToggle(member.id)}
                       />
@@ -1922,6 +1925,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                 {t("common.cancel")}
               </Button>
               <Button
+                data-howto="register-members-continue"
                 onClick={handleContinue}
                 disabled={
                   selectedMembers.length < minPlayers ||
@@ -2039,7 +2043,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
               >
                 {t("common.back")}
               </Button>
-              <Button onClick={onContinueToRules}>
+              <Button onClick={onContinueToRules} data-howto="register-team-info-continue">
                 {t("teamRegister.teamInfo.continueToRules")}
               </Button>
             </DialogFooter>
@@ -2571,6 +2575,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 </CardHeader>
               </Card>
               <Card
+                data-howto="register-type"
+                data-type="team"
                 onClick={() => !isTeamDisabled && handleSelectType("team")}
                 className={`cursor-pointer transition ${
                   isTeamDisabled
@@ -2705,6 +2711,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
             <div className="flex items-center space-x-2 mt-2">
               <Checkbox
                 id="rules"
+                data-howto="register-rules-agree"
                 checked={rulesAccepted}
                 onCheckedChange={(checked) => setRulesAccepted(!!checked)}
                 className="w-4 h-4 rounded border-gray-500 data-[state=checked]:bg-primary data-[state=checked]:text-black"
@@ -2723,6 +2730,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
               </Button>
               <Button
                 onClick={handleRulesContinue} // ← plain call; useEffect above handles the fetch
+                data-howto="register-rules-continue"
                 disabled={!rulesAccepted}
               >
                 {eventDetails.is_sponsored || hasEntitySponsorships
@@ -3529,7 +3537,11 @@ const RegistrationModals: React.FC<ModalProps> = ({
       case "SUCCESS":
         return (
           <>
-            <div className="text-center px-4 py-8 bg-primary/10 rounded-lg space-y-2">
+            {/* data-howto: the how-to clip "register for a tournament" points at this panel. */}
+            <div
+              className="text-center px-4 py-8 bg-primary/10 rounded-lg space-y-2"
+              data-howto="register-success"
+            >
               <DialogHeader className="text-center">
                 <CheckCircle className="w-12 h-12 text-primary mx-auto mb-2" />
               </DialogHeader>
@@ -6311,7 +6323,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                 />
               </div>
             )}
+            {/* data-howto: the how-to clip "register for a tournament" (howto/clips/register-tournament.mjs) presses Register here. */}
             <Button
+              data-howto="event-register"
               onClick={() => requireAuth(handleRegisterClick)}
               disabled={
                 !!token &&

@@ -131,6 +131,9 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
                     // Tapping the chosen number again clears it, which is how a mistake gets
                     // undone without a separate control.
                     onClick={() => onChange({ ...team, placement: chosen ? null : n })}
+                    // data-howto: the how-to clip "organizer enters results" (howto/clips/organizer-results.mjs) taps the finishing position here.
+                    data-howto="result-place"
+                    data-place={n}
                     aria-pressed={chosen}
                     aria-label={
                       isTaken ? `Position ${n}, already taken by another team` : `Position ${n}`
@@ -197,6 +200,8 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
                   <div
                     key={player.user_id}
                     className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 p-3"
+                    data-howto="result-player"
+                    data-player={player.username}
                   >
                     {/*
                       The name is the swap control. Tapping it offers the rest of the roster,

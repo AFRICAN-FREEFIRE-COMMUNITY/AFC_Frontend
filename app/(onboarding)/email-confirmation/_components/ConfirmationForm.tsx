@@ -123,6 +123,9 @@ export function ConfirmationForm({ email }: Props) {
                 <FormControl>
                   <OTPInput
                     {...field}
+                    // data-howto: typed into by the how-to clip "sign up + connect Discord"
+                    // (howto/clips/signup-discord.mjs); scripts/check-howto-clips.mjs fails if it goes.
+                    data-howto="confirm-code"
                     containerClassName="flex items-center justify-center gap-3 has-disabled:opacity-50"
                     maxLength={6}
                     render={({ slots }) => (
@@ -142,6 +145,7 @@ export function ConfirmationForm({ email }: Props) {
             <Button
               className="w-full"
               type="submit"
+              data-howto="confirm-submit"
               disabled={pending || pendingResend}
             >
               {pending ? (

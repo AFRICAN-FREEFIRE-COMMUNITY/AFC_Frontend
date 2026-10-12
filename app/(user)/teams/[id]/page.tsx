@@ -914,7 +914,7 @@ const Page = ({ params }: { params: Params }) => {
             <Tabs defaultValue="overview">
               <ScrollableTabsList className="w-full">
                   <TabsTrigger value="overview">{t("teamDetail.tabOverview")}</TabsTrigger>
-                  <TabsTrigger value="members">{t("teamDetail.tabMembers")}</TabsTrigger>
+                  <TabsTrigger value="members" data-howto="team-members-tab">{t("teamDetail.tabMembers")}</TabsTrigger>
                   {/* Statistics tab is hidden entirely from outsiders: it only renders
                       when the backend says this viewer may see the detailed stats
                       (team member, owner, or AFC admin). stats_visible comes from
@@ -1123,7 +1123,8 @@ const Page = ({ params }: { params: Params }) => {
               </TabsContent>
 
               <TabsContent value="members">
-                <Card>
+                {/* data-howto: the how-to clip "create a team + invite" (howto/clips/team-invite.mjs) ends on this list. */}
+                <Card data-howto="team-members-list">
                   <CardHeader>
                     <CardTitle>{t("teamDetail.teamMembers")}</CardTitle>
                   </CardHeader>

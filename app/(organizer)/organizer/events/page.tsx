@@ -615,6 +615,9 @@ export default function OrganizerEventsPage() {
                           <Button asChild variant="outline" size="sm">
                             <Link
                               href={`/organizer/events/${event.slug}/leaderboard`}
+                              // data-howto: the how-to clip "organizer enters results" (howto/clips/organizer-results.mjs) starts here.
+                              data-howto="org-event-results"
+                              data-slug={event.slug}
                             >
                               <IconTrophy className="size-4" />
                               {t("eventsList.actions.resultsLeaderboard")}

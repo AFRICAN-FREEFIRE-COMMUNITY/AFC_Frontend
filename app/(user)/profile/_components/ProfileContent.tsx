@@ -507,7 +507,8 @@ export const ProfileContent = () => {
                   removed a hardcoded English string and a handler that put the player's live
                   session token in a URL sent to discord.com. */}
               <Button variant="secondary" className="w-full" asChild>
-                <Link href="/profile/connected-apps">{t("card.manageConnections")}</Link>
+                {/* data-howto: pressed by the how-to clip "sign up + connect Discord" (howto/clips). */}
+                <Link href="/profile/connected-apps" data-howto="profile-connections">{t("card.manageConnections")}</Link>
               </Button>
               {/* Account and security (inbox #60, owner 2026-09-27: "its hard to find the delete my
                   account"): two-step sign-in, devices and deleting the account, one tap away. */}

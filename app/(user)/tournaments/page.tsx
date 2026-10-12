@@ -157,7 +157,7 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
 
       <CardContent className="py-4 space-y-2">
         <CardTitle className="hover:text-primary hover:underline">
-          <Link href={`/tournaments/${event.slug}`}>{event.event_name}</Link>
+          <Link href={`/tournaments/${event.slug}`} data-howto="event-card" data-slug={event.slug}>{event.event_name}</Link>
         </CardTitle>
         {/* i18n time: the event date renders in the viewer's own timezone +
             language via <LocalTime mode="date"/>, injected as the <date> tag of

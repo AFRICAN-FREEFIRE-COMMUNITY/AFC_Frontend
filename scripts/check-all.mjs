@@ -123,6 +123,18 @@ const CHECKERS = [
     },
   },
   {
+    // The how-to clips rule (owner 2026-10-12, inbox #237): a change to a screen a clip shows means
+    // the clip is re-rendered in the same piece of work. Stale clips, hooks a clip presses that left
+    // the code, and captions missing in en/fr/pt or over 8 words. Blocking from the day it was built.
+    id: "howto-clips",
+    run() {
+      const r = run("scripts/check-howto-clips.mjs", ["--json"]);
+      let parsed = null;
+      try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["howto-clips: could not run"], counts: {} }; }
+      return { blocking: parsed.list.map((h) => `${h.rule} ${h.clip}  ${h.what}`), counts: {} };
+    },
+  },
+  {
     // An endpoint needs a caller (owner rule R45): the backend's tools/endpoint_callers.py matched
     // against THIS tree. It needs both checkouts, so it runs where a backend tree sits beside this
     // one (a developer machine, the pre-commit hook) and reports "skipped" in a CI job that has

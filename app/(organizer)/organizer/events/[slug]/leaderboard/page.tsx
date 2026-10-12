@@ -2490,7 +2490,7 @@ export default function OrganizerEventLeaderboardPage({
                   backend graphic endpoint renders cumulative stage standings, not a single map. */}
             {/* ⓘ sit as siblings (not nested) - InfoTip is itself a button. */}
             <div className="flex gap-2 flex-wrap items-center">
-              <Button onClick={handleStartEditMatch}>
+              <Button onClick={handleStartEditMatch} data-howto="edit-match-results">
                 <IconEdit size={18} /> {t("eventLeaderboard.editMatchResults")}
               </Button>
               <InfoTip id="leaderboards.detail.edit_match_results" />
@@ -2713,8 +2713,11 @@ export default function OrganizerEventLeaderboardPage({
                 is Match Results. Match Results + Total + Scoring ride this page's can_upload_results
                 baseline; Tie-breakers / MVPs / Debugger backfill need can_edit_events. */}
             <Tabs defaultValue="matches">
+              {/* Labels may wrap: seven tabs sit three to a row on a phone, and a tab never wraps by
+                  default, so the Portuguese "Configuração de pontuação" ran 18 px past a 390 px screen
+                  and the whole page scrolled sideways (found by the how-to clips, 12 Oct 2026). */}
               <TabsList
-                className={`grid w-full h-auto ${canEditEvents ? "grid-cols-3 md:grid-cols-7" : "grid-cols-3"}`}
+                className={`grid w-full h-auto [&>[data-slot=tabs-trigger]]:h-auto [&>[data-slot=tabs-trigger]]:whitespace-normal ${canEditEvents ? "grid-cols-3 md:grid-cols-7" : "grid-cols-3"}`}
               >
                 {/* Match Results (owner 2026-07-04 organizer parity): the SAME always-editable per-map
                     grid the admin editor has. Saves via edit-match-result / edit-solo-match-result,
@@ -3088,7 +3091,7 @@ export default function OrganizerEventLeaderboardPage({
                       value={pickerMatchId}
                       onValueChange={setPickerMatchId}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger data-howto="match-picker-select">
                         <SelectValue placeholder={t("eventLeaderboard.selectMatch")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -3096,6 +3099,8 @@ export default function OrganizerEventLeaderboardPage({
                           <SelectItem
                             key={m.match_id}
                             value={m.match_id.toString()}
+                            data-howto="match-picker-option"
+                            data-match={m.match_number}
                           >
                             {t("eventLeaderboard.matchOption", {
                               number: m.match_number,
@@ -3114,7 +3119,7 @@ export default function OrganizerEventLeaderboardPage({
             <Button variant="outline" onClick={() => setMatchPickerOpen(false)}>
               {t("eventLeaderboard.cancel")}
             </Button>
-            <Button disabled={!pickerMatchId} onClick={handlePickerConfirm}>
+            <Button disabled={!pickerMatchId} onClick={handlePickerConfirm} data-howto="match-picker-continue">
               {t("eventLeaderboard.continue")}
             </Button>
           </DialogFooter>

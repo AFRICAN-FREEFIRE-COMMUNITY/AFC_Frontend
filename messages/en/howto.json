@@ -1,0 +1,60 @@
+{
+  "clips": {
+    "signupDiscord": {
+      "title": "Sign up and connect Discord",
+      "summary": "Create your AFC account, confirm your email and link Discord, so AFC can reach you there.",
+      "steps": {
+        "details": "Fill in your details and a password",
+        "register": "Tick the terms, then press Register",
+        "code": "Type the code from your email, then confirm",
+        "login": "Log in with your new account",
+        "skip": "Press Skip for now, finish setup later",
+        "profile": "Open the menu, then My profile",
+        "connections": "Press Manage connections",
+        "connect": "Press Connect beside Discord",
+        "discord": "On Discord, check it is you, press Authorize",
+        "done": "Done. Your Discord is linked to AFC"
+      }
+    },
+    "teamInvite": {
+      "title": "Create a team and invite a teammate",
+      "summary": "Make your team on AFC, invite a teammate by name, and they join from the invite.",
+      "steps": {
+        "create": "Open Teams, then press Create team",
+        "details": "Fill in the name, tag and bio",
+        "join": "Choose who can ask to join",
+        "invite": "Search your teammate and pick them",
+        "submit": "Press Create team",
+        "teammate": "Your teammate gets an alert on AFC",
+        "accept": "They open it, press View, then Accept",
+        "done": "Done. You are in a team together"
+      }
+    },
+    "registerTournament": {
+      "title": "Register your team for a tournament",
+      "summary": "As captain, pick a tournament, choose who plays, accept the rules and you are in.",
+      "steps": {
+        "find": "Open Tournaments and pick the event",
+        "register": "Press Register for Tournament",
+        "type": "Choose to register as a team",
+        "members": "Tick the players who will play",
+        "info": "Check your team, then continue",
+        "rules": "Accept the rules, then continue",
+        "done": "Done. Your team is registered"
+      }
+    },
+    "organizerResults": {
+      "title": "Enter a map's results",
+      "summary": "As an organizer, enter each team's place and kills for a map, and the leaderboard updates.",
+      "steps": {
+        "open": "Press Results & Leaderboard on your event",
+        "edit": "Press Edit Match Results",
+        "map": "Pick the map, then Continue",
+        "manual": "Choose Manual Input",
+        "enter": "Tap each team's place, add kills, Next team",
+        "save": "Press Submit Results when all teams are in",
+        "done": "Done. The leaderboard is up to date"
+      }
+    }
+  }
+}

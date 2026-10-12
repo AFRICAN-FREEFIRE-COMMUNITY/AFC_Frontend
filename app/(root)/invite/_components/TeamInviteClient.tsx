@@ -362,6 +362,8 @@ export function TeamInviteClient({
                 <Button
                   className="flex-1"
                   onClick={handleAcceptInvite}
+                  // data-howto: the how-to clip "create a team + invite" (howto/clips/team-invite.mjs) accepts here.
+                  data-howto="invite-accept"
                   disabled={pendingAccept || pendingReject || !user}
                 >
                   {pendingAccept ? (

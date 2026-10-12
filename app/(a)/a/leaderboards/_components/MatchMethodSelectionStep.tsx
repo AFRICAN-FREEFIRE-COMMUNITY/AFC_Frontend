@@ -61,6 +61,9 @@ export function MatchMethodSelectionStep({ matchName, onSelect, onBack }: Props)
               key={m.id}
               disabled={m.disabled}
               onClick={() => onSelect(m.id)}
+              // data-howto: the how-to clip "organizer enters results" (howto/clips/organizer-results.mjs) picks the manual method here.
+              data-howto="result-method"
+              data-method={m.id}
               className="text-left rounded-lg p-4 flex flex-col gap-3 hover:bg-muted/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-muted/30"
             >
               <div>
