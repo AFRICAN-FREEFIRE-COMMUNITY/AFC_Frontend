@@ -82,7 +82,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // branded card (it falls back to the team name), so it remains the single og:image.
   if (!team) {
     return buildEntityMetadata({
-      title: titles("team", { name: teamName }),
+      title: titles("team", { name: teamName.trim() }),
       description: `View the ${teamName} Free Fire team on African Free Fire Community: roster, stats, and tournament history.`,
       path: teamPath(teamName),
       omitImage: true,
@@ -108,7 +108,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // rendered as a real <script type="application/ld+json"> in the layout body
   // below, so it lands in the initial HTML where Google/AI crawlers read it.
   return buildEntityMetadata({
-    title: titles("team", { name: team.team_name }),
+    title: titles("team", { name: team.team_name.trim() }),
     description,
     path,
     // The sibling opengraph-image.tsx renders a branded 1200x630 card (logo +
