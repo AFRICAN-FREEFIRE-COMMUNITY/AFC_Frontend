@@ -1,6 +1,6 @@
 import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
 import { formatNumber } from "@/lib/i18n/number";
-import { formatCalendarDateAnywhere } from "@/lib/i18n/time";
+import { formatCalendarDateAnywhere, formatEventStartInHostZone } from "@/lib/i18n/time";
 import { getLocale } from "next-intl/server";
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -81,9 +81,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // (38 events are "CTL TRAINING", 16 "EWC TRAINING"), and identical titles made Google treat them
   // as duplicates and pick its own canonical (Search Console 2026-10-16). The date is a calendar
   // date, formatted in the request's language (lib/i18n/time.ts formatCalendarDateAnywhere).
+  // The start time rides along in the host's zone: the same organizer runs two lobbies a day under
+  // one name (CTL TRAINING on 28 Aug at 16:00 and 22:00), so the date alone still left three pairs
+  // of identical titles live after the first fix. `timezone` is public since AFC-B 2026-10-16.
   const name = (data.event_name || data.team_name || "Tournament").trim();
-  const when = formatCalendarDateAnywhere(data.start_date, await getLocale());
-  const title = when ? `${name} (${when})` : name;
+  const locale = await getLocale();
+  const when = formatCalendarDateAnywhere(data.start_date, locale);
+  const at = when ? formatEventStartInHostZone(data.start_date, data.event_start_time, data.timezone, locale) : "";
+  const title = when ? `${name} (${at ? `${when}, ${at}` : when})` : name;
 
   // Build a concise, info-rich description
   const parts: string[] = [];

@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 // Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
 // 404 (unknown / suspended / deleted org) → notFound() (real 404, no soft-404);
 // "error" = transient → keep the 200 fallback so a live org page is never
@@ -80,8 +81,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ownDesc ? `${ownDesc} ${eventBit}` : `${org.name}: ${eventBit} View their events and ratings.`
   ).slice(0, 180);
 
+  // The title says what the page is ("NEXIOM FLUX, tournament organizer"): an organizer and a team
+  // can share a name, and Search Console flagged the two pages for an identical title (2026-10-16).
+  // The team page says "Free Fire team" the same way. messages/<loc>/pageTitles.json.
+  const titles = await getTranslations("pageTitles");
   return buildEntityMetadata({
-    title: org.name,
+    title: titles("organization", { name: org.name }),
     description,
     path: `/organizations/${org.slug || slug}`,
     // An organization with no published event asks not to be indexed (lib/seo.ts indexRules;
