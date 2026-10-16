@@ -270,7 +270,7 @@ export function DesignedPictureDialog({
             {t("designed.addPicture")}
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               className="absolute inset-0 cursor-pointer opacity-0"
               disabled={busy}
               onChange={(e) => {

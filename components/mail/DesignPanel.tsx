@@ -54,8 +54,8 @@ export function DesignPanel({
     }
   };
 
-  const fontSelect = (label: string, value: string, set: (v: string) => void, names = fontNames(style)) => (
-    <label className="grid grid-cols-1 items-center gap-1 text-sm sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-3">
+  const fontSelect = (label: string, value: string, set: (v: string) => void, names = fontNames(style), key?: string) => (
+    <label key={key} className="grid grid-cols-1 items-center gap-1 text-sm sm:grid-cols-[150px_minmax(0,1fr)] sm:gap-3">
       <span>{label}</span>
       <select
         className="h-9 w-full rounded-md bg-muted px-2 text-sm"
@@ -146,6 +146,7 @@ export function DesignPanel({
           f.fallback,
           (v) => onChange({ ...style, fonts: style.fonts.map((x) => (x.asset === f.asset ? { ...x, fallback: v } : x)) }),
           FONTS.map(([n]) => n),
+          f.asset,
         ),
       )}
       {style.fonts.length > 0 && <p className="text-xs text-muted-foreground">{t("design.uploadedNote")}</p>}

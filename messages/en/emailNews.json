@@ -10,7 +10,6 @@
   "emptyTitle": "No emails yet",
   "emptyBody": "Press New email to write the first one.",
   "backToList": "All emails",
-  "afterSent": "After it is sent",
   "saveTemplate": "Save as a template",
   "savedAsTemplate": "Saved as a template",
   "templateSaved": "Saved as a template. It is in Start from, for every admin who writes email news.",
@@ -28,7 +27,7 @@
     "unsubscribed": "Unsubscribed",
     "bounced": "Bounced",
     "date": "Date",
-    "design": "Design"
+    "design": "Template"
   },
   "status": {
     "draft": "Draft",
@@ -291,14 +290,14 @@
     "checksTitle": "What AFC did to it before it can be sent",
     "checks": {
       "removed": "Scripts, forms and frames",
-      "removedN": "{n} taken out (email apps would block them anyway)",
+      "removedN": "{n, plural, one {# taken out (email apps would block it anyway)} other {# taken out (email apps would block them anyway)}}",
       "none": "None found",
       "links": "Links",
       "linksN": "{n, plural, one {# link, counted} other {# links, each counted}} for the tracker when clicked",
       "pictures": "Pictures",
-      "packed": "{n} packed inside the file, moved to AFC's server (most email apps do not show pictures packed into an email).",
-      "web": "{n} from web addresses, left as they are (the reader's email app loads them).",
-      "dropped": "{n} could not be read and were removed (their description stays).",
+      "packed": "{n, plural, one {# picture packed inside the file, moved to AFC's server} other {# pictures packed inside the file, moved to AFC's server}} (most email apps do not show pictures packed into an email).",
+      "web": "{n, plural, one {# picture from a web address, left as it is (the reader's email app loads it).} other {# pictures from web addresses, left as they are (the reader's email app loads them).}}",
+      "dropped": "{n, plural, one {# picture could not be read and was removed (its description stays).} other {# pictures could not be read and were removed (their descriptions stay).}}",
       "footer": "Unsubscribe line",
       "footerAdded": "AFC's own line is added at the bottom of every design",
       "size": "Size",
@@ -308,7 +307,7 @@
     "empty": "Upload a design to see it here."
   },
   "tracker": {
-    "sentOn": "Sent",
+    "sentOn": "Started",
     "finished": "Finished",
     "stop": "Stop sending",
     "saveDesign": "Save this design as a template",
@@ -372,6 +371,7 @@
     "mail_design_no_html": "There is no HTML file in that ZIP.",
     "mail_design_mjml_unavailable": "MJML cannot be turned into HTML yet. Upload the HTML your tool exports.",
     "mail_design_mjml_invalid": "That MJML could not be turned into HTML. Check it in your email tool first.",
+    "mail_design_mjml_include": "That MJML pulls in other files (mj-include), which AFC does not read. Put it all in one MJML file.",
     "mail_design_upload_only": "Upload the design with Choose a file."
   }
 }

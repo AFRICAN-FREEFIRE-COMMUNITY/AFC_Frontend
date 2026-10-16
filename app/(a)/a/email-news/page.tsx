@@ -140,7 +140,7 @@ export default function EmailNewsPage() {
                               {saved.has(c.token) ? t("savedAsTemplate") : t("saveTemplate")}
                             </Button>
                           ) : (
-                            <span className="text-muted-foreground">{t("afterSent")}</span>
+                            "-"
                           )}
                         </td>
                       </tr>

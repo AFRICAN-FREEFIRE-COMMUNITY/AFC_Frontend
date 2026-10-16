@@ -47,21 +47,23 @@ export function Tracker({ campaign, onReload }: { campaign: Campaign; onReload: 
   const clickers = Math.max(1, ...campaign.links.map((l) => l.people));
 
   return (
-    <div className="grid gap-4 rounded-md bg-card p-4 shadow-sm md:p-6">
+    // minmax(0,1fr): the one-line title and the links table must never widen the card past a phone
+    // screen (walk of 17 Oct 2026, it was 439 px wide at 390); the table scrolls inside its own box.
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-md bg-card p-4 shadow-sm md:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="truncate text-xl font-semibold">{campaign.name}</h2>
-          <p className="text-sm text-muted-foreground">
+          {/* Two facts, set apart by space so they never read as one sentence. */}
+          <p className="flex flex-wrap gap-x-4 text-sm text-muted-foreground">
             {campaign.queued_at ? (
-              <>
+              <span>
                 {t("tracker.sentOn")} <LocalTime value={campaign.queued_at} />
-              </>
+              </span>
             ) : null}
             {campaign.finished_at && campaign.status === "sent" ? (
-              <>
-                {" "}
+              <span>
                 {t("tracker.finished")} <LocalTime value={campaign.finished_at} />
-              </>
+              </span>
             ) : null}
           </p>
         </div>

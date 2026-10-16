@@ -22,7 +22,9 @@ export function loadEmailFont(asset: Pick<Asset, "token" | "family">): Promise<v
     p = mailAdmin
       .assetBytes(asset.token)
       .then(async (bytes) => {
-        const face = new FontFace(asset.family as string, bytes);
+        // Every weight, as the email's @font-face declares it (afc_mail/content.py), so a bold heading
+        // shows the face as drawn rather than a fake bold.
+        const face = new FontFace(asset.family as string, bytes, { weight: "100 900" });
         await face.load();
         document.fonts.add(face);
       })

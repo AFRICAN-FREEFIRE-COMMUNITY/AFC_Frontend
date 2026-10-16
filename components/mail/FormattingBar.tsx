@@ -11,6 +11,7 @@
 // CONNECTS TO: components/mail/Composer.tsx (owns the editor), emailExtensions.ts (indent and list
 // style commands), emailStyle.ts (fonts). What each button makes is kept by afc_mail/document.py.
 // ─────────────────────────────────────────────────────────────────────────────
+import { useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { useTranslations } from "next-intl";
@@ -28,31 +29,35 @@ const ib =
   "inline-flex h-9 min-w-9 shrink-0 items-center justify-center gap-0.5 rounded-full px-1.5 text-foreground hover:bg-foreground/10 aria-pressed:bg-background aria-pressed:text-primary focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-40";
 const sel = "h-9 max-w-32 shrink-0 cursor-pointer rounded-full bg-transparent px-2 text-sm hover:bg-foreground/10 focus-visible:outline-2 focus-visible:outline-ring";
 
+function readState(e: Editor) {
+  const ts = e.getAttributes("textStyle");
+  const level = e.isActive("heading", { level: 1 }) ? "h1" : e.isActive("heading", { level: 2 }) ? "h2" : e.isActive("heading", { level: 3 }) ? "h3" : "p";
+  return {
+    bold: e.isActive("bold"),
+    italic: e.isActive("italic"),
+    underline: e.isActive("underline"),
+    strike: e.isActive("strike"),
+    ordered: e.isActive("orderedList"),
+    bullet: e.isActive("bulletList"),
+    quote: e.isActive("blockquote"),
+    level,
+    font: familyOf(ts.fontFamily as string) || "",
+    size: String(ts.fontSize ?? "").replace("px", ""),
+    colour: (ts.color as string) || "",
+    canUndo: e.can().undo(),
+    canRedo: e.can().redo(),
+  };
+}
+
 export function FormattingBar({ editor, style }: { editor: Editor | null; style: EmailStyle }) {
   const t = useTranslations("emailNews");
-  const state = useEditorState({
-    editor,
-    selector: ({ editor: e }) => {
-      if (!e) return null;
-      const ts = e.getAttributes("textStyle");
-      const level = e.isActive("heading", { level: 1 }) ? "h1" : e.isActive("heading", { level: 2 }) ? "h2" : e.isActive("heading", { level: 3 }) ? "h3" : "p";
-      return {
-        bold: e.isActive("bold"),
-        italic: e.isActive("italic"),
-        underline: e.isActive("underline"),
-        strike: e.isActive("strike"),
-        ordered: e.isActive("orderedList"),
-        bullet: e.isActive("bulletList"),
-        quote: e.isActive("blockquote"),
-        level,
-        font: familyOf(ts.fontFamily as string) || "",
-        size: String(ts.fontSize ?? "").replace("px", ""),
-        colour: (ts.color as string) || "",
-        canUndo: e.can().undo(),
-        canRedo: e.can().redo(),
-      };
-    },
-  });
+  // The swatches are plain buttons (a row of circles, not menu rows), so picking one closes the
+  // palette by hand, as Gmail's does.
+  const [colourOpen, setColourOpen] = useState(false);
+  // useEditorState keeps its first snapshot (taken while the editor was still null) until the first
+  // transaction, so until the admin types or clicks the bar reads the editor directly.
+  const snapshot = useEditorState({ editor, selector: ({ editor: e }) => (e ? readState(e) : null) });
+  const state = snapshot ?? (editor ? readState(editor) : null);
   if (!editor || !state) return null;
   const chain = () => editor.chain().focus();
 
@@ -128,7 +133,7 @@ export function FormattingBar({ editor, style }: { editor: Editor | null; style:
       {btn(null, t("fmt.italic"), () => chain().toggleItalic().run(), state.italic, <i className="font-serif text-base">I</i>)}
       {btn(null, t("fmt.underline"), () => chain().toggleUnderline().run(), state.underline, <u className="text-base">U</u>)}
       {btn("strike", t("fmt.strike"), () => chain().toggleStrike().run(), state.strike)}
-      <DropdownMenu modal={false}>
+      <DropdownMenu modal={false} open={colourOpen} onOpenChange={setColourOpen}>
         <DropdownMenuTrigger asChild>
           <button type="button" className={ib} aria-label={t("fmt.colour")} title={t("fmt.colour")} onMouseDown={(e) => e.preventDefault()}>
             <span className="grid justify-items-center text-base leading-none font-bold">
@@ -147,7 +152,10 @@ export function FormattingBar({ editor, style }: { editor: Editor | null; style:
                 aria-label={t("fmt.colourValue", { colour: c })}
                 className="size-7 rounded-full focus-visible:outline-2 focus-visible:outline-ring"
                 style={{ background: c }}
-                onClick={() => chain().setColor(c).run()}
+                onClick={() => {
+                  chain().setColor(c).run();
+                  setColourOpen(false);
+                }}
               />
             ))}
           </div>
@@ -160,7 +168,10 @@ export function FormattingBar({ editor, style }: { editor: Editor | null; style:
             />
             {t("fmt.anyColour")}
           </label>
-          <DropdownMenuItem onSelect={() => chain().unsetColor().run()}>{t("fmt.ownColour")}</DropdownMenuItem>
+          {/* Normal case, like the "Any other colour" row above it (the house menu row is uppercase). */}
+          <DropdownMenuItem className="text-sm font-normal normal-case" onSelect={() => chain().unsetColor().run()}>
+            {t("fmt.ownColour")}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <span className="w-1.5 shrink-0" />

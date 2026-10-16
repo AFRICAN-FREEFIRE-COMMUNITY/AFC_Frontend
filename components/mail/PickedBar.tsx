@@ -12,7 +12,7 @@
 // (afc_mail/document.py) and bakes transparency into the picture it sends (afc_mail/assets.py).
 // CONNECTS TO: components/mail/Composer.tsx (decides what is picked), lib/mailApi.ts (replace picture).
 // ─────────────────────────────────────────────────────────────────────────────
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { useEditorState } from "@tiptap/react";
 import { useTranslations } from "next-intl";
@@ -25,6 +25,16 @@ export type PickedMode = "design" | "newlink" | null;
 
 const NUMBERING = ["decimal", "lower-alpha", "upper-alpha", "lower-roman", "upper-roman"] as const;
 const BULLETS = ["disc", "circle", "square"] as const;
+
+function readPicked(e: Editor) {
+  for (const kind of ["emailImage", "designedPicture", "emailButton"] as const) {
+    if (e.isActive(kind)) return { kind, attrs: { ...e.getAttributes(kind) } };
+  }
+  if (e.isActive("link")) return { kind: "link" as const, attrs: { ...e.getAttributes("link") } };
+  if (e.isActive("orderedList")) return { kind: "orderedList" as const, attrs: { ...e.getAttributes("orderedList") } };
+  if (e.isActive("bulletList")) return { kind: "bulletList" as const, attrs: { ...e.getAttributes("bulletList") } };
+  return null;
+}
 
 export function PickedBar({
   editor,
@@ -43,19 +53,9 @@ export function PickedBar({
   onEditDesigned: () => void;
 }) {
   const t = useTranslations("emailNews");
-  const picked = useEditorState({
-    editor,
-    selector: ({ editor: e }) => {
-      if (!e) return null;
-      for (const kind of ["emailImage", "designedPicture", "emailButton"] as const) {
-        if (e.isActive(kind)) return { kind, attrs: { ...e.getAttributes(kind) } };
-      }
-      if (e.isActive("link")) return { kind: "link" as const, attrs: { ...e.getAttributes("link") } };
-      if (e.isActive("orderedList")) return { kind: "orderedList" as const, attrs: { ...e.getAttributes("orderedList") } };
-      if (e.isActive("bulletList")) return { kind: "bulletList" as const, attrs: { ...e.getAttributes("bulletList") } };
-      return null;
-    },
-  });
+  // The snapshot is null until the first transaction (see FormattingBar), so read the editor until then.
+  const snapshot = useEditorState({ editor, selector: ({ editor: e }) => (e ? readPicked(e) : null) });
+  const picked = snapshot ?? (editor ? readPicked(editor) : null);
   const [error, setError] = useState<string | null>(null);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkWords, setLinkWords] = useState("");
@@ -73,6 +73,29 @@ export function PickedBar({
     setLinkWords("");
   }
 
+  // The bar sits at the bottom of the screen with the formatting bar, so on a short screen it can open
+  // over the very picture or button it is about. Once it has opened, scroll the page just enough that
+  // the picked thing sits above it, as Google Docs does (walk of 16 Oct 2026, a 744 px tall window).
+  const regionRef = useRef<HTMLDivElement>(null);
+  const pickedFrom = editor?.state.selection.from ?? -1;
+  useEffect(() => {
+    if (!editor || !regionRef.current || !(kind === "emailImage" || kind === "designedPicture" || kind === "emailButton")) return;
+    const node = editor.view.dom.querySelector(".ProseMirror-selectednode");
+    if (!node) return;
+    const fit = () => {
+      if (!regionRef.current) return;
+      const overlap = node.getBoundingClientRect().bottom - regionRef.current.getBoundingClientRect().top + 12;
+      if (overlap > 0) window.scrollBy({ top: overlap });
+    };
+    fit();
+    // A picture just inserted has no height until it loads; check again once it has one.
+    const img = node.querySelector("img");
+    if (img && !img.complete) {
+      img.addEventListener("load", fit, { once: true });
+      return () => img.removeEventListener("load", fit);
+    }
+  }, [editor, kind, pickedFrom]);
+
   if (!editor || !kind) return null;
 
   const set = (patch: Record<string, unknown>) => {
@@ -81,9 +104,24 @@ export function PickedBar({
   };
   const close = () => {
     setMode(null);
-    // Leave the pick and put the caret after it, so typing carries on below.
-    const { to } = editor.state.selection;
-    editor.chain().focus().setTextSelection(to).run();
+    // Leave the pick and put the caret after it, so typing carries on below. After a picked picture
+    // or button, "after it" is the start of the next paragraph (the editor always keeps one at the
+    // end); the position right after the node itself holds no text, and ProseMirror warns on it.
+    const { doc, selection } = editor.state;
+    let caret = selection.to;
+    if ("node" in selection) {
+      let next: number | null = null;
+      doc.nodesBetween(selection.to, doc.content.size, (node, pos) => {
+        if (next !== null) return false;
+        if (node.isTextblock && pos >= selection.to) {
+          next = pos + 1;
+          return false;
+        }
+        return true;
+      });
+      if (next !== null) caret = next;
+    }
+    editor.chain().focus().setTextSelection(caret).run();
   };
 
   const head = (title: string, extra?: React.ReactNode) => (
@@ -161,7 +199,7 @@ export function PickedBar({
               {t("picked.replace")}
               <input
                 type="file"
-                accept="image/jpeg,image/png,image/webp"
+                accept="image/jpeg,image/png,image/webp,image/gif"
                 className="absolute inset-0 cursor-pointer opacity-0"
                 onChange={async (e) => {
                   const f = e.target.files?.[0];
@@ -286,7 +324,7 @@ export function PickedBar({
   }
 
   return (
-    <div className="grid max-h-[38vh] gap-3 overflow-y-auto rounded-xl bg-background p-3 md:max-h-[46vh]" role="region" aria-label={t("picked.region")}>
+    <div ref={regionRef} className="grid max-h-[38vh] gap-3 overflow-y-auto rounded-xl bg-background p-3 md:max-h-[46vh]" role="region" aria-label={t("picked.region")}>
       {body}
       {error && (
         <p role="alert" className="text-sm text-destructive">

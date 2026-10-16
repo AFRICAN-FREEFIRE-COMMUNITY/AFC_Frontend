@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { formatNumber } from "@/lib/i18n/number";
 import {
   errorCode,
@@ -108,7 +108,7 @@ function docIsEmpty(doc: EmailDoc | null | undefined): boolean {
   return !doc || walk(doc.content);
 }
 
-export function Composer({ initial }: { initial: Campaign }) {
+export function Composer({ initial, onSent }: { initial: Campaign; /** the page reloads the campaign, which is no longer a draft, so it shows the tracker */ onSent: () => void }) {
   const t = useTranslations("emailNews");
   const router = useRouter();
   const [campaign, setCampaign] = useState(initial);
@@ -142,46 +142,62 @@ export function Composer({ initial }: { initial: Campaign }) {
   useEmailFonts(style);
   useEffect(() => aliasSiteDmSans(), []);
 
+  // "Saving..." is set here, where the change happens, never in the effect below: a state update in
+  // an effect on every keystroke counts as a nested update, and after ~50 fast keystrokes React stops
+  // with "Maximum update depth exceeded" and drops one (seen in the local walk, 2026-10-16).
   const touch = useCallback((what: string) => {
     dirty.current.add(what);
     setRev((r) => r + 1);
+    setSaveState("saving");
   }, []);
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        codeBlock: false,
-        code: false,
-        horizontalRule: false,
-        heading: { levels: [1, 2, 3] },
-        link: { openOnClick: false, autolink: true, defaultProtocol: "https", HTMLAttributes: { rel: "noopener noreferrer", target: null } },
-      }),
-      TextStyle,
-      Color,
-      FontFamily,
-      FontSize,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      EmailImage,
-      DesignedPicture,
-      EmailButton,
-      EmailBlockAttrs,
-    ],
-    content: docs.en ?? "",
-    immediatelyRender: false,
-    editorProps: {
-      attributes: { class: "focus:outline-none", "aria-label": t("emailBody"), role: "textbox", "aria-multiline": "true" },
-      // Pasted words come in as words: nothing pasted may pull pictures or styles from another site.
-      handlePaste: (_view, event) => {
-        const text = event.clipboardData?.getData("text/plain");
-        if (text == null || !editorRef.current) return false;
-        const paras = text.split(/\n\s*\n/).map((p) => ({
-          type: "paragraph",
-          content: p.trim() ? [{ type: "text", text: p.replace(/\s*\n\s*/g, " ").trim() }] : [],
-        }));
-        editorRef.current.commands.insertContent(paras.length === 1 ? paras[0].content : paras);
-        return true;
+  // The editor's options are built ONCE. Tiptap compares them on every render and, when any differs
+  // (a new extension instance, a new editorProps object, new starting content), pushes them into the
+  // live editor again (setOptions + updateState). Built inline they were new on every render, and
+  // typing (which renders) looped: "Maximum update depth exceeded" and a lost keystroke in the walk.
+  const editorOptions = useMemo(
+    () => ({
+      extensions: [
+        StarterKit.configure({
+          codeBlock: false,
+          code: false,
+          horizontalRule: false,
+          heading: { levels: [1, 2, 3] as (1 | 2 | 3)[] },
+          link: { openOnClick: false, autolink: true, defaultProtocol: "https", HTMLAttributes: { rel: "noopener noreferrer", target: null } },
+        }),
+        TextStyle,
+        Color,
+        FontFamily,
+        FontSize,
+        TextAlign.configure({ types: ["heading", "paragraph"] }),
+        EmailImage,
+        DesignedPicture,
+        EmailButton,
+        EmailBlockAttrs,
+      ],
+      content: initial.docs.en ? (withSrc(initial.docs.en, initial.assets) ?? "") : "",
+      immediatelyRender: false,
+      editorProps: {
+        attributes: { class: "focus:outline-none", "aria-label": t("emailBody"), role: "textbox", "aria-multiline": "true" },
+        // Pasted words come in as words: nothing pasted may pull pictures or styles from another site.
+        handlePaste: (_view: unknown, event: ClipboardEvent) => {
+          const text = event.clipboardData?.getData("text/plain");
+          if (text == null || !editorRef.current) return false;
+          const paras = text.split(/\n\s*\n/).map((p) => ({
+            type: "paragraph",
+            content: p.trim() ? [{ type: "text", text: p.replace(/\s*\n\s*/g, " ").trim() }] : [],
+          }));
+          editorRef.current.commands.insertContent(paras.length === 1 ? paras[0].content : paras);
+          return true;
+        },
       },
-    },
+    }),
+    // Once per draft: the starting content is read when the composer opens, later changes go through
+    // setContent (language switch, start from), never through the options.
+    [initial, t],
+  );
+  const editor = useEditor({
+    ...editorOptions,
     onUpdate: ({ editor: e }) => {
       const l = langRef.current;
       setDocs((d) => ({ ...d, [l]: e.getJSON() as EmailDoc }));
@@ -191,7 +207,9 @@ export function Composer({ initial }: { initial: Campaign }) {
   useEffect(() => {
     editorRef.current = editor;
   }, [editor]);
-  const isEmpty = useEditorState({ editor, selector: ({ editor: e }) => (e ? e.isEmpty : true) });
+  // The snapshot is null until the first transaction (see FormattingBar), so read the editor until then.
+  const emptySnapshot = useEditorState({ editor, selector: ({ editor: e }) => (e ? e.isEmpty : null) });
+  const isEmpty = emptySnapshot ?? editor?.isEmpty ?? true;
 
   // ── saving ──────────────────────────────────────────────────────────────────────────────────
   const latest = useRef({ docs, fields, style, mode, audience });
@@ -199,7 +217,7 @@ export function Composer({ initial }: { initial: Campaign }) {
     latest.current = { docs, fields, style, mode, audience };
   }, [docs, fields, style, mode, audience]);
 
-  const flush = useCallback(async () => {
+  const saveNow = useCallback(async () => {
     const keys = Array.from(dirty.current);
     if (!keys.length) return;
     dirty.current.clear();
@@ -227,10 +245,18 @@ export function Composer({ initial }: { initial: Campaign }) {
       throw err;
     }
   }, [token]);
+  // Saves run one after another, never side by side: a slow save still in flight could otherwise
+  // land after a newer one and put older words back. Waiting on the chain also means "Save draft",
+  // "Send me a test" and Send see every save that was already on its way, not only their own.
+  const saving = useRef<Promise<void>>(Promise.resolve());
+  const flush = useCallback(() => {
+    const next = saving.current.catch(() => undefined).then(saveNow);
+    saving.current = next;
+    return next;
+  }, [saveNow]);
 
   useEffect(() => {
     if (rev === 0) return;
-    setSaveState("saving");
     const timer = setTimeout(() => {
       flush().catch(() => undefined); // the header says "Not saved" and offers to try again
     }, 1200);
@@ -299,12 +325,20 @@ export function Composer({ initial }: { initial: Campaign }) {
       const asset = await mailAdmin.upload("image", file, file.name);
       editor?.chain().focus().insertContent({ type: "emailImage", attrs: { asset: asset.token, src: asset.url, width: 60, align: "center", alt: "" } }).run();
     });
-  const insertButton = () =>
+  const insertButton = () => {
+    if (!editor) return;
     editor
-      ?.chain()
+      .chain()
       .focus()
       .insertContent([{ type: "emailButton", attrs: { label: t("buttonWords"), href: "https://africanfreefirecommunity.com/", align: "center" } }, { type: "paragraph" }])
       .run();
+    // The caret is now in the paragraph after the button. Pick the button instead, so its options
+    // (words, link, position) open at once, as Gmail opens its link box on insert.
+    const { $from } = editor.state.selection;
+    const start = $from.before();
+    const button = editor.state.doc.resolve(start).nodeBefore;
+    if (button?.type.name === "emailButton") editor.commands.setNodeSelection(start - button.nodeSize);
+  };
   const openDesigner = (editing: boolean) => {
     const attrs = editing ? (editor?.getAttributes("designedPicture") ?? {}) : {};
     setDesigner({ open: true, initial: (attrs.design as BoardDesign) ?? null, editing });
@@ -488,7 +522,8 @@ export function Composer({ initial }: { initial: Campaign }) {
       </div>
 
       {/* the bottom: kept on screen while the email scrolls */}
-      <div className="email-cfoot sticky bottom-0 z-10 grid gap-2 rounded-b-md bg-card px-2.5 pt-2.5 pb-3 md:px-5">
+      {/* minmax(0,1fr): the bars inside may scroll sideways, but they never widen the column. */}
+      <div className="email-cfoot sticky bottom-0 z-10 grid grid-cols-[minmax(0,1fr)] gap-2 rounded-b-md bg-card px-2.5 pt-2.5 pb-3 md:px-5">
         <PickedBar
           editor={mode === "write" ? editor : null}
           mode={picked}
@@ -542,6 +577,9 @@ export function Composer({ initial }: { initial: Campaign }) {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          {/* The insert buttons take the room between Send and More and scroll sideways inside it
+              when a phone is too narrow for all of them, so Send and More always stay in reach. */}
+          <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto md:gap-1">
           {mode === "write" && (
             <>
               <button
@@ -562,7 +600,7 @@ export function Composer({ initial }: { initial: Campaign }) {
                 <MailIcon name="image" />
                 <input
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
                   aria-label={t("insert.picture")}
                   className="absolute inset-0 cursor-pointer opacity-0"
                   onChange={(e) => {
@@ -577,7 +615,7 @@ export function Composer({ initial }: { initial: Campaign }) {
               {iconBtn("palette", t("insert.design"), () => setPicked(picked === "design" ? null : "design"), picked === "design")}
             </>
           )}
-          <span className="flex-1" />
+          </div>
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <button type="button" aria-label={t("more")} title={t("more")} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full hover:bg-foreground/10">
@@ -606,8 +644,8 @@ export function Composer({ initial }: { initial: Campaign }) {
                   <MailIcon name="copy" className="size-4" /> {t("replaceWithEnglish")}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setConfirmDiscard(true)} className="text-destructive">
+              {/* Space, not a separator line, sets "Discard" apart (no hairlines, owner 2026-08-17). */}
+              <DropdownMenuItem onSelect={() => setConfirmDiscard(true)} className="mt-2 text-destructive">
                 <MailIcon name="trash" className="size-4" /> {t("discard")}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -637,8 +675,8 @@ export function Composer({ initial }: { initial: Campaign }) {
                 run(async () => {
                   const res = await mailAdmin.send(token);
                   toast.success(t("sending", { n: res.recipients, nText: formatNumber(res.recipients) }));
-                  router.refresh();
-                  router.push(`/a/email-news/${token}`);
+                  // Same address, so a router push would change nothing: the page fetches again instead.
+                  onSent();
                 })
               }
             >

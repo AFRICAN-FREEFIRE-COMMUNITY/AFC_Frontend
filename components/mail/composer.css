@@ -32,7 +32,6 @@
 @media (prefers-reduced-motion: reduce) {
   .email-page .email-sheet { transition: none; }
 }
-.email-page .email-sheet:focus-within { box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 55%, transparent); }
 .email-page .ProseMirror { outline: none; min-height: 280px; overflow-wrap: anywhere; }
 .email-page .ProseMirror p { margin: 0 0 12px; }
 .email-page .ProseMirror h1,
@@ -121,9 +120,21 @@
 .email-fmt::-webkit-scrollbar { display: none; }
 
 /* the designed picture's board */
-.email-board { position: relative; width: 100%; border-radius: 8px; overflow: hidden; container-type: inline-size; touch-action: none; }
+/* overflow: clip, not hidden: a hidden-overflow grid item may shrink below its own height, and once the
+   dialog reached its height limit on a phone the board's row shrank to a sliver and the board was drawn
+   over the buttons under it (walk of 17 Oct 2026). Clip cuts off layers dragged past the edge just
+   the same and keeps the row as tall as the board. */
+.email-board { position: relative; width: 100%; border-radius: 8px; overflow: clip; container-type: inline-size; touch-action: none; }
 .email-board .layer { position: absolute; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; line-height: 1; white-space: nowrap; border-radius: 4px; }
 .email-board .layer:active { cursor: grabbing; }
 .email-board .layer img { display: block; width: 100%; height: auto; pointer-events: none; }
 .email-board .layer.sel { background: color-mix(in oklch, var(--primary) 25%, transparent); }
 .email-board .layer:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* On a phone the composer's Send row is pinned to the bottom of the screen, exactly where AFC's Help
+   button floats, and the Help button covered the palette and More (walk of 17 Oct 2026). While the
+   composer is on screen a phone shows the Send row instead, as Gmail's phone compose screen does; the
+   Help button is back on every other page and on wider screens. */
+@media (max-width: 639px) {
+  body:has(.email-cfoot) .afc-help-fab { display: none; }
+}

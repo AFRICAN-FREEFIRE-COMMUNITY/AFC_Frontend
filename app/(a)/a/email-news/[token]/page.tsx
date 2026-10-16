@@ -53,7 +53,7 @@ export default function EmailNewsItemPage() {
       ) : !campaign ? (
         <p className="py-10 text-center text-sm text-muted-foreground">{t("loading")}</p>
       ) : campaign.status === "draft" ? (
-        <Composer key={campaign.token} initial={campaign} />
+        <Composer key={campaign.token} initial={campaign} onSent={load} />
       ) : (
         <Tracker campaign={campaign} onReload={load} />
       )}

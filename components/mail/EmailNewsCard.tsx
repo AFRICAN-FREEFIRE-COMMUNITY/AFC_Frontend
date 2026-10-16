@@ -32,6 +32,15 @@ export function EmailNewsCard() {
       .catch(() => setOn(false));
   }, []);
 
+  // Arriving from an unsubscribe page or the jump links (/profile/security#email-news): the browser
+  // jumps to the card before the cards above it have loaded and pushed it down, so jump again once
+  // this card has its answer and the page has settled.
+  useEffect(() => {
+    if (on === null || window.location.hash !== "#email-news") return;
+    const timer = window.setTimeout(() => document.getElementById("email-news")?.scrollIntoView({ block: "start" }), 300);
+    return () => window.clearTimeout(timer);
+  }, [on]);
+
   const change = async (value: boolean) => {
     setBusy(true);
     try {

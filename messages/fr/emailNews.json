@@ -10,7 +10,6 @@
   "emptyTitle": "Aucun e-mail pour l'instant",
   "emptyBody": "Appuyez sur Nouvel e-mail pour rédiger le premier.",
   "backToList": "Tous les e-mails",
-  "afterSent": "Après l'envoi",
   "saveTemplate": "Enregistrer comme modèle",
   "savedAsTemplate": "Enregistré comme modèle",
   "templateSaved": "Enregistré comme modèle. Il se trouve dans Partir de, pour chaque administrateur qui rédige les actualités par e-mail.",
@@ -28,7 +27,7 @@
     "unsubscribed": "Désabonnés",
     "bounced": "Rejetés",
     "date": "Date",
-    "design": "Maquette"
+    "design": "Modèle"
   },
   "status": {
     "draft": "Brouillon",
@@ -291,14 +290,14 @@
     "checksTitle": "Ce qu'AFC y a fait avant qu'il puisse être envoyé",
     "checks": {
       "removed": "Scripts, formulaires et cadres",
-      "removedN": "{n} retirés (les applications les bloqueraient de toute façon)",
+      "removedN": "{n, plural, one {# retiré (les applications le bloqueraient de toute façon)} other {# retirés (les applications les bloqueraient de toute façon)}}",
       "none": "Aucun",
       "links": "Liens",
       "linksN": "{n, plural, one {# lien, compté} other {# liens, chacun compté}} dans le suivi quand il est cliqué",
       "pictures": "Images",
-      "packed": "{n} intégrées au fichier, déplacées sur le serveur d'AFC (la plupart des applications n'affichent pas les images intégrées à un e-mail).",
-      "web": "{n} depuis des adresses web, laissées telles quelles (l'application du lecteur les charge).",
-      "dropped": "{n} illisibles et retirées (leur description reste).",
+      "packed": "{n, plural, one {# image intégrée au fichier, déplacée sur le serveur d'AFC} other {# images intégrées au fichier, déplacées sur le serveur d'AFC}} (la plupart des applications n'affichent pas les images intégrées à un e-mail).",
+      "web": "{n, plural, one {# image depuis une adresse web, laissée telle quelle (l'application du lecteur la charge).} other {# images depuis des adresses web, laissées telles quelles (l'application du lecteur les charge).}}",
+      "dropped": "{n, plural, one {# image illisible, retirée (sa description reste).} other {# images illisibles, retirées (leur description reste).}}",
       "footer": "Ligne de désabonnement",
       "footerAdded": "La ligne d'AFC est ajoutée en bas de chaque maquette",
       "size": "Taille",
@@ -308,7 +307,7 @@
     "empty": "Importez une maquette pour la voir ici."
   },
   "tracker": {
-    "sentOn": "Envoyé le",
+    "sentOn": "Commencé le",
     "finished": "Terminé le",
     "stop": "Arrêter l'envoi",
     "saveDesign": "Enregistrer cette maquette comme modèle",
@@ -372,6 +371,7 @@
     "mail_design_no_html": "Ce ZIP ne contient aucun fichier HTML.",
     "mail_design_mjml_unavailable": "Le MJML ne peut pas encore être converti en HTML. Importez le HTML exporté par votre outil.",
     "mail_design_mjml_invalid": "Ce MJML n'a pas pu être converti en HTML. Vérifiez-le d'abord dans votre outil d'e-mail.",
+    "mail_design_mjml_include": "Ce MJML fait appel à d'autres fichiers (mj-include), qu'AFC ne lit pas. Mettez tout dans un seul fichier MJML.",
     "mail_design_upload_only": "Importez la maquette avec Choisir un fichier."
   }
 }
