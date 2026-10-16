@@ -200,9 +200,9 @@
     "selectCountryPlaceholder": "Selecione um país"
   },
   "eventTime": {
-    "to": "para",
+    "to": "até",
     "yourTime": "(hora local)",
-    "host": "(apresentador)"
+    "host": "(hora do organizador)"
   },
   "teamRoles": {
     "team_captain": "Capitão da Equipe",
