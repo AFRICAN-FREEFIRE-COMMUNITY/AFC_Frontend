@@ -683,6 +683,14 @@ export const indexRules = {
   team(eventsPlayed: number | null | undefined) {
     return { index: true, sitemap: (eventsPlayed ?? 0) > 0 };
   },
+  // A product that is not on sale (archived) keeps its page, which says it is no longer available
+  // to anyone holding an old link or an order, but asks not to be listed (Search Console
+  // 2026-10-16 listed /shop/tomiwa-coins, archived since the day it was made). The sitemap side is
+  // already held by the backend: app/sitemap.ts reads /shop/view-active-products/.
+  product(status: string | null | undefined) {
+    const onSale = status === "active";
+    return { index: onSale, sitemap: onSale };
+  },
 };
 
 /**

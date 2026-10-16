@@ -15,6 +15,7 @@ import {
   buildEntityMetadata,
   generateProductSchema,
   generateBreadcrumbSchema,
+  indexRules,
   resolveOgImage,
   siteConfig,
   jsonLd,
@@ -89,6 +90,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: product.name,
       description,
       path: `/shop/${canonicalRef}`,
+      // An archived product's page stays up (it says so) but is not listed (lib/seo.ts indexRules).
+      noIndex: !indexRules.product(product.status).index,
       image: product.image || null, // real primary image (absolute) or site default
       tags: [product.name, "AFC shop", "Free Fire merch"].filter(Boolean),
     });
@@ -129,7 +132,8 @@ export default async function Page({ params }: Props) {
     // merchant listing, and a stand-in logo would describe a different thing, so a product with
     // no picture simply carries no Product markup until an admin adds one. Reviews and ratings are
     // never filled in: the shop has none, and invented ones are banned. Held by check-seo.mjs --live.
-    if (product.image) {
+    // Nor for a product that is not on sale: an archived product is not an offer.
+    if (product.image && indexRules.product(product.status).index) {
       productSchema = generateProductSchema({
         name: product.name,
         url: `${siteConfig.url}${path}`,
