@@ -94,7 +94,10 @@ export function FanHater({
   if (!targetId || !loaded) return null;
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    // flex-wrap: in French and Portuguese the two buttons ("Je suis un détracteur") are wider than a
+    // phone column beside an avatar, and a row that cannot wrap pushed the team page sideways
+    // (444 px at 390, inbox #283). They wrap under each other instead.
+    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
       <Button
         type="button"
         size="sm"
