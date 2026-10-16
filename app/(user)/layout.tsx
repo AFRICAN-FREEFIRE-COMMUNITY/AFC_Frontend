@@ -48,7 +48,12 @@ const layout = ({ children }: { children: ReactNode }) => {
           <CompletionReminder />
           {/* Admin/organizer two-step sign-in nudge. Renders nothing for everyone else. */}
           <TwoFactorPrompt />
-          <div className="py-10 container min-h-[60vh]">{children}</div>
+          {/* min-h-dvh, not 60vh (Search Console Core Web Vitals, 2026-10-16: CLS 0.26 on phones).
+              Most pages say "Loading..." while they fetch, and with 60vh the FOOTER sat on a phone
+              screen until the content arrived and shoved it down: Lighthouse measured that one shift
+              at 0.37 on a tournament page and 0.13 on a team page. A full screen of room keeps the
+              footer below the fold until the page is really there. */}
+          <div className="py-10 container min-h-dvh">{children}</div>
           <div className="print:hidden">
             <Footer />
           </div>

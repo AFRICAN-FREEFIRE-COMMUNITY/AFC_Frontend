@@ -149,7 +149,7 @@ const RulesPage = () => {
           </CardHeader>
           <CardContent>
             <Button className="w-full" asChild>
-              <Link href={"/contact"}>{t("rules.supportButton")}</Link>
+              <Link href={"/support"}>{t("rules.supportButton")}</Link>
             </Button>
             {/* <Button
               variant="outline"

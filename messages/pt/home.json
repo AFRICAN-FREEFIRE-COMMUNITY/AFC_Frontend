@@ -11,8 +11,7 @@
     },
     "stats": {
       "activePlayers": "Jogadores Ativos",
-      "tournamentsHeld": "Torneios Realizados",
-      "prizePoolDistributed": "Premiação Distribuída",
+      "eventsHeld": "Eventos Realizados",
       "teamsRegistered": "Equipes Registradas"
     },
     "features": {

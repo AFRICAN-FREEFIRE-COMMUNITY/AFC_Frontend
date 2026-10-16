@@ -124,15 +124,22 @@ export default async function Page({ params }: Props) {
     const inStock = (product.variants || []).some(
       (v: any) => v.is_active !== false && v.in_stock !== false,
     );
-    productSchema = generateProductSchema({
-      name: product.name,
-      url: `${siteConfig.url}${path}`,
-      image: product.image ? resolveOgImage(product.image) : null,
-      description: plainDesc || null,
-      price: cheapestActivePrice(product),
-      currency: "NGN", // AFC shop charges in Naira via Paystack
-      inStock,
-    });
+    // Product JSON-LD only for a product WITH a picture (Search Console 2026-10-16: "Merchant
+    // listings: Missing field 'image'" on /shop/tomiwa-coins). Google requires the image for a
+    // merchant listing, and a stand-in logo would describe a different thing, so a product with
+    // no picture simply carries no Product markup until an admin adds one. Reviews and ratings are
+    // never filled in: the shop has none, and invented ones are banned. Held by check-seo.mjs --live.
+    if (product.image) {
+      productSchema = generateProductSchema({
+        name: product.name,
+        url: `${siteConfig.url}${path}`,
+        image: resolveOgImage(product.image),
+        description: plainDesc || null,
+        price: cheapestActivePrice(product),
+        currency: "NGN", // AFC shop charges in Naira via Paystack
+        inStock,
+      });
+    }
     breadcrumbSchema = generateBreadcrumbSchema([
       { name: "Home", path: "/" },
       { name: "Shop", path: "/shop" },

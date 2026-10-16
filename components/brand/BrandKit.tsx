@@ -416,7 +416,7 @@ export function BrandKit() {
       <Section title={t("questions.heading")}>
         <p className="text-sm text-muted-foreground">{t("questions.body")}</p>
         <a
-          href="/contact"
+          href="/support"
           className="inline-block text-sm font-medium text-primary hover:underline"
         >
           {t("questions.cta")}

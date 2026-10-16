@@ -258,7 +258,7 @@ export function RecoverAccountForm() {
   const supportLine = (
     <p className="text-center text-sm">
       <span className="text-muted-foreground">{t("password.stuck")} </span>
-      <Link href="/contact" className="text-primary hover:underline">
+      <Link href="/support" className="text-primary hover:underline">
         {t("password.contactSupport")}
       </Link>
     </p>
@@ -300,7 +300,7 @@ export function RecoverAccountForm() {
             coming. Remove this line only when capture has actually moved. */}
         <p className="text-center text-sm">
           <span className="text-muted-foreground">{t("identify.reach")} </span>
-          <Link href="/contact" className="text-primary hover:underline">
+          <Link href="/support" className="text-primary hover:underline">
             {t("password.contactSupport")}
           </Link>
         </p>

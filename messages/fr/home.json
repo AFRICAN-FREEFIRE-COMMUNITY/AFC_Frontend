@@ -11,8 +11,7 @@
     },
     "stats": {
       "activePlayers": "Joueurs actifs",
-      "tournamentsHeld": "Tournois organisés",
-      "prizePoolDistributed": "Cagnotte distribuée",
+      "eventsHeld": "Événements organisés",
       "teamsRegistered": "Équipes inscrites"
     },
     "features": {

@@ -1,5 +1,7 @@
 import { EventDetailsWrapper } from "./_components/EventDetailsWrapper";
 import { formatNumber } from "@/lib/i18n/number";
+import { formatCalendarDateAnywhere } from "@/lib/i18n/time";
+import { getLocale } from "next-intl/server";
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { env } from "@/lib/env";
@@ -75,7 +77,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     });
   }
 
-  const title = data.event_name || data.team_name || "Tournament";
+  // The event date rides in the TITLE (not the heading): AFC runs recurring scrims under one name
+  // (38 events are "CTL TRAINING", 16 "EWC TRAINING"), and identical titles made Google treat them
+  // as duplicates and pick its own canonical (Search Console 2026-10-16). The date is a calendar
+  // date, formatted in the request's language (lib/i18n/time.ts formatCalendarDateAnywhere).
+  const name = (data.event_name || data.team_name || "Tournament").trim();
+  const when = formatCalendarDateAnywhere(data.start_date, await getLocale());
+  const title = when ? `${name} (${when})` : name;
 
   // Build a concise, info-rich description
   const parts: string[] = [];
@@ -83,7 +91,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     parts.push(`${data.competition_type} • ${data.participant_type}`);
   if (data.prizepool && parseFloat(data.prizepool) > 0)
     parts.push(`Prize Pool: $${formatNumber(parseFloat(data.prizepool))}`);
-  if (data.start_date) parts.push(`Starts: ${data.start_date}`);
+  if (data.start_date) parts.push(`Starts: ${when || data.start_date}`);
   if (data.event_status) parts.push(`Status: ${data.event_status}`);
   const description =
     parts.length > 0

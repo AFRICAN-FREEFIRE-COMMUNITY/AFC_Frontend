@@ -13,6 +13,7 @@ import { fetchDetail } from "@/lib/detailFetch";
 //   jsonLd                   → render a schema object as a <script ld+json>
 import {
   buildEntityMetadata,
+  indexRules,
   resolveOgImage,
   generatePublicOrgSchema,
   generateBreadcrumbSchema,
@@ -83,6 +84,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: org.name,
     description,
     path: `/organizations/${org.slug || slug}`,
+    // An organization with no published event asks not to be indexed (lib/seo.ts indexRules;
+    // Search Console 2026-10-16 called every such page a soft 404). It stays open to visitors.
+    noIndex: !indexRules.organization(eventCount).index,
     // Prefer the wide default banner for a large card; fall back to the logo.
     // resolveOgImage (inside the builder) proxies backend /media/ paths.
     image: org.default_banner || org.logo || null,
