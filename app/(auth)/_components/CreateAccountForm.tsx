@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, useTransition } from "react";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -125,6 +127,7 @@ export function CreateAccountForm() {
   // placeholders, terms checkbox copy, and submit button; passwordStrength.* and
   // showHidePassword.* drive the live strength meter + password-visibility toggles.
   const t = useTranslations("auth");
+  const serverMessage = useServerMessage();
 
   const form = useForm<RegisterFormSchemaType>({
     resolver: zodResolver(RegisterFormSchema),
@@ -270,7 +273,7 @@ export function CreateAccountForm() {
 
         // Success: the typed draft is no longer needed, so we drop it before leaving.
         clearDraft();
-        toast.success(response.data.message);
+        toast.success(serverMessage(response.data));
         router.push(`/email-confirmation?email=${data.email}`);
       } catch (error: any) {
         // The backend now returns friendly copy. New conflict responses use `message`

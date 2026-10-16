@@ -1,0 +1,92 @@
+{
+  "method": {
+    "title": "{match}: escolher o método de envio",
+    "description": "Escolha como quer enviar os resultados deste jogo em concreto (mapa).",
+    "manual": {
+      "name": "Introdução manual",
+      "short": "Introduzir os dados deste jogo à mão",
+      "long": "Introduza diretamente a colocação, os abates, as assistências e o dano das equipas e dos jogadores."
+    },
+    "image": {
+      "name": "Envio de imagens",
+      "short": "Enviar capturas de ecrã dos resultados",
+      "long": "Envie capturas de ecrã dos resultados dos jogos."
+    },
+    "room": {
+      "name": "Ficheiro de sala 3D",
+      "short": "Enviar ficheiros .txt e de depuração",
+      "long": "Envie ficheiros de sala 3D para extrair automaticamente os dados do jogo."
+    },
+    "back": "Voltar à visão geral"
+  },
+  "manual": {
+    "title": "{match} - Introdução manual",
+    "descriptionTeam": "Introduza os resultados de cada equipa em {match}.",
+    "descriptionPlayer": "Introduza os resultados de cada jogador em {match}.",
+    "championPoint": "Fase Champion-Point: introduza os jogos pela ordem em que foram jogados. A ordem de introdução decide o campeão.",
+    "viewOne": "Uma equipa de cada vez",
+    "viewAll": "Rever todas as equipas",
+    "noTeams": "Nenhuma equipa encontrada para este jogo.",
+    "previousTeam": "Equipa anterior",
+    "nextTeam": "Equipa seguinte",
+    "addToEventRoster": "Adicionar jogador ao plantel do evento",
+    "addPlayer": "Adicionar jogador",
+    "back": "Voltar",
+    "updating": "A atualizar...",
+    "submitting": "A enviar...",
+    "saveChanges": "Guardar alterações",
+    "submitResults": "Enviar resultados"
+  },
+  "labels": {
+    "placement": "Colocação",
+    "teamKills": "Abates da equipa",
+    "openRosterNote": "Evento de plantel aberto: só totais por equipa, sem resultados por jogador.",
+    "players": "Jogadores",
+    "kills": "Abates",
+    "bonusPoints": "Pontos de bónus",
+    "penaltyPoints": "Pontos de penalização"
+  },
+  "toast": {
+    "loadFailed": "Não foi possível carregar os participantes",
+    "teamLoadFailed": "Não foi possível carregar os membros da equipa",
+    "addFailed": "Não foi possível adicionar o jogador ao plantel",
+    "playerAdded": "Jogador adicionado ao plantel.",
+    "missingPlacement": "Nenhuma posição final introduzida para: {names}. Escreva a posição de cada um (1 para o vencedor, depois 2, 3 e assim por diante), ou desmarque-os, e envie de novo.",
+    "updated": "Resultados atualizados!",
+    "submitted": "Resultados enviados!",
+    "submitFailed": "Não foi possível enviar os resultados"
+  },
+  "dialog": {
+    "title": "Adicionar jogador ao plantel",
+    "description": "Adicione um jogador a {team} para este evento.",
+    "empty": "Não há jogadores para adicionar. Todos os membros jogadores desta equipa já estão no plantel.",
+    "adding": "A adicionar...",
+    "add": "Adicionar",
+    "close": "Fechar"
+  },
+  "stepper": {
+    "notPlaying": "Marcada como fora deste mapa. Nada é registado para ela e a gravação não vai pedir uma posição final.",
+    "finishingPosition": "Posição final",
+    "position": "Posição {n}",
+    "positionTaken": "Posição {n}, já ocupada por outra equipa",
+    "notSet": "Ainda por definir. A gravação vai recusar esta equipa até ser escolhida uma posição ou até ser marcada como fora.",
+    "killsFor": "Abates de {name}",
+    "lineupCount": "{count} de {max}",
+    "emptyLineup": "Ninguém no alinhamento. Adicione um jogador abaixo.",
+    "swapAria": "Trocar {name} por outro jogador",
+    "addAPlayer": "Adicionar um jogador",
+    "swapIn": "Entrar para o lugar de {name}",
+    "restOfRoster": "O resto do plantel de {team} para este evento.",
+    "allInLineup": "Todo o plantel desta equipa já está no alinhamento.",
+    "takeOut": "Tirá-lo e deixar o lugar vazio",
+    "oneLess": "Menos um. {label}",
+    "oneMore": "Mais um. {label}"
+  },
+  "rail": {
+    "teamOf": "Equipa {current} de {total}",
+    "entered": "{done} de {total} introduzidas",
+    "markerEntered": "{team}. Introduzida",
+    "markerNotEntered": "{team}. Por introduzir",
+    "markerCurrent": "{marker}. Aberta agora"
+  }
+}

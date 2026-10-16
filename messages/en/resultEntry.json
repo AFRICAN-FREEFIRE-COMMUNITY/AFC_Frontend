@@ -1,0 +1,92 @@
+{
+  "method": {
+    "title": "{match}: Select Upload Method",
+    "description": "Choose how you want to upload results for this specific match (map).",
+    "manual": {
+      "name": "Manual Input",
+      "short": "Input data manually for this match",
+      "long": "Directly enter placement, kills, assists, and damage for teams and players."
+    },
+    "image": {
+      "name": "Image Upload",
+      "short": "Upload match result screenshots",
+      "long": "Upload screenshots of match results from games."
+    },
+    "room": {
+      "name": "3D Room File",
+      "short": "Upload .txt and debugger files",
+      "long": "Upload 3D room files to extract match data automatically."
+    },
+    "back": "Back to Overview"
+  },
+  "manual": {
+    "title": "{match} - Manual Input",
+    "descriptionTeam": "Enter results for each team on {match}.",
+    "descriptionPlayer": "Enter results for each player on {match}.",
+    "championPoint": "Champion-Point stage: enter matches in the order they were played. The entry order decides the champion.",
+    "viewOne": "One team at a time",
+    "viewAll": "Review all teams",
+    "noTeams": "No teams found for this match.",
+    "previousTeam": "Previous team",
+    "nextTeam": "Next team",
+    "addToEventRoster": "Add player to the event roster",
+    "addPlayer": "Add player",
+    "back": "Back",
+    "updating": "Updating...",
+    "submitting": "Submitting...",
+    "saveChanges": "Save Changes",
+    "submitResults": "Submit Results"
+  },
+  "labels": {
+    "placement": "Placement",
+    "teamKills": "Team kills",
+    "openRosterNote": "Open-roster event: team totals only, no player results.",
+    "players": "Players",
+    "kills": "Kills",
+    "bonusPoints": "Bonus Points",
+    "penaltyPoints": "Penalty Points"
+  },
+  "toast": {
+    "loadFailed": "Failed to load participant data",
+    "teamLoadFailed": "Failed to load team members",
+    "addFailed": "Failed to add player to roster",
+    "playerAdded": "Player added to the roster.",
+    "missingPlacement": "No finishing position entered for: {names}. Type each one's position (1 for the winner, then 2, 3, and so on), or untick them, then submit again.",
+    "updated": "Results updated!",
+    "submitted": "Results submitted successfully!",
+    "submitFailed": "Failed to submit results"
+  },
+  "dialog": {
+    "title": "Add player to roster",
+    "description": "Add a player to {team} for this event.",
+    "empty": "No eligible players to add. Every playing member of this team is already on the roster.",
+    "adding": "Adding...",
+    "add": "Add",
+    "close": "Close"
+  },
+  "stepper": {
+    "notPlaying": "Marked as not playing this map. Nothing is recorded for them, and the save will not ask for a finishing position.",
+    "finishingPosition": "Finishing position",
+    "position": "Position {n}",
+    "positionTaken": "Position {n}, already taken by another team",
+    "notSet": "Not set yet. The save will refuse this team until a position is picked, or until they are marked as not playing.",
+    "killsFor": "Kills for {name}",
+    "lineupCount": "{count} of {max}",
+    "emptyLineup": "Nobody is in the lineup. Add a player below.",
+    "swapAria": "Swap {name} for another player",
+    "addAPlayer": "Add a player",
+    "swapIn": "Swap in for {name}",
+    "restOfRoster": "The rest of the {team} roster for this event.",
+    "allInLineup": "Everyone on this team's roster is already in the lineup.",
+    "takeOut": "Take them out and leave the place empty",
+    "oneLess": "One less. {label}",
+    "oneMore": "One more. {label}"
+  },
+  "rail": {
+    "teamOf": "Team {current} of {total}",
+    "entered": "{done} of {total} entered",
+    "markerEntered": "{team}. Entered",
+    "markerNotEntered": "{team}. Not entered",
+    "markerCurrent": "{marker}. Currently open"
+  }
+}

@@ -1,6 +1,8 @@
 "use client";
 
 import type React from "react";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -42,6 +44,7 @@ export function ConfirmationForm({ email }: Props) {
   // Auth namespace: messages/en/auth.json (emailConfirmation.* keys). Drives the
   // confirm/resend buttons and the verify-code/resend toasts.
   const t = useTranslations("auth");
+  const serverMessage = useServerMessage();
   const [pending, startTransition] = useTransition();
   const [pendingResend, startResendTransition] = useTransition();
   // How many times the user has hit "Resend". After >= 1, we surface the
@@ -68,7 +71,7 @@ export function ConfirmationForm({ email }: Props) {
           { ...data }
         );
 
-        toast.success(response.data.message);
+        toast.success(serverMessage(response.data));
         router.push(`/login`);
       } catch (error: any) {
         toast.error(
@@ -87,7 +90,7 @@ export function ConfirmationForm({ email }: Props) {
           { email }
         );
 
-        toast.success(response.data.message);
+        toast.success(serverMessage(response.data));
         // Count this resend so the "wrong email?" hint can appear after the first.
         setResendCount((c) => c + 1);
       } catch (error: any) {

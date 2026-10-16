@@ -31,6 +31,8 @@
 import React from "react";
 
 import { cn } from "@/lib/utils";
+// Words from messages/<locale>/resultEntry.json (inbox #257, 2026-10-16: English only before).
+import { useTranslations } from "next-intl";
 import { teamIsComplete, type EntryTeam } from "@/lib/resultEntry";
 
 interface Props {
@@ -41,16 +43,17 @@ interface Props {
 }
 
 export function ProgressRail({ teams, currentIndex, onJump }: Props) {
+  const t = useTranslations("resultEntry");
   const done = teams.filter(teamIsComplete).length;
 
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
         <span className="text-sm font-medium">
-          Team {Math.min(currentIndex + 1, teams.length)} of {teams.length}
+          {t("rail.teamOf", { current: Math.min(currentIndex + 1, teams.length), total: teams.length })}
         </span>
         <span className="text-xs text-muted-foreground">
-          {done} of {teams.length} entered
+          {t("rail.entered", { done, total: teams.length })}
         </span>
       </div>
 
@@ -62,15 +65,16 @@ export function ProgressRail({ teams, currentIndex, onJump }: Props) {
         {teams.map((team, i) => {
           const complete = teamIsComplete(team);
           const current = i === currentIndex;
+          const marker = complete
+            ? t("rail.markerEntered", { team: team.team_name })
+            : t("rail.markerNotEntered", { team: team.team_name });
           return (
             <button
               key={team.tournament_team_id}
               type="button"
               onClick={() => onJump(i)}
               title={team.team_name}
-              aria-label={`${team.team_name}. ${complete ? "Entered" : "Not entered"}${
-                current ? ". Currently open" : ""
-              }`}
+              aria-label={current ? t("rail.markerCurrent", { marker }) : marker}
               aria-current={current ? "step" : undefined}
               className={cn(
                 "h-8 min-w-8 rounded-md px-2 text-xs font-medium tabular-nums transition-colors",

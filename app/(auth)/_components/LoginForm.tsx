@@ -1,6 +1,8 @@
 "use client";
 
 import React, { Suspense, useEffect, useState, useTransition } from "react";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -53,6 +55,7 @@ function LoginFormContent() {
   // Auth namespace: messages/en/auth.json (login.* keys). Powers field labels,
   // placeholders, the submit button, and every sonner toast surfaced here.
   const t = useTranslations("auth");
+  const serverMessage = useServerMessage();
 
   const [pending, startTransition] = useTransition();
   const [isVisible, setIsVisible] = useState<boolean>(false);
@@ -114,7 +117,7 @@ function LoginFormContent() {
 
         if (response.status >= 200 && response.status < 300) {
           await login(response.data.session_token);
-          toast.success(response.data.message);
+          toast.success(serverMessage(response.data));
           // redirect is handled by the useEffect above once auth state updates
         } else {
           toast.error(t("login.genericError"));
@@ -167,7 +170,7 @@ function LoginFormContent() {
           // saveDeviceToken is a no-op unless the user ticked "Remember this device".
           saveDeviceToken(data);
           await login(data.session_token);
-          toast.success(data.message);
+          toast.success(serverMessage(data));
         }}
         onCancel={() => setChallenge(null)}
       />

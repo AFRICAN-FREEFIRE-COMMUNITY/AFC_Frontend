@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useTransition } from "react";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -33,6 +35,7 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
   // from the same namespace. That component is SHARED with the WhatsApp reset
   // (RecoverAccountForm.tsx) so both screens state one identical rule.
   const t = useTranslations("auth");
+  const serverMessage = useServerMessage();
 
   const form = useForm<ResetPasswordFormSchemaType>({
     resolver: zodResolver(ResetPasswordFormSchema),
@@ -56,7 +59,7 @@ export function ResetPasswordForm({ identifier, method, token }: Props) {
 
         toast.success(
           t("resetPassword.successRedirecting", {
-            message: response.data.message,
+            message: serverMessage(response.data),
           })
         );
         router.push(`/login`);
