@@ -86,7 +86,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // The team page says "Free Fire team" the same way. messages/<loc>/pageTitles.json.
   const titles = await getTranslations("pageTitles");
   return buildEntityMetadata({
-    title: titles("organization", { name: org.name }),
+    title: titles("organization", { name: (org.name || "").trim() }),
     description,
     path: `/organizations/${org.slug || slug}`,
     // An organization with no published event asks not to be indexed (lib/seo.ts indexRules;
