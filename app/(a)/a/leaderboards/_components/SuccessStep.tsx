@@ -32,7 +32,7 @@ export function SuccessStep() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full max-w-md pt-4">
-          <Link href="/a/leaderboards" className="w-full">
+          <Link href="/a/events?tab=leaderboards" className="w-full">
             <Button className="w-full">View Leaderboards</Button>
           </Link>
           <Link href="/a/dashboard" className="w-full">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteConfig } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 
 import { Header } from "@/app/(user)/_components/Header";
@@ -34,6 +35,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t("metaTitle"),
     description: t("description"),
+    // Its own canonical (Search Console 2026-10-16): without it the page inherited the landing page's
+    // from app/(root)/layout.tsx, telling Google this page was a copy of the home page.
+    alternates: { canonical: `${siteConfig.url}/brand` },
   };
 }
 

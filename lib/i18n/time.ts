@@ -245,6 +245,20 @@ export function formatLocalDateOnly(value?: string | null, locale?: string): str
 // "YYYY-MM-DD" exactly: a Django DateField on the wire.
 export const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * A CALENDAR DATE formatted the same on the server and in the browser, for server-rendered text
+ * such as a page <title>. No viewer timezone is involved, because a calendar date is the same day
+ * everywhere (see formatLocalDateOnly above); only the month name follows `locale`. Anything that
+ * is not a bare "YYYY-MM-DD" gives "" so a caller can leave the date out rather than print a
+ * shifted one. First caller: the tournament page title (app/(user)/tournaments/[slug]/page.tsx),
+ * where 38 events are all called "CTL TRAINING" and only the date tells them apart (Search
+ * Console 2026-10-16, "Duplicate, Google chose different canonical than user").
+ */
+export function formatCalendarDateAnywhere(value: string | null | undefined, locale: string): string {
+  const v = (value ?? "").trim();
+  return DATE_ONLY.test(v) ? formatCalendarDate(v, locale) : "";
+}
+
 /** Render a bare calendar date at LOCAL midnight so it round-trips to the same day everywhere. */
 function formatCalendarDate(value: string, locale: string): string {
   const [y, mo, d] = value.split("-").map(Number);

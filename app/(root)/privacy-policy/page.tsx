@@ -255,7 +255,7 @@ const page = async () => {
               <li>AWS - hosting and infrastructure</li>
               <li>Discord - identity verification and communication</li>
               <li>
-                Analytics providers (Google Analytics, Mixpanel, or equivalent)
+                Analytics providers (Google Analytics, or equivalent)
               </li>
               <li>Payment processors (e.g., Stripe, Paystack, Flutterwave)</li>
               <li>Anti-cheat or security providers</li>

@@ -23,7 +23,7 @@
  *   endpoint-callers ../<backend>/tools/endpoint_callers.py  blocking; skipped with no backend tree beside this one
  *   event-forms     scripts/check-event-forms.mjs       blocking on a key the contract does not know; ledgered: writable fields no form sends (R24)
  *   refusal-codes   ../<backend>/tools/check_refusal_codes.py  ledgered: 4xx refusals with no code (R35)
- *   seo             scripts/check-seo.mjs               blocking: a page with no metadata, an indexable static page not in the sitemap, a noindex page in it; ledgered: entity pages without JSON-LD (R23)
+ *   seo             scripts/check-seo.mjs               blocking: a page with no metadata, an indexable static page not in the sitemap, a noindex page in it, the Search Console rules of 2026-10-16 (inherited canonical, link to a redirect, untrimmed name address, robots blocking a declared image, SearchAction, typed-in figures, the public translation set); ledgered: entity pages without JSON-LD (R23). The live site is read daily by .github/workflows/seo-live.yml
  *   design-lint     tools/design-lint.mjs              blocking on BLOCK / CHANGED breaches; NOTE reported (R30)
  *   security-ledger  ~/.claude/skills/security-rules (R55 to R61)  blocking when a HIGH count rose; skipped without the checker
  *

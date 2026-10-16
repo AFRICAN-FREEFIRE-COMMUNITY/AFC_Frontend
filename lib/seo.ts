@@ -492,9 +492,9 @@ export const defaultMetadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
-  alternates: {
-    canonical: siteConfig.url,
-  },
+  // NO site-wide canonical (removed 2026-10-16). Next merges metadata shallowly, so a default here
+  // became the canonical of every page that forgot its own, pointing Google at the home page.
+  // Each page declares its own; scripts/check-seo.mjs (CANONICAL-INHERITED) fails one that does not.
   category: "esports",
 };
 
@@ -662,6 +662,30 @@ export function formatTier(code?: string | number | null): string | null {
 }
 
 /**
+ * WHICH ENTITY PAGES ASK TO BE IN GOOGLE, AND WHICH ARE LISTED IN THE SITEMAP: the one rule.
+ *
+ * Search Console, 2026-10-16: 10 organization pages were "Soft 404" (every one an organization with
+ * no event: the page says "This organization has no events yet") and hundreds of team pages were
+ * "Crawled / Discovered, currently not indexed" (764 of 933 teams have never played an event).
+ *   - organization: no published event -> noindex,follow and out of the sitemap. The page has
+ *     nothing to find it for, and Google already reads it as empty.
+ *   - team: ALWAYS indexable (a team name is something people search, and noindexing 764 pages
+ *     would only move them to another Search Console list); listed in the sitemap only once it
+ *     has PLAYED an event (events_played, AFC-B team_activity, the same number on the list and on
+ *     the page), so the sitemap names the pages with something on them.
+ * Read by app/sitemap.ts and app/(user)/organizations/[slug]/layout.tsx. Change the rule HERE.
+ */
+export const indexRules = {
+  organization(eventCount: number | null | undefined) {
+    const has = (eventCount ?? 0) > 0;
+    return { index: has, sitemap: has };
+  },
+  team(eventsPlayed: number | null | undefined) {
+    return { index: true, sitemap: (eventsPlayed ?? 0) > 0 };
+  },
+};
+
+/**
  * Build a complete, rich link-embed Metadata object for a single ENTITY page.
  *
  * This is the dynamic-page counterpart to generatePageMetadata (static pages).
@@ -687,6 +711,7 @@ export function buildEntityMetadata({
   publishedTime,
   authors,
   omitImage = false,
+  noIndex = false,
 }: {
   title: string;
   description: string;
@@ -701,6 +726,9 @@ export function buildEntityMetadata({
   // the single image and we don't emit a second, competing tag. The Twitter card
   // type stays "summary_large_image" so the generated image still renders LARGE.
   omitImage?: boolean;
+  // noindex,follow: the page stays open to everyone and its links are still followed, but it asks
+  // not to be listed in search (indexRules above decides when).
+  noIndex?: boolean;
 }): Metadata {
   const pageUrl = `${siteConfig.url}${path}`;
   const fullTitle = `${title} | ${siteConfig.shortName}`;
@@ -732,6 +760,7 @@ export function buildEntityMetadata({
       ...(ogImage ? { images: [ogImage] } : {}),
     },
     alternates: { canonical: pageUrl },
+    ...(noIndex ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
@@ -932,14 +961,9 @@ export function generateWebsiteSchema() {
     alternateName: siteConfig.shortName,
     url: siteConfig.url,
     description: siteConfig.description,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${siteConfig.url}/teams?search={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
+    // NO potentialAction / SearchAction (removed 2026-10-16). Google retired the sitelinks search
+    // box it powered, and the template address /teams?search={search_term_string} itself showed up
+    // in Search Console as a crawled page. scripts/check-seo.mjs (SEARCH-ACTION) keeps it out.
   };
 }
 

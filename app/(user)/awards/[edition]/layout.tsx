@@ -11,9 +11,10 @@
  * renders the page exactly as before, with no markup rather than a guess.
  */
 
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { jsonLd, generateBreadcrumbSchema, siteConfig } from "@/lib/seo";
+import { buildEntityMetadata, jsonLd, generateBreadcrumbSchema, siteConfig } from "@/lib/seo";
 import { env } from "@/lib/env";
 
 type PollInEdition = { title?: string; slug?: string };
@@ -37,6 +38,20 @@ async function fetchEdition(slug: string): Promise<EditionForSeo | null> {
   } catch {
     return null;
   }
+}
+
+// Each edition's own title, description and canonical (Search Console work, 2026-10-16). Without
+// this the page inherited app/(user)/awards/layout.tsx's metadata whole, so every edition told
+// Google it was the /awards list (canonical /awards) under the list's title. Same cached fetch as
+// the layout below. A failed fetch still names this page's own address, never the list's.
+export async function generateMetadata({ params }: { params: Promise<{ edition: string }> }): Promise<Metadata> {
+  const { edition } = await params;
+  const data = await fetchEdition(edition);
+  const name = data?.name || data?.title || "AFC Awards";
+  const count = Array.isArray(data?.polls) ? data.polls.length : 0;
+  const own = (data?.description || "").replace(/\s+/g, " ").trim();
+  const description = (own || `${name}: ${count ? `${count} categories, ` : ""}voted by the African Free Fire community on AFC.`).slice(0, 180);
+  return buildEntityMetadata({ title: name, description, path: `/awards/${edition}` });
 }
 
 export default async function AwardsEditionLayout({

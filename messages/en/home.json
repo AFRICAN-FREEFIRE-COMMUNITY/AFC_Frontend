@@ -11,8 +11,7 @@
     },
     "stats": {
       "activePlayers": "Active Players",
-      "tournamentsHeld": "Tournaments Held",
-      "prizePoolDistributed": "Prize Pool Distributed",
+      "eventsHeld": "Events Held",
       "teamsRegistered": "Teams Registered"
     },
     "features": {

@@ -729,7 +729,7 @@ export function ReviewAndPublishStep({ onNext, onBack, formData }: Props) {
             <Button variant="ghost" onClick={onBack}>
               Back
             </Button>
-            <Button onClick={() => router.push("/a/leaderboards")}>Done</Button>
+            <Button onClick={() => router.push("/a/events?tab=leaderboards")}>Done</Button>
           </div>
         </CardContent>
       </Card>

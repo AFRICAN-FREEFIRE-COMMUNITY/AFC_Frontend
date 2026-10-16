@@ -12,9 +12,10 @@
  * exactly as before with no markup rather than with a guess.
  */
 
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { jsonLd, generateBreadcrumbSchema, siteConfig } from "@/lib/seo";
+import { buildEntityMetadata, jsonLd, generateBreadcrumbSchema, siteConfig } from "@/lib/seo";
 import { env } from "@/lib/env";
 
 type PollForSeo = {
@@ -38,6 +39,18 @@ async function fetchPoll(slug: string): Promise<PollForSeo | null> {
   } catch {
     return null;
   }
+}
+
+// Each poll's own title, description and canonical (Search Console work, 2026-10-16). Without
+// this every poll inherited app/(user)/polls/layout.tsx's metadata whole: the /polls title and a
+// canonical pointing at /polls. Same cached fetch as the layout below.
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const poll = await fetchPoll(slug);
+  const title = poll?.title || "AFC Poll";
+  const own = (poll?.description || "").replace(/\s+/g, " ").trim();
+  const description = (own || `${title}: a community poll on AFC.`).slice(0, 180);
+  return buildEntityMetadata({ title, description, path: `/polls/${slug}` });
 }
 
 export default async function PollLayout({

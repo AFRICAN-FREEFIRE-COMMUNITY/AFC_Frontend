@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 // Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
 // 404 (Team.DoesNotExist) → notFound() (real 404, no soft-404); "error" = transient
 // → keep the 200 fallback so a live team page is never deindexed on an API blip.
@@ -46,8 +46,19 @@ async function getTeamData(teamName: string) {
       body: JSON.stringify({ team_name: readSegment(teamName) }),
       next: { revalidate: 60 },
     },
-    (j) => j?.team,
+    // `moved_to` rides on the envelope when the address used a name the team USED to have
+    // (AFC-B Team._keep_retired_name + get_team_details, Search Console 2026-10-16): it holds the
+    // current name, and both callers below answer with a permanent redirect to it.
+    (j) => (j?.team ? { ...j.team, moved_to: j?.moved_to ?? null } : j?.team),
   );
+}
+
+// A renamed team's old address (R22: a link shared in June opens the right page in December).
+// Permanent (308) so search engines move the old result to the new address. This layout wraps the
+// sub-pages too (roster, applications, edit, permissions) and cannot see which one was asked for,
+// so an old name lands on the team's main page; those sub-pages are members' tools, rarely linked.
+function followRename(team: { moved_to?: string | null } | null) {
+  if (team?.moved_to) permanentRedirect(teamPath(team.moved_to));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -58,6 +69,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Confirmed-gone team (backend 404) → real 404, not a soft-404.
   if (result.status === "missing") notFound();
   const team = result.status === "ok" ? result.data : null;
+  followRename(team);
 
   // Transient failure (not a confirmed 404) → branded fallback embed at 200.
   // Image is omitted here too: the sibling opengraph-image.tsx still renders a
@@ -119,6 +131,7 @@ export default async function TeamDetailLayout({ children, params }: Props) {
   // to team=null and render {children} at 200 (the client page retries).
   if (result.status === "missing") notFound();
   const team = result.status === "ok" ? result.data : null;
+  followRename(team);
 
   let teamSchema: object | null = null;
   let breadcrumbSchema: object | null = null;

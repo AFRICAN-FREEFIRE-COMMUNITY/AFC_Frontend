@@ -19,6 +19,9 @@ import { AuthModalProvider } from "@/components/AuthModal";
 // Client Component via useTranslations(). See components/I18nProvider.tsx.
 import { getLocale, getMessages } from "next-intl/server";
 import { I18nProvider } from "@/components/I18nProvider";
+// Which namespaces a PUBLIC page can ask for, generated from the import graph by
+// scripts/i18n-namespaces.mjs (checked in check-all: a stale list or a non-literal namespace fails).
+import publicNamespaces from "@/lib/i18n/publicNamespaces.generated.json";
 import { ReferralClaimer } from "@/components/referrals/ReferralClaimer";
 import { HelpBot } from "@/components/help/HelpBot";
 
@@ -51,6 +54,13 @@ export default async function RootLayout({
   const locale = await getLocale();
   // Deep-merged catalog (English base + fr/pt overlay) for Client Components.
   const messages = await getMessages();
+  // ONLY the namespaces a public page can reach go to the browser from here (Search Console
+  // 2026-10-16: the full 94-namespace catalog was inlined into every page, 870 KB of HTML).
+  // The workspace groups mount the full catalog themselves (components/WorkspaceMessages.tsx).
+  const PUBLIC_NAMESPACES = new Set<string>(publicNamespaces.public);
+  const publicMessages = Object.fromEntries(
+    Object.entries(messages).filter(([ns]) => PUBLIC_NAMESPACES.has(ns)),
+  ) as typeof messages;
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -79,11 +89,17 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${dmSans.className} antialiased relative`}>
+        {/* Analytics load with strategy="lazyOnload": after the page has loaded and the browser is
+            idle, so they no longer compete with the page itself on a phone (Search Console Core Web
+            Vitals 2026-10-16: LCP 5.9 s, INP 348 ms; GTM is 180 KB). Nothing in the app calls
+            gtag() directly (checked 2026-10-16), so nothing can run before the stub exists.
+            Mixpanel was removed on 2026-10-16 (owner, inbox #275: "we dont use mixpanel right now,
+            so you can remove it"); its session recorder was another 105 KB on every page. */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-E21CNCZKFL"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="ga-init" strategy="afterInteractive">
+        <Script id="ga-init" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -92,27 +108,12 @@ export default async function RootLayout({
           `}
         </Script>
         {/*
-          Mixpanel install stub. NOTE: it lives inside a template-literal child ({`...`}),
-          so every backslash must be DOUBLED. The vendor snippet's protocol check uses the
-          regex /^\/\// - written here as /^\\/\\//. Without the doubling, the template
-          literal evaluates `\/` -> `/`, the regex collapses to /^/// (where // starts a
-          comment that eats the closing `)`), and the injected script throws
-          "SyntaxError: missing ) after argument list" on every page. Keep the backslashes
-          doubled if you ever re-paste this snippet from Mixpanel's dashboard.
-        */}
-        <Script id="mixpanel-init" strategy="afterInteractive">
-          {`
-            (function(e,c){if(!c.__SV){var l,h;window.mixpanel=c;c._i=[];c.init=function(q,r,f){function t(d,a){var g=a.split(".");2==g.length&&(d=d[g[0]],a=g[1]);d[a]=function(){d.push([a].concat(Array.prototype.slice.call(arguments,0)))}}var b=c;"undefined"!==typeof f?b=c[f]=[]:f="mixpanel";b.people=b.people||[];b.toString=function(d){var a="mixpanel";"mixpanel"!==f&&(a+="."+f);d||(a+=" (stub)");return a};b.people.toString=function(){return b.toString(1)+".people (stub)"};l="disable time_event track track_pageview track_links track_forms track_with_groups add_group set_group remove_group register register_once alias unregister identify name_tag set_config reset opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking start_batch_senders start_session_recording stop_session_recording people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user people.remove".split(" ");for(h=0;h<l.length;h++)t(b,l[h]);var n="set set_once union unset remove delete".split(" ");b.get_group=function(){function d(p){a[p]=function(){b.push([g,[p].concat(Array.prototype.slice.call(arguments,0))])}}for(var a={},g=["get_group"].concat(Array.prototype.slice.call(arguments,0)),m=0;m<n.length;m++)d(n[m]);return a};c._i.push([q,r,f])};c.__SV=1.2;var k=e.createElement("script");k.type="text/javascript";k.async=!0;k.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\\/\\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";e=e.getElementsByTagName("script")[0];e.parentNode.insertBefore(k,e)}})(document,window.mixpanel||[]);
-            mixpanel.init('abc2f1f29e9862cc5ca32d8b51e3b265', { autocapture: true, record_sessions_percent: 100 });
-          `}
-        </Script>
-        {/*
           I18nProvider is mounted outermost so every Client Component below it
           (auth, modals, theme, cart, all pages) can call useTranslations().
           locale + messages are resolved server-side above from the NEXT_LOCALE
           cookie via i18n/request.ts.
         */}
-        <I18nProvider locale={locale} messages={messages}>
+        <I18nProvider locale={locale} messages={publicMessages}>
           <AuthProvider>
             <AuthModalProvider>
               <ThemeProvider

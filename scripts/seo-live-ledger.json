@@ -1,0 +1,6 @@
+{
+  "_comment": "Ledgered counts of scripts/check-seo.mjs --live (R32): a count that RISES fails the run; --update-ledger writes a count that fell. Seeded 2026-10-16 from production before the Search Console fixes shipped.",
+  "HEAVY-HTML": 1202,
+  "THIN-HTML": 1133,
+  "updated": "2026-10-16"
+}

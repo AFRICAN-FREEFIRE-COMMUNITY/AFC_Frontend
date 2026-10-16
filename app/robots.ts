@@ -31,7 +31,10 @@ import { siteConfig } from "@/lib/seo";
 //   - /onboarding, /email-confirmation → onboarding flow
 //   - /unauthorized      → access-denied page
 //   - /*/edit            → any entity edit screen (teams/news/events/etc.)
-//   - /api/              → Next route handlers (og-image proxy, etc.) - not pages
+//   - /api/              → Next route handlers - not pages. EXCEPT /api/og-image (ALLOW below):
+//                          it serves the logos and banners our own JSON-LD and og:image declare, and
+//                          Search Console listed 528 of them as "Blocked by robots.txt" on
+//                          2026-10-16, so Google could not use any of them in a result.
 //   - /profile, /orders, /cart → authenticated, user-private surfaces
 const DISALLOW: string[] = [
   "/a/",
@@ -64,6 +67,12 @@ const DISALLOW: string[] = [
 //   - ByteDance:  Bytespider
 //   - Amazon:     Amazonbot
 //   - Cohere:     cohere-ai
+// What every rule allows. "/api/og-image" is more specific than the "/api/" disallow, and a crawler
+// follows the most specific matching rule, so the image proxy is fetchable while the other route
+// handlers stay closed. scripts/check-seo.mjs (ROBOTS-BLOCKS-ASSET) fails if a disallow ever covers
+// an address that lib/seo.ts hands to crawlers again.
+const ALLOW: string[] = ["/", "/api/og-image"];
+
 const AI_CRAWLERS: string[] = [
   "GPTBot",
   "OAI-SearchBot",
@@ -86,14 +95,14 @@ export default function robots(): MetadataRoute.Robots {
       // Baseline rule for every crawler not named below (Googlebot, Bingbot, …).
       {
         userAgent: "*",
-        allow: "/",
+        allow: ALLOW,
         disallow: DISALLOW,
       },
       // One explicit allow rule per AI crawler so they may crawl + cite the
       // public site. Same private disallows as everyone else.
       ...AI_CRAWLERS.map((userAgent) => ({
         userAgent,
-        allow: "/",
+        allow: ALLOW,
         disallow: DISALLOW,
       })),
     ],

@@ -256,7 +256,7 @@ export default function OrderSuccess() {
                   {t("success.retryNow")}
                 </Button>
                 <Button asChild variant="outline" className="flex-1">
-                  <Link href="/contact">{t("success.contactSupport")}</Link>
+                  <Link href="/support">{t("success.contactSupport")}</Link>
                 </Button>
               </div>
               <Button asChild variant="ghost" className="text-muted-foreground">
