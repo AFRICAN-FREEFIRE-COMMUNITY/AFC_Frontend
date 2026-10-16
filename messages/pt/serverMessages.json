@@ -13,5 +13,6 @@
   "reset_token_resent": "Foi enviado um novo código de reposição da palavra-passe para o seu e-mail.",
   "password_changed": "Palavra-passe alterada.",
   "team_name_needs_letter": "O nome de uma equipa precisa de ter pelo menos uma letra ou um número.",
-  "team_name_reserved": "Esse nome pertence a uma página da AFC. Escolha outro nome."
+  "team_name_reserved": "Esse nome pertence a uma página da AFC. Escolha outro nome.",
+  "email_invalid": "Esse endereço de e-mail não parece correto. Verifique-o, por favor."
 }
