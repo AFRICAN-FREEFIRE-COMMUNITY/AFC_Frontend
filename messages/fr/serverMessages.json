@@ -1,0 +1,15 @@
+{
+  "login_ok": "Connexion réussie.",
+  "signup_ok": "Inscription réussie. Consultez vos e-mails pour le code de vérification.",
+  "account_verified": "Compte vérifié.",
+  "verification_code_resent": "Un nouveau code de vérification a été envoyé à votre adresse e-mail.",
+  "registration_ok": "Inscription confirmée. Votre rôle Discord arrive.",
+  "registration_ok_team": "Équipe inscrite. Les rôles Discord arrivent.",
+  "registration_pending_sponsor": "Inscription enregistrée. Elle attend la validation du sponsor.",
+  "registration_waitlisted": "L'événement est complet. Vous êtes sur la liste d'attente.",
+  "registration_waitlisted_team": "L'événement est complet. Votre équipe est sur la liste d'attente.",
+  "reset_token_sent": "Un code de réinitialisation a été envoyé à votre adresse e-mail.",
+  "reset_token_valid": "Code accepté.",
+  "reset_token_resent": "Un nouveau code de réinitialisation a été envoyé à votre adresse e-mail.",
+  "password_changed": "Mot de passe modifié."
+}

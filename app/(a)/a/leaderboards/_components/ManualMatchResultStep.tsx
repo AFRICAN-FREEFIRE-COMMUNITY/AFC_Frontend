@@ -46,6 +46,9 @@ import {
 import { ProgressRail } from "./_result-entry/ProgressRail";
 import { TeamStepper } from "./_result-entry/TeamStepper";
 import { toast } from "sonner";
+// Every visible word goes through messages/<locale>/resultEntry.json (inbox #257, 2026-10-16:
+// organizers reading the site in French or Portuguese got this whole screen in English).
+import { useTranslations } from "next-intl";
 // Add-player picker (Roster Rules, owner 2026-06-15): a per-team dialog that lists the
 // team's PLAYING-role members who are NOT yet on this event's roster, then POSTs the
 // chosen one to /events/add-player-to-event-roster/.
@@ -151,6 +154,7 @@ export function ManualMatchResultStep({
   previousMatchStats,
 }: Props) {
   const { token } = useAuth();
+  const t = useTranslations("resultEntry");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [participantType, setParticipantType] = useState<"team" | "solo">(
@@ -316,7 +320,7 @@ export function ManualMatchResultStep({
       }
     } catch (err: any) {
       console.error(err);
-      toast.error("Failed to load participant data");
+      toast.error(t("toast.loadFailed"));
       if (participantTypeOverride) setParticipantType(participantTypeOverride);
     } finally {
       setLoading(false);
@@ -392,7 +396,7 @@ export function ManualMatchResultStep({
       );
       const data = await readJson(res);
       if (!res.ok) {
-        throw new Error(data.message || data.detail || "Failed to load team");
+        throw new Error(data.message || data.detail || t("toast.teamLoadFailed"));
       }
       const members: any[] = data.team?.members ?? [];
       // user_ids already on this event's roster (from the card's players list).
@@ -406,7 +410,7 @@ export function ManualMatchResultStep({
       setAddPlayerCandidates(candidates);
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to load team members");
+      toast.error(err.message || t("toast.teamLoadFailed"));
     } finally {
       setLoadingCandidates(false);
     }
@@ -436,17 +440,15 @@ export function ManualMatchResultStep({
       );
       const data = await readJson(res);
       if (!res.ok) {
-        throw new Error(
-          data.message || data.detail || "Failed to add player to roster",
-        );
+        throw new Error(data.message || data.detail || t("toast.addFailed"));
       }
-      toast.success(data.message || "Player added to the roster.");
+      toast.success(t("toast.playerAdded"));
       setAddPlayerTeam(null);
       // Re-pull rosters so the new player appears in this team card pre-filled.
       await fetchParticipants();
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to add player to roster");
+      toast.error(err.message || t("toast.addFailed"));
     } finally {
       setAddingPlayerId(null);
     }
@@ -489,11 +491,7 @@ export function ManualMatchResultStep({
             })),
           );
     if (missingPlacement.length > 0) {
-      toast.error(
-        `No finishing position entered for: ${missingPlacement.join(", ")}. ` +
-          "Type each one's position (1 for the winner, then 2, 3, and so on), " +
-          "or untick them, then submit again.",
-      );
+      toast.error(t("toast.missingPlacement", { names: missingPlacement.join(", ") }));
       return;
     }
 
@@ -545,16 +543,14 @@ export function ManualMatchResultStep({
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.message || err.detail || "Submission failed");
+        throw new Error(err.message || err.detail || t("toast.submitFailed"));
       }
 
-      toast.success(
-        isEditing ? "Results updated!" : "Results submitted successfully!",
-      );
+      toast.success(isEditing ? t("toast.updated") : t("toast.submitted"));
       onComplete(match.match_id);
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Failed to submit results");
+      toast.error(err.message || t("toast.submitFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -575,13 +571,13 @@ export function ManualMatchResultStep({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <IconMap size={20} className="text-muted-foreground" />
-          {match.match_name} - Manual Input
+          {t("manual.title", { match: match.match_name })}
           <InfoTip id="leaderboards.manual_result._section" />
         </CardTitle>
         <CardDescription>
-          Enter results for each{" "}
-          {participantType === "team" ? "team" : "player"} on {match.match_name}
-          .
+          {participantType === "team"
+            ? t("manual.descriptionTeam", { match: match.match_name })
+            : t("manual.descriptionPlayer", { match: match.match_name })}
         </CardDescription>
       </CardHeader>
 
@@ -593,8 +589,7 @@ export function ManualMatchResultStep({
             alert div (matches the repo's inline-alert idiom). */}
         {championPointEnabled && (
           <div className="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-            Champion-Point stage: enter matches in the order they were played -
-            the entry order decides the champion.
+            {t("manual.championPoint")}
           </div>
         )}
 
@@ -606,8 +601,8 @@ export function ManualMatchResultStep({
           <div className="flex w-full gap-1 rounded-md bg-muted p-1">
             {(
               [
-                ["one", "One team at a time"],
-                ["all", "Review all teams"],
+                ["one", t("manual.viewOne")],
+                ["all", t("manual.viewAll")],
               ] as const
             ).map(([value, labelText]) => (
               <button
@@ -636,7 +631,7 @@ export function ManualMatchResultStep({
           /* ── TEAM MODE ─────────────────────────────────────────────────── */
           teamResults.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">
-              No teams found for this match.
+              {t("manual.noTeams")}
             </p>
           ) : teamView === "one" ? (
             /* ── ONE TEAM AT A TIME, the default on a phone ─────────────────
@@ -673,7 +668,7 @@ export function ManualMatchResultStep({
                   disabled={currentTeam === 0}
                   onClick={() => setCurrentTeam((i) => Math.max(0, i - 1))}
                 >
-                  Previous team
+                  {t("manual.previousTeam")}
                 </Button>
                 <Button
                   type="button"
@@ -683,7 +678,7 @@ export function ManualMatchResultStep({
                     setCurrentTeam((i) => Math.min(teamResults.length - 1, i + 1))
                   }
                 >
-                  Next team
+                  {t("manual.nextTeam")}
                 </Button>
               </div>
 
@@ -700,7 +695,7 @@ export function ManualMatchResultStep({
                 }
               >
                 <IconUserPlus size={14} className="mr-1" />
-                Add player to the event roster
+                {t("manual.addToEventRoster")}
               </Button>
             </div>
           ) : (
@@ -725,7 +720,7 @@ export function ManualMatchResultStep({
 
                 <div className="space-y-1.5">
                   <Label>
-                    Placement
+                    {t("labels.placement")}
                     <InfoTip id="leaderboards.result_placement" className="ml-1" />
                   </Label>
                   <Input
@@ -746,7 +741,7 @@ export function ManualMatchResultStep({
                 {teamOnly && (
                   <div className="space-y-1.5 max-w-xs">
                     <Label>
-                      Team kills
+                      {t("labels.teamKills")}
                       <InfoTip id="leaderboards.result_kills" className="ml-1" />
                     </Label>
                     <Input
@@ -764,14 +759,14 @@ export function ManualMatchResultStep({
                       }
                     />
                     <p className="text-xs text-muted-foreground">
-                      Open-roster event: team totals only, no player results.
+                      {t("labels.openRosterNote")}
                     </p>
                   </div>
                 )}
 
                 {!teamOnly && team.players.length > 0 && (
                   <div className="space-y-2">
-                    <Label>Players</Label>
+                    <Label>{t("labels.players")}</Label>
                     <div className="space-y-2">
                       {team.players.map((player, pi) => (
                         <div
@@ -800,7 +795,7 @@ export function ManualMatchResultStep({
                           <div className="max-w-[12rem]">
                             <div className="space-y-1">
                               <Label className="text-xs text-muted-foreground">
-                                Kills
+                                {t("labels.kills")}
                                 <InfoTip
                                   id="leaderboards.result_kills"
                                   className="ml-1"
@@ -842,7 +837,7 @@ export function ManualMatchResultStep({
                   onClick={() => openAddPlayer(team)}
                 >
                   <IconUserPlus size={14} className="mr-1" />
-                  Add player
+                  {t("manual.addPlayer")}
                 </Button>
               </div>
             ))
@@ -850,7 +845,7 @@ export function ManualMatchResultStep({
         ) : (
           /* ── SOLO MODE ─────────────────────────────────────────────────── */
           <div className="space-y-2">
-            <Label>Players</Label>
+            <Label>{t("labels.players")}</Label>
             <div className="space-y-2">
               {soloResults.map((solo, si) => (
                 <div
@@ -875,7 +870,7 @@ export function ManualMatchResultStep({
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">
-                        Placement
+                        {t("labels.placement")}
                         <InfoTip
                           id="leaderboards.result_placement"
                           className="ml-1"
@@ -898,7 +893,7 @@ export function ManualMatchResultStep({
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">
-                        Kills
+                        {t("labels.kills")}
                         <InfoTip id="leaderboards.result_kills" className="ml-1" />
                       </Label>
                       <Input
@@ -918,7 +913,7 @@ export function ManualMatchResultStep({
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">
-                        Bonus Points
+                        {t("labels.bonusPoints")}
                         <InfoTip
                           id="leaderboards.result_bonus_points"
                           className="ml-1"
@@ -941,7 +936,7 @@ export function ManualMatchResultStep({
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs text-muted-foreground">
-                        Penalty Points
+                        {t("labels.penaltyPoints")}
                         <InfoTip
                           id="leaderboards.result_penalty_points"
                           className="ml-1"
@@ -972,15 +967,15 @@ export function ManualMatchResultStep({
         {/* Actions */}
         <div className="flex gap-3 pt-2">
           <Button variant="outline" onClick={onBack} disabled={submitting}>
-            Back
+            {t("manual.back")}
           </Button>
           <Button onClick={handleSubmit} disabled={submitting}>
             {submitting ? (
-              <Loader text={isEditing ? "Updating..." : "Submitting..."} />
+              <Loader text={isEditing ? t("manual.updating") : t("manual.submitting")} />
             ) : isEditing ? (
-              "Save Changes"
+              t("manual.saveChanges")
             ) : (
-              "Submit Results"
+              t("manual.submitResults")
             )}
           </Button>
         </div>
@@ -996,10 +991,10 @@ export function ManualMatchResultStep({
       >
         <DialogContent className="flex flex-col max-h-[85vh]">
           <DialogHeader>
-            <DialogTitle>Add player to roster</DialogTitle>
+            <DialogTitle>{t("dialog.title")}</DialogTitle>
             <DialogDescription>
               {addPlayerTeam
-                ? `Add a player to ${addPlayerTeam.team_name} for this event.`
+                ? t("dialog.description", { team: addPlayerTeam.team_name })
                 : ""}
             </DialogDescription>
           </DialogHeader>
@@ -1011,8 +1006,7 @@ export function ManualMatchResultStep({
               </div>
             ) : addPlayerCandidates.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-8">
-                No eligible players to add. Every playing member of this team is
-                already on the roster.
+                {t("dialog.empty")}
               </p>
             ) : (
               addPlayerCandidates.map((c) => (
@@ -1029,9 +1023,9 @@ export function ManualMatchResultStep({
                     onClick={() => handleAddPlayer(c.id)}
                   >
                     {addingPlayerId === c.id ? (
-                      <Loader text="Adding..." />
+                      <Loader text={t("dialog.adding")} />
                     ) : (
-                      "Add"
+                      t("dialog.add")
                     )}
                   </Button>
                 </div>
@@ -1045,7 +1039,7 @@ export function ManualMatchResultStep({
               onClick={() => setAddPlayerTeam(null)}
               disabled={addingPlayerId !== null}
             >
-              Close
+              {t("dialog.close")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -87,6 +87,18 @@ const CHECKERS = [
     },
   },
   {
+    // Toasts that print a raw (English) server sentence on the fr/pt site (inbox #257,
+    // 2026-10-16). Ledgered so the count can only fall: move a screen to useServerMessage
+    // (lib/i18n/serverMessage.ts) and give its backend answer a code. 93 on master that day.
+    id: "server-toasts",
+    run() {
+      const r = run("scripts/check-server-toasts.mjs", ["--json"]);
+      let parsed = { count: 0 };
+      try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["server-toasts: could not run"], counts: {} }; }
+      return { blocking: [], counts: { "toasts.raw_server_message": parsed.count } };
+    },
+  },
+  {
     id: "check-signed-out",
     run() {
       const r = run("scripts/check-signed-out.mjs", ["--json"]);

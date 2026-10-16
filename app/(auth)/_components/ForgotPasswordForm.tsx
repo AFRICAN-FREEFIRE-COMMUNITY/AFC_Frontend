@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useTransition } from "react";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -34,6 +36,7 @@ function EmailTab() {
   // Auth namespace: messages/en/auth.json (forgotPassword.* keys). Drives the
   // email field, submit button, and request-reset toasts on the Email tab.
   const t = useTranslations("auth");
+  const serverMessage = useServerMessage();
 
   const form = useForm<ForgotPasswordFormSchemaType>({
     resolver: zodResolver(ForgotPasswordFormSchema),
@@ -48,7 +51,7 @@ function EmailTab() {
           { ...data }
         );
         if (response.status >= 200 && response.status < 300) {
-          toast.success(response.data.message);
+          toast.success(serverMessage(response.data));
           router.push(`/verify-token?email=${encodeURIComponent(data.email)}`);
         } else {
           toast.error(t("forgotPassword.genericError"));
@@ -106,6 +109,7 @@ function UidTab() {
   // Auth namespace: messages/en/auth.json (forgotPassword.* keys). Drives the
   // UID field, submit button, and request-reset toasts on the UID tab.
   const t = useTranslations("auth");
+  const serverMessage = useServerMessage();
 
   const form = useForm<ForgotPasswordUidFormSchemaType>({
     resolver: zodResolver(ForgotPasswordUidFormSchema),
@@ -120,7 +124,7 @@ function UidTab() {
           { ...data }
         );
         if (response.status >= 200 && response.status < 300) {
-          toast.success(response.data.message);
+          toast.success(serverMessage(response.data));
           router.push(`/verify-token?uid=${encodeURIComponent(data.uid)}`);
         } else {
           toast.error(t("forgotPassword.genericError"));

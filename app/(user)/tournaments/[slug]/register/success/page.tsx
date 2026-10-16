@@ -31,6 +31,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 // i18n: copy lives in messages/en/tournaments.json under "paymentSuccess.*"
@@ -76,6 +78,7 @@ type Phase =
 
 export default function RegisterSuccessPage() {
   const t = useTranslations("tournaments");
+  const serverMessage = useServerMessage();
   const params = useParams<{ slug: string }>();
   const slug =
     typeof params?.slug === "string"
@@ -136,7 +139,7 @@ export default function RegisterSuccessPage() {
             /* non-fatal */
           }
         }
-        if (res.data?.message) toast.success(res.data.message);
+        if (res.data?.message || res.data?.code) toast.success(serverMessage(res.data));
         setPhase("registered");
         return true;
       } catch (error: any) {

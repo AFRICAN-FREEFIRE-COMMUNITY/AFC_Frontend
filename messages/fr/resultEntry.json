@@ -1,0 +1,92 @@
+{
+  "method": {
+    "title": "{match} : choisir la méthode d'envoi",
+    "description": "Choisissez comment envoyer les résultats de ce match précis (cette carte).",
+    "manual": {
+      "name": "Saisie manuelle",
+      "short": "Saisir les données de ce match à la main",
+      "long": "Saisissez directement le placement, les éliminations, les assistances et les dégâts des équipes et des joueurs."
+    },
+    "image": {
+      "name": "Envoi d'images",
+      "short": "Envoyer des captures des résultats",
+      "long": "Envoyez des captures d'écran des résultats des matchs du jeu."
+    },
+    "room": {
+      "name": "Fichier de salle 3D",
+      "short": "Envoyer les fichiers .txt et de débogage",
+      "long": "Envoyez les fichiers de salle 3D pour extraire automatiquement les données du match."
+    },
+    "back": "Retour à l'aperçu"
+  },
+  "manual": {
+    "title": "{match} - Saisie manuelle",
+    "descriptionTeam": "Saisissez les résultats de chaque équipe sur {match}.",
+    "descriptionPlayer": "Saisissez les résultats de chaque joueur sur {match}.",
+    "championPoint": "Phase Champion-Point : saisissez les matchs dans l'ordre où ils ont été joués. L'ordre de saisie désigne le champion.",
+    "viewOne": "Une équipe à la fois",
+    "viewAll": "Revoir toutes les équipes",
+    "noTeams": "Aucune équipe trouvée pour ce match.",
+    "previousTeam": "Équipe précédente",
+    "nextTeam": "Équipe suivante",
+    "addToEventRoster": "Ajouter un joueur à l'effectif de l'événement",
+    "addPlayer": "Ajouter un joueur",
+    "back": "Retour",
+    "updating": "Mise à jour...",
+    "submitting": "Envoi...",
+    "saveChanges": "Enregistrer les modifications",
+    "submitResults": "Envoyer les résultats"
+  },
+  "labels": {
+    "placement": "Placement",
+    "teamKills": "Éliminations de l'équipe",
+    "openRosterNote": "Événement à effectif ouvert : totaux par équipe uniquement, aucun résultat par joueur.",
+    "players": "Joueurs",
+    "kills": "Éliminations",
+    "bonusPoints": "Points bonus",
+    "penaltyPoints": "Points de pénalité"
+  },
+  "toast": {
+    "loadFailed": "Impossible de charger les participants",
+    "teamLoadFailed": "Impossible de charger les membres de l'équipe",
+    "addFailed": "Impossible d'ajouter le joueur à l'effectif",
+    "playerAdded": "Joueur ajouté à l'effectif.",
+    "missingPlacement": "Aucune position finale saisie pour : {names}. Saisissez la position de chacun (1 pour le vainqueur, puis 2, 3, etc.), ou décochez-les, puis renvoyez.",
+    "updated": "Résultats mis à jour !",
+    "submitted": "Résultats envoyés !",
+    "submitFailed": "Impossible d'envoyer les résultats"
+  },
+  "dialog": {
+    "title": "Ajouter un joueur à l'effectif",
+    "description": "Ajoutez un joueur à {team} pour cet événement.",
+    "empty": "Aucun joueur à ajouter. Tous les membres joueurs de cette équipe sont déjà dans l'effectif.",
+    "adding": "Ajout...",
+    "add": "Ajouter",
+    "close": "Fermer"
+  },
+  "stepper": {
+    "notPlaying": "Marquée comme absente de cette carte. Rien n'est enregistré pour elle, et l'enregistrement ne demandera pas de position finale.",
+    "finishingPosition": "Position finale",
+    "position": "Position {n}",
+    "positionTaken": "Position {n}, déjà prise par une autre équipe",
+    "notSet": "Pas encore définie. L'enregistrement refusera cette équipe tant qu'aucune position n'est choisie ou qu'elle n'est pas marquée comme absente.",
+    "killsFor": "Éliminations de {name}",
+    "lineupCount": "{count} sur {max}",
+    "emptyLineup": "Personne dans la composition. Ajoutez un joueur ci-dessous.",
+    "swapAria": "Remplacer {name} par un autre joueur",
+    "addAPlayer": "Ajouter un joueur",
+    "swapIn": "Remplacer {name}",
+    "restOfRoster": "Le reste de l'effectif de {team} pour cet événement.",
+    "allInLineup": "Tout l'effectif de cette équipe est déjà dans la composition.",
+    "takeOut": "Le retirer et laisser la place vide",
+    "oneLess": "Un de moins. {label}",
+    "oneMore": "Un de plus. {label}"
+  },
+  "rail": {
+    "teamOf": "Équipe {current} sur {total}",
+    "entered": "{done} sur {total} saisies",
+    "markerEntered": "{team}. Saisie",
+    "markerNotEntered": "{team}. Non saisie",
+    "markerCurrent": "{marker}. Ouverte"
+  }
+}

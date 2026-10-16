@@ -36,6 +36,12 @@
       "ceiling": 0,
       "since": "2026-09-17",
       "movedAt": "2026-09-26"
+    },
+    "toasts.raw_server_message": {
+      "count": 81,
+      "ceiling": 81,
+      "since": "2026-10-16",
+      "movedAt": "2026-10-16"
     }
   }
 }

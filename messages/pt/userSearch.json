@@ -1,0 +1,13 @@
+{
+  "placeholder": "Procurar um utilizador...",
+  "inputPlaceholder": "Escreva um nome de utilizador ou nome...",
+  "searching": "A procurar...",
+  "minChars": "Escreva pelo menos 2 caracteres para procurar.",
+  "empty": "Nenhum utilizador encontrado.",
+  "players": "Jogadores",
+  "ghostPlayers": "Jogadores ghost",
+  "noTeam": "sem equipa",
+  "ghost": "Ghost",
+  "selectedCount": "{count, plural, one {# utilizador selecionado} other {# utilizadores selecionados}}",
+  "remove": "Remover {name}"
+}

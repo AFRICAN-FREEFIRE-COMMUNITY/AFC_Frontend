@@ -1,6 +1,8 @@
 "use client";
 
 import { formatNumber } from "@/lib/i18n/number";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import React, {
   useState,
   useEffect,
@@ -3571,6 +3573,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const t = useTranslations("tournaments");
+  const serverMessage = useServerMessage();
   const tc = useTranslations("common");
   // Copy for the team's own result submission (owner backlog item 6). Read from the namespace the
   // organizer's queue and the per-event switch also read, so the three descriptions of one feature
@@ -5189,9 +5192,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             payload,
             { headers: { Authorization: `Bearer ${token}` } },
           );
-          toast.success(
-            res.data.message || t("register.toast.registeredFallback"),
-          );
+          toast.success(serverMessage(res.data, t("register.toast.registeredFallback")));
           setWasWaitlisted(!!res.data.waitlisted);
           setPendingSponsorApproval(!!res.data.pending_sponsor_approval);
           setModalStep("SUCCESS");
@@ -5219,7 +5220,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             payload,
             { headers: { Authorization: `Bearer ${token}` } },
           );
-          toast.success(res.data.message || t("register.toast.registeredFallback"));
+          toast.success(serverMessage(res.data, t("register.toast.registeredFallback")));
           setWasWaitlisted(!!res.data.waitlisted);
           // Sponsor redesign P3: true when a requires_approval sponsor must vet
           // the engagement submissions before the spot is confirmed.

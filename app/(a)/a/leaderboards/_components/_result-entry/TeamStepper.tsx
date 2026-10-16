@@ -44,6 +44,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+// Words from messages/<locale>/resultEntry.json (inbox #257, 2026-10-16: English only before).
+import { useTranslations } from "next-intl";
 import { type ScoreValue } from "@/lib/scoreInput";
 import { takenPlacements, type EntryPlayer, type EntryTeam } from "@/lib/resultEntry";
 
@@ -65,6 +67,7 @@ interface Props {
 }
 
 export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = false }: Props) {
+  const t = useTranslations("resultEntry");
   // Which player row has its swap sheet open, by user_id. null means no sheet.
   const [swapping, setSwapping] = useState<number | null>(null);
 
@@ -109,15 +112,14 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
       {!team.played ? (
         // A filled surface with a sentence in it, never a dashed outline box.
         <div className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-          Marked as not playing this map. Nothing is recorded for them, and the save will not ask
-          for a finishing position.
+          {t("stepper.notPlaying")}
         </div>
       ) : (
         <>
           {/* ── placement ──────────────────────────────────────────────── */}
           <div className="space-y-2">
             <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Finishing position
+              {t("stepper.finishingPosition")}
             </p>
             <div className="flex flex-wrap gap-1.5">
               {Array.from({ length: allTeams.length }, (_, i) => i + 1).map((n) => {
@@ -133,7 +135,7 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
                     onClick={() => onChange({ ...team, placement: chosen ? null : n })}
                     aria-pressed={chosen}
                     aria-label={
-                      isTaken ? `Position ${n}, already taken by another team` : `Position ${n}`
+                      isTaken ? t("stepper.positionTaken", { n }) : t("stepper.position", { n })
                     }
                     className={cn(
                       "h-11 min-w-11 rounded-md px-2 text-sm font-medium tabular-nums transition-colors",
@@ -152,8 +154,7 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
             </div>
             {team.placement === null && (
               <p className="text-xs text-muted-foreground">
-                Not set yet. The save will refuse this team until a position is picked, or until
-                they are marked as not playing.
+                {t("stepper.notSet")}
               </p>
             )}
           </div>
@@ -162,34 +163,34 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
           {teamOnly ? (
             <div className="space-y-2">
               <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Team kills
+                {t("labels.teamKills")}
               </p>
               <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/40 p-3">
                 <span className="text-sm font-medium">{team.team_name}</span>
                 <KillStepper
                   value={team.kills ?? null}
                   onChange={(kills: ScoreValue) => onChange({ ...team, kills })}
-                  label={`Kills for ${team.team_name}`}
+                  label={t("stepper.killsFor", { name: team.team_name })}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Open-roster event: team totals only, no player results.
+                {t("labels.openRosterNote")}
               </p>
             </div>
           ) : (
           <div className="space-y-2">
             <div className="flex items-baseline justify-between">
               <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                Players
+                {t("labels.players")}
               </p>
               <span className="text-xs text-muted-foreground">
-                {lineup.length} of {maxPlayed}
+                {t("stepper.lineupCount", { count: lineup.length, max: maxPlayed })}
               </span>
             </div>
 
             {lineup.length === 0 ? (
               <p className="py-2 text-sm text-muted-foreground">
-                Nobody is in the lineup. Add a player below.
+                {t("stepper.emptyLineup")}
               </p>
             ) : (
               <div className="space-y-2">
@@ -207,14 +208,14 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
                       type="button"
                       onClick={() => setSwapping(player.user_id)}
                       className="min-w-0 flex-1 truncate text-left text-sm font-medium hover:text-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                      aria-label={`Swap ${player.username} for another player`}
+                      aria-label={t("stepper.swapAria", { name: player.username })}
                     >
                       {player.username}
                     </button>
                     <KillStepper
                       value={player.kills}
                       onChange={(kills: ScoreValue) => setPlayer(player.user_id, { kills })}
-                      label={`Kills for ${player.username}`}
+                      label={t("stepper.killsFor", { name: player.username })}
                     />
                   </div>
                 ))}
@@ -228,7 +229,7 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
                 onClick={() => setSwapping(-1)}
                 className="h-11 w-full rounded-lg bg-muted px-3 text-sm font-medium hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
-                Add a player
+                {t("stepper.addAPlayer")}
               </button>
             )}
           </div>
@@ -242,13 +243,13 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
           <SheetHeader>
             <SheetTitle>
               {swapping === -1
-                ? "Add a player"
-                : `Swap in for ${team.players.find((p) => p.user_id === swapping)?.username ?? ""}`}
+                ? t("stepper.addAPlayer")
+                : t("stepper.swapIn", { name: team.players.find((p) => p.user_id === swapping)?.username ?? "" })}
             </SheetTitle>
             <SheetDescription>
               {bench.length > 0
-                ? `The rest of ${team.team_name}'s roster for this event.`
-                : "Everyone on this team's roster is already in the lineup."}
+                ? t("stepper.restOfRoster", { team: team.team_name })
+                : t("stepper.allInLineup")}
             </SheetDescription>
           </SheetHeader>
 
@@ -278,7 +279,7 @@ export function TeamStepper({ team, allTeams, maxPlayed, onChange, teamOnly = fa
                 }}
                 className="h-12 w-full rounded-lg px-3 text-left text-sm font-medium text-muted-foreground hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
               >
-                Take them out and leave the place empty
+                {t("stepper.takeOut")}
               </button>
             )}
           </div>
