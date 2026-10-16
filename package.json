@@ -9,6 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "seo:live": "node scripts/check-seo.mjs --live",
+    "seo:lighthouse": "node scripts/check-seo.mjs --lighthouse",
     "check:bugs": "node scripts/check-known-bugs.mjs",
     "check:datetime": "node scripts/check-datetime.mjs",
     "check:signed-out": "node scripts/check-signed-out.mjs",

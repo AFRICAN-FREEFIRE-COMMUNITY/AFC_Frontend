@@ -15,7 +15,11 @@
 //   - app/robots.ts     → points crawlers at this file (/sitemap.xml).
 //   - The route slugs below MUST match the real app routes:
 //       /tournaments/<event.slug>          app/(user)/tournaments/[slug]
-//       /teams/<team.team_name>            app/(user)/teams/[id]  (id == team_name)
+//       /teams/<team.team_name>            app/(user)/teams/[id]  (id == team_name, via teamPath)
+//
+// WHICH ENTITIES ARE LISTED (Search Console 2026-10-16): lib/seo.ts indexRules decides. A team is
+// listed once it has PLAYED an event (events_played), an organization once it has a published
+// event; the rest stay reachable through links but are not put forward as pages worth crawling.
 //       /organizations/<org.slug>          app/(user)/organizations/[slug]
 //       /news/<article.slug>               app/(user)/news/[slug]
 //       /shop/<product.id>                 app/(user)/shop/[id]
@@ -26,7 +30,8 @@
 // list non-public users, so players are omitted here. Individual player pages are
 // still crawlable (linked from teams/rankings) and carry their own JSON-LD + OG.
 import { MetadataRoute } from "next";
-import { siteConfig } from "@/lib/seo";
+import { indexRules, siteConfig } from "@/lib/seo";
+import { isAddressableName, teamPath } from "@/lib/routes";
 import { env } from "@/lib/env";
 
 // API base for every dynamic fetch. Falls back to the prod API host if the env
@@ -131,13 +136,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
   // Teams → /teams/<team_name> (the [id] route segment is the team_name; the
-  // detail page + links all use team_name). Encode the name for a safe URL.
+  // detail page + links all use team_name). teamPath encodes the name and drops trailing
+  // spaces, exactly as every link and the page's canonical do (lib/routes.ts nameSegment).
   const teams: any[] = Array.isArray(teamsData?.teams) ? teamsData.teams : [];
   const teamEntries: MetadataRoute.Sitemap = teams
-    .filter((t) => t?.team_name && !t?.is_banned)
+    .filter((t) => t?.team_name && isAddressableName(t.team_name) && !t?.is_banned && indexRules.team(t.events_played).sitemap)
     .slice(0, CAP_TEAMS)
     .map((t) => ({
-      url: `${base}/teams/${encodeURIComponent(t.team_name)}`,
+      url: `${base}${teamPath(t.team_name)}`,
       lastModified: toDate(t.updated_at || t.creation_date),
       changeFrequency: "weekly",
       priority: 0.6,
@@ -148,7 +154,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ? orgsData.organizations
     : [];
   const orgEntries: MetadataRoute.Sitemap = orgs
-    .filter((o) => o?.slug)
+    .filter((o) => o?.slug && indexRules.organization(o.event_count).sitemap)
     .slice(0, CAP_ORGS)
     .map((o) => ({
       url: `${base}/organizations/${o.slug}`,

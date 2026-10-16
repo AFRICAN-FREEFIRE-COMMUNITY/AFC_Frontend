@@ -48,29 +48,55 @@ export function readSegment(raw: string | string[] | undefined | null): string {
   }
 }
 
+/**
+ * One path segment for a NAME (a username or a team name): segment() without trailing whitespace.
+ *
+ * WHY (Search Console 2026-10-16): 169 team names and 1,179 usernames on production end in a space,
+ * so their links ended in %20 and Google saw two addresses for one page ("Alternative page with
+ * proper canonical", "Duplicate without user-selected canonical"). The production name columns use
+ * a PAD SPACE collation (utf8mb4_unicode_ci, verified 2026-10-16): "NAME " and "NAME" are the same
+ * value to the database, so dropping TRAILING spaces can never point at a different row. LEADING
+ * spaces are kept on purpose: they DO tell names apart (38 usernames start with one, and
+ * "GLT.ELYTRA" exists in three spacings), so trimming them could open someone else's page.
+ */
+export function nameSegment(value: string | number | null | undefined): string {
+  return segment(value == null ? value : String(value).replace(/\s+$/u, ""));
+}
+
+/**
+ * Whether a name can be a path segment at all. "." and ".." cannot: every browser and crawler
+ * resolves /teams/. to /teams before the request leaves (the URL standard treats "%2E" the same),
+ * so a team named "." has no reachable address (Search Console mirror, 2026-10-16: the sitemap
+ * listed /teams/. and it answered 308 to /teams). Read by app/sitemap.ts.
+ */
+export function isAddressableName(value: string | number | null | undefined): boolean {
+  const v = value == null ? "" : String(value).replace(/\s+$/u, "");
+  return v !== "" && v !== "." && v !== "..";
+}
+
 /** Public player page, by in-game name. `rest` is an optional sub-path such as "/stats". */
 export function playerPath(username: string | number | null | undefined, rest = ""): string {
-  return `/players/${segment(username)}${rest}`;
+  return `/players/${nameSegment(username)}${rest}`;
 }
 
 /** Public team page, by team name. `rest` is an optional sub-path such as "/roster" or "/edit". */
 export function teamPath(teamName: string | number | null | undefined, rest = ""): string {
-  return `/teams/${segment(teamName)}${rest}`;
+  return `/teams/${nameSegment(teamName)}${rest}`;
 }
 
 /** Admin player page, by in-game name. */
 export function adminPlayerPath(username: string | number | null | undefined, rest = ""): string {
-  return `/a/players/${segment(username)}${rest}`;
+  return `/a/players/${nameSegment(username)}${rest}`;
 }
 
 /** Admin team page, by team name. */
 export function adminTeamPath(teamName: string | number | null | undefined, rest = ""): string {
-  return `/a/teams/${segment(teamName)}${rest}`;
+  return `/a/teams/${nameSegment(teamName)}${rest}`;
 }
 
 /** Admin sponsor page, by the sponsor account's username. */
 export function adminSponsorPath(username: string | number | null | undefined, rest = ""): string {
-  return `/a/sponsors/${segment(username)}${rest}`;
+  return `/a/sponsors/${nameSegment(username)}${rest}`;
 }
 
 /** Admin coupon page, by slug (or the legacy code / id). */

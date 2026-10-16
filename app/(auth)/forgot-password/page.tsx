@@ -65,7 +65,7 @@ const page = async () => {
         <span className="text-muted-foreground">
           {t("support.noWhatsAppNumber")}{" "}
         </span>
-        <Link href="/contact" className="text-primary hover:underline">
+        <Link href="/support" className="text-primary hover:underline">
           {t("support.contactSupport")}
         </Link>
       </div>

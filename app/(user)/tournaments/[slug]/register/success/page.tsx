@@ -410,7 +410,7 @@ export default function RegisterSuccessPage() {
           {phase === "register_failed" && (
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Button asChild className="flex-1">
-                <Link href="/contact">
+                <Link href="/support">
                   {t("paymentSuccess.contactSupport")}
                 </Link>
               </Button>
@@ -430,7 +430,7 @@ export default function RegisterSuccessPage() {
                   {t("paymentSuccess.retryNow")}
                 </Button>
                 <Button asChild variant="outline" className="flex-1">
-                  <Link href="/contact">
+                  <Link href="/support">
                     {t("paymentSuccess.contactSupport")}
                   </Link>
                 </Button>

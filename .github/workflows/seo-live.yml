@@ -1,0 +1,50 @@
+# The live site, read the way Google reads it, every day (owner 2026-10-16, inbox #264: "i dont ever
+# want those issues happening, so let's create automatic checks for them from now on, so that they
+# are always checked").
+#
+# Two jobs, both against https://africanfreefirecommunity.com:
+#   search-console  node scripts/check-seo.mjs --live: one rule per Search Console report (duplicate
+#                   hosts, API host indexable, every sitemap address answering 200 with its own
+#                   canonical and no noindex, space-ended addresses, duplicate titles, images robots
+#                   blocks, Product data, same-site links that 404 or redirect), plus two ledgered
+#                   counts (heavy pages, pages with no text of their own) that fail only when they rise.
+#   web-vitals      node scripts/check-seo.mjs --lighthouse: Lighthouse phone runs of the landing, a
+#                   team page and a tournament page; layout shift over 0.1 fails, LCP is printed.
+#
+# A red run is a failed scheduled workflow, which GitHub emails to the repository's notification
+# list. It also runs on demand (Actions > SEO live check > Run workflow), e.g. right after a deploy.
+# Nothing here writes to the site or the repository.
+
+name: SEO live check
+
+on:
+  schedule:
+    - cron: "30 5 * * *" # 05:30 UTC, 06:30 in Lagos, before the day's traffic
+  workflow_dispatch:
+
+jobs:
+  search-console:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Search Console mirror (every sitemap address, hosts, robots, links)
+        run: node scripts/check-seo.mjs --live
+
+  web-vitals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # pnpm, never npm (owner's hard rule); Lighthouse is fetched by `pnpm dlx` at a pinned version.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Lighthouse, phone profile (layout shift fails over 0.1)
+        run: pnpm seo:lighthouse

@@ -448,7 +448,7 @@ export function MobileNavbar() {
                   variant={isActive("/vendor") ? "default" : "ghost"}
                   onClick={handleLinkClick}
                 >
-                  <Link href="/vendor">
+                  <Link href="/vendor/orders">
                     <IconBuildingStore size={18} className="mr-2" />{" "}
                     {t("mobileNav.vendorDashboard")}
                   </Link>
