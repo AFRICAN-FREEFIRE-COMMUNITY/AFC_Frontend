@@ -57,6 +57,8 @@ import { ProtectedRoute } from "../../_components/ProtectedRoute";
 import { InfoTip } from "@/components/ui/info-tip";
 import { UserSearchSelect } from "@/components/ui/user-search-select";
 import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
+// A refusal code from the server (team_name_needs_letter, ...) in the reader's language (#276).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -69,6 +71,7 @@ export default function CreateTeamForm() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const { confirmJoin, joinLockDialog } = useJoinLockConfirm();
+  const serverMessage = useServerMessage();
   const { user, token } = useAuth();
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
@@ -192,7 +195,7 @@ export default function CreateTeamForm() {
           toast.error(t("errors.signInAgain"));
           return;
         }
-        toast.error(error?.response?.data?.message || t("errors.internalServer"));
+        toast.error(serverMessage(error?.response?.data, t("errors.internalServer")));
 
         return;
       }

@@ -70,6 +70,22 @@ const safeNameSchema = (fieldKey: string, minLength: number = 2) =>
       message: vt("unsafeChars", { field: fieldLabel(fieldKey) }),
     });
 
+// A team name: the safe-name rules, plus at least one letter or number and not the name of a page
+// under /teams/ (inbox #276, 2026-10-16: production had teams called "." and "---", and a browser
+// folds /teams/. into /teams so that team had no page). Mirrors AFC-B afc_team/names.py
+// team_name_problem, which checks every alphabet for API callers; these forms only take plain
+// characters (SAFE_NAME_REGEX), so the letter check here is plain too. Used by CreateTeamFormSchema
+// below and EditTeamFormSchema (app/(user)/teams/[id]/edit/page.tsx).
+const RESERVED_TEAM_NAMES = ["create"];
+export const teamNameSchema = () =>
+  safeNameSchema("teamName", 2)
+    .refine((val) => !val || /[a-zA-Z0-9]/.test(val), {
+      message: vt("needsLetterOrNumber", { field: fieldLabel("teamName") }),
+    })
+    .refine((val) => !RESERVED_TEAM_NAMES.includes(val.trim().toLowerCase()), {
+      message: vt("teamNameReserved"),
+    });
+
 export const LoginFormSchema = z.object({
   ign_or_uid: z.string().min(2, {
     message: vt("uidMin"),
@@ -238,7 +254,7 @@ export const ContactFormSchema = z.object({
 });
 
 export const CreateTeamFormSchema = z.object({
-  team_name: safeNameSchema("teamName", 2),
+  team_name: teamNameSchema(),
   team_tag: z
     .string()
     .optional()
