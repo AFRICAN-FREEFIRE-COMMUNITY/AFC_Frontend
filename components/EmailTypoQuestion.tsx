@@ -17,6 +17,10 @@
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
+// How long a form waits for a fresh bot token before it stops re-sending by itself after an
+// answer. Turnstile normally hands a new token over in a second or two.
+export const TYPO_RESUBMIT_WAIT_MS = 6000;
+
 export function EmailTypoQuestion({
   suggestion,
   onUse,

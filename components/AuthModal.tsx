@@ -55,7 +55,7 @@ import { Progress } from "./ui/progress";
 // none, so every sign-up from the popup was refused (found 2026-10-16, inbox #273).
 import { BotCheck, botCheckEnabled, type BotCheckHandle } from "./BotCheck";
 // "Did you mean kofi@gmail.com?" when the server answers email_domain_typo (inbox #273).
-import { EmailTypoQuestion } from "./EmailTypoQuestion";
+import { EmailTypoQuestion, TYPO_RESUBMIT_WAIT_MS } from "./EmailTypoQuestion";
 // A server answer in the reader's language by its code (lib/i18n/serverMessage.ts).
 import { useServerMessage } from "@/lib/i18n/serverMessage";
 // Shared-chrome auth strings live in messages/en/common.json under "common".
@@ -447,7 +447,13 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
 
   // After an answer to the typo question, send again once a fresh bot token is in hand.
   useEffect(() => {
-    if (!resubmit || (botCheckEnabled() && !botToken)) return;
+    if (!resubmit) return;
+    if (botCheckEnabled() && !botToken) {
+      // No fresh token yet. If none comes (Cloudflare blocked or failing), stop waiting: the answer
+      // is already in the form, and the create button sends it.
+      const giveUp = window.setTimeout(() => setResubmit(false), TYPO_RESUBMIT_WAIT_MS);
+      return () => window.clearTimeout(giveUp);
+    }
     setResubmit(false);
     form.handleSubmit(onSubmit)();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- onSubmit is re-created each render; the trigger is the answer plus the token

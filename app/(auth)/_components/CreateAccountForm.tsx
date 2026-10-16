@@ -60,7 +60,7 @@ import {
 import { NewBadge } from "@/components/NewBadge";
 import { BotCheck, botCheckEnabled, type BotCheckHandle } from "@/components/BotCheck";
 // "Did you mean kofi@gmail.com?" when the server answers email_domain_typo (inbox #273).
-import { EmailTypoQuestion } from "@/components/EmailTypoQuestion";
+import { EmailTypoQuestion, TYPO_RESUBMIT_WAIT_MS } from "@/components/EmailTypoQuestion";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -248,7 +248,13 @@ export function CreateAccountForm() {
   // After an answer to the typo question, send again as soon as a fresh bot token is in hand
   // (at once where this environment has no bot check).
   useEffect(() => {
-    if (!resubmit || (botCheckEnabled() && !botToken)) return;
+    if (!resubmit) return;
+    if (botCheckEnabled() && !botToken) {
+      // No fresh token yet. If none comes (Cloudflare blocked or failing), stop waiting: the answer
+      // is already in the form, and the create button sends it.
+      const giveUp = window.setTimeout(() => setResubmit(false), TYPO_RESUBMIT_WAIT_MS);
+      return () => window.clearTimeout(giveUp);
+    }
     setResubmit(false);
     form.handleSubmit(onSubmit)();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- onSubmit is re-created each render; the trigger is the answer plus the token
