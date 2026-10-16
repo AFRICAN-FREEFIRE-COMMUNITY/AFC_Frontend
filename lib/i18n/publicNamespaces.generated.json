@@ -41,6 +41,7 @@
     "reminders",
     "root",
     "rules",
+    "serverMessages",
     "shop",
     "support",
     "supportPage",
@@ -51,6 +52,7 @@
     "tournaments",
     "transferWindow",
     "twoFactor",
+    "userSearch",
     "waivers"
   ]
 }
