@@ -1,0 +1,129 @@
+/* components/mail/composer.css
+   The email page inside the composer (inbox #288 #290): what the editor shows is drawn the way the
+   server sends it (afc_mail/document.py and content.py), from the campaign's style through the
+   --m-* variables set by components/mail/emailStyle.ts styleVars(). Everything is scoped to
+   .email-page so nothing here reaches the rest of the site. Filled surfaces only, no outlines, no
+   glow (owner's design rules); the only ring is the keyboard focus one. */
+
+.email-page {
+  background: var(--m-page);
+  border-radius: 10px;
+  padding: 16px;
+}
+@media (max-width: 640px) {
+  .email-page { padding: 8px; }
+}
+.email-page .email-sheet {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--m-mail);
+  color: var(--m-text);
+  font-family: var(--m-body);
+  font-size: var(--m-size);
+  line-height: 1.6;
+  border-radius: 8px;
+  padding: 28px 24px;
+  transition: max-width 0.15s;
+}
+.email-page.phone .email-sheet { max-width: 360px; }
+@media (max-width: 640px) {
+  .email-page .email-sheet { padding: 18px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .email-page .email-sheet { transition: none; }
+}
+.email-page .email-sheet:focus-within { box-shadow: 0 0 0 2px color-mix(in oklch, var(--primary) 55%, transparent); }
+.email-page .ProseMirror { outline: none; min-height: 280px; overflow-wrap: anywhere; }
+.email-page .ProseMirror p { margin: 0 0 12px; }
+.email-page .ProseMirror h1,
+.email-page .ProseMirror h2,
+.email-page .ProseMirror h3 {
+  color: var(--m-head);
+  font-family: var(--m-headfont);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0 0 12px;
+}
+.email-page .ProseMirror h1 { font-size: 28px; }
+.email-page .ProseMirror h2 { font-size: 22px; }
+.email-page .ProseMirror h3 { font-size: 18px; }
+.email-page .ProseMirror a { color: var(--m-link); text-decoration: underline; }
+.email-page .ProseMirror ol,
+.email-page .ProseMirror ul { margin: 0 0 14px; padding-left: 26px; }
+.email-page .ProseMirror ol { list-style-type: decimal; }
+.email-page .ProseMirror ul { list-style-type: disc; }
+.email-page .ProseMirror li { margin: 0 0 6px; }
+.email-page .ProseMirror li p { margin: 0; }
+.email-page .ProseMirror blockquote {
+  margin: 0 0 12px;
+  padding: 10px 14px 2px;
+  background: var(--m-quote);
+  border-radius: 6px;
+}
+.email-page .ProseMirror blockquote p { margin: 0 0 8px; }
+.email-page .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+/* pictures and buttons: picked whole, shown picked with a fill, never a ring */
+.email-page .email-pic { margin: 0 0 14px; cursor: pointer; }
+.email-page .email-pic img { display: inline-block; max-width: 100%; height: auto; border-radius: 6px; vertical-align: top; }
+.email-page .email-pic .email-pic-missing {
+  display: inline-block;
+  padding: 18px;
+  border-radius: 6px;
+  background: var(--m-quote);
+  color: var(--m-text);
+  font-size: 13px;
+}
+.email-page .email-pic.ProseMirror-selectednode img,
+.email-page .email-pic.ProseMirror-selectednode .email-pic-missing {
+  padding: 4px;
+  background: color-mix(in oklch, var(--primary) 50%, transparent);
+}
+.email-page .email-btn { margin: 2px 0 14px; cursor: pointer; }
+.email-page .email-btn .eb {
+  display: inline-block;
+  background: var(--m-btn);
+  color: var(--m-btnt);
+  font-family: var(--m-body);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 12px 22px;
+  border-radius: 8px;
+}
+.email-page .email-btn.ProseMirror-selectednode .eb { filter: brightness(0.85); text-decoration: underline; }
+.email-page .email-foot {
+  margin-top: 22px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--m-foot);
+}
+.email-page .email-foot u { text-decoration: underline; }
+.email-page iframe.email-design-frame {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border: 0;
+  border-radius: 8px;
+  background: var(--background);
+  min-height: 240px;
+}
+.email-page.phone iframe.email-design-frame { max-width: 360px; }
+
+/* the bottom of the window: kept on screen while the email scrolls, like Gmail's */
+.email-cfoot { box-shadow: 0 -8px 16px -12px rgb(0 0 0 / 0.5); }
+.email-fmt { scrollbar-width: none; }
+.email-fmt::-webkit-scrollbar { display: none; }
+
+/* the designed picture's board */
+.email-board { position: relative; width: 100%; border-radius: 8px; overflow: hidden; container-type: inline-size; touch-action: none; }
+.email-board .layer { position: absolute; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; line-height: 1; white-space: nowrap; border-radius: 4px; }
+.email-board .layer:active { cursor: grabbing; }
+.email-board .layer img { display: block; width: 100%; height: auto; pointer-events: none; }
+.email-board .layer.sel { background: color-mix(in oklch, var(--primary) 25%, transparent); }
+.email-board .layer:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

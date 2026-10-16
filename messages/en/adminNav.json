@@ -91,7 +91,10 @@
     "prize": "Prize",
     "overrides": "Overrides",
     "rankingsAudit": "Audit",
-    "helpLog": "Help log"
+    "helpLog": "Help log",
+    "emails": "Emails",
+    "newEmail": "New email"
   },
-  "waiting": "{count, plural, one {# waiting} other {# waiting}}"
+  "waiting": "{count, plural, one {# waiting} other {# waiting}}",
+  "emailNews": "Email news"
 }

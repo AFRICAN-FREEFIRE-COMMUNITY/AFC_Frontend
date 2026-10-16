@@ -20,6 +20,9 @@ import { TwoFactorSecurity } from "../_components/TwoFactorSecurity";
 // "Delete my account" (owner 2026-09-14, inbox #20) lives at the bottom of this page: it is
 // the account-level control next to the other account-level control, two-step sign-in.
 import { DeleteAccountCard } from "../_components/DeleteAccountCard";
+// "Email news" (inbox #259 #290): the player's yes or no to news from AFC by email; the target of
+// every unsubscribe page's "account settings" link (/profile/security#email-news).
+import { EmailNewsCard } from "@/components/mail/EmailNewsCard";
 
 import type { Metadata } from "next";
 
@@ -32,6 +35,7 @@ const page = () => {
     <ProtectedRoute>
       <AccountSecurityHeader />
       <TwoFactorSecurity />
+      <EmailNewsCard />
       <DeleteAccountCard />
     </ProtectedRoute>
   );

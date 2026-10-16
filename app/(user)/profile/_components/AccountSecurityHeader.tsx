@@ -23,6 +23,7 @@ export function AccountSecurityHeader() {
   const links = [
     { href: "#two-step", label: t("account.jumpTwoStep"), danger: false },
     { href: "#devices", label: t("account.jumpDevices"), danger: false },
+    { href: "#email-news", label: t("account.jumpEmailNews"), danger: false },
     { href: "#delete", label: t("account.jumpDelete"), danger: true },
   ];
   return (

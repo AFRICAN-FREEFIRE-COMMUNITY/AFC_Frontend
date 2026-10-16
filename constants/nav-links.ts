@@ -11,6 +11,7 @@ import {
   IconHelpCircle,
   IconHome,
   IconInfoCircle,
+  IconMail,
   IconMessage,
   IconRobot,
   IconNews,
@@ -317,6 +318,20 @@ export const adminNavSections: AdminNavSection[] = [
         slug: "/a/broadcasts",
         icon: IconMessage,
         allowedRoles: ["head_admin", "event_admin", "organizer_admin", "metrics_admin"],
+      },
+      // Email news (inbox #259 #290): AFC's own bulk email through Amazon SES, to people who said yes.
+      // Head admins only, as the mail/ admin API (afc_mail/views.py _require_head_admin).
+      {
+        label: "Email news",
+        navKey: "emailNews",
+        slug: "/a/email-news",
+        icon: IconMail,
+        allowedRoles: ["head_admin"],
+        newSince: "2026-10-17",
+        subs: [
+          { subKey: "emails", href: "/a/email-news" },
+          { subKey: "newEmail", href: "/a/email-news/new" },
+        ],
       },
       {
         label: "Referrals",

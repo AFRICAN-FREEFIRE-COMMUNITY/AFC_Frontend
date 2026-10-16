@@ -170,5 +170,6 @@
   "step.usedLast": "Used last time",
   "step.switching": "One moment",
   "step.switchToApp": "Use my authenticator app instead",
-  "step.switchToEmail": "Email me a code instead"
+  "step.switchToEmail": "Email me a code instead",
+  "account.jumpEmailNews": "Email news"
 }

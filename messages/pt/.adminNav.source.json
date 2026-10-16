@@ -87,5 +87,8 @@
   "sub.overrides": "Overrides",
   "sub.rankingsAudit": "Audit",
   "waiting": "{count, plural, one {# waiting} other {# waiting}}",
-  "sub.helpLog": "Help log"
+  "sub.helpLog": "Help log",
+  "emailNews": "Email news",
+  "sub.emails": "Emails",
+  "sub.newEmail": "New email"
 }

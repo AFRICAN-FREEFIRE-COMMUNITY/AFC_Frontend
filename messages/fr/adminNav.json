@@ -91,7 +91,10 @@
     "prize": "Gains",
     "overrides": "Ajustements manuels",
     "rankingsAudit": "Journal",
-    "helpLog": "Journal de l'aide"
+    "helpLog": "Journal de l'aide",
+    "emails": "E-mails",
+    "newEmail": "Nouvel e-mail"
   },
-  "waiting": "{count, plural, one {# en attente} other {# en attente}}"
+  "waiting": "{count, plural, one {# en attente} other {# en attente}}",
+  "emailNews": "Actualités par e-mail"
 }
