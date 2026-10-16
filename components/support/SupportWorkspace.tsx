@@ -45,6 +45,14 @@ export function SupportWorkspace({ aside }: { aside: ReactNode }) {
             subtitle={t("form.subtitle")}
             prefilledHint={t("form.prefilled")}
             accountPrefill={viewer.signedIn && user ? { name: user.full_name || user.in_game_name || "", email: user.email || "" } : null}
+            // Before anyone writes in about a UID on another account (owner 2026-10-16, inbox
+            // #265/#271): support cannot move a UID, the person the account came from can.
+            notice={
+              <div className="mb-6 rounded-lg bg-muted px-4 py-3.5">
+                <p className="text-sm font-medium">{t("uidNotice.title")}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("uidNotice.body")}</p>
+              </div>
+            }
           />
         </div>
         <div className="lg:col-span-3">{aside}</div>

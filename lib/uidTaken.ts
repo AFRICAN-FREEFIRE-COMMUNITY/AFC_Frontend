@@ -45,6 +45,12 @@ export function toastUidTaken(data: Refusal, tc: CommonT, open: (path: string) =
   const message = uidTakenMessage(data, tc);
   if (!message) return false;
   const page = holderPage(data);
-  toast.error(message, page ? { action: { label: tc("uidTaken.viewProfile"), onClick: () => open(page) } } : undefined);
+  toast.error(message, {
+    // The second line (owner 2026-10-16, inbox #265/#271): a UID already on another account is
+    // nearly always a bought or shared Free Fire account, and AFC support cannot move it, so say who
+    // can fix it: the person the account came from. Strings: common.accountSharing.takenLine.
+    description: tc("accountSharing.takenLine"),
+    ...(page ? { action: { label: tc("uidTaken.viewProfile"), onClick: () => open(page) } } : {}),
+  });
   return true;
 }

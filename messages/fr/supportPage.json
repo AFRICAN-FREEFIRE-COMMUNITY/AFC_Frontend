@@ -37,5 +37,9 @@
     "link": "Mes tickets d'assistance",
     "hint": "Chaque message envoyé à AFC, et chaque réponse."
   },
-  "menuWaiting": "{count, plural, one {# ticket en attente de votre réponse} other {# tickets en attente de votre réponse}}"
+  "menuWaiting": "{count, plural, one {# ticket en attente de votre réponse} other {# tickets en attente de votre réponse}}",
+  "uidNotice": {
+    "title": "Avant d'écrire au sujet d'un UID",
+    "body": "Le support AFC ne peut pas déplacer un UID Free Fire d'un compte AFC à un autre, ni aider pour des comptes achetés, vendus ou partagés. Contactez la personne qui vous a fourni le compte et demandez-lui de retirer l'UID de son profil AFC."
+  }
 }

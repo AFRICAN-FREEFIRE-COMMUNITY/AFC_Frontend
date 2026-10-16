@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+// Dated NEW tag on a newly added rule (constants/rules.ts `newSince`).
+import { NewBadge } from "@/components/NewBadge";
 import {
   Card,
   CardContent,
@@ -116,7 +118,12 @@ const RulesPage = () => {
                           className="px-6 last:border-0"
                         >
                           <AccordionTrigger className="hover:no-underline cursor-pointer hover:text-primary py-5 text-left font-semibold transition-all">
-                            {tRules(`categories.${section.id}.rules.${index}.title`)}
+                            <span>
+                              {tRules(`categories.${section.id}.rules.${index}.title`)}
+                              {"newSince" in _rule && _rule.newSince && (
+                                <NewBadge since={_rule.newSince} className="ml-2 align-middle" />
+                              )}
+                            </span>
                           </AccordionTrigger>
                           <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-8 whitespace-pre-line border-t pt-4">
                             {tRules(`categories.${section.id}.rules.${index}.content`)}

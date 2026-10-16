@@ -599,6 +599,8 @@ const Page = () => {
                       />
                     </FormControl>
                     {identityLockNote}
+                    {/* One Free Fire account, one AFC account (owner 2026-10-16, inbox #265/#271). */}
+                    <p className="text-xs text-muted-foreground">{tc("accountSharing.fieldNote")}</p>
                     <FormMessage />
                   </FormItem>
                 )}
