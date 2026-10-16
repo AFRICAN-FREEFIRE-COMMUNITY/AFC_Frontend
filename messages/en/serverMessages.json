@@ -11,5 +11,6 @@
   "reset_token_sent": "A password reset code has been sent to your email.",
   "reset_token_valid": "Code accepted.",
   "reset_token_resent": "A new password reset code has been sent to your email.",
-  "password_changed": "Password changed."
+  "password_changed": "Password changed.",
+  "email_invalid": "That email address does not look right. Please check it."
 }

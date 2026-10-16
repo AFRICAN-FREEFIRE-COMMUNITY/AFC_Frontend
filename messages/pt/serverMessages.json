@@ -11,5 +11,6 @@
   "reset_token_sent": "Foi enviado um código de reposição da palavra-passe para o seu e-mail.",
   "reset_token_valid": "Código aceite.",
   "reset_token_resent": "Foi enviado um novo código de reposição da palavra-passe para o seu e-mail.",
-  "password_changed": "Palavra-passe alterada."
+  "password_changed": "Palavra-passe alterada.",
+  "email_invalid": "Esse endereço de e-mail não parece correto. Verifique-o, por favor."
 }

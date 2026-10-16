@@ -122,5 +122,9 @@
   "login.accountDeleted": "This account was deleted by its owner. Contact support if you want it restored.",
   "register.whatsappTaken": "That WhatsApp number is already on another AFC account. Each number can belong to one account, like an email or an in-game name.",
   "login.tooManyAttempts": "Too many attempts from your connection. Wait a minute and try again.",
-  "register.tooManyAttempts": "Too many attempts from your connection. Wait a minute and try again."
+  "register.tooManyAttempts": "Too many attempts from your connection. Wait a minute and try again.",
+  "emailTypo.question": "Did you mean {suggestion}?",
+  "emailTypo.why": "A code sent to a mistyped address never arrives.",
+  "emailTypo.use": "Use {suggestion}",
+  "emailTypo.keep": "My address is right"
 }
