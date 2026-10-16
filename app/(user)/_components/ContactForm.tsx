@@ -55,9 +55,12 @@ type ContactFormProps = {
   className?: string;
   // Classes for the name / email / message fields (the /support page passes filled, no outline)
   fieldClassName?: string;
+  // Shown above the fields, before anyone writes in (the /support page passes the notice about
+  // bought and shared accounts, inbox #265/#271).
+  notice?: React.ReactNode;
 };
 
-export const ContactForm = ({ accountPrefill = null, subtitle, prefilledHint, className, fieldClassName }: ContactFormProps = {}) => {
+export const ContactForm = ({ accountPrefill = null, subtitle, prefilledHint, className, fieldClassName, notice }: ContactFormProps = {}) => {
   // Strings for the shared "Get in Touch" contact card + its success dialog
   // (namespace == messages/en/home.json).
   const t = useTranslations("home");
@@ -125,6 +128,7 @@ export const ContactForm = ({ accountPrefill = null, subtitle, prefilledHint, cl
           {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </CardHeader>
         <CardContent>
+          {notice}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField

@@ -46,6 +46,10 @@ export const AFC_RULES_DATA = [
       { citations: "[General Rules 2.1]" },
       { citations: "[Player Rules 3.4]" },
       { citations: "[Code of Conduct 2.3, Game Participation 3.2]" },
+      // "Accounts": one UID, one AFC account, one person; bought or shared accounts are settled with
+      // whoever the account came from (owner 2026-10-16, inbox #265/#271). `newSince` puts the dated
+      // NEW badge on its title (components/NewBadge.tsx), which hides itself five days later.
+      { citations: "[AFC account rule, 2026-10-16]", newSince: "2026-10-16" },
     ],
   },
   {

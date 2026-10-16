@@ -37,5 +37,9 @@
     "link": "My support tickets",
     "hint": "Every message you have sent AFC, and every reply."
   },
-  "menuWaiting": "{count, plural, one {# ticket waiting on you} other {# tickets waiting on you}}"
+  "menuWaiting": "{count, plural, one {# ticket waiting on you} other {# tickets waiting on you}}",
+  "uidNotice": {
+    "title": "Before you write about a UID",
+    "body": "AFC support cannot move a Free Fire UID from one AFC account to another, and cannot help with accounts that were bought, sold or shared. Contact the person you got the account from and ask them to remove the UID from their AFC profile."
+  }
 }

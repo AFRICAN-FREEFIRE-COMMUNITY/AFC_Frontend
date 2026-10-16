@@ -228,5 +228,9 @@
     "previous": "Précédent",
     "next": "Suivant",
     "showing": "{start}-{end} sur {total}"
+  },
+  "accountSharing": {
+    "fieldNote": "Un compte Free Fire, un compte AFC. Ne partagez pas votre compte. Si vous avez acheté ou reçu un compte Free Fire dont l'UID est déjà lié à un autre compte AFC, demandez au vendeur ou à la personne qui l'a partagé de le retirer de son profil : le support AFC ne peut pas déplacer un UID d'un compte à l'autre.",
+    "takenLine": "Compte acheté ou partagé ? Demandez à la personne qui vous l'a fourni de retirer l'UID de son profil AFC. Le support AFC ne peut pas le déplacer."
   }
 }

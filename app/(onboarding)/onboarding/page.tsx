@@ -251,6 +251,8 @@ export default function OnboardingPage() {
                 onChange={(e) => setUid(e.target.value)}
                 placeholder={t("steps.uid.placeholder")}
               />
+              {/* One Free Fire account, one AFC account (owner 2026-10-16, inbox #265/#271). */}
+              <p className="text-xs text-muted-foreground">{tc("accountSharing.fieldNote")}</p>
             </div>
           </div>
         )}

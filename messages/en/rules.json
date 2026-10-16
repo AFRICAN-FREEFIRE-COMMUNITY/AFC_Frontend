@@ -23,6 +23,10 @@
         "4": {
           "title": "Multiple Team Restriction",
           "content": "Players may not play for or contract with more than one team at a time. This applies to both tournament and scrim participation."
+        },
+        "5": {
+          "title": "Accounts",
+          "content": "Each Free Fire account (UID) belongs to one AFC account, and each AFC account to one person. Do not share, sell or buy accounts. If a UID you play on is already linked to another AFC account, settle it with the seller or the person who shared it; AFC support does not move UIDs between accounts."
         }
       }
     },

@@ -37,5 +37,9 @@
     "link": "Os meus pedidos de apoio",
     "hint": "Todas as mensagens que enviaste à AFC, e todas as respostas."
   },
-  "menuWaiting": "{count, plural, one {# pedido à espera da tua resposta} other {# pedidos à espera da tua resposta}}"
+  "menuWaiting": "{count, plural, one {# pedido à espera da tua resposta} other {# pedidos à espera da tua resposta}}",
+  "uidNotice": {
+    "title": "Antes de escrever sobre um UID",
+    "body": "O suporte da AFC não consegue mover um UID do Free Fire de uma conta AFC para outra, nem ajudar com contas compradas, vendidas ou partilhadas. Contacte a pessoa que lhe deu a conta e peça-lhe que retire o UID do perfil AFC dela."
+  }
 }
