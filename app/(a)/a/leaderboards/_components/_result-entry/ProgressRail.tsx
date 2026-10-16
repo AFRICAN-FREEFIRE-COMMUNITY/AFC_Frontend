@@ -47,8 +47,11 @@ export function ProgressRail({ teams, currentIndex, onJump }: Props) {
   const done = teams.filter(teamIsComplete).length;
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-baseline justify-between">
+    // w-full: the parent row is a flex container, and without it the rail shrank to its content, so
+    // "Team 1 of 12" and "3 of 12 entered" ran together ("Team 1 of 123 of 12 entered", seen on a
+    // 390 phone on 2026-10-16). Full width lets justify-between put them at the two ends.
+    <div className="w-full space-y-2">
+      <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm font-medium">
           {t("rail.teamOf", { current: Math.min(currentIndex + 1, teams.length), total: teams.length })}
         </span>
