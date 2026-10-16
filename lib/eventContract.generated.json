@@ -380,6 +380,13 @@
       "computed": false
     },
     {
+      "name": "timezone",
+      "source": "timezone",
+      "read": "public",
+      "write": "organizer",
+      "computed": false
+    },
+    {
       "name": "registration_opens_at",
       "source": "registration_opens_at",
       "read": "public",
@@ -503,13 +510,6 @@
       "source": "slug",
       "read": "player",
       "write": "nobody",
-      "computed": false
-    },
-    {
-      "name": "timezone",
-      "source": "timezone",
-      "read": "player",
-      "write": "organizer",
       "computed": false
     },
     {

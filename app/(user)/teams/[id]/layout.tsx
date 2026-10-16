@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 // Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
 // 404 (Team.DoesNotExist) → notFound() (real 404, no soft-404); "error" = transient
 // → keep the 200 fallback so a live team page is never deindexed on an API blip.
@@ -71,12 +72,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const team = result.status === "ok" ? result.data : null;
   followRename(team);
 
+  // The title says what the page is ("NEXIOM FLUX, Free Fire team"): a team and an organizer can
+  // share a name, and Search Console flagged the two pages for an identical title (2026-10-16).
+  // The organizer page says "tournament organizer" the same way. messages/<loc>/pageTitles.json.
+  const titles = await getTranslations("pageTitles");
+
   // Transient failure (not a confirmed 404) → branded fallback embed at 200.
   // Image is omitted here too: the sibling opengraph-image.tsx still renders a
   // branded card (it falls back to the team name), so it remains the single og:image.
   if (!team) {
     return buildEntityMetadata({
-      title: teamName,
+      title: titles("team", { name: teamName }),
       description: `View the ${teamName} Free Fire team on African Free Fire Community: roster, stats, and tournament history.`,
       path: teamPath(teamName),
       omitImage: true,
@@ -102,7 +108,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // rendered as a real <script type="application/ld+json"> in the layout body
   // below, so it lands in the initial HTML where Google/AI crawlers read it.
   return buildEntityMetadata({
-    title: team.team_name,
+    title: titles("team", { name: team.team_name }),
     description,
     path,
     // The sibling opengraph-image.tsx renders a branded 1200x630 card (logo +

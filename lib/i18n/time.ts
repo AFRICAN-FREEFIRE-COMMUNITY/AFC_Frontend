@@ -345,6 +345,30 @@ export function formatTimeInZone(
   }).format(date);
 }
 
+/**
+ * An event's start as the HOST sees it, with the zone named ("4:00 PM GMT+2" in English, "16:00 UTC+2"
+ * in French): for text that has no viewer timezone to convert into, such as a server-rendered page
+ * <title>. Gives "" unless all three of date, time and IANA zone are present (eight legacy events
+ * have no zone, and a time without one would read as the reader's own). First caller: the
+ * tournament page title, where same-day scrims share a name AND a date ("CTL TRAINING", 28 Aug,
+ * 16:00 and 22:00; Search Console 2026-10-16) and only the start time tells them apart.
+ */
+export function formatEventStartInHostZone(
+  dateStr: string | null | undefined,
+  timeStr: string | null | undefined,
+  tz: string | null | undefined,
+  locale: string,
+): string {
+  try {
+    const instant = zonedWallClockToInstant(dateStr, timeStr, tz);
+    if (!instant || !tz) return "";
+    return formatTimeInZone(instant, tz, { withZoneName: true, locale });
+  } catch {
+    // An IANA name the runtime does not know throws a RangeError; the title then keeps the date only.
+    return "";
+  }
+}
+
 // ── <input type="datetime-local"> in and out (owner rule R31: one timing model) ─────────────────
 // datetime-local holds "YYYY-MM-DDTHH:MM" with NO timezone: it is the viewer's own wall clock.
 // These two are the only crossing points between that and the ISO instants the API speaks.
