@@ -33,5 +33,7 @@
   "phoneInvalid": "Enter a valid phone number.",
   "addressRequired": "Address is required",
   "cityRequired": "City is required",
-  "stateRequired": "State is required"
+  "stateRequired": "State is required",
+  "needsLetterOrNumber": "{field} needs at least one letter or number.",
+  "teamNameReserved": "That name belongs to a page on AFC. Please choose another name."
 }

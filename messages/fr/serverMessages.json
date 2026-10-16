@@ -12,5 +12,7 @@
   "reset_token_valid": "Code accepté.",
   "reset_token_resent": "Un nouveau code de réinitialisation a été envoyé à votre adresse e-mail.",
   "password_changed": "Mot de passe modifié.",
+  "team_name_needs_letter": "Le nom d'une équipe doit contenir au moins une lettre ou un chiffre.",
+  "team_name_reserved": "Ce nom est celui d'une page d'AFC. Veuillez choisir un autre nom.",
   "email_invalid": "Cette adresse e-mail ne semble pas correcte. Veuillez la vérifier."
 }

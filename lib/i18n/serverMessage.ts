@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * lib/i18n/serverMessage.ts - a server SUCCESS answer, in the reader's language.
+ * lib/i18n/serverMessage.ts - a server answer (success or refusal), in the reader's language.
  *
  * WHY (inbox #257, owner 2026-10-16: "add them"). Sign-in, sign-up, verification, code resend and
  * event registration answer with an English sentence, and the pages toasted it as is, so the
@@ -14,7 +14,9 @@
  * and then to `fallback`, so nothing ever goes blank while the two halves ship.
  *
  * Callers: CreateAccountForm, LoginForm (password + two-step), ConfirmationForm (verify + resend),
- * tournaments/[slug]/register/success, EventDetailsWrapper (both registration paths).
+ * tournaments/[slug]/register/success, EventDetailsWrapper (both registration paths), and the
+ * create-team and edit-team forms for the team-name refusals (inbox #276: team_name_needs_letter,
+ * team_name_reserved from AFC-B afc_team/names.py).
  */
 import { useTranslations } from "next-intl";
 

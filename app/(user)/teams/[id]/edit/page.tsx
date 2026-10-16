@@ -48,9 +48,11 @@ import { PageHeader } from "@/components/PageHeader";
 import Image from "next/image";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
 import { readSegment, teamPath } from "@/lib/routes";
-
-// Regex pattern for safe names (blocks fancy unicode, emojis, etc.)
-const SAFE_NAME_REGEX = /^[a-zA-Z0-9\s_\-.'@]+$/;
+// One team-name rule for create and edit (safe characters, a letter or number, not a page's
+// name), with its messages in the reader's language (lib/zodSchemas.tsx, inbox #276).
+import { teamNameSchema } from "@/lib/zodSchemas";
+// A refusal code from the server (team_name_needs_letter, ...) in the reader's language.
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -62,13 +64,7 @@ const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
 //
 export const EditTeamFormSchema = z.object({
   team_id: z.string().min(1, { message: "Team id is required." }),
-  team_name: z
-    .string()
-    .min(2, { message: "Team name must be at least 2 characters." })
-    .refine((val) => !val || SAFE_NAME_REGEX.test(val), {
-      message:
-        "Team name can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @). Special characters like emojis or fancy unicode text are not allowed.",
-    }),
+  team_name: teamNameSchema(),
   // Optional short team handle (e.g. "AFC"). Letters and digits only, up to 5 chars. Mirrors
   // the backend rule in afc_team/views.py (_normalize_team_tag), which also feeds team search
   // and OCR name matching. Empty value is allowed (clears the tag).
@@ -110,6 +106,7 @@ export default function page({ params }: { params: Params }) {
   // i18n: team-specific feature keys (messages/en/team.json -> "statsVisibility").
   // Kept in a dedicated namespace so fr/pt translation is scoped cleanly.
   const tTeam = useTranslations("team");
+  const serverMessage = useServerMessage();
   const { id } = use(params);
   const decodedId = readSegment(id);
   const [pending, startTransition] = useTransition();
@@ -337,7 +334,7 @@ export default function page({ params }: { params: Params }) {
           toast.error(t("errors.generic"));
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || t("errors.internalServer"));
+        toast.error(serverMessage(error?.response?.data, t("errors.internalServer")));
       }
     });
   }

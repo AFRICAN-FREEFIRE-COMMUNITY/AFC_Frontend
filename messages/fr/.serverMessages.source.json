@@ -12,5 +12,7 @@
   "reset_token_valid": "Code accepted.",
   "reset_token_resent": "A new password reset code has been sent to your email.",
   "password_changed": "Password changed.",
+  "team_name_needs_letter": "A team name needs at least one letter or number.",
+  "team_name_reserved": "That name belongs to a page on AFC. Please choose another name.",
   "email_invalid": "That email address does not look right. Please check it."
 }

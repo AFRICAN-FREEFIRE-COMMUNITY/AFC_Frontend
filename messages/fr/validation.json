@@ -35,5 +35,7 @@
   "phoneInvalid": "Entrez un numéro de téléphone valide.",
   "addressRequired": "L'adresse est obligatoire",
   "cityRequired": "La ville est obligatoire",
-  "stateRequired": "Le champ « État » est obligatoire"
+  "stateRequired": "Le champ « État » est obligatoire",
+  "needsLetterOrNumber": "{field} doit contenir au moins une lettre ou un chiffre.",
+  "teamNameReserved": "Ce nom est celui d'une page d'AFC. Veuillez choisir un autre nom."
 }
