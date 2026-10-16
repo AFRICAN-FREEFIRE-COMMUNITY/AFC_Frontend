@@ -32,7 +32,15 @@
  * account, contact, the feedback dialog and the partner application.
  */
 
-import { useCallback, useEffect, useId, useRef } from "react";
+import { useCallback, useEffect, useId, useImperativeHandle, useRef, type Ref } from "react";
+
+/** What a form can do with the widget through `ref` (React 19 passes `ref` as a prop). */
+export type BotCheckHandle = {
+  /** Throw the current token away and get a fresh one. A token is good for ONE post: call this
+   *  after every refused submit, or the retry is refused as a bot (inbox #273, 2026-10-16: the
+   *  create-account form kept its used token, so a second try after "name taken" never passed). */
+  reset: () => void;
+};
 
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 const SCRIPT_ID = "cf-turnstile-script";
@@ -83,7 +91,9 @@ export function BotCheck({
   className,
   theme = "dark",
   appearance,
+  ref,
 }: {
+  ref?: Ref<BotCheckHandle>;
   onToken: (token: string) => void;
   className?: string;
   theme?: "dark" | "light" | "auto";
@@ -97,6 +107,25 @@ export function BotCheck({
   const siteKey = turnstileSiteKey();
 
   const handleToken = useCallback((token: string) => onToken(token), [onToken]);
+
+  // reset(): empty the form's token at once (so nothing posts the used one), then ask Turnstile for
+  // a new one, which arrives through the same callback. No widget (no site key): nothing to reset.
+  useImperativeHandle(
+    ref,
+    () => ({
+      reset: () => {
+        handleToken("");
+        if (widgetId.current && window.turnstile) {
+          try {
+            window.turnstile.reset(widgetId.current);
+          } catch {
+            // The widget was removed while the form was open; the next render makes a new one.
+          }
+        }
+      },
+    }),
+    [handleToken],
+  );
 
   useEffect(() => {
     if (!siteKey || !holder.current) return;

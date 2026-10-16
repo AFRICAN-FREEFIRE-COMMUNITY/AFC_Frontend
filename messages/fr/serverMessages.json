@@ -11,5 +11,6 @@
   "reset_token_sent": "Un code de réinitialisation a été envoyé à votre adresse e-mail.",
   "reset_token_valid": "Code accepté.",
   "reset_token_resent": "Un nouveau code de réinitialisation a été envoyé à votre adresse e-mail.",
-  "password_changed": "Mot de passe modifié."
+  "password_changed": "Mot de passe modifié.",
+  "email_invalid": "Cette adresse e-mail ne semble pas correcte. Veuillez la vérifier."
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useTransition } from "react";
+import React, { useEffect, useMemo, useRef, useState, useTransition } from "react";
 // Success answers in the reader's language, by the code the server sends (inbox #257).
 import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,7 +58,9 @@ import {
   PhoneInput,
 } from "@/components/PhoneNumberInput";
 import { NewBadge } from "@/components/NewBadge";
-import { BotCheck } from "@/components/BotCheck";
+import { BotCheck, botCheckEnabled, type BotCheckHandle } from "@/components/BotCheck";
+// "Did you mean kofi@gmail.com?" when the server answers email_domain_typo (inbox #273).
+import { EmailTypoQuestion } from "@/components/EmailTypoQuestion";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -179,6 +181,15 @@ export function CreateAccountForm() {
   const [isVisible, setIsVisible] = useState<boolean>(false);
   // The Cloudflare Turnstile token this form must send with its post (owner 2026-09-22).
   const [botToken, setBotToken] = useState("");
+  // A token is good for ONE post, so every refused submit resets the widget (BotCheckHandle).
+  const botRef = useRef<BotCheckHandle>(null);
+  // The email typo question (inbox #273): the address as typed and the server's correction;
+  // the address the person said is right (sent with email_domain_confirmed); and a submit
+  // waiting for the fresh bot token after they answer.
+  const [emailTypo, setEmailTypo] = useState<{ typed: string; suggestion: string } | null>(null);
+  const [confirmedEmail, setConfirmedEmail] = useState("");
+  const [resubmit, setResubmit] = useState(false);
+  const typedEmail = form.watch("email");
   const [isConfirmVisible, setConfirmIsVisible] = useState<boolean>(false);
   const toggleVisibility = () => setIsVisible((prevState) => !prevState);
   const toggleConfirmVisibility = () =>
@@ -234,6 +245,15 @@ export function CreateAccountForm() {
     }
   }, []);
 
+  // After an answer to the typo question, send again as soon as a fresh bot token is in hand
+  // (at once where this environment has no bot check).
+  useEffect(() => {
+    if (!resubmit || (botCheckEnabled() && !botToken)) return;
+    setResubmit(false);
+    form.handleSubmit(onSubmit)();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onSubmit is re-created each render; the trigger is the answer plus the token
+  }, [resubmit, botToken]);
+
   function onSubmit(data: RegisterFormSchemaType) {
     // The Zod resolver already checks data.acceptTerms, so we only need to proceed here.
     startTransition(async () => {
@@ -250,6 +270,8 @@ export function CreateAccountForm() {
           // body it always did. The backend stores it on UserProfile.whatsapp_number after
           // insisting on a country code (afc_auth.views.signup -> require_international).
           ...(data.whatsappNumber ? { whatsapp_number: data.whatsappNumber } : {}),
+          // The person answered "My address is right" for exactly this address (inbox #273).
+          ...(confirmedEmail && confirmedEmail === data.email ? { email_domain_confirmed: true } : {}),
           // The referral goes WITH the sign-up (inbox #53): the server stores it now, so confirming
           // the email on another phone still counts it. The click token links it to the invite visit.
           ...(referralCode.trim()
@@ -276,6 +298,22 @@ export function CreateAccountForm() {
         toast.success(serverMessage(response.data));
         router.push(`/email-confirmation?email=${data.email}`);
       } catch (error: any) {
+        // The bot token was spent on this post: get a new one so the next try can pass.
+        botRef.current?.reset();
+
+        // A likely typo in the email (inbox #273): ask, under the field, instead of refusing.
+        const errorData = error?.response?.data;
+        if (errorData?.code === "email_domain_typo" && errorData?.suggestion) {
+          setEmailTypo({ typed: data.email, suggestion: errorData.suggestion });
+          return;
+        }
+        if (errorData?.code === "email_invalid") {
+          const sentence = serverMessage(errorData, t("register.genericError"));
+          form.setError("email", { type: "server", message: sentence });
+          toast.error(sentence);
+          return;
+        }
+
         // The backend now returns friendly copy. New conflict responses use `message`
         // ("That in-game name is already taken.", "That email is already registered."),
         // while older validation responses use `error`. Read whichever is present.
@@ -383,6 +421,23 @@ export function CreateAccountForm() {
                 />
               </FormControl>
               <FormMessage />
+              {/* Shown only while the field still holds the address the server asked about. */}
+              {emailTypo && typedEmail === emailTypo.typed && (
+                <EmailTypoQuestion
+                  suggestion={emailTypo.suggestion}
+                  disabled={pending}
+                  onUse={() => {
+                    form.setValue("email", emailTypo.suggestion, { shouldValidate: true });
+                    setEmailTypo(null);
+                    setResubmit(true);
+                  }}
+                  onKeep={() => {
+                    setConfirmedEmail(emailTypo.typed);
+                    setEmailTypo(null);
+                    setResubmit(true);
+                  }}
+                />
+              )}
             </FormItem>
           )}
         />
@@ -632,7 +687,7 @@ export function CreateAccountForm() {
         />
 
         {/* Bot check (owner 2026-09-22). Renders nothing when this environment has no site key. */}
-        <BotCheck onToken={setBotToken} className="mb-3" />
+        <BotCheck ref={botRef} onToken={setBotToken} className="mb-3" />
 
         <Button
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
