@@ -721,7 +721,9 @@ const Page = ({ params }: { params: Params }) => {
                   />
                   <AvatarFallback>{teamDetails?.team_name[0]}</AvatarFallback>
                 </Avatar>
-                <div>
+                {/* min-w-0: a flex child may otherwise not shrink below its content, and the column
+                    beside the logo then pushed the page sideways on a phone (inbox #283). */}
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-xl md:text-3xl">
                       {teamDetails?.team_name}
