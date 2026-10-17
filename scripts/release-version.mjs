@@ -15,6 +15,9 @@
 //
 //   node release.mjs next [--repo DIR] [--kind patch|minor|major]   the next version and why
 //   node release.mjs verify vX.Y.Z [--repo DIR]                     exit 1 with the reason if wrong
+//        --published        the tag is already on the remote (CI on the tag's own run)
+//        --shared-optional  a sibling repo that cannot be read (private, no token in CI) is skipped
+//                           with a note instead of failing; the local push hook stays strict
 //   node release.mjs --self-test                                    prove both ways in throwaway repos
 //
 // CALLED BY: scripts/hook.mjs (blocks a wrong tag push), the versioning skill's release steps, and a
@@ -72,7 +75,7 @@ const tagsIn = (text) =>
 /** Every vX.Y.Z the product has: local tags, origin's, and each repo it shares the number with.
  *  `except` is left out of the LOCAL list only (a tag just created here and not pushed yet). A repo
  *  that cannot be read is an error: guessing low would let a wrong number through. */
-export function versions(repo, { except, published } = {}) {
+export function versions(repo, { except, published, sharedOptional, notes } = {}) {
   const found = new Set(tagsIn(git(repo, ['tag', '-l'])).filter((t) => t !== except));
   // --published (CI on the tag's own run): the tag is already on the remote; judge it as if it
   // were not there yet, against everything else.
@@ -85,7 +88,14 @@ export function versions(repo, { except, published } = {}) {
     try {
       out = git(repo, ['ls-remote', '--tags', r]);
     } catch (e) {
-      throw new Error(`cannot read the tags of ${r} (${String(e.stderr || e.message).trim().split('\n')[0]}); the next version cannot be known without them`);
+      const why = String(e.stderr || e.message).trim().split('\n')[0];
+      // --shared-optional (CI of a repo whose sibling is private): count without it and say so. The
+      // push hook on the owner's machine, which can read private repos, stays strict.
+      if (sharedOptional && r !== 'origin') {
+        notes?.push(`${r} could not be read (${why}); counted without its tags`);
+        continue;
+      }
+      throw new Error(`cannot read the tags of ${r} (${why}); the next version cannot be known without them`);
     }
     for (const t of tagsIn(out)) if (keep(t)) found.add(t);
   }
@@ -136,12 +146,12 @@ function changelogAt(repo, ref, file) {
 }
 
 /** null when `tag` is the right next release, else the reason, in plain words. */
-export function verify(repo, tag, { published = false } = {}) {
+export function verify(repo, tag, { published = false, sharedOptional = false, notes } = {}) {
   if (!TAG_RE.test(tag)) return `${tag} is not vMAJOR.MINOR.PATCH (three whole numbers, a lower-case v, no leading zeros)`;
   const v = parse(tag);
   let all;
   try {
-    all = versions(repo, { except: tag, published });
+    all = versions(repo, { except: tag, published, sharedOptional, notes });
   } catch (e) {
     return e.message;
   }
@@ -254,6 +264,10 @@ function selfTest() {
   expect('next: --kind major', next(site, 'major').version, (v) => v === 'v2.0.0');
   fs.writeFileSync(path.join(site, 'release.json'), JSON.stringify({ shareVersionWith: [path.join(root, 'missing')] }));
   expect('a shared repo that cannot be read refuses rather than guess', verify(site, 'v1.1.1'), (r) => /cannot read the tags/.test(r || ''));
+  log('## v1.0.1\n### Fixed\n- x');
+  const notes = [];
+  expect('--shared-optional counts without an unreadable sibling and passes', verify(site, 'v1.0.1', { sharedOptional: true, notes }), (r) => r === null);
+  expect('--shared-optional says which repo it could not read', notes.join(' '), (n) => /could not be read/.test(n));
 
   fs.rmSync(root, { recursive: true, force: true });
   fs.rmSync(origin, { recursive: true, force: true });
@@ -296,7 +310,9 @@ function main(argv) {
     }
   }
   if (cmd === 'verify' && arg) {
-    const why = verify(dir, arg, { published: argv.includes('--published') });
+    const notes = [];
+    const why = verify(dir, arg, { published: argv.includes('--published'), sharedOptional: argv.includes('--shared-optional'), notes });
+    for (const n of notes) console.log(`note: ${n}`);
     if (why) {
       console.error(`version rule R89: ${why}`);
       return 1;
