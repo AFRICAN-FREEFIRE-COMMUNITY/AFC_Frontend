@@ -21,6 +21,15 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+### Fixed
+- The contact form, the partner application and the feedback dialog get a fresh bot check after
+  each send, so a second try after a refusal (or a second contact message) is no longer refused as a
+  bot.
+
+### Internal
+- known-bugs `fe-botcheck-no-reset` fails a form whose bot check never swaps its spent token.
+- `scripts/release-version.mjs` says "already on AFC-B: the same release" once, not twice.
+
 ## v7.1.128 - 2026-10-17
 
 ### Fixed

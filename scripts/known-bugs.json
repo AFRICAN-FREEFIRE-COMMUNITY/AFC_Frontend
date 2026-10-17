@@ -291,6 +291,25 @@
           "why": "markUrl = sso/brand/logo/<size>.png, public brand file (afc_sso/brand.py brand_logo). Read 2026-10-09"
         }
       ]
+    },
+    {
+      "id": "fe-botcheck-no-reset",
+      "title": "A form with the bot check that never swaps its spent token",
+      "why": "A Cloudflare Turnstile token is good for ONE post. A form that keeps the token after a refused (or a successful) send posts the spent token next time, and the server refuses it as a bot (bot_check_failed): the person corrects the mistake, presses send again, and is told they look like a bot. BotCheck exposes reset() through its ref for exactly this, and HelpBot remounts it with a new key instead.",
+      "seen": [
+        "2026-10-16 create account and the popup's Register tab kept their used token, so a second try after \"name taken\" never passed (inbox #273, fixed in AFC_Frontend #108)",
+        "2026-10-17 the contact form, the partner application and the feedback dialog still kept theirs (inbox #310), found on the follow-up list after #273"
+      ],
+      "fix": "give the widget a ref (`const botRef = useRef<BotCheckHandle>(null)`, `<BotCheck ref={botRef} ... />`) and call `botRef.current?.reset()` after every refused send (and after a success when the form stays open); or remount it with a new `key`, as components/help/HelpBot.tsx does",
+      "kind": "regex",
+      "pattern": "<BotCheck\\s(?![^>]*\\b(?:ref|key)=)",
+      "ignoreLineRegex": "^\\s*(//|\\*|/\\*)",
+      "globs": [
+        "app/**/*.tsx",
+        "components/**/*.tsx"
+      ],
+      "fixture": "<BotCheck onToken={setBotToken} className=\"mb-3\" />",
+      "fixtureOk": "<BotCheck ref={botRef} onToken={setBotToken} className=\"mb-3\" />"
     }
   ]
 }
