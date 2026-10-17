@@ -40,6 +40,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0   # the design lint's CHANGED tier needs git to answer (see checks.yml)
+      # Version rule R89 (owner, 2026-10-17), on a tag run only: the tag must be exactly the next AFC
+      # version for the kind its CHANGELOG.md section declares, counted across this repo and AFC-B
+      # (release.json). --published because the tag is already on GitHub when this runs. A wrongly
+      # labelled tag turns this run red; the master push of the same commit has already deployed it.
+      - name: Version tag follows rule R89 (tag runs only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: node scripts/release-version.mjs verify "$GITHUB_REF_NAME" --published
       # First, before any build minute is spent: the registry of bugs this codebase has produced
       # more than once (scripts/known-bugs.json). A hit here means nothing deploys.
       - name: Every checker (known-bugs, check-datetime, the debt ledger)
