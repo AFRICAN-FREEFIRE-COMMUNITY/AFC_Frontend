@@ -347,6 +347,7 @@
     "mail_no_recipients": "Ninguém dos escolhidos aceitou ainda as novidades por e-mail, por isso não há a quem enviar.",
     "mail_admin_no_email": "A sua conta não tem endereço de e-mail, por isso o teste não tem para onde ir.",
     "mail_test_refused": "O servidor de e-mail recusou o teste. Tente novamente daqui a um minuto.",
+    "mail_not_set_up": "O envio de e-mails ainda não está configurado no servidor. Rascunhos, modelos e pré-visualizações funcionam; o envio aguarda a configuração do Amazon SES.",
     "mail_doc_invalid": "Não foi possível ler o e-mail. Copie o seu texto, comece de novo e cole-o.",
     "mail_doc_too_big": "O e-mail é demasiado longo. Encurte-o ou divida-o em dois e-mails.",
     "mail_doc_too_deep": "O e-mail tem listas dentro de listas com demasiados níveis. Simplifique-o.",
