@@ -21,6 +21,16 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+## v7.1.128 - 2026-10-17
+
+### Fixed
+- When the server refuses something (a payment that cannot start, a payout, the Help assistant being
+  offline, a screenshot that cannot be read, an email news test send), the screen now shows the real
+  reason instead of "Something went wrong" (AFC-B #134).
+- An email news test send that Amazon SES refuses says why: the SMTP user is not allowed to send, an
+  address is not verified while in the sandbox, sending is limited, or the SMTP login was refused
+  (AFC-B #134, AFC_Frontend #113).
+
 ### Internal
 - Releases follow rule R89: this changelog, `release.json` (one number with AFC-B), and the tag
   workflow checks a version tag before it builds (`scripts/release-version.mjs`).

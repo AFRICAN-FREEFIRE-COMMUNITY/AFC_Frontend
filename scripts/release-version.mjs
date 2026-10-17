@@ -97,7 +97,16 @@ export function versions(repo, { except, published, sharedOptional, notes } = {}
       }
       throw new Error(`cannot read the tags of ${r} (${why}); the next version cannot be known without them`);
     }
-    for (const t of tagsIn(out)) if (keep(t)) found.add(t);
+    for (const t of tagsIn(out)) {
+      // One product number across repos: the SAME number already in a sibling repo is the same
+      // release (the server tagged first, then the website), not a clash. It is left out of the
+      // count so the bump is judged from the release before it. In this repo or its origin it is.
+      if (r !== 'origin' && t === except) {
+        notes?.push(`${t} is already on ${r}: the same release, tagged there first`);
+        continue;
+      }
+      if (keep(t)) found.add(t);
+    }
   }
   return [...found].map(parse).sort(cmp);
 }
@@ -240,7 +249,12 @@ function selfTest() {
   expect('two numbers refused', verify(site, 'v1.2'), (r) => /not vMAJOR\.MINOR\.PATCH/.test(r || ''));
   expect('four numbers refused', verify(site, 'v1.2.0.1'), (r) => /not vMAJOR\.MINOR\.PATCH/.test(r || ''));
   expect('leading zero refused', verify(site, 'v1.02.0'), (r) => /not vMAJOR\.MINOR\.PATCH/.test(r || ''));
-  expect('an existing tag (on the server) is refused', verify(site, 'v1.1.0'), (r) => /already exists/.test(r || ''));
+  // One product number: the server already has v1.1.0; the website tagging the SAME release passes,
+  // judged from the release before it (v1.0.0), and says so.
+  const sibNotes = [];
+  log('## v1.1.0\n### Added\n- a page');
+  expect('the same number already on a sibling repo is the same release and passes', verify(site, 'v1.1.0', { notes: sibNotes }), (r) => r === null);
+  expect('and it says the sibling tagged it first', sibNotes.join(' '), (n) => /already on .*same release/.test(n));
   log('## v1.1.1\n### Tweaked\n- x');
   expect('an unknown heading is refused', verify(site, 'v1.1.1'), (r) => /uses Tweaked/.test(r || ''));
   log('## v1.1.1\n### Fixed\n');
@@ -254,6 +268,7 @@ function selfTest() {
   g(site, 'remote', 'add', 'origin', origin);
   g(site, 'push', '-q', 'origin', 'v1.0.0', 'v1.1.1');
   expect('a pushed tag is "already exists" when judged before a push', verify(site, 'v1.1.1'), (r) => /already exists/.test(r || ''));
+  expect('an older tag of this repo (on its origin) is refused as existing', verify(site, 'v1.0.0'), (r) => /already exists/.test(r || ''));
   expect('the same pushed tag passes with --published (CI on its own run)', verify(site, 'v1.1.1', { published: true }), (r) => r === null);
   g(site, 'tag', '-d', 'v1.1.1');
   g(site, 'push', '-q', 'origin', ':refs/tags/v1.1.1');
