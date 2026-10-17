@@ -7,6 +7,7 @@ import { HomeBoxes } from "../_components/HomeBoxes";
 // with an expiry, so it takes itself down; there is no second publishing surface. Renders nothing
 // when none are live. See _components/HomeNotices.tsx.
 import { HomeNotices } from "../_components/HomeNotices";
+import { EmailNewsPrompt } from "@/components/mail/EmailNewsPrompt";
 // Two compact blocks (latest events + latest player-market posts) added below the
 // stat boxes per the approved home-additions mockup.
 import { HomeLatestSections } from "../_components/HomeLatestSections";
@@ -39,6 +40,8 @@ export default function HomePage() {
           fold is not an announcement. The block is absent entirely when nothing is pinned, so the
           page is unchanged on a quiet week. */}
       <HomeNotices />
+      {/* "Want AFC news by email?" asked once, until the player answers (inbox #259 #290). */}
+      <EmailNewsPrompt />
       {/* data-tour anchor (home-boxes): guided-tour "Home" stop points here at the quick-stat
           boxes so a new player sees where their at-a-glance numbers live. */}
       <div data-tour="home-boxes">

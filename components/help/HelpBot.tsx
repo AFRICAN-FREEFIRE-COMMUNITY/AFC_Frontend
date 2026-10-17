@@ -565,7 +565,8 @@ function HelpBotPanel() {
         aria-controls="afc-help-panel"
         aria-label={open ? t("buttonCloseAria") : t("buttonAria")}
         className={cn(
-          "fixed right-4 bottom-4 z-50 inline-flex h-11 items-center gap-2 rounded-full px-[18px] text-sm font-bold sm:right-5 sm:bottom-5",
+          // afc-help-fab: a page with its own bottom bar can step it aside on a phone (components/mail/composer.css)
+          "afc-help-fab fixed right-4 bottom-4 z-50 inline-flex h-11 items-center gap-2 rounded-full px-[18px] text-sm font-bold sm:right-5 sm:bottom-5",
           "bg-primary text-primary-foreground shadow-[0_6px_18px_rgba(0,0,0,0.35)] hover:bg-primary/90",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
           // On a phone the open panel fills the screen and has its own close button.

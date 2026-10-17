@@ -199,6 +199,7 @@
     "jumpTwoStep": "Connexion en deux étapes",
     "jumpDevices": "Vos appareils",
     "jumpDelete": "Supprimer mon compte",
-    "deleteLink": "Supprimer mon compte"
+    "deleteLink": "Supprimer mon compte",
+    "jumpEmailNews": "Actualités par e-mail"
   }
 }

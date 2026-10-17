@@ -91,7 +91,10 @@
     "prize": "Prémios",
     "overrides": "Ajustes manuais",
     "rankingsAudit": "Registo",
-    "helpLog": "Registo da ajuda"
+    "helpLog": "Registo da ajuda",
+    "emails": "E-mails",
+    "newEmail": "Novo e-mail"
   },
-  "waiting": "{count, plural, one {# pendente} other {# pendentes}}"
+  "waiting": "{count, plural, one {# pendente} other {# pendentes}}",
+  "emailNews": "Novidades por e-mail"
 }
