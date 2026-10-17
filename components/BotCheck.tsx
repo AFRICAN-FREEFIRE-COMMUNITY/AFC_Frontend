@@ -19,17 +19,22 @@
  * HOW A FORM USES IT
  * ------------------
  *     const [botToken, setBotToken] = useState("");
+ *     const botRef = useRef<BotCheckHandle>(null);
  *     ...
- *     <BotCheck onToken={setBotToken} />
+ *     <BotCheck ref={botRef} onToken={setBotToken} />
  *     ...
  *     body: { ...fields, cf_turnstile_response: botToken }
+ *     ...
+ *     catch { botRef.current?.reset(); ... }   // after EVERY refused send
  *
  * The field name is what the backend reads (bot_protection.TOKEN_FIELDS). A token is single use and
- * expires after about five minutes, so `reset()` is exposed through the ref for a form that stays
- * open after a failed submit.
+ * expires after about five minutes, so `reset()` is exposed through the ref. A form that keeps a
+ * spent token is refused as a bot on its next send: the known-bugs catcher fe-botcheck-no-reset
+ * fails any `<BotCheck` with neither a `ref` nor a `key` (HelpBot remounts it with a new key).
  *
- * CONNECTS TO: afc_auth/bot_protection.py (the verifier), and the four forms it guards: create
- * account, contact, the feedback dialog and the partner application.
+ * CONNECTS TO: afc_auth/bot_protection.py (the verifier), and the forms it guards: create account
+ * (the page and the popup's Register tab), contact, the feedback dialog, the partner application,
+ * and the Help panel for a signed-out visitor.
  */
 
 import { useCallback, useEffect, useId, useImperativeHandle, useRef, type Ref } from "react";

@@ -32,7 +32,7 @@
  *   star row uses 44px touch targets, and the footer buttons stack full-width below sm.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import axios from "axios";
@@ -61,7 +61,7 @@ import { Loader } from "@/components/Loader";
 import { IconStar, IconStarFilled, IconCheck } from "@tabler/icons-react";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
-import { BotCheck } from "@/components/BotCheck";
+import { BotCheck, type BotCheckHandle } from "@/components/BotCheck";
 
 /** One question, exactly as afc_feedback/views.py::_serialize_field returns it. */
 interface FeedbackFieldSchema {
@@ -103,6 +103,8 @@ export function FeedbackDialog({
 
   const [schema, setSchema] = useState<FeedbackFormSchema | null>(null);
   const [botToken, setBotToken] = useState("");
+  // The widget itself, so a refused send can be retried with a fresh token.
+  const botRef = useRef<BotCheckHandle>(null);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const [answers, setAnswers] = useState<Record<string, AnswerValue>>({});
@@ -219,6 +221,9 @@ export function FeedbackDialog({
         tx("thankYou", res?.data?.thank_you_message || t("dialog.thankYouDefault")),
       );
     } catch (err: any) {
+      // The token was spent on this post: get a fresh one so the retry can pass the bot check
+      // (inbox #310, as sign-up and the popup do since #273).
+      botRef.current?.reset();
       // A 429 carries the rate limiter's own sentence, which says when sending reopens. Prefer it.
       toast.error(err?.response?.data?.message || t("dialog.errorGeneric"));
     } finally {
@@ -389,7 +394,7 @@ export function FeedbackDialog({
             )}
 
             {/* Bot check (owner 2026-09-22): nothing renders without a site key. */}
-            <BotCheck onToken={setBotToken} className="mt-2" />
+            <BotCheck ref={botRef} onToken={setBotToken} className="mt-2" />
 
             <DialogFooter className="gap-2 sm:gap-0">
               <Button

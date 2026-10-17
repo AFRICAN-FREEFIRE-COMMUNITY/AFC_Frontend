@@ -33,7 +33,7 @@
  * follow-up pages are ./status and ./credentials.
  */
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -81,7 +81,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { env } from "@/lib/env";
 import { getErrorMessage } from "@/lib/http";
 import { submitApplication } from "@/lib/partnerApply";
-import { BotCheck } from "@/components/BotCheck";
+import { BotCheck, type BotCheckHandle } from "@/components/BotCheck";
 import { cn } from "@/lib/utils";
 
 /** The Data API option's first day back on the form. Its NEW tag expires five days later. */
@@ -149,6 +149,8 @@ export function PartnerApplyForm() {
   const [form, setForm] = useState<FormState>(EMPTY);
   // The Cloudflare Turnstile token this form must send with its post (owner 2026-09-22).
   const [botToken, setBotToken] = useState("");
+  // The widget itself, so a refused application can be retried with a fresh token.
+  const botRef = useRef<BotCheckHandle>(null);
   const [logo, setLogo] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   // Set once the application lands. The form is replaced by the reference rather than reset, so
@@ -201,6 +203,9 @@ export function PartnerApplyForm() {
       // which nearly always means a double-clicked button.
       toast.success(result.already_pending ? t("form.alreadyPending") : t("form.sent"));
     } catch (err) {
+      // The token was spent on this post, refused or not: get a fresh one so the corrected
+      // application can pass the bot check (inbox #310, as sign-up and the popup do since #273).
+      botRef.current?.reset();
       // The server's message names the offending value ("Redirect URI '...' contains '*'"), so it
       // is shown as-is rather than replaced with something vaguer.
       toast.error(getErrorMessage(err, t("form.errors.generic")));
@@ -510,7 +515,7 @@ export function PartnerApplyForm() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">{t("form.footnote")}</p>
               {/* Bot check (owner 2026-09-22): nothing renders without a site key. */}
-              <BotCheck onToken={setBotToken} />
+              <BotCheck ref={botRef} onToken={setBotToken} />
               <Button type="submit" disabled={submitting} className="sm:w-auto">
                 {submitting ? t("form.sending") : t("form.submit")}
               </Button>
