@@ -21,6 +21,8 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+## v7.1.129 - 2026-10-18
+
 ### Fixed
 - The contact form, the partner application and the feedback dialog get a fresh bot check after
   each send, so a second try after a refusal (or a second contact message) is no longer refused as a
