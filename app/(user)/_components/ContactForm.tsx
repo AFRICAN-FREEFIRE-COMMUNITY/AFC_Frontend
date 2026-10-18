@@ -41,7 +41,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { BotCheck } from "@/components/BotCheck";
+import { BotCheck, type BotCheckHandle } from "@/components/BotCheck";
 import { cn } from "@/lib/utils";
 
 // Used by the /support page (app/(user)/support/page.tsx via components/support/SupportPageBody.tsx;
@@ -67,6 +67,8 @@ export const ContactForm = ({ accountPrefill = null, subtitle, prefilledHint, cl
   const [openModal, setOpenModal] = useState<boolean>(false);
   // The Cloudflare Turnstile token this form must send with its post (owner 2026-09-22).
   const [botToken, setBotToken] = useState("");
+  // The widget itself, so a spent token can be swapped for a fresh one after each send.
+  const botRef = React.useRef<BotCheckHandle>(null);
   // What the desk answered: the number the person quotes back at us, and the address of their own
   // ticket page. Shown in the success dialog so they leave with both.
   const [ticket, setTicket] = useState<{ number: string; url: string } | null>(null);
@@ -117,6 +119,11 @@ export const ContactForm = ({ accountPrefill = null, subtitle, prefilledHint, cl
           error?.response?.data?.message || t("contactForm.toast.serverError"),
         );
         return;
+      } finally {
+        // A Turnstile token is good for ONE post, sent or refused. The form stays open either way
+        // (a retry, or a second message after the dialog), so it gets a fresh token now, or that
+        // post is refused as a bot (inbox #310, as sign-up and the popup do since #273).
+        botRef.current?.reset();
       }
     });
   }
@@ -233,7 +240,7 @@ export const ContactForm = ({ accountPrefill = null, subtitle, prefilledHint, cl
                 )}
               </div>
               {/* Bot check (owner 2026-09-22): nothing renders without a site key. */}
-              <BotCheck onToken={setBotToken} className="mb-3" />
+              <BotCheck ref={botRef} onToken={setBotToken} className="mb-3" />
               <Button disabled={pending} type="submit" className="w-full">
                 {pending ? (
                   <Loader text={t("contactForm.sending")} />

@@ -97,7 +97,9 @@ export function versions(repo, { except, published, sharedOptional, notes } = {}
       }
       throw new Error(`cannot read the tags of ${r} (${why}); the next version cannot be known without them`);
     }
-    for (const t of tagsIn(out)) {
+    // A Set: ls-remote lists an annotated tag twice (the tag and its peeled ^{}), which tagsIn
+    // folds to the same name; each name is judged, and noted, once.
+    for (const t of new Set(tagsIn(out))) {
       // One product number across repos: the SAME number already in a sibling repo is the same
       // release (the server tagged first, then the website), not a clash. It is left out of the
       // count so the bump is judged from the release before it. In this repo or its origin it is.
@@ -225,7 +227,8 @@ function selfTest() {
   const site = mk('site');
   const server = mk('server');
   commit(server, { 'a.txt': '1' });
-  g(server, 'tag', 'v1.1.0');
+  // Annotated, as real release tags are: ls-remote then lists it twice (the tag and its ^{}).
+  g(server, 'tag', '-a', 'v1.1.0', '-m', 'v1.1.0');
   commit(site, { 'release.json': JSON.stringify({ shareVersionWith: [server] }), 'CHANGELOG.md': '# Changelog\n' });
   g(site, 'tag', 'v1.0.0');
 
@@ -255,6 +258,7 @@ function selfTest() {
   log('## v1.1.0\n### Added\n- a page');
   expect('the same number already on a sibling repo is the same release and passes', verify(site, 'v1.1.0', { notes: sibNotes }), (r) => r === null);
   expect('and it says the sibling tagged it first', sibNotes.join(' '), (n) => /already on .*same release/.test(n));
+  expect('and says it once, though ls-remote lists an annotated tag twice', sibNotes.length, (n) => n === 1);
   log('## v1.1.1\n### Tweaked\n- x');
   expect('an unknown heading is refused', verify(site, 'v1.1.1'), (r) => /uses Tweaked/.test(r || ''));
   log('## v1.1.1\n### Fixed\n');
