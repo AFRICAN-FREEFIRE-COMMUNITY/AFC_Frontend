@@ -1,6 +1,6 @@
 import axios from "axios";
 import { env } from "@/lib/env";
-import { authHeaders } from "@/lib/http";
+import { authHeaders, optionalAuthHeaders } from "@/lib/http";
 
 /**
  * Typed client for the AFC poll engine (backend app `afc_polls`, URL prefix `polls/`).
@@ -34,8 +34,14 @@ const BASE = env.NEXT_PUBLIC_BACKEND_API_URL;
 
 const url = (path: string) => `${BASE}/polls/${path}`;
 
+// Reads are PUBLIC (rule R25): the awards hall of fame, a season and a poll page answer a signed-out
+// visitor too, and simply say more when somebody is signed in. So a GET sends the token only when
+// there is one. authHeaders() THROWS for a signed-out visitor before the request leaves, which until
+// 2026-10-19 made /awards/<season> and /polls/<slug> say "could not be found" to everyone signed out
+// (inbox #322; same class as the event pages on 2026-09-12). Admin reads still need a session: the
+// server refuses them without one. Writes keep authHeaders(): voting needs an account.
 async function aGet<T = any>(path: string, params?: Record<string, any>): Promise<T> {
-  return (await axios.get(url(path), { params, headers: authHeaders() })).data;
+  return (await axios.get(url(path), { params, headers: optionalAuthHeaders() })).data;
 }
 async function aPost<T = any>(path: string, body?: any): Promise<T> {
   return (await axios.post(url(path), body ?? {}, { headers: authHeaders() })).data;

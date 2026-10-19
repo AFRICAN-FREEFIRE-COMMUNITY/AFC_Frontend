@@ -21,6 +21,16 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+### Fixed
+- The awards hall of fame (`/awards/<season>`) and the poll pages open for visitors who are not
+  signed in. They said "This awards season could not be found" to everybody signed out, because the
+  page gave up before asking the server.
+
+### Internal
+- New known-bug catcher `fe-public-read-authheaders`: a client's shared read helper that demands a
+  session fails the build. The ten admin-only clients that legitimately do are listed with the
+  reason, and a listed file that stops matching fails too.
+
 ## v7.1.129 - 2026-10-18
 
 ### Fixed
