@@ -310,6 +310,67 @@
       ],
       "fixture": "<BotCheck onToken={setBotToken} className=\"mb-3\" />",
       "fixtureOk": "<BotCheck ref={botRef} onToken={setBotToken} className=\"mb-3\" />"
+    },
+    {
+      "id": "fe-public-read-authheaders",
+      "title": "A client's shared GET helper sends authHeaders(), so its public pages break for signed-out visitors",
+      "why": "authHeaders() THROWS SessionExpiredError when there is no token, before the request leaves. A lib client whose one GET helper calls it turns every public read through that client into a failure for a signed-out visitor: the page catches it and says the thing could not be found. Reads that are public use optionalAuthHeaders(), which sends the token only when there is one.",
+      "seen": [
+        "2026-09-12 event pages: an event's rating, group draw and sponsors reads called authHeaders(); every signed-out visitor got the Session expired modal (optionalAuthHeaders() added for it)",
+        "2026-10-19 lib/polls.ts aGet: /awards/<season> and /polls/<slug> said \"This awards season could not be found\" to everyone signed out, no request ever sent (inbox #322)"
+      ],
+      "fix": "use optionalAuthHeaders() in the shared GET helper (lib/http.ts); keep authHeaders() for writes and for helpers only signed-in screens call",
+      "kind": "regex",
+      "pattern": "axios\\.get\\(url\\(path\\)[^\\n]*headers:\\s*authHeaders\\(\\)",
+      "ignoreLineRegex": "^\\s*(//|\\*|/\\*)",
+      "globs": [
+        "lib/**/*.ts",
+        "lib/*.ts"
+      ],
+      "fixture": "  return (await axios.get(url(path), { params, headers: authHeaders() })).data;",
+      "fixtureOk": "  return (await axios.get(url(path), { params, headers: optionalAuthHeaders() })).data;",
+      "allow": [
+        {
+          "file": "lib/api/eventPayments.ts",
+          "why": "registration payment start and verify, called only by a signed-in player on the event page and the success page. Read 2026-10-19"
+        },
+        {
+          "file": "lib/api/ocr.ts",
+          "why": "screenshot reading for admins and organizers only (app/(a), app/(organizer)). Read 2026-10-19"
+        },
+        {
+          "file": "lib/api/ocrModel.ts",
+          "why": "the OCR model screen, admin only. Read 2026-10-19"
+        },
+        {
+          "file": "lib/marketplaceAdmin.ts",
+          "why": "admin marketplace screens only. Read 2026-10-19"
+        },
+        {
+          "file": "lib/organizers.ts",
+          "why": "aGet serves organizer and admin screens; the public reads use pGet (getOrganizationPublic, getOrganizationsDirectory) or optionalAuthHeaders (getEventRating). Read 2026-10-19"
+        },
+        {
+          "file": "lib/partners.ts",
+          "why": "admin partner screens only. Read 2026-10-19"
+        },
+        {
+          "file": "lib/playerMarket.ts",
+          "why": "admin market screens; the one member import (MarketReportDialog) only posts a report, signed in. Read 2026-10-19"
+        },
+        {
+          "file": "lib/rankingsAdmin.ts",
+          "why": "admin rankings tools only. Read 2026-10-19"
+        },
+        {
+          "file": "lib/sso.ts",
+          "why": "admin SSO client screens only. Read 2026-10-19"
+        },
+        {
+          "file": "lib/standaloneLeaderboards.ts",
+          "why": "admin standalone leaderboard editor only. Read 2026-10-19"
+        }
+      ]
     }
   ]
 }
