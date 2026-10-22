@@ -21,6 +21,8 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+## v7.3.0 - 2026-10-22
+
 ### Added
 - OCR reviews say when a player was "Remembered from your earlier reviews", and when a suggestion is
   held back because "You turned this player down for this name before". The standalone leaderboard
