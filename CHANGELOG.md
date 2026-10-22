@@ -21,6 +21,18 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+### Added
+- OCR reviews say when a player was "Remembered from your earlier reviews", and when a suggestion is
+  held back because "You turned this player down for this name before". The standalone leaderboard
+  review sends each player's decision back so the memory learns from it. In English, French and
+  Portuguese (#334, #335).
+- The screenshot batch shows each waiting map's place in line and the expected wait, e.g. "Waiting in
+  line: 1 of your maps ahead, about 9 seconds" (#334).
+
+### Fixed
+- In the screenshot batch on a phone, each map's status and remove button were pushed off the card by
+  the map picker.
+
 ## v7.2.0 - 2026-10-22
 
 ### Added

@@ -334,5 +334,9 @@
   "engine.local": "On-site reader",
   "engine.localCheck": "On-site reader: check every row",
   "engine.ai": "AI: {engine}",
-  "engine.checkNotice": "The on-site reader was not sure about this screenshot and no AI key could read it. Check every name, kill count and placement against the screenshot before you save."
+  "engine.checkNotice": "The on-site reader was not sure about this screenshot and no AI key could read it. Check every name, kill count and placement against the screenshot before you save.",
+  "memory.remembered": "Remembered from your earlier reviews",
+  "whyNot.rejected_before": "You turned this player down for this name before, so they were not picked again. Pick them yourself if it is them.",
+  "stdBatch.queueSeconds": "Waiting in line: {ahead, plural, =0 {next up} one {# of your maps ahead} other {# of your maps ahead}}, about {seconds, number} seconds.",
+  "stdBatch.queueMinutes": "Waiting in line: {ahead, plural, =0 {next up} one {# of your maps ahead} other {# of your maps ahead}}, about {minutes, plural, one {# minute} other {# minutes}}."
 }
