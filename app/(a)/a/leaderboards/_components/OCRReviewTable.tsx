@@ -98,6 +98,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { OcrCheckNotice, OcrEngineBadge } from "./OcrEngineNote";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -687,23 +688,26 @@ export function OCRReviewTable({
   }
 
   return (
-    <Card className="gap-0">
+    // min-w-0: the review dialogs host this card as a GRID item, and a grid item grows to its widest
+    // child by default, so on a phone the table pushed the whole card past the screen edge and cut
+    // its right side off (seen 22 Oct 2026). With it the card keeps the dialog width and the table
+    // scrolls inside its own container (components/ui/table.tsx).
+    <Card className="gap-0 min-w-0">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        {/* flex-wrap: on a phone the engine badge drops under the title instead of being cut. */}
+        <CardTitle className="flex flex-wrap items-center gap-2">
           <IconScan size={20} className="text-muted-foreground" />
           {t("reviewTable.title")}
-          {/* "Which engine answered" visibility - rendered only when the backend surfaced it. */}
-          {engine ? (
-            <Badge variant="outline" className="rounded-full text-xs">
-              {t("reviewTable.enginePrefix", { engine })}
-            </Badge>
-          ) : null}
+          {/* "Which engine answered", in words (OcrEngineNote) - rendered only when the backend surfaced it. */}
+          <OcrEngineBadge engine={engine} />
           <InfoTip id="ocr.engine" className="ml-1" />
         </CardTitle>
         <CardDescription>{t("reviewTable.description")}</CardDescription>
       </CardHeader>
 
       <CardContent className="pt-4 space-y-4">
+        {/* An unsure on-site draft (no AI key could read it): ask for a full check first. */}
+        <OcrCheckNotice engine={engine} />
         {/* ── Readiness hints (mirror the backend's two commit guards) ── */}
         {(unresolvedCount > 0 || unacknowledgedCount > 0) && (
           <div className="flex flex-col gap-1.5 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">

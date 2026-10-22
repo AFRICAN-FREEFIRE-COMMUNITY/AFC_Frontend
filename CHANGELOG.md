@@ -21,6 +21,20 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+## v7.2.0 - 2026-10-22
+
+### Added
+- The OCR review says which reader read the screenshot, in words: "On-site reader", "On-site
+  reader: check every row" with a note asking for a full check before saving, or the AI engine.
+  In English, French and Portuguese, with a NEW tag for five days.
+
+### Fixed
+- The OCR review dialogs (event OCR and the standalone leaderboard screenshot batch) no longer run
+  off the right edge of a phone; the table scrolls inside its own box.
+
+### Security
+- follow-redirects pinned to 1.16.1 or later (two high advisories, through axios).
+
 ## v7.1.129 - 2026-10-18
 
 ### Fixed

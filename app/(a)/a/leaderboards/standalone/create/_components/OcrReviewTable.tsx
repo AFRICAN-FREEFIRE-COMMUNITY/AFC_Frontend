@@ -33,6 +33,7 @@ import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { OcrCheckNotice, OcrEngineBadge } from "../../../_components/OcrEngineNote";
 import { Input } from "@/components/ui/input";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Label } from "@/components/ui/label";
@@ -231,12 +232,16 @@ export function OcrReviewTable({
   applied,
   applying,
   scoring,
+  engine,
   onApply,
 }: {
   format: LeaderboardFormat;
   rows: OcrExtractRow[];
   applied: boolean;
   applying: boolean;
+  // Which reader produced this map's rows (LeaderboardOcrJob.engine via OcrBatchDialog); drives the
+  // engine badge and the "check every row" note (OcrEngineNote). Optional: older callers send none.
+  engine?: string | null;
   // The leaderboard's scoring config (placement points + kill point) for the per-row Points preview.
   // Threaded from the wizard via OcrBatchDialog; optional so older callers are unaffected.
   scoring?: OcrScoring;
@@ -478,6 +483,9 @@ export function OcrReviewTable({
 
   return (
     <div className="space-y-3">
+      {/* Which reader read this map, and a full-check note when it was an unsure on-site draft. */}
+      <OcrEngineBadge engine={engine} />
+      <OcrCheckNotice engine={engine} />
       {/* Readiness hint */}
       {!applied && unresolvedCount > 0 && (
         <div className="flex items-center gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
