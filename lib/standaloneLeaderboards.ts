@@ -186,6 +186,10 @@ export interface OcrPlayerDetail {
   // in afc_ocr/services/matching.py; rendered by <UnmatchedReasonNote>. Optional because rows saved
   // in an older draft predate the field.
   unmatched_reason?: string;
+  // "memory" when the organization's OCR name memory decided this match (reviewers confirmed this
+  // spelling before, AFC-B afc_ocr/services/name_memory.py, 2026-10-22); "" otherwise. Optional
+  // because rows saved before then do not carry it. Rendered by <MemoryMatchNote>.
+  match_source?: string;
   top_candidates: OcrCandidate[]; // user-shaped candidates ({user_id, username, team_name?, confidence})
   is_unmatched: boolean;
 }
@@ -208,6 +212,10 @@ export interface OcrExtractRow {
   // afc_ocr/services/matching.py (plus "team_conflict" from afc_leaderboard/ocr.py); rendered by
   // <UnmatchedReasonNote>. Optional because rows saved in an older draft predate the field.
   unmatched_reason?: string;
+  // "memory" when the organization's OCR name memory decided this match (reviewers confirmed this
+  // spelling before, AFC-B afc_ocr/services/name_memory.py, 2026-10-22); "" otherwise. Optional
+  // because rows saved before then do not carry it. Rendered by <MemoryMatchNote>.
+  match_source?: string;
   top_candidates: OcrCandidate[];
   is_unmatched: boolean;
 }
@@ -236,11 +244,24 @@ export type OcrRowResolution =
   // old ghost team too.
   | { kind: "ghost_existing"; id: number | string; players?: string[] };
 
+/**
+ * One player's review decision, sent on apply so the organization's OCR name memory learns from it
+ * (AFC-B afc_leaderboard.views._reviewed_decisions -> afc_ocr name_memory.learn, 2026-10-22): the
+ * spelling read, who the site suggested, and who the reviewer kept or picked (null = "not on the
+ * platform"). A suggestion not kept is remembered as wrong for that spelling.
+ */
+export interface OcrReviewedPlayer {
+  name: string;
+  suggested_user_id: number | null;
+  user_id: number | null;
+}
+
 /** One row in the apply payload: the (possibly edited) score plus its single resolution. */
 export interface OcrApplyRow {
   placement: number;
   kills: number;
   resolution: OcrRowResolution;
+  reviewed_players?: OcrReviewedPlayer[];
 }
 
 /** Body for POST /<id>/ocr/apply/. match_map is an optional label for the created map. */
@@ -277,6 +298,11 @@ export interface OcrJob {
   applied_match_id: number | null; // set once the job's rows were applied to a map
   rows: OcrExtractRow[] | null; // merged + matched review rows, null until status === "done"
   created_at: string | null;
+  // While the map waits in its organizer's line (AFC-B afc_leaderboard/ocr_queue.py, 2026-10-22):
+  // its place among this organizer's waiting maps (1 = next) and the expected wait in seconds.
+  // null once it is being read, done, or never asked to be read.
+  queue_position?: number | null;
+  wait_seconds?: number | null;
 }
 
 // ── Create / edit payloads ───────────────────────────────────────────────────

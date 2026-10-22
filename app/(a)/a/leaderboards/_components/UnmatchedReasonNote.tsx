@@ -34,6 +34,9 @@ const KNOWN_REASONS = [
   "ambiguous",
   "tag_needs_corroboration",
   "team_conflict",
+  // A player this organization's reviewers turned down for this spelling before (name memory,
+  // AFC-B afc_ocr/services/name_memory.py, 2026-10-22): still in the picker, never pre-selected.
+  "rejected_before",
 ] as const;
 
 export function UnmatchedReasonNote({

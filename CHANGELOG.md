@@ -31,6 +31,40 @@ workflow checks it again before it builds.
   session fails the build. The ten admin-only clients that legitimately do are listed with the
   reason, and a listed file that stops matching fails too.
 
+## v7.3.0 - 2026-10-22
+
+### Added
+- OCR reviews say when a player was "Remembered from your earlier reviews", and when a suggestion is
+  held back because "You turned this player down for this name before". The standalone leaderboard
+  review sends each player's decision back so the memory learns from it. In English, French and
+  Portuguese (#334, #335).
+- The screenshot batch shows each waiting map's place in line and the expected wait, e.g. "Waiting in
+  line: 1 of your maps ahead, about 9 seconds" (#334).
+
+### Fixed
+- In the screenshot batch on a phone, each map's status and remove button were pushed off the card by
+  the map picker.
+
+### Security
+- Next.js 16.3.8 to 16.4.1: two advisories published on 22 Oct 2026, a critical remote code execution
+  in the image optimizer (GHSA-2464-fhr4-w9xw; the sharp 0.35.5 already in use was its stated
+  workaround) and a high denial of service through Server Actions with no workaround
+  (GHSA-p3m5-59mp-jv5r).
+
+## v7.2.0 - 2026-10-22
+
+### Added
+- The OCR review says which reader read the screenshot, in words: "On-site reader", "On-site
+  reader: check every row" with a note asking for a full check before saving, or the AI engine.
+  In English, French and Portuguese, with a NEW tag for five days.
+
+### Fixed
+- The OCR review dialogs (event OCR and the standalone leaderboard screenshot batch) no longer run
+  off the right edge of a phone; the table scrolls inside its own box.
+
+### Security
+- follow-redirects pinned to 1.16.1 or later (two high advisories, through axios).
+
 ## v7.1.129 - 2026-10-18
 
 ### Fixed

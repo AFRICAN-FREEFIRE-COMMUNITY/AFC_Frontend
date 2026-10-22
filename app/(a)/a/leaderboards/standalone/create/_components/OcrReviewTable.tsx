@@ -33,6 +33,7 @@ import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { OcrCheckNotice, OcrEngineBadge } from "../../../_components/OcrEngineNote";
 import { Input } from "@/components/ui/input";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Label } from "@/components/ui/label";
@@ -72,6 +73,7 @@ import { cn } from "@/lib/utils";
 // The shared "why did this not match?" line, also used by the EVENT review table so both flows
 // explain a declined row identically. Reads the row's unmatched_reason (afc_ocr REASON_*).
 import { UnmatchedReasonNote } from "@/app/(a)/a/leaderboards/_components/UnmatchedReasonNote";
+import { MemoryMatchNote } from "@/app/(a)/a/leaderboards/_components/MemoryMatchNote";
 import {
   type LeaderboardFormat,
   type OcrExtractRow,
@@ -114,6 +116,11 @@ interface EditablePlayer {
   // null for free agents and free-search picks (the search endpoint does not return a team).
   chosenTeamName: string | null;
   searchOpen: boolean;
+  // What the site suggested for this player (players_detail.matched_user_id) and why: sent back on
+  // apply with the reviewer's choice, so the organization's name memory learns from every kept and
+  // every turned-down suggestion (AFC-B afc_ocr/services/name_memory.py, 2026-10-22).
+  suggestedUserId: number | null;
+  matchSource: string;
 }
 
 // Local, per-row editable state. Starts from the extracted row; `resolution` is null until resolved.
@@ -138,6 +145,9 @@ interface ReviewRow {
   resolutionLabel: string | null;
   ghostName: string;
   ghostCountry: string;
+  // Solo format: who the site suggested for this row and why (see EditablePlayer.suggestedUserId).
+  suggestedUserId: number | null;
+  matchSource: string;
 }
 
 // The single auto-resolve gate for this table: a suggestion below this confidence is offered but
@@ -174,6 +184,7 @@ function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
       matched_team_name: null,
       confidence: 0,
       unmatched_reason: "",
+      match_source: "",
       top_candidates: [] as OcrPlayerDetail["top_candidates"],
       is_unmatched: true,
     }))
@@ -190,6 +201,8 @@ function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
     chosenUsername: p.confidence >= ROW_AUTO_RESOLVE_MIN ? p.matched_username : null,
     chosenTeamName: p.confidence >= ROW_AUTO_RESOLVE_MIN ? p.matched_team_name ?? null : null,
     searchOpen: false,
+    suggestedUserId: p.matched_user_id ?? null,
+    matchSource: p.match_source ?? "",
   }));
   return {
     row_id: r.row_id,
@@ -213,6 +226,8 @@ function toReviewRow(r: OcrExtractRow, format: LeaderboardFormat): ReviewRow {
     resolutionLabel: resolved ? r.matched_name ?? `#${matchedId}` : null,
     ghostName: "",
     ghostCountry: "",
+    suggestedUserId: format === "solo" ? r.matched_user_id ?? null : null,
+    matchSource: r.match_source ?? "",
   };
 }
 
@@ -231,12 +246,16 @@ export function OcrReviewTable({
   applied,
   applying,
   scoring,
+  engine,
   onApply,
 }: {
   format: LeaderboardFormat;
   rows: OcrExtractRow[];
   applied: boolean;
   applying: boolean;
+  // Which reader produced this map's rows (LeaderboardOcrJob.engine via OcrBatchDialog); drives the
+  // engine badge and the "check every row" note (OcrEngineNote). Optional: older callers send none.
+  engine?: string | null;
   // The leaderboard's scoring config (placement points + kill point) for the per-row Points preview.
   // Threaded from the wizard via OcrBatchDialog; optional so older callers are unaffected.
   scoring?: OcrScoring;
@@ -425,7 +444,18 @@ export function OcrReviewTable({
           const players = approvedNames(r);
           if (players.length) resolution = { ...resolution, players };
         }
-        return { placement: r.placement, kills: r.kills, resolution };
+        // Every player's decision, so this organization's name memory learns from it: the kept or
+        // picked player is remembered for the spelling, a suggestion not kept is remembered as wrong
+        // for it (AFC-B afc_leaderboard.views._reviewed_decisions, 2026-10-22).
+        const reviewed_players =
+          format === "team"
+            ? r.players.map((p) => ({ name: p.name, suggested_user_id: p.suggestedUserId, user_id: p.chosenUserId }))
+            : [{
+                name: r.raw_name,
+                suggested_user_id: r.suggestedUserId,
+                user_id: resolution.kind === "real" ? resolution.id : null,
+              }];
+        return { placement: r.placement, kills: r.kills, resolution, reviewed_players };
       }),
     );
   };
@@ -478,6 +508,9 @@ export function OcrReviewTable({
 
   return (
     <div className="space-y-3">
+      {/* Which reader read this map, and a full-check note when it was an unsure on-site draft. */}
+      <OcrEngineBadge engine={engine} />
+      <OcrCheckNotice engine={engine} />
       {/* Readiness hint */}
       {!applied && unresolvedCount > 0 && (
         <div className="flex items-center gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
@@ -641,6 +674,8 @@ export function OcrReviewTable({
                     {!applied && row.resolution == null && (
                       <UnmatchedReasonNote reason={row.unmatchedReason} />
                     )}
+                    {!applied && format === "solo" && row.resolution?.kind === "real" &&
+                      row.resolution.id === row.suggestedUserId && <MemoryMatchNote source={row.matchSource} />}
 
                     {row.showFreeMatch &&
                       (format === "team" ? (
@@ -808,6 +843,9 @@ export function OcrReviewTable({
                             accounts matched equally well, which is a pick, not a dead end. */}
                         {!applied && p.chosenUserId == null && (
                           <UnmatchedReasonNote reason={p.unmatchedReason} className="pl-1" />
+                        )}
+                        {!applied && p.chosenUserId != null && p.chosenUserId === p.suggestedUserId && (
+                          <MemoryMatchNote source={p.matchSource} className="pl-1" />
                         )}
                         </div>
                       ))}
