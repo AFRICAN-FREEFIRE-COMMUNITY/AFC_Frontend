@@ -21,6 +21,8 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+## v7.2.0 - 2026-10-22
+
 ### Added
 - The OCR review says which reader read the screenshot, in words: "On-site reader", "On-site
   reader: check every row" with a note asking for a full check before saving, or the AI engine.
