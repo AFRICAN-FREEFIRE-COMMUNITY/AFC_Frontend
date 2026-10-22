@@ -99,6 +99,10 @@ export interface DraftRow {
   // can tell "nothing resembles this" from "two accounts matched equally". Optional because rows in
   // a session saved before the backend emitted the field will not carry it.
   unmatched_reason?: string;
+  // "memory" when the organization's OCR name memory decided this match (reviewers confirmed this
+  // spelling before, AFC-B afc_ocr/services/name_memory.py, 2026-10-22); "" otherwise. Optional
+  // because rows saved before then do not carry it. Rendered by <MemoryMatchNote>.
+  match_source?: string;
   top_candidates: OcrCandidate[];
   // Frontend-only recognition-truth capture (see note above). Optional; defaults to raw_name.
   corrected_text?: string;

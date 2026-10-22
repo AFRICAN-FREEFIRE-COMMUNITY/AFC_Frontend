@@ -126,6 +126,7 @@ import { cn } from "@/lib/utils";
 // The shared "why did this not match?" line, also used by the STANDALONE review table so both flows
 // explain a declined row identically. Reads the row's unmatched_reason (afc_ocr REASON_*).
 import { UnmatchedReasonNote } from "./UnmatchedReasonNote";
+import { MemoryMatchNote } from "./MemoryMatchNote";
 import {
   ocrApi,
   type DraftRow,
@@ -460,6 +461,8 @@ export function OCRReviewTable({
       matched_username: pick.username,
     };
     if (pick.confidence != null) patch.confidence = pick.confidence;
+    // A different player than memory chose: the row is no longer "remembered" (MemoryMatchNote).
+    if (pick.user_id !== row.matched_user_id) patch.match_source = "";
     if (rosterEventType === "team") {
       patch.matched_team_id = pick.team_id;
       patch.matched_team_name = pick.team_name;
@@ -479,6 +482,7 @@ export function OCRReviewTable({
         matched_user_id: cand.user_id,
         matched_username: cand.username,
         confidence: cand.confidence,
+        ...(cand.user_id !== row.matched_user_id ? { match_source: "" } : {}),
       },
       { matched_user_id: cand.user_id, matched_username: cand.username },
     );
@@ -792,6 +796,8 @@ export function OCRReviewTable({
                         {!row.matched_user_id && (
                           <UnmatchedReasonNote reason={row.unmatched_reason} />
                         )}
+                        {/* Bound from this organization's name memory (match_source "memory"). */}
+                        {!!row.matched_user_id && <MemoryMatchNote source={row.match_source} />}
                       </div>
                     </TableCell>
 
