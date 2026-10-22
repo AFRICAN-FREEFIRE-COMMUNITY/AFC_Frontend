@@ -35,6 +35,12 @@ workflow checks it again before it builds.
 - In the screenshot batch on a phone, each map's status and remove button were pushed off the card by
   the map picker.
 
+### Security
+- Next.js 16.3.8 to 16.4.1: two advisories published on 22 Oct 2026, a critical remote code execution
+  in the image optimizer (GHSA-2464-fhr4-w9xw; the sharp 0.35.5 already in use was its stated
+  workaround) and a high denial of service through Server Actions with no workaround
+  (GHSA-p3m5-59mp-jv5r).
+
 ## v7.2.0 - 2026-10-22
 
 ### Added
