@@ -98,7 +98,6 @@
     "emptyDescription": "Não foram lidas quaisquer linhas desta captura de ecrã.",
     "emptyWarning": "Verifique se a captura de ecrã está nítida e se mostra os resultados do jogo e, em seguida, tente novamente.",
     "title": "Analisar o resultado do OCR",
-    "enginePrefix": "Motor: {engine}",
     "description": "Verifique se cada jogador leu o ecrã de captura, corrija quaisquer erros e, em seguida, registe os resultados na tabela de classificação.",
     "needMatchedPlayer": "{count, plural, =0 {# linhas ainda precisam de um jogador correspondente.} one {# linha ainda precisa de um jogador correspondente.} other {# linhas ainda precisam de um jogador correspondente.}}",
     "needAcknowledging": "{count, plural, =0 {# divergências de equipa ainda precisam de ser confirmadas.} one {# divergência de equipa ainda precisa de ser confirmada.} other {# divergências de equipa ainda precisam de ser confirmadas.}}",
@@ -395,5 +394,11 @@
     "ambiguous": "Duas ou mais entradas correspondem exatamente da mesma forma, por isso não foi escolhido nada.",
     "tag_needs_corroboration": "Só a tag curta da equipa correspondeu. Nenhum jogador desta linha pertence a essa equipa e os nomes deles não têm essa tag, por isso não foi aplicada sozinha.",
     "team_conflict": "O nome da equipa e os jogadores apontam para duas equipas diferentes."
+  },
+  "engine": {
+    "local": "Leitor do site",
+    "localCheck": "Leitor do site: verifique cada linha",
+    "ai": "IA: {engine}",
+    "checkNotice": "O leitor do site não teve a certeza sobre esta captura de ecrã e nenhuma chave de IA a conseguiu ler. Verifique cada nome, número de eliminações e posição na captura antes de guardar."
   }
 }

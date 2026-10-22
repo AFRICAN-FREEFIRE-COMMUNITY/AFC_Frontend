@@ -422,7 +422,10 @@ export function OcrBatchDialog({
       {/* Wide dialog: the review table gained Points + per-player panels (2026-06-12), so 5xl started
           clipping the match column behind a horizontal scrollbar. 95vw capped at 7xl keeps every
           column visible on a laptop while still fitting small screens. */}
-      <DialogContent className="w-[95vw] sm:max-w-7xl max-h-[92vh] overflow-y-auto">
+      {/* grid-cols-[minmax(0,1fr)]: the dialog is a grid, and its one column grew to the review table's
+          width, so on a phone everything right of the screen edge was cut off (seen 22 Oct 2026). Letting
+          the column shrink keeps the dialog on screen and the table scrolls in its own container. */}
+      <DialogContent className="w-[95vw] sm:max-w-7xl max-h-[92vh] overflow-y-auto grid-cols-[minmax(0,1fr)]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconScan size={18} className="text-muted-foreground" />
@@ -569,6 +572,7 @@ export function OcrBatchDialog({
                   applied={m.applied}
                   applying={m.applying}
                   scoring={scoring}
+                  engine={m.engine}
                   onApply={(applyRows) => applyMap(m.localId, applyRows)}
                 />
               )}
