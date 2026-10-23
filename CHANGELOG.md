@@ -19,6 +19,13 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Internal
+- Design lint follows the Apple materials rule adopted for AFC on 23 Oct (inbox #375): `backdrop-filter: blur()`
+  on chrome is no longer read as a decorative blur, and a `ring-1` edge on an element that carries `backdrop-blur`
+  is allowed. Self-test 33 cases.
+
 ## v7.3.1 - 2026-10-22
 
 ### Fixed
