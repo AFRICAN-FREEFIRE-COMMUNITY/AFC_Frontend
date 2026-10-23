@@ -19,6 +19,21 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Changed
+- "Submit your result" on an event page now opens only while your group is playing: from the
+  group's start time until its maps are done plus a few hours, and only for maps of groups your
+  team is in. It used to offer every map of the event, days before or weeks after. It shows when
+  the window closes. The server refuses a claim outside the window too, in your language.
+
+### Fixed
+- The line above the map picker told players "Nothing is counted until you approve it" (the
+  organizer's line). It now asks which map they are sending a result for.
+
+### Security
+- zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high), same bump as PR #118.
+
 ## v7.3.1 - 2026-10-22
 
 ### Fixed
