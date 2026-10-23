@@ -18,7 +18,8 @@
 
 import { createContext, useContext, ReactNode } from "react";
 
-// The 8 can_* permission booleans the backend returns on every membership.
+// The can_* permission booleans the backend returns on every membership
+// (afc_organizers.models.PERMISSION_FIELDS).
 export interface OrgPermissions {
   can_create_events: boolean;
   can_edit_events: boolean;
@@ -28,6 +29,8 @@ export interface OrgPermissions {
   can_view_metrics: boolean;
   can_view_reviews: boolean;
   can_manage_members: boolean;
+  // Answer the questions players send the organization (inbox #175): the portal's Support page.
+  can_answer_support: boolean;
 }
 
 // A single membership as returned inside getMyOrganizations().results[].
@@ -93,6 +96,7 @@ export const PERMISSION_KEYS: (keyof OrgPermissions)[] = [
   "can_view_metrics",
   "can_view_reviews",
   "can_manage_members",
+  "can_answer_support",
 ];
 
 export type CoOrganizerGrant = Partial<OrgPermissions> | null | undefined;

@@ -33,9 +33,13 @@ import {
 } from "../../../wagers/_components/shared";
 import { LedgerTab } from "../../_components/LedgerTab";
 
+import { readSegment } from "@/lib/routes";
 export default function AdminPlayerWinningsPage() {
   const t = useTranslations("wagersAdmin");
   const params = useParams<{ username: string }>();
+  // The username arrives percent-encoded (spaces, glyphs: NG.KILLA ends in U+F8FF); readSegment
+  // decodes it once and never throws on a lone "%" (lib/routes.ts, inbox #90/#91).
+  const username = readSegment(params.username);
   const refuse = useAdminRefusal();
   const [data, setData] = useState<UserDetail | null>(null);
   const [missing, setMissing] = useState(false);
@@ -51,7 +55,7 @@ export default function AdminPlayerWinningsPage() {
 
   const load = useCallback(async () => {
     try {
-      const out = await getUserDetail(params.username);
+      const out = await getUserDetail(username);
       setData(out);
       setDaily(koboToNairaInput(out.account.limits?.daily_stake_cap_kobo));
       setWeekly(koboToNairaInput(out.account.limits?.weekly_stake_cap_kobo));
@@ -60,7 +64,7 @@ export default function AdminPlayerWinningsPage() {
       refuse(err);
       setMissing(true);
     }
-  }, [params.username]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [username]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { void load(); }, [load]);
 
   const run = async (fn: () => Promise<{ message: string }>) => {

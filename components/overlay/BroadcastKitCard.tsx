@@ -19,6 +19,7 @@ import { env } from "@/lib/env";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Label } from "@/components/ui/label";
 import { IconDownload, IconLoader2, IconBroadcast } from "@tabler/icons-react";
 
@@ -96,7 +97,7 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
   const missingLogo = teams.filter((x) => x.assigned_letter && !x.has_logo).length;
 
   return (
-    <div className="rounded-md border bg-card p-3">
+    <div className="rounded-md bg-card p-3">
       <div className="mb-1 flex items-center gap-2">
         <IconBroadcast className="text-primary size-4" />
         <h3 className="text-primary text-sm font-semibold">{t("broadcastKit.title")}</h3>
@@ -108,14 +109,14 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
 
       {/* Warnings the operator should fix (letters are set on the Registered Teams tab). */}
       {(missingLetter > 0 || missingLogo > 0) && (
-        <div className="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-[0.7rem] text-amber-600">
+        <div className="mb-3 rounded-md bg-amber-500/10 p-2 text-[0.7rem] text-amber-600">
           {missingLetter > 0 ? <p>{t("broadcastKit.warnLetters", { count: missingLetter })}</p> : null}
           {missingLogo > 0 ? <p>{t("broadcastKit.warnLogos", { count: missingLogo })}</p> : null}
         </div>
       )}
 
       {/* Readiness table. */}
-      <div className="mb-3 max-h-56 overflow-x-auto overflow-y-auto rounded-md border">
+      <div className="mb-3 max-h-56 overflow-x-auto overflow-y-auto rounded-md bg-muted/30">
         <table className="w-full text-left text-xs">
           <thead className="bg-muted/40 text-muted-foreground">
             <tr>
@@ -170,7 +171,7 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
         </div>
         <div className="space-y-1">
           <Label className="text-[0.65rem]">{t("broadcastKit.casterUid")}</Label>
-          <Input value={casterUid} onChange={(e) => setCasterUid(e.target.value)} className="h-7 text-xs" inputMode="numeric" />
+          <UidInput value={casterUid} onChange={(e) => setCasterUid(e.target.value)} className="h-7 text-xs" />
         </div>
         <div className="space-y-1">
           <Label className="text-[0.65rem]">{t("broadcastKit.billboard")}</Label>

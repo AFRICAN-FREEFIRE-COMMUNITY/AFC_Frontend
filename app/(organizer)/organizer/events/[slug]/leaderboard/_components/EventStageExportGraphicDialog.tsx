@@ -389,7 +389,7 @@ export function EventStageExportGraphicDialog({
                 stage/group below. Owner-locked: stages AND groups are both selectable, and a
                 selected stage expands to all its groups. */}
             {stages.length > 0 && (
-              <div className="flex items-start gap-2 rounded-md border p-3">
+              <div className="flex items-start gap-2 rounded-md p-3 bg-muted/30">
                 <Checkbox
                   id="combine-toggle"
                   checked={combineMode}
@@ -470,7 +470,7 @@ export function EventStageExportGraphicDialog({
             {combineMode && stages.length > 0 && (
               <div className="space-y-2">
                 <Label>{t("exportGraphic.combineSelectLabel")}</Label>
-                <div className="max-h-56 space-y-3 overflow-y-auto rounded-md border p-3">
+                <div className="max-h-56 space-y-3 overflow-y-auto rounded-md p-3 bg-muted/30">
                   {stages.map((s) => {
                     const sid = String(s.stage_id);
                     const stageChecked = combineStages.has(sid);

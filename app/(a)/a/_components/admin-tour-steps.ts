@@ -157,7 +157,7 @@ export type AdminTourPageKey =
 // Every page's tour opens by pointing at the admin sidebar so a new admin learns
 // where the sections live before we dive into the page itself. The selector targets
 // the sidebar's nav menu (rendered by components/nav-main.tsx inside the Sidebar);
-// `[data-slot="sidebar-menu"]` is the stable shadcn slot the SidebarMenu emits.
+// `[data-tour="admin-nav"]` marks the whole menu (components/nav-main.tsx).
 // On mobile the sidebar is offcanvas (hidden) - if the menu is not on screen the
 // step is dropped automatically, and the tour starts at the page header instead.
 //
@@ -166,7 +166,9 @@ export type AdminTourPageKey =
 // special-cases id === "sidebar").
 const SIDEBAR_STEP: AdminTourStep = {
   id: "sidebar",
-  element: '[data-slot="sidebar-menu"]',
+  // The whole menu, all sections (data-tour on NavMain's group). Since the menu became sections
+  // (inbox #54) there is one sidebar-menu per open section, so that slot would outline just one.
+  element: '[data-tour="admin-nav"]',
   side: "right",
   align: "start",
 };

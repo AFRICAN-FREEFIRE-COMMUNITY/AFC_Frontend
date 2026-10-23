@@ -99,7 +99,7 @@ export function RemoveNomineeModal({
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          <div className="bg-gray-800 rounded-md p-4 border border-gray-700">
+          <div className="bg-gray-800 rounded-md p-4">
             <p className="text-sm text-gray-300 mb-1">Nominee:</p>
             <p className="font-semibold text-white">{nominee.name}</p>
           </div>
@@ -111,7 +111,7 @@ export function RemoveNomineeModal({
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full border border-gray-600 rounded-md px-4 py-3 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full border border-gray-600 rounded-md px-4 py-3 bg-gray-800 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:border-transparent"
             >
               <option value="">-- Choose a category --</option>
               {nomineeCategories.map((cat: any) => (
@@ -123,7 +123,7 @@ export function RemoveNomineeModal({
           </div>
 
           {selectedCategory && (
-            <div className="bg-red-900/20 border border-red-800 rounded-md p-3">
+            <div className="bg-red-900/20 rounded-md p-3">
               <p className="text-sm text-red-400">
                 Warning: This will remove <strong>{nominee.name}</strong> from
                 the selected category. This action cannot be undone.

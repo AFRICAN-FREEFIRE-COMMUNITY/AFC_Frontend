@@ -17,7 +17,6 @@
   "filters": {
     "title": "Ou filtrer par catégorie",
     "tier": "Palier",
-    "tierValue": "Palier {tier}",
     "country": "Pays",
     "role": "Rôle",
     "language": "Langue",

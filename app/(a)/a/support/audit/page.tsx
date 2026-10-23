@@ -184,6 +184,8 @@ export default function SupportAuditPage() {
                       : t("audit.rowFromPerson", { who: row.from_name })}
                   </span>
                   <span className="text-muted-foreground text-xs">
+                    {/* Inbox #175: head admins also read questions asked of organizers; say whose. */}
+                    {row.organization ? <>{t("audit.toOrganizer", { name: row.organization })} · </> : null}
                     {row.ticket_number} · {row.from_email} · <LocalTime value={row.created_at} />
                   </span>
                 </div>

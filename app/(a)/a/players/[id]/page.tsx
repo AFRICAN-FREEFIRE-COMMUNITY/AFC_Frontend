@@ -65,6 +65,9 @@ import {
 } from "../../_components/AccountIdentityMore";
 // Shared, self-expiring NEW tag (owner rule: a new control wears one for 5 days).
 import { NewBadge } from "@/components/NewBadge";
+// Head admins delete an account for a player who asked (inbox #59)
+import { AdminDeleteAccountDialog } from "./_components/AdminDeleteAccountDialog";
+import { readSegment } from "@/lib/routes";
 
 interface PlayerDetails {
   player_id: number;
@@ -143,7 +146,7 @@ const BanPlayerModal = ({
           variant={isBanned ? "outline" : "destructive"}
           className={
             isBanned
-              ? "border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700"
+              ? "text-green-600 hover:bg-green-50 hover:text-green-700 bg-green-500/10"
               : ""
           }
         >
@@ -250,7 +253,11 @@ const buildPerformanceData = (player: PlayerDetails) => [
 type Props = { params: Promise<{ id: string }> };
 
 const Page = ({ params }: Props) => {
-  const { id } = use(params);
+  const { id: rawId } = use(params);
+  // The segment arrives percent-encoded, so decode it (lib/routes.ts readSegment) before it is sent
+  // as `ref`. Without this every name with a space, an accent or a Free Fire glyph missed: NG.KILLA
+  // ends in U+F8FF and was sent as "NG.KILLA%EF%A3%BF", so the page said "Player not found" (#90).
+  const id = readSegment(rawId);
   const router = useRouter();
   const { token } = useAuth();
   const [player, setPlayer] = useState<PlayerDetails | null>(null);
@@ -277,7 +284,7 @@ const Page = ({ params }: Props) => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setPlayer(res.data);
-      if (res.data.moved_to && res.data.moved_to !== `/a/players/${id}`) router.replace(res.data.moved_to);
+      if (res.data.moved_to && res.data.moved_to !== `/a/players/${encodeURIComponent(id)}`) router.replace(res.data.moved_to);
     } catch {
       toast.error("Failed to load player details");
     } finally {
@@ -324,18 +331,23 @@ const Page = ({ params }: Props) => {
             </span>
           }
         />
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <SendMessageModal
             targetType="player"
             targetId={player.player_id}
             targetName={player.name}
           />
           <BanPlayerModal player={player} onSuccess={fetchPlayer} />
+          {/* Head admins only, the same gate the endpoint enforces (views_account_deletion
+              admin_delete_account): canRepair is useCanRepairIdentity, head_admin / super_admin. */}
+          {canRepair ? (
+            <AdminDeleteAccountDialog userId={player.player_id} username={player.name} />
+          ) : null}
         </div>
       </div>
 
       {/* Profile card */}
-      <div className="rounded-lg border bg-card p-6">
+      <div className="rounded-lg bg-card p-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Avatar name={player.name} />
@@ -837,7 +849,7 @@ const Page = ({ params }: Props) => {
                           {entry.is_vpn && (
                             <Badge
                               variant="outline"
-                              className="rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
+                              className="rounded-full px-2 py-0.5 text-xs text-red-600"
                               title={entry.org || "Datacenter / VPN network"}
                             >
                               VPN

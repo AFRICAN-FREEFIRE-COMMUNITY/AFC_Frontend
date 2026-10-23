@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+// Dated NEW tag on a newly added rule (constants/rules.ts `newSince`).
+import { NewBadge } from "@/components/NewBadge";
 import {
   Card,
   CardContent,
@@ -116,7 +118,12 @@ const RulesPage = () => {
                           className="px-6 last:border-0"
                         >
                           <AccordionTrigger className="hover:no-underline cursor-pointer hover:text-primary py-5 text-left font-semibold transition-all">
-                            {tRules(`categories.${section.id}.rules.${index}.title`)}
+                            <span>
+                              {tRules(`categories.${section.id}.rules.${index}.title`)}
+                              {"newSince" in _rule && _rule.newSince && (
+                                <NewBadge since={_rule.newSince} className="ml-2 align-middle" />
+                              )}
+                            </span>
                           </AccordionTrigger>
                           <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-8 whitespace-pre-line border-t pt-4">
                             {tRules(`categories.${section.id}.rules.${index}.content`)}
@@ -129,7 +136,7 @@ const RulesPage = () => {
               </div>
             ))
           ) : (
-            <div className="text-center py-20 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+            <div className="text-center py-20 text-muted-foreground italic rounded-lg bg-muted/30">
               {t("rules.noResults", { query: searchQuery })}
             </div>
           )}
@@ -149,11 +156,11 @@ const RulesPage = () => {
           </CardHeader>
           <CardContent>
             <Button className="w-full" asChild>
-              <Link href={"/contact"}>{t("rules.supportButton")}</Link>
+              <Link href={"/support"}>{t("rules.supportButton")}</Link>
             </Button>
             {/* <Button
               variant="outline"
-              className="flex-1 border-zinc-800"
+              className="flex-1"
               asChild
             >
               <Link href={"#"}>Download Official PDF</Link>

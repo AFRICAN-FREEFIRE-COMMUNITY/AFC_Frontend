@@ -234,7 +234,7 @@ export default function page() {
         Orders
         <InfoTip id="shop.orders.list._section" />
       </div>
-      <div className="rounded-md border" data-tour="shop-orders-table">
+      <div className="rounded-md bg-muted/30" data-tour="shop-orders-table">
         <Table>
           <TableHeader>
             <TableRow>

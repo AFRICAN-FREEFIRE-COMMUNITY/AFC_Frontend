@@ -7,11 +7,13 @@ import { HomeBoxes } from "../_components/HomeBoxes";
 // with an expiry, so it takes itself down; there is no second publishing surface. Renders nothing
 // when none are live. See _components/HomeNotices.tsx.
 import { HomeNotices } from "../_components/HomeNotices";
+import { EmailNewsPrompt } from "@/components/mail/EmailNewsPrompt";
 // Two compact blocks (latest events + latest player-market posts) added below the
 // stat boxes per the approved home-additions mockup.
 import { HomeLatestSections } from "../_components/HomeLatestSections";
 import { LatestNews } from "../_components/LatestNews";
 import { FeaturedShop } from "../_components/FeaturedShop";
+import { HomeTransfers } from "@/components/home/HomeTransfers";
 // Live "Rankings and Tiers" card (owner backlog #9 / #20, 2026-08-03). This block used to be
 // two inline tables fed by the hardcoded `teamRankings` / `quarterlyTiers` arrays in
 // constants/index.ts, so the home page showed a frozen snapshot of a past quarter forever.
@@ -38,6 +40,8 @@ export default function HomePage() {
           fold is not an announcement. The block is absent entirely when nothing is pinned, so the
           page is unchanged on a quiet week. */}
       <HomeNotices />
+      {/* "Want AFC news by email?" asked once, until the player answers (inbox #259 #290). */}
+      <EmailNewsPrompt />
       {/* data-tour anchor (home-boxes): guided-tour "Home" stop points here at the quick-stat
           boxes so a new player sees where their at-a-glance numbers live. */}
       <div data-tour="home-boxes">
@@ -48,10 +52,13 @@ export default function HomePage() {
           <LatestNews />
         </div>
 
-        <div>
+        <div className="space-y-2">
           {/* Real, live storefront teaser (was a mock list behind a "Coming Soon"
               overlay). Fetches active products from the public shop endpoint. */}
           <FeaturedShop />
+          {/* Player transfers (owner-approved 2026-09-30, inbox #93 / #96): fills the space that was
+              empty under the shop card beside the taller news card; after it on a phone. */}
+          <HomeTransfers />
         </div>
       </div>
       {/* Latest events + player-market posts sit below the News/Shop row and above

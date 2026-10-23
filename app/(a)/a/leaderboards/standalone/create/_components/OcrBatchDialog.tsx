@@ -121,6 +121,10 @@ interface MapEntry {
   imageCount: number;
   applying: boolean;
   applied: boolean;
+  // While the map waits in this organizer's line (AFC-B afc_leaderboard/ocr_queue.py, 2026-10-22):
+  // its place (1 = next) and the expected wait in seconds, from the poll; null otherwise.
+  queuePosition: number | null;
+  waitSeconds: number | null;
 }
 
 let _seq = 0;
@@ -137,6 +141,8 @@ const newMap = (): MapEntry => ({
   imageCount: 0,
   applying: false,
   applied: false,
+  queuePosition: null,
+  waitSeconds: null,
 });
 
 // Status chip per map (mirrors the AFC outline-badge idiom). Labels come from the `ocr` namespace
@@ -145,11 +151,11 @@ function StatusChip({ status }: { status: MapStatus }) {
   const t = useTranslations("ocr");
   const meta: Record<MapStatus, { key: string; cls: string; spin?: boolean }> = {
     draft: { key: "status.notRead", cls: "border-muted-foreground text-muted-foreground" },
-    pending: { key: "status.queued", cls: "border-blue-500 text-blue-600", spin: true },
-    processing: { key: "status.reading", cls: "border-blue-500 text-blue-600", spin: true },
-    done: { key: "status.read", cls: "border-green-500 text-green-600" },
-    failed: { key: "status.failed", cls: "border-destructive text-destructive" },
-    applied: { key: "status.applied", cls: "border-green-500 text-green-600" },
+    pending: { key: "status.queued", cls: "text-blue-600 bg-blue-500/10", spin: true },
+    processing: { key: "status.reading", cls: "text-blue-600 bg-blue-500/10", spin: true },
+    done: { key: "status.read", cls: "text-green-600 bg-green-500/10" },
+    failed: { key: "status.failed", cls: "text-destructive bg-destructive/10" },
+    applied: { key: "status.applied", cls: "text-green-600 bg-green-500/10" },
   };
   const s = meta[status];
   return (
@@ -228,6 +234,8 @@ export function OcrBatchDialog({
             engine: j.engine,
             error: j.error,
             imageCount: j.image_count,
+            queuePosition: j.queue_position ?? null,
+            waitSeconds: j.wait_seconds ?? null,
           };
         }),
       );
@@ -422,7 +430,10 @@ export function OcrBatchDialog({
       {/* Wide dialog: the review table gained Points + per-player panels (2026-06-12), so 5xl started
           clipping the match column behind a horizontal scrollbar. 95vw capped at 7xl keeps every
           column visible on a laptop while still fitting small screens. */}
-      <DialogContent className="w-[95vw] sm:max-w-7xl max-h-[92vh] overflow-y-auto">
+      {/* grid-cols-[minmax(0,1fr)]: the dialog is a grid, and its one column grew to the review table's
+          width, so on a phone everything right of the screen edge was cut off (seen 22 Oct 2026). Letting
+          the column shrink keeps the dialog on screen and the table scrolls in its own container. */}
+      <DialogContent className="w-[95vw] sm:max-w-7xl max-h-[92vh] overflow-y-auto grid-cols-[minmax(0,1fr)]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconScan size={18} className="text-muted-foreground" />
@@ -433,10 +444,11 @@ export function OcrBatchDialog({
 
         <div className="space-y-4">
           {maps.map((m, i) => (
-            <div key={m.localId} className="space-y-3 rounded-md border p-4">
-              {/* Card header: label + status + remove */}
+            <div key={m.localId} className="space-y-3 rounded-md p-4 bg-muted/30">
+              {/* Card header: label + status + remove. min-w-0 lets the map picker shrink on a phone;
+                  without it its placeholder pushed the status and the remove button off the card. */}
               <div className="flex items-center gap-2">
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <Label className="sr-only">{t("stdBatch.mapSrLabel")}</Label>
                   {/* Pick one of the six FF maps (no typing). The same map may be chosen on multiple
                       cards (two matches on Bermuda is fine). Optional: an unset map just leaves the
@@ -477,7 +489,7 @@ export function OcrBatchDialog({
                   {m.previews.map((src, idx) => (
                     <div
                       key={src}
-                      className="relative h-16 w-24 overflow-hidden rounded-md border bg-muted/20"
+                      className="relative h-16 w-24 overflow-hidden rounded-md bg-muted/20"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -505,7 +517,7 @@ export function OcrBatchDialog({
                 <div className="space-y-2">
                   <label
                     className={cn(
-                      "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed px-4 py-5 text-center transition-colors",
+                      "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md px-4 py-5 text-center transition-colors bg-muted/30",
                       "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/20",
                     )}
                   >
@@ -540,15 +552,21 @@ export function OcrBatchDialog({
               )}
 
               {(m.status === "pending" || m.status === "processing") && (
-                <div className="flex items-center gap-2 rounded-md border border-blue-500/30 bg-blue-500/5 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
+                <div className="flex items-center gap-2 rounded-md bg-blue-500/5 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
                   <IconLoader2 size={14} className="animate-spin" />
-                  {t("stdBatch.readingStatus", { count: m.imageCount })}
+                  {/* Waiting in this organizer's line: its place and the expected wait. Organizers
+                      take turns, so other organizers' maps never push it back (ocr_queue). */}
+                  {m.status === "pending" && m.queuePosition != null
+                    ? m.waitSeconds != null && m.waitSeconds >= 90
+                      ? t("stdBatch.queueMinutes", { ahead: m.queuePosition - 1, minutes: Math.round(m.waitSeconds / 60) })
+                      : t("stdBatch.queueSeconds", { ahead: m.queuePosition - 1, seconds: m.waitSeconds ?? 0 })
+                    : t("stdBatch.readingStatus", { count: m.imageCount })}
                 </div>
               )}
 
               {m.status === "failed" && (
                 <div className="space-y-2">
-                  <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  <div className="flex items-start gap-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
                     <IconAlertTriangle className="size-4 shrink-0" />
                     <span>{m.error || t("stdBatch.couldNotReadMap")}</span>
                   </div>
@@ -569,6 +587,7 @@ export function OcrBatchDialog({
                   applied={m.applied}
                   applying={m.applying}
                   scoring={scoring}
+                  engine={m.engine}
                   onApply={(applyRows) => applyMap(m.localId, applyRows)}
                 />
               )}

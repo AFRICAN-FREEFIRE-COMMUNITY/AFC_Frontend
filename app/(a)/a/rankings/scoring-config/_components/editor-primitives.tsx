@@ -195,10 +195,10 @@ export function IssueList({ issues, className }: { issues: Issue[]; className?: 
         <p
           key={`${issue.path}-${i}`}
           className={cn(
-            "flex items-start gap-1.5 rounded-md border px-2 py-1 text-[11px] leading-snug",
+            "flex items-start gap-1.5 rounded-md px-2 py-1 text-[11px] leading-snug bg-muted/30",
             issue.severity === "error"
-              ? "border-destructive/40 bg-destructive/10 text-destructive"
-              : "border-orange-500/40 bg-orange-500/10 text-orange-300",
+              ? "bg-destructive/10 text-destructive"
+              : "bg-orange-500/10 text-orange-300",
           )}
         >
           {issue.severity === "error"
@@ -225,12 +225,12 @@ export function IssueCount({ issues, errorLabel, warningLabel }: {
   return (
     <span className="inline-flex gap-1">
       {errors > 0 && (
-        <Badge variant="outline" className="rounded-full border-destructive/50 px-2 py-0 text-[10px] text-destructive">
+        <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] text-destructive">
           {errorLabel}
         </Badge>
       )}
       {warnings > 0 && (
-        <Badge variant="outline" className="rounded-full border-orange-500/50 px-2 py-0 text-[10px] text-orange-300">
+        <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] text-orange-300">
           {warningLabel}
         </Badge>
       )}

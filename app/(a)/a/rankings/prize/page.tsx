@@ -401,7 +401,7 @@ export default function PrizeMoneyPage() {
                     <TableCell className="font-medium">
                       {r.event_name ?? "-"}
                       {r.auto_synced ? (
-                        <span className="text-primary border-primary/50 ml-2 rounded-full border px-2 py-0.5 text-[0.6rem] uppercase">
+                        <span className="text-primary bg-primary/10 ml-2 rounded-full px-2 py-0.5 text-[0.6rem] uppercase">
                           {t("table.auto")}
                         </span>
                       ) : null}
@@ -476,7 +476,7 @@ export default function PrizeMoneyPage() {
                     autoComplete="off"
                   />
                   {eventMenuOpen && (
-                    <div className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
+                    <div className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md bg-popover p-1 shadow-md">
                       {eventMatches.length === 0 ? (
                         <p className="px-2 py-1.5 text-sm text-muted-foreground">{t("addDialog.noMatches")}</p>
                       ) : (
@@ -518,7 +518,7 @@ export default function PrizeMoneyPage() {
                     autoComplete="off"
                   />
                   {teamMenuOpen && (
-                    <div className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
+                    <div className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-md bg-popover p-1 shadow-md">
                       {teamMatches.length === 0 ? (
                         <p className="px-2 py-1.5 text-sm text-muted-foreground">{t("addDialog.noMatches")}</p>
                       ) : (
@@ -628,7 +628,7 @@ export default function PrizeMoneyPage() {
                 </div>
               </div>
 
-              <div className="rounded-md border bg-muted/30 p-3 text-xs">
+              <div className="rounded-md bg-muted/30 p-3 text-xs">
                 <span className="text-muted-foreground">{t("editDialog.was")} </span>
                 <span className="line-through tabular-nums">{fmt(amountNumber(editRow.amount))}</span>
                 {Number(editAmount) !== amountNumber(editRow.amount) && Number(editAmount) > 0 && (

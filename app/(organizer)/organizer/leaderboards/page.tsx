@@ -119,8 +119,8 @@ function LeaderboardCountBadge({ count }: { count: number }) {
       variant="outline"
       className={
         count > 0
-          ? "border-green-500 text-green-600"
-          : "border-muted-foreground text-muted-foreground"
+          ? "text-green-600"
+          : "text-muted-foreground"
       }
     >
       {count > 0

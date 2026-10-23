@@ -59,7 +59,7 @@ export function ParticipantTypeWarningModal({
             </span>
             .
           </p>
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
             {/* t.rich embeds the emphasized "automatically removed" inline; {label} is the
                 localized participant noun (teams/players) passed from the parent. */}
             <strong>{t("participantWarning.warningLabel")}</strong>{" "}

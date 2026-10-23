@@ -135,11 +135,11 @@ export default function OrdersClient() {
       <img
         src={item.product_image}
         alt={item.product_name}
-        className={`${size} shrink-0 rounded-md border object-cover`}
+        className={`${size} shrink-0 rounded-md object-cover`}
       />
     ) : (
       <div
-        className={`${size} shrink-0 flex items-center justify-center rounded-md border bg-muted`}
+        className={`${size} shrink-0 flex items-center justify-center rounded-md bg-muted`}
       >
         <ShoppingBag className="h-4 w-4 text-muted-foreground" />
       </div>
@@ -252,7 +252,7 @@ export default function OrdersClient() {
 
       {/* Total spent across paid orders - a quick at-a-glance figure above the history. */}
       {paidCount > 0 && (
-        <div className="inline-flex flex-col rounded-md border bg-card px-4 py-3 shadow-sm">
+        <div className="inline-flex flex-col rounded-md bg-card px-4 py-3 shadow-sm">
           <span className="text-xs font-medium uppercase text-muted-foreground">
             {t("orders.totalSpent")}
           </span>

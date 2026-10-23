@@ -33,3 +33,9 @@ overrides:
   browserslist: '>=4.28.7'
   '@humanfs/node': '>=0.16.8'
   baseline-browser-mapping: '>=2.11.0'
+  # 2026-10-08 (inbox #170): advisories published after 5 Oct. sharp's bundled librsvg
+  # (GHSA-wq5f-xc86-pv6w), source-map-js indexed-section DoS (GHSA-68fv-2mgg-jv7q), js-yaml
+  # merge keys (GHSA-r3ph-w7gj-g6xm). One major of each in the tree, so a plain override is safe.
+  sharp: '>=0.35.5'
+  source-map-js: '>=1.2.2'
+  js-yaml: '>=5.4.1'

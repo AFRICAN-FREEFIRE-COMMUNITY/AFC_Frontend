@@ -31,7 +31,10 @@
     "survival_time": "TEMPO DE SOBREVIVÊNCIA",
     "revives_received": "REVIVES RECEBIDOS",
     "gloowall_used": "GLOO USADAS",
-    "medkit_used": "MEDKITS USADOS"
+    "medkit_used": "MEDKITS USADOS",
+    "knocked": "VEZES DERRUBADO",
+    "grenades_used": "GRANADAS LANÇADAS",
+    "grenade_kills": "ABATES COM GRANADA"
   },
   "size": {
     "label": "Layout em edição:",
@@ -318,6 +321,17 @@
       "body": "« {name} » será removido definitivamente. As classificações que o usavam voltarão para o padrão ou para um fundo simples. Isto não pode ser desfeito.",
       "cancel": "Cancelar",
       "confirm": "Excluir"
+    },
+    "createScene": "Designs das cenas ao vivo",
+    "createSet": "Kit completo",
+    "createSetTitle": "Criar o kit completo: classificacao, booyah, MVP, melhores matadores e confronto direto",
+    "createSceneTitle": "Criar o design AFC padrao para {scene}",
+    "defaultSetCreated": "{count} designs padrao criados",
+    "scene": {
+      "booyah": "Booyah",
+      "mvp": "MVP",
+      "top_killers": "Melhores matadores",
+      "h2h": "Confronto direto"
     }
   },
   "exportGraphic": {

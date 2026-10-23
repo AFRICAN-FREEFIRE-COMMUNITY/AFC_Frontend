@@ -295,7 +295,7 @@ export default function ProductApprovalsPage() {
                       {product.vendor_name ? (
                         <Badge
                           variant="outline"
-                          className="rounded-full border-blue-500 text-blue-600"
+                          className="rounded-full text-blue-600"
                         >
                           {product.vendor_name}
                         </Badge>
@@ -371,7 +371,7 @@ export default function ProductApprovalsPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                              className="text-destructive hover:bg-destructive hover:text-white bg-destructive/10"
                               onClick={() => {
                                 setRejectTarget(product);
                                 setRejectReason("");
@@ -440,7 +440,7 @@ export default function ProductApprovalsPage() {
                     {gallery.length > 0 ? (
                       <div className="space-y-2">
                         {/* Main frame: an <img> for images, a <video> for videos. */}
-                        <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border bg-muted">
+                        <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-md bg-muted">
                           {active.media_type === "video" ? (
                             <video
                               src={active.url ?? undefined}
@@ -466,10 +466,10 @@ export default function ProductApprovalsPage() {
                                 key={m.id}
                                 type="button"
                                 onClick={() => setDetailMediaIndex(i)}
-                                className={`relative h-14 w-14 overflow-hidden rounded-md border bg-muted transition ${
+                                className={`relative h-14 w-14 overflow-hidden rounded-md bg-muted transition ${
                                   i === activeIndex
-                                    ? "border-primary ring-1 ring-primary"
-                                    : "border-border hover:border-primary/60"
+                                    ? "opacity-100"
+                                    : "opacity-50 hover:opacity-80"
                                 }`}
                                 aria-label={`View media ${i + 1}`}
                               >
@@ -496,7 +496,7 @@ export default function ProductApprovalsPage() {
                       </div>
                     ) : (
                       // No gallery and no primary image: muted placeholder.
-                      <div className="flex aspect-video w-full items-center justify-center rounded-md border bg-muted text-sm text-muted-foreground">
+                      <div className="flex aspect-video w-full items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">
                         No media
                       </div>
                     )}
@@ -514,7 +514,7 @@ export default function ProductApprovalsPage() {
                       {detailTarget.vendor_name && (
                         <Badge
                           variant="outline"
-                          className="rounded-full border-blue-500 text-blue-600"
+                          className="rounded-full text-blue-600"
                         >
                           {detailTarget.vendor_name}
                         </Badge>
@@ -522,7 +522,7 @@ export default function ProductApprovalsPage() {
                       {detailTarget.category?.name && (
                         <Badge
                           variant="outline"
-                          className="rounded-full border-green-500 text-green-600"
+                          className="rounded-full text-green-600"
                         >
                           {detailTarget.category.name}
                         </Badge>
@@ -547,7 +547,7 @@ export default function ProductApprovalsPage() {
                         Variants ({detailTarget.variants?.length ?? 0})
                       </p>
                       {detailTarget.variants?.length ? (
-                        <div className="rounded-md border">
+                        <div className="rounded-md bg-muted/30">
                           <Table>
                             <TableHeader>
                               <TableRow>
@@ -594,8 +594,8 @@ export default function ProductApprovalsPage() {
                                       variant="outline"
                                       className={
                                         v.is_active
-                                          ? "rounded-full border-green-500 text-green-600"
-                                          : "rounded-full border-orange-500 text-orange-600"
+                                          ? "rounded-full text-green-600"
+                                          : "rounded-full text-orange-600"
                                       }
                                     >
                                       {v.is_active ? "Active" : "Inactive"}
@@ -623,7 +623,7 @@ export default function ProductApprovalsPage() {
                     <DialogFooter>
                       <Button
                         variant="outline"
-                        className="border-destructive text-destructive hover:bg-destructive hover:text-white"
+                        className="text-destructive hover:bg-destructive hover:text-white bg-destructive/10"
                         onClick={() => {
                           // Hand off to the existing reject-reason dialog. Close the
                           // detail modal first so only one dialog is open at a time.

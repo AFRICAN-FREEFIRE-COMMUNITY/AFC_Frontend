@@ -136,7 +136,7 @@ export default function CountryPaymentRulesEditor({
   };
 
   return (
-    <div className="space-y-4 rounded-md border bg-muted/30 p-4">
+    <div className="space-y-4 rounded-md bg-muted/30 p-4">
       <div>
         <Label className="text-sm font-medium">
           {t("paymentRules.label")}
@@ -151,7 +151,7 @@ export default function CountryPaymentRulesEditor({
       </div>
 
       {/* Default rule for any country not listed below. */}
-      <div className="flex items-center justify-between gap-3 rounded-md border bg-background p-3">
+      <div className="flex items-center justify-between gap-3 rounded-md bg-background p-3">
         <div className="text-sm">
           <p className="font-medium">{t("paymentRules.unlistedTitle")}</p>
           <p className="text-xs text-muted-foreground">
@@ -176,7 +176,7 @@ export default function CountryPaymentRulesEditor({
           {rows.map(([name, rule]) => (
             <div
               key={name}
-              className="flex flex-wrap items-center gap-3 rounded-md border bg-background p-3"
+              className="flex flex-wrap items-center gap-3 rounded-md bg-background p-3"
             >
               <span className="min-w-[8rem] flex-1 text-sm font-medium">
                 {name}

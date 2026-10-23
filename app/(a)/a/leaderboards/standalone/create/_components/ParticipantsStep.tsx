@@ -305,11 +305,11 @@ export function ParticipantsStep({
         <div className="space-y-2">
           <Label>{t("stdSteps.participants.added", { count: participants.length })}</Label>
           {participants.length === 0 ? (
-            <p className="rounded-md border border-dashed py-8 text-center text-sm text-muted-foreground">
+            <p className="rounded-md py-8 text-center text-sm text-muted-foreground bg-muted/30">
               {t("stdSteps.participants.empty")}
             </p>
           ) : (
-            <div className="divide-y rounded-md border">
+            <div className="rounded-md zebra bg-muted/20 overflow-hidden">
               {participants.map((p) => (
                 <div
                   key={p.id}
@@ -320,14 +320,14 @@ export function ParticipantsStep({
                     {p.is_ghost ? (
                       <Badge
                         variant="outline"
-                        className="rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                        className="rounded-full px-2 py-0.5 text-xs text-orange-600"
                       >
                         {t("stdSteps.badge.ghost")}
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
-                        className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+                        className="rounded-full px-2 py-0.5 text-xs text-green-600"
                       >
                         {t("stdSteps.badge.real")}
                       </Badge>

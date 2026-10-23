@@ -63,7 +63,7 @@
  *  - Expiry maths + the 5-day constant: lib/newBadge.ts (pure, unit tested in
  *    lib/__tests__/newBadge.test.ts).
  *  - Label copy: messages/{en,fr,pt}/newBadge.json, namespace "newBadge".
- *  - Visual idiom: components/ui/badge.tsx `variant="outline"`, matching the AFC badge
+ *  - Visual idiom: components/ui/badge.tsx `variant="outline"` (a filled tint, no stroke), matching the AFC badge
  *    constants (rounded-full, px-2 py-0.5, text-xs) and the sibling TournamentTierBadge /
  *    WatchTag pills.
  */
@@ -99,11 +99,11 @@ export function NewBadge({ since, days = NEW_BADGE_DAYS, className }: NewBadgePr
       // straight from the inspector, without hunting for the call site.
       data-new-since={since}
       className={cn(
-        // AFC badge constants: outline pill, rounded-full, px-2 py-0.5, text-xs.
+        // AFC badge constants: filled pill (never a stroke), rounded-full, px-2 py-0.5, text-xs.
         "rounded-full px-2 py-0.5 text-xs",
         // Primary green, the same accent the tier-2 TournamentTierBadge uses, with the faint
         // tinted fill WatchTag uses - reads as a tag rather than as a status.
-        "border-primary/50 bg-primary/10 font-semibold uppercase tracking-wide text-primary",
+        "bg-primary/10 font-semibold uppercase tracking-wide text-primary",
         // Layout safety, the reason this can sit beside a nav item or a page title without
         // moving anything: never grows, never wraps, never squashes its neighbour. (Badge
         // already sets shrink-0 + whitespace-nowrap; align-middle keeps it on the text

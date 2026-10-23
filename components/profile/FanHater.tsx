@@ -94,12 +94,15 @@ export function FanHater({
   if (!targetId || !loaded) return null;
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    // flex-wrap: in French and Portuguese the two buttons ("Je suis un détracteur") are wider than a
+    // phone column beside an avatar, and a row that cannot wrap pushed the team page sideways
+    // (444 px at 390, inbox #283). They wrap under each other instead.
+    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
       <Button
         type="button"
         size="sm"
         variant={myStance === "fan" ? "default" : "outline"}
-        className={myStance === "fan" ? "" : "border-green-600/40 text-green-600 hover:bg-green-600/10 hover:text-green-600"}
+        className={myStance === "fan" ? "" : "text-green-600 hover:bg-green-600/10 hover:text-green-600 bg-green-600/5"}
         onClick={() => react("fan")}
         disabled={busy}
         aria-pressed={myStance === "fan"}
@@ -114,7 +117,7 @@ export function FanHater({
         type="button"
         size="sm"
         variant={myStance === "hater" ? "destructive" : "outline"}
-        className={myStance === "hater" ? "" : "border-red-500/40 text-red-500 hover:bg-red-500/10 hover:text-red-500"}
+        className={myStance === "hater" ? "" : "text-red-500 hover:bg-red-500/10 hover:text-red-500 bg-red-500/5"}
         onClick={() => react("hater")}
         disabled={busy}
         aria-pressed={myStance === "hater"}

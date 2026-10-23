@@ -139,9 +139,9 @@ type Rule = {
 // from the shared rankings namespace via t("tier", { tier }) - the same key components/rankings/
 // TierBadge uses - so "Tier 1" becomes "Niveau 1" / "Nível 1" from a single source.
 const TIER_META: Record<Tier, { mult: string; cls: string }> = {
-  1: { mult: "2.0×", cls: "text-amber-400 border-amber-500/60" },
-  2: { mult: "1.5×", cls: "text-green-400 border-green-600/60" },
-  3: { mult: "1.0×", cls: "text-blue-400 border-blue-600/60" },
+  1: { mult: "2.0×", cls: "text-amber-400 bg-amber-500/10" },
+  2: { mult: "1.5×", cls: "text-green-400 bg-green-600/10" },
+  3: { mult: "1.0×", cls: "text-blue-400 bg-blue-600/10" },
 };
 
 // Condition builder vocabulary. These are module-level (they never change), so they carry a
@@ -385,12 +385,12 @@ function SortableRule({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "rounded-md border bg-card",
+        "rounded-md bg-card",
         isDragging && "z-10 opacity-80 shadow-lg",
-        matchedInTest && "ring-1 ring-primary/60",
+        matchedInTest && "bg-primary/10",
         // The whole card is tinted, not just the pill: a flagged rule has to be findable while
         // scrolling a long list, which is the part a banner alone cannot do.
-        issues.length > 0 && "border-orange-500/40",
+        issues.length > 0 && "bg-orange-500/10",
         !rule.enabled && "opacity-60",
       )}
     >
@@ -431,7 +431,7 @@ function SortableRule({
         <InfoTip id="rankings.tiers.match_mode" />
 
         {matchedInTest && (
-          <Badge variant="outline" className="rounded-full border-primary/50 text-[10px] text-primary">
+          <Badge variant="outline" className="rounded-full text-[10px] text-primary">
             {t("matchesTest")}
           </Badge>
         )}
@@ -449,7 +449,7 @@ function SortableRule({
           <Switch checked={rule.enabled} onCheckedChange={(v) => onChange({ ...rule, enabled: v })} aria-label={t("a11y.ruleEnabled")} />
           <Button
             variant="outline" size="icon"
-            className="size-7 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            className="size-7 text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
             onClick={onDelete} aria-label={t("a11y.deleteRule")}
           >
             <IconTrash className="size-3.5" />
@@ -976,7 +976,7 @@ export default function TournamentTiersPage() {
           value={tTier("tier", { tier: defaultTier })} sub={t("stats.defaultTierSub")} tone="text-blue-400" />
       </div>
 
-      <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+      <div className="flex items-start gap-2 rounded-md bg-muted/30 p-3 text-xs text-muted-foreground">
         <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
         <span>
           {/* t.rich keeps the two emphasised fragments inline (the "first match wins" lead and the
@@ -994,7 +994,7 @@ export default function TournamentTiersPage() {
           Amber, not the orange used by the contradiction banner below - this is a consequence of a
           choice the admin made, not a problem with their rules. */}
       {usesForeignCurrency && (
-        <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-muted-foreground">
+        <div className="flex items-start gap-2 rounded-md bg-amber-500/5 p-3 text-xs text-muted-foreground">
           <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-amber-400" />
           <span>
             <span className="font-semibold text-amber-300">{t("currency.fxNoteTitle")}</span>{" "}
@@ -1008,7 +1008,7 @@ export default function TournamentTiersPage() {
           It summarises, then defers - a problem belonging to one rule is printed on that rule's
           card instead of here, so nobody has to count rows to find it. */}
       {issues.length > 0 && (
-        <div className="flex items-start gap-2 rounded-md border border-orange-500/40 bg-orange-500/5 p-3">
+        <div className="flex items-start gap-2 rounded-md bg-orange-500/5 p-3">
           <IconAlertTriangle className="mt-0.5 size-4 shrink-0 text-orange-400" />
           <div className="min-w-0 flex-1 space-y-1">
             <p className="text-sm font-semibold text-orange-300">{t("issues.title")}</p>
@@ -1035,7 +1035,7 @@ export default function TournamentTiersPage() {
             add-rule button) so the highlight stays put whether or not any rules exist yet. */}
         <div data-tour="tournament-tiers-rules" className="space-y-3 lg:col-span-2">
           {rules.length === 0 ? (
-            <div className="space-y-3 rounded-md border border-dashed bg-muted/20 px-3 py-10 text-center text-sm text-muted-foreground">
+            <div className="space-y-3 rounded-md bg-muted/20 px-3 py-10 text-center text-sm text-muted-foreground">
               <p>{t("emptyRules")}</p>
               {/* A set with no rules is not neutral - it sends EVERY event of this kind to the
                   default tier. Said plainly here, with the one-click way out, because the scrims
@@ -1081,7 +1081,7 @@ export default function TournamentTiersPage() {
           )}
 
           {/* default (pinned) */}
-          <div className="flex flex-wrap items-center gap-2 rounded-md border border-dashed bg-muted/20 px-3 py-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-md bg-muted/20 px-3 py-3">
             <Badge variant="outline" className="rounded-full text-[11px] text-muted-foreground">{t("defaultBadge")}</Badge>
             <span className="inline-flex items-center text-xs text-muted-foreground">
               {t("defaultRowText")}
@@ -1100,7 +1100,7 @@ export default function TournamentTiersPage() {
           </div>
 
           {/* data-tour anchor: tournament-tiers tour "Add a new rule" step. */}
-          <Button data-tour="tournament-tiers-add" variant="outline" className="w-full border-dashed" onClick={addRule}>
+          <Button data-tour="tournament-tiers-add" variant="secondary" className="w-full" onClick={addRule}>
             <IconPlus className="mr-1.5 size-4" /> {t("addRule")}
           </Button>
         </div>
@@ -1187,7 +1187,7 @@ export default function TournamentTiersPage() {
               {/* Result. When the sample pool could not be converted there IS no answer, so the
                   tier is withheld rather than showing the previous sample's verdict next to the
                   numbers currently on screen. */}
-              <div className="rounded-md border bg-muted/30 p-3">
+              <div className="rounded-md bg-muted/30 p-3">
                 {testError ? (
                   <p className="text-[11px] text-orange-400">{testError}</p>
                 ) : (
@@ -1238,7 +1238,7 @@ export default function TournamentTiersPage() {
             </DialogDescription>
           </DialogHeader>
           {/* the two summary labels reuse the status-strip keys - same words, one source */}
-          <div className="rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+          <div className="rounded-md bg-muted/30 p-3 text-xs text-muted-foreground">
             <div className="flex justify-between"><span>{t("stats.activeRules")}</span><span className="font-medium text-foreground">{rules.filter((r) => r.enabled).length}</span></div>
             <div className="mt-1 flex justify-between"><span>{t("stats.defaultTier")}</span><span className="font-medium text-foreground">{tTier("tier", { tier: defaultTier })}</span></div>
           </div>

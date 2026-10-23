@@ -586,7 +586,7 @@ export function CSRoomSettingsDialog({
                 </div>
                 {/* Publishing is what hands the room ID to players AND sends the notification, so
                     it is a deliberate switch rather than a side effect of saving. */}
-                <label className="flex cursor-pointer items-start gap-2 rounded-md border p-2.5">
+                <label className="flex cursor-pointer items-start gap-2 rounded-md p-2.5 bg-muted/30">
                   <Checkbox
                     checked={draft.is_published}
                     onCheckedChange={(v) => set("is_published", v === true)}
@@ -695,7 +695,7 @@ function StoreList({
   return (
     <div className="space-y-1.5">
       <p className="text-primary text-sm font-semibold">{title}</p>
-      <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border p-1.5">
+      <div className="max-h-72 space-y-1 overflow-y-auto rounded-md p-1.5 bg-muted/30">
         {rows.map((item) => {
           const entry = draft.store[item.code] ?? { enabled: true, price: item.default_price };
           return (
@@ -772,7 +772,7 @@ export function CSRoomCard({
   const yesNo = (on: boolean) => (on ? t("roomOn") : t("roomOff"));
 
   return (
-    <div className="bg-card space-y-2 rounded-md border p-3">
+    <div className="bg-card space-y-2 rounded-md p-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-primary text-sm font-semibold">{t("roomSettings")}</span>
         {sourceScope && (

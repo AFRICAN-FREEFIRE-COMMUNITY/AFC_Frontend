@@ -55,6 +55,7 @@ import { cn } from "@/lib/utils";
 import { matchesSearch } from "@/lib/search";
 import { InfoTip } from "@/components/ui/info-tip";
 import type { HelpId } from "@/lib/help-content";
+import { playerPath, teamPath } from "@/lib/routes";
 
 const TIERS = [0, 1, 2, 3] as const;
 const MIN_REASON = 10;
@@ -173,11 +174,14 @@ export default function AdminRankingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seasonId]);
 
+  // Every tier present, not just the standard four: tiers can be added in the scoring config
+  // (owner 2026-10-01). Inbox #108: a team on code 4 went uncounted into d[4] = NaN.
   const dist = useMemo(() => {
     const d: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
-    teams.forEach((t) => { if (t.tier != null) d[t.tier]++; });
+    teams.forEach((t) => { if (t.tier != null && t.tier >= 0) d[t.tier] = (d[t.tier] ?? 0) + 1; });
     return d;
   }, [teams]);
+  const distTiers = Object.keys(dist).map(Number).sort((a, b) => a - b);
   const total = teams.length || 1;
 
   // Use the shared matchesSearch helper so the teams box is punctuation/font-insensitive (a team
@@ -348,7 +352,7 @@ export default function AdminRankingsPage() {
             )}
           </CardHeader>
           <CardContent className="space-y-3">
-            {TIERS.map((t) => (
+            {distTiers.map((t) => (
               <div key={t} className="flex items-center gap-3">
                 <div className="w-28"><TierBadge tier={t} /></div>
                 <Progress value={(dist[t] / total) * 100} className="h-2 flex-1" />
@@ -414,7 +418,7 @@ export default function AdminRankingsPage() {
           { label: t("quickLinks.audit"), icon: IconHistory, desc: t("quickLinks.auditDesc"), href: "/a/rankings/audit" },
         ].map((x) => (
           <Link key={x.href} href={x.href}
-            className="flex items-center gap-3 rounded-md border bg-card p-3 text-left transition-colors hover:bg-muted/40">
+            className="flex items-center gap-3 rounded-md bg-card p-3 text-left transition-colors hover:bg-muted/40">
             <x.icon className="size-5 text-primary" />
             <div>
               <p className="text-sm font-medium">{x.label}</p>
@@ -564,7 +568,7 @@ function PublishRow({
   onToggle: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-md border bg-card p-3">
+    <div className="flex flex-col gap-3 rounded-md bg-card p-3">
       <div className="flex items-start justify-between gap-2">
         <div>
           {/* ⓘ sits beside the surface label so the publish/unpublish action is explained inline. */}
@@ -578,7 +582,7 @@ function PublishRow({
           variant="outline"
           className={cn(
             "shrink-0 rounded-full px-2 py-0.5 text-xs",
-            published ? "border-green-500/50 text-green-500" : "border-orange-500/50 text-orange-500",
+            published ? "text-green-500" : "text-orange-500",
           )}
         >
           {published ? (
@@ -813,7 +817,7 @@ function RunEvaluationDialog({
 
         <div className="space-y-4">
           {showForce && (
-            <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-500">
+            <div className="flex items-start gap-2 rounded-md bg-orange-500/10 p-3 text-xs text-orange-500">
               <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
               <span>{t("evalDialog.alreadyRun")}</span>
             </div>
@@ -821,22 +825,23 @@ function RunEvaluationDialog({
 
           {/* dry-run summary (only after a preview) */}
           {preview && (
-            <div className="space-y-3 rounded-md border bg-muted/30 p-3">
+            <div className="space-y-3 rounded-md bg-muted/30 p-3">
               <p className="flex items-center gap-1.5 text-xs font-semibold uppercase text-muted-foreground">
                 <IconEye className="size-3.5" /> {t("evalDialog.previewHeading")}
               </p>
               <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-md border bg-card p-3 text-center">
+                <div className="rounded-md bg-card p-3 text-center">
                   <p className="text-lg font-bold tabular-nums">{preview.teams_evaluated}</p>
                   <p className="text-[11px] text-muted-foreground">{t("evalDialog.teamsEvaluated")}</p>
                 </div>
-                <div className="rounded-md border bg-card p-3 text-center">
+                <div className="rounded-md bg-card p-3 text-center">
                   <p className="text-lg font-bold tabular-nums">{preview.players_evaluated}</p>
                   <p className="text-[11px] text-muted-foreground">{t("evalDialog.playersEvaluated")}</p>
                 </div>
               </div>
               <div className="space-y-1.5">
-                {TIERS.map((t) => (
+                {Array.from(new Set([...TIERS, ...Object.keys(preview.tier_distribution ?? {}).map(Number)]))
+                  .sort((a, b) => a - b).map((t) => (
                   <div key={t} className="flex items-center justify-between text-xs">
                     <TierBadge tier={t} />
                     <span className="font-semibold tabular-nums">{preview.tier_distribution?.[t] ?? 0}</span>
@@ -1032,7 +1037,7 @@ function RecalcEntityDialog({
                   data-active={entityType === t.key}
                   onClick={() => selectType(t.key)}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 rounded-md border bg-card p-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40",
+                    "flex items-center justify-center gap-1.5 rounded-md bg-card p-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/40",
                     "data-[active=true]:border-primary/50 data-[active=true]:bg-primary/10 data-[active=true]:text-primary",
                   )}
                 >
@@ -1062,7 +1067,7 @@ function RecalcEntityDialog({
                 placeholder={entityType === "team" ? t("recalcDialog.searchTeam") : t("recalcDialog.searchPlayer")}
               />
               {dropdownOpen && (
-                <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-popover p-1 shadow-md">
+                <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md bg-popover p-1 shadow-md">
                   {matches.length === 0 ? (
                     <p className="px-2 py-1.5 text-sm text-muted-foreground">{t("recalcDialog.noMatches")}</p>
                   ) : (
@@ -1254,7 +1259,7 @@ function ClaimRequestsSection() {
           {rows.length > 0 && (
             <Badge
               variant="outline"
-              className="ml-2 rounded-full px-2 py-0.5 text-[10px] border-orange-500/40 text-orange-400"
+              className="ml-2 rounded-full px-2 py-0.5 text-[10px] text-orange-400"
             >
               {t("claims.pending", { count: rows.length })}
             </Badge>
@@ -1325,7 +1330,7 @@ function ClaimRequestsSection() {
                       variant="outline"
                       className={cn(
                         "rounded-full px-2 py-0.5 text-[10px]",
-                        r.kind === "team" ? "border-green-600/50 text-green-400" : "border-blue-500/50 text-blue-400",
+                        r.kind === "team" ? "text-green-400" : "text-blue-400",
                       )}
                     >
                       {r.kind === "team" ? (
@@ -1346,7 +1351,7 @@ function ClaimRequestsSection() {
                       <div className="space-y-0.5">
                         {r.requestedByName ? (
                           <Link
-                            href={`/players/${encodeURIComponent(r.requestedByName)}`}
+                            href={playerPath(r.requestedByName)}
                             className="font-medium text-foreground hover:text-primary"
                           >
                             {r.requestedByName}
@@ -1378,7 +1383,7 @@ function ClaimRequestsSection() {
                       <div className="space-y-0.5">
                         {r.targetName ? (
                           <Link
-                            href={`/teams/${r.targetId}`}
+                            href={teamPath(r.targetId)}
                             className="font-medium text-foreground hover:text-primary"
                           >
                             {r.targetName}
@@ -1419,7 +1424,7 @@ function ClaimRequestsSection() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                         onClick={() => setAction({ row: r, mode: "reject" })}
                       >
                         <IconX className="mr-1 size-3.5" /> {t("claims.reject")}
@@ -1491,7 +1496,7 @@ function ClaimReasonDialog({
         </DialogHeader>
 
         {approving && (
-          <div className="flex items-start gap-2 rounded-md border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-300">
+          <div className="flex items-start gap-2 rounded-md bg-orange-500/10 p-3 text-xs text-orange-300">
             <IconAlertTriangle className="mt-0.5 size-4 shrink-0" />
             <span>{t("claimDialog.warning")}</span>
           </div>

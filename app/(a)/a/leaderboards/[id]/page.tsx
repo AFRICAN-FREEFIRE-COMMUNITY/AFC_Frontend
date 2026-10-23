@@ -489,7 +489,7 @@ export default function IndividualLeaderboardPage({
                           {m.missing_winner && (
                             <Badge
                               variant="outline"
-                              className="rounded-full border-amber-500/60 px-2 py-0.5 text-xs text-amber-600 dark:text-amber-400"
+                              className="rounded-full px-2 py-0.5 text-xs text-amber-600 dark:text-amber-400"
                               title="This map has no 1st-place team, so it adds 0 booyahs."
                             >
                               No winner
@@ -502,7 +502,7 @@ export default function IndividualLeaderboardPage({
                 </Select>
               </div>
 
-              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <div className="p-3 bg-primary/5 rounded-lg">
                 <p className="text-[10px] font-semibold text-primary uppercase">
                   Current Kill Points
                 </p>
@@ -563,7 +563,7 @@ export default function IndividualLeaderboardPage({
                   </TableBody>
                 </Table>
                 {getTableData().length === 0 && (
-                  <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                  <div className="text-center py-14 text-muted-foreground italic rounded-lg bg-muted/30">
                     No result found!
                   </div>
                 )}
@@ -630,7 +630,7 @@ export default function IndividualLeaderboardPage({
                     </TableBody>
                   </Table>
                   {getTableData().length === 0 && (
-                    <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                    <div className="text-center py-14 text-muted-foreground italic rounded-lg bg-muted/30">
                       No result found!
                     </div>
                   )}
@@ -679,7 +679,7 @@ export default function IndividualLeaderboardPage({
                     </TableBody>
                   </Table>
                   {getPlayerData().length === 0 && (
-                    <div className="text-center py-14 text-muted-foreground italic border-2 border-dashed border-zinc-800 rounded-lg">
+                    <div className="text-center py-14 text-muted-foreground italic rounded-lg bg-muted/30">
                       No player data available!
                     </div>
                   )}

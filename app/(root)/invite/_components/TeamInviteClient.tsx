@@ -17,6 +17,9 @@ import Link from "next/link";
 import { Footer } from "@/app/_components/Footer";
 import { Header } from "@/app/(user)/_components/Header";
 import { useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
+import { teamPath } from "@/lib/routes";
+import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
 
 type TeamInviteClientProps = {
   inviteId: string;
@@ -35,6 +38,7 @@ export function TeamInviteClient({
   // The team data itself (name, tag, members) comes from the backend endpoint
   // /team/get-team-details-based-on-invite/<inviteId> and is not localized.
   const t = useTranslations("root");
+  const tierLabel = useTierLabel();   // published Rankings tier label (inbox #162)
   // Shared management-role labels (messages/en/common.json -> "teamRoles"), keyed by the STORED
   // role value. Used for the roster preview below, which used to print the raw database value.
   // Matters most for 'member', which stores as "member" but reads as "Player" (owner 2026-08-04,
@@ -47,6 +51,7 @@ export function TeamInviteClient({
   const [loading, setLoading] = useState(!initialData);
   const [pendingAccept, startAcceptTransition] = useTransition();
   const [pendingReject, startRejectTransition] = useTransition();
+  const { confirmJoin, joinLockDialog } = useJoinLockConfirm();
 
   // Only fetch if we don't have initialData
   useEffect(() => {
@@ -94,12 +99,15 @@ export function TeamInviteClient({
     }
   };
 
-  const handleAcceptInvite = () => {
+  const handleAcceptInvite = async () => {
     if (!user) {
       toast.error(t("invite.loginToAccept"));
       router.push(`/login?redirect=/invite/${inviteId}`);
       return;
     }
+    // Joining is allowed while the transfer window is shut, leaving is not: say so, with the date,
+    // before the invite is accepted (inbox #92, components/team/JoinLockDialog).
+    if (!(await confirmJoin("invite", teamDetails?.team_name ?? ""))) return;
 
     startAcceptTransition(async () => {
       try {
@@ -111,7 +119,7 @@ export function TeamInviteClient({
           },
         );
         toast.success(response.data.message || t("invite.joinSuccess"));
-        router.push(`/teams/${teamDetails?.team_name}`);
+        router.push(teamPath(teamDetails?.team_name));
       } catch (error: any) {
         toast.error(
           error?.response?.data?.message || t("invite.acceptFailed"),
@@ -264,14 +272,10 @@ export function TeamInviteClient({
                 </p>
               </div>
               <div className="text-center p-4 bg-muted rounded-md">
-                <Badge
-                  variant="outline"
-                  className="h-6 w-6 mx-auto mb-2 flex items-center justify-center"
-                >
-                  T{teamDetails?.team_tier || 1}
-                </Badge>
+                {/* The published Rankings tier (inbox #162). It printed the hand-set team_tier and
+                    fell back to "1", so an unranked team was advertised to invitees as Tier 1. */}
                 <p className="text-2xl font-bold">
-                  {teamDetails?.team_tier || 1}
+                  {tierLabel(teamDetails?.ranking_tier)}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {t("invite.statTier")}
@@ -393,6 +397,7 @@ export function TeamInviteClient({
         </CardContent>
       </Card>
       <Footer />
+      {joinLockDialog}
     </div>
   );
 }

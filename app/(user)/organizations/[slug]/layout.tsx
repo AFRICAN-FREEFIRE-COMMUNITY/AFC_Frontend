@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 // Existence-aware detail fetch (lib/detailFetch.ts): "missing" = confirmed backend
 // 404 (unknown / suspended / deleted org) → notFound() (real 404, no soft-404);
 // "error" = transient → keep the 200 fallback so a live org page is never
@@ -13,12 +14,14 @@ import { fetchDetail } from "@/lib/detailFetch";
 //   jsonLd                   → render a schema object as a <script ld+json>
 import {
   buildEntityMetadata,
+  indexRules,
   resolveOgImage,
   generatePublicOrgSchema,
   generateBreadcrumbSchema,
   siteConfig,
   jsonLd,
 } from "@/lib/seo";
+import { readSegment } from "@/lib/routes";
 
 // WRAPPER PATTERN (same as teams/[id]/layout.tsx):
 // app/(user)/organizations/[slug]/page.tsx is a CLIENT component ("use client" - 
@@ -39,7 +42,7 @@ type Props = {
 async function getOrgData(slug: string) {
   return fetchDetail(
     `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/organizers/get-organization-public/${encodeURIComponent(
-      decodeURIComponent(slug),
+      readSegment(slug),
     )}/`,
     { next: { revalidate: 60 } },
     // The whole JSON body IS the org; require a name so an empty 200 is treated
@@ -78,10 +81,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ownDesc ? `${ownDesc} ${eventBit}` : `${org.name}: ${eventBit} View their events and ratings.`
   ).slice(0, 180);
 
+  // The title says what the page is ("NEXIOM FLUX, tournament organizer"): an organizer and a team
+  // can share a name, and Search Console flagged the two pages for an identical title (2026-10-16).
+  // The team page says "Free Fire team" the same way. messages/<loc>/pageTitles.json.
+  const titles = await getTranslations("pageTitles");
   return buildEntityMetadata({
-    title: org.name,
+    title: titles("organization", { name: (org.name || "").trim() }),
     description,
     path: `/organizations/${org.slug || slug}`,
+    // An organization with no published event asks not to be indexed (lib/seo.ts indexRules;
+    // Search Console 2026-10-16 called every such page a soft 404). It stays open to visitors.
+    noIndex: !indexRules.organization(eventCount).index,
     // Prefer the wide default banner for a large card; fall back to the logo.
     // resolveOgImage (inside the builder) proxies backend /media/ paths.
     image: org.default_banner || org.logo || null,

@@ -52,7 +52,7 @@ export function RequirementsPanel({ verdict }: { verdict: Verdict }) {
   const t = useTranslations("polls");
 
   return (
-    <Card className="bg-card rounded-md border py-6 shadow-sm">
+    <Card className="bg-card rounded-md py-6 shadow-sm">
       <CardContent className="space-y-4">
         <div>
           <h2 className="text-sm font-semibold text-foreground">{t("requirements.headingAll")}</h2>
@@ -96,9 +96,9 @@ export function RequirementsPanel({ verdict }: { verdict: Verdict }) {
 
         <div
           className={cn(
-            "rounded-md border px-3 py-2 text-xs font-medium",
+            "rounded-md px-3 py-2 text-xs font-medium bg-muted/30",
             verdict.eligible
-              ? "border-primary/40 bg-primary/10 text-primary"
+              ? "bg-primary/10 text-primary"
               : "border-border bg-muted/40 text-muted-foreground",
           )}
         >

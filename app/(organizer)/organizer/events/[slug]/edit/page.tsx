@@ -80,6 +80,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { IconLock, IconCalendarOff } from "@tabler/icons-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { useFollowEventMove } from "@/lib/addressRef";
 // Shared prize-distribution helpers (see lib/eventFormats.ts). Renumber the map to a
 // contiguous "1".."N" on every add/remove so a deleted/wrong position can always be
 // rebuilt. Same helpers used by the admin create wizard + admin edit page = parity.
@@ -140,6 +141,7 @@ import CoOrganizersPanel from "@/app/(a)/a/events/[slug]/edit/_components/CoOrga
 import { LinkedEventsCard } from "@/components/event-links";
 import { SeedStageModal } from "@/app/(a)/a/events/_components/SeedStageModal";
 import { ConfirmStartTournamentModal } from "@/app/(a)/a/events/_components/ConfirmStartTournamentModal";
+import { appendRemainingEventFields } from "@/lib/eventFields";
 // Shared Round-Robin config types + default (sub-project B).
 import {
   DEFAULT_ROUND_ROBIN_CONFIG,
@@ -280,6 +282,8 @@ export default function OrganizerEditEventPage({
   const resolvedParams = use(params);
   const { slug } = resolvedParams;
   const router = useRouter();
+  // An old address (renamed event, legacy id) moves to the current slug (inbox #209).
+  const followEventMove = useFollowEventMove();
   // Translations for this page's own chrome (header, tab labels, toasts, gates). Declared
   // early so the eventTitle useState initializer below can read the loading label.
   const t = useTranslations("evEditPage");
@@ -793,6 +797,7 @@ export default function OrganizerEditEventPage({
       );
 
       const ed = res.data.event_details;
+      followEventMove(res.data, (s) => `/organizer/events/${s}/edit`);
 
       // ── ORG GUARD ──────────────────────────────────────────────────────────
       // The event must be homed to the SELECTED org. get-event-details echoes the
@@ -1981,6 +1986,12 @@ export default function OrganizerEditEventPage({
           waitlistForm.waitlist_mode || "first_registered",
         );
 
+        // Everything else the contract says this role may write, in one line instead of five
+        // save sites (owner 2026-09-22, inbox #41). It appends ONLY what this FormData does
+        // not already carry, so every hand-written append above wins and a NEW plain field
+        // reaches this save with no edit here. See lib/eventFields.ts.
+        appendRemainingEventFields(formData, form.getValues() as Record<string, unknown>, "organizer");
+
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
           {
@@ -2010,9 +2021,14 @@ export default function OrganizerEditEventPage({
             }),
             { duration: 4000 },
           );
-          // Live-update (owner 2026-06-20): re-pull the saved event so changes show
-          // immediately without a manual reload (same as the admin edit page).
-          await fetchEventDetails();
+          // A rename moves the event's address (edit_event answers the current slug): go there,
+          // or the re-read by the old address 404s (inbox #171, same as the admin edit page).
+          // Otherwise re-pull in place (owner 2026-06-20) so changes show without a reload.
+          if (res.slug && res.slug !== slug) {
+            router.replace(`/organizer/events/${encodeURIComponent(res.slug)}/edit${window.location.search}`);
+          } else {
+            await fetchEventDetails();
+          }
         } else {
           const errorMessage = res.message || res.detail || res.error;
           if (response.status === 400) {

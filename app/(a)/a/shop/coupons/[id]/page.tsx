@@ -31,6 +31,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader } from "@/components/Loader";
 import { formatDate } from "@/lib/utils";
+import { couponPath, readSegment } from "@/lib/routes";
 
 type Params = Promise<{ id: string }>;
 
@@ -124,7 +125,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
 
       try {
         setIsLoading(true);
-        const decodedId = decodeURIComponent(id);
+        const decodedId = readSegment(id);
 
         // `ref` is the coupon's slug, a retired slug or a legacy id (owner rule R22); a move
         // comes back on the envelope as `moved_to` and the address is rewritten in place.
@@ -143,7 +144,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
 
         setCouponDetails(detailsRes.data.coupon_details);
         setTotalUses(usesRes.data.total_uses);
-        if (detailsRes.data.moved_to && detailsRes.data.moved_to !== `/a/shop/coupons/${decodedId}`) {
+        if (detailsRes.data.moved_to && detailsRes.data.moved_to !== couponPath(decodedId)) {
           router.replace(detailsRes.data.moved_to);
         }
       } catch (error: any) {
@@ -186,7 +187,7 @@ export default function CouponStatisticsPage({ params }: { params: Params }) {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <PageHeader back title={`Coupon Statistics: ${couponDetails.code}`} />
         <Button className="w-full md:w-auto" asChild>
-          <Link href={`/a/shop/coupons/${couponDetails?.slug || id}/edit`}>Edit Coupon</Link>
+          <Link href={couponPath(couponDetails?.slug || id, "/edit")}>Edit Coupon</Link>
         </Button>
       </div>
 

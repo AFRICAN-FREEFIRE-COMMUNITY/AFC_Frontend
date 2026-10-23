@@ -11,11 +11,14 @@ import { cn } from "@/lib/utils";
 // the server's clock with a hardcoded English ordinal format.
 import { LocalTime } from "@/components/LocalTime";
 import { Badge } from "@/components/ui/badge";
+// Every category a post is in (inbox #160).
+import { newsCategoryKeys } from "@/lib/newsCategories";
 import Image from "next/image";
 import Link from "next/link";
 import { RenderDescription } from "@/components/text-editor/RenderDescription";
 import { ChevronRight, ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { QrShareButton } from "@/components/qr/QrShareButton";
 // TournamentTierBadge: shared gold/green/blue tier badge (components/TournamentTierBadge.tsx),
 // the same one tournaments/page.tsx uses, so the tier accent here matches the rest of the site.
 import { TournamentTierBadge } from "@/components/TournamentTierBadge";
@@ -146,7 +149,8 @@ export function NewsClient({
   };
 
   // Category badge label. get-news-detail returns the RAW category key ("general" | "tournament" |
-  // "education" | "bans" - backend News.CATEGORY_CHOICES); this maps it to the viewer's language
+  // "education" | "team_updates" | "bans" | "banned_teams", backend News.CATEGORY_CHOICES); this
+  // maps it to the viewer's language
   // using the SAME messages/<locale>/news.json categories.* keys the /news list and the home-page
   // teaser use, so one post is labelled identically everywhere. Previously the raw key was printed,
   // which showed an English key to every viewer and would have read as a bare "Education" for the
@@ -170,9 +174,12 @@ export function NewsClient({
             {/* No `capitalize` here: the label is a fully-cased translated phrase, and CSS
                 capitalize would title-case every word of it (French "Mises à jour éducatives"
                 would render as "Mises À Jour Éducatives"). */}
-            <Badge variant="secondary">
-              {getCategoryLabel(newsDetails.category)}
-            </Badge>
+            {/* One tag for every category the post is in (inbox #160), via lib/newsCategories.ts. */}
+            {newsCategoryKeys(newsDetails).map((key) => (
+              <Badge key={key} variant="secondary">
+                {getCategoryLabel(key)}
+              </Badge>
+            ))}
             <div className="flex items-center gap-3 border-l pl-3 ml-1 border-muted-foreground/20">
               <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
                 <IconThumbUp size={16} stroke={2.5} />
@@ -187,6 +194,9 @@ export function NewsClient({
         }
         title={t("detail.titleSuffix", { title: newsDetails.news_title })}
         back
+        // QR code for this article (inbox #46, 2026-09-26): anyone reading can make one; news
+        // admins also see the scan count. components/qr/QrShareButton.tsx
+        action={<QrShareButton targetType="news" targetRef={slug} name={newsDetails.news_title} />}
       />
 
       <div className="space-y-6">
@@ -209,7 +219,7 @@ export function NewsClient({
             changes. */}
         {Array.isArray(newsDetails.related_events) &&
           newsDetails.related_events.length > 0 && (
-            <section className="bg-card rounded-md border p-4 sm:p-5">
+            <section className="bg-card rounded-md p-4 sm:p-5">
               <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
                 {t("relatedEvents.heading")}
               </h2>
@@ -221,7 +231,7 @@ export function NewsClient({
                     aria-label={t("relatedEvents.viewEvent", {
                       name: ev.event_name,
                     })}
-                    className="group flex items-center justify-between gap-3 rounded-md border bg-background p-3 transition-colors hover:border-primary"
+                    className="group flex items-center justify-between gap-3 rounded-md bg-background p-3 transition-colors hover:bg-primary/10"
                   >
                     <div className="min-w-0">
                       <p className="truncate font-medium text-foreground">
@@ -243,7 +253,7 @@ export function NewsClient({
 
         <RenderDescription json={newsDetails?.content} />
 
-        {newsDetails.category === "tournament" &&
+        {newsCategoryKeys(newsDetails).includes("tournament") &&
           newsDetails.registrationLink && (
             <Button asChild>
               <a

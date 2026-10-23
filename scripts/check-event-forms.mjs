@@ -13,7 +13,7 @@
  *   LEDGERED  a writable contract field that NO form sends (event.forms.missing): the field exists
  *             on the backend and no screen can set it. Counted so it can only fall.
  *   BLOCKING  lib/eventContract.generated.json is stale against the backend tree beside us
- *             (regenerate: python ../wt-be-ocr/tools/export_event_contract.py --json > lib/eventContract.generated.json).
+ *             (regenerate: python <backend tree>/tools/export_event_contract.py --json > lib/eventContract.generated.json).
  *             Skipped where no backend tree sits beside this one (CI), so the committed list rules.
  *
  * USAGE   node scripts/check-event-forms.mjs [--json]
@@ -51,7 +51,8 @@ const writable = new Set(contract.writable.admin.filter((k) => !(k in SET_ELSEWH
 
 // ── staleness: only where the backend tree is beside us ──
 let stale = null;
-const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "export_event_contract.py")));
+// Same tree choice as scripts/check-all.mjs backendTree(): AFC_BACKEND_TREE, else ../backend.
+const backend = [process.env.AFC_BACKEND_TREE, "../backend"].filter(Boolean).find((d) => existsSync(join(d, "tools", "export_event_contract.py")));
 if (backend) {
   const py = spawnSync("python", [join(backend, "tools", "export_event_contract.py"), "--json"], { encoding: "utf8", cwd: backend });
   if (py.status === 0 && py.stdout) {
@@ -73,15 +74,27 @@ for (const rel of FORMS) {
 }
 const unknown = [];
 for (const [rel, keys] of sent) for (const k of keys) if (!known.has(k)) unknown.push({ file: rel, key: k });
+
+// ── each form reads the ONE list (owner 2026-09-22, inbox #41) ──
+// A form that stops calling appendRemainingEventFields is back to repeating the field list by
+// hand, which is the drift this check exists to stop. The helper appends only what the form has
+// not already appended, so it can never fight a hand-written line; losing it is always a
+// regression. See lib/eventFields.ts.
+const notWired = [];
+for (const rel of FORMS) {
+  const text = readFileSync(join(ROOT, rel), "utf8");
+  if (!/appendRemainingEventFields\s*\(/.test(text)) notWired.push(rel);
+}
 const everSent = new Set([...sent.values()].flatMap((s) => [...s]));
 const missing = [...writable].filter((k) => !everSent.has(k)).sort();
 
-const result = { unknown, missing, stale, forms: Object.fromEntries([...sent].map(([k, v]) => [k, v.size])) };
+const result = { unknown, missing, stale, notWired, forms: Object.fromEntries([...sent].map(([k, v]) => [k, v.size])) };
 if (process.argv.includes("--json")) {
   console.log(JSON.stringify(result));
   process.exit(0);
 }
 for (const u of unknown) console.log(`UNKNOWN ${u.file}  sends "${u.key}", which the contract does not know`);
+for (const rel of notWired) console.log(`NOT WIRED ${rel}  does not call appendRemainingEventFields: it is repeating the field list by hand again (lib/eventFields.ts)`);
 if (stale) console.log(`STALE ${stale}`);
-console.log(`${unknown.length} unknown key(s); ${missing.length} writable field(s) no form sends${missing.length ? ": " + missing.join(", ") : ""}`);
-process.exit(unknown.length || stale ? 1 : 0);
+console.log(`${unknown.length} unknown key(s); ${notWired.length} form(s) not reading the shared list; ${missing.length} writable field(s) no form sends${missing.length ? ": " + missing.join(", ") : ""}`);
+process.exit(unknown.length || notWired.length || stale ? 1 : 0);

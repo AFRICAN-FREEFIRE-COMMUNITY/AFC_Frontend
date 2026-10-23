@@ -32,7 +32,7 @@ export default async function UnauthorizedPage() {
             <Link href="/home">{t("unauthorized.goToDashboard")}</Link>
           </Button>
           <Button className="flex-1 w-full md:w-auto" asChild variant="outline">
-            <Link href="/contact">{t("unauthorized.requestAccess")}</Link>
+            <Link href="/support">{t("unauthorized.requestAccess")}</Link>
           </Button>
         </div>
       </div>

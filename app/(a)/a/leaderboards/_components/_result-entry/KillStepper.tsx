@@ -37,6 +37,8 @@ import React from "react";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
+// Words from messages/<locale>/resultEntry.json (inbox #257, 2026-10-16: English only before).
+import { useTranslations } from "next-intl";
 import {
   parseScoreInput,
   scoreInputValue,
@@ -58,6 +60,7 @@ const MIN = 0;
 const MAX = 999;
 
 export function KillStepper({ value, onChange, disabled = false, label }: Props) {
+  const t = useTranslations("resultEntry");
   const step = (by: number) => {
     // An empty box stepped up is 1 and stepped down is 0: scoreOrZero reads absent as zero,
     // which is exactly what the person pressing the key means here.
@@ -78,7 +81,7 @@ export function KillStepper({ value, onChange, disabled = false, label }: Props)
         className={buttonClass}
         onClick={() => step(-1)}
         disabled={disabled || scoreOrZero(value) <= MIN}
-        aria-label={`One less. ${label}`}
+        aria-label={t("stepper.oneLess", { label })}
       >
         <IconMinus className="size-4" />
       </button>
@@ -113,7 +116,7 @@ export function KillStepper({ value, onChange, disabled = false, label }: Props)
         className={buttonClass}
         onClick={() => step(1)}
         disabled={disabled || scoreOrZero(value) >= MAX}
-        aria-label={`One more. ${label}`}
+        aria-label={t("stepper.oneMore", { label })}
       >
         <IconPlus className="size-4" />
       </button>

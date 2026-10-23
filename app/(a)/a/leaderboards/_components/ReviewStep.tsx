@@ -7,7 +7,7 @@ export function ReviewStep() {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-[#09090b] border-zinc-800 text-white">
+      <Card className="bg-[#09090b] text-white">
         <CardContent className="p-6 space-y-6">
           <div className="space-y-1">
             <h2 className="text-xl font-bold">Review Extracted Metrics</h2>
@@ -63,10 +63,10 @@ export function ReviewStep() {
       </Card>
 
       <div className="flex gap-4">
-        <Button variant="secondary" className="bg-zinc-900 border-zinc-800">
+        <Button variant="secondary" className="bg-zinc-900">
           Back
         </Button>
-        <Button variant="secondary" className="bg-zinc-900 border-zinc-800">
+        <Button variant="secondary" className="bg-zinc-900">
           Save to Drafts
         </Button>
         <Button className="bg-white text-black font-bold px-8 hover:bg-zinc-200">

@@ -448,7 +448,7 @@ export function ResultsStep({
   const ghostBadge = (
     <Badge
       variant="outline"
-      className="rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+      className="rounded-full px-2 py-0.5 text-xs text-orange-600"
     >
       {t("stdSteps.badge.ghost")}
     </Badge>
@@ -456,7 +456,7 @@ export function ResultsStep({
   const realBadge = (
     <Badge
       variant="outline"
-      className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+      className="rounded-full px-2 py-0.5 text-xs text-green-600"
     >
       {t("stdSteps.badge.real")}
     </Badge>
@@ -483,7 +483,7 @@ export function ResultsStep({
             existing-ghost via search, or new ghost) can be added right here. Always visible when
             there are no participants yet; collapsible behind a button otherwise. */}
         {(participants.length === 0 || showAdd) && (
-          <div className="space-y-3 rounded-md border bg-muted/20 p-3">
+          <div className="space-y-3 rounded-md bg-muted/20 p-3">
             <Label>
               {format === "team"
                 ? t("stdSteps.results.addTeamToScore")
@@ -550,13 +550,13 @@ export function ResultsStep({
               : t("stdSteps.results.playersAdded", { count: participants.length })}
           </Label>
           {participants.length === 0 ? (
-            <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
+            <p className="rounded-md py-6 text-center text-sm text-muted-foreground bg-muted/30">
               {format === "team"
                 ? t("stdSteps.results.emptyTeams")
                 : t("stdSteps.results.emptyPlayers")}
             </p>
           ) : (
-            <div className="divide-y rounded-md border">
+            <div className="rounded-md zebra bg-muted/20 overflow-hidden">
               {participants.map((p) => (
                 <div key={p.id} className="flex items-center justify-between gap-2 p-2">
                   <div className="flex items-center gap-2">
@@ -619,13 +619,13 @@ export function ResultsStep({
         </div>
 
         {matches.length === 0 ? (
-          <p className="rounded-md border border-dashed py-10 text-center text-sm text-muted-foreground">
+          <p className="rounded-md py-10 text-center text-sm text-muted-foreground bg-muted/30">
             {t("stdSteps.results.noMaps")}
           </p>
         ) : currentRows.length === 0 ? (
           // A map exists but nobody to score yet: point at the add panel above instead of
           // rendering an empty editor.
-          <p className="rounded-md border border-dashed py-10 text-center text-sm text-muted-foreground">
+          <p className="rounded-md py-10 text-center text-sm text-muted-foreground bg-muted/30">
             {format === "team"
               ? t("stdSteps.results.noTeamsToScore")
               : t("stdSteps.results.noPlayersToScore")}
@@ -635,7 +635,7 @@ export function ResultsStep({
           // the roster with per-player kills; the team's overall kills is the live sum.
           <div className="space-y-3">
             {currentRows.map((row, idx) => (
-              <div key={row.participant_id} className="space-y-2.5 rounded-md border p-3">
+              <div key={row.participant_id} className="space-y-2.5 rounded-md p-3 bg-muted/30">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{row.name}</span>
@@ -730,7 +730,7 @@ export function ResultsStep({
           </div>
         ) : (
           // ── SOLO format: the compact per-player table (placement + kills per participant). ──
-          <div className="overflow-hidden rounded-md border">
+          <div className="overflow-hidden rounded-md bg-muted/30">
             <Table>
               <TableHeader>
                 <TableRow className="h-10">

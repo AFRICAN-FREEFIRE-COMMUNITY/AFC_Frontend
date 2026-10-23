@@ -70,6 +70,22 @@ const safeNameSchema = (fieldKey: string, minLength: number = 2) =>
       message: vt("unsafeChars", { field: fieldLabel(fieldKey) }),
     });
 
+// A team name: the safe-name rules, plus at least one letter or number and not the name of a page
+// under /teams/ (inbox #276, 2026-10-16: production had teams called "." and "---", and a browser
+// folds /teams/. into /teams so that team had no page). Mirrors AFC-B afc_team/names.py
+// team_name_problem, which checks every alphabet for API callers; these forms only take plain
+// characters (SAFE_NAME_REGEX), so the letter check here is plain too. Used by CreateTeamFormSchema
+// below and EditTeamFormSchema (app/(user)/teams/[id]/edit/page.tsx).
+const RESERVED_TEAM_NAMES = ["create"];
+export const teamNameSchema = () =>
+  safeNameSchema("teamName", 2)
+    .refine((val) => !val || /[a-zA-Z0-9]/.test(val), {
+      message: vt("needsLetterOrNumber", { field: fieldLabel("teamName") }),
+    })
+    .refine((val) => !RESERVED_TEAM_NAMES.includes(val.trim().toLowerCase()), {
+      message: vt("teamNameReserved"),
+    });
+
 export const LoginFormSchema = z.object({
   ign_or_uid: z.string().min(2, {
     message: vt("uidMin"),
@@ -238,7 +254,7 @@ export const ContactFormSchema = z.object({
 });
 
 export const CreateTeamFormSchema = z.object({
-  team_name: safeNameSchema("teamName", 2),
+  team_name: teamNameSchema(),
   team_tag: z
     .string()
     .optional()
@@ -291,7 +307,8 @@ export const CreateNewsFormSchema = z.object({
     .min(1, "Title is required")
     .max(200, "Title must be less than 200 characters"),
   content: z.string().min(1, "Content is required"),
-  category: z.string().min(1, "Category is required"),
+  // Inbox #160: one or several categories (components/news/NewsCategoryPicker.tsx).
+  categories: z.array(z.string()).min(1, "Pick at least one category"),
   // News overhaul: the single fake `event` string was replaced by a multi-select of real events.
   // Each element is {event_id, event_name} produced by components/news/EventMultiSelect; the create
   // form submits each id as a repeated `related_events` form field to create_news (afc_auth/views.py).
@@ -469,7 +486,8 @@ export const EditNewsFormSchema = z.object({
     .max(200, "Title must be less than 200 characters"),
   content: z.string().min(1, "Content is required"),
   id: z.number().min(1, "ID is required"),
-  category: z.string().min(1, "Category is required"),
+  // Inbox #160: one or several categories (components/news/NewsCategoryPicker.tsx).
+  categories: z.array(z.string()).min(1, "Pick at least one category"),
   // News overhaul: multi-select of real events (was the single fake `event` string). Prefilled on
   // edit from get-news-detail's related_events list; each id is submitted as a repeated
   // `related_events` form field to edit_news (afc_auth/views.py) which REPLACES the M2M.

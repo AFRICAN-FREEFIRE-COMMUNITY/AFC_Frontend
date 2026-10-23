@@ -1,0 +1,108 @@
+{
+  "loadError": "Could not load this. Check your connection and try again.",
+  "retry": "Try again",
+  "landing": {
+    "metaTitle": "You are invited to AFC",
+    "invitedBy": "Invited by",
+    "title": "Join AFC through {name}'s invite",
+    "titleProgram": "Join AFC",
+    "partOf": "Part of <b>{program}</b>, running until <date></date>.",
+    "ended": "This invite is from <b>{program}</b>, which ended on <date></date>. You can still create an account.",
+    "pitch": "Create a free account to play tournaments and scrims, join a team and use the shop.",
+    "welcomeTitle": "Your welcome prize",
+    "welcomeGiven": "Given once your referral counts.",
+    "createAccount": "Create your account",
+    "haveAccount": "I already have an account",
+    "signedIn": "You are signed in. Invites are for new accounts, so this one changes nothing for you.",
+    "howTitle": "How it works",
+    "step1": "Create your account with this link open, or type the code <code></code> when you sign up.",
+    "step3Welcome": "Your welcome prize then appears in Profile, Referrals.",
+    "step3": "Your inviter then sees it on their profile.",
+    "fine": "One referral per account. Accounts that existed before the invite are not counted.",
+    "notFoundTitle": "This invite link does not exist",
+    "notFoundBody": "Check the link, or create an account without one."
+  },
+  "rules": {
+    "signup": "Counts when the new player confirms their account.",
+    "team": "Counts when the new player joins or creates a team.",
+    "event": "Counts when the new player registers for an event.",
+    "eventNamed": "Counts when the new player registers for {event}.",
+    "purchase": "Counts when the new player makes their first shop order."
+  },
+  "prizeLabel": {
+    "shopItem": "Shop item",
+    "couponPercent": "{value}% off a shop order",
+    "couponFixed": "<amount></amount> off a shop order",
+    "cash": "<amount></amount> cash"
+  },
+  "prizeWhen": {
+    "milestone": "{count, plural, one {at # counted referral} other {at # counted referrals}}",
+    "rank": "top referrer #{rank} when the program ends",
+    "welcome": "for everyone you bring, once their referral counts"
+  },
+  "claim": {
+    "ok": "Your invite was recorded. Welcome to AFC!",
+    "refused": {
+      "bad_code": "The referral code you used does not exist.",
+      "program_not_active": "That referral program has ended, so the code was not used.",
+      "not_eligible": "That referral code is no longer valid.",
+      "self_referral": "You cannot use your own referral code.",
+      "account_not_new": "Referral codes are for new accounts, so the code was not used.",
+      "already_referred": "Your account already has a referral."
+    }
+  },
+  "signup": {
+    "codeLabel": "Referral code (optional)",
+    "codeHelp": "Got a code from a friend or a stream? Enter it here.",
+    "codeHelpLink": "Filled in from an invite link. Clear it if you do not want to be counted as someone's referral."
+  },
+  "tab": {
+    "label": "Referrals",
+    "running": "Running",
+    "until": "until <date></date>",
+    "yourLink": "Your link",
+    "copy": "Copy",
+    "linkCopied": "Link copied",
+    "yourCode": "Your code",
+    "copyCode": "Copy code",
+    "codeCopied": "Code copied",
+    "copyFailed": "Could not copy. Select the text and copy it by hand.",
+    "whatsapp": "WhatsApp",
+    "share": "Share",
+    "downloadQr": "Download QR",
+    "shareText": "Join me on AFC, the African Free Fire Community: {link}",
+    "stats": {
+      "clicks": "Link opened",
+      "signups": "Signed up",
+      "counted": "Counted",
+      "rank": "Your rank"
+    },
+    "pendingNote": "{count, plural, one {# person signed up but has not counted yet.} other {# people signed up but have not counted yet.}}",
+    "nextPrize": "Next prize",
+    "nextOf": "{counted} of {threshold}",
+    "nextMore": "{count, plural, one {# more counted referral for <prize></prize>.} other {# more counted referrals for <prize></prize>.}}",
+    "allMilestones": "You have reached every milestone in this program.",
+    "prizesTitle": "Prizes in this program",
+    "each": "Each",
+    "earned": "Earned",
+    "rewardsTitle": "Your rewards",
+    "rewardStatus": {
+      "pending": "Being delivered",
+      "delivered": "Delivered",
+      "ready": "Ready"
+    },
+    "couponCode": "Code <code></code>, one use",
+    "couponCopied": "Coupon copied",
+    "rewardFrom": "{program}, earned <date></date>",
+    "joinedThrough": "You joined AFC through <b>{referrer}</b>'s invite ({program}).",
+    "joinedThroughProgram": "You joined AFC through {program}.",
+    "referralStatus": {
+      "pending": "Waiting to count.",
+      "counted": "Counted.",
+      "rejected": "Not counted.",
+      "flagged": "Under review."
+    },
+    "emptyTitle": "No referral program is open to you right now.",
+    "emptyBody": "When AFC runs one you can take part in, your link appears here."
+  }
+}

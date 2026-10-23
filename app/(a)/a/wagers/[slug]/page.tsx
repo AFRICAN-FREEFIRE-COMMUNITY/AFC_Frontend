@@ -31,6 +31,7 @@ import { Evidence, ReopenDialog, SettleDialog, SuggestButton, VoidDialog } from 
 import { MarketForm } from "../_components/MarketForm";
 import { MarketStatusBadge, Pager, Panel, Stat, useAdminRefusal, WagerStatusBadge } from "../_components/shared";
 
+import { winningsPlayerPath } from "@/lib/routes";
 const LIMIT = 25;
 
 export default function AdminMarketPage() {
@@ -237,7 +238,7 @@ export default function AdminMarketPage() {
                   <TableBody>
                     {wagers.map((w, i) => (
                       <TableRow key={w.token} className={i % 2 ? "bg-muted/40" : ""}>
-                        <TableCell className="font-medium"><Link href={`/a/winnings/players/${w.user}`} className="hover:underline">{w.user}</Link></TableCell>
+                        <TableCell className="font-medium"><Link href={winningsPlayerPath(w.user)} className="hover:underline">{w.user}</Link></TableCell>
                         <TableCell><WagerStatusBadge status={w.status} /></TableCell>
                         <TableCell>{w.lines.map((l) => `${naira(l.stake_kobo)} ${t("detail.on")} ${l.option}`).join(", ")}</TableCell>
                         <TableCell className="text-right">{naira(w.total_stake_kobo)}</TableCell>

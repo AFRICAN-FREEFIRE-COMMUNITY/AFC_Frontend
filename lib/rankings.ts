@@ -162,6 +162,8 @@ export interface Season {
   transfer_window_open?: string | null;
   transfer_window_close?: string | null;
   transfer_window_is_open?: boolean;
+  /** When roster moves next become allowed, or null while they are (backend Season.next_window_opens, inbox #150). */
+  next_window_opens?: string | null;
 }
 
 export interface Envelope<T> {

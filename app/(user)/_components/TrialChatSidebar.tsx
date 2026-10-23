@@ -233,7 +233,7 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
             Tells the trial participants their conversation may be reviewed by AFC staff. */}
         {disclaimerChatId !== null && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm p-6">
-            <div className="bg-card border rounded-md p-6 max-w-[320px] text-center shadow-lg">
+            <div className="bg-card rounded-md p-6 max-w-[320px] text-center shadow-lg">
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                 <IconShieldLock className="h-6 w-6 text-primary" />
               </div>
@@ -301,7 +301,7 @@ export function TrialChatSidebar({ open, onClose, initialChatId }: Props) {
                 <p className="text-xs">{t("trialChat.emptyChats.subtitle")}</p>
               </div>
             ) : (
-              <div className="divide-y">
+              <div className="zebra">
                 {chats.map((chat) => (
                   <button
                     key={chat.chat_id}

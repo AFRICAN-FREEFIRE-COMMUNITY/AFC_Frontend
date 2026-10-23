@@ -80,12 +80,15 @@ export type FieldType =
   // per-round MatchResult / round_robin standings. So a design column bound to one of these renders a
   // real value while the overlay feed is in LIVE mode (events/overlay/feed/?live=1 -> the Redis
   // snapshot at overlay:live:<event>:<stage>:<group>) and 0/blank in the official per-round feed.
-  // Only the stats VERIFIED available in the client logs are exposed (we never add damage,
-  // grenades-thrown, or revive-giver, whose data does not exist anywhere in the client). Added to the
-  // DesignFieldsEditor palette + the CopyOverlayLinkDialog column chooser, rendered by DesignBoard via
-  // row[field.field_type].
+  // Only the stats VERIFIED available in the client logs are exposed (damage and the revive-giver do
+  // not exist anywhere in the client; re-checked on OB55, 2026-09-22). Since 2026-09-22 these are also
+  // STORED on the site (AFC Capture attaches them to each map's result upload), so the official feed
+  // sums them per team as well. Added to the DesignFieldsEditor palette + the CopyOverlayLinkDialog
+  // column chooser, rendered by DesignBoard via row[field.field_type].
   | "deaths" | "knockdowns" | "headshots" | "most_used_weapon" | "survival_time"
-  | "revives_received" | "gloowall_used" | "medkit_used";
+  | "revives_received" | "gloowall_used" | "medkit_used"
+  // AFC Capture 1.4.0 (owner 2026-09-22): times knocked, knock assists, grenades thrown, grenade kills.
+  | "knocked" | "grenades_used" | "grenade_kills";
 
 export type TextAlign = "left" | "center" | "right";
 
@@ -232,6 +235,15 @@ export interface LeaderboardDesign {
 // The two export canvas sizes the renderer supports (afc_leaderboard.graphic.CANVAS).
 export type GraphicSize = "instagram" | "youtube";
 
+// What the one-click AFC default generator can build (owner 2026-09-22, inbox #38: "default designs
+// that can be used for any event as overlay"). 12 / 15 / 24 are the standings board sized by team
+// count, as before. The four scene names each produce a finished design for one LIVE overlay scene,
+// carrying that scene's design_type so the overlay renders through it instead of its built-in
+// layout. "set" builds the whole kit in one request: the 15-team standings board plus all four
+// scenes. Backend: afc_organizers.views_leaderboard_design._DEFAULT_PRESETS / _SCENE_PRESETS.
+export type DefaultDesignPreset =
+  | 12 | 15 | 24 | "booyah" | "mvp" | "top_killers" | "h2h" | "set";
+
 // ══ BOARD CHROME geometry (owner 2026-08-05, backlog #2) ═══════════════════════════════════════
 // A VERBATIM mirror of afc_leaderboard/graphic.py's chrome constants + _column_edges. It lives here,
 // not in a component, because BOTH surfaces that have to match the downloaded PNG import it:
@@ -272,6 +284,9 @@ export const COLUMN_HEADER_LABELS: Partial<Record<FieldType, string>> = {
   revives_received: "REVIVES",
   gloowall_used: "GLOO",
   medkit_used: "MEDKITS",
+  knocked: "KNOCKED",
+  grenades_used: "GRENADES",
+  grenade_kills: "NADE KILLS",
 };
 
 export const HEADER_ROW_GAP = 1.15; // row-heights above row 1 (graphic.HEADER_ROW_GAP)
@@ -375,12 +390,12 @@ export const leaderboardDesignsApi = {
   // library. `note` explains how the AFC + org logos were handled. Backed by
   // afc_organizers.views_leaderboard_design.create_default_design. Consumed by
   // LeaderboardDesignsManager's "Create default AFC design" 12/15/24 buttons.
-  createDefault: (preset: 12 | 15 | 24, organizationId?: number | null) => {
+  createDefault: (preset: DefaultDesignPreset, organizationId?: number | null) => {
     const fd = new FormData();
     fd.append("preset", String(preset));
     if (organizationId != null) fd.append("organization_id", String(organizationId));
     return axios
-      .post<{ design: LeaderboardDesign; note?: string }>(
+      .post<{ design: LeaderboardDesign; designs?: LeaderboardDesign[]; note?: string }>(
         `${BASE}/organizers/leaderboard-designs/create-default/`,
         fd,
         { headers: authHeaders() },

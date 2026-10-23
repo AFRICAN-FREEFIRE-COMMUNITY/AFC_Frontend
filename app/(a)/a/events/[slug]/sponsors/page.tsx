@@ -30,6 +30,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { useFollowEventMove } from "@/lib/addressRef";
 import { matchesSearch } from "@/lib/search";
 import { cn } from "@/lib/utils";
 import {
@@ -75,6 +76,8 @@ export default function SponsorsPage({
 }) {
   const { slug } = use(params);
   const { token, loading: authLoading } = useAuth();
+  // An old address (renamed event, legacy id) moves to the current slug (inbox #209).
+  const followEventMove = useFollowEventMove();
 
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,6 +131,7 @@ export default function SponsorsPage({
         setSponsorFieldLabel(
           res.data.event_details.sponsor_field_label ?? "Sponsor ID",
         );
+        followEventMove(res.data, (s) => `/a/events/${s}/sponsors`);
         await fetchCompetitors(evId);
       } catch (err: any) {
         console.error("Sponsors page load error:", err?.response?.data ?? err);
@@ -366,7 +370,7 @@ export default function SponsorsPage({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
+                                className="text-green-600 hover:bg-green-50 h-7 text-xs bg-green-200/10"
                                 disabled={isActing}
                                 onClick={() =>
                                   handleConfirm(c.competitor_id, c.username)
@@ -384,7 +388,7 @@ export default function SponsorsPage({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
+                                className="text-red-600 hover:bg-red-50 h-7 text-xs bg-red-200/10"
                                 disabled={isActing}
                                 onClick={() =>
                                   openRejectDialog(c.competitor_id, c.username)

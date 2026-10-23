@@ -7,7 +7,12 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import Image from "next/image";
-import { generateDynamicMetadata, siteConfig } from "@/lib/seo";
+import {
+  generateBreadcrumbSchema,
+  generateDynamicMetadata,
+  jsonLd,
+  siteConfig,
+} from "@/lib/seo";
 import { env } from "@/lib/env";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -97,11 +102,11 @@ function label(map: Record<string, string>, value: string | null | undefined) {
 function getTierColor(tier: string) {
   switch (tier) {
     case "TIER_1":
-      return "bg-yellow-900/20 text-yellow-400 border-yellow-800";
+      return "bg-yellow-900/20 text-yellow-400";
     case "TIER_2":
-      return "bg-cyan-900/20 text-cyan-400 border-cyan-800";
+      return "bg-cyan-900/20 text-cyan-400";
     case "TIER_3":
-      return "bg-purple-900/20 text-purple-400 border-purple-800";
+      return "bg-purple-900/20 text-purple-400";
     default:
       return "";
   }
@@ -243,8 +248,44 @@ export default async function PlayerMarketPostPage({
 
   const displayName = isTeam ? post.team : post.player;
 
+  // JSON-LD for a public recruitment post (owner rule R23; this was one of the last three
+  // entity pages with none, 2026-09-22). Everything claimed is a field of the post itself:
+  // who posted, what they are looking for and when it went up. A post with no title still
+  // renders, just without markup, because an invented name would be worse than none.
+  const postSchema = displayName
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        // The same sentence the tab and the social preview use, built from the post's own
+        // fields by the translator (t("meta.*")), so the markup says what the page says.
+        headline: isTeam
+          ? t("meta.teamTitle", { team: displayName })
+          : t("meta.playerTitle", { player: displayName }),
+        ...(post.roles_needed && post.roles_needed.length
+          ? {
+              description: post.roles_needed
+                .map((r) => ROLE_LABELS[r] ?? r)
+                .join(", "),
+            }
+          : {}),
+        url: `${siteConfig.url}/player-markets/${parsed.postId}`,
+        ...(post.created_at ? { datePublished: post.created_at } : {}),
+        author: { "@type": isTeam ? "Organization" : "Person", name: displayName },
+        publisher: { "@type": "Organization", name: siteConfig.name, url: siteConfig.url },
+      }
+    : null;
+  const breadcrumbSchema = displayName
+    ? generateBreadcrumbSchema([
+        { name: "Home", path: "/" },
+        { name: "Player markets", path: "/player-markets" },
+        { name: displayName, path: `/player-markets/${parsed.postId}` },
+      ])
+    : null;
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
+      {postSchema && <script {...jsonLd(postSchema)} />}
+      {breadcrumbSchema && <script {...jsonLd(breadcrumbSchema)} />}
       {/* Back */}
       <Link
         href="/player-markets"
@@ -264,7 +305,7 @@ export default async function PlayerMarketPostPage({
                 alt={displayName ?? t("altPost")}
                 width={80}
                 height={80}
-                className="rounded-full object-cover border size-20"
+                className="rounded-full object-cover size-20 bg-muted/30"
                 unoptimized
               />
             </div>

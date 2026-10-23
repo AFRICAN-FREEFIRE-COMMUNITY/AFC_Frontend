@@ -845,5 +845,9 @@
   "walkthroughs.goLive.steps.media.title": "Check the art before you go live",
   "walkthroughs.goLive.steps.media.body": "The broadcast media check lists teams with no logo and players with no esport image. Chase them before the stream, not during it.",
   "walkthroughs.goLive.title": "Put a leaderboard on stream",
-  "walkthroughs.goLive.summary": "Overlays, capture and the checks before you go live."
+  "walkthroughs.goLive.summary": "Overlays, capture and the checks before you go live.",
+  "screens.orgSupport": "Organizer, Support",
+  "roles.can_answer_support": "Organizer: answer support",
+  "controls.op-support.label": "Support",
+  "controls.op-support.does": "The questions players send your organization with Ask the organizer, from your page or one of your events, with their files. Everything one player sent is in one place; one reply can answer all their open questions or just one, and it is signed with your organization's name. The player sees it on their ticket page and gets an email."
 }

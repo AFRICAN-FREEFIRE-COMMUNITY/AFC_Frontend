@@ -93,7 +93,7 @@ function ImageField({
       <Label>{label}</Label>
       {!previewUrl ? (
         <div
-          className="border-2 bg-muted border-dashed border-border rounded-md p-8 text-center cursor-pointer transition-colors hover:border-primary"
+          className="bg-muted rounded-md p-8 text-center cursor-pointer transition-colors hover:bg-primary/10"
           onClick={() => inputRef.current?.click()}
         >
           <div className="flex flex-col items-center gap-2">
@@ -113,7 +113,7 @@ function ImageField({
         </div>
       ) : (
         <div className="space-y-2">
-          <div className="relative w-full aspect-video bg-muted border rounded-md overflow-hidden">
+          <div className="relative w-full aspect-video bg-muted rounded-md overflow-hidden">
             {/* Org images come from arbitrary upload hosts - use a plain <img>. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

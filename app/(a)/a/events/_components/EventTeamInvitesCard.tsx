@@ -178,9 +178,9 @@ function errorMessage(err: unknown): string | undefined {
 // Badge colouring per status. Outline badges with a coloured border are the AFC idiom for a state
 // pill (see the tier badges), so a status reads at a glance without inventing a new shape.
 const STATUS_CLASS: Record<Invitation["status"], string> = {
-  pending: "text-yellow-400 border-yellow-800",
-  accepted: "text-green-400 border-green-800",
-  declined: "text-red-400 border-red-800",
+  pending: "text-yellow-400 bg-yellow-800/10",
+  accepted: "text-green-400 bg-green-800/10",
+  declined: "text-red-400 bg-red-800/10",
   cancelled: "text-muted-foreground",
   expired: "text-muted-foreground",
 };
@@ -480,7 +480,7 @@ export function EventTeamInvitesCard({
               {t("organizer.campaignsTitle")}
               <NewBadge since="2026-08-08" />
             </p>
-            <div className="overflow-x-auto rounded-md border">
+            <div className="overflow-x-auto rounded-md bg-muted/30">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -576,7 +576,7 @@ export function EventTeamInvitesCard({
             </p>
             {/* Scrolls INSIDE its own container so a long list never pushes the page sideways
                 on a phone (the mobile rule for every table on this surface). */}
-            <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+            <div className="overflow-x-auto rounded-md max-h-96 overflow-y-auto bg-muted/30">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -735,7 +735,7 @@ export function EventTeamInvitesCard({
                 {teams.length === 0 ? t("organizer.noTeams") : t("organizer.noMatch")}
               </p>
             ) : (
-              <ScrollArea className="h-64 rounded-md border">
+              <ScrollArea className="h-64 rounded-md bg-muted/30">
                 <div className="p-1">
                   {filteredTeams.map((team) => {
                     const isRegistered = registered.has(team.team_id);

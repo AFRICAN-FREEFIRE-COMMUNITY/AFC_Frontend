@@ -176,6 +176,17 @@
   "auth.tooManyAttempts": "Too many attempts from your connection. Wait a minute and try again.",
   "states.errorDetail": "The page hit an error. Nothing you did was lost; try again, or go back to the home page.",
   "states.goHome": "Go home",
+  "nav.support": "Support",
+  "uidTaken.byName": "That UID is already used by {name}.",
+  "uidTaken.byAnother": "That UID is already used by another account.",
+  "uidTaken.viewProfile": "View their profile",
+  "nav.teamsPlayers": "Teams & Players",
+  "pager.label": "Pages",
+  "pager.previous": "Previous",
+  "pager.next": "Next",
+  "pager.showing": "{start}-{end} of {total}",
+  "accountSharing.fieldNote": "One Free Fire account, one AFC account. Do not share your account. If you bought or were given a Free Fire account and its UID is already on another AFC account, ask the seller or the person who shared it to remove it from their profile: AFC support cannot move a UID between accounts.",
+  "accountSharing.takenLine": "Bought or shared this account? Ask the person you got it from to remove the UID from their AFC profile. AFC support cannot move it.",
   "nav.wagers": "Wagers",
   "nav.winnings": "Winnings"
 }

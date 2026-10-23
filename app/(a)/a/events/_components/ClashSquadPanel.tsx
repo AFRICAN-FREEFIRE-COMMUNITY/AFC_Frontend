@@ -175,7 +175,7 @@ export function ClashSquadPanel({
     : null;
 
   return (
-    <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
       <p className="flex items-center gap-1.5 text-sm font-semibold text-primary">
         <IconTournament className="size-4 shrink-0" />
         {t("runsAsBracket", { label })}
@@ -208,7 +208,7 @@ export function ClashSquadPanel({
           organizer builds the Champions League shape: several groups, each its own bracket,
           top N from each qualifying onward. */}
       {canSplit && (
-        <label className="flex cursor-pointer items-start gap-2 rounded-md border p-2.5">
+        <label className="flex cursor-pointer items-start gap-2 rounded-md p-2.5 bg-muted/30">
           <Checkbox
             checked={isSplit}
             onCheckedChange={(v) => {
@@ -241,7 +241,7 @@ export function ClashSquadPanel({
       {isSplit && (
         <div className="space-y-2">
           {groupList.map((g, i) => (
-            <div key={i} className="flex flex-wrap items-end gap-2 rounded-md border p-2.5">
+            <div key={i} className="flex flex-wrap items-end gap-2 rounded-md p-2.5 bg-muted/30">
               <div className="min-w-0 flex-1 space-y-1">
                 <Label className="text-xs">{t("groupName")}</Label>
                 <Input
@@ -310,7 +310,7 @@ export function ClashSquadPanel({
 
       {/* No group / map / room fields: a bracket has none. Tell the admin exactly where the
           real setup happens so the empty step does not read as "unfinished". */}
-      <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground space-y-1.5">
+      <div className="rounded-md p-3 text-xs text-muted-foreground space-y-1.5 bg-muted/30">
         <p className="font-medium text-foreground">{t("nothingToConfigure")}</p>
         <p>{t("nothingToConfigureBody")}</p>
         <p>{t("nothingToConfigureBody2")}</p>
@@ -321,7 +321,7 @@ export function ClashSquadPanel({
           room ID + password) can be set now rather than only from the event page afterwards.
           Leaving it alone is fine: nothing is created and the stage behaves exactly as before. */}
       {canEditRoom && (
-        <div className="rounded-md border p-3 space-y-2">
+        <div className="rounded-md p-3 space-y-2 bg-muted/30">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-xs font-medium text-foreground">

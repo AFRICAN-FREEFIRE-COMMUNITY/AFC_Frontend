@@ -24,6 +24,7 @@ import { listAdminLedger, type AdminLedgerRow } from "@/lib/api/wagersAdmin";
 
 import { downloadCsv, Pager, useAdminRefusal } from "../../wagers/_components/shared";
 
+import { winningsPlayerPath } from "@/lib/routes";
 const LIMIT = 50;
 const KINDS = ["ALL", "PAYOUT", "VOID_REFUND", "CANCEL_REFUND", "WITHDRAWAL_HOLD", "WITHDRAWAL_PAID", "WITHDRAWAL_RELEASED", "ADJUSTMENT_CREDIT", "ADJUSTMENT_DEBIT", "HOUSE_RAKE", "HOUSE_CANCEL_FEE", "HOUSE_DUST"] as const;
 
@@ -111,7 +112,7 @@ export function LedgerTab({ user: fixedUser }: { user?: string } = {}) {
                 {rows.map((e, i) => (
                   <TableRow key={e.id} className={i % 2 ? "bg-muted/40" : ""}>
                     <TableCell className="whitespace-nowrap"><LocalTime value={e.created_at} mode="datetime" /></TableCell>
-                    <TableCell>{e.is_house ? <Badge variant="secondary">{t("ledger.house")}</Badge> : <Link href={`/a/winnings/players/${e.user}`} className="hover:underline">{e.user}</Link>}</TableCell>
+                    <TableCell>{e.is_house ? <Badge variant="secondary">{t("ledger.house")}</Badge> : <Link href={winningsPlayerPath(e.user)} className="hover:underline">{e.user}</Link>}</TableCell>
                     <TableCell>{t(`ledgerKind.${e.kind}`)}</TableCell>
                     <TableCell className={`text-right font-semibold ${e.amount_kobo > 0 && !e.is_house ? "text-primary" : ""}`}>{e.amount_kobo ? naira(e.amount_kobo) : "-"}</TableCell>
                     <TableCell className="text-right">{e.held_delta_kobo ? `${e.held_delta_kobo > 0 ? "+" : "-"}${naira(Math.abs(e.held_delta_kobo))}` : "-"}</TableCell>

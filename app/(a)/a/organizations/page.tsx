@@ -77,20 +77,20 @@ interface OrgRow {
 function StatusBadge({ status }: { status: string }) {
   if (status === "active")
     return (
-      <Badge variant="outline" className="border-green-600/60 text-green-400">
+      <Badge variant="outline" className="text-green-400">
         Active
       </Badge>
     );
   if (status === "suspended")
     return (
-      <Badge variant="outline" className="border-orange-500/40 text-orange-400">
+      <Badge variant="outline" className="text-orange-400">
         Suspended
       </Badge>
     );
   // F5: soft-deleted orgs stay in the admin list (red badge) so an admin can open + Restore them.
   if (status === "deleted")
     return (
-      <Badge variant="outline" className="border-red-600/50 text-red-400">
+      <Badge variant="outline" className="text-red-400">
         Deleted
       </Badge>
     );
@@ -473,7 +473,7 @@ export default function OrganizationsAdminPage() {
               />
               {/* Autocomplete dropdown: matching users to pick the exact owner account. */}
               {ownerOpen && (ownerSearching || ownerResults.length > 0) && (
-                <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-popover shadow-md">
+                <div className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md bg-popover shadow-md">
                   {ownerSearching && (
                     <p className="px-3 py-2 text-xs text-muted-foreground">
                       Searching...

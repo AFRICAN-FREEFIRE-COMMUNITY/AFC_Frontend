@@ -11,7 +11,7 @@
  *
  * Data sources (all live on the `team` object passed in):
  *   - aggregate scalars: total_wins, total_losses, win_rate, average_kills,
- *     average_placement, total_earnings, team_tier
+ *     average_placement, total_earnings, ranking_tier (published Rankings tier code)
  *   - tournament_performance[]: one row per event the team played, each carrying
  *     event_date (ISO|null) and prize_earned (decimal string) NEW fields.
  *   - recent_matches[]: per-match rows we group by event_name to power the
@@ -51,6 +51,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { formatNumber } from "@/lib/i18n/number";
 import axios from "axios";
 import { useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 // Multi-currency display chokepoint: prizes/earnings are stored in NGN and must render in the
 // viewer's chosen currency (like <Money from="NGN"/> across the app), never a hardcoded "$".
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -186,7 +187,7 @@ type TeamStatisticsTabProps = {
   team: {
     // Used by this tab to re-fetch a token-gated copy of the stats (see below).
     team_name?: string;
-    team_tier?: string;
+    ranking_tier?: number | null;   // published Rankings tier code, 0 = "Tier 1" (inbox #162)
     total_earnings?: string;
     total_wins?: number;
     total_losses?: number;
@@ -274,14 +275,15 @@ const tierChipClass = (tier: number | null, label: string | null): string => {
   // Prefer the numeric tier; fall back to parsing a "Tier N" label.
   const n =
     tier ?? (label ? parseInt(label.replace(/[^0-9]/g, ""), 10) : NaN);
-  if (n === 1) return "text-gold border-gold/55";
-  if (n === 2) return "text-primary border-primary/50";
+  if (n === 1) return "text-gold bg-gold/10";
+  if (n === 2) return "text-primary bg-primary/10";
   return "text-muted-foreground";
 };
 
 const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
   // i18n: detailed team statistics tab copy (teamsplayers -> "teamStats").
   const t = useTranslations("teamsplayers");
+  const tierLabel = useTierLabel();   // published Rankings tier label (inbox #162)
 
   // Prizes/earnings are stored in NGN. Render them in the viewer's chosen display currency through
   // the app-wide money chokepoint (lib/money + CurrencyContext), exactly like <Money from="NGN"/>
@@ -617,13 +619,13 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
     // Still resolving the authed verdict for a logged-in viewer -> wait, don't flash.
     if (resolvingStats) {
       return (
-        <div className="rounded-md border bg-card px-6 py-12 text-center text-sm text-muted-foreground shadow-sm">
+        <div className="rounded-md bg-card px-6 py-12 text-center text-sm text-muted-foreground shadow-sm">
           {t("teamStats.loading")}
         </div>
       );
     }
     return (
-      <div className="rounded-md border bg-card px-6 py-12 shadow-sm flex flex-col items-center justify-center text-center">
+      <div className="rounded-md bg-card px-6 py-12 shadow-sm flex flex-col items-center justify-center text-center">
         <div className="mb-3 rounded-full bg-muted p-3">
           <IconLock className="size-6 text-muted-foreground" />
         </div>
@@ -743,7 +745,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
         />
         <StatCard
           label={t("teamStats.currentTier")}
-          value={team?.team_tier || t("teamStats.unranked")}
+          value={tierLabel(team?.ranking_tier)}
           sub={t("teamStats.currentGrade")}
           valueClass="text-gold"
         />
@@ -886,14 +888,14 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                     {trend.improving ? (
                       <Badge
                         variant="outline"
-                        className="border-primary/40 text-primary"
+                        className="text-primary"
                       >
                         <IconTrendingUp className="size-3" /> {t("teamStats.improving")}
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
-                        className="border-red-500/40 text-red-400"
+                        className="text-red-400"
                       >
                         <IconTrendingDown className="size-3" /> {t("teamStats.declining")}
                       </Badge>
@@ -921,9 +923,9 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                   </span>
                   <Badge
                     variant="outline"
-                    className="border-gold/55 text-gold"
+                    className="text-gold"
                   >
-                    {team?.team_tier || t("teamStats.unranked")}
+                    {tierLabel(team?.ranking_tier)}
                   </Badge>
                 </div>
                 <p className="text-xs italic text-muted-foreground">
@@ -1116,7 +1118,7 @@ const TeamStatisticsTab = ({ team: teamProp }: TeamStatisticsTabProps) => {
                             {perf.reached_final_stage && (
                               <Badge
                                 variant="outline"
-                                className="rounded-full border-gold/60 px-2 py-0.5 text-[0.62rem] font-medium text-gold"
+                                className="rounded-full px-2 py-0.5 text-[0.62rem] font-medium text-gold"
                               >
                                 {t("teamStats.finalist")}
                               </Badge>
@@ -1306,7 +1308,7 @@ const StatCard = ({
   sub: string;
   valueClass?: string;
 }) => (
-  <div className="rounded-md border bg-card px-4 py-4 shadow-sm">
+  <div className="rounded-md bg-card px-4 py-4 shadow-sm">
     <p className="text-xs text-muted-foreground">{label}</p>
     <p className={`mt-1 text-2xl font-bold ${valueClass ?? ""}`}>{value}</p>
     <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>
@@ -1315,7 +1317,7 @@ const StatCard = ({
 
 // A small summary box inside the expanded tournament detail row.
 const SummaryBox = ({ label, value }: { label: string; value: string }) => (
-  <div className="rounded-md border bg-card px-3 py-2.5">
+  <div className="rounded-md bg-card px-3 py-2.5">
     <p className="text-[0.68rem] text-muted-foreground">{label}</p>
     <p className="mt-0.5 text-base font-bold">{value}</p>
   </div>

@@ -248,18 +248,18 @@ export function CombinedStandings({
 
       {isSolo ? (
         // Solo events: the aggregator is team-only, so we never fetch and just explain why.
-        <div className="p-10 text-center border-2 border-dashed border-border rounded-md text-muted-foreground">
+        <div className="p-10 text-center rounded-md text-muted-foreground bg-muted/30">
           {t("combined.teamsOnly")}
         </div>
       ) : hidden ? (
         // Organizer has hidden the standings for the whole event.
-        <div className="px-5 py-8 text-center text-sm text-muted-foreground bg-card rounded-md border">
+        <div className="px-5 py-8 text-center text-sm text-muted-foreground bg-card rounded-md">
           <p className="font-medium">{t("combined.notPublished")}</p>
         </div>
       ) : (
         <>
           {/* ── Picker: whole event, or per-stage / per-group ── */}
-          <div className="bg-card rounded-md border p-5 space-y-4">
+          <div className="bg-card rounded-md p-5 space-y-4">
             {/* Whole event (default) */}
             <label className="flex items-center gap-2.5 cursor-pointer">
               <Checkbox
@@ -281,7 +281,7 @@ export function CombinedStandings({
                 return (
                   <div
                     key={s.stage_id}
-                    className="rounded-md border p-3 space-y-2.5"
+                    className="rounded-md p-3 space-y-2.5 bg-muted/30"
                   >
                     {/* whole-stage pick */}
                     <label className="flex items-center gap-2.5 cursor-pointer">
@@ -352,22 +352,22 @@ export function CombinedStandings({
             </div>
           ) : respPublished === false ? (
             // Defensive: response says the standings are not published.
-            <div className="px-5 py-8 text-center text-sm text-muted-foreground bg-card rounded-md border">
+            <div className="px-5 py-8 text-center text-sm text-muted-foreground bg-card rounded-md">
               <p className="font-medium">{t("combined.notPublished")}</p>
             </div>
           ) : rows === null ? (
             // Not fetched yet (or an error was toasted): prompt to pick + apply.
-            <div className="p-10 text-center border-2 border-dashed border-border rounded-md text-muted-foreground">
+            <div className="p-10 text-center rounded-md text-muted-foreground bg-muted/30">
               {t("combined.selectPrompt")}
             </div>
           ) : rows.length === 0 ? (
             // Fetched, published, but no aggregated rows for the selection.
-            <div className="p-10 text-center border-2 border-dashed border-border rounded-md text-muted-foreground">
+            <div className="p-10 text-center rounded-md text-muted-foreground bg-muted/30">
               {t("combined.empty")}
             </div>
           ) : (
             // ── The combined standings table (mirrors TournamentStructure's styling) ──
-            <div className="bg-card rounded-md border overflow-hidden">
+            <div className="bg-card rounded-md overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-[0.68rem] uppercase tracking-wide text-muted-foreground">
@@ -411,7 +411,7 @@ export function CombinedStandings({
                                 alt={rowName(row, idx)}
                                 width={20}
                                 height={20}
-                                className="size-5 rounded-full object-cover border border-border"
+                                className="size-5 rounded-full object-cover bg-muted/30"
                               />
                             )}
                             <TeamLink

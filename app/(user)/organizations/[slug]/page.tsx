@@ -57,6 +57,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FullLoader, Loader } from "@/components/Loader";
 import { NothingFound } from "@/components/NothingFound";
+import { AskOrganizerButton } from "@/components/support/AskOrganizerDialog";
 import { organizersApi } from "@/lib/organizers";
 // LocalTime renders a stored UTC timestamp in the viewer's own timezone + language.
 import { LocalTime } from "@/components/LocalTime";
@@ -68,6 +69,7 @@ import { useTranslations } from "next-intl";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only public-org
 // fetch so the org's event list/statuses update without a manual refresh.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { readSegment } from "@/lib/routes";
 
 // ── Types - the public-endpoint payload (lib/organizers.ts getOrganizationPublic) ──
 // Only the org's own events[] entries are listed here; rating is null until
@@ -427,7 +429,7 @@ const Page = ({ params }: { params: Params }) => {
 
     (async () => {
       try {
-        const decodedSlug = decodeURIComponent(slug);
+        const decodedSlug = readSegment(slug);
         const data = await organizersApi.getOrganizationPublic(decodedSlug);
         if (active) setOrg(data);
       } catch (err: any) {
@@ -497,7 +499,10 @@ const Page = ({ params }: { params: Params }) => {
 
           {/* Report organization - pushed to the right on desktop. The dialog
               gates itself on auth (logged-out users get the login modal). */}
-          <div className="md:ml-auto md:pb-1">
+          {/* Ask the organizer (inbox #175) beside Report: a signed-in player's question to this
+              organization, answered on its portal's Support page. NeedsAccount inside (R26). */}
+          <div className="flex flex-wrap items-center gap-2 md:ml-auto md:pb-1">
+            <AskOrganizerButton organization={{ slug: org.slug, name: org.name }} />
             <ReportOrganizationDialog slug={org.slug} orgName={org.name} />
           </div>
         </CardContent>

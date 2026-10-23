@@ -25,11 +25,12 @@
  *     app/(organizer)/organizer/overlays/[eventId], the standalone leaderboard view pages and
  *     the standalone create wizard's ?ref= edit deep link.
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { env } from "@/lib/env";
 import { useAuth } from "@/contexts/AuthContext";
+import { readSegment } from "@/lib/routes";
 
 export type ResolvedRef = { id: string; slug: string | null; missing: boolean };
 
@@ -99,6 +100,52 @@ export function useEventRef(ref: string | undefined, hrefFor: (slug: string) => 
   );
 }
 
+/**
+ * The current slug of the event at `ref` (current slug, retired slug or legacy id), or null when no
+ * event answers. For a page that finds its event some other way and only needs to know where an
+ * old address went: the organizer leaderboard page matches the organization's own event list by
+ * slug, and used to call a renamed event "not yours" (inbox #209).
+ */
+export async function currentEventSlug(ref: string, token: string): Promise<string | null> {
+  const d = await get("/events/resolve/", ref, token).catch(() => null);
+  return d ? (d.slug as string) || null : null;
+}
+
+/**
+ * useOrgEventMove() - the organizer pages' ownership guard follows a renamed event (inbox #209).
+ *
+ * The pages under app/(organizer)/organizer/events/[slug] (overview, groups, leaderboard, ocr,
+ * sponsors) first check that their address is one of the selected organization's events, by
+ * matching it against get-all-events?organization_id= by slug. An old address (the event was
+ * renamed, or a legacy id) is not in that list under the old slug, so the page said "That event
+ * was not found in this organization" about the organization's own event.
+ *
+ * The returned function is called where the guard finds no match, with the list it already has.
+ * It asks events/resolve/ where the address went; when that is one of the listed events it
+ * replaces the address with hrefFor(current slug) plus the query, and answers true (the caller
+ * stops; the page runs again on the new address). Otherwise it answers false and the caller shows
+ * its "not yours" state as before, so an event of another organization is still refused.
+ */
+export function useOrgEventMove() {
+  const router = useRouter();
+  const { token } = useAuth();
+  return useCallback(
+    async (
+      events: { slug?: string | null }[],
+      address: string,
+      hrefFor: (slug: string) => string,
+    ): Promise<boolean> => {
+      if (!token) return false;
+      const old = readSegment(address);
+      const moved = await currentEventSlug(old, token);
+      if (!moved || moved === old || !events.some((e) => e.slug === moved)) return false;
+      router.replace(hrefFor(moved) + window.location.search);
+      return true;
+    },
+    [router, token],
+  );
+}
+
 /** A standalone leaderboard by slug or legacy id: `id` is the numeric id under standalone/<id>/. */
 export function useStandaloneRef(ref: string | undefined, hrefFor: (slug: string) => string): ResolvedRef {
   return useResolvedRef(
@@ -108,5 +155,43 @@ export function useStandaloneRef(ref: string | undefined, hrefFor: (slug: string
       return d ? { id: Number(d.id), slug: (d.slug as string) || null } : null;
     },
     hrefFor,
+  );
+}
+
+/**
+ * useFollowEventMove() - an event page opened on an address the event no longer has follows it
+ * (inbox #209, 9 Oct 2026).
+ *
+ * The three event readers (AFC-B afc_tournament_and_scrims.views get_event_details,
+ * get_event_details_not_logged_in, get_event_details_for_admin, through _event_at) answer the event
+ * for a retired slug (it was renamed) or an old numeric link, PLUS `moved_to`, its current public
+ * path "/tournaments/<slug>". Before this the page loaded the right event and the address bar kept
+ * the old slug, so a bookmark or a shared link carried on pointing at a name the event had dropped.
+ *
+ * The returned function takes the envelope a reader answered and `hrefFor`, the page's own path for
+ * a slug (the same shape useEventRef takes). When there was a move the page is replaced, not
+ * pushed, with hrefFor(current slug) plus the query string it had, so /a/events/<old>/edit?tab=x
+ * lands on /a/events/<new>/edit?tab=x and Back does not return to the dead address. No move, no
+ * navigation. The page builds the path rather than this hook editing the current one, because an
+ * event can be called "Edit" or "Events" and a search for the old slug in the path would then hit
+ * a fixed part of it.
+ *
+ * Callers: the admin event pages under app/(a)/a/events/[slug] (overview, edit, ocr, sponsors,
+ * team-results) and the organizer edit page. The other organizer event pages check the address
+ * against the organization's event list before they read anything, so they follow the move there,
+ * with useOrgEventMove below. The public page app/(user)/tournaments/[slug]/page.tsx answers the
+ * same field on the server with permanentRedirect.
+ */
+export function useFollowEventMove() {
+  const router = useRouter();
+  return useCallback(
+    (envelope: { moved_to?: string | null } | null | undefined, hrefFor: (slug: string) => string) => {
+      const moved = envelope?.moved_to?.match(/^\/tournaments\/([^/?#]+)$/);
+      if (!moved) return;
+      const target = hrefFor(readSegment(moved[1]));
+      if (target === window.location.pathname) return;
+      router.replace(target + window.location.search);
+    },
+    [router],
   );
 }

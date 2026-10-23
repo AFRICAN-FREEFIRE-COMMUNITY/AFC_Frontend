@@ -6,7 +6,9 @@
     "general": "Notícias Gerais",
     "tournament": "Atualizações de Torneios",
     "education": "Atualizações Educativas",
-    "bans": "Atualizações de Jogadores/Equipes Banidos"
+    "team_updates": "Atualizações de Equipes",
+    "bans": "Jogadores Banidos",
+    "banned_teams": "Equipes Banidas"
   },
   "search": {
     "placeholder": "Pesquisar notícias por título, conteúdo ou autor...",
@@ -73,6 +75,27 @@
     },
     "loadMore": "Carregar mais",
     "loading": "Carregando transferências...",
-    "error": "Falha ao carregar as transferências"
+    "error": "Falha ao carregar as transferências",
+    "searchPlaceholder": "Buscar um jogador ou uma equipe...",
+    "filterLabels": {
+      "country": "País",
+      "tier": "Nível",
+      "direction": "Entrada ou saída",
+      "team": "Equipe"
+    },
+    "countryFilter": {
+      "all": "Todos os países"
+    },
+    "tierFilter": {
+      "all": "Todos os níveis"
+    },
+    "directionFilter": {
+      "all": "Entradas e saídas",
+      "joined": "Entradas",
+      "left": "Saídas"
+    },
+    "clearFilters": "Limpar filtros",
+    "emptyFiltered": "Nenhuma movimentação corresponde a esses filtros.",
+    "retry": "Tentar novamente"
   }
 }

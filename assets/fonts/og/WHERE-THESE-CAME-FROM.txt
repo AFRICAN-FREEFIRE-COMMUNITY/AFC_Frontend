@@ -1,0 +1,8 @@
+DM Sans, the site's font, as static TTFs for server-drawn images (next/og, used by app/qr/[token]/card).
+next/og (satori) cannot read woff2 or pick weights from a variable font, so these are instances cut
+from the DM Sans variable font (googlefonts/dm-fonts, SIL Open Font Licence 1.1, OFL.txt beside this)
+with fontTools varLib.instancer on 2026-09-26:
+
+  DMSans-600.ttf   wght 600, opsz 14   small text ("Scan to view on AFC")
+  DMSans-700.ttf   wght 700, opsz 14   brand line, page kind
+  DMSans-800.ttf   wght 800, opsz 40   the page name, large (opsz 40 is the display cut)

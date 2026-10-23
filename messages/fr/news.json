@@ -6,7 +6,9 @@
     "general": "Actualités générales",
     "tournament": "Mises à jour des tournois",
     "education": "Mises à jour éducatives",
-    "bans": "Mises à jour des joueurs/équipes bannis"
+    "team_updates": "Mises à jour des équipes",
+    "bans": "Joueurs bannis",
+    "banned_teams": "Équipes bannies"
   },
   "search": {
     "placeholder": "Rechercher des actualités par titre, contenu ou auteur...",
@@ -73,6 +75,27 @@
     },
     "loadMore": "Afficher plus",
     "loading": "Chargement des transferts...",
-    "error": "Échec du chargement des transferts"
+    "error": "Échec du chargement des transferts",
+    "searchPlaceholder": "Rechercher un joueur ou une équipe...",
+    "filterLabels": {
+      "country": "Pays",
+      "tier": "Niveau",
+      "direction": "Arrivée ou départ",
+      "team": "Équipe"
+    },
+    "countryFilter": {
+      "all": "Tous les pays"
+    },
+    "tierFilter": {
+      "all": "Tous les niveaux"
+    },
+    "directionFilter": {
+      "all": "Arrivées et départs",
+      "joined": "Arrivées",
+      "left": "Départs"
+    },
+    "clearFilters": "Effacer les filtres",
+    "emptyFiltered": "Aucun mouvement ne correspond à ces filtres.",
+    "retry": "Réessayer"
   }
 }

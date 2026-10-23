@@ -141,9 +141,9 @@ export const SendMessageModal = ({
                     key={opt.value}
                     onClick={() => setDelivery(opt.value)}
                     className={cn(
-                      "flex flex-col items-center justify-center gap-1 border rounded-md p-3 text-xs text-center transition-colors",
+                      "flex flex-col items-center justify-center gap-1 rounded-md p-3 text-xs text-center transition-colors bg-muted/30",
                       selected
-                        ? "border-primary bg-primary/10 text-primary"
+                        ? "bg-primary/10 text-primary"
                         : "hover:bg-muted",
                     )}
                   >

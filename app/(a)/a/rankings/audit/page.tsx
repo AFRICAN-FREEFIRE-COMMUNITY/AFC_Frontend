@@ -60,17 +60,17 @@ const OBJECT_TYPES = [
 
 // Per-type badge colour so the table scans fast. Destructive things read red/orange.
 const TYPE_TONE: Record<string, string> = {
-  tournament_result: "text-green-400 border-green-600/50",
-  scrim_result: "text-emerald-400 border-emerald-600/50",
-  prize_money: "text-amber-400 border-amber-500/50",
-  social_media: "text-sky-400 border-sky-600/50",
-  roster: "text-blue-400 border-blue-600/50",
-  ghost_claim: "text-violet-400 border-violet-600/50",
-  tier_override: "text-orange-400 border-orange-600/50",
-  ban_zeroing: "text-red-400 border-red-600/50",
-  transfer_window: "text-cyan-400 border-cyan-600/50",
+  tournament_result: "text-green-400 bg-green-600/10",
+  scrim_result: "text-emerald-400 bg-emerald-600/10",
+  prize_money: "text-amber-400 bg-amber-500/10",
+  social_media: "text-sky-400 bg-sky-600/10",
+  roster: "text-blue-400 bg-blue-600/10",
+  ghost_claim: "text-violet-400 bg-violet-600/10",
+  tier_override: "text-orange-400 bg-orange-600/10",
+  ban_zeroing: "text-red-400 bg-red-600/10",
+  transfer_window: "text-cyan-400 bg-cyan-600/10",
   season: "text-muted-foreground border-border",
-  evaluation: "text-primary border-primary/50",
+  evaluation: "text-primary bg-primary/10",
 };
 
 // One audit row as returned by GET /rankings/admin/audit-log/ (admin_audit.serialize_audit).
@@ -283,7 +283,7 @@ export default function AuditLogPage() {
       />
 
       {/* admins-only notice */}
-      <div className="flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 rounded-md bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
         <IconShieldLock className="size-4 shrink-0 text-primary" />
         {t("adminsOnly")}
       </div>
@@ -431,7 +431,7 @@ export default function AuditLogPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex items-center gap-2 rounded-md border border-orange-600/30 bg-orange-500/5 px-3 py-2 text-xs text-orange-400">
+          <div className="flex items-center gap-2 rounded-md bg-orange-500/5 px-3 py-2 text-xs text-orange-400">
             <IconShieldLock className="size-4 shrink-0" />
             {t("raw.adminsOnly")}
           </div>
@@ -470,7 +470,7 @@ export default function AuditLogPage() {
 
           {raw ? (
             <>
-              <div className="overflow-x-auto rounded-md border">
+              <div className="overflow-x-auto rounded-md bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -525,7 +525,7 @@ export default function AuditLogPage() {
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center rounded-md border border-dashed py-10 text-center text-xs text-muted-foreground">
+            <div className="flex items-center justify-center rounded-md py-10 text-center text-xs text-muted-foreground bg-muted/30">
               {/* One full sentence per kind instead of interpolating the noun: "a team" and
                   "a player" carry different articles and genders in French and Portuguese. */}
               {rawLoading

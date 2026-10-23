@@ -21,6 +21,9 @@ import { DEFAULT_IMAGE } from "@/constants";
 import { ShareButton } from "@/components/ShareButton";
 import { useAuth } from "@/contexts/AuthContext";
 import { IconThumbDown, IconThumbUp } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
+// Every category the post is in (inbox #160).
+import { newsCategoryKeys } from "@/lib/newsCategories";
 
 type Params = Promise<{
   slug: string;
@@ -31,6 +34,8 @@ const page = ({ params }: { params: Params }) => {
   const router = useRouter();
 
   const { token } = useAuth();
+  // Category labels, the words readers see (messages/<locale>/news.json categories.*).
+  const tNews = useTranslations("news");
 
   const [pending, startTransition] = useTransition();
   const [newsDetails, setNewsDetails] = useState<any>();
@@ -85,16 +90,18 @@ const page = ({ params }: { params: Params }) => {
                   <span>•</span>
                   <span>{formatDate(newsDetails.created_at)}</span>
                   <span>•</span>
-                  <Badge variant="secondary" className="capitalize">
-                    {newsDetails.category}
-                  </Badge>
+                  {newsCategoryKeys(newsDetails).map((key) => (
+                    <Badge key={key} variant="secondary">
+                      {tNews.has(`categories.${key}`) ? tNews(`categories.${key}`) : key}
+                    </Badge>
+                  ))}
                   {/* Scheduled (not yet public) marker - admins previewing a future-dated article see
                       when it will auto-release. Public visitors never reach this page (backend 404s). */}
                   {newsDetails.is_published === false &&
                     newsDetails.scheduled_publish_at && (
                       <Badge
                         variant="outline"
-                        className="border-amber-500/50 text-amber-600 dark:text-amber-400"
+                        className="text-amber-600 dark:text-amber-400"
                       >
                         Scheduled for{" "}
                         {formatDate(newsDetails.scheduled_publish_at, true)}

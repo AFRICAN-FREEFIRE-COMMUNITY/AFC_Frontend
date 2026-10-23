@@ -212,7 +212,7 @@ export default function PollDetailPage() {
   if (!detail) {
     return (
       <div className="py-10">
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="text-center text-sm text-muted-foreground">
             {t("detail.notFound")}
           </CardContent>
@@ -256,7 +256,7 @@ export default function PollDetailPage() {
           variant="outline"
           className={cn(
             "rounded-full px-2 py-0.5 text-xs",
-            poll.is_open ? "border-primary/50 text-primary" : "text-muted-foreground",
+            poll.is_open ? "text-primary" : "text-muted-foreground",
           )}
         >
           {poll.is_open ? t("card.open") : poll.is_closed ? t("card.closed") : t("card.results")}
@@ -305,7 +305,7 @@ export default function PollDetailPage() {
           )}
 
           {answered && (
-            <Card className="bg-card rounded-md border py-6 shadow-sm">
+            <Card className="bg-card rounded-md py-6 shadow-sm">
               <CardContent className="space-y-2">
                 <p className="flex items-center gap-1.5 text-xs font-medium text-primary">
                   <IconCheck className="h-4 w-4" />
@@ -329,7 +329,7 @@ export default function PollDetailPage() {
 
         <div className="space-y-4">
           {detail.results_suppressed_small_cell && (
-            <Card className="bg-card rounded-md border py-6 shadow-sm">
+            <Card className="bg-card rounded-md py-6 shadow-sm">
               <CardContent className="text-xs text-muted-foreground">
                 {t("results.tooFew")}
               </CardContent>
@@ -378,7 +378,7 @@ export default function PollDetailPage() {
           )}
 
           {!results_visible && !poll.accepting_answers && (
-            <Card className="bg-card rounded-md border py-6 shadow-sm">
+            <Card className="bg-card rounded-md py-6 shadow-sm">
               <CardContent className="text-xs text-muted-foreground">
                 {t("results.hidden")}
               </CardContent>

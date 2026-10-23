@@ -143,7 +143,7 @@ export default function PublicSponsorsCard({
             {sponsors.map((s) => (
               <div
                 key={s.id}
-                className="flex items-center gap-3 rounded-md border p-2"
+                className="flex items-center gap-3 rounded-md p-2 bg-muted/30"
               >
                 {/* A plain <img>, not next/image: these are user-uploaded and served from the
                     API host, which is not in the next.config image allowlist. */}

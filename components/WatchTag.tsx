@@ -25,7 +25,7 @@ export function WatchTag({ reason, label = "Watch", className }: WatchTagProps) 
     <span
       title={reason || label}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border border-amber-500/60 bg-amber-500/10",
+        "inline-flex items-center gap-1 rounded-full bg-amber-500/10",
         "px-2 py-0.5 text-[11px] font-medium leading-none text-amber-600 dark:text-amber-400",
         "align-middle",
         className,

@@ -47,9 +47,12 @@ import { extractSocialMediaUrls } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import Image from "next/image";
 import { IconPhoto, IconUpload, IconX } from "@tabler/icons-react";
-
-// Regex pattern for safe names (blocks fancy unicode, emojis, etc.)
-const SAFE_NAME_REGEX = /^[a-zA-Z0-9\s_\-.'@]+$/;
+import { readSegment, teamPath } from "@/lib/routes";
+// One team-name rule for create and edit (safe characters, a letter or number, not a page's
+// name), with its messages in the reader's language (lib/zodSchemas.tsx, inbox #276).
+import { teamNameSchema } from "@/lib/zodSchemas";
+// A refusal code from the server (team_name_needs_letter, ...) in the reader's language.
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -61,13 +64,7 @@ const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
 //
 export const EditTeamFormSchema = z.object({
   team_id: z.string().min(1, { message: "Team id is required." }),
-  team_name: z
-    .string()
-    .min(2, { message: "Team name must be at least 2 characters." })
-    .refine((val) => !val || SAFE_NAME_REGEX.test(val), {
-      message:
-        "Team name can only contain letters, numbers, spaces, and basic symbols (_, -, ., ', @). Special characters like emojis or fancy unicode text are not allowed.",
-    }),
+  team_name: teamNameSchema(),
   // Optional short team handle (e.g. "AFC"). Letters and digits only, up to 5 chars. Mirrors
   // the backend rule in afc_team/views.py (_normalize_team_tag), which also feeds team search
   // and OCR name matching. Empty value is allowed (clears the tag).
@@ -109,8 +106,9 @@ export default function page({ params }: { params: Params }) {
   // i18n: team-specific feature keys (messages/en/team.json -> "statsVisibility").
   // Kept in a dedicated namespace so fr/pt translation is scoped cleanly.
   const tTeam = useTranslations("team");
+  const serverMessage = useServerMessage();
   const { id } = use(params);
-  const decodedId = decodeURIComponent(id);
+  const decodedId = readSegment(id);
   const [pending, startTransition] = useTransition();
   const [submitPending, startSubmitTransition] = useTransition();
   const [teamDetails, setTeamDetails] = useState<any>();
@@ -331,12 +329,12 @@ export default function page({ params }: { params: Params }) {
 
         if (response.status === 200) {
           toast.success(t("teamEdit.updatedSuccess"));
-          router.push(`/teams/${data.team_name}`);
+          router.push(teamPath(data.team_name));
         } else {
           toast.error(t("errors.generic"));
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || t("errors.internalServer"));
+        toast.error(serverMessage(error?.response?.data, t("errors.internalServer")));
       }
     });
   }
@@ -469,10 +467,10 @@ export default function page({ params }: { params: Params }) {
                                 setPreviewUrl(URL.createObjectURL(file));
                               }
                             }}
-                            className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                            className={`rounded-md p-12 text-center transition-colors cursor-pointer ${
                               isDragging
-                                ? "border-primary bg-primary/5"
-                                : "border-gray-300 bg-gray-50"
+                                ? "bg-primary/15"
+                                : "bg-muted/40 hover:bg-muted/60"
                             }`}
                             onClick={() => fileInputRef.current?.click()}
                           >
@@ -496,7 +494,7 @@ export default function page({ params }: { params: Params }) {
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
+                            <div className="relative w-full aspect-video bg-gray-50 rounded-md flex items-center justify-center overflow-hidden">
                               <Image
                                 width={1000}
                                 height={1000}
@@ -599,7 +597,7 @@ export default function page({ params }: { params: Params }) {
                   submit, it saves instantly so the owner sees clear feedback. Default
                   is private (off); turning it on lets everyone see the team's stats. */}
               {teamDetails?.can_manage_stats && (
-                <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="flex items-center justify-between rounded-lg p-4 bg-muted/30">
                   <div className="space-y-0.5">
                     <Label htmlFor="team-stats-toggle" className="text-sm font-medium">
                       {tTeam("statsVisibility.label")}
@@ -625,7 +623,7 @@ export default function page({ params }: { params: Params }) {
                   can only ADD. Saving is a separate action (NOT part of the main form submit) that
                   POSTs to /team/set-team-letters/ - mirrors the stats-visibility control above. */}
               {teamDetails?.can_manage_letters && (
-                <div className="space-y-3 rounded-md border p-4">
+                <div className="space-y-3 rounded-md p-4 bg-muted/30">
                   <div className="space-y-0.5">
                     <Label className="text-sm font-medium">
                       {tTeam("letterAvatars.label")}
@@ -675,7 +673,7 @@ export default function page({ params }: { params: Params }) {
                               <Badge
                                 key={`m-${l}`}
                                 variant="outline"
-                                className="rounded-full text-xs border-primary text-primary"
+                                className="rounded-full text-xs text-primary"
                               >
                                 {l}
                               </Badge>
@@ -691,7 +689,7 @@ export default function page({ params }: { params: Params }) {
                               <Badge
                                 key={`x-${l}`}
                                 variant="outline"
-                                className="rounded-full text-xs border-gold text-gold"
+                                className="rounded-full text-xs text-gold"
                               >
                                 {l}
                               </Badge>
@@ -750,7 +748,7 @@ export default function page({ params }: { params: Params }) {
               {/* Actions */}
               <div className="flex items-center justify-between gap-4">
                 <Button className="flex-1" asChild variant="outline">
-                  <Link href={`/teams/${id}`}>{t("teamEdit.back")}</Link>
+                  <Link href={teamPath(decodedId)}>{t("teamEdit.back")}</Link>
                 </Button>
                 <Button
                   className="flex-1"

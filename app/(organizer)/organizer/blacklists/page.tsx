@@ -197,8 +197,8 @@ function StatusBadge({ status }: { status: string }) {
       className={cn(
         "rounded-full px-2 py-0.5 text-xs capitalize",
         isActive
-          ? "border-green-500 text-green-600"
-          : "border-muted-foreground/40 text-muted-foreground",
+          ? "text-green-600"
+          : "text-muted-foreground",
       )}
     >
       {status}
@@ -209,16 +209,16 @@ function StatusBadge({ status }: { status: string }) {
 // ── Lift-request status badge (pending = amber, approved = green, denied = muted) ──
 function RequestStatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    pending: "border-amber-500 text-amber-600",
-    approved: "border-green-500 text-green-600",
-    denied: "border-red-500 text-red-600",
+    pending: "text-amber-600 bg-amber-500/10",
+    approved: "text-green-600 bg-green-500/10",
+    denied: "text-red-600 bg-red-500/10",
   };
   return (
     <Badge
       variant="outline"
       className={cn(
         "rounded-full px-2 py-0.5 text-xs capitalize",
-        map[status] ?? "border-muted-foreground/40 text-muted-foreground",
+        map[status] ?? "text-muted-foreground",
       )}
     >
       {status}
@@ -615,7 +615,7 @@ export default function OrganizerBlacklistsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-md border">
+            <div className="overflow-x-auto rounded-md bg-muted/30">
               <Table data-tour="org-blacklists-table">
                 <TableHeader>
                   <TableRow>
@@ -751,7 +751,7 @@ export default function OrganizerBlacklistsPage() {
                                   {t("blacklists.snapshot.empty")}
                                 </p>
                               ) : (
-                                <div className="divide-y divide-border/50 px-6 py-2">
+                                <div className="px-6 py-2 zebra">
                                   {bl.players.map((p) => (
                                     <div
                                       key={p.id}
@@ -770,8 +770,8 @@ export default function OrganizerBlacklistsPage() {
                                         className={cn(
                                           "ml-auto rounded-full px-2 py-0.5 text-[10px]",
                                           p.is_active
-                                            ? "border-red-500 text-red-600"
-                                            : "border-muted-foreground/40 text-muted-foreground",
+                                            ? "text-red-600"
+                                            : "text-muted-foreground",
                                         )}
                                       >
                                         {p.is_active ? t("blacklists.snapshot.blocked") : t("blacklists.snapshot.lifted")}
@@ -810,7 +810,7 @@ export default function OrganizerBlacklistsPage() {
               {liftRequests.map((req) => (
                 <div
                   key={req.id}
-                  className="flex flex-col gap-3 rounded-md border p-3 sm:flex-row sm:items-start sm:justify-between"
+                  className="flex flex-col gap-3 rounded-md p-3 sm:flex-row sm:items-start sm:justify-between bg-muted/30"
                 >
                   <div className="flex flex-col gap-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -1116,7 +1116,7 @@ function BlacklistLookupSection() {
 
         {/* ── Result: headline counts + the per-blacklist entries table. ── */}
         {result && (
-          <div className="flex flex-col gap-3 rounded-md border p-4">
+          <div className="flex flex-col gap-3 rounded-md p-4 bg-muted/30">
             {/* Headline: "Blacklisted N times (M active)" for the looked-up target. */}
             <p className="text-sm">
               <span className="font-medium">{targetLabel}</span>{" "}
@@ -1146,7 +1146,7 @@ function BlacklistLookupSection() {
             </p>
 
             {result.entries.length > 0 && (
-              <div className="overflow-x-auto rounded-md border">
+              <div className="overflow-x-auto rounded-md bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>

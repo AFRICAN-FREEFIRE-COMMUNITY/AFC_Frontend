@@ -355,11 +355,11 @@ export default function VendorOrderDetailPage({
                   <div className="flex items-center sm:flex-col sm:w-full gap-3 sm:gap-2">
                     <div
                       className={cn(
-                        "flex size-9 shrink-0 items-center justify-center rounded-full border",
+                        "flex size-9 shrink-0 items-center justify-center rounded-full bg-muted/30",
                         isDone &&
-                          "border-primary bg-primary text-primary-foreground",
+                          "bg-primary text-primary-foreground",
                         isCurrent &&
-                          "border-primary text-primary bg-primary/10",
+                          "text-primary bg-primary/10",
                         !isDone &&
                           !isCurrent &&
                           "border-border text-muted-foreground",
@@ -498,7 +498,7 @@ export default function VendorOrderDetailPage({
             <div className="flex flex-col gap-3">
               {/* If we just shipped on this page, confirm the evidence count. */}
               {evidenceSaved !== null && (
-                <div className="flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-primary">
+                <div className="flex items-center gap-2 rounded-md bg-primary/5 px-3 py-2 text-sm text-primary">
                   <IconChecks className="size-4" />
                   {evidenceSaved} evidence file{evidenceSaved === 1 ? "" : "s"}{" "}
                   uploaded.

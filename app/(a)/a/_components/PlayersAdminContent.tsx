@@ -154,7 +154,7 @@ const PlayerBanModal = ({
           size="sm"
           className={
             isBanned
-              ? "border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700"
+              ? "text-green-600 hover:bg-green-50 hover:text-green-700 bg-green-500/10"
               : ""
           }
         >
@@ -789,7 +789,7 @@ export const PlayersAdminContent = () => {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button asChild size="sm" variant="outline">
-                          <Link href={`/a/players/${player.name}`}>
+                          <Link href={`/a/players/${encodeURIComponent(player.name)}`}>
                             View
                           </Link>
                         </Button>

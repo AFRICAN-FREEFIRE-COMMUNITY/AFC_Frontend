@@ -91,7 +91,7 @@ export function TwoFactorPrompt() {
 
   return (
     <div className="container mt-4">
-      <div className="relative flex flex-col gap-3 rounded-md border bg-card p-4 shadow-sm sm:flex-row sm:items-center">
+      <div className="relative flex flex-col gap-3 rounded-md bg-card p-4 shadow-sm sm:flex-row sm:items-center">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10">
           <IconShieldLock className="size-5 text-primary" />
         </div>

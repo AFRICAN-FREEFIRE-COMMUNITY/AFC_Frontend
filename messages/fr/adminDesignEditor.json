@@ -31,7 +31,10 @@
     "survival_time": "TEMPS DE SURVIE",
     "revives_received": "RÉANIMATIONS REÇUES",
     "gloowall_used": "GLOO UTILISÉS",
-    "medkit_used": "MEDKITS UTILISÉS"
+    "medkit_used": "MEDKITS UTILISÉS",
+    "knocked": "FOIS MIS À TERRE",
+    "grenades_used": "GRENADES LANCÉES",
+    "grenade_kills": "ÉLIMINATIONS À LA GRENADE"
   },
   "size": {
     "label": "Mise en page éditée :",
@@ -318,6 +321,17 @@
       "body": "« {name} » sera définitivement supprimé. Les classements qui l'utilisaient retomberont sur le design par défaut ou sur un fond uni. Cette action est irréversible.",
       "cancel": "Annuler",
       "confirm": "Supprimer"
+    },
+    "createScene": "Designs des scenes en direct",
+    "createSet": "Kit complet",
+    "createSetTitle": "Creer le kit complet : classement, booyah, MVP, meilleurs tueurs et face a face",
+    "createSceneTitle": "Creer le design AFC par defaut pour {scene}",
+    "defaultSetCreated": "{count} designs par defaut crees",
+    "scene": {
+      "booyah": "Booyah",
+      "mvp": "MVP",
+      "top_killers": "Meilleurs tueurs",
+      "h2h": "Face a face"
     }
   },
   "exportGraphic": {

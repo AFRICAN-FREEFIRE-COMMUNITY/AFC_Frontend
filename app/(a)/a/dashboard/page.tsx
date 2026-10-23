@@ -470,7 +470,7 @@ export default function AdminDashboardPage() {
                 </Link>
               </Button>
               <Button className="flex-1" asChild variant="outline">
-                <Link href="/a/history">
+                <Link href="/a/settings?tab=activities">
                   View full history <ArrowRight className="ml-1 size-4" />
                 </Link>
               </Button>

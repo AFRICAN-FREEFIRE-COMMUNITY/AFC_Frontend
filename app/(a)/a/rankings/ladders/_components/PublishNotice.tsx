@@ -34,7 +34,7 @@ export function PublishBadge({ published }: { published: boolean }) {
       variant="outline"
       className={cn(
         "rounded-full px-2 py-0.5 text-[10px] font-semibold",
-        published ? "border-green-600/60 text-green-400" : "border-amber-500/60 text-amber-400",
+        published ? "text-green-400" : "text-amber-400",
       )}
     >
       {published ? <IconWorld className="size-3" /> : <IconEyeOff className="size-3" />}
@@ -55,7 +55,7 @@ function StateChip({ label, on }: { label: string; on: boolean }) {
         variant="outline"
         className={cn(
           "rounded-full px-2 py-0.5 text-[10px] font-medium",
-          on ? "border-green-600/60 text-green-400" : "border-amber-500/60 text-amber-400",
+          on ? "text-green-400" : "text-amber-400",
         )}
       >
         {on ? t("statePublished") : t("stateHidden")}
@@ -87,8 +87,8 @@ export function PublishNotice({ published, tiersPublished, seasonName }: Publish
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-md border p-3 text-xs sm:flex-row sm:items-start sm:justify-between",
-        published ? "border-green-600/20 bg-green-600/5" : "border-amber-500/20 bg-amber-500/5",
+        "flex flex-col gap-3 rounded-md p-3 text-xs sm:flex-row sm:items-start sm:justify-between bg-muted/30",
+        published ? "bg-green-600/5" : "bg-amber-500/5",
       )}
     >
       <div className="flex items-start gap-2">

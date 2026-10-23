@@ -329,7 +329,7 @@ export default function PrizeRulesTab({
                               setPreviewRuleUrl(URL.createObjectURL(file));
                             }
                           }}
-                          className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                          className={`bg-muted rounded-md p-12 text-center transition-colors cursor-pointer ${
                             isDragging
                               ? "border-primary bg-primary/5"
                               : "border-gray-300 bg-gray-50"
@@ -356,7 +356,7 @@ export default function PrizeRulesTab({
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex flex-col items-center justify-center p-8">
+                          <div className="relative w-full aspect-video bg-gray-50 rounded-md flex flex-col items-center justify-center p-8">
                             <IconFile size={64} className="text-primary" />
                             <p className="text-sm font-medium mt-2">
                               {selectedRuleFile?.name ||

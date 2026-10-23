@@ -64,12 +64,6 @@
     "short_text": "Short answer",
     "long_text": "Long answer"
   },
-  "seasonTier": {
-    "0": "Elite",
-    "1": "Competitive",
-    "2": "Rising",
-    "3": "Entry"
-  },
   "teamRole": {
     "team_captain": "Team captain",
     "vice_captain": "Vice captain",
@@ -168,15 +162,12 @@
     "everyone": "Everyone with an AFC account",
     "everyoneHint": "Leave this on for a community poll. Turn it off to narrow it down.",
     "countries": "Country",
-    "teamTiers": "Team tier",
-    "teamTiersHint": "The tier an admin set by hand. Tier 1 is the strongest.",
-    "seasonTiers": "Season tier",
-    "seasonTiersHint": "The tier the rankings worked out this quarter. Elite is the strongest. Frozen when the poll opens, so nobody is shown a ballot and refused later.",
+    "seasonTiers": "Tier",
+    "seasonTiersHint": "The team's or the player's tier on the Rankings page, from the latest season AFC has published. Tier 1 is the strongest. Frozen when the poll opens, so nobody is shown a ballot and refused later.",
     "scopeTeam": "Their team's season tier",
     "scopePlayer": "Their own season tier",
     "teamRoles": "Role on their team",
     "teamRolesHint": "Captain counts however the team records it.",
-    "intersectWarning": "Picking both tier systems means BOTH must be true, which can be a much smaller group than either on its own.",
     "beforeTheyVote": "Before they can vote",
     "beforeTheyVoteHint": "These do not narrow the audience. Somebody missing one is still invited, they just have to fill it in first, and they get a link that does it.",
     "preview": "Count them",

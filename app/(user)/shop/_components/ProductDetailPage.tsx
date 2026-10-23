@@ -323,7 +323,7 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left: Media gallery (images + videos at fixed dimensions). Falls back
             to the product image, then DEFAULT_IMAGE, for legacy diamond rows. */}
-        <Card className="overflow-hidden p-0 border-none bg-transparent">
+        <Card className="overflow-hidden p-0">
           <ProductMediaGallery
             media={product.media}
             fallbackImage={product.image}
@@ -369,7 +369,7 @@ export default function ProductDetailPage() {
                   key={variant.id}
                   disabled={!variant.in_stock || !variant.is_active}
                   onClick={() => setSelectedVariant(variant)}
-                  className={`flex items-center justify-between p-3 rounded-lg border-2 transition-all ${
+                  className={`flex items-center justify-between p-3 rounded-lg transition-all ${
                     selectedVariant?.id === variant.id
                       ? "border-primary bg-primary/5"
                       : "border-muted hover:border-primary/50"
@@ -521,7 +521,7 @@ export default function ProductDetailPage() {
 
           {/* Status Alert */}
           {product.status === "archived" && (
-            <div className="flex items-center gap-2 p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg text-yellow-600">
+            <div className="flex items-center gap-2 p-4 bg-yellow-500/10 rounded-lg text-yellow-600">
               <AlertCircle className="h-5 w-5" />
               <p className="text-sm font-medium">
                 {t("detail.archivedNotice")}

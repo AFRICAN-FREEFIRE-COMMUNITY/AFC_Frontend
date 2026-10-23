@@ -68,7 +68,8 @@
     "empty": "Ainda não foi enviado nada.",
     "more": "Carregar mais",
     "rowFromAfc": "AFC, por {who}",
-    "rowFromPerson": "{who} escreveu"
+    "rowFromPerson": "{who} escreveu",
+    "toOrganizer": "Para {name}"
   },
   "public": {
     "title": "O seu ticket de apoio",
@@ -77,6 +78,176 @@
     "notFound": "Não encontrámos esse ticket. Verifique a ligação no seu e-mail, ou escreva-nos de novo pela pagina de Contacto.",
     "placeholder": "Acrescentar à sua mensagem",
     "replySent": "A sua resposta foi adicionada.",
-    "explainer": "Tudo o que acrescentar aqui chega à equipa da AFC que está a tratar do seu ticket. Guarde esta ligação: é assim que volta a esta página."
+    "explainer": "Tudo o que acrescentar aqui chega à equipa da AFC que está a tratar do seu ticket. Guarde esta ligação: é assim que volta a esta página.",
+    "toOrganizer": "A sua pergunta a {name}",
+    "toOrganizerAbout": "A sua pergunta a {name}, sobre {event}",
+    "explainerOrganizer": "Tudo o que acrescentar aqui chega à equipa {name}, que responde a esta pergunta. Guarde esta ligação: é assim que volta a esta página.",
+    "statusOrganizer": {
+      "open": "À espera do organizador",
+      "waiting": "O organizador respondeu, é a sua vez"
+    }
+  },
+  "helpLog": {
+    "title": "Registo da ajuda",
+    "subtitle": "Todas as perguntas e pedidos escritos no painel de ajuda, com ou sem resposta, guardados 90 dias.",
+    "search": "Procurar no que foi escrito ou respondido",
+    "whoPlaceholder": "Nome no jogo, ou visitors",
+    "refresh": "Atualizar",
+    "loading": "A carregar o registo",
+    "empty": "Ainda nada foi escrito no painel de ajuda.",
+    "failed": "Não foi possível carregar o registo da ajuda.",
+    "noAccess": "Só a equipa de apoio pode ler o registo da ajuda.",
+    "count": "{count, plural, one {# entrada} other {# entradas}}",
+    "more": "Mostrar mais",
+    "visitor": "Visitante {id}",
+    "nothingTyped": "Nada escrito (um ticket aberto só com a conversa)",
+    "showAnswer": "Ver a resposta",
+    "filter": {
+      "everything": "Todos os resultados",
+      "answered": "Respondidas",
+      "refused": "Recusadas ou falhadas",
+      "ticket": "Ticket aberto",
+      "allKinds": "Perguntas e pedidos"
+    },
+    "kind": {
+      "question": "Pergunta",
+      "handoff": "Falar com uma pessoa"
+    },
+    "outcome": {
+      "answered": "Respondida",
+      "ticket": "Ticket {number}"
+    },
+    "codes": {
+      "help_daily_limit": "Recusado: limite diário atingido",
+      "help_network_limit": "Recusado: limite da rede atingido",
+      "help_slow_down": "Recusado: demasiadas de uma vez",
+      "help_busy": "Recusado: assistente ocupado",
+      "help_ai_offline": "Assistente offline",
+      "help_ai_timeout": "Assistente demasiado lento",
+      "help_ai_failed": "O assistente falhou",
+      "bot_check_failed": "Recusado: verificação anti-robô falhou",
+      "help_message_invalid": "Recusado: vazio ou demasiado longo",
+      "help_conversation_not_found": "Recusado: conversa não encontrada",
+      "help_conversation_invalid": "Recusado: referência de conversa inválida",
+      "help_visitor_required": "Recusado: sem identificador do navegador",
+      "help_email_invalid": "Recusado: e-mail inválido",
+      "help_handoff_empty": "Recusado: nada escrito",
+      "help_handoff_limit": "Recusado: demasiados tickets"
+    }
+  },
+  "desk": {
+    "subtitle": "Todas as mensagens que as pessoas enviam à AFC, agrupadas por pessoa: todos os pedidos e ficheiros de alguém no mesmo sítio, respondidos de uma só vez ou um a um.",
+    "search": "Nome, e-mail, número do ticket ou palavras",
+    "filters": {
+      "search": "Pesquisa",
+      "status": "Estado",
+      "from": "De",
+      "to": "Até",
+      "range": "Período rápido",
+      "country": "País",
+      "allCountries": "Todos os países",
+      "more": "Mais filtros",
+      "fewer": "Menos filtros",
+      "source": "Origem",
+      "anywhere": "Qualquer origem",
+      "assigned": "Atribuído a",
+      "hasFiles": "Com ficheiros",
+      "button": "Filtros ({count})"
+    },
+    "range": {
+      "today": "Hoje",
+      "week": "7 dias",
+      "month": "30 dias",
+      "all": "Tudo"
+    },
+    "source": {
+      "contact_form": "Formulário de contacto",
+      "help_bot": "Assistente de ajuda",
+      "staff": "Aberto pela equipa",
+      "organizer": "Pergunta ao organizador"
+    },
+    "assigned": {
+      "any": "Qualquer pessoa",
+      "me": "Eu",
+      "none": "Ninguém ainda"
+    },
+    "counts": "{people, plural, one {# pessoa} other {# pessoas}}, {open, plural, one {# pedido em aberto} other {# pedidos em aberto}}",
+    "requests": "{count, plural, one {# pedido} other {# pedidos}}, {open, plural, other {# em aberto}}",
+    "needsReply": "Aguarda resposta",
+    "pick": "Selecionar {name}",
+    "picked": "{count, plural, one {# pessoa selecionada} other {# pessoas selecionadas}}",
+    "replyAll": "Responder a todas",
+    "clear": "Limpar",
+    "back": "Todas as pessoas",
+    "noAccount": "Sem conta AFC",
+    "since": "Na AFC desde {date}",
+    "allRequests": "{count, plural, one {O pedido de {name}} other {Os # pedidos de {name}}}",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "replyTo": "Responder a",
+    "allOpen": "Os {count} pedidos em aberto",
+    "placeholder": "Escreva a {name}. A resposta chega por e-mail, em Os meus tickets no site e no Discord, se estiver ligado.",
+    "resolveAfter": "Marcar como resolvido depois de enviar",
+    "hintAll": "Uma só mensagem a {name}, registada nos {count} pedidos, para ninguém ter de responder duas vezes à mesma pergunta.",
+    "hintOne": "Registada apenas neste pedido.",
+    "allResolved": "Todos os pedidos de {name} estão resolvidos. Uma nova mensagem trá-lo de volta para aqui.",
+    "empty": "Nada à espera. As novas mensagens aparecem aqui assim que chegam.",
+    "noMatch": "Ninguém corresponde a estes filtros. Retire um filtro para ver mais.",
+    "pickPerson": "Escolha uma pessoa à esquerda para ler tudo o que enviou.",
+    "sentMany": "Enviado uma vez por e-mail, registado em {count} pedidos.",
+    "assignMe": "Atribuir-me",
+    "assignedToYou": "Os pedidos em aberto desta pessoa estão atribuídos a si.",
+    "openFile": "Abrir {name}",
+    "loadMore": "Mostrar mais pessoas",
+    "bulk": {
+      "title": "{count, plural, one {Responder a # pessoa} other {Responder a # pessoas}}",
+      "explain": "Cada pessoa recebe a mensagem individualmente, registada em todos os seus pedidos em aberto. Ninguém vê quem mais a recebeu.",
+      "label": "Mensagem",
+      "placeholder": "Por exemplo: a janela de transferências abre a 1 de janeiro de 2027.",
+      "send": "Enviar a {count}",
+      "cancel": "Cancelar",
+      "done": "Enviado a {people, plural, one {# pessoa} other {# pessoas}}, {requests, plural, one {# pedido respondido} other {# pedidos respondidos}}.",
+      "skipped": "{count, plural, one {# pessoa não tinha} other {# pessoas não tinham}} nada em aberto e {count, plural, one {foi ignorada} other {foram ignoradas}}."
+    },
+    "errors": {
+      "people": "Não foi possível carregar as pessoas.",
+      "person": "Não foi possível abrir esta pessoa."
+    },
+    "aboutEvent": "Sobre {event}",
+    "emptyOrganizer": "Ainda não há perguntas. Quando um jogador fizer uma pergunta à sua organização a partir da sua página ou de um dos seus eventos, ela aparece aqui.",
+    "orgTitle": "Suporte: {name}",
+    "orgSubtitleAdmin": "Perguntas que os jogadores enviaram a este organizador, com os ficheiros. A equipa do organizador responde-lhes; pode lê-las por ser head admin ou super admin.",
+    "picker": {
+      "label": "Balcão",
+      "afc": "Suporte da AFC",
+      "orgWaiting": "{name} ({count} à espera)"
+    },
+    "organizer": {
+      "title": "Suporte",
+      "subtitle": "Perguntas que os jogadores enviaram a {name}, com os ficheiros. A sua resposta chega-lhes por e-mail e na página do ticket.",
+      "noPermission": "Só o proprietário e os membros com a permissão Responder ao suporte podem ler as perguntas desta organização. Peça ao proprietário que a ative para si na página Membros."
+    },
+    "readOnly": "Só de leitura. Apenas a equipa {name} responde a estas perguntas."
+  },
+  "ask": {
+    "button": "Perguntar ao organizador",
+    "needsAccount": "fazer uma pergunta ao organizador",
+    "title": "Perguntar a {name}",
+    "explain": "A sua pergunta vai para a equipa {name}, não para a AFC. A resposta chega à página do seu ticket, à secção Os meus pedidos e por e-mail.",
+    "about": "Sobre: {event}",
+    "label": "A sua pergunta",
+    "placeholder": "O que gostaria de saber?",
+    "sentTitle": "Pergunta enviada",
+    "sentBody": "{name} recebeu a sua pergunta ({ticket}). Vai receber um e-mail quando o organizador responder.",
+    "openQuestion": "Abrir a minha pergunta",
+    "allMessages": "Todas as minhas mensagens",
+    "errors": {
+      "question_empty": "Escreva primeiro a sua pergunta.",
+      "question_too_long": "A sua pergunta tem de ter menos de {limit} caracteres.",
+      "too_many_questions": "Enviou várias perguntas a este organizador na última hora. Aguarde uma resposta antes de perguntar de novo.",
+      "organization_not_found": "Este organizador não está a receber perguntas neste momento.",
+      "event_not_found": "Esse evento não pertence a este organizador.",
+      "generic": "Não foi possível enviar a sua pergunta. Nada se perdeu; tente novamente daqui a pouco."
+    }
   }
 }

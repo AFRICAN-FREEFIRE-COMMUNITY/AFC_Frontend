@@ -121,7 +121,7 @@ export function EventMultiSelect({
         />
         {/* Dark results panel (bg-popover) - matches the admin theme; no native white select. */}
         {open && (loading || results.length > 0) && (
-          <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md max-h-56 overflow-auto">
+          <div className="absolute z-50 mt-1 w-full rounded-md bg-popover shadow-md max-h-56 overflow-auto">
             {loading && (
               <div className="px-3 py-2 text-xs text-muted-foreground">
                 Searching...

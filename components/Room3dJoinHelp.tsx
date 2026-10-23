@@ -45,7 +45,7 @@ export function Room3dJoinHelp({ className }: { className?: string }) {
   const t = useTranslations("tournaments");
 
   return (
-    <div className={`bg-muted/40 mt-3 rounded-md border p-3 ${className ?? ""}`}>
+    <div className={`bg-muted/40 mt-3 rounded-md p-3 ${className ?? ""}`}>
       <p className="text-primary mb-2 flex items-center gap-1.5 text-[0.7rem] font-semibold tracking-wide uppercase">
         <IconInfoCircle className="size-3.5" />
         {t("roomJoin3d.title")}

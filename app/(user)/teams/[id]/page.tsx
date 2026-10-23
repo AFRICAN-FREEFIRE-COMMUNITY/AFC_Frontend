@@ -55,6 +55,7 @@ import {
 // logged-in viewer can report a whole team. Posts to /auth/report-team/.
 import { ReportDialog } from "@/components/player/ReportDialog";
 // Public fan/hater reactions for the team (owner 2026-06-20).
+import { QrShareButton } from "@/components/qr/QrShareButton";
 import { FanHater } from "@/components/profile/FanHater";
 import Link from "next/link";
 import { Switch } from "@/components/ui/switch";
@@ -75,6 +76,7 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 // LocalTime renders a stored UTC timestamp in the viewer's own timezone + language.
 import { LocalTime } from "@/components/LocalTime";
 import { z } from "zod";
@@ -133,6 +135,8 @@ import { RequestBlacklistLift } from "./_components/RequestBlacklistLift";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only team-details +
 // join-requests + market-applications fetches so the page updates without a manual refresh.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { playerPath, readSegment, teamPath } from "@/lib/routes";
+import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
 
 const FormSchema = z.object({
   new_owner_ign: z.string().min(1, { message: "Please select a new owner." }),
@@ -163,6 +167,7 @@ const Page = ({ params }: { params: Params }) => {
   const { id } = use(params);
   // i18n: team detail page copy (messages/en/teamsplayers.json -> "teamDetail").
   const t = useTranslations("teamsplayers");
+  const tierLabel = useTierLabel();   // published Rankings tier label (inbox #162)
   // Report-dialog copy (separate namespace, messages/en/playerReports.json).
   const tReport = useTranslations("playerReports");
   // Team-feature copy (messages/en/team.json -> "letterAvatars"): the read-only letter-avatar chips
@@ -203,6 +208,7 @@ const Page = ({ params }: { params: Params }) => {
 
   const [pending, startTransition] = useTransition();
   const [pendingRequest, startRequestTransition] = useTransition();
+  const { confirmJoin, joinLockDialog } = useJoinLockConfirm();
   const [pendingApproveRequest, startApproveRequestTransition] =
     useTransition();
   const [pendingDenyRequest, startDenyRequestTransition] = useTransition();
@@ -243,7 +249,7 @@ const Page = ({ params }: { params: Params }) => {
 
     startTransition(async () => {
       try {
-        const decodedId = decodeURIComponent(id);
+        const decodedId = readSegment(id);
         // Send the viewer's token: get-team-details now gates the detailed stats
         // (tournament_performance / recent_matches / scalars) to team MEMBERS + admins.
         // Without it the backend treats the caller as anonymous and zeroes those, which
@@ -327,7 +333,11 @@ const Page = ({ params }: { params: Params }) => {
   );
   const canManageTeam = hasFullAccess || isManagerMember;
 
-  const handleJoinTeam = () => {
+  // Joining is allowed while the transfer window is shut, leaving is not, so the player is told
+  // that and the date they can leave BEFORE they commit (inbox #92, components/team/JoinLockDialog).
+  const handleJoinTeam = async () => {
+    const kind = teamDetails.join_settings === "open" ? "join" : "request";
+    if (!(await confirmJoin(kind, teamDetails.team_name))) return;
     startRequestTransition(async () => {
       try {
         if (teamDetails.join_settings === "open") {
@@ -591,7 +601,7 @@ const Page = ({ params }: { params: Params }) => {
 
     startTransition(async () => {
       try {
-        const decodedId = decodeURIComponent(id);
+        const decodedId = readSegment(id);
         // Send the viewer's token: get-team-details now gates the detailed stats
         // (tournament_performance / recent_matches / scalars) to team MEMBERS + admins.
         // Without it the backend treats the caller as anonymous and zeroes those, which
@@ -699,7 +709,7 @@ const Page = ({ params }: { params: Params }) => {
           open={reportOpen}
           onOpenChange={setReportOpen}
         />
-        <Card className={teamDetails.is_banned ? "border-red-500" : ""}>
+        <Card className={teamDetails.is_banned ? "bg-red-500/10" : ""}>
           <CardHeader>
             <div className="flex flex-col md:flex-row items-start gap-4 md:gap-0 md:items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -711,7 +721,9 @@ const Page = ({ params }: { params: Params }) => {
                   />
                   <AvatarFallback>{teamDetails?.team_name[0]}</AvatarFallback>
                 </Avatar>
-                <div>
+                {/* min-w-0: a flex child may otherwise not shrink below its content, and the column
+                    beside the logo then pushed the page sideways on a phone (inbox #283). */}
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <CardTitle className="text-xl md:text-3xl">
                       {teamDetails?.team_name}
@@ -752,14 +764,21 @@ const Page = ({ params }: { params: Params }) => {
                   />
                 </div>
               </div>
-              <div className="space-x-2 w-full md:w-auto">
+              <div className="flex flex-col gap-2 w-full md:w-auto md:flex-row md:flex-wrap md:justify-end">
+                {/* QR code for this team (inbox #46, 2026-09-26): anyone viewing can make one; the
+                    owner also sees the scan count. components/qr/QrShareButton.tsx */}
+                <QrShareButton
+                  targetType="team"
+                  targetRef={teamDetails.team_name}
+                  name={teamDetails.team_name}
+                />
                 {/* Report this team (owner 2026-06-20): shown to LOGGED-IN viewers who do
                     not run the team (no full access). Opens the generic ReportDialog with
                     subjectType="team" -> POST /auth/report-team/. */}
                 {!!token && !hasFullAccess && (
                   <Button
                     variant="outline"
-                    className="w-full md:w-auto text-red-500 border-red-500/40 hover:bg-red-500/10 hover:text-red-500"
+                    className="w-full md:w-auto text-red-500 hover:bg-red-500/10 hover:text-red-500 bg-red-500/5"
                     onClick={() => setReportOpen(true)}
                   >
                     <Flag className="h-4 w-4" />
@@ -811,7 +830,7 @@ const Page = ({ params }: { params: Params }) => {
                 {/* Edit Team: owner-only */}
                 {hasFullAccess && !teamDetails?.is_banned && (
                   <Button variant={"secondary"} asChild>
-                    <Link href={`/teams/${teamDetails?.team_name}/edit`}>
+                    <Link href={teamPath(teamDetails?.team_name, "/edit")}>
                       <Edit />
                       {t("teamDetail.editTeam")}
                     </Link>
@@ -820,7 +839,7 @@ const Page = ({ params }: { params: Params }) => {
                 {/* Manage Roster: owner or coach */}
                 {canManageRoster && !teamDetails?.is_banned && (
                   <Button asChild>
-                    <Link href={`/teams/${teamDetails?.team_name}/roster`}>
+                    <Link href={teamPath(teamDetails?.team_name, "/roster")}>
                       <Users />
                       {t("teamDetail.manageRoster")}
                     </Link>
@@ -956,7 +975,7 @@ const Page = ({ params }: { params: Params }) => {
                       <div>
                         <p className="text-sm text-muted-foreground">{t("teamDetail.tierLabel")}</p>
                         <p className="text-lg md:text-xl font-semibold">
-                          {teamDetails?.team_tier}
+                          {tierLabel(teamDetails?.ranking_tier)}
                         </p>
                       </div>
                       <div>
@@ -1010,8 +1029,8 @@ const Page = ({ params }: { params: Params }) => {
                               variant="outline"
                               className={
                                 teamMemberLetterSet.has(letter)
-                                  ? "rounded-full text-xs border-primary text-primary"
-                                  : "rounded-full text-xs border-gold text-gold"
+                                  ? "rounded-full text-xs text-primary"
+                                  : "rounded-full text-xs text-gold"
                               }
                             >
                               {letter}
@@ -1151,7 +1170,7 @@ const Page = ({ params }: { params: Params }) => {
                                       <img
                                         src={member.esport_image}
                                         alt=""
-                                        className="size-7 rounded-md border object-cover"
+                                        className="size-7 rounded-md object-cover bg-muted/30"
                                       />
                                     </a>
                                   ) : null}
@@ -1171,7 +1190,7 @@ const Page = ({ params }: { params: Params }) => {
                               </TableCell>
                               <TableCell>
                                 <Button size="sm" variant="outline" asChild>
-                                  <Link href={`/players/${member.username}`}>
+                                  <Link href={playerPath(member.username)}>
                                     {t("teamDetail.view")}
                                   </Link>
                                 </Button>
@@ -1371,7 +1390,7 @@ const Page = ({ params }: { params: Params }) => {
                       )}
                     {hasFullAccess &&
                       (teamDetails?.members?.length ?? 0) >= MAX_TEAM_MEMBERS && (
-                        <div className="mt-4 rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+                        <div className="mt-4 rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
                           {t("teamDetail.teamFull")}
                         </div>
                       )}
@@ -1422,7 +1441,7 @@ const Page = ({ params }: { params: Params }) => {
                         a friendly empty state when the team has no links. */}
                     {!teamDetails?.social_media_links ||
                     teamDetails.social_media_links.length === 0 ? (
-                      <div className="rounded-md border-2 border-dashed border-border py-14 text-center text-sm italic text-muted-foreground">
+                      <div className="rounded-md bg-muted/40 py-14 text-center text-sm italic text-muted-foreground">
                         {t("teamDetail.noLinkFound")}
                       </div>
                     ) : (
@@ -1466,7 +1485,7 @@ const Page = ({ params }: { params: Params }) => {
                                 href={link.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="group flex items-center gap-3 rounded-md border bg-card p-3 shadow-sm transition-colors hover:border-primary/50 hover:bg-muted/40"
+                                className="group flex items-center gap-3 rounded-md bg-card p-3 shadow-sm transition-colors hover:bg-muted/40"
                               >
                                 <span
                                   className={`flex size-10 shrink-0 items-center justify-center rounded-full ${accent}`}
@@ -1508,7 +1527,7 @@ const Page = ({ params }: { params: Params }) => {
                             </p>
                           </div>
                           <Button variant="outline" size="sm" className="shrink-0" asChild>
-                            <Link href={`/teams/${teamDetails?.team_name}/applications`}>
+                            <Link href={teamPath(teamDetails?.team_name, "/applications")}>
                               <IconExternalLink className="h-4 w-4 mr-1.5" />
                               {t("teamDetail.viewAllApplications")}
                             </Link>
@@ -1550,7 +1569,7 @@ const Page = ({ params }: { params: Params }) => {
                                     </TableCell>
                                     <TableCell>
                                       {app.contact_unlocked ? (
-                                        <Badge variant="outline" className="text-green-400 border-green-800 text-xs">
+                                        <Badge variant="outline" className="text-green-400 text-xs">
                                           {t("teamDetail.unlocked")}
                                         </Badge>
                                       ) : (
@@ -1693,7 +1712,7 @@ const Page = ({ params }: { params: Params }) => {
                                           asChild
                                         >
                                           <Link
-                                            href={`/players/${request.requester}`}
+                                            href={playerPath(request.requester)}
                                           >
                                             {t("teamDetail.viewProfile")}
                                           </Link>
@@ -1849,7 +1868,7 @@ const Page = ({ params }: { params: Params }) => {
                         rolePermissions; the screen itself is teams/[id]/permissions and every
                         switch on it is enforced again server-side. */}
                     <Button asChild variant="secondary" className="w-full">
-                      <Link href={`/teams/${teamDetails?.team_name}/permissions`}>
+                      <Link href={teamPath(teamDetails?.team_name, "/permissions")}>
                         <span className="flex items-center gap-2">
                           {tTeam("rolePermissions.manageButton")}
                           <NewBadge since="2026-08-08" />
@@ -2090,6 +2109,7 @@ const Page = ({ params }: { params: Params }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {joinLockDialog}
       </div>
     );
 };

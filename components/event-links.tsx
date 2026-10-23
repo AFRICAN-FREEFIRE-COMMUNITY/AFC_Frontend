@@ -47,11 +47,11 @@ import {
 } from "@/lib/eventLinks";
 
 const QUAL_BADGE: Record<EventQualificationRow["status"], string> = {
-  promoted: "border-green-500 text-green-600",
-  pending: "border-orange-500 text-orange-600",
-  declined: "border-red-500 text-red-600",
-  rejected: "border-red-500 text-red-600",
-  replaced: "border-gold text-gold",
+  promoted: "text-green-600 bg-green-500/10",
+  pending: "text-orange-600 bg-orange-500/10",
+  declined: "text-red-600 bg-red-500/10",
+  rejected: "text-red-600 bg-red-500/10",
+  replaced: "text-gold bg-gold/10",
 };
 
 export function LinkedEventsCard({
@@ -290,7 +290,7 @@ export function LinkedEventsCard({
           <div>
             <CardTitle className="flex items-center gap-2">
               <IconLink className="size-5" /> Linked events
-              <Badge variant="outline" className="rounded-full border-gold px-2 py-0.5 text-xs text-gold">
+              <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-gold">
                 qualification
               </Badge>
             </CardTitle>
@@ -317,7 +317,7 @@ export function LinkedEventsCard({
       <CardContent className="space-y-4">
         {/* ── chain map (P3): every event connected through links, cascade-listed. ── */}
         {chainOpen && chain && (
-          <div className="space-y-2 rounded-md border bg-muted/20 p-3">
+          <div className="space-y-2 rounded-md bg-muted/20 p-3">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
               Qualification chain ({chain.nodes.length} event{chain.nodes.length === 1 ? "" : "s"})
             </Label>
@@ -328,7 +328,7 @@ export function LinkedEventsCard({
                   variant="outline"
                   className={
                     n.is_focus
-                      ? "rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+                      ? "rounded-full px-2 py-0.5 text-xs text-primary"
                       : "rounded-full px-2 py-0.5 text-xs"
                   }
                 >
@@ -347,7 +347,7 @@ export function LinkedEventsCard({
                   return (
                     <div key={e.link_id} className="flex flex-wrap items-center gap-1.5 text-xs">
                       <b>{src?.event_name ?? "?"}</b>
-                      <Badge variant="outline" className="rounded-full border-blue-500 px-2 py-0.5 text-xs text-blue-500">
+                      <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-blue-500">
                         {e.source_stage_name}
                       </Badge>
                       <IconArrowRight className="size-3.5 text-primary" />
@@ -356,8 +356,8 @@ export function LinkedEventsCard({
                         variant="outline"
                         className={
                           e.status === "fired"
-                            ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
-                            : "rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                            ? "rounded-full px-2 py-0.5 text-xs text-green-600"
+                            : "rounded-full px-2 py-0.5 text-xs text-orange-600"
                         }
                       >
                         {e.status}
@@ -371,7 +371,7 @@ export function LinkedEventsCard({
         )}
 
         {outbound.length === 0 && inbound.length === 0 && (
-          <p className="rounded-md border border-dashed py-8 text-center text-sm text-muted-foreground">
+          <p className="rounded-md py-8 text-center text-sm text-muted-foreground bg-muted/30">
             No links yet. Link a stage to another event and its top teams will qualify there
             automatically.
           </p>
@@ -379,9 +379,9 @@ export function LinkedEventsCard({
 
         {/* ── outbound links ── */}
         {outbound.map((link) => (
-          <div key={link.id} className="space-y-2.5 rounded-md border bg-muted/20 p-3">
+          <div key={link.id} className="space-y-2.5 rounded-md bg-muted/20 p-3">
             <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
-              <Badge variant="outline" className="rounded-full border-blue-500 px-2 py-0.5 text-xs text-blue-500">
+              <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-blue-500">
                 {link.source_stage_name}
               </Badge>
               <IconArrowRight className="size-4 text-primary" />
@@ -395,7 +395,7 @@ export function LinkedEventsCard({
               </Badge>
               {/* Capacity advisory (P2): firing would push the target past its cap. */}
               {link.capacity_warning && (
-                <Badge variant="outline" className="rounded-full border-gold px-2 py-0.5 text-xs text-gold">
+                <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs text-gold">
                   target nearly full: {link.target_registered}/{link.target_capacity} + top {link.qualify_count}
                 </Badge>
               )}
@@ -404,8 +404,8 @@ export function LinkedEventsCard({
                   variant="outline"
                   className={
                     link.status === "fired"
-                      ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
-                      : "rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                      ? "rounded-full px-2 py-0.5 text-xs text-green-600"
+                      : "rounded-full px-2 py-0.5 text-xs text-orange-600"
                   }
                 >
                   {link.status === "fired" ? "fired" : "waiting on stage results"}
@@ -430,7 +430,7 @@ export function LinkedEventsCard({
 
             {/* standings-edited banner (diff vs the fire-time snapshot; creator was notified) */}
             {link.standings_changed && (link.diff?.length ?? 0) > 0 && (
-              <div className="space-y-1.5 rounded-md border border-gold/50 bg-gold/10 p-2.5 text-xs">
+              <div className="space-y-1.5 rounded-md bg-gold/10 p-2.5 text-xs">
                 <div className="font-semibold text-gold">
                   The {link.source_stage_name} standings changed after this link fired.
                 </div>
@@ -471,25 +471,25 @@ export function LinkedEventsCard({
                         <div className="flex flex-wrap justify-end gap-1.5">
                           {q.status === "pending" && (
                             <>
-                              <Button size="sm" variant="outline" className="h-8 text-xs text-green-600 border-green-200"
+                              <Button size="sm" variant="outline" className="h-8 text-xs text-green-600 bg-green-200/10"
                                 disabled={busy} onClick={() => decide(link.id, q, "allow")}>
                                 Allow
                               </Button>
-                              <Button size="sm" variant="outline" className="h-8 text-xs text-red-600 border-red-200"
+                              <Button size="sm" variant="outline" className="h-8 text-xs text-red-600 bg-red-200/10"
                                 disabled={busy} onClick={() => decide(link.id, q, "reject")}>
                                 Reject
                               </Button>
                             </>
                           )}
                           {q.status === "promoted" && (
-                            <Button size="sm" variant="outline" className="h-8 text-xs text-red-600 border-red-200"
+                            <Button size="sm" variant="outline" className="h-8 text-xs text-red-600 bg-red-200/10"
                               disabled={busy} onClick={() => decide(link.id, q, "decline")}>
                               Team declined?
                             </Button>
                           )}
                           {q.status === "declined" && (
                             <>
-                              <Button size="sm" variant="outline" className="h-8 text-xs text-green-600 border-green-200"
+                              <Button size="sm" variant="outline" className="h-8 text-xs text-green-600 bg-green-200/10"
                                 disabled={busy} onClick={() => decide(link.id, q, "replace_next")}>
                                 Promote next in line
                               </Button>
@@ -533,7 +533,7 @@ export function LinkedEventsCard({
               Qualifies from
             </Label>
             {inbound.map((link) => (
-              <div key={link.id} className="flex flex-wrap items-center gap-2 rounded-md border p-2.5 text-xs">
+              <div key={link.id} className="flex flex-wrap items-center gap-2 rounded-md p-2.5 text-xs bg-muted/30">
                 <b>{link.source_event_name}</b> / {link.source_stage_name}
                 <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs">top {link.qualify_count}</Badge>
                 <span className="ml-auto">
@@ -541,8 +541,8 @@ export function LinkedEventsCard({
                     variant="outline"
                     className={
                       link.status === "fired"
-                        ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
-                        : "rounded-full border-blue-500 px-2 py-0.5 text-xs text-blue-500"
+                        ? "rounded-full px-2 py-0.5 text-xs text-green-600"
+                        : "rounded-full px-2 py-0.5 text-xs text-blue-500"
                     }
                   >
                     {link.status === "fired" ? "arrived" : "waiting on stage"}
@@ -589,7 +589,7 @@ export function LinkedEventsCard({
                   placeholder="Search an event..."
                 />
                 {!targetId && targetResults.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
+                  <div className="absolute z-10 mt-1 w-full rounded-md bg-popover shadow-md">
                     {targetResults.map((e) => (
                       <button
                         key={e.event_id}
@@ -684,7 +684,7 @@ export function LinkedEventsCard({
                   placeholder="Search events to merge in..."
                 />
                 {mergeResults.length > 0 && (
-                  <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
+                  <div className="absolute z-10 mt-1 w-full rounded-md bg-popover shadow-md">
                     {mergeResults.map((e) => (
                       <button
                         key={e.event_id}
@@ -706,7 +706,7 @@ export function LinkedEventsCard({
 
             {/* Per-source result report, shown after the merge ran. */}
             {mergeReport && (
-              <div className="space-y-1 rounded-md border bg-muted/20 p-2.5 text-xs">
+              <div className="space-y-1 rounded-md bg-muted/20 p-2.5 text-xs">
                 {mergeReport.map((r) => (
                   <div key={r.source_event_id}>
                     <b>{r.source_event_name}</b>: {r.imported} imported

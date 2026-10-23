@@ -3,10 +3,12 @@
 import { useEffect, useState, useTransition } from "react";
 import { formatNumber } from "@/lib/i18n/number";
 import { useRouter, useSearchParams } from "next/navigation";
+import { writeAddressParam } from "@/lib/useAddressTab";
 // i18n: user-visible copy on the owner's own profile page is sourced from the
 // `profile` namespace (messages/en/profile.json). The active locale comes from the
 // NEXT_LOCALE cookie (set on the profile edit page) and falls back to English.
 import { useTranslations, useLocale } from "next-intl";
+import { useSupportWaiting } from "@/hooks/useSupportWaiting";
 // import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -83,6 +85,9 @@ import {
 import { OwnStatsTab } from "./OwnStatsTab";
 // "My reports" tab body (owner 2026-06-20): reports this user filed + admin answers.
 import { MyPlayerReports } from "./MyPlayerReports";
+import { ReferralsTab } from "@/components/referrals/ReferralsTab";
+import { REFERRALS_LAUNCH_DATE } from "@/lib/referrals";
+import { teamPath } from "@/lib/routes";
 
 // ── i18n: achievement-group display string -> message key ─────────────────────
 // The achievements CATALOG (achievements.ts) stores group/title/description in
@@ -119,6 +124,9 @@ export const ProfileContent = () => {
   // because the page it points at (TwoFactorSecurity.tsx) and the login second step
   // (TwoFactorStep.tsx) share it.
   const tTwoFactor = useTranslations("twoFactor");
+  // "My support tickets" (inbox #71): its label and the count of tickets waiting on the player
+  const tSupport = useTranslations("supportPage");
+  const supportWaiting = useSupportWaiting();
   // Active UI locale, passed to formatLocalTime so the "Applied {date}" string
   // localizes month names to the chosen language (and skips the cookie read).
   const locale = useLocale();
@@ -137,6 +145,27 @@ export const ProfileContent = () => {
   const [activeTab, setActiveTab] = useState<string>(
     searchParams.get("tab") || "overview",
   );
+  // A ?tab= link followed while already on /profile (the help panel's links, inbox #159) changes
+  // the address without remounting the page, so the asked tab is applied again when it changes
+  // (during render, the same pattern as lib/useAddressTab.ts).
+  const askedTab = searchParams.get("tab");
+  const [seenTab, setSeenTab] = useState(askedTab);
+  if (askedTab !== seenTab) {
+    setSeenTab(askedTab);
+    setActiveTab(askedTab || "overview");
+  }
+  // A click is written into the address too, so a later link to the tab the address names is a
+  // real change (inbox #213: after a click, a link to the ?tab= already showing did nothing).
+  const chooseTab = (value: string) => {
+    setActiveTab(value);
+    writeAddressParam("tab", value, "overview");
+  };
+  // /profile#referrals (the link in a referral prize notification) opens the Referrals tab. Read after
+  // mount: the hash never reaches the server, so the first render cannot know it.
+  const tRef = useTranslations("referrals");
+  useEffect(() => {
+    if (window.location.hash === "#referrals") setActiveTab("referrals");
+  }, []);
   // Report-feature copy (messages/en/playerReports.json) for the My-reports tab label.
   const tReports = useTranslations("playerReports");
 
@@ -369,7 +398,7 @@ export const ProfileContent = () => {
                 <Link
                   href="/profile/edit"
                   title={t("card.esportImage")}
-                  className="h-28 w-20 shrink-0 overflow-hidden rounded-md border transition-colors hover:border-primary/60 sm:h-32 sm:w-24"
+                  className="h-28 w-20 shrink-0 overflow-hidden rounded-md transition-colors sm:h-32 sm:w-24 hover:bg-primary/10 bg-muted/30"
                 >
                   {/* Short alt on purpose. When the file 404s (a real state on any
                       environment whose media directory is not in sync) the browser
@@ -387,7 +416,7 @@ export const ProfileContent = () => {
               ) : (
                 <Link
                   href="/profile/edit"
-                  className="flex h-28 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-md border border-dashed p-2 text-center text-[11px] leading-tight text-muted-foreground transition-colors hover:bg-muted/40 sm:h-32 sm:w-24"
+                  className="flex h-28 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-md bg-muted/60 p-2 text-center text-[11px] leading-tight text-muted-foreground transition-colors hover:bg-muted sm:h-32 sm:w-24"
                 >
                   <span>{t("card.esportsImageEmpty")}</span>
                   <span className="text-primary">{t("card.esportsImageHint")}</span>
@@ -421,10 +450,10 @@ export const ProfileContent = () => {
                   {user.team && (
                     <Badge
                       variant="outline"
-                      className="border-primary/50 text-primary"
+                      className="text-primary"
                       asChild
                     >
-                      <Link href={`/teams/${user.team}`}>{user.team}</Link>
+                      <Link href={teamPath(user.team)}>{user.team}</Link>
                     </Badge>
                   )}
                   {/* Real published tier, or a truthful "Unranked". Never a fake rank.
@@ -438,7 +467,7 @@ export const ProfileContent = () => {
                     title={t("overview.currentTier")}
                     className={
                       currentTier?.tier_label
-                        ? "border-gold/60 text-gold"
+                        ? "text-gold"
                         : "text-muted-foreground"
                     }
                   >
@@ -479,6 +508,27 @@ export const ProfileContent = () => {
                   session token in a URL sent to discord.com. */}
               <Button variant="secondary" className="w-full" asChild>
                 <Link href="/profile/connected-apps">{t("card.manageConnections")}</Link>
+              </Button>
+              {/* Account and security (inbox #60, owner 2026-09-27: "its hard to find the delete my
+                  account"): two-step sign-in, devices and deleting the account, one tap away. */}
+              <Button variant="secondary" className="w-full" asChild>
+                <Link href="/profile/security">{tTwoFactor("account.title")}</Link>
+              </Button>
+              {/* My support tickets (inbox #71, 2026-09-28): the player's own tickets live on
+                  /support; the gold count is the tickets AFC answered that wait on them
+                  (hooks/useSupportWaiting.ts, the same count as the menu). */}
+              <Button variant="secondary" className="w-full" asChild>
+                <Link href="/support">
+                  {tSupport("profile.link")}
+                  {supportWaiting > 0 && (
+                    <span
+                      className="ml-2 grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1.5 text-[11px] font-bold text-black"
+                      aria-label={tSupport("menuWaiting", { count: supportWaiting })}
+                    >
+                      {supportWaiting}
+                    </span>
+                  )}
+                </Link>
               </Button>
             </div>
           </div>
@@ -604,7 +654,7 @@ export const ProfileContent = () => {
           reads as a broken page, it says in plain English what the numbers mean and
           what to do about it. */}
       {richProfile && !hasOwnMatches && hasTeamMatches && (
-        <p className="mt-4 rounded-md border bg-muted/40 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+        <p className="mt-4 rounded-md bg-muted/40 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
           <span className="font-semibold text-foreground">
             {t("overview.noScorelinesTitle")}
           </span>{" "}
@@ -620,7 +670,7 @@ export const ProfileContent = () => {
           of its height while the left column ran long. */}
       <Card className="mt-6">
         <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={chooseTab}>
               <ScrollableTabsList className="w-full mb-4">
                 <TabsTrigger value="overview">
                   {t("tabs.overview")}
@@ -637,6 +687,12 @@ export const ProfileContent = () => {
                 {/* Player reports the user filed + the admin's answers. */}
                 <TabsTrigger value="reports">
                   {tReports("mine.tabLabel")}
+                </TabsTrigger>
+                {/* Referrals (inbox #47): the player's link, numbers and prizes. Opened by
+                    /profile#referrals, which is where a prize notification points. */}
+                <TabsTrigger value="referrals" className="gap-1.5">
+                  {tRef("tab.label")}
+                  <NewBadge since={REFERRALS_LAUNCH_DATE} />
                 </TabsTrigger>
                 {user.role === "admin" && (
                   <TabsTrigger value="admin">{t("tabs.admin")}</TabsTrigger>
@@ -767,7 +823,7 @@ export const ProfileContent = () => {
                           {/* Team name links to the public team page (same idiom
                               as the public profile). */}
                           <Link
-                            href={`/teams/${richProfile.team.team_name}`}
+                            href={teamPath(richProfile.team.team_name)}
                             className="text-primary hover:underline inline-flex items-center gap-1"
                           >
                             <IconShieldCheck className="h-4 w-4" />
@@ -852,20 +908,20 @@ export const ProfileContent = () => {
                     {myApplications.map((app) => {
                       const statusColors: Record<string, string> = {
                         PENDING:
-                          "bg-yellow-900/20 text-yellow-400 border-yellow-800",
+                          "bg-yellow-900/20 text-yellow-400",
                         SHORTLISTED:
-                          "bg-cyan-900/20 text-cyan-400 border-cyan-800",
-                        INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
+                          "bg-cyan-900/20 text-cyan-400",
+                        INVITED: "bg-blue-900/20 text-blue-400",
                         ACCEPTED:
-                          "bg-green-900/20 text-green-400 border-green-800",
+                          "bg-green-900/20 text-green-400",
                         TRIAL_EXTENDED:
-                          "bg-purple-900/20 text-purple-400 border-purple-800",
-                        REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+                          "bg-purple-900/20 text-purple-400",
+                        REJECTED: "bg-red-900/20 text-red-400",
                       };
                       return (
                         <div
                           key={app.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg border bg-muted/20"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg bg-muted/20"
                         >
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold truncate">{app.team}</p>
@@ -910,7 +966,7 @@ export const ProfileContent = () => {
                             {app.contact_unlocked && (
                               <Badge
                                 variant="outline"
-                                className="text-xs text-green-400 border-green-800"
+                                className="text-xs text-green-400"
                               >
                                 {t("applications.contactUnlocked")}
                               </Badge>
@@ -936,6 +992,9 @@ export const ProfileContent = () => {
                   (the component fetches /auth/my-player-reports/ on mount). */}
               <TabsContent value="reports">
                 <MyPlayerReports />
+              </TabsContent>
+              <TabsContent value="referrals">
+                <ReferralsTab />
               </TabsContent>
             </Tabs>
         </CardContent>
@@ -1003,11 +1062,11 @@ export const ProfileContent = () => {
               {/* NEW tag on the card title: two-step sign-in shipped 2026-08-06, and this
                   card is the only way an ordinary player finds it, so it is exactly the
                   "returning user would not otherwise notice it" case the rule is for.
-                  Expires by itself 5 days on. Kept through the profile redesign: the
-                  redesign is not itself a new feature and gets no badge of its own. */}
+                  Re-dated 2026-09-27: the card became "Account and security" and now also
+                  leads to deleting the account (inbox #60). Expires by itself 5 days on. */}
               <h3 className="flex flex-wrap items-center gap-2 text-base font-semibold">
                 {tTwoFactor("profileCard.title")}
-                <NewBadge since="2026-08-06" />
+                <NewBadge since="2026-09-27" />
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
                 {tTwoFactor("profileCard.description")}
@@ -1020,6 +1079,17 @@ export const ProfileContent = () => {
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      {/* A quiet way straight to deleting the account (inbox #60): the card lands at the bottom
+          of /profile/security, DeleteAccountCard scrolls to it (#delete). */}
+      <div className="mt-8 text-center">
+        <Link
+          href="/profile/security#delete"
+          className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+        >
+          {tTwoFactor("account.deleteLink")}
+        </Link>
       </div>
     </div>
   );
@@ -1081,7 +1151,7 @@ function AchievementsPanel({ ctx }: { ctx: AchievementContext }) {
         {/* Trophy badge mirrors the gold accent used across AFC stat surfaces. */}
         <Badge
           variant="outline"
-          className="border-gold/60 text-gold self-start sm:self-auto"
+          className="text-gold self-start sm:self-auto"
         >
           <IconTrophy className="h-4 w-4 mr-1" />
           {t("achievementsPanel.pointsBadge", { points: earnedPoints })}
@@ -1090,7 +1160,7 @@ function AchievementsPanel({ ctx }: { ctx: AchievementContext }) {
 
       {/* Honest note: the boost itself is a FUTURE feature, so we only promise it
           is coming, we do not apply it. */}
-      <p className="text-xs text-muted-foreground bg-muted/40 border rounded-md px-3 py-2 mb-4">
+      <p className="text-xs text-muted-foreground bg-muted/40 rounded-md px-3 py-2 mb-4">
         {t("achievementsPanel.comingSoonNote")}
       </p>
 
@@ -1249,17 +1319,17 @@ function AchievementCard({
     ? Math.min(100, Math.round(((value as number) / achievement.threshold!) * 100))
     : 0;
 
-  // Card container treatment: earned (green), next-to-chase (primary ring), else
-  // a plain muted card.
+  // Card container treatment: earned (green fill), next-to-chase (lighter green fill), else a
+  // plain muted fill. Filled surfaces, no outlines or rings (design rule 2026-08-17).
   const containerClass = earned
-    ? "border-primary/40 bg-primary/5"
+    ? "bg-primary/15"
     : isNext && !goal
-      ? "border-primary/60 bg-primary/[0.03] ring-1 ring-primary/30"
-      : "border-border bg-card hover:bg-muted/30";
+      ? "bg-primary/10"
+      : "bg-muted/60 hover:bg-muted";
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-md border px-3 py-3 transition-colors ${containerClass}`}
+      className={`flex items-start gap-3 rounded-md px-3 py-3 transition-colors ${containerClass}`}
     >
       {/* icon chip: green when earned, muted otherwise */}
       <div

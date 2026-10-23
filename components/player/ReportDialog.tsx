@@ -150,14 +150,14 @@ export function ReportDialog({
                     type="button"
                     key={value}
                     onClick={() => setReason(value)}
-                    className={`flex items-start gap-3 rounded-md border p-3 text-left transition-colors ${
+                    className={`flex items-start gap-3 rounded-md p-3 text-left transition-colors ${
                       on
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/40"
                     }`}
                   >
                     <span
-                      className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                      className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
                         on ? "border-primary" : "border-muted-foreground"
                       }`}
                     >
@@ -211,7 +211,7 @@ export function ReportDialog({
           </div>
 
           {/* Honesty warning (amber). No em dashes. */}
-          <div className="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/5 p-2.5 text-xs text-muted-foreground">
+          <div className="flex items-start gap-2 rounded-md bg-yellow-500/5 p-2.5 text-xs text-muted-foreground">
             <IconFlag className="h-4 w-4 text-yellow-500 mt-0.5 shrink-0" />
             <p>
               {t.rich("report.honestyNote", {

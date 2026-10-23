@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useTransition } from "react";
+import React, { useEffect, useMemo, useRef, useState, useTransition } from "react";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -18,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { env } from "@/lib/env";
 import axios from "axios";
 import { RegisterFormSchema, RegisterFormSchemaType } from "@/lib/zodSchemas";
+import { REFERRALS_LAUNCH_DATE, readPendingReferral, clearPendingReferral } from "@/lib/referrals";
 import { Loader } from "@/components/Loader";
 import {
   Select,
@@ -55,6 +58,9 @@ import {
   PhoneInput,
 } from "@/components/PhoneNumberInput";
 import { NewBadge } from "@/components/NewBadge";
+import { BotCheck, botCheckEnabled, type BotCheckHandle } from "@/components/BotCheck";
+// "Did you mean kofi@gmail.com?" when the server answers email_domain_typo (inbox #273).
+import { EmailTypoQuestion, TYPO_RESUBMIT_WAIT_MS } from "@/components/EmailTypoQuestion";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -123,6 +129,7 @@ export function CreateAccountForm() {
   // placeholders, terms checkbox copy, and submit button; passwordStrength.* and
   // showHidePassword.* drive the live strength meter + password-visibility toggles.
   const t = useTranslations("auth");
+  const serverMessage = useServerMessage();
 
   const form = useForm<RegisterFormSchemaType>({
     resolver: zodResolver(RegisterFormSchema),
@@ -172,6 +179,17 @@ export function CreateAccountForm() {
   const password = form.watch("password");
   const acceptTerms = form.watch("acceptTerms"); // Watch the new field
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  // The Cloudflare Turnstile token this form must send with its post (owner 2026-09-22).
+  const [botToken, setBotToken] = useState("");
+  // A token is good for ONE post, so every refused submit resets the widget (BotCheckHandle).
+  const botRef = useRef<BotCheckHandle>(null);
+  // The email typo question (inbox #273): the address as typed and the server's correction;
+  // the address the person said is right (sent with email_domain_confirmed); and a submit
+  // waiting for the fresh bot token after they answer.
+  const [emailTypo, setEmailTypo] = useState<{ typed: string; suggestion: string } | null>(null);
+  const [confirmedEmail, setConfirmedEmail] = useState("");
+  const [resubmit, setResubmit] = useState(false);
+  const typedEmail = form.watch("email");
   const [isConfirmVisible, setConfirmIsVisible] = useState<boolean>(false);
   const toggleVisibility = () => setIsVisible((prevState) => !prevState);
   const toggleConfirmVisibility = () =>
@@ -211,6 +229,37 @@ export function CreateAccountForm() {
     return t("passwordStrength.strong");
   };
 
+  // ── referral code (inbox #47) ─────────────────────────────────────────────────────────────
+  // Kept OUT of the form schema and the signup body on purpose: the backend's signup view knows
+  // nothing about referrals. The code goes into the afc_ref cookie instead, and
+  // components/referrals/ReferralClaimer.tsx sends it after the first sign-in (the same path a Google
+  // or Discord signup takes). Prefilled from an invite link (/r/<code>); clearing it opts out.
+  const tRef = useTranslations("referrals");
+  const [referralCode, setReferralCode] = useState("");
+  const [referralFromLink, setReferralFromLink] = useState(false);
+  useEffect(() => {
+    const pending = readPendingReferral();
+    if (pending) {
+      setReferralCode(pending.code);
+      setReferralFromLink(Boolean(pending.click));
+    }
+  }, []);
+
+  // After an answer to the typo question, send again as soon as a fresh bot token is in hand
+  // (at once where this environment has no bot check).
+  useEffect(() => {
+    if (!resubmit) return;
+    if (botCheckEnabled() && !botToken) {
+      // No fresh token yet. If none comes (Cloudflare blocked or failing), stop waiting: the answer
+      // is already in the form, and the create button sends it.
+      const giveUp = window.setTimeout(() => setResubmit(false), TYPO_RESUBMIT_WAIT_MS);
+      return () => window.clearTimeout(giveUp);
+    }
+    setResubmit(false);
+    form.handleSubmit(onSubmit)();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onSubmit is re-created each render; the trigger is the answer plus the token
+  }, [resubmit, botToken]);
+
   function onSubmit(data: RegisterFormSchemaType) {
     // The Zod resolver already checks data.acceptTerms, so we only need to proceed here.
     startTransition(async () => {
@@ -227,18 +276,50 @@ export function CreateAccountForm() {
           // body it always did. The backend stores it on UserProfile.whatsapp_number after
           // insisting on a country code (afc_auth.views.signup -> require_international).
           ...(data.whatsappNumber ? { whatsapp_number: data.whatsappNumber } : {}),
+          // The person answered "My address is right" for exactly this address (inbox #273).
+          ...(confirmedEmail && confirmedEmail === data.email ? { email_domain_confirmed: true } : {}),
+          // The referral goes WITH the sign-up (inbox #53): the server stores it now, so confirming
+          // the email on another phone still counts it. The click token links it to the invite visit.
+          ...(referralCode.trim()
+            ? { referral_code: referralCode.trim(), referral_click: readPendingReferral()?.code === referralCode.trim() ? readPendingReferral()?.click : "" }
+            : {}),
           // Removed data.acceptTerms from authData as it's not needed by the backend typically
         };
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/signup/`,
-          { ...authData },
+          // The bot-check token rides with the body; the server asks Cloudflare about it
+          // before it creates anything or sends any mail (owner 2026-09-22).
+          { ...authData, cf_turnstile_response: botToken },
         );
+
+        // The server has the referral now (response.data.referral), so nothing waits in the browser:
+        // a leftover cookie would only make the first sign-in claim again and hear already_referred.
+        // A refusal (a mistyped code) is said once here, since the account itself was created.
+        clearPendingReferral();
+        const refused = response.data?.referral?.refused as string | undefined;
+        if (refused && tRef.has(`claim.refused.${refused}`)) toast.info(tRef(`claim.refused.${refused}`));
 
         // Success: the typed draft is no longer needed, so we drop it before leaving.
         clearDraft();
-        toast.success(response.data.message);
+        toast.success(serverMessage(response.data));
         router.push(`/email-confirmation?email=${data.email}`);
       } catch (error: any) {
+        // The bot token was spent on this post: get a new one so the next try can pass.
+        botRef.current?.reset();
+
+        // A likely typo in the email (inbox #273): ask, under the field, instead of refusing.
+        const errorData = error?.response?.data;
+        if (errorData?.code === "email_domain_typo" && errorData?.suggestion) {
+          setEmailTypo({ typed: data.email, suggestion: errorData.suggestion });
+          return;
+        }
+        if (errorData?.code === "email_invalid") {
+          const sentence = serverMessage(errorData, t("register.genericError"));
+          form.setError("email", { type: "server", message: sentence });
+          toast.error(sentence);
+          return;
+        }
+
         // The backend now returns friendly copy. New conflict responses use `message`
         // ("That in-game name is already taken.", "That email is already registered."),
         // while older validation responses use `error`. Read whichever is present.
@@ -346,6 +427,23 @@ export function CreateAccountForm() {
                 />
               </FormControl>
               <FormMessage />
+              {/* Shown only while the field still holds the address the server asked about. */}
+              {emailTypo && typedEmail === emailTypo.typed && (
+                <EmailTypoQuestion
+                  suggestion={emailTypo.suggestion}
+                  disabled={pending}
+                  onUse={() => {
+                    form.setValue("email", emailTypo.suggestion, { shouldValidate: true });
+                    setEmailTypo(null);
+                    setResubmit(true);
+                  }}
+                  onKeep={() => {
+                    setConfirmedEmail(emailTypo.typed);
+                    setEmailTypo(null);
+                    setResubmit(true);
+                  }}
+                />
+              )}
             </FormItem>
           )}
         />
@@ -504,7 +602,7 @@ export function CreateAccountForm() {
           name="whatsappNumber"
           render={({ field }) => (
             <FormItem>
-              <div className="space-y-2 rounded-lg border p-4">
+              <div className="space-y-2 rounded-lg p-4 bg-muted/30">
                 <FormLabel
                   htmlFor="signup-whatsapp-number"
                   className="flex flex-wrap items-center gap-2 text-sm font-medium"
@@ -536,12 +634,31 @@ export function CreateAccountForm() {
           )}
         />
 
+        {/* Referral code (inbox #47, approved mockup screen 2). Optional; a filled surface, not an
+            outlined box (the 2026-08-17 design rule). */}
+        <div className="space-y-2 rounded-lg bg-muted/40 p-4">
+          <label htmlFor="signup-referral-code" className="flex flex-wrap items-center gap-2 text-sm font-medium">
+            {tRef("signup.codeLabel")}
+            <NewBadge since={REFERRALS_LAUNCH_DATE} />
+          </label>
+          <p className="text-xs text-muted-foreground">
+            {referralFromLink ? tRef("signup.codeHelpLink") : tRef("signup.codeHelp")}
+          </p>
+          <Input
+            id="signup-referral-code"
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 20))}
+            autoComplete="off"
+            className="font-mono tracking-widest"
+          />
+        </div>
+
         {/* NEW: Terms and Policy Checkbox */}
         <FormField
           control={form.control}
           name="acceptTerms"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 rounded-lg bg-muted/30">
               <FormControl>
                 {/* NOTE: You must ensure your Checkbox component
                   handles the checked/onCheckedChange props correctly for react-hook-form.
@@ -574,6 +691,9 @@ export function CreateAccountForm() {
             </FormItem>
           )}
         />
+
+        {/* Bot check (owner 2026-09-22). Renders nothing when this environment has no site key. */}
+        <BotCheck ref={botRef} onToken={setBotToken} className="mb-3" />
 
         <Button
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90"

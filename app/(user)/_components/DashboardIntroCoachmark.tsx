@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { env } from "@/lib/env";
 import { useAuth, type User } from "@/contexts/AuthContext";
+import { isStaffUser } from "@/lib/adminRoles";
 // Routed through lib/http authHeaders (owner bug 2026-08-29): building the header inline as
 // `Bearer ${token ?? ""}` sent "Bearer " when the cookie had lapsed, which axios trims to
 // "Bearer", so the backend reported a DEAD SESSION as a MALFORMED REQUEST (400) and nothing
@@ -70,9 +71,9 @@ const DASHBOARDS: DashboardIntro[] = [
   },
   {
     key: "admin",
-    // Platform admins (base role or any granular admin role) - mirrors MobileNavbar's isAdmin
-    // gate; sponsors are excluded here because their entry is the Sponsor Dashboard above.
-    hasAccess: (user, isAdmin) => isAdmin && user.role !== "sponsor",
+    // AFC staff: any admin role however granted (lib/adminRoles.ts, inbox #58). Sponsor-only
+    // accounts are left out because their entry is the Sponsor Dashboard above.
+    hasAccess: (user) => isStaffUser(user),
   },
 ];
 
@@ -145,11 +146,11 @@ export function DashboardIntroCoachmark() {
     <div className="fixed right-3 top-[84px] z-40 w-80 max-w-[calc(100vw-1.5rem)]">
       {/* Arrow pointing UP at the hamburger menu button (the last control in the header). */}
       <div className="absolute -top-1.5 right-4 h-3 w-3 rotate-45 border-l border-t bg-card" />
-      <div className="rounded-md border bg-card p-4 shadow-lg">
+      <div className="rounded-md bg-card p-4 shadow-lg">
         <div className="flex items-start justify-between gap-2">
           <Badge
             variant="outline"
-            className="rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+            className="rounded-full px-2 py-0.5 text-xs text-primary"
           >
             <IconSparkles size={12} className="mr-1" />
             {t("dashboardIntro.badge")}
@@ -174,7 +175,7 @@ export function DashboardIntroCoachmark() {
             label,
             section,
             menu: () => (
-              <span className="inline-flex items-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 align-middle font-medium text-foreground">
+              <span className="inline-flex items-center gap-1 rounded-md bg-muted/50 px-1.5 py-0.5 align-middle font-medium text-foreground">
                 <IconMenu2 size={12} />
                 {t("dashboardIntro.menuWord")}
               </span>

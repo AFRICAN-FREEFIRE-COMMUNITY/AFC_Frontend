@@ -97,7 +97,7 @@ export default function OrganizerOverlaysListPage() {
         description={t("studio.listDescription")}
       />
 
-      <Card className="bg-card rounded-md border" data-tour="org-overlays-list">
+      <Card className="bg-card rounded-md" data-tour="org-overlays-list">
         <CardContent className="space-y-3 p-4">
           <div className="flex items-center gap-2">
             <IconBroadcast className="text-primary size-5" />
@@ -109,7 +109,7 @@ export default function OrganizerOverlaysListPage() {
             />
           </div>
 
-          <div className="divide-border divide-y">
+          <div className="zebra">
             {filtered.length === 0 ? (
               <p className="text-muted-foreground py-8 text-center text-sm">
                 {t("studio.noEvents")}

@@ -1,0 +1,108 @@
+{
+  "loadError": "Não foi possível carregar. Verifique a sua ligação e tente novamente.",
+  "retry": "Tentar novamente",
+  "landing": {
+    "metaTitle": "Foi convidado para a AFC",
+    "invitedBy": "Convidado por",
+    "title": "Junte-se à AFC com o convite de {name}",
+    "titleProgram": "Junte-se à AFC",
+    "partOf": "Faz parte de <b>{program}</b>, até <date></date>.",
+    "ended": "Este convite é de <b>{program}</b>, que terminou a <date></date>. Pode criar uma conta na mesma.",
+    "pitch": "Crie uma conta gratuita para jogar torneios e scrims, juntar-se a uma equipa e usar a loja.",
+    "welcomeTitle": "O seu prémio de boas-vindas",
+    "welcomeGiven": "Atribuído assim que a sua indicação contar.",
+    "createAccount": "Criar a sua conta",
+    "haveAccount": "Já tenho conta",
+    "signedIn": "Tem a sessão iniciada. Os convites são para contas novas, por isso este não muda nada para si.",
+    "howTitle": "Como funciona",
+    "step1": "Crie a sua conta com este link aberto, ou escreva o código <code></code> ao registar-se.",
+    "step3Welcome": "O seu prémio de boas-vindas aparece depois em Perfil, Indicações.",
+    "step3": "Quem o convidou vê-o depois no seu perfil.",
+    "fine": "Uma indicação por conta. Contas que já existiam antes do convite não contam.",
+    "notFoundTitle": "Este link de convite não existe",
+    "notFoundBody": "Verifique o link, ou crie uma conta sem ele."
+  },
+  "rules": {
+    "signup": "Conta quando o novo jogador confirma a conta.",
+    "team": "Conta quando o novo jogador entra ou cria uma equipa.",
+    "event": "Conta quando o novo jogador se inscreve num evento.",
+    "eventNamed": "Conta quando o novo jogador se inscreve em {event}.",
+    "purchase": "Conta quando o novo jogador faz a primeira encomenda na loja."
+  },
+  "prizeLabel": {
+    "shopItem": "Artigo da loja",
+    "couponPercent": "{value}% de desconto numa encomenda",
+    "couponFixed": "<amount></amount> de desconto numa encomenda",
+    "cash": "<amount></amount> em dinheiro"
+  },
+  "prizeWhen": {
+    "milestone": "{count, plural, one {com # indicação contada} other {com # indicações contadas}}",
+    "rank": "melhor indicador n.º {rank} no fim do programa",
+    "welcome": "por cada pessoa que trouxer, assim que a indicação dela contar"
+  },
+  "claim": {
+    "ok": "O seu convite foi registado. Bem-vindo à AFC!",
+    "refused": {
+      "bad_code": "O código de indicação que usou não existe.",
+      "program_not_active": "Esse programa de indicações já terminou, por isso o código não foi usado.",
+      "not_eligible": "Esse código de indicação já não é válido.",
+      "self_referral": "Não pode usar o seu próprio código de indicação.",
+      "account_not_new": "Os códigos de indicação são para contas novas, por isso o código não foi usado.",
+      "already_referred": "A sua conta já tem uma indicação."
+    }
+  },
+  "signup": {
+    "codeLabel": "Código de indicação (opcional)",
+    "codeHelp": "Recebeu um código de um amigo ou de uma transmissão? Escreva-o aqui.",
+    "codeHelpLink": "Preenchido a partir de um link de convite. Apague-o se não quiser contar como indicação de alguém."
+  },
+  "tab": {
+    "label": "Indicações",
+    "running": "A decorrer",
+    "until": "até <date></date>",
+    "yourLink": "O seu link",
+    "copy": "Copiar",
+    "linkCopied": "Link copiado",
+    "yourCode": "O seu código",
+    "copyCode": "Copiar código",
+    "codeCopied": "Código copiado",
+    "copyFailed": "Não foi possível copiar. Selecione o texto e copie-o à mão.",
+    "whatsapp": "WhatsApp",
+    "share": "Partilhar",
+    "downloadQr": "Descarregar QR",
+    "shareText": "Junta-te a mim na AFC, a comunidade africana de Free Fire: {link}",
+    "stats": {
+      "clicks": "Link aberto",
+      "signups": "Registados",
+      "counted": "Contados",
+      "rank": "A sua posição"
+    },
+    "pendingNote": "{count, plural, one {# pessoa registou-se mas ainda não contou.} other {# pessoas registaram-se mas ainda não contaram.}}",
+    "nextPrize": "Próximo prémio",
+    "nextOf": "{counted} de {threshold}",
+    "nextMore": "{count, plural, one {Mais # indicação contada para <prize></prize>.} other {Mais # indicações contadas para <prize></prize>.}}",
+    "allMilestones": "Atingiu todas as metas deste programa.",
+    "prizesTitle": "Prémios deste programa",
+    "each": "Cada",
+    "earned": "Ganho",
+    "rewardsTitle": "Os seus prémios",
+    "rewardStatus": {
+      "pending": "Em entrega",
+      "delivered": "Entregue",
+      "ready": "Pronto"
+    },
+    "couponCode": "Código <code></code>, uma utilização",
+    "couponCopied": "Cupão copiado",
+    "rewardFrom": "{program}, ganho a <date></date>",
+    "joinedThrough": "Juntou-se à AFC com o convite de <b>{referrer}</b> ({program}).",
+    "joinedThroughProgram": "Juntou-se à AFC através de {program}.",
+    "referralStatus": {
+      "pending": "À espera de contar.",
+      "counted": "Contada.",
+      "rejected": "Não contada.",
+      "flagged": "Em análise."
+    },
+    "emptyTitle": "Não há nenhum programa de indicações aberto para si neste momento.",
+    "emptyBody": "Quando a AFC lançar um em que possa participar, o seu link aparece aqui."
+  }
+}

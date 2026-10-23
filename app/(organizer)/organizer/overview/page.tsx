@@ -34,10 +34,10 @@ function StatusBadge({ status }: { status: string }) {
   const normalized = (status || "").toLowerCase();
   const colour =
     normalized === "active"
-      ? "border-green-500 text-green-600"
+      ? "text-green-600 bg-green-500/10"
       : normalized === "suspended"
-        ? "border-red-500 text-red-600"
-        : "border-yellow-500 text-yellow-600";
+        ? "text-red-600 bg-red-500/10"
+        : "text-yellow-600 bg-yellow-500/10";
   return (
     <Badge variant="outline" className={`capitalize ${colour}`}>
       {status || t("overview.status.unknown")}
@@ -153,7 +153,7 @@ export default function OrganizerOverviewPage() {
       <Card>
         <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4">
           {/* Logo (or a placeholder when none is set). */}
-          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted">
+          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
             {org.logo ? (
               // Org logos can come from arbitrary upload hosts, so use a plain <img>
               // rather than next/image (avoids per-domain remotePatterns config).

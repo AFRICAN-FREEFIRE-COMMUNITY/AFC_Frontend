@@ -253,7 +253,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
       {/* data-tour: Sponsor Tour "find what you need" step (the sponsor switcher /
           filter row). The legacy dashboard's search+status row carries the same anchor. */}
       <div data-tour="sponsor-dashboard-filters" className="flex items-center gap-2 flex-wrap">
-        <Badge variant="outline" className="rounded-full border-gold px-2 py-0.5 text-xs" style={{ color: "var(--gold)" }}>
+        <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs" style={{ color: "var(--gold)" }}>
           {t("sponsorBadge")}
         </Badge>
         {sponsors.length > 1 ? (
@@ -307,7 +307,7 @@ export function ScopedSponsorDashboard({ sponsors }: { sponsors: SponsorRow[] })
                 key={`${e.sponsor_id}-${e.event_id}`}
                 type="button"
                 onClick={() => drillIn(e)}
-                className="flex items-center justify-between gap-3 rounded-md border bg-card p-4 text-left hover:border-primary/50"
+                className="flex items-center justify-between gap-3 rounded-md bg-card p-4 text-left hover:bg-primary/10"
               >
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">

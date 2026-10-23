@@ -613,7 +613,7 @@ export function ApprovalQueuePanel() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 border-green-200 text-xs text-green-600 hover:bg-green-50"
+                                  className="h-7 text-xs text-green-600 hover:bg-green-50 bg-green-200/10"
                                   disabled={busy}
                                   onClick={() => decide(row, "approve")}
                                 >
@@ -627,7 +627,7 @@ export function ApprovalQueuePanel() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 border-red-200 text-xs text-red-600 hover:bg-red-50"
+                                  className="h-7 text-xs text-red-600 hover:bg-red-50 bg-red-200/10"
                                   disabled={busy}
                                   onClick={() =>
                                     setRejectDialog({

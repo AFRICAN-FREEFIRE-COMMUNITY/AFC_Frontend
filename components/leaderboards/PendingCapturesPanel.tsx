@@ -144,7 +144,7 @@ export function PendingCapturesPanel({ eventId, token, canManage = true, onChang
         <CardTitle className="flex items-center gap-2 text-base">
           <IconInbox className="size-4 text-orange-400" />
           Pending captures
-          <Badge variant="outline" className="rounded-full border-orange-500/40 px-2 py-0.5 text-[10px] text-orange-400">
+          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-orange-400">
             {pending.length}
           </Badge>
         </CardTitle>
@@ -160,7 +160,7 @@ export function PendingCapturesPanel({ eventId, token, canManage = true, onChang
             const slots = d.groupId ? groupsById[d.groupId]?.match_slots ?? [] : [];
             const teams = p.summary?.teams ?? [];
             return (
-              <div key={p.id} className="rounded-md border p-3">
+              <div key={p.id} className="rounded-md p-3 bg-muted/30">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="truncate text-xs font-medium">{p.file_name || "MatchResult.log"}</div>

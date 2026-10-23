@@ -19,10 +19,11 @@
  *   check-datetime  scripts/check-datetime.mjs     blocking on DATE faults; NUMBER notes ledgered
  *   check-signed-out scripts/check-signed-out.mjs  blocking: two possibly-absent identities compared
  *   check-slugs     scripts/check-slugs.mjs        ledgered: a numeric id in a visible address
+ *   route-segments  scripts/check-route-segments.mjs  blocking: a typed name put into or read out of an address by hand, a bare decodeURIComponent, an unclassified dynamic route (inbox #91)
  *   endpoint-callers ../<backend>/tools/endpoint_callers.py  blocking; skipped with no backend tree beside this one
  *   event-forms     scripts/check-event-forms.mjs       blocking on a key the contract does not know; ledgered: writable fields no form sends (R24)
  *   refusal-codes   ../<backend>/tools/check_refusal_codes.py  ledgered: 4xx refusals with no code (R35)
- *   seo             scripts/check-seo.mjs               blocking: a page with no metadata, an indexable static page not in the sitemap, a noindex page in it; ledgered: entity pages without JSON-LD (R23)
+ *   seo             scripts/check-seo.mjs               blocking: a page with no metadata, an indexable static page not in the sitemap, a noindex page in it, the Search Console rules of 2026-10-16 (inherited canonical, link to a redirect, untrimmed name address, robots blocking a declared image, SearchAction, typed-in figures, the public translation set); ledgered: entity pages without JSON-LD (R23). The live site is read daily by .github/workflows/seo-live.yml
  *   design-lint     tools/design-lint.mjs              blocking on BLOCK / CHANGED breaches; NOTE reported (R30)
  *   security-ledger  ~/.claude/skills/security-rules (R55 to R61)  blocking when a HIGH count rose; skipped without the checker
  *
@@ -50,6 +51,16 @@ const today = new Date().toISOString().slice(0, 10);
 // Every child gets an environment with those keys removed.
 const CHILD_ENV = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^GIT_/.test(k)));
 
+// Which backend tree every backend-reading step uses: AFC_BACKEND_TREE when set (a worktree on the
+// matching branch), else ../backend. ONE choice for every step. Never a sibling worktree picked by
+// name: on 2026-09-22 the endpoint step still led with ../wt-be-ocr (the wager worktree of 19 Sep),
+// so every frontend commit on the machine was judged against the wager branch and blocked; that step
+// was fixed alone, and on 2026-09-26 the parity, refusal-codes and security steps were still reading
+// ../wt-be-ocr (the security step blocked the QR codes commit on that worktree's own ledger).
+function backendTree(file) {
+  return [process.env.AFC_BACKEND_TREE, "../backend"].filter(Boolean).find((d) => existsSync(join(d, file)));
+}
+
 function run(cmd, cmdArgs) {
   const r = spawnSync(process.execPath, [cmd, ...cmdArgs], { cwd: ROOT, encoding: "utf8", env: CHILD_ENV });
   return { code: r.status ?? 1, out: (r.stdout || "") + (r.stderr || "") };
@@ -76,6 +87,18 @@ const CHECKERS = [
     },
   },
   {
+    // Toasts that print a raw (English) server sentence on the fr/pt site (inbox #257,
+    // 2026-10-16). Ledgered so the count can only fall: move a screen to useServerMessage
+    // (lib/i18n/serverMessage.ts) and give its backend answer a code. 93 on master that day.
+    id: "server-toasts",
+    run() {
+      const r = run("scripts/check-server-toasts.mjs", ["--json"]);
+      let parsed = { count: 0 };
+      try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["server-toasts: could not run"], counts: {} }; }
+      return { blocking: [], counts: { "toasts.raw_server_message": parsed.count } };
+    },
+  },
+  {
     id: "check-signed-out",
     run() {
       const r = run("scripts/check-signed-out.mjs", ["--json"]);
@@ -98,19 +121,33 @@ const CHECKERS = [
     },
   },
   {
+    // A person's name in an address (owner 2026-09-30, inbox #91, after NG.KILLA's admin page said
+    // "Player not found"). Links to player / team / sponsor / coupon / referral pages go through
+    // lib/routes.ts, typed segments are read with readSegment(), every dynamic folder is classified
+    // in lib/routeSegments.json. Blocking: it was taken to 0 the day it was written.
+    id: "route-segments",
+    run() {
+      const r = run("scripts/check-route-segments.mjs", ["--json"]);
+      let parsed = null;
+      try { parsed = JSON.parse(r.out.trim().split("\n").pop()); } catch { return { blocking: ["route-segments: could not run"], counts: {} }; }
+      const blocking = parsed.list.map((h) => `${h.rule} ${h.file}${h.line ? `:${h.line}` : ""}  ${h.what}`);
+      return { blocking, counts: {}, note: parsed.hits ? undefined : "0 hits" };
+    },
+  },
+  {
     // An endpoint needs a caller (owner rule R45): the backend's tools/endpoint_callers.py matched
     // against THIS tree. It needs both checkouts, so it runs where a backend tree sits beside this
     // one (a developer machine, the pre-commit hook) and reports "skipped" in a CI job that has
     // only the frontend. Blocking: an endpoint with no caller and no named consumer.
     id: "endpoint-callers",
     run() {
-      const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "endpoint_callers.py")));
+      const backend = backendTree(join("tools", "endpoint_callers.py"));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
       const py = spawnSync("python", [join(backend, "tools", "endpoint_callers.py"), "--frontend", ".", "--json"], { encoding: "utf8", env: CHILD_ENV });
       let parsed = null;
       try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["endpoint-callers: could not run (python + the backend tree are needed)"], counts: {} }; }
       const blocking = (parsed.unexplained || []).map((p) => `UNCALLED ${p}  (no frontend caller, not named in tools/endpoint_consumers.json)`);
-      return { blocking, counts: {}, note: `${parsed.called} of ${parsed.endpoints} endpoints called; ${parsed.uncalled} named` };
+      return { blocking, counts: {}, note: `${parsed.called} of ${parsed.endpoints} endpoints called; ${parsed.uncalled} named (backend tree ${backend})` };
     },
   },
   {
@@ -118,13 +155,29 @@ const CHECKERS = [
     // whose frontend rows can only be read with this tree beside the backend one.
     id: "check-parity",
     run() {
-      const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "check_parity.py")));
+      const backend = backendTree(join("tools", "check_parity.py"));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
       const py = spawnSync("python", [join(backend, "tools", "check_parity.py"), "--frontend", ".", "--json"], { encoding: "utf8", env: CHILD_ENV });
       let parsed = null;
       try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["check-parity: could not run"], counts: {} }; }
       const blocking = (parsed.failures || []).map((f) => `PARITY ${f.capability}: built on ${f.have.join(", ") || "no side"}, missing on ${f.lack.join(", ")}`);
       return { blocking, counts: {}, note: `${parsed.ok} rows on both sides${parsed.skipped.length ? `, ${parsed.skipped.length} skipped` : ""}` };
+    },
+  },
+  {
+    // Every link the backend puts in an email or notification opens a page of THIS tree (inbox #68,
+    // 2026-09-27: the account-deleted email's "Contact support" went to /support, a 404, and a sweep
+    // found seven such links live). The backend's tools/check_email_links.py reads both trees.
+    // Blocking: a link to a page or public file that does not exist.
+    id: "email-links",
+    run() {
+      const backend = backendTree(join("tools", "check_email_links.py"));
+      if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree with tools/check_email_links.py beside this one" };
+      const py = spawnSync("python", [join(backend, "tools", "check_email_links.py"), "--frontend", ".", "--json"], { encoding: "utf8", env: CHILD_ENV });
+      let parsed = null;
+      try { parsed = JSON.parse((py.stdout || "").trim().split("\n").pop()); } catch { return { blocking: ["email-links: could not run (python + the backend tree are needed)"], counts: {} }; }
+      const blocking = parsed.dead.map((d) => `DEAD-LINK ${d.path}  <- ${d.where.slice(0, 3).join(", ")}  (no page or public file of that address in this tree)`);
+      return { blocking, counts: {}, note: `${parsed.links} site links checked (backend tree ${backend})` };
     },
   },
   {
@@ -163,7 +216,7 @@ const CHECKERS = [
     // fall. Needs the backend tree beside this one, like endpoint-callers.
     id: "refusal-codes",
     run() {
-      const backend = ["../wt-be-ocr", "../backend"].find((d) => existsSync(join(d, "tools", "check_refusal_codes.py")));
+      const backend = backendTree(join("tools", "check_refusal_codes.py"));
       if (!backend) return { blocking: [], counts: {}, note: "skipped: no backend tree beside this one" };
       const py = spawnSync("python", [join(backend, "tools", "check_refusal_codes.py"), "--json"], { encoding: "utf8", cwd: backend, env: CHILD_ENV });
       let parsed = null;
@@ -203,7 +256,8 @@ const CHECKERS = [
       const home = process.env.USERPROFILE || process.env.HOME || "";
       const checker = join(home, ".claude", "skills", "security-rules", "scripts", "check-security.mjs");
       if (!existsSync(checker)) return { blocking: [], counts: {}, note: "skipped: check-security.mjs is not installed on this machine" };
-      const trees = [".", ...["../wt-be-ocr", "../backend"].filter((d) => existsSync(join(d, "security-rules.json")))];
+      const backend = backendTree("security-rules.json");
+      const trees = [".", ...(backend ? [backend] : [])];
       const blocking = [], notes = [];
       for (const dir of trees) {
         const r = spawnSync("node", [checker, "--ledger", "--quiet", "--project", dir], { encoding: "utf8", env: CHILD_ENV });

@@ -175,7 +175,8 @@
     "orgReviews": "Organizer, Reviews",
     "orgDesign": "Organizer, Design",
     "orgBlacklists": "Organizer, Blacklists",
-    "orgWatchlist": "Organizer, Watchlist"
+    "orgWatchlist": "Organizer, Watchlist",
+    "orgSupport": "Organizer, Support"
   },
   "roles": {
     "head_admin": "Head admin",
@@ -196,7 +197,8 @@
     "can_submit_designs": "Organizer: submit designs",
     "can_view_metrics": "Organizer: view metrics",
     "can_view_reviews": "Organizer: view reviews",
-    "can_manage_members": "Organizer: manage members"
+    "can_manage_members": "Organizer: manage members",
+    "can_answer_support": "Organizer: answer support"
   },
   "controls": {
     "ev-create": {
@@ -1198,6 +1200,10 @@
     "rk-tierCompetition": {
       "label": "Tournaments / Scrims switch",
       "does": "Chooses which set of tier rules you are looking at. The two sets are completely separate, each with its own fall-through tier. Save or reset your edits before switching, because switching reloads. If a set has no rules at all, every event of that kind gets the fall-through tier, so an empty list is not neutral."
+    },
+    "op-support": {
+      "label": "Support",
+      "does": "The questions players send your organization with Ask the organizer, from your page or one of your events, with their files. Everything one player sent is in one place; one reply can answer all their open questions or just one, and it is signed with your organization's name. The player sees it on their ticket page and gets an email."
     }
   },
   "walkthroughs": {

@@ -203,7 +203,7 @@
 //                 {tempGroups.slice(0, stageModalData.number_of_groups).map((group, i) => (
 //                   <div
 //                     key={i}
-//                     className="px-3 py-1 bg-primary/10 rounded-md border border-primary text-xs"
+//                     className="px-3 py-1 bg-primary/10 rounded-md text-xs"
 //                   >
 //                     {group.group_name}
 //                   </div>
@@ -216,7 +216,7 @@
 //         {/* ── STEP 2: Groups Config ──────────────────────────────────── */}
 //         {modalStep === 2 && (
 //           <div className="space-y-3">
-//             <div className="bg-primary/10 border rounded-md p-4">
+//             <div className="bg-primary/10 rounded-md p-4">
 //               <p className="text-sm">
 //                 <span className="font-semibold">Stage:</span> {stageModalData.stage_name}
 //               </p>
@@ -227,7 +227,7 @@
 //             </div>
 
 //             {tempGroups.map((group, index) => (
-//               <div key={index} className="border rounded-lg p-4 space-y-4">
+//               <div key={index} className="rounded-lg p-4 space-y-4 bg-muted/30">
 //                 <div className="flex items-center justify-between">
 //                   <h4 className="font-semibold">Group {index + 1}</h4>
 //                   <span className="text-xs text-zinc-500">{group.group_name}</span>
@@ -541,7 +541,7 @@ function PrizePoolSection({
   };
 
   return (
-    <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+    <div className="space-y-3 p-4 rounded-lg bg-muted/30">
       <p className="text-sm font-semibold text-primary">{resolvedLabel}</p>
 
       <div className="grid gap-3">
@@ -671,7 +671,7 @@ function AdvancementRoutingSection({
   };
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+    <div className="space-y-4 p-4 rounded-lg bg-muted/30">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-primary">
@@ -705,7 +705,7 @@ function AdvancementRoutingSection({
           {list.map((rule, i) => (
             <div
               key={i}
-              className="space-y-2 rounded-md border bg-background p-3"
+              className="space-y-2 rounded-md bg-background p-3"
             >
               <div className="flex flex-wrap items-end gap-2">
                 {/* From # */}
@@ -1038,7 +1038,7 @@ export function StageModal({
                 rules about placement points across a lobby. A Clash Squad set is won by round
                 wins in a head-to-head bracket, so neither toggle does anything there and
                 offering them only invites an organizer to turn on a rule that will not apply. */}
-            <div className={`space-y-4 p-4 border rounded-lg bg-muted/30${isClashSquad ? " hidden" : ""}`}>
+            <div className={`space-y-4 p-4 rounded-lg bg-muted/30${isClashSquad ? " hidden" : ""}`}>
               <p className="text-sm font-semibold text-primary">
                 {t("scoringModes")}
               </p>
@@ -1305,7 +1305,7 @@ export function StageModal({
                 above define the structure) or Clash Squad (a bracket has no groups), so it
                 is hidden for those formats. RR shows a note; CS is covered by ClashSquadPanel. */}
             {isRoundRobin ? (
-              <p className="text-xs text-muted-foreground rounded-md border border-dashed p-3">
+              <p className="text-xs text-muted-foreground rounded-md p-3 bg-muted/30">
                 {t("roundRobinNote")}
               </p>
             ) : isClashSquad ? null : (
@@ -1426,7 +1426,7 @@ export function StageModal({
                     .map((group, i) => (
                       <div
                         key={i}
-                        className="px-3 py-1 bg-primary/10 rounded-md border border-primary text-xs"
+                        className="px-3 py-1 bg-primary/10 rounded-md text-xs"
                       >
                         {group.group_name}
                       </div>
@@ -1440,7 +1440,7 @@ export function StageModal({
         {/* ── STEP 2: Groups Config + Group Prize Pools ──────────────── */}
         {modalStep === 2 && (
           <div className="space-y-3">
-            <div className="bg-primary/10 border rounded-md p-4">
+            <div className="bg-primary/10 rounded-md p-4">
               <p className="text-sm">
                 <span className="font-semibold">{t("stageLabel")}</span>{" "}
                 {stageModalData.stage_name}
@@ -1463,7 +1463,7 @@ export function StageModal({
             </div>
 
             {tempGroups.map((group, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-4">
+              <div key={index} className="rounded-lg p-4 space-y-4 bg-muted/30">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold">
                     {t("groupHeading", { n: index + 1 })}
@@ -1549,7 +1549,7 @@ export function StageModal({
                     {t("matchCount")}
                     <InfoTip id="events.create.match_count" className="ml-1" />
                   </label>
-                  <p className="text-sm text-muted-foreground rounded-md border border-dashed p-3">
+                  <p className="text-sm text-muted-foreground rounded-md p-3 bg-muted/30">
                     {t("matchCountDerived", {
                       count: group.match_maps?.length || 0,
                     })}
@@ -1590,7 +1590,7 @@ export function StageModal({
                       return (
                         <div
                           key={map}
-                          className={`flex items-center gap-1 border rounded-md px-2 py-1 text-sm ${
+                          className={`flex items-center gap-1 rounded-md px-2 py-1 text-sm ${
                             count > 0
                               ? "border-primary bg-primary/10 text-primary"
                               : "border-border bg-muted text-foreground"

@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+// Words from messages/<locale>/userSearch.json (inbox #257, 2026-10-16: English only before).
+import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
 import axios from "axios";
 import { authHeaders } from "@/lib/http";
@@ -87,8 +89,9 @@ type Props = SingleProps | MultiProps;
 // this file died with "Maximum call stack size exceeded" before any network call was made.
 
 export function UserSearchSelect(props: Props) {
+  const t = useTranslations("userSearch");
   const {
-    placeholder = "Search a user...",
+    placeholder = t("placeholder"),
     className,
     disabled,
     limit = 10,
@@ -186,7 +189,7 @@ export function UserSearchSelect(props: Props) {
   // Trigger label: single shows the picked username; multi shows a count.
   const triggerLabel = multiple
     ? selectedList.length > 0
-      ? `${selectedList.length} user(s) selected`
+      ? t("selectedCount", { count: selectedList.length })
       : placeholder
     : (props.value as string | null) || placeholder;
 
@@ -211,27 +214,27 @@ export function UserSearchSelect(props: Props) {
         <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
           <Command shouldFilter={false}>
             <CommandInput
-              placeholder="Type a username or name..."
+              placeholder={t("inputPlaceholder")}
               value={query}
               onValueChange={setQuery}
             />
             <CommandList>
               {loading && (
                 <div className="flex items-center gap-2 px-3 py-4 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Searching...
+                  <Loader2 className="h-4 w-4 animate-spin" /> {t("searching")}
                 </div>
               )}
               {!loading && query.trim().length < 2 && (
                 <div className="px-3 py-4 text-sm text-muted-foreground">
-                  Type at least 2 characters to search.
+                  {t("minChars")}
                 </div>
               )}
               {!loading &&
                 query.trim().length >= 2 &&
                 results.length === 0 &&
-                ghostResults.length === 0 && <CommandEmpty>No users found.</CommandEmpty>}
+                ghostResults.length === 0 && <CommandEmpty>{t("empty")}</CommandEmpty>}
               {!loading && results.length > 0 && (
-                <CommandGroup heading={includeGhosts ? "Players" : undefined}>
+                <CommandGroup heading={includeGhosts ? t("players") : undefined}>
                   {results.map((u) => (
                     <CommandItem
                       key={u.user_id}
@@ -255,7 +258,7 @@ export function UserSearchSelect(props: Props) {
                   real/ghost visual language the wizard's participants list uses. Picking one fires
                   onPickGhost (the caller adds it via kind=ghost_existing). */}
               {!loading && includeGhosts && ghostResults.length > 0 && (
-                <CommandGroup heading="Ghost players">
+                <CommandGroup heading={t("ghostPlayers")}>
                   {ghostResults.map((g) => (
                     <CommandItem
                       key={g.ghost_player_id}
@@ -270,14 +273,14 @@ export function UserSearchSelect(props: Props) {
                       <span className="flex min-w-0 flex-col">
                         <span className="truncate font-medium">{g.ign}</span>
                         <span className="truncate text-xs text-muted-foreground">
-                          {g.ghost_team_name || "no team"}
+                          {g.ghost_team_name || t("noTeam")}
                         </span>
                       </span>
                       <Badge
                         variant="outline"
-                        className="shrink-0 rounded-full border-orange-500 px-2 py-0.5 text-xs text-orange-600"
+                        className="shrink-0 rounded-full px-2 py-0.5 text-xs text-orange-600"
                       >
-                        Ghost
+                        {t("ghost")}
                       </Badge>
                     </CommandItem>
                   ))}
@@ -298,7 +301,7 @@ export function UserSearchSelect(props: Props) {
                 type="button"
                 onClick={() => removeOne(username)}
                 className="rounded-full p-0.5 hover:bg-muted-foreground/20"
-                aria-label={`Remove ${username}`}
+                aria-label={t("remove", { name: username })}
               >
                 <X className="h-3 w-3" />
               </button>

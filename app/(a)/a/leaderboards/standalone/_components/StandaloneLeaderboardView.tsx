@@ -144,7 +144,7 @@ export function StandaloneLeaderboardView({
       <div className="flex flex-wrap items-center gap-2">
         <Badge
           variant="outline"
-          className="rounded-full border-blue-500 px-2 py-0.5 text-xs capitalize text-blue-600"
+          className="rounded-full px-2 py-0.5 text-xs capitalize text-blue-600"
         >
           {leaderboard.format}
         </Badge>
@@ -152,8 +152,8 @@ export function StandaloneLeaderboardView({
           variant="outline"
           className={
             leaderboard.status === "published"
-              ? "rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
-              : "rounded-full border-muted-foreground px-2 py-0.5 text-xs text-muted-foreground"
+              ? "rounded-full px-2 py-0.5 text-xs text-green-600"
+              : "rounded-full px-2 py-0.5 text-xs text-muted-foreground"
           }
         >
           {leaderboard.status === "published" ? "Published" : "Draft"}
@@ -161,7 +161,7 @@ export function StandaloneLeaderboardView({
         {leaderboard.counts_toward_rankings && (
           <Badge
             variant="outline"
-            className="rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+            className="rounded-full px-2 py-0.5 text-xs text-primary"
           >
             Counts toward rankings
           </Badge>
@@ -171,7 +171,7 @@ export function StandaloneLeaderboardView({
         {leaderboard.counts_toward_rankings && (
           <Badge
             variant="outline"
-            className="rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+            className="rounded-full px-2 py-0.5 text-xs text-primary"
           >
             {TIER_LABELS[leaderboard.ranking_tier] ?? "Tier 3"}
           </Badge>

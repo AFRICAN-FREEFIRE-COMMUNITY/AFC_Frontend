@@ -354,7 +354,7 @@ export function BasicsStep({
 
         {/* counts_toward_rankings - AFC admin surface only (organizer portal never shows it). */}
         {showRankingFlag && (
-          <div className="space-y-4 rounded-md border p-4">
+          <div className="space-y-4 rounded-md p-4 bg-muted/30">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">
                 <Label htmlFor="counts-rankings" className="flex items-center font-medium">

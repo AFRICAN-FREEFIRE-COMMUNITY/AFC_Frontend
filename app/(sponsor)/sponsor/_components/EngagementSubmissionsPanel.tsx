@@ -616,13 +616,13 @@ export function EngagementSubmissionsPanel({
           <div>
             <h3 className="font-bold flex items-center gap-2 flex-wrap">
               {event.event_name}
-              <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs capitalize text-blue-400 border-blue-400/50">
+              <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs capitalize text-blue-400">
                 {event.event_status}
               </Badge>
               {requiresApproval && (
                 <Badge
                   variant="outline"
-                  className="rounded-full border-gold px-2 py-0.5 text-xs"
+                  className="rounded-full px-2 py-0.5 text-xs"
                   style={{ color: "var(--gold)" }}
                 >
                   {t("requiresApproval")}
@@ -797,7 +797,7 @@ export function EngagementSubmissionsPanel({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-green-600 border-green-200 hover:bg-green-50 h-7 text-xs"
+                                className="text-green-600 hover:bg-green-50 h-7 text-xs bg-green-200/10"
                                 disabled={!!rowAction}
                                 onClick={() => decide(r, "approve")}
                               >
@@ -811,7 +811,7 @@ export function EngagementSubmissionsPanel({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="text-red-600 border-red-200 hover:bg-red-50 h-7 text-xs"
+                                className="text-red-600 hover:bg-red-50 h-7 text-xs bg-red-200/10"
                                 disabled={!!rowAction}
                                 onClick={() => openRejectDialog([r])}
                               >
@@ -958,7 +958,7 @@ export function EngagementSubmissionsPanel({
 
       {/* Hint under the queue (mockup's note line), only when the gate is on. */}
       {requiresApproval && (
-        <p className="text-xs text-muted-foreground border border-dashed rounded-md px-3 py-2">
+        <p className="text-xs text-muted-foreground rounded-md px-3 py-2 bg-muted/30">
           {t("queueHint")}
         </p>
       )}

@@ -62,6 +62,14 @@ const nextConfig: NextConfig = {
         destination: "/a/partners?tab=feedback",
         permanent: false,
       },
+      // The standalone History page was the same audit log as the Settings "Activities" tab; the
+      // admin menu (inbox #54, owner 2026-09-26) keeps only the Settings tab, so old /a/history
+      // bookmarks land there. Exact path only.
+      {
+        source: "/a/history",
+        destination: "/a/settings?tab=activities",
+        permanent: false,
+      },
       // ── SEO: retire dead legacy URLs Google still has indexed (audit 2026-06-14) ──
       // News used to be served by numeric DB id (/news/19); it now lives at a text
       // slug (/news/[slug]). Google still crawls ~12 old id URLs (/news/9,11,14-24)

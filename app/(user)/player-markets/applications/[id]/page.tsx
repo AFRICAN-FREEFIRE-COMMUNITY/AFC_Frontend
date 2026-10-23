@@ -54,6 +54,7 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 // i18n (next-intl): this page is fully localized under the "pmApplication" namespace
 // (messages/en|fr|pt/pmApplication.json). Client component -> useTranslations.
 import { useLocale, useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -77,7 +78,7 @@ interface ApplicationDetails {
     name: string;
     tag: string | null;
     logo: string | null;
-    tier: string;
+    tier: number | null;   // the team's published Rankings tier code (inbox #162), 0 = "Tier 1"
     country: string;
   };
   post: {
@@ -119,13 +120,13 @@ interface ChatData {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
-  SHORTLISTED: "bg-cyan-900/20 text-cyan-400 border-cyan-800",
-  INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
-  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
-  TRIAL_EXTENDED: "bg-purple-900/20 text-purple-400 border-purple-800",
-  TRIAL_ONGOING: "bg-indigo-900/20 text-indigo-400 border-indigo-800",
-  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+  PENDING: "bg-yellow-900/20 text-yellow-400",
+  SHORTLISTED: "bg-cyan-900/20 text-cyan-400",
+  INVITED: "bg-blue-900/20 text-blue-400",
+  ACCEPTED: "bg-green-900/20 text-green-400",
+  TRIAL_EXTENDED: "bg-purple-900/20 text-purple-400",
+  TRIAL_ONGOING: "bg-indigo-900/20 text-indigo-400",
+  REJECTED: "bg-red-900/20 text-red-400",
 };
 
 // Tier / commitment display labels now come from the "pmApplication" namespace
@@ -257,6 +258,9 @@ export default function ApplicationDetailPage({
   const router = useRouter();
   // i18n translator for every user-facing string on this page.
   const t = useTranslations("pmApplication");
+  // The team's published Rankings tier (a code, 0 = "Tier 1"); tierLabel below is for the post's
+  // own minimum_tier_required, which is a different, self-declared value (TIER_1 .. TIER_3).
+  const rankingTierLabel = useTierLabel();
   // Passed to every formatLocalTime call below so month names follow the page's language.
   const locale = useLocale();
 
@@ -500,7 +504,7 @@ export default function ApplicationDetailPage({
                 <div>
                   <p className="text-muted-foreground">{t("team.tier")}</p>
                   <p className="font-medium text-base">
-                    {tierLabel(details.team.tier)}
+                    {rankingTierLabel(details.team.tier)}
                   </p>
                 </div>
                 <div>
@@ -682,7 +686,7 @@ export default function ApplicationDetailPage({
 
           {/* Rejection reason */}
           {details.status === "REJECTED" && details.reason && (
-            <Card className="border-red-800/40">
+            <Card className="bg-red-800/10">
               <CardHeader className="border-b">
                 <CardTitle className="text-sm font-semibold text-red-400">
                   {t("rejectionReason")}
@@ -915,7 +919,7 @@ export default function ApplicationDetailPage({
 
       {/* ── Trial countdown ── */}
       {isTrialActive && details.invite_expires_at && (
-        <div className="rounded-lg border px-4 py-3">
+        <div className="rounded-lg px-4 py-3 bg-muted/30">
           <TrialCountdown expiryDate={details.invite_expires_at} />
         </div>
       )}

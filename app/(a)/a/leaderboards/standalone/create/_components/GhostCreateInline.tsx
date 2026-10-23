@@ -70,7 +70,7 @@ export function GhostCreateInline({
 
   return (
     // rounded-md bordered panel (AFC card idiom) so the inline form reads as a sub-section.
-    <div className="space-y-3 rounded-md border bg-muted/30 p-4">
+    <div className="space-y-3 rounded-md bg-muted/30 p-4">
       <p className="text-sm font-medium">
         Create a ghost {format === "team" ? "team" : "player"}
       </p>

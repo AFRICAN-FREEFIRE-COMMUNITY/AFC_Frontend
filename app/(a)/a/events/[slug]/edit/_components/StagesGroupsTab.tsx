@@ -88,7 +88,7 @@ const MODE_LABEL_KEY: Record<string, string> = {
 //       {stages.map((stage, sIdx) => {
 //         if (!stage || typeof stage !== "object") {
 //           return (
-//             <Card key={sIdx} className="bg-yellow-50 border-yellow-200">
+//             <Card key={sIdx} className="bg-yellow-50">
 //               <CardContent className="p-4">
 //                 <p className="text-yellow-800">
 //                   ⚠️ Stage {sIdx + 1} is not configured.
@@ -276,8 +276,8 @@ const MODE_LABEL_KEY: Record<string, string> = {
 //                                           }
 //                                           className={
 //                                             match.result_inputted
-//                                               ? "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/10"
-//                                               : "text-orange-500 border-orange-500/20"
+//                                               ? "bg-green-500/10 text-green-500 hover:bg-green-500/10"
+//                                               : "text-orange-500"
 //                                           }
 //                                         >
 //                                           {match.result_inputted
@@ -343,7 +343,7 @@ const MODE_LABEL_KEY: Record<string, string> = {
 //         );
 //       })}
 
-//       <div className="flex justify-center p-4 border-2 border-dashed rounded-lg border-primary/20 hover:border-primary/50 transition-colors">
+//       <div className="flex justify-center p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors">
 //         <Button
 //           type="button"
 //           variant="ghost"
@@ -662,7 +662,7 @@ export default function StagesGroupsTab({
           return (
             <SortableShell key={sIdx} id={stageSortId} disabled>
               {() => (
-                <Card className="bg-yellow-50 border-yellow-200">
+                <Card className="bg-yellow-50">
                   <CardContent className="p-4">
                     <p className="text-yellow-800">
                       {t("notConfigured", { number: sIdx + 1 })}
@@ -981,8 +981,8 @@ export default function StagesGroupsTab({
                                             }
                                             className={
                                               match.result_inputted
-                                                ? "bg-green-500/10 text-green-500 border-green-500/20 hover:bg-green-500/10"
-                                                : "text-orange-500 border-orange-500/20"
+                                                ? "bg-green-500/10 text-green-500 hover:bg-green-500/10"
+                                                : "text-orange-500"
                                             }
                                           >
                                             {match.result_inputted
@@ -1075,7 +1075,7 @@ export default function StagesGroupsTab({
         </SortableContext>
       </DndContext>
 
-      <div className="flex justify-center p-4 border-2 border-dashed rounded-lg border-primary/20 hover:border-primary/50 transition-colors">
+      <div className="flex justify-center p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors">
         <Button
           type="button"
           variant="ghost"

@@ -38,6 +38,7 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { toastUidTaken } from "@/lib/uidTaken";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   EditProfileFormSchema,
@@ -49,6 +50,7 @@ import { compressImageForUpload } from "@/lib/imageCompress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 // Country-code phone input (owner 2026-07-09, bug #5): the WhatsApp number field now uses the
 // shared country-dial-code + flag picker instead of a plain text box, so users pick +234 etc. from
 // a list then type the local number. Same component + usage the Saved Addresses and Cart forms use
@@ -91,6 +93,7 @@ const LOCALE_COOKIE_OPTIONS = {
 
 const Page = () => {
   const t = useTranslations("profile");
+  const tc = useTranslations("common");
   // Active locale, used to join several locking event names the way the language does it (see the
   // identity lock note below).
   const locale = useLocale();
@@ -322,6 +325,8 @@ const Page = () => {
         }
         router.push(`/profile`);
       } catch (error: any) {
+        // A UID already on another account names that account and links it (inbox #152).
+        if (toastUidTaken(error?.response?.data, tc, (path) => router.push(path))) return;
         // whatsapp_taken (inbox #21): another account already holds that number.
         toast.error(
           error?.response?.data?.code === "whatsapp_taken"
@@ -435,7 +440,7 @@ const Page = () => {
         <CardContent className="space-y-4">
           {/* THE WARNING (owner, verbatim intent): own picture only, esport-style bust shot,
               no branded shirts - violations can ban the player AND their team. */}
-          <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+          <div className="rounded-md bg-destructive/10 p-3 text-sm">
             <p className="font-semibold text-destructive">
               {t("edit.esport.warningTitle")}
             </p>
@@ -475,7 +480,7 @@ const Page = () => {
                   key={f}
                   src={`/esport-samples/${f}`}
                   alt={t("edit.esport.sampleAlt")}
-                  className="h-32 w-24 rounded-md border object-cover"
+                  className="h-32 w-24 rounded-md object-cover bg-muted/30"
                 />
               ))}
             </div>
@@ -483,7 +488,7 @@ const Page = () => {
 
           <div className="flex flex-wrap items-start gap-4">
             {/* Current image (or placeholder). Esport shots are portrait, so a tall preview. */}
-            <div className="h-40 w-32 overflow-hidden rounded-md border bg-muted/30">
+            <div className="h-40 w-32 overflow-hidden rounded-md bg-muted/30">
               {esportPreview || user.esport_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -584,8 +589,7 @@ const Page = () => {
                       {t("edit.uid")} <InfoTip id="profile.edit.uid" />
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
+                      <UidInput
                         placeholder={t("edit.uidPlaceholder")}
                         // IDENTITY LOCK (owner 2026-06-15): UID can't change while the player is
                         // signed up for a live event (backend edit_profile enforces it too). The
@@ -595,6 +599,8 @@ const Page = () => {
                       />
                     </FormControl>
                     {identityLockNote}
+                    {/* One Free Fire account, one AFC account (owner 2026-10-16, inbox #265/#271). */}
+                    <p className="text-xs text-muted-foreground">{tc("accountSharing.fieldNote")}</p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -678,7 +684,7 @@ const Page = () => {
                 name="stats_visible"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="flex items-center justify-between rounded-lg p-4 bg-muted/30">
                       <div className="space-y-0.5">
                         <Label htmlFor="stats-visible-toggle" className="text-sm font-medium">
                           {t("edit.statsVisible.label")}
@@ -722,7 +728,7 @@ const Page = () => {
                 name="whatsapp_number"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="space-y-2 rounded-lg border p-4">
+                    <div className="space-y-2 rounded-lg p-4 bg-muted/30">
                       <Label
                         htmlFor="whatsapp-number"
                         className="flex flex-wrap items-center gap-2 text-sm font-medium"
@@ -779,7 +785,7 @@ const Page = () => {
                   above) and rides along in the same FormData on "Save changes" (see onSubmit). The
                   picker is locale-agnostic, so its button/alt labels are passed in from the
                   `profile` namespace. NOT an RHF field (kept out of the shared zod schema). */}
-              <div className="space-y-2 rounded-lg border p-4">
+              <div className="space-y-2 rounded-lg p-4 bg-muted/30">
                 <div className="space-y-0.5">
                   <Label className="flex items-center text-sm font-medium">
                     {t("edit.letterAvatars.title")}
@@ -832,11 +838,13 @@ const Page = () => {
                   </FormItem>
                 )}
               /> */}
-              <div className="flex gap-2 items-center justify-between">
+              {/* Stacked on phones: side by side, the French and Portuguese labels ("Changer le mot de
+                  passe") do not fit 390 px and pushed the page to 478 px wide (found 2026-10-05). */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 {/* data-tour anchor (guided welcome tour): the Save button. Targeted
                     by guided-tour-stops.ts -> profile stop -> "profile-save". */}
                 <Button
-                  className="flex-1"
+                  className="w-full sm:flex-1"
                   disabled={pending}
                   type="submit"
                   data-tour="profile-save"
@@ -847,7 +855,7 @@ const Page = () => {
                     t("edit.saveChanges")
                   )}
                 </Button>
-                <Button className="flex-1" variant="outline" asChild>
+                <Button className="w-full sm:flex-1" variant="outline" asChild>
                   <Link href="/profile/change-password">
                     {t("edit.changePassword")}
                   </Link>

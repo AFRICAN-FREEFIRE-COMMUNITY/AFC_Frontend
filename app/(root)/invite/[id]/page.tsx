@@ -3,6 +3,7 @@ import { env } from "@/lib/env";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { TeamInviteClient } from "../_components/TeamInviteClient";
+import { formatTier } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -61,7 +62,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const memberCount = team.members?.length || 0;
   const description = team.is_banned
     ? `Team invitation for ${team.team_name} - This team is currently banned and cannot accept new members.`
-    : `You've been invited to join ${team.team_name}! ${memberCount} members, Tier ${team.team_tier || 1}. ${team.team_description || ""}`.substring(
+    : `You've been invited to join ${team.team_name}! ${memberCount} members, ${formatTier(team.ranking_tier) || "Unranked"}. ${team.team_description || ""}`.substring(
         0,
         160,
       );

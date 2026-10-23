@@ -33,6 +33,7 @@ import { countries } from "@/constants";
 import { useRef, useState, useTransition } from "react";
 import axios from "axios";
 import { env } from "@/lib/env";
+import { authHeaders, SessionExpiredError } from "@/lib/http";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -55,6 +56,9 @@ import Image from "next/image";
 import { ProtectedRoute } from "../../_components/ProtectedRoute";
 import { InfoTip } from "@/components/ui/info-tip";
 import { UserSearchSelect } from "@/components/ui/user-search-select";
+import { useJoinLockConfirm } from "@/components/team/JoinLockDialog";
+// A refusal code from the server (team_name_needs_letter, ...) in the reader's language (#276).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 
 // Prevent paste on specific inputs to block fancy unicode characters
 const preventPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
@@ -66,6 +70,8 @@ export default function CreateTeamForm() {
   const t = useTranslations("teamsplayers");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const { confirmJoin, joinLockDialog } = useJoinLockConfirm();
+  const serverMessage = useServerMessage();
   const { user, token } = useAuth();
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isDragging, setIsDragging] = useState(false);
@@ -104,7 +110,10 @@ export default function CreateTeamForm() {
     }
   };
 
-  function onSubmit(data: z.infer<typeof CreateTeamFormSchema>) {
+  async function onSubmit(data: z.infer<typeof CreateTeamFormSchema>) {
+    // Creating a team is allowed while the transfer window is shut, but the creator cannot then
+    // leave or disband it: say so, with the date, first (inbox #92, components/team/JoinLockDialog).
+    if (!(await confirmJoin("create", data.team_name))) return;
     startTransition(async () => {
       try {
         // Create FormData object
@@ -167,11 +176,11 @@ export default function CreateTeamForm() {
         const response = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/create-team/`,
           formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
+          // authHeaders() (lib/http.ts), never a hand-built `Bearer ${token}`: with no token that
+          // string went out as "Bearer", the API answered 400 "Invalid token format" and the
+          // player could not recover (10 times on production 25 to 30 Sep, inbox #104). The helper
+          // opens the sign-in prompt instead, and the API now answers 401 for no session anyway.
+          { headers: authHeaders() },
         );
 
         if (response.status >= 200 && response.status < 300) {
@@ -181,7 +190,12 @@ export default function CreateTeamForm() {
           toast.error(t("errors.generic"));
         }
       } catch (error: any) {
-        toast.error(error?.response?.data?.message || t("errors.internalServer"));
+        // A lapsed session already opened the sign-in prompt (SessionExpiredError); say so plainly.
+        if (error instanceof SessionExpiredError) {
+          toast.error(t("errors.signInAgain"));
+          return;
+        }
+        toast.error(serverMessage(error?.response?.data, t("errors.internalServer")));
 
         return;
       }
@@ -270,7 +284,7 @@ export default function CreateTeamForm() {
                                 setPreviewUrl(URL.createObjectURL(file));
                               }
                             }}
-                            className={`border-2 bg-muted border-dashed rounded-md p-12 text-center transition-colors cursor-pointer ${
+                            className={`bg-muted rounded-md p-12 text-center transition-colors cursor-pointer ${
                               isDragging
                                 ? "border-primary bg-primary/5"
                                 : "border-gray-300 bg-gray-50"
@@ -297,7 +311,7 @@ export default function CreateTeamForm() {
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            <div className="relative w-full aspect-video bg-gray-50 border rounded-md flex items-center justify-center overflow-hidden">
+                            <div className="relative w-full aspect-video bg-gray-50 rounded-md flex items-center justify-center overflow-hidden">
                               <Image
                                 width={1000}
                                 height={1000}
@@ -564,6 +578,7 @@ export default function CreateTeamForm() {
           </Form>
         </CardContent>
       </Card>
+      {joinLockDialog}
     </ProtectedRoute>
   );
 }

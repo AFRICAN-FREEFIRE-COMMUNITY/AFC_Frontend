@@ -55,12 +55,12 @@ type Summary = {
 // amber is in flight, green arrived. "no number" is grey because it is not a delivery
 // failure, it is a missing detail on the player's profile, and resending cannot fix it.
 const STATUS_CLASS: Record<PlayerRow["status"], string> = {
-  failed: "border-destructive text-destructive",
+  failed: "text-destructive bg-destructive/10",
   no_number: "border-muted-foreground text-muted-foreground",
-  queued: "border-amber-500 text-amber-500",
-  sent: "border-amber-500 text-amber-500",
-  delivered: "border-primary text-primary",
-  read: "border-primary text-primary",
+  queued: "text-amber-500 bg-amber-500/10",
+  sent: "text-amber-500 bg-amber-500/10",
+  delivered: "text-primary bg-primary/10",
+  read: "text-primary bg-primary/10",
 };
 
 // matchId is a string in EditMatchModal and a number in the API payloads, and this repo
@@ -129,7 +129,7 @@ export function RoomDeliveryPanel({ matchId }: { matchId: string | number }) {
   }
 
   return (
-    <div className="rounded-md border p-3">
+    <div className="rounded-md p-3 bg-muted/30">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="text-sm font-medium">{t("waDelivery.title")}</span>
         <div className="flex items-center gap-2">

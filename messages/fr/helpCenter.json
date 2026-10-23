@@ -175,7 +175,8 @@
     "orgReviews": "Organisateur, Avis",
     "orgDesign": "Organisateur, Design",
     "orgBlacklists": "Organisateur, Listes noires",
-    "orgWatchlist": "Organisateur, Liste de surveillance"
+    "orgWatchlist": "Organisateur, Liste de surveillance",
+    "orgSupport": "Organisateur, Assistance"
   },
   "roles": {
     "head_admin": "Administrateur principal",
@@ -196,7 +197,8 @@
     "can_submit_designs": "Organisateur : soumettre des designs",
     "can_view_metrics": "Organisateur : voir les indicateurs",
     "can_view_reviews": "Organisateur : voir les avis",
-    "can_manage_members": "Organisateur : gérer les membres"
+    "can_manage_members": "Organisateur : gérer les membres",
+    "can_answer_support": "Organisateur : répondre à l'assistance"
   },
   "controls": {
     "ev-create": {
@@ -1198,6 +1200,10 @@
     "rk-tierCompetition": {
       "label": "Sélecteur Tournois / Scrims",
       "does": "Choisit l'ensemble de règles de niveau que vous consultez. Les deux ensembles sont totalement séparés, chacun avec son propre niveau par défaut. Enregistrez ou annulez vos modifications avant de changer, car le changement recharge la page. Si un ensemble n'a aucune règle, chaque événement de ce type reçoit le niveau par défaut : une liste vide n'est donc pas neutre."
+    },
+    "op-support": {
+      "label": "Assistance",
+      "does": "Les questions que les joueurs envoient à votre organisation avec Poser une question, depuis votre page ou l'un de vos événements, avec leurs fichiers. Tout ce qu'un joueur a envoyé est au même endroit ; une réponse peut traiter toutes ses questions ouvertes ou une seule, et elle est signée du nom de votre organisation. Le joueur la voit sur la page de son ticket et reçoit un e-mail."
     }
   },
   "walkthroughs": {

@@ -336,7 +336,7 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
             <div className="space-y-2">
               {participantType === "solo" ? (
                 /* ── SOLO ── */
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -439,7 +439,7 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
                 </div>
               ) : (
                 /* ── TEAM ── */
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -517,7 +517,7 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
         <div className="space-y-3">
           <h3 className="font-semibold">Total Leaderboard</h3>
 
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-md overflow-hidden bg-muted/30">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -563,7 +563,7 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => adjustBy(id, -1)}
-                              className="size-7 rounded border flex items-center justify-center text-sm hover:bg-muted transition-colors"
+                              className="size-7 rounded flex items-center justify-center text-sm hover:bg-muted transition-colors bg-muted/30"
                             >
                               −
                             </button>
@@ -572,7 +572,7 @@ export function EditLeaderboardStep({ formData, onNext, onBack }: Props) {
                             </span>
                             <button
                               onClick={() => adjustBy(id, 1)}
-                              className="size-7 rounded border flex items-center justify-center text-sm hover:bg-muted transition-colors"
+                              className="size-7 rounded flex items-center justify-center text-sm hover:bg-muted transition-colors bg-muted/30"
                             >
                               +
                             </button>

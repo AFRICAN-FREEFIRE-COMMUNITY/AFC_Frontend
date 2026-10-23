@@ -98,6 +98,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { OcrCheckNotice, OcrEngineBadge } from "./OcrEngineNote";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -125,6 +126,7 @@ import { cn } from "@/lib/utils";
 // The shared "why did this not match?" line, also used by the STANDALONE review table so both flows
 // explain a declined row identically. Reads the row's unmatched_reason (afc_ocr REASON_*).
 import { UnmatchedReasonNote } from "./UnmatchedReasonNote";
+import { MemoryMatchNote } from "./MemoryMatchNote";
 import {
   ocrApi,
   type DraftRow,
@@ -459,6 +461,8 @@ export function OCRReviewTable({
       matched_username: pick.username,
     };
     if (pick.confidence != null) patch.confidence = pick.confidence;
+    // A different player than memory chose: the row is no longer "remembered" (MemoryMatchNote).
+    if (pick.user_id !== row.matched_user_id) patch.match_source = "";
     if (rosterEventType === "team") {
       patch.matched_team_id = pick.team_id;
       patch.matched_team_name = pick.team_name;
@@ -478,6 +482,7 @@ export function OCRReviewTable({
         matched_user_id: cand.user_id,
         matched_username: cand.username,
         confidence: cand.confidence,
+        ...(cand.user_id !== row.matched_user_id ? { match_source: "" } : {}),
       },
       { matched_user_id: cand.user_id, matched_username: cand.username },
     );
@@ -591,7 +596,7 @@ export function OCRReviewTable({
       return (
         <Badge
           variant="outline"
-          className="rounded-full text-yellow-600 border-yellow-500/50"
+          className="rounded-full text-yellow-600"
         >
           {t("reviewTable.teamMismatch")}
         </Badge>
@@ -657,7 +662,7 @@ export function OCRReviewTable({
           <CardDescription>{t("reviewTable.emptyDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
-          <div className="flex items-center gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
+          <div className="flex items-center gap-2 rounded-md bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-400">
             <IconAlertTriangle className="size-4 shrink-0" />
             <span>{t("reviewTable.emptyWarning")}</span>
           </div>
@@ -687,26 +692,29 @@ export function OCRReviewTable({
   }
 
   return (
-    <Card className="gap-0">
+    // min-w-0: the review dialogs host this card as a GRID item, and a grid item grows to its widest
+    // child by default, so on a phone the table pushed the whole card past the screen edge and cut
+    // its right side off (seen 22 Oct 2026). With it the card keeps the dialog width and the table
+    // scrolls inside its own container (components/ui/table.tsx).
+    <Card className="gap-0 min-w-0">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        {/* flex-wrap: on a phone the engine badge drops under the title instead of being cut. */}
+        <CardTitle className="flex flex-wrap items-center gap-2">
           <IconScan size={20} className="text-muted-foreground" />
           {t("reviewTable.title")}
-          {/* "Which engine answered" visibility - rendered only when the backend surfaced it. */}
-          {engine ? (
-            <Badge variant="outline" className="rounded-full text-xs">
-              {t("reviewTable.enginePrefix", { engine })}
-            </Badge>
-          ) : null}
+          {/* "Which engine answered", in words (OcrEngineNote) - rendered only when the backend surfaced it. */}
+          <OcrEngineBadge engine={engine} />
           <InfoTip id="ocr.engine" className="ml-1" />
         </CardTitle>
         <CardDescription>{t("reviewTable.description")}</CardDescription>
       </CardHeader>
 
       <CardContent className="pt-4 space-y-4">
+        {/* An unsure on-site draft (no AI key could read it): ask for a full check first. */}
+        <OcrCheckNotice engine={engine} />
         {/* ── Readiness hints (mirror the backend's two commit guards) ── */}
         {(unresolvedCount > 0 || unacknowledgedCount > 0) && (
-          <div className="flex flex-col gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <div className="flex flex-col gap-1.5 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
             {unresolvedCount > 0 && (
               <span>
                 {t("reviewTable.needMatchedPlayer", { count: unresolvedCount })}
@@ -724,14 +732,14 @@ export function OCRReviewTable({
 
         {/* Roster fetch failed: tell the admin once why the picker degraded to suggestions only. */}
         {rosterError && (
-          <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <div className="flex items-center gap-2 rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
             <IconAlertTriangle className="size-4 shrink-0" />
             <span>{t("reviewTable.rosterError")}</span>
           </div>
         )}
 
         {/* ── Review table (compact density, matches the leaderboard editor) ── */}
-        <div className="rounded-md border overflow-hidden">
+        <div className="rounded-md overflow-hidden bg-muted/30">
           <Table>
             <TableHeader>
               <TableRow>
@@ -788,6 +796,8 @@ export function OCRReviewTable({
                         {!row.matched_user_id && (
                           <UnmatchedReasonNote reason={row.unmatched_reason} />
                         )}
+                        {/* Bound from this organization's name memory (match_source "memory"). */}
+                        {!!row.matched_user_id && <MemoryMatchNote source={row.match_source} />}
                       </div>
                     </TableCell>
 

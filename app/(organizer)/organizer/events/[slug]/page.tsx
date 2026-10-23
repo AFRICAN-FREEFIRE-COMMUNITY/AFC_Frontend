@@ -130,6 +130,7 @@ import {
 } from "@tabler/icons-react";
 import { DEFAULT_IMAGE } from "@/constants";
 import { env } from "@/lib/env";
+import { useOrgEventMove } from "@/lib/addressRef";
 // Team country flag beside team names in the organizer registered-teams table (owner 2026-07-03).
 // team_country rides on each tournament_teams[] row (get_event_details). CountryFlag renders nothing
 // when the value is blank/unresolvable.
@@ -286,6 +287,8 @@ interface InviteLink {
 export default function OrganizerEventDetailPage({ params }: { params: Promise<Params> }) {
   const { slug } = use(params);
   const { token } = useAuth();
+  // An old address (renamed event, legacy id) follows the event: lib/addressRef useOrgEventMove (inbox #209).
+  const followOrgEventMove = useOrgEventMove();
   const { membership, isOwner } = useOrganizer();
   // i18n: organizer-facing surface, namespace "organizer" (matches layout/tour);
   // English values live in messages/en/organizer.json -> fr/pt via pnpm i18n:translate.
@@ -370,6 +373,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
           });
           const row = (mine.data?.events ?? []).find((e: any) => e.slug === slug);
           if (!row) {
+            if (await followOrgEventMove(mine.data?.events ?? [], slug, (s) => `/organizer/events/${s}`)) return;
             setNotMine(true);
             return;
           }
@@ -395,7 +399,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
         if (!background) setLoading(false);
       }
     },
-    [API, slug, token, organizationId, fetchInviteLinks],
+    [API, slug, token, organizationId, fetchInviteLinks, followOrgEventMove],
   );
 
   useEffect(() => {
@@ -1365,7 +1369,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
               </CardHeader>
               <CardContent className="max-h-96 overflow-y-auto space-y-2">
                 {/* Explainer: how the shared FCFS link behaves vs single-use links. */}
-                <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
+                <div className="rounded-md bg-primary/5 p-3 text-xs text-muted-foreground">
                   <p>
                     <span className="font-medium text-foreground">
                       {t("eventDetail.invites.explainerSharedLabel")}
@@ -1429,7 +1433,7 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
                                 <span className="hidden sm:inline">•</span>
                                 <Badge
                                   variant="outline"
-                                  className="text-xs rounded-full border-primary text-primary"
+                                  className="text-xs rounded-full text-primary"
                                 >
                                   {t("eventDetail.invites.sharedBadge")}
                                 </Badge>

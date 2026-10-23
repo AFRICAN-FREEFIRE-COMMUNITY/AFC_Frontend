@@ -36,7 +36,7 @@ export function Step7PublishSave({ form }: Step7Props) {
             control={form.control}
             name="publish_to_tournaments"
             render={({ field }) => (
-              <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
+              <FormItem className="flex items-center gap-3 p-4 rounded-lg bg-muted/30">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -57,7 +57,7 @@ export function Step7PublishSave({ form }: Step7Props) {
             control={form.control}
             name="save_to_drafts"
             render={({ field }) => (
-              <FormItem className="flex items-center gap-3 p-4 border rounded-lg">
+              <FormItem className="flex items-center gap-3 p-4 rounded-lg bg-muted/30">
                 <FormControl>
                   <Checkbox
                     checked={field.value}

@@ -25,12 +25,14 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import axios from "axios";
 import { toast } from "sonner";
+import { toastUidTaken } from "@/lib/uidTaken";
 import { env } from "@/lib/env";
 import { compressImageForUpload } from "@/lib/imageCompress";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,6 +42,7 @@ import { IconCircleCheck, IconUpload } from "@tabler/icons-react";
 
 export default function OnboardingPage() {
   const t = useTranslations("onboarding");
+  const tc = useTranslations("common");
   const router = useRouter();
   const { user, token, refreshUser, loading: authLoading } = useAuth();
 
@@ -143,6 +146,8 @@ export default function OnboardingPage() {
       toast.success(t("saved"));
       goNext();
     } catch (err: any) {
+      // A UID already on another account names that account and links it (inbox #152).
+      if (toastUidTaken(err?.response?.data, tc, (path) => router.push(path))) return;
       toast.error(err?.response?.data?.message || t("failed"));
     } finally {
       setBusy(false);
@@ -196,7 +201,7 @@ export default function OnboardingPage() {
             <div className="flex items-center gap-2">
               <h3 className="font-semibold">{t("steps.esports.title")}</h3>
               {haveEsports && (
-                <Badge variant="outline" className="text-green-600 border-green-600/50 text-[10px]">
+                <Badge variant="outline" className="text-green-600 text-[10px]">
                   <IconCircleCheck className="h-3 w-3 mr-0.5" /> {t("doneBadge")}
                 </Badge>
               )}
@@ -217,7 +222,7 @@ export default function OnboardingPage() {
                     key={f}
                     src={`/esport-samples/${f}`}
                     alt={t("steps.esports.sampleAlt")}
-                    className="h-28 w-20 rounded-md border object-cover"
+                    className="h-28 w-20 rounded-md object-cover bg-muted/30"
                   />
                 ))}
               </div>
@@ -232,7 +237,7 @@ export default function OnboardingPage() {
             <div className="flex items-center gap-2">
               <h3 className="font-semibold">{t("steps.uid.title")}</h3>
               {haveUid && (
-                <Badge variant="outline" className="text-green-600 border-green-600/50 text-[10px]">
+                <Badge variant="outline" className="text-green-600 text-[10px]">
                   <IconCircleCheck className="h-3 w-3 mr-0.5" /> {t("doneBadge")}
                 </Badge>
               )}
@@ -240,12 +245,14 @@ export default function OnboardingPage() {
             <p className="text-sm text-muted-foreground">{t("steps.uid.desc")}</p>
             <div className="space-y-1.5">
               <Label htmlFor="onb-uid">{t("steps.uid.label")}</Label>
-              <Input
+              <UidInput
                 id="onb-uid"
                 value={uid}
                 onChange={(e) => setUid(e.target.value)}
                 placeholder={t("steps.uid.placeholder")}
               />
+              {/* One Free Fire account, one AFC account (owner 2026-10-16, inbox #265/#271). */}
+              <p className="text-xs text-muted-foreground">{tc("accountSharing.fieldNote")}</p>
             </div>
           </div>
         )}
@@ -256,7 +263,7 @@ export default function OnboardingPage() {
             <div className="flex items-center gap-2">
               <h3 className="font-semibold">{t("steps.photo.title")}</h3>
               {havePhoto && (
-                <Badge variant="outline" className="text-green-600 border-green-600/50 text-[10px]">
+                <Badge variant="outline" className="text-green-600 text-[10px]">
                   <IconCircleCheck className="h-3 w-3 mr-0.5" /> {t("doneBadge")}
                 </Badge>
               )}

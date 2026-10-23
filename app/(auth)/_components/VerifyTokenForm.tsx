@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useTransition, useState, useEffect, useRef } from "react";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -37,6 +39,7 @@ export function VerifyTokenForm({ identifier, method }: Props) {
   // Auth namespace: messages/en/auth.json (verifyToken.* keys). Drives the
   // submit/resend buttons, cooldown label, and verify/resend toasts.
   const t = useTranslations("auth");
+  const serverMessage = useServerMessage();
   const [pending, startTransition] = useTransition();
   const [pendingResend, startResendTransition] = useTransition();
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -78,7 +81,7 @@ export function VerifyTokenForm({ identifier, method }: Props) {
           payload
         );
         if (response.status >= 200 && response.status < 300) {
-          toast.success(response.data.message);
+          toast.success(serverMessage(response.data));
           setResendCooldown(300);
           // Count this resend so the "wrong email/UID?" hint can appear.
           setResendCount((c) => c + 1);
@@ -225,7 +228,7 @@ function Slot(props: SlotProps) {
   return (
     <div
       className={cn(
-        "border-input bg-background text-foreground flex size-14 items-center justify-center rounded-md border font-medium shadow-xs transition-[color,box-shadow]",
+        "bg-background text-foreground flex size-14 items-center justify-center rounded-md font-medium shadow-xs transition-[color,box-shadow]",
         { "border-ring ring-ring/50 z-10 ring-[1px]": props.isActive }
       )}
     >

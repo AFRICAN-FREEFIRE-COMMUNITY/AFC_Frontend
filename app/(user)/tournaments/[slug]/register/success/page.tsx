@@ -31,6 +31,8 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 // i18n: copy lives in messages/en/tournaments.json under "paymentSuccess.*"
@@ -76,6 +78,7 @@ type Phase =
 
 export default function RegisterSuccessPage() {
   const t = useTranslations("tournaments");
+  const serverMessage = useServerMessage();
   const params = useParams<{ slug: string }>();
   const slug =
     typeof params?.slug === "string"
@@ -136,7 +139,7 @@ export default function RegisterSuccessPage() {
             /* non-fatal */
           }
         }
-        if (res.data?.message) toast.success(res.data.message);
+        if (res.data?.message || res.data?.code) toast.success(serverMessage(res.data));
         setPhase("registered");
         return true;
       } catch (error: any) {
@@ -323,7 +326,7 @@ export default function RegisterSuccessPage() {
                 {t("paymentSuccess.registerFailedBody")}
               </CardDescription>
               {paymentId && (
-                <div className="bg-muted p-4 rounded-md text-left w-full space-y-1 border">
+                <div className="bg-muted p-4 rounded-md text-left w-full space-y-1">
                   <span className="text-xs text-muted-foreground">
                     {t("paymentSuccess.paymentReference")}
                   </span>
@@ -341,7 +344,7 @@ export default function RegisterSuccessPage() {
                 {t("paymentSuccess.needsCompletionBody")}
               </CardDescription>
               {paymentId && (
-                <div className="bg-muted p-4 rounded-md text-left w-full space-y-1 border">
+                <div className="bg-muted p-4 rounded-md text-left w-full space-y-1">
                   <span className="text-xs text-muted-foreground">
                     {t("paymentSuccess.paymentReference")}
                   </span>
@@ -359,7 +362,7 @@ export default function RegisterSuccessPage() {
                 {t("paymentSuccess.pendingBody")}
               </CardDescription>
               {paymentId && (
-                <div className="text-sm bg-muted p-3 rounded-md border break-all">
+                <div className="text-sm bg-muted p-3 rounded-md break-all">
                   {t("paymentSuccess.paymentReferenceInline")}
                   <span className="font-mono font-semibold">{paymentId}</span>
                 </div>
@@ -407,7 +410,7 @@ export default function RegisterSuccessPage() {
           {phase === "register_failed" && (
             <div className="flex flex-col sm:flex-row gap-3 w-full">
               <Button asChild className="flex-1">
-                <Link href="/contact">
+                <Link href="/support">
                   {t("paymentSuccess.contactSupport")}
                 </Link>
               </Button>
@@ -427,7 +430,7 @@ export default function RegisterSuccessPage() {
                   {t("paymentSuccess.retryNow")}
                 </Button>
                 <Button asChild variant="outline" className="flex-1">
-                  <Link href="/contact">
+                  <Link href="/support">
                     {t("paymentSuccess.contactSupport")}
                   </Link>
                 </Button>

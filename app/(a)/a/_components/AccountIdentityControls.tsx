@@ -38,6 +38,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/Loader";
 import { Textarea } from "@/components/ui/textarea";
@@ -241,7 +242,7 @@ export const EditUidDialog = ({
         {/* Mid-event warning. The player's own edits are frozen here (the identity lock); an admin
             is the escape hatch, so this explains the cost rather than blocking. */}
         {identity.identity_locked && (
-          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3">
+          <div className="rounded-md bg-amber-500/10 p-3">
             <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0" />{" "}
               {lockedEvents ? t("lockedIn", { events: lockedEvents }) : t("uid.lockedTitle")}
@@ -254,7 +255,7 @@ export const EditUidDialog = ({
           // Removal is destructive and frees a unique value, so it gets its own confirm step
           // spelling out what the player loses.
           <div className="space-y-3">
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3">
+            <div className="rounded-md bg-destructive/10 p-3">
               <p className="text-xs font-medium text-destructive">{t("uid.removeTitle")}</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {t("uid.removeBody", { name: playerName, uid: identity.uid || "-" })}
@@ -288,15 +289,12 @@ export const EditUidDialog = ({
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="admin-new-uid">{t("uid.new")}</Label>
-              <Input
+              {/* Digits only as typed or pasted (components/UidInput.tsx); the backend is the real check. */}
+              <UidInput
                 id="admin-new-uid"
-                // inputMode numeric so a phone opens the number pad; the backend is the real check.
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={15}
                 placeholder={t("uid.placeholder")}
                 value={uid}
-                onChange={(e) => setUid(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => setUid(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">{t("uid.hint")}</p>
             </div>
@@ -425,7 +423,7 @@ export const EditEmailDialog = ({
 
           {/* Everything this change does, said before it happens. The session count is live from
               the identity endpoint, so it is a real number and not a generic warning. */}
-          <div className="rounded-md border bg-muted/40 p-3">
+          <div className="rounded-md bg-muted/40 p-3">
             <p className="text-xs font-medium">{t("email.consequencesTitle")}</p>
             <ul className="mt-1.5 space-y-1">
               <Consequence>{t("email.consequenceSignIn")}</Consequence>
@@ -442,7 +440,7 @@ export const EditEmailDialog = ({
           {/* 2FA acknowledgement. Only rendered when the account really has it on; without the tick
               the backend answers 409 and nothing is written. */}
           {identity.two_factor_enabled && (
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3">
+            <div className="rounded-md bg-destructive/10 p-3">
               <p className="flex items-center gap-1.5 text-xs font-medium text-destructive">
                 <ShieldAlert className="h-3.5 w-3.5 shrink-0" /> {t("email.twoFactorTitle")}
               </p>

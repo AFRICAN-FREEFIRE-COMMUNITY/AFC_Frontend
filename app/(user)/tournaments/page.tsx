@@ -23,7 +23,9 @@ import { LocalTime } from "@/components/LocalTime";
 // getActiveLocale resolves the NEXT_LOCALE cookie locale for the month-filter labels.
 import { getActiveLocale } from "@/lib/i18n/time";
 import Link from "next/link";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { Suspense, useState, useEffect, useMemo, useCallback } from "react";
+// ?tab=scrims and ?tab=organizers open those tabs, so the help bot can link them (inbox #159).
+import { useAddressTab } from "@/lib/useAddressTab";
 import {
   Pagination,
   PaginationContent,
@@ -233,7 +235,7 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
             {isPaid && (
               <Badge
                 variant="outline"
-                className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+                className="rounded-full px-2 py-0.5 text-xs text-primary"
               >
                 {t("list.card.paid", { fee: paidFeeLabel })}
               </Badge>
@@ -405,14 +407,14 @@ const OrganizerCard: React.FC<{
   // a tier-specific accent (1 = gold/best, 2 = green, 3 = blue).
   const tierClass =
     org.tier === "Tier 1"
-      ? "border-gold/55 text-gold"
+      ? "text-gold bg-gold/10"
       : org.tier === "Tier 2"
-        ? "border-primary/50 text-primary"
-        : "border-blue-500/50 text-blue-500";
+        ? "text-primary bg-primary/10"
+        : "text-blue-500 bg-blue-500/10";
 
   return (
     <Card
-      className="bg-card rounded-md border p-0 gap-0 shadow-sm h-full cursor-pointer overflow-hidden transition-colors hover:border-primary/45"
+      className="bg-card rounded-md p-0 gap-0 shadow-sm h-full cursor-pointer overflow-hidden transition-colors hover:bg-primary/10"
       onClick={() => onOpen(org)}
     >
       {/* ── Banner header: the organizer's cover image so users can SEE the org's
@@ -433,7 +435,7 @@ const OrganizerCard: React.FC<{
       <CardContent className="flex flex-col gap-3 h-full p-6 pt-0">
         {/* Logo + name. The logo overlaps the banner (-mt-8). */}
         <div className="flex items-center gap-3 -mt-8">
-          <Avatar className="h-14 w-14 rounded-md border-4 border-card bg-card">
+          <Avatar className="h-14 w-14 rounded-md bg-card">
             <AvatarImage
               src={org.logo || undefined}
               alt={org.name}
@@ -460,7 +462,7 @@ const OrganizerCard: React.FC<{
         <div className="mt-auto flex flex-wrap items-center gap-1.5">
           <Badge
             variant="outline"
-            className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+            className="rounded-full px-2 py-0.5 text-xs text-primary"
           >
             {t("organizers.card.eventCount", { count: org.event_count })}
           </Badge>
@@ -477,7 +479,7 @@ const OrganizerCard: React.FC<{
           {org.slug === null && (
             <Badge
               variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-gold/55 text-gold"
+              className="rounded-full px-2 py-0.5 text-xs text-gold"
             >
               {t("organizers.card.afcOfficial")}
             </Badge>
@@ -491,7 +493,7 @@ const OrganizerCard: React.FC<{
 // One stat tile in the organizer detail header.
 const OrgStat: React.FC<{ value: React.ReactNode; label: string; tone?: string }> =
   ({ value, label, tone }) => (
-    <div className="bg-background border rounded-md px-4 py-2.5 text-center min-w-[88px]">
+    <div className="bg-background rounded-md px-4 py-2.5 text-center min-w-[88px]">
       <div className={`text-xl font-bold ${tone ?? ""}`}>{value}</div>
       <div className="text-[0.65rem] uppercase tracking-wide text-muted-foreground mt-0.5">
         {label}
@@ -667,7 +669,7 @@ const OrganizerDirectory: React.FC<{
         </button>
 
         {/* Organizer header: logo + name + verified + stats */}
-        <Card className="bg-card rounded-md border py-6 shadow-sm mb-4">
+        <Card className="bg-card rounded-md py-6 shadow-sm mb-4">
           <CardContent className="flex flex-col md:flex-row md:items-center gap-4">
             <Avatar className="h-16 w-16 rounded-md">
               <AvatarImage
@@ -837,8 +839,11 @@ const OrganizerDirectory: React.FC<{
 };
 
 // --- Main Component ---
+const EVENT_TABS = ["tournaments", "scrims", "organizers"] as const;
+
 const EventsPage = () => {
   const t = useTranslations("tournaments");
+  const [tab, setTab] = useAddressTab("tab", EVENT_TABS, "tournaments");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [monthFilter, setMonthFilter] = useState<MonthFilter>("all");
@@ -1089,7 +1094,11 @@ const EventsPage = () => {
       {!error && (
         // data-tour anchor (guided welcome tour): the whole events list. Targeted by
         // guided-tour-stops.ts -> tournaments stop -> "tournaments-list".
-        <Tabs defaultValue="tournaments" data-tour="tournaments-list">
+        <Tabs
+          value={tab}
+          onValueChange={(v) => setTab(v as (typeof EVENT_TABS)[number])}
+          data-tour="tournaments-list"
+        >
           {/* data-tour anchor (guided welcome tour): the Tournaments / Scrims tabs,
               which distinguish official competitions from practice matches. Targeted
               by guided-tour-stops.ts -> tournaments stop -> "tournaments-filter". */}
@@ -1129,4 +1138,12 @@ const EventsPage = () => {
   );
 };
 
-export default EventsPage;
+// Suspense because the page reads the address (useAddressTab). The fallback is the loader the
+// page shows anyway until the events arrive, so nothing changes for a visitor.
+export default function EventsPageWrapper() {
+  return (
+    <Suspense fallback={<FullLoader />}>
+      <EventsPage />
+    </Suspense>
+  );
+}

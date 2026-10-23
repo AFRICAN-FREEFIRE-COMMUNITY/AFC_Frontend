@@ -99,8 +99,9 @@ export function Portrait({
       className={cn(
         "flex shrink-0 items-center justify-center overflow-hidden rounded-full font-bold",
         tint,
-        // The gold RING is one of exactly three uses of gold on a winner band.
-        gold && "ring-2 ring-gold ring-offset-2 ring-offset-background",
+        // The gold FRAME is one of exactly three uses of gold on a winner band: a solid 3px
+        // gold fill around the photo (never a ring), dark initials when there is no photo.
+        gold && "bg-gold p-[3px] text-background",
       )}
       style={{ width: size, height: size, fontSize: Math.max(12, size / 3) }}
       aria-hidden
@@ -108,7 +109,7 @@ export function Portrait({
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element -- API-host media, not in the
         // next/image remote allow-list.
-        <img src={src} alt="" className="h-full w-full object-cover" />
+        <img src={src} alt="" className="h-full w-full rounded-full object-cover" />
       ) : (
         initials || "?"
       )}
@@ -142,7 +143,7 @@ export function AwardsExperience({ editionSlug }: { editionSlug: string }) {
   if (!data) {
     return (
       <div className="py-10">
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="text-center text-sm text-muted-foreground">
             {t("notFound")}
           </CardContent>
@@ -253,7 +254,7 @@ function Countdown({ edition }: { edition: EditionDetail["edition"] }) {
           { value: minutes, unit: "minutes" },
           { value: seconds, unit: "seconds" },
         ].map((block) => (
-          <div key={block.unit} className="rounded-md border bg-card px-3 py-2 shadow-sm">
+          <div key={block.unit} className="rounded-md bg-card px-3 py-2 shadow-sm">
             <p className="text-xl font-bold tabular-nums text-foreground">{block.value}</p>
             {/* ICU plurals, not string concatenation: "1 days" has bitten this project before. */}
             <p className="text-xs text-muted-foreground">
@@ -280,12 +281,12 @@ function PhaseTimeline({ edition }: { edition: EditionDetail["edition"] }) {
         <li key={phase} className="flex items-center gap-2">
           <span
             className={cn(
-              "rounded-full border px-2 py-0.5",
+              "rounded-full px-2 py-0.5",
               index === current
-                ? "border-gold/60 bg-gold/10 font-medium text-gold"
+                ? "bg-gold/15 font-medium text-gold"
                 : index < current
-                  ? "border-primary/40 text-primary"
-                  : "border-border text-muted-foreground",
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground",
             )}
           >
             {t(`phase.${phase}`)}
@@ -340,7 +341,7 @@ function NomineesAnnounced({ data }: { data: EditionDetail }) {
           <h2 className="text-3xl font-bold text-primary md:text-4xl">{poll.title}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {poll.questions.map((question) => (
-              <Card key={question.question_id} className="bg-card rounded-md border py-6 shadow-sm">
+              <Card key={question.question_id} className="bg-card rounded-md py-6 shadow-sm">
                 <CardContent className="space-y-2">
                   <p className="text-sm font-semibold text-foreground">{question.prompt}</p>
                   {/* Stacked nominee faces. The whole point of revealing nominees early is that
@@ -448,7 +449,7 @@ function BallotScreen({ data, onChanged }: { data: EditionDetail; onChanged: () 
             <Card
               key={question.question_id}
               id={question.slug || undefined}
-              className="bg-card rounded-md border py-6 shadow-sm"
+              className="bg-card rounded-md py-6 shadow-sm"
               style={{ scrollMarginTop: "6rem" }}
             >
               <CardContent className="space-y-3">
@@ -471,8 +472,8 @@ function BallotScreen({ data, onChanged }: { data: EditionDetail; onChanged: () 
                           }))
                         }
                         className={cn(
-                          "flex min-h-16 items-center gap-3 rounded-md border px-3 py-2 text-left transition-colors",
-                          chosen ? "border-primary bg-primary/10" : "border-input",
+                          "flex min-h-16 items-center gap-3 rounded-md px-3 py-2 text-left transition-colors bg-muted/30",
+                          chosen ? "bg-primary/10" : "border-input",
                           poll.eligibility.eligible ? "hover:bg-muted" : "cursor-default",
                         )}
                       >
@@ -536,7 +537,7 @@ function CountingScreen({ data }: { data: EditionDetail }) {
 
   return (
     <div className="mx-auto mt-10 max-w-xl space-y-4 text-center">
-      <Card className="bg-card rounded-md border py-6 shadow-sm">
+      <Card className="bg-card rounded-md py-6 shadow-sm">
         <CardContent className="space-y-3">
           {/* Voting closing and the winners being announced are DIFFERENT moments. This screen is
               the days in between, and it exists because 2025's own page had to say exactly this. */}
@@ -742,10 +743,10 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
                 type="button"
                 onClick={() => setSection(name)}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-xs",
+                  "rounded-full px-3 py-1 text-xs",
                   section === name
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-input text-muted-foreground",
+                    ? "bg-primary/15 font-medium text-primary"
+                    : "bg-muted text-muted-foreground hover:text-foreground",
                 )}
               >
                 {name === "all" ? t("archive.all") : name}
@@ -755,7 +756,7 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
         </div>
 
         {filtered.length === 0 ? (
-          <Card className="bg-card rounded-md border py-6 shadow-sm">
+          <Card className="bg-card rounded-md py-6 shadow-sm">
             <CardContent className="text-center text-sm text-muted-foreground">
               {t("archive.empty")}
             </CardContent>
@@ -763,7 +764,7 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((row) => (
-              <Card key={row.key} className="bg-card rounded-md border py-6 shadow-sm">
+              <Card key={row.key} className="bg-card rounded-md py-6 shadow-sm">
                 <CardContent className="flex items-center gap-3">
                   <Portrait option={row.winner} size={44} gold />
                   <div className="min-w-0 flex-1">
@@ -781,7 +782,7 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
         )}
 
         {mostDecorated.length > 0 && (
-          <Card className="bg-card rounded-md border py-6 shadow-sm">
+          <Card className="bg-card rounded-md py-6 shadow-sm">
             <CardContent className="space-y-1.5">
               <p className="text-sm font-semibold text-foreground">{t("archive.honours")}</p>
               {mostDecorated.map(([name, count]) => (
@@ -814,7 +815,7 @@ function WinnerBand({
       id={row.question.slug || undefined}
       style={{ scrollMarginTop: "6rem" }}
       className={cn(
-        "rounded-md border bg-card p-5 shadow-sm transition-opacity md:p-8",
+        "rounded-md bg-card p-5 shadow-sm transition-opacity md:p-8",
         dimmed && "opacity-[0.22]",
       )}
     >
@@ -839,7 +840,7 @@ function WinnerBand({
             )}
             <Badge
               variant="outline"
-              className="rounded-full border-gold/50 px-2 py-0.5 text-xs text-gold"
+              className="rounded-full px-2 py-0.5 text-xs text-gold"
             >
               <IconTrophy className="mr-1 h-3 w-3" />
               {t("winner")}
@@ -862,7 +863,7 @@ function WinnerBand({
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <Card className="bg-card rounded-md border py-6 shadow-sm">
+    <Card className="bg-card rounded-md py-6 shadow-sm">
       <CardContent>
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="mt-1 truncate text-xl font-bold tabular-nums text-foreground">{value}</p>

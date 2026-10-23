@@ -83,19 +83,19 @@ interface EventOption {
 function ReleaseStatusBadge({ status }: { status: string }) {
   if (status === "held")
     return (
-      <Badge variant="outline" className="border-amber-500/50 text-amber-400">
+      <Badge variant="outline" className="text-amber-400">
         Held
       </Badge>
     );
   if (status === "released")
     return (
-      <Badge variant="outline" className="border-green-600/60 text-green-400">
+      <Badge variant="outline" className="text-green-400">
         Released
       </Badge>
     );
   if (status === "refunded")
     return (
-      <Badge variant="outline" className="border-blue-500/50 text-blue-400">
+      <Badge variant="outline" className="text-blue-400">
         Refunded
       </Badge>
     );

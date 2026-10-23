@@ -128,6 +128,28 @@ export interface PartnerKey {
   created_at: string | null;
 }
 
+// One row of partner_events (views_admin.py, owner 2026-10-09, inbox #201): an event this
+// partner's SAVED grants reach, published or not. `status` is the effective status the whole site
+// shows; `via` says which grant reaches it ("event", "organization", "native").
+export interface PartnerReachableEvent {
+  event_id: number;
+  slug: string;
+  event_name: string;
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+  partner_published: boolean;
+  via: ("event" | "organization" | "native")[];
+}
+
+export interface PartnerEventsResponse {
+  results: PartnerReachableEvent[];
+  total_count: number;
+  has_more: boolean;
+  // Over EVERY reachable event, not just this page: what the bulk press would publish.
+  summary: { reachable: number; published: number; finished_unpublished: number };
+}
+
 // get_partner returns the detail dict + the partner's keys as metadata.
 export interface PartnerDetailResponse {
   partner: PartnerDetail;
@@ -221,5 +243,17 @@ export const partnersApi = {
     aPost<{ message: string; partner_published: boolean }>(
       `admin/events/${eventSlug}/publish/`,
       body,
+    ),
+  // partnerEvents lists every event the partner's SAVED grants reach (event, organization or
+  // native-AFC), published or not, newest first, with a summary over all of them
+  // (GET partners/admin/<slug>/events/, views_admin.partner_events, owner 2026-10-09).
+  partnerEvents: (slug: string, params?: { limit?: number; offset?: number }) =>
+    aGet<PartnerEventsResponse>(`admin/${slug}/events/`, params),
+  // publishFinishedEvents publishes every finished, unpublished event the partner reaches in one
+  // press (POST partners/admin/<slug>/publish-finished/, views_admin.publish_finished_events).
+  // Safe to press twice: the second press answers published_count 0.
+  publishFinishedEvents: (slug: string) =>
+    aPost<{ message: string; published_count: number; published: string[] }>(
+      `admin/${slug}/publish-finished/`,
     ),
 };

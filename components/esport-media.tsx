@@ -115,7 +115,7 @@ function MediaOptionFields({
   const t = useTranslations("media");
   const set = (patch: Partial<MediaOptions>) => onChange({ ...value, ...patch });
   return (
-    <div className="space-y-3 rounded-md border p-3">
+    <div className="space-y-3 rounded-md p-3 bg-muted/30">
       {showEsport && (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <div className="space-y-1">

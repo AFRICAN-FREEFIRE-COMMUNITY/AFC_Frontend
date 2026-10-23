@@ -154,7 +154,7 @@ export default function DebuggerBackfillPanel({
             {rounds.map((r) => (
               <div
                 key={r.round_index}
-                className="bg-muted/40 flex flex-wrap items-center gap-3 rounded-md border px-3 py-2"
+                className="bg-muted/40 flex flex-wrap items-center gap-3 rounded-md px-3 py-2"
               >
                 <div className="min-w-0 text-xs">
                   <p className="font-semibold">

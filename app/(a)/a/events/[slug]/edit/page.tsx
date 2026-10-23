@@ -20,6 +20,7 @@ import { useTranslations } from "next-intl";
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useFollowEventMove } from "@/lib/addressRef";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 // Mobile-first section navigator (dropdown on phones, scrollable tab strip on desktop) shared with
@@ -85,6 +86,7 @@ import WaitlistTab from "./_components/WaitlistTab";
 // self-loads (eventLinksApi.list) and self-saves (create/fire/cancel/decide), so we only mount it
 // with the event id + its stages.
 import { LinkedEventsCard } from "@/components/event-links";
+import { appendRemainingEventFields } from "@/lib/eventFields";
 
 // ── Paid-vs-free registration payload helper (non-payment phase) ─────────────────
 // Appends registration_type (+ fee/currency when paid) onto the edit-event FormData.
@@ -225,6 +227,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  // An old address (renamed event, legacy id) moves to the current slug (inbox #209).
+  const followEventMove = useFollowEventMove();
   // Translations for this page's own chrome (header, tab labels, toasts, validation prompts).
   // Declared early so the eventTitle useState initializer below can read the loading label.
   const t = useTranslations("evEditPage");
@@ -779,6 +783,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         setStageNames(adminStages.map((s: any) => s.stage_name));
 
       setEventDetails(mergedDetails);
+      followEventMove(res.data, (s) => `/a/events/${s}/edit`);
 
       const ed = res.data.event_details;
       if (ed) {
@@ -2013,6 +2018,12 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           waitlistForm.waitlist_mode || "first_registered",
         );
 
+        // Everything else the contract says this role may write, in one line instead of five
+        // save sites (owner 2026-09-22, inbox #41). It appends ONLY what this FormData does
+        // not already carry, so every hand-written append above wins and a NEW plain field
+        // reaches this save with no edit here. See lib/eventFields.ts.
+        appendRemainingEventFields(formData, form.getValues() as Record<string, unknown>, "admin");
+
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/edit-event/`,
           {
@@ -2042,9 +2053,16 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
             }),
             { duration: 4000 },
           );
-          // Live-update (owner 2026-06-20): re-pull the saved event so the form +
-          // displays reflect the changes immediately, without a manual page reload.
-          await fetchEventDetails();
+          // A rename moves the event's address: edit_event answers the CURRENT slug, and
+          // re-reading by the old one is what showed "No Event matches the given query." after
+          // a duplicated event was renamed (inbox #171). Move to the new address; the page then
+          // loads the event from there. Otherwise re-pull in place (owner 2026-06-20) so the
+          // form + displays reflect the changes without a manual page reload.
+          if (res.slug && res.slug !== slug) {
+            router.replace(`/a/events/${encodeURIComponent(res.slug)}/edit${window.location.search}`);
+          } else {
+            await fetchEventDetails();
+          }
         } else {
           const errorMessage = res.message || res.detail || res.error;
           if (response.status === 400) {

@@ -47,7 +47,7 @@
 
 //     startTransition(async () => {
 //       try {
-//         const decodedId = decodeURIComponent(id);
+//         const decodedId = readSegment(id);
 //         const res = await axios.post(
 //           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
 //           { team_name: decodedId }
@@ -233,6 +233,8 @@ import { env } from "@/lib/env";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { TeamDetailsClient } from "../_components/TeamDetailsClient";
+import { readSegment } from "@/lib/routes";
+import { formatTier } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -244,7 +246,7 @@ type Props = {
  */
 async function getTeamData(teamName: string, token?: string) {
   try {
-    const decodedName = decodeURIComponent(teamName);
+    const decodedName = readSegment(teamName);
 
     const response = await fetch(
       `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
@@ -298,7 +300,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const earnings = team.total_earnings
     ? `$${team.total_earnings} in earnings`
     : "No earnings yet";
-  const description = `${team.team_name} - ${team.team_tier} tier team with ${winRate} and ${earnings}. View full stats and tournament history.`;
+  const description = `${team.team_name} - ${formatTier(team.ranking_tier) || "Unranked"} team with ${winRate} and ${earnings}. View full stats and tournament history.`;
 
   return {
     title: `${team.team_name} - Team Profile | AFC`,

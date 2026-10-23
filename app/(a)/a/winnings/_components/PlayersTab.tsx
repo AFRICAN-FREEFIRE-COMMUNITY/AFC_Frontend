@@ -20,6 +20,7 @@ import { listAccounts, type AdminAccountRow } from "@/lib/api/wagersAdmin";
 
 import { Pager, useAdminRefusal } from "../../wagers/_components/shared";
 
+import { winningsPlayerPath } from "@/lib/routes";
 const LIMIT = 25;
 
 export function PlayersTab() {
@@ -86,7 +87,7 @@ export function PlayersTab() {
                 {rows.map((a, i) => (
                   <TableRow key={a.username} className={i % 2 ? "bg-muted/40" : ""}>
                     <TableCell className="font-medium">
-                      <Link href={`/a/winnings/players/${a.username}`} className="hover:underline">{a.username}</Link>
+                      <Link href={winningsPlayerPath(a.username)} className="hover:underline">{a.username}</Link>
                       <p className="text-muted-foreground text-[11px] font-normal">{a.email}</p>
                     </TableCell>
                     <TableCell className="text-right">{naira(a.balance_kobo)}</TableCell>

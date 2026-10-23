@@ -122,7 +122,7 @@ function HomeNote({ reason, tone = "waiting" }: { reason: string; tone?: "waitin
 function PreviousPeriodNote({ shown, pending }: { shown: string; pending: string }) {
   const t = useTranslations("home");
   return (
-    <div className="mb-4 flex items-center gap-2 rounded-md border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+    <div className="mb-4 flex items-center gap-2 rounded-md bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
       <IconClock className="size-4 shrink-0" />
       <span>
         {t("rankingsTiers.showingPrevious", { shown, pending })}
@@ -262,7 +262,7 @@ export function HomeRankingsTiers() {
                     pending={pendingSeason}
                   />
                 )}
-                <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+                <div className="overflow-x-auto rounded-md max-h-96 overflow-y-auto bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -347,7 +347,7 @@ export function HomeRankingsTiers() {
                 {!quarterlyIsCurrent && pendingSeason && quarterlySeason?.name && (
                   <PreviousPeriodNote shown={quarterlySeason.name} pending={pendingSeason} />
                 )}
-                <div className="overflow-x-auto rounded-md border max-h-96 overflow-y-auto">
+                <div className="overflow-x-auto rounded-md max-h-96 overflow-y-auto bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>

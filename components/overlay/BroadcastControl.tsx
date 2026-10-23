@@ -220,7 +220,7 @@ export function BroadcastControl({ eventId }: BroadcastControlProps) {
 
   return (
     // AFC card idiom: bg-card rounded-md border, compact text, green-accented heading.
-    <div className="rounded-md border bg-card p-4 shadow-sm">
+    <div className="rounded-md bg-card p-4 shadow-sm">
       {/* Heading + one-line explainer of what this control does. */}
       <div className="mb-3 flex items-center gap-2">
         <IconBroadcast className="size-4 text-primary" />
@@ -305,7 +305,7 @@ export function BroadcastControl({ eventId }: BroadcastControlProps) {
               <p className="text-xs text-muted-foreground">
                 {t("broadcast.customGroupsHint")}
               </p>
-              <div className="flex max-h-48 flex-col gap-2 overflow-y-auto rounded-md border p-3">
+              <div className="flex max-h-48 flex-col gap-2 overflow-y-auto rounded-md p-3 bg-muted/30">
                 {allGroups.length === 0 ? (
                   <span className="text-xs text-muted-foreground">
                     {t("broadcast.noGroups")}

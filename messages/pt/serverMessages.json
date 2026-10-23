@@ -1,0 +1,18 @@
+{
+  "login_ok": "Sessão iniciada com sucesso.",
+  "signup_ok": "Registo concluído. Consulte o seu e-mail para obter o código de verificação.",
+  "account_verified": "Conta verificada com sucesso.",
+  "verification_code_resent": "Foi enviado um novo código de verificação para o seu e-mail.",
+  "registration_ok": "Inscrição confirmada. O seu cargo no Discord está a caminho.",
+  "registration_ok_team": "Equipa inscrita. Os cargos no Discord estão a caminho.",
+  "registration_pending_sponsor": "Inscrição registada. Aguarda a aprovação do patrocinador.",
+  "registration_waitlisted": "O evento está cheio. Foi adicionado à lista de espera.",
+  "registration_waitlisted_team": "O evento está cheio. A sua equipa foi adicionada à lista de espera.",
+  "reset_token_sent": "Foi enviado um código de reposição da palavra-passe para o seu e-mail.",
+  "reset_token_valid": "Código aceite.",
+  "reset_token_resent": "Foi enviado um novo código de reposição da palavra-passe para o seu e-mail.",
+  "password_changed": "Palavra-passe alterada.",
+  "team_name_needs_letter": "O nome de uma equipa precisa de ter pelo menos uma letra ou um número.",
+  "team_name_reserved": "Esse nome pertence a uma página da AFC. Escolha outro nome.",
+  "email_invalid": "Esse endereço de e-mail não parece correto. Verifique-o, por favor."
+}

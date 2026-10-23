@@ -264,5 +264,7 @@
   "categories.metrics-compliance.rules.4.title": "Data Verification Process",
   "categories.metrics-compliance.rules.4.content": "All performance data are verified by AFC Administrators. The verification process includes: (1) Tournament and scrim result validation, (2) Media and social metric checks, (3) Cross-platform consistency audits. Only AFC-sanctioned and verified events contribute to rankings and tiering.",
   "categories.metrics-compliance.rules.5.title": "Data Visibility",
-  "categories.metrics-compliance.rules.5.content": "Public view displays each team's total points and current tier. Private view shows full metric breakdown (kills, earnings, media, scrims) accessible on each team's profile. Annual Leaderboard displays cumulative yearly tier points used for AFC Awards and recognition."
+  "categories.metrics-compliance.rules.5.content": "Public view displays each team's total points and current tier. Private view shows full metric breakdown (kills, earnings, media, scrims) accessible on each team's profile. Annual Leaderboard displays cumulative yearly tier points used for AFC Awards and recognition.",
+  "categories.player-eligibility.rules.5.title": "Accounts",
+  "categories.player-eligibility.rules.5.content": "Each Free Fire account (UID) belongs to one AFC account, and each AFC account to one person. Do not share, sell or buy accounts. If a UID you play on is already linked to another AFC account, settle it with the seller or the person who shared it; AFC support does not move UIDs between accounts."
 }

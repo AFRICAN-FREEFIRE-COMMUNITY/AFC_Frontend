@@ -37,9 +37,9 @@ interface Payout {
 }
 
 const statusClass: Record<string, string> = {
-  owed: "border-amber-500/60 text-amber-400",
-  released: "border-blue-500/60 text-blue-400",
-  paid: "border-green-600/60 text-green-400",
+  owed: "text-amber-400 bg-amber-500/10",
+  released: "text-blue-400 bg-blue-500/10",
+  paid: "text-green-400 bg-green-600/10",
 };
 
 export default function AdminPayoutsPage() {
@@ -106,7 +106,7 @@ export default function AdminPayoutsPage() {
       </div>
 
       <Card>
-        <CardContent className="overflow-x-auto rounded-md border pt-4">
+        <CardContent className="overflow-x-auto rounded-md pt-4 bg-muted/30">
           <Table>
             <TableHeader>
               <TableRow>

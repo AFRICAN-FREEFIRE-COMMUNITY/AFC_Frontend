@@ -152,7 +152,7 @@ export function DiscordRegistrationGate({
   };
 
   return (
-    <div className="space-y-3 rounded-lg border p-4">
+    <div className="space-y-3 rounded-lg p-4 bg-muted/30">
       {/* Guild ID input (form field discord_server_id). Editing it invalidates any prior
           verification for the OLD guild, so we reset botVerified unless it's now blank. */}
       <FormField

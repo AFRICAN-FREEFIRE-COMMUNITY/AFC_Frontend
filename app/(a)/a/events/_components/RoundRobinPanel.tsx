@@ -317,7 +317,7 @@ export function RoundRobinPanel({
   };
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+    <div className="space-y-4 p-4 rounded-lg bg-muted/30">
       <p className="text-sm font-semibold text-primary">
         {t("title")}
         <InfoTip id="events.create.rr_base_groups" className="ml-1" />
@@ -357,7 +357,7 @@ export function RoundRobinPanel({
           )}
         </div>
         {groups.map((group, index) => (
-          <div key={index} className="space-y-2 rounded-md border p-3">
+          <div key={index} className="space-y-2 rounded-md p-3 bg-muted/30">
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground w-12 shrink-0">
                 {t("group")}
@@ -507,7 +507,7 @@ export function RoundRobinPanel({
               </p>
             )}
             {config.game_days.map((gd, gdIndex) => (
-              <div key={gdIndex} className="space-y-2 rounded-md border p-3">
+              <div key={gdIndex} className="space-y-2 rounded-md p-3 bg-muted/30">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold">
                     {t("matchDay", { n: gd.game_day })}
@@ -585,7 +585,7 @@ export function RoundRobinPanel({
                   <Label className="mb-1.5 block text-[11px] text-muted-foreground">
                     {t("matchesInMeeting")}
                   </Label>
-                  <p className="text-[11px] text-muted-foreground rounded-md border border-dashed p-2">
+                  <p className="text-[11px] text-muted-foreground rounded-md p-2 bg-muted/30">
                     {t("matchCountDerived", { count: gd.match_maps.length })}
                   </p>
                 </div>
@@ -605,7 +605,7 @@ export function RoundRobinPanel({
                       return (
                         <div
                           key={map}
-                          className={`flex items-center gap-1 border rounded-md px-2 py-1 text-xs ${
+                          className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs ${
                             count > 0
                               ? "border-primary bg-primary/10 text-primary"
                               : "border-border bg-muted text-foreground"

@@ -55,9 +55,9 @@ interface CoOrg {
 }
 
 const statusVariant: Record<string, string> = {
-  accepted: "border-green-600/60 text-green-400",
-  pending: "border-amber-500/60 text-amber-400",
-  declined: "border-red-600/50 text-red-400",
+  accepted: "text-green-400 bg-green-600/10",
+  pending: "text-amber-400 bg-amber-500/10",
+  declined: "text-red-400 bg-red-600/10",
 };
 
 export default function CoOrganizersPanel({
@@ -174,7 +174,7 @@ export default function CoOrganizersPanel({
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Invite form */}
-        <div className="space-y-3 rounded-lg border p-4">
+        <div className="space-y-3 rounded-lg p-4 bg-muted/30">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>{t("coOrganizers.organization")}</Label>
@@ -237,7 +237,7 @@ export default function CoOrganizersPanel({
             {coOrgs.map((co) => (
               <div
                 key={co.id}
-                className="flex items-center justify-between gap-2 rounded-md border p-3"
+                className="flex items-center justify-between gap-2 rounded-md p-3 bg-muted/30"
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm capitalize">{co.name}</span>

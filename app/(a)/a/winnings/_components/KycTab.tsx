@@ -24,6 +24,7 @@ import { forceKyc, listKyc, type KycRow } from "@/lib/api/wagersAdmin";
 
 import { Pager, useAdminRefusal } from "../../wagers/_components/shared";
 
+import { winningsPlayerPath } from "@/lib/routes";
 const LIMIT = 25;
 
 export function KycTab() {
@@ -95,7 +96,7 @@ export function KycTab() {
               <TableBody>
                 {rows.map((r, i) => (
                   <TableRow key={r.username} className={i % 2 ? "bg-muted/40" : ""}>
-                    <TableCell className="font-medium"><Link href={`/a/winnings/players/${r.username}`} className="hover:underline">{r.username}</Link></TableCell>
+                    <TableCell className="font-medium"><Link href={winningsPlayerPath(r.username)} className="hover:underline">{r.username}</Link></TableCell>
                     <TableCell>
                       <Badge variant={r.whatsapp_verified ? "default" : "pending"}>{r.whatsapp_verified ? t("kyc.confirmed") : t("kyc.notConfirmed")}</Badge>
                       <p className="text-muted-foreground mt-1 text-[11px]">{r.whatsapp_number || t("kyc.noNumber")}{r.whatsapp_verified_at && <> · <LocalTime value={r.whatsapp_verified_at} mode="datetime" /></>}</p>

@@ -113,7 +113,7 @@ export function QuestionCard({
     : null;
 
   return (
-    <Card className="bg-card rounded-md border py-6 shadow-sm" id={question.slug || undefined}>
+    <Card className="bg-card rounded-md py-6 shadow-sm" id={question.slug || undefined}>
       <CardContent className="space-y-3">
         <div>
           <h3 className="text-sm font-semibold text-foreground">
@@ -183,7 +183,7 @@ function PublishedResult({
 
   return (
     <div className="space-y-2">
-      <div className="rounded-md border border-gold/30 bg-gold/5 px-3 py-2.5">
+      <div className="rounded-md bg-gold/5 px-3 py-2.5">
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gold">
           <IconTrophy className="h-3.5 w-3.5" />
           {t("results.winner")}
@@ -256,10 +256,10 @@ function ChoiceList({
             aria-pressed={isSelected}
             onClick={() => onPick(option.option_id)}
             className={cn(
-              "flex w-full items-center gap-2.5 rounded-md border px-3 py-2 text-left text-sm transition-colors",
+              "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors bg-muted/30",
               // 44px minimum so the whole card is a comfortable tap target on a phone.
               "min-h-11",
-              isSelected ? "border-primary bg-primary/10 font-medium text-primary" : "border-input",
+              isSelected ? "bg-primary/10 font-medium text-primary" : "border-input",
               interactive ? "hover:bg-muted" : "cursor-default",
             )}
           >
@@ -314,7 +314,7 @@ function RankingList({
       {ranked.map((option, index) => (
         <div
           key={option.option_id}
-          className="flex min-h-11 items-center gap-2 rounded-md border border-primary bg-primary/10 px-3 py-2 text-sm"
+          className="flex min-h-11 items-center gap-2 rounded-md bg-primary/10 px-3 py-2 text-sm"
         >
           <span className="w-5 shrink-0 text-xs font-bold tabular-nums text-primary">
             {index + 1}
@@ -329,7 +329,7 @@ function RankingList({
                 aria-label={t("ballot.moveUp")}
                 disabled={index === 0}
                 onClick={() => onReorder?.(option.option_id, -1)}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-input disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-md disabled:opacity-40 bg-muted/30"
               >
                 <IconArrowUp className="h-3.5 w-3.5" />
               </button>
@@ -338,7 +338,7 @@ function RankingList({
                 aria-label={t("ballot.moveDown")}
                 disabled={index === ranked.length - 1}
                 onClick={() => onReorder?.(option.option_id, 1)}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-input disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-md disabled:opacity-40 bg-muted/30"
               >
                 <IconArrowDown className="h-3.5 w-3.5" />
               </button>
@@ -346,7 +346,7 @@ function RankingList({
                 type="button"
                 aria-label={t("ballot.remove")}
                 onClick={() => onPick(option.option_id)}
-                className="flex h-8 items-center rounded-md border border-input px-2 text-xs"
+                className="flex h-8 items-center rounded-md px-2 text-xs bg-muted/30"
               >
                 {t("ballot.remove")}
               </button>
@@ -361,7 +361,7 @@ function RankingList({
             key={option.option_id}
             type="button"
             onClick={() => onPick(option.option_id)}
-            className="flex min-h-11 w-full items-center gap-2 rounded-md border border-input px-3 py-2 text-left text-sm hover:bg-muted"
+            className="flex min-h-11 w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-muted bg-muted/30"
           >
             <span className="min-w-0 flex-1 truncate">{option.label}</span>
             <Badge variant="outline" className="rounded-full px-2 py-0.5 text-xs">
@@ -397,9 +397,9 @@ function RatingRow({
             aria-pressed={value.rating === point}
             onClick={() => onValue({ rating: value.rating === point ? undefined : point })}
             className={cn(
-              "h-11 min-w-11 rounded-md border px-3 text-sm font-medium tabular-nums transition-colors",
+              "h-11 min-w-11 rounded-md px-3 text-sm font-medium tabular-nums transition-colors bg-muted/30",
               value.rating === point
-                ? "border-primary bg-primary/10 text-primary"
+                ? "bg-primary/10 text-primary"
                 : "border-input",
               interactive ? "hover:bg-muted" : "cursor-default",
             )}

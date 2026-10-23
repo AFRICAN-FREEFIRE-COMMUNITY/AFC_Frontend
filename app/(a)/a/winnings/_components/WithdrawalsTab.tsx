@@ -27,6 +27,7 @@ import {
 
 import { Pager, useAdminRefusal, useWagerRoles, WithdrawalStatusBadge } from "../../wagers/_components/shared";
 
+import { winningsPlayerPath } from "@/lib/routes";
 const LIMIT = 25;
 const FILTERS = ["OPEN", "REQUESTED", "PENDING_COSIGN", "APPROVED", "PAID", "FAILED", "REJECTED", "CANCELLED", "ALL"] as const;
 
@@ -134,7 +135,7 @@ export function WithdrawalsTab() {
                 {rows.map((w, i) => (
                   <TableRow key={w.token} className={i % 2 ? "bg-muted/40" : ""}>
                     <TableCell>{canApprove(w) && <Checkbox aria-label={w.token} checked={selected.includes(w.token)} onCheckedChange={() => setSelected((s) => (s.includes(w.token) ? s.filter((x) => x !== w.token) : [...s, w.token]))} />}</TableCell>
-                    <TableCell className="font-medium"><Link href={`/a/winnings/players/${w.user}`} className="hover:underline">{w.user}</Link></TableCell>
+                    <TableCell className="font-medium"><Link href={winningsPlayerPath(w.user)} className="hover:underline">{w.user}</Link></TableCell>
                     <TableCell className="text-right font-semibold">{naira(w.amount_kobo)}</TableCell>
                     <TableCell>
                       {w.bank.bank_name} {w.bank.account_number}

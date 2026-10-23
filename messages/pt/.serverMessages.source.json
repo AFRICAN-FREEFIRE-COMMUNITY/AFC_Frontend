@@ -1,0 +1,18 @@
+{
+  "login_ok": "Login successful.",
+  "signup_ok": "Signup successful. Please check your email for the verification code.",
+  "account_verified": "Account verified successfully.",
+  "verification_code_resent": "A new verification code has been sent to your email.",
+  "registration_ok": "Registered. Your Discord role is on its way.",
+  "registration_ok_team": "Team registered. Discord roles are on their way.",
+  "registration_pending_sponsor": "Registered. Your registration is waiting for the sponsor's approval.",
+  "registration_waitlisted": "Event is full. You have been added to the waitlist.",
+  "registration_waitlisted_team": "Event is full. Your team has been added to the waitlist.",
+  "reset_token_sent": "A password reset code has been sent to your email.",
+  "reset_token_valid": "Code accepted.",
+  "reset_token_resent": "A new password reset code has been sent to your email.",
+  "password_changed": "Password changed.",
+  "team_name_needs_letter": "A team name needs at least one letter or number.",
+  "team_name_reserved": "That name belongs to a page on AFC. Please choose another name.",
+  "email_invalid": "That email address does not look right. Please check it."
+}

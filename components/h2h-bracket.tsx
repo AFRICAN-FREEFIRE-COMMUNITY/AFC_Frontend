@@ -234,7 +234,7 @@ function MatchBox({
       onClick={openMain}
       onKeyDown={openMain ? (e) => { if (e.key === "Enter") openMain(); } : undefined}
       className={cn(
-        "bg-card w-48 rounded-md border text-xs shadow-sm",
+        "bg-card w-48 rounded-md text-xs shadow-sm",
         openMain && "hover:border-primary/60 cursor-pointer transition-colors",
       )}
     >
@@ -248,14 +248,14 @@ function MatchBox({
         </span>
         <div className="flex items-center gap-1.5">
           {match.is_bye && (
-            <Badge variant="outline" className="border-blue-500 px-1.5 py-0 text-[10px] text-blue-500">
+            <Badge variant="outline" className="px-1.5 py-0 text-[10px] text-blue-500">
               {t("bye")}
             </Badge>
           )}
           {awarded && (
             <Badge
               variant="outline"
-              className="border-orange-500 px-1.5 py-0 text-[10px] text-orange-500"
+              className="px-1.5 py-0 text-[10px] text-orange-500"
               title={match.result_note || undefined}
             >
               {dyn(t, "resultType_", match.result_type)}
@@ -402,7 +402,7 @@ function LeagueRounds({
                   title={clickable ? t("enterResult") : openRow ? t("matchDetails") : undefined}
                   onClick={openRow}
                   className={cn(
-                    "bg-card flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs",
+                    "bg-card flex items-center gap-2 rounded-md px-2 py-1.5 text-xs",
                     openRow && "hover:border-primary/60 cursor-pointer transition-colors",
                   )}
                 >
@@ -428,7 +428,7 @@ function LeagueRounds({
                   {m.result_type && m.result_type !== "normal" && (
                     <Badge
                       variant="outline"
-                      className="shrink-0 rounded-full border-orange-500 px-1.5 py-0 text-[10px] text-orange-500"
+                      className="shrink-0 rounded-full px-1.5 py-0 text-[10px] text-orange-500"
                       title={m.result_note || undefined}
                     >
                       {dyn(t, "resultType_", m.result_type)}
@@ -914,7 +914,7 @@ export function H2HBracketCard({
               <IconTrophy className="text-primary size-4" />
               {t("title")}
               {generated && bracket && (
-                <Badge variant="outline" className="border-primary text-primary">
+                <Badge variant="outline" className="text-primary">
                   {fmtLabel(bracket.fmt, t)}
                 </Badge>
               )}
@@ -1067,7 +1067,7 @@ export function H2HBracketCard({
               <div className="text-primary mb-2 text-sm font-semibold">{t("standings")}</div>
               {/* overflow-x-auto (P2): on a narrow phone the W-L / rounds columns must scroll inside
                   the card, not clip or push the page wide (overflow-hidden truncated them). */}
-              <div className="overflow-x-auto rounded-md border">
+              <div className="overflow-x-auto rounded-md bg-muted/30">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1157,7 +1157,7 @@ export function H2HBracketCard({
 
             {/* Bronze match opt-in. Single elimination only - see canOfferThirdPlace. */}
             {canOfferThirdPlace && (
-              <label className="flex cursor-pointer items-start gap-2 rounded-md border p-2.5">
+              <label className="flex cursor-pointer items-start gap-2 rounded-md p-2.5 bg-muted/30">
                 <Checkbox
                   checked={thirdPlace}
                   onCheckedChange={(v) => setThirdPlace(v === true)}
@@ -1188,7 +1188,7 @@ export function H2HBracketCard({
               {seeds.length === 0 ? (
                 <p className="text-muted-foreground text-xs">{t("noTeamsYet")}</p>
               ) : (
-                <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border p-1.5">
+                <div className="max-h-72 space-y-1 overflow-y-auto rounded-md p-1.5 bg-muted/30">
                   {seeds.map((s, i) => {
                     // Seed number = position among the INCLUDED teams only.
                     const seedNo = s.included
@@ -1371,15 +1371,15 @@ export function H2HBracketCard({
               than retyping it, and whether the two of them agree - which is most of what a
               dispute comes down to. */}
           {submissions.some((s) => s.status === "pending") && (
-            <div className="space-y-2 rounded-md border p-2.5">
+            <div className="space-y-2 rounded-md p-2.5 bg-muted/30">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-primary text-sm font-semibold">{t("teamSubmissions")}</span>
                 <Badge
                   variant="outline"
                   className={cn(
                     "rounded-full px-2 py-0.5 text-[10px]",
-                    agreement === "agree" && "border-green-500 text-green-500",
-                    agreement === "disagree" && "border-destructive text-destructive",
+                    agreement === "agree" && "text-green-500",
+                    agreement === "disagree" && "text-destructive",
                   )}
                 >
                   {dyn(t, "agreement_", agreement)}
@@ -1653,7 +1653,7 @@ export function H2HBracketCard({
                 <IconLoader2 className="size-3.5 animate-spin" /> {t("loading")}
               </p>
             ) : involved && !canReview && detailsFor?.status !== "completed" ? (
-              <div className="space-y-2 rounded-md border p-2.5">
+              <div className="space-y-2 rounded-md p-2.5 bg-muted/30">
                 <div>
                   <p className="text-primary text-sm font-semibold">{t("submitOurResult")}</p>
                   <p className="text-muted-foreground text-xs">{t("submitOurResultHint")}</p>

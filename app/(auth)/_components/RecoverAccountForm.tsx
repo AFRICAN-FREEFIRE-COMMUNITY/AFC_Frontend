@@ -243,7 +243,7 @@ export function RecoverAccountForm() {
   // changes because the same card fronts two different endings.
   const accountCard = (label: string) =>
     username ? (
-      <div className="rounded-md border bg-card p-4">
+      <div className="rounded-md bg-card p-4">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-sm font-medium break-all">{username}</p>
         {maskedEmail ? (
@@ -258,7 +258,7 @@ export function RecoverAccountForm() {
   const supportLine = (
     <p className="text-center text-sm">
       <span className="text-muted-foreground">{t("password.stuck")} </span>
-      <Link href="/contact" className="text-primary hover:underline">
+      <Link href="/support" className="text-primary hover:underline">
         {t("password.contactSupport")}
       </Link>
     </p>
@@ -300,7 +300,7 @@ export function RecoverAccountForm() {
             coming. Remove this line only when capture has actually moved. */}
         <p className="text-center text-sm">
           <span className="text-muted-foreground">{t("identify.reach")} </span>
-          <Link href="/contact" className="text-primary hover:underline">
+          <Link href="/support" className="text-primary hover:underline">
             {t("password.contactSupport")}
           </Link>
         </p>

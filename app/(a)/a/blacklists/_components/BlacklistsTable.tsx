@@ -132,8 +132,8 @@ function StatusBadge({ status, label }: { status: string; label: string }) {
       className={cn(
         "rounded-full px-2 py-0.5 text-xs capitalize",
         isActive
-          ? "border-green-500 text-green-600"
-          : "border-muted-foreground/40 text-muted-foreground",
+          ? "text-green-600"
+          : "text-muted-foreground",
       )}
     >
       {label}

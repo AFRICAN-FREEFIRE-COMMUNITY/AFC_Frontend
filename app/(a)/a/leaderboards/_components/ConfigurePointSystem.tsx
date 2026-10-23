@@ -303,7 +303,7 @@ export function ConfigurePointSystem({ onNext, onBack, parentFormData }: Props) 
 
         {/* Apply to all toggle */}
         <div
-          className={`flex items-start gap-3 rounded-lg border p-4 ${
+          className={`flex items-start gap-3 rounded-lg p-4 ${
             applyToAllMaps ? "bg-muted/30" : ""
           }`}
         >

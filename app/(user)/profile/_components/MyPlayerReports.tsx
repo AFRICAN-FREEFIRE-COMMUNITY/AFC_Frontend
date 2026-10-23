@@ -34,9 +34,9 @@ interface MyReport {
 // Status -> Badge styling. Resolved is green, dismissed muted, reviewing amber,
 // open default. Kept inline (small, local to this view).
 const STATUS_CLASS: Record<string, string> = {
-  open: "border-primary/50 text-primary",
-  reviewing: "border-yellow-500/60 text-yellow-600 dark:text-yellow-400",
-  resolved: "border-green-600/60 text-green-600 dark:text-green-400",
+  open: "text-primary bg-primary/10",
+  reviewing: "text-yellow-600 dark:text-yellow-400 bg-yellow-500/10",
+  resolved: "text-green-600 dark:text-green-400 bg-green-600/10",
   dismissed: "border-muted-foreground/40 text-muted-foreground",
 };
 
@@ -80,7 +80,7 @@ export function MyPlayerReports() {
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-primary">{t("mine.title")}</h3>
       {reports.map((r) => (
-        <div key={r.id} className="rounded-md border bg-card p-4 space-y-3">
+        <div key={r.id} className="rounded-md bg-card p-4 space-y-3">
           {/* header: who was reported + category + status */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">

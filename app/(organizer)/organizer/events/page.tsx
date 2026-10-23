@@ -144,8 +144,8 @@ function RankingsBadge({ verified }: { verified: boolean }) {
       variant="outline"
       className={
         verified
-          ? "border-green-500 text-green-600"
-          : "border-orange-500 text-orange-600"
+          ? "text-green-600"
+          : "text-orange-600"
       }
     >
       {t("eventsList.rankings.label")}:{" "}
@@ -517,7 +517,7 @@ export default function OrganizerEventsPage() {
                         {event.co_organizer_of && (
                           <Badge
                             variant="outline"
-                            className="border-primary text-primary"
+                            className="text-primary"
                             title={t("eventsList.coOrganizedHint", { name: event.co_organizer_of })}
                           >
                             {t("eventsList.coOrganizedBadge", { name: event.co_organizer_of })}
@@ -526,7 +526,7 @@ export default function OrganizerEventsPage() {
                         {event.is_draft && (
                           <Badge
                             variant="outline"
-                            className="border-muted-foreground text-muted-foreground"
+                            className="text-muted-foreground"
                           >
                             {t("eventsList.draftBadge")}
                           </Badge>

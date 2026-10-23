@@ -743,7 +743,7 @@ export default function OcrModelPage() {
                             {r.shipped ? (
                               <Badge
                                 variant="outline"
-                                className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+                                className="rounded-full px-2 py-0.5 text-xs text-green-600"
                               >
                                 <IconCircleCheck className="mr-1 size-3" />
                                 Shipped
@@ -751,7 +751,7 @@ export default function OcrModelPage() {
                             ) : (
                               <Badge
                                 variant="outline"
-                                className="rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
+                                className="rounded-full px-2 py-0.5 text-xs text-red-600"
                               >
                                 <IconCircleX className="mr-1 size-3" />
                                 Rejected
@@ -816,7 +816,7 @@ export default function OcrModelPage() {
                     {retrain.due ? (
                       <Badge
                         variant="outline"
-                        className="rounded-full border-gold px-2 py-0.5 text-xs text-gold"
+                        className="rounded-full px-2 py-0.5 text-xs text-gold"
                       >
                         <IconAlertTriangle className="mr-1 size-3" />
                         Retrain due
@@ -824,7 +824,7 @@ export default function OcrModelPage() {
                     ) : (
                       <Badge
                         variant="outline"
-                        className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+                        className="rounded-full px-2 py-0.5 text-xs text-green-600"
                       >
                         <IconCircleCheck className="mr-1 size-3" />
                         Up to date

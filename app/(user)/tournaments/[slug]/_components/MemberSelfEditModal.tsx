@@ -23,12 +23,15 @@
 import { useEffect, useState, useTransition } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { toastUidTaken } from "@/lib/uidTaken";
 import { useTranslations } from "next-intl";
 import { env } from "@/lib/env";
 import { compressImageForUpload } from "@/lib/imageCompress";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Label } from "@/components/ui/label";
 import { Loader } from "@/components/Loader";
 import {
@@ -58,6 +61,8 @@ interface MemberSelfEditModalProps {
 
 export function MemberSelfEditModal({ event, onSuccess }: MemberSelfEditModalProps) {
   const t = useTranslations("tournaments");
+  const tc = useTranslations("common");
+  const router = useRouter();
   // refreshUser re-reads the profile using the context token (falling back to the auth cookie), so the
   // post-save refresh works even for a session restored from the cookie where localStorage is empty.
   const { user, token, refreshUser } = useAuth();
@@ -128,7 +133,9 @@ export function MemberSelfEditModal({ event, onSuccess }: MemberSelfEditModalPro
         setOpen(false);
         onSuccess?.();
       } catch (e: any) {
-        // Backend returns clear messages (identity lock, UID-in-use, validation). Surface them.
+        // A UID already on another account names that account and links it (inbox #152).
+        if (toastUidTaken(e?.response?.data, tc, (path) => router.push(path))) return;
+        // Backend returns clear messages (identity lock, validation). Surface them.
         toast.error(e?.response?.data?.message || t("register.selfEdit.saveFailed"));
       }
     });
@@ -165,7 +172,7 @@ export function MemberSelfEditModal({ event, onSuccess }: MemberSelfEditModalPro
 
           <div className="space-y-1.5">
             <Label htmlFor="self-uid">{t("register.selfEdit.uid")}</Label>
-            <Input
+            <UidInput
               id="self-uid"
               value={uid}
               onChange={(e) => setUid(e.target.value)}

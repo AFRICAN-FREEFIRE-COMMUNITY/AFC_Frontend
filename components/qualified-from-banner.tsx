@@ -61,7 +61,7 @@ export function QualifiedFromBanner({ eventId }: { eventId: number }) {
   if (rows.length === 0) return null;
 
   return (
-    <Card className="border-gold/40 bg-gold/5">
+    <Card className="bg-gold/5">
       <CardContent className="space-y-2 py-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-gold">
           <IconTrophy className="size-4" /> {t("title")}
@@ -79,7 +79,7 @@ export function QualifiedFromBanner({ eventId }: { eventId: number }) {
               <Badge
                 key={name}
                 variant="outline"
-                className="rounded-full border-green-500 px-2 py-0.5 text-xs text-green-600"
+                className="rounded-full px-2 py-0.5 text-xs text-green-600"
               >
                 {name}
               </Badge>

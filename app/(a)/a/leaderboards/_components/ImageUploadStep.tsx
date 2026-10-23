@@ -333,7 +333,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                 </span>
               </div>
             ) : existingImages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 rounded-lg border border-dashed text-muted-foreground gap-2">
+              <div className="flex flex-col items-center justify-center py-8 rounded-lg text-muted-foreground gap-2 bg-muted/30">
                 <IconPhoto size={28} className="opacity-40" />
                 <p className="text-sm">{t("uploadSteps.imageStep.noImages")}</p>
               </div>
@@ -342,7 +342,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                 {existingImages.map((img, idx) => (
                   <div
                     key={img.image_id}
-                    className="relative group rounded-lg overflow-hidden border aspect-video bg-muted/20"
+                    className="relative group rounded-lg overflow-hidden aspect-video bg-muted/20"
                   >
                     <img
                       src={img.image_url}
@@ -420,9 +420,9 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
               className={cn(
-                "border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors",
+                "rounded-xl p-10 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-muted/30",
                 isDragging
-                  ? "border-primary bg-primary/5"
+                  ? "bg-primary/5"
                   : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/20",
               )}
             >
@@ -454,7 +454,7 @@ export function ImageUploadStep({ match, onNext, onBack }: Props) {
                   {pendingFiles.map(({ file, preview }, idx) => (
                     <div
                       key={idx}
-                      className="relative group rounded-lg overflow-hidden border aspect-video bg-muted/20"
+                      className="relative group rounded-lg overflow-hidden aspect-video bg-muted/20"
                     >
                       <img
                         src={preview}

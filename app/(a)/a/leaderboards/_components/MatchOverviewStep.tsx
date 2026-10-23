@@ -95,7 +95,7 @@ export function MatchOverviewStep({
                       match_name: match.match_map,
                     })
                   }
-                  className="text-left rounded-lg border p-4 hover:border-primary/60 hover:bg-muted/30 transition-colors space-y-2"
+                  className="text-left rounded-lg p-4 hover:bg-muted/30 transition-colors space-y-2 bg-muted/30"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

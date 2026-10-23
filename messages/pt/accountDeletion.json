@@ -65,5 +65,46 @@
     "restoreConflict": "Outra conta usa agora: {fields}. Resolva isso primeiro.",
     "restoreFailed": "Não foi possível repor a conta.",
     "loadMore": "Carregar mais"
+  },
+  "adminDelete": {
+    "button": "Eliminar conta",
+    "title": "Eliminar a conta de {username}?",
+    "description": "Só quando o jogador o pediu. A conta fica oculta e a sessão é terminada em todo o lado.",
+    "releases": "O nome no jogo, e-mail, UID e número de WhatsApp ficam livres para uma nova conta. Reponha-a em Contas eliminadas, desde que ninguém tenha ficado com eles entretanto.",
+    "howLabel": "Como pediu?",
+    "channels": {
+      "ticket": "Pedido de suporte",
+      "email": "E-mail",
+      "discord": "Discord",
+      "whatsapp": "WhatsApp",
+      "in_person": "Pessoalmente"
+    },
+    "refLabel": "Número do pedido ou ligação da mensagem (opcional)",
+    "refPlaceholder": "AFC-30D8E2",
+    "reasonLabel": "Motivo",
+    "reasonPlaceholder": "O jogador pediu para fechar a conta, já não joga.",
+    "reasonHelp": "Guardado no histórico de administração com o seu nome.",
+    "notify": "Enviar-lhe um e-mail a dizer que a conta foi eliminada a seu pedido, e como a recuperar",
+    "confirmLabel": "Escreva o nome no jogo ({username}) para confirmar",
+    "cancel": "Manter a conta",
+    "confirm": "Eliminar conta",
+    "success": "A conta de {username} foi eliminada. Reponha-a em Contas eliminadas.",
+    "loadFailed": "Não foi possível verificar esta conta. Tente novamente.",
+    "blockers": {
+      "account_suspended": "A conta está suspensa. Levante primeiro a suspensão.",
+      "account_banned": "A conta está banida. Não pode ser eliminada enquanto a banição durar.",
+      "account_is_staff": "Tem uma função de staff. Remova-a primeiro em Definições > Administradores.",
+      "owns_team": "É dono de uma equipa. Tem de ser passada a outra pessoa ou dissolvida primeiro.",
+      "in_team": "Está numa equipa. Remova-o primeiro da equipa, ou peça-lhe para sair.",
+      "owns_organization": "É dono de uma organização. Tem de ser passada primeiro a outro membro.",
+      "owns_sponsor": "É dono de uma conta de patrocinador. Tem de ser passada primeiro a outro membro.",
+      "owns_shop": "Tem uma loja. Feche-a primeiro."
+    },
+    "errors": {
+      "channel_invalid": "Escolha como o jogador pediu.",
+      "reason_required": "Escreva um motivo.",
+      "confirm_mismatch": "Escreva o nome no jogo exatamente como aparece."
+    },
+    "keeps": "Os resultados de partidas e o histórico de equipa ficam nos registos da AFC sob um nome oculto."
   }
 }

@@ -122,7 +122,7 @@ function CodeBlock({
       ) : null}
       {caption ? <p className="text-sm text-muted-foreground">{caption}</p> : null}
       <div className="flex items-start gap-2">
-        <pre className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs leading-relaxed">
+        <pre className="min-w-0 flex-1 overflow-x-auto rounded-md bg-muted/40 p-3 font-mono text-xs leading-relaxed">
           {sample}
         </pre>
         <CopyButton value={sample} label={t("copyAria")} />
@@ -155,10 +155,10 @@ function GuideTableBlock({
   );
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="overflow-x-auto rounded-md bg-muted/30">
       <table className="w-full min-w-[32rem] border-collapse text-xs">
         <thead>
-          <tr className="border-b bg-muted/40">
+          <tr className="bg-muted/40">
             {headers.map((h, i) => (
               <th
                 key={h}
@@ -171,9 +171,10 @@ function GuideTableBlock({
             ))}
           </tr>
         </thead>
-        <tbody>
+        {/* Rows told apart by a fill, never a line (owner design rule 2026-08-17). */}
+        <tbody className="zebra">
           {table.rows.map((row) => (
-            <tr key={row.id} className="border-b last:border-0">
+            <tr key={row.id}>
               {row.codes.map((code) => (
                 <td
                   key={code}
@@ -184,6 +185,9 @@ function GuideTableBlock({
               ))}
               <td className="p-2 align-top text-muted-foreground">
                 {t(`${base}.rows.${row.id}`)}
+                {/* A row added to the API after the guide shipped (an endpoint, a resource)
+                    wears the shared NEW tag for five days, then it disappears by itself. */}
+                {row.newSince ? <NewBadge since={row.newSince} className="ml-2" /> : null}
               </td>
             </tr>
           ))}
@@ -216,7 +220,7 @@ function Block({ sectionId, block }: { sectionId: string; block: GuideBlock }) {
   // that an absent field is absent rather than null.
   if (block.kind === "note" && block.id)
     return (
-      <p className="rounded-md border border-gold/40 bg-gold/5 p-3 text-sm text-muted-foreground">
+      <p className="rounded-md bg-gold/5 p-3 text-sm text-muted-foreground">
         {t(key(block.id))}
       </p>
     );
@@ -247,7 +251,7 @@ export function PartnerApiGuide() {
       {/* Connect card. Lifted above the prose because a partner arriving with a key in
           hand wants the base URL and one working call, not a preamble. */}
       <Card>
-        <CardHeader className="border-b">
+        <CardHeader>
           <CardTitle className="inline-flex items-center gap-2">
             <IconKey className="size-5 text-primary" />
             {t("connect.title")}
@@ -259,7 +263,7 @@ export function PartnerApiGuide() {
               {t("connect.baseUrl")}
             </p>
             <div className="flex items-center gap-2">
-              <code className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs">
+              <code className="min-w-0 flex-1 overflow-x-auto rounded-md bg-muted/40 p-3 font-mono text-xs">
                 {PARTNER_API_BASE_URL}
               </code>
               <CopyButton value={PARTNER_API_BASE_URL} label={t("copyAria")} />
@@ -270,7 +274,7 @@ export function PartnerApiGuide() {
             <p className="text-xs font-medium uppercase text-muted-foreground">
               {t("connect.authHeader")}
             </p>
-            <code className="block overflow-x-auto rounded-md border bg-muted/40 p-3 font-mono text-xs">
+            <code className="block overflow-x-auto rounded-md bg-muted/40 p-3 font-mono text-xs">
               {PARTNER_API_AUTH_HEADER}: afcp_3f9a_...
             </code>
           </div>
@@ -295,10 +299,11 @@ export function PartnerApiGuide() {
             <li key={section.id}>
               <a
                 href={`#${section.id}`}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md border bg-muted px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-muted px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
               >
                 <IconLink className="size-3.5" />
                 {t(`sections.${section.id}.title`)}
+                {section.newSince ? <NewBadge since={section.newSince} /> : null}
               </a>
             </li>
           ))}
@@ -308,8 +313,12 @@ export function PartnerApiGuide() {
       {/* The sections. scroll-mt keeps a linked heading clear of the sticky site header. */}
       {PARTNER_API_GUIDE.map((section) => (
         <Card key={section.id} id={section.id} className="scroll-mt-24">
-          <CardHeader className="border-b">
-            <CardTitle>{t(`sections.${section.id}.title`)}</CardTitle>
+          <CardHeader>
+            {/* A section added after the guide shipped wears the NEW tag for five days. */}
+            <CardTitle className="flex flex-wrap items-center gap-2">
+              {t(`sections.${section.id}.title`)}
+              {section.newSince ? <NewBadge since={section.newSince} /> : null}
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 pt-4">
             {section.blocks.map((block, i) => (

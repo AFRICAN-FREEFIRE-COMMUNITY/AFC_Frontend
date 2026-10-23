@@ -17,7 +17,6 @@
   "filters": {
     "title": "Ou filtrar por categoria",
     "tier": "Escalão",
-    "tierValue": "Escalão {tier}",
     "country": "País",
     "role": "Função",
     "language": "Idioma",

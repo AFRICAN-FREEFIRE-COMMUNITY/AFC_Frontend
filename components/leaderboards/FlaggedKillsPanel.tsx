@@ -325,7 +325,7 @@ export function FlaggedKillsPanel({
               <IconFlag className="size-4 text-orange-400" />
               {t("title")}
               {flags.length > 0 && (
-                <Badge variant="outline" className="rounded-full border-orange-500/40 px-2 py-0.5 text-[10px] text-orange-400">
+                <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-orange-400">
                   {t("flaggedBadge", { count: flags.length })}
                 </Badge>
               )}
@@ -370,7 +370,7 @@ export function FlaggedKillsPanel({
 
         {/* Combine picker: tick whole stages and/or individual groups to view flagged players across them. */}
         {pickerOpen && (
-          <div className="mt-2 space-y-2 rounded-lg border p-3">
+          <div className="mt-2 space-y-2 rounded-lg p-3 bg-muted/30">
             <p className="text-[11px] text-muted-foreground">{t("combineHint")}</p>
             {stages.length === 0 ? (
               <p className="text-[11px] text-muted-foreground">{t("noStages")}</p>
@@ -429,14 +429,14 @@ export function FlaggedKillsPanel({
                 <span className="text-[11px] font-medium text-muted-foreground">{t("bulkLabel")}</span>
                 <Button
                   type="button" size="sm" variant="outline" disabled={busy}
-                  className="h-7 gap-1 border-green-500/40 text-[11px] text-green-500 hover:text-green-500"
+                  className="h-7 gap-1 text-[11px] text-green-500 hover:text-green-500 bg-green-500/10"
                   onClick={() => bulkFlags(true)}
                 >
                   {t("bulkAcceptAll")}
                 </Button>
                 <Button
                   type="button" size="sm" variant="outline" disabled={busy}
-                  className="h-7 gap-1 border-orange-500/40 text-[11px] text-orange-400 hover:text-orange-400"
+                  className="h-7 gap-1 text-[11px] text-orange-400 hover:text-orange-400 bg-orange-500/10"
                   onClick={() => bulkFlags(false)}
                 >
                   {t("bulkRejectAll")}
@@ -484,7 +484,7 @@ export function FlaggedKillsPanel({
                       {/* Pending pill: a name-matched / cross-team flag explicitly held at
                           count_kills=false until an admin approves it via the Count select. */}
                       {f.count_kills === false && (
-                        <Badge variant="outline" className="rounded-full border-orange-500/40 px-2 py-0.5 text-[10px] text-orange-400">
+                        <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-orange-400">
                           {t("pending")}
                         </Badge>
                       )}
@@ -510,8 +510,8 @@ export function FlaggedKillsPanel({
                         className={
                           "rounded-full px-2 py-0.5 text-[10px] " +
                           (f.effective_count
-                            ? "border-green-500/40 text-green-400"
-                            : "border-muted-foreground/30 text-muted-foreground")
+                            ? "text-green-400"
+                            : "text-muted-foreground")
                         }
                       >
                         {f.effective_count ? t("counting") : t("excluded")}
@@ -541,7 +541,7 @@ export function FlaggedKillsPanel({
               {canManage && unmatched.length > 1 && (
                 <Button
                   type="button" size="sm" variant="outline" disabled={busy}
-                  className="h-7 gap-1 border-orange-500/40 text-[11px] text-orange-400 hover:text-orange-400"
+                  className="h-7 gap-1 text-[11px] text-orange-400 hover:text-orange-400 bg-orange-500/10"
                   onClick={bulkRejectTeams}
                 >
                   {t("bulkTeamsReject")}
@@ -549,7 +549,7 @@ export function FlaggedKillsPanel({
               )}
             </div>
             <p className="text-xs text-muted-foreground">{t("unmatchedSubtitle")}</p>
-            <div className="rounded-lg border divide-y">
+            <div className="rounded-lg zebra bg-muted/20 overflow-hidden">
               {unmatched.map((b) => (
                 <div
                   key={b.block_id}

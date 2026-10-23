@@ -170,7 +170,7 @@ export const BanModal = ({
           className={cn(
             "gap-2 font-medium",
             is_banned &&
-              "border-green-500/50 text-green-600 hover:bg-green-50 hover:text-green-700",
+              "text-green-600 hover:bg-green-50 hover:text-green-700 bg-green-500/10",
           )}
         >
           {is_banned ? (
@@ -309,9 +309,9 @@ export const BanModal = ({
                           key={r.id}
                           onClick={() => handleQuickReasonSelect(r.label)}
                           className={cn(
-                            "flex justify-start md:justify-center text-left md:text-center items-center gap-2 border p-3 rounded-md text-sm",
+                            "flex justify-start md:justify-center text-left md:text-center items-center gap-2 p-3 rounded-md text-sm bg-muted/30",
                             selected
-                              ? "border-red-500 bg-red-50 text-red-700"
+                              ? "bg-red-50 text-red-700"
                               : "hover:bg-red-50/60",
                           )}
                         >

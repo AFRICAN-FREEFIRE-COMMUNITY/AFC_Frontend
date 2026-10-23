@@ -194,7 +194,7 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
 
       {/* ── Tabs (Players | Teams) - AFC pill segment ── */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex rounded-md border bg-muted p-0.5">
+        <div className="inline-flex rounded-md bg-muted p-0.5">
           <button type="button" className={pillBtn(tab === "player")} onClick={() => setTab("player")}>
             <IconUser className="mr-1 inline size-4" />
             {labels.tabPlayers}
@@ -247,7 +247,7 @@ export function WatchlistManager({ labels }: { labels: WatchlistLabels }) {
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{e.subject_name}</span>
                         {e.source === "upload" && (
-                          <Badge variant="outline" className="rounded-full border-amber-500/60 px-2 py-0.5 text-[10px] text-amber-600 dark:text-amber-400">
+                          <Badge variant="outline" className="rounded-full px-2 py-0.5 text-[10px] text-amber-600 dark:text-amber-400">
                             {labels.sourceUpload}
                           </Badge>
                         )}

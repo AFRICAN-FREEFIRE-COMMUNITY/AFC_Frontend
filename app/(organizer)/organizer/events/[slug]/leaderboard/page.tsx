@@ -143,6 +143,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { env } from "@/lib/env";
+import { useOrgEventMove } from "@/lib/addressRef";
 import { useAuth } from "@/contexts/AuthContext";
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -241,6 +242,7 @@ import { WatchTag } from "@/components/WatchTag";
 // reused from the component so the seed helpers below stay type-aligned with the grid.
 import {
   MatchResultsGrid,
+  richFromRawPlayer,
   type EditRow as GridEditRow,
   type PlayerEditRow as GridPlayerEditRow,
   type TeamPlayerGroup as GridTeamPlayerGroup,
@@ -378,6 +380,7 @@ function statToTeamPlayerGroup(stat: GridRawStat): GridTeamPlayerGroup {
       damage: p.damage ?? 0,
       assists: p.assists ?? 0,
       played: true,
+      rich: richFromRawPlayer(p),
     })),
   };
 }
@@ -389,6 +392,8 @@ export default function OrganizerEventLeaderboardPage({
 }) {
   const { slug: routeSlug } = use(params);
   const { token } = useAuth();
+  // An old address (renamed event, legacy id) follows the event: lib/addressRef useOrgEventMove (inbox #209).
+  const followOrgEventMove = useOrgEventMove();
   const { membership, isOwner } = useOrganizer();
   // i18n: organizer-facing page, keys under the "organizer" namespace (eventLeaderboard.*).
   const t = useTranslations("organizer");
@@ -553,6 +558,7 @@ export default function OrganizerEventLeaderboardPage({
         const match = (data.events ?? []).find(
           (e: any) => e.slug === routeSlug,
         );
+        if (!match && (await followOrgEventMove(data.events ?? [], routeSlug, (s) => `/organizer/events/${s}/leaderboard`))) return;
         if (!match) {
           setNotMine(true);
         } else {
@@ -570,7 +576,7 @@ export default function OrganizerEventLeaderboardPage({
       }
     };
     resolve();
-  }, [routeSlug, organizationId, token, canUploadResults]);
+  }, [routeSlug, organizationId, token, canUploadResults, followOrgEventMove]);
 
   // ── 2) Load the leaderboard details for the resolved event_id ─────────────────
   // Same call the admin [id] page makes (POST get-all-leaderboard-details-for-event
@@ -1971,6 +1977,19 @@ export default function OrganizerEventLeaderboardPage({
     saving: t("eventLeaderboard.tools.saving"),
     watchLabel: t("eventLeaderboard.watch.label"),
     watchReason: t("eventLeaderboard.watch.reason"),
+    richKnocks: t("eventLeaderboard.matchResults.rich.knocks"),
+    richKnocked: t("eventLeaderboard.matchResults.rich.knocked"),
+    richDeaths: t("eventLeaderboard.matchResults.rich.deaths"),
+    richHeadshots: t("eventLeaderboard.matchResults.rich.headshots"),
+    richKnockAssists: t("eventLeaderboard.matchResults.rich.knockAssists"),
+    richRespawns: t("eventLeaderboard.matchResults.rich.respawns"),
+    richGrenades: t("eventLeaderboard.matchResults.rich.grenades"),
+    richGrenadeKills: t("eventLeaderboard.matchResults.rich.grenadeKills"),
+    richGloo: t("eventLeaderboard.matchResults.rich.gloo"),
+    richMedkits: t("eventLeaderboard.matchResults.rich.medkits"),
+    richSurvived: t("eventLeaderboard.matchResults.rich.survived"),
+    richFromCapture: t("eventLeaderboard.matchResults.rich.fromCapture"),
+    richFromBackfill: t("eventLeaderboard.matchResults.rich.fromBackfill"),
   };
 
   // Localised copy for the stored-evidence panel under the grid (owner 2026-07-07).
@@ -2182,7 +2201,7 @@ export default function OrganizerEventLeaderboardPage({
                           {m.missing_winner && (
                             <Badge
                               variant="outline"
-                              className="rounded-full border-amber-500/60 px-2 py-0.5 text-xs text-amber-600 dark:text-amber-400"
+                              className="rounded-full px-2 py-0.5 text-xs text-amber-600 dark:text-amber-400"
                               title={t("eventLeaderboard.missingWinnerTooltip")}
                             >
                               {t("eventLeaderboard.missingWinnerBadge")}
@@ -2195,7 +2214,7 @@ export default function OrganizerEventLeaderboardPage({
                 </Select>
               </div>
 
-              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <div className="p-3 bg-primary/5 rounded-lg">
                 <p className="text-[10px] font-semibold text-primary uppercase">
                   {t("eventLeaderboard.currentKillPoints")}
                 </p>
@@ -2805,7 +2824,7 @@ export default function OrganizerEventLeaderboardPage({
                       </p>
                     ) : (
                       <>
-                        <div className="rounded-md border overflow-hidden">
+                        <div className="rounded-md overflow-hidden bg-muted/30">
                           <Table>
                             <TableHeader>
                               <TableRow>
@@ -3137,7 +3156,7 @@ export default function OrganizerEventLeaderboardPage({
               addPlayerCandidates.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center justify-between rounded-md border px-3 py-2"
+                  className="flex items-center justify-between rounded-md px-3 py-2 bg-muted/30"
                 >
                   <span className="text-xs font-medium">{c.username}</span>
                   <Button

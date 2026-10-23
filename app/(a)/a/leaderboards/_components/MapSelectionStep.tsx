@@ -228,9 +228,9 @@ export function MapSelectionStep({
                   key={m.match_id}
                   onClick={() => setSelectedMatchId(m.match_id)}
                   className={cn(
-                    "text-left rounded-lg border p-4 flex flex-col gap-2 transition-colors",
+                    "text-left rounded-lg p-4 flex flex-col gap-2 transition-colors bg-muted/30",
                     selected
-                      ? "border-primary bg-primary/5"
+                      ? "bg-primary/5"
                       : "hover:border-primary/60 hover:bg-muted/30",
                   )}
                 >
@@ -288,9 +288,9 @@ export function MapSelectionStep({
             }}
             onClick={() => fileInputRef.current?.click()}
             className={cn(
-              "border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors",
+              "rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-colors bg-muted/30",
               isDragging
-                ? "border-primary bg-primary/5"
+                ? "bg-primary/5"
                 : "border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/20",
             )}
           >
@@ -312,7 +312,7 @@ export function MapSelectionStep({
               {shots.map((s) => (
                 <div
                   key={s.id}
-                  className="relative group rounded-lg overflow-hidden border aspect-video bg-muted/20"
+                  className="relative group rounded-lg overflow-hidden aspect-video bg-muted/20"
                 >
                   <img
                     src={s.url}

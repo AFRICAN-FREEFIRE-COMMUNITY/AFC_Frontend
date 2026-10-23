@@ -73,9 +73,12 @@ export const SupportThread = ({
   messages,
   ticketToken,
   showInternalNotes = false,
+  answeredBy,
 }: {
   messages: SupportMessage[];
   ticketToken?: string;
+  /** Inbox #175: on a question asked of an organizer, the answers are signed with its name. */
+  answeredBy?: string;
   /** Staff see the automatic "acknowledgement sent" rows; the requester does not need them. */
   showInternalNotes?: boolean;
 }) => {
@@ -103,7 +106,7 @@ export const SupportThread = ({
           >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="text-xs font-semibold">
-                {fromAfc ? t("thread.fromAfc") : m.author_name || t("thread.fromSender")}
+                {fromAfc ? answeredBy || t("thread.fromAfc") : m.author_name || t("thread.fromSender")}
                 {showInternalNotes && m.author_username ? (
                   <span className="text-muted-foreground font-normal">
                     {" "}

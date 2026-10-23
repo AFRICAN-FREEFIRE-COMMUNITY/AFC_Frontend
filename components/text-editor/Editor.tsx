@@ -65,7 +65,7 @@ export function RichTextEditor({ field }: { field: any }) {
   });
 
   return (
-    <div className="border w-full border-input rounded-md dark:bg-input/30 focus-within:ring-2 focus-within:ring-ring focus-within:border-ring transition-shadow">
+    <div className="w-full rounded-md dark:bg-input/30 has-focus-visible:ring-2 has-focus-visible:ring-ring transition-shadow bg-muted/30">
       <Menubar editor={editor} />
       <EditorContent editor={editor} />
       <div className="px-5 py-2 border-t border-input flex justify-end">

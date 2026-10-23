@@ -45,10 +45,20 @@
       "rule": "R62",
       "path": ".env",
       "reason": "tracked on purpose and holds only NEXT_PUBLIC_* values (the API origin, the site origin, a Google OAuth client id, which is public by design, and two feature flags); git log -p over every commit of the file shows no other key ever in it (checked 2026-09-18); secrets live in .env.local, which is ignored"
+    },
+    {
+      "rule": "R80",
+      "path": "GHSA-vfj7-8cjw-p6xm",
+      "reason": "accepted by the owner 2026-10-04 (inbox #142, \"accept it\"): braces <=3.0.3 stack exhaustion on deeply nested patterns, high, with NO patched release yet (pnpm audit: patched <0.0.0). Its only path is the lint toolchain, eslint-config-next > @next/eslint-plugin-next > fast-glob > micromatch > braces; pnpm audit --prod lists no advisory at all, so it is not in the shipped site or the server, and the glob patterns it parses are our own lint config, never visitor input. Review on 2026-11-04 or as soon as a fixed braces (or a fast-glob / micromatch that drops it) is published, then upgrade and delete this line"
     }
   ],
   "https": {
     "enforcedBy": "nginx on the VPS, in the backend repo's deploy kit (AFC-B deploy/vps/nginx-afc.conf): port 80 answers 301 to https; HSTS max-age=31536000 includeSubDomains on the site and the API host; read back live 2026-09-18",
     "verified": "2026-09-18"
+  },
+  "botProtection": {
+    "verifiedBy": "AFC-B afc_auth/bot_protection.py (Cloudflare Turnstile siteverify, called first in signup, support_contact, submit_feedback and submit_application)",
+    "verified": "2026-09-22",
+    "note": "this tree only renders the widget (components/BotCheck.tsx) and posts the token as cf_turnstile_response; the decision is the backend's, proven by AFC-B afc_auth/tests_bot_protection.py"
   }
 }

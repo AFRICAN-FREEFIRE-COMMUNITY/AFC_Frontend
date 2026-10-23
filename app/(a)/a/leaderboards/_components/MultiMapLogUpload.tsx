@@ -325,13 +325,13 @@ export function MultiMapLogPanel({
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           className={cn(
-            "flex w-full flex-col items-center gap-1 rounded-lg border border-dashed p-5 text-muted-foreground transition-colors",
+            "flex w-full flex-col items-center gap-1 rounded-lg bg-muted/30 p-5 text-muted-foreground transition-colors",
             busy || validMatches.length === 0
               ? "cursor-not-allowed opacity-50"
               : "cursor-pointer",
             isDragging
-              ? "border-primary bg-primary/5 text-primary"
-              : "hover:border-primary/60 hover:text-primary",
+              ? "bg-primary/15 text-primary"
+              : "hover:bg-muted/50 hover:text-primary",
           )}
         >
           <IconUpload size={22} />
@@ -353,7 +353,7 @@ export function MultiMapLogPanel({
 
         {/* Rows: one per file */}
         {rows.map((row, idx) => (
-          <div key={row.id} className="rounded-lg border p-3 text-xs">
+          <div key={row.id} className="rounded-lg p-3 text-xs bg-muted/30">
             <div className="flex items-center gap-2">
               <IconFile size={16} className="shrink-0 text-primary" />
               <span className="flex-1 truncate font-medium">{row.file.name}</span>
@@ -404,7 +404,7 @@ export function MultiMapLogPanel({
                         count: row.preview.parsed,
                       })}
                 </Badge>
-                <Badge variant="outline" className="rounded-full border-primary text-primary">
+                <Badge variant="outline" className="rounded-full text-primary">
                   {isSolo
                     ? t("uploadSteps.logUpload.savedSolo", {
                         count: row.preview.saved,
@@ -416,7 +416,7 @@ export function MultiMapLogPanel({
                 {row.preview.unmatched > 0 && (
                   <Badge
                     variant="outline"
-                    className="rounded-full border-amber-500 text-amber-600"
+                    className="rounded-full text-amber-600"
                   >
                     {isSolo
                       ? t("uploadSteps.logUpload.unmatchedSolo", {
@@ -438,7 +438,7 @@ export function MultiMapLogPanel({
               row.preview &&
               row.status !== "error" &&
               (row.preview.missingTeams?.length ?? 0) > 0 && (
-                <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-2">
+                <div className="mt-2 rounded-md bg-amber-500/5 p-2">
                   <p className="flex items-center gap-1 text-[11px] text-amber-600">
                     <IconAlertTriangle size={12} />
                     {t("uploadSteps.logUpload.teamsNotFound", {
@@ -572,7 +572,7 @@ function RowStatusBadge({ status }: { status: RowStatus }) {
     },
     reviewed: {
       label: t("uploadSteps.logUpload.status.reviewed"),
-      cls: "border-primary text-primary",
+      cls: "text-primary bg-primary/10",
     },
     applying: {
       label: t("uploadSteps.logUpload.status.applying"),
@@ -580,11 +580,11 @@ function RowStatusBadge({ status }: { status: RowStatus }) {
     },
     applied: {
       label: t("uploadSteps.logUpload.status.applied"),
-      cls: "border-primary text-primary",
+      cls: "text-primary bg-primary/10",
     },
     error: {
       label: t("uploadSteps.logUpload.status.error"),
-      cls: "border-destructive text-destructive",
+      cls: "text-destructive bg-destructive/10",
     },
   };
   const s = map[status];

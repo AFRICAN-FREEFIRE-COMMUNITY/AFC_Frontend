@@ -84,6 +84,8 @@ import {
 // The ghost create/delete dialogs hold their own form state, so a background refresh
 // never touches anything mid-typing.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { adminTeamPath } from "@/lib/routes";
+import { TierBadge, useTierLabel } from "@/components/rankings/TierBadge";
 
 // ── Ghost Teams (provisional placeholder teams used by Rankings & Tiering) ───
 // Shape mirrors the backend serialize_ghost() payload (afc_rankings/admin_ghost.py):
@@ -109,6 +111,7 @@ const emptyRoster = (): GhostPlayer[] =>
 export const TeamsAdminContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTier, setFilterTier] = useState("all");
+  const tierLabel = useTierLabel();
   const [currentPage, setCurrentPage] = useState(1);
   const [pending, startTransition] = useTransition();
   const [teams, setTeams] = useState<any>();
@@ -254,6 +257,20 @@ export const TeamsAdminContent = () => {
     fetchTeams(tick > 0);
   }, [tick]);
 
+  // The tier filter offers the published Rankings tiers the listed teams actually hold (tiers are
+  // extensible, so never a fixed 1-2-3 list), plus Unranked.
+  const tierCodes = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          ((teams as any[]) ?? [])
+            .map((team) => team.ranking_tier)
+            .filter((code: unknown): code is number => typeof code === "number"),
+        ),
+      ).sort((a, b) => a - b),
+    [teams],
+  );
+
   const filteredTeams = useMemo(() => {
     if (!teams) return [];
 
@@ -261,8 +278,10 @@ export const TeamsAdminContent = () => {
       // Use the shared matcher (lib/search.ts) so the team search is punctuation,
       // accent, and fancy-font insensitive: typing "ve" finds a team named "V-E".
       const matchesTeamSearch = matchesSearch(team.team_name, searchTerm);
+      // The published Rankings tier (inbox #162); "none" = unranked.
       const matchesTier =
-        filterTier === "all" || String(team.team_tier) === filterTier;
+        filterTier === "all" ||
+        (filterTier === "none" ? team.ranking_tier == null : String(team.ranking_tier) === filterTier);
 
       return matchesTeamSearch && matchesTier;
     });
@@ -327,9 +346,10 @@ export const TeamsAdminContent = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Tiers</SelectItem>
-              <SelectItem value="1">Tier 1</SelectItem>
-              <SelectItem value="2">Tier 2</SelectItem>
-              <SelectItem value="3">Tier 3</SelectItem>
+              {tierCodes.map((code) => (
+                <SelectItem key={code} value={String(code)}>{tierLabel(code)}</SelectItem>
+              ))}
+              <SelectItem value="none">{tierLabel(null)}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -364,7 +384,7 @@ export const TeamsAdminContent = () => {
                 paginatedTeams.map((team: any) => (
                   <TableRow key={team.team_name}>
                     <TableCell>{team.team_name}</TableCell>
-                    <TableCell>{team.team_tier}</TableCell>
+                    <TableCell><TierBadge tier={team.ranking_tier} className="text-xs" /></TableCell>
                     <TableCell>
                       {team.member_count ? team.member_count : 0}
                     </TableCell>
@@ -395,7 +415,7 @@ export const TeamsAdminContent = () => {
                           size="sm"
                           className="mr-2"
                         >
-                          <Link href={`/a/teams/${team.team_name}`}>View</Link>
+                          <Link href={adminTeamPath(team.team_name)}>View</Link>
                         </Button>
                         <BanModal
                           is_banned={team.is_banned}
@@ -556,14 +576,14 @@ export const TeamsAdminContent = () => {
                       {ghost.claim_status === "claimed" ? (
                         <Badge
                           variant="outline"
-                          className="border-green-600/60 text-green-400"
+                          className="text-green-400"
                         >
                           Claimed
                         </Badge>
                       ) : ghost.claim_status === "pending" ? (
                         <Badge
                           variant="outline"
-                          className="border-orange-500/40 text-orange-400"
+                          className="text-orange-400"
                         >
                           Pending
                         </Badge>
@@ -585,7 +605,7 @@ export const TeamsAdminContent = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                           onClick={() => {
                             setGhostDeleteReason("");
                             setDeleteGhost(ghost);
@@ -687,7 +707,7 @@ export const TeamsAdminContent = () => {
                       type="button"
                       variant="outline"
                       size="icon"
-                      className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                       disabled={ghostPlayers.length <= 1}
                       onClick={() => removeGhostPlayer(p.id)}
                       aria-label={`Remove player ${i + 1}`}

@@ -31,6 +31,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { IconArrowLeft, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
+import { useTierLabel } from "@/components/rankings/TierBadge";
 
 import { FullLoader } from "@/components/Loader";
 import { PageHeader } from "@/components/PageHeader";
@@ -149,7 +150,7 @@ export default function PollBuilderPage() {
   if (!poll) {
     return (
       <div className="py-10">
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="text-center text-sm text-muted-foreground">
             {t("notFound")}
           </CardContent>
@@ -177,7 +178,7 @@ export default function PollBuilderPage() {
         {poll.has_responses && (
           <Badge
             variant="outline"
-            className="rounded-full border-gold/50 px-2 py-0.5 text-xs text-gold"
+            className="rounded-full px-2 py-0.5 text-xs text-gold"
           >
             {t("questions.locked")}
           </Badge>
@@ -259,7 +260,7 @@ function BasicsTab({
   const [form, setForm] = useState<Record<string, any>>({ ...poll });
 
   return (
-    <Card className="bg-card rounded-md border py-6 shadow-sm">
+    <Card className="bg-card rounded-md py-6 shadow-sm">
       <CardContent className="space-y-5">
         <div className="space-y-1.5">
           <Label>{t("fields.title")}</Label>
@@ -366,7 +367,7 @@ function BasicsTab({
         />
 
         {form.subject === "team" && (
-          <div className="space-y-4 rounded-md border border-border p-3">
+          <div className="space-y-4 rounded-md p-3 bg-muted/30">
             <p className="text-xs font-semibold text-foreground">{t("team.heading")}</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -482,13 +483,13 @@ function QuestionsTab({
   return (
     <div className="space-y-4">
       {locked && (
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="text-xs text-muted-foreground">{t("questions.lockedHint")}</CardContent>
         </Card>
       )}
 
       {questions.map((question, index) => (
-        <Card key={question.question_id ?? `new-${index}`} className="bg-card rounded-md border py-6 shadow-sm">
+        <Card key={question.question_id ?? `new-${index}`} className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="space-y-3">
             <div className="flex items-start gap-2">
               <span className="mt-2 w-6 shrink-0 text-xs font-bold tabular-nums text-muted-foreground">
@@ -678,7 +679,7 @@ function AudienceTab({
 
   return (
     <div className="space-y-4">
-      <Card className="bg-card rounded-md border py-6 shadow-sm">
+      <Card className="bg-card rounded-md py-6 shadow-sm">
         <CardContent className="space-y-5">
           <SwitchRow
             label={t("audience.everyone")}
@@ -695,18 +696,11 @@ function AudienceTab({
                 selected={audience.countries || []}
                 onToggle={(value) => toggle("countries", value)}
               />
-              {/* TWO tier systems, never merged behind one control, and neither ever shows its raw
-                  number: team tier 1 is the BEST while season tier 0 (Elite) is the best, so an
-                  admin who read "tier 3" off one and applied it to the other would get the
-                  opposite of what they meant. */}
-              <ChipGroup
-                label={t("audience.teamTiers")}
-                hint={t("audience.teamTiersHint")}
-                values={["1", "2", "3"].map((value) => ({ value, label: `Tier ${value}` }))}
-                selected={audience.tiers || []}
-                onToggle={(value) => toggle("tiers", value)}
-              />
-              <SeasonTierPicker audience={audience} setAudience={setAudience} />
+              {/* ONE tier control (inbox #165, owner 2026-10-08: "broadcasts and polls should use
+                  the tiering everything else uses"): the published Rankings tier, for the team or
+                  the player, frozen when the poll opens. The hand-set "team tier" chips are gone;
+                  the backend folds an old `tiers` pick into this block so it freezes too. */}
+              <SeasonTierPicker audience={audience} setAudience={setAudience} tierOptions={options?.tiers} />
               <ChipGroup
                 label={t("audience.teamRoles")}
                 hint={t("audience.teamRolesHint")}
@@ -721,13 +715,6 @@ function AudienceTab({
                 selected={audience.team_roles || []}
                 onToggle={(value) => toggle("team_roles", value)}
               />
-              {(audience.tiers?.length > 0 || audience.season_tiers?.values?.length > 0) &&
-                audience.tiers?.length > 0 &&
-                audience.season_tiers?.values?.length > 0 && (
-                  <p className="rounded-md border border-gold/40 bg-gold/5 px-3 py-2 text-xs text-gold">
-                    {t("audience.intersectWarning")}
-                  </p>
-                )}
             </>
           )}
 
@@ -735,7 +722,7 @@ function AudienceTab({
               A person with an empty UID IS the audience, they simply cannot vote yet, so this
               never shrinks the count: ticking one and watching the number stay put is the
               visible form of that argument. */}
-          <div className="space-y-2 rounded-md border border-border p-3">
+          <div className="space-y-2 rounded-md p-3 bg-muted/30">
             <p className="text-sm font-medium text-foreground">{t("audience.beforeTheyVote")}</p>
             <p className="text-xs text-muted-foreground">{t("audience.beforeTheyVoteHint")}</p>
             <ChipGroup
@@ -771,11 +758,20 @@ function AudienceTab({
 function SeasonTierPicker({
   audience,
   setAudience,
+  tierOptions,
 }: {
   audience: Record<string, any>;
   setAudience: (next: Record<string, any>) => void;
+  // The tiers somebody holds in the latest PUBLISHED season (broadcast-audience options, as
+  // string codes), so the picker offers only tiers that select anybody. Tiers are extensible.
+  tierOptions?: { value: string; count: number }[];
 }) {
   const t = useTranslations("adminPolls");
+  const tierLabel = useTierLabel();
+  // Codes already on the rule stay pickable even if nobody holds them any more.
+  const codes = Array.from(
+    new Set([...(tierOptions ?? []).map((o) => Number(o.value)), ...((audience.season_tiers?.values as number[]) ?? [])]),
+  ).sort((a, b) => a - b);
   const block = audience.season_tiers || { scope: "team", values: [] };
   const toggle = (value: number) => {
     const values: number[] = block.values || [];
@@ -793,18 +789,18 @@ function SeasonTierPicker({
           a ballot on Monday and refuse their submission on Tuesday. */}
       <p className="text-xs text-muted-foreground">{t("audience.seasonTiersHint")}</p>
       <div className="flex flex-wrap gap-1.5">
-        {[0, 1, 2, 3].map((value) => (
+        {codes.map((value) => (
           <button
             key={value}
             type="button"
             onClick={() => toggle(value)}
-            className={`rounded-full border px-3 py-1 text-xs ${
+            className={`rounded-full px-3 py-1 text-xs ${
               (block.values || []).includes(value)
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-input text-muted-foreground"
+                ? "bg-primary/15 font-medium text-primary"
+                : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
           >
-            {t(`seasonTier.${value}`)}
+            {tierLabel(value)}
           </button>
         ))}
       </div>
@@ -850,10 +846,10 @@ function ChipGroup({
             key={option.value}
             type="button"
             onClick={() => onToggle(option.value)}
-            className={`rounded-full border px-3 py-1 text-xs ${
+            className={`rounded-full px-3 py-1 text-xs ${
               selected.includes(option.value)
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-input text-muted-foreground"
+                ? "bg-primary/15 font-medium text-primary"
+                : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
           >
             {option.label}
@@ -887,7 +883,7 @@ function BranchingTab({
 
   return (
     <div className="space-y-4">
-      <Card className="bg-card rounded-md border py-6 shadow-sm">
+      <Card className="bg-card rounded-md py-6 shadow-sm">
         <CardContent className="space-y-2 text-xs text-muted-foreground">
           <p>{t("branching.intro")}</p>
           <p>{t("branching.watchable")}</p>
@@ -897,7 +893,7 @@ function BranchingTab({
       {rules.map((rule, index) => {
         const watched = saved.find((q) => q.question_id === rule.when_question_id);
         return (
-          <Card key={index} className="bg-card rounded-md border py-6 shadow-sm">
+          <Card key={index} className="bg-card rounded-md py-6 shadow-sm">
             <CardContent className="space-y-3">
               {/* The whole logic of a poll reads as a list of sentences. That readability is the
                   entire reason branching is a flat rule list rather than a node graph. */}
@@ -1144,7 +1140,7 @@ function ResultsTab({ slug, onChanged }: { slug: string; onChanged: () => void }
           Tier 1 teams identifies people whatever a small-cell floor says, and an anonymous poll
           promised that would not happen. */}
       {!results.breakdowns_available && (
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="text-xs text-muted-foreground">
             {t("results.anonymousNote")}
           </CardContent>
@@ -1158,7 +1154,7 @@ function ResultsTab({ slug, onChanged }: { slug: string; onChanged: () => void }
       </div>
 
       {results.questions.map((question: any) => (
-        <Card key={question.question_id} className="bg-card rounded-md border py-6 shadow-sm">
+        <Card key={question.question_id} className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="space-y-2">
             <p className="text-sm font-semibold text-foreground">{question.prompt}</p>
             {question.options.map((option: any) => (
@@ -1190,7 +1186,7 @@ function ResultsTab({ slug, onChanged }: { slug: string; onChanged: () => void }
       ))}
 
       {results.team_results?.length > 0 && (
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardContent className="space-y-2">
             <p className="text-sm font-semibold text-foreground">{t("results.teamResults")}</p>
             {results.team_results.map((row: any, index: number) => (
@@ -1213,7 +1209,7 @@ function ResultsTab({ slug, onChanged }: { slug: string; onChanged: () => void }
 
 function StatTile({ label, value }: { label: string; value: string | number }) {
   return (
-    <Card className="bg-card rounded-md border py-6 shadow-sm">
+    <Card className="bg-card rounded-md py-6 shadow-sm">
       <CardContent>
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{value}</p>

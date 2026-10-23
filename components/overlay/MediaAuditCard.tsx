@@ -245,10 +245,10 @@ const MediaRow = ({
           aria-label={`${t("mediaAudit.viewLarger")}: ${label}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={img} alt="" className="size-7 rounded border object-contain" />
+          <img src={img} alt="" className="size-7 rounded object-contain bg-muted/30" />
         </button>
       ) : (
-        <IconPhotoOff className="text-muted-foreground size-7 rounded border p-1" />
+        <IconPhotoOff className="text-muted-foreground size-7 rounded p-1 bg-muted/30" />
       )}
       <div className="min-w-0">
         <p className="truncate text-xs font-medium">{label}</p>
@@ -294,7 +294,7 @@ const MediaRow = ({
           <>
             <Badge
               variant="outline"
-              className="rounded-full border-orange-500/60 px-2 py-0 text-[0.6rem] text-orange-500"
+              className="rounded-full px-2 py-0 text-[0.6rem] text-orange-500"
               title={checkReason}
             >
               <IconEyeQuestion className="mr-0.5 size-3" />
@@ -315,13 +315,13 @@ const MediaRow = ({
           </>
         ) : null}
         {missing ? (
-          <Badge variant="outline" className="rounded-full border-amber-500/50 px-2 py-0 text-[0.6rem] text-amber-500">
+          <Badge variant="outline" className="rounded-full px-2 py-0 text-[0.6rem] text-amber-500">
             {t("mediaAudit.missing")}
           </Badge>
         ) : (
           <>
             {flaggedState ? (
-              <Badge variant="outline" className="rounded-full border-red-500/50 px-2 py-0 text-[0.6rem] text-red-500">
+              <Badge variant="outline" className="rounded-full px-2 py-0 text-[0.6rem] text-red-500">
                 {t("mediaAudit.flaggedBadge")}
               </Badge>
             ) : (
@@ -512,7 +512,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
 
   if (loading) {
     return (
-      <div className="bg-card rounded-md border p-4 shadow-sm">
+      <div className="bg-card rounded-md p-4 shadow-sm">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <IconLoader2 className="size-4 animate-spin" />
           {t("mediaAudit.loading")}
@@ -528,7 +528,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
 
 
   return (
-    <div className="bg-card rounded-md border p-4 shadow-sm">
+    <div className="bg-card rounded-md p-4 shadow-sm">
       <div className="mb-2 flex items-center gap-2">
         <IconPhotoCheck className="text-primary size-4" />
         <h3 className="text-primary text-sm font-semibold">{t("mediaAudit.title")}</h3>
@@ -555,7 +555,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
           <p className="text-muted-foreground mb-1 text-[0.68rem] font-semibold uppercase tracking-wide">
             {t("mediaAudit.teamLogos")}
           </p>
-          <div className="divide-border max-h-64 divide-y overflow-y-auto pr-1">
+          <div className="max-h-64 overflow-y-auto pr-1 zebra">
             {teams.length === 0 ? (
               <p className="text-muted-foreground py-3 text-xs italic">{t("mediaAudit.noTeams")}</p>
             ) : (
@@ -583,7 +583,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
           <p className="text-muted-foreground mb-1 text-[0.68rem] font-semibold uppercase tracking-wide">
             {t("mediaAudit.playerImages")}
           </p>
-          <div className="divide-border max-h-64 divide-y overflow-y-auto pr-1">
+          <div className="max-h-64 overflow-y-auto pr-1 zebra">
             {players.length === 0 ? (
               <p className="text-muted-foreground py-3 text-xs italic">{t("mediaAudit.noPlayers")}</p>
             ) : (
@@ -628,7 +628,7 @@ export function MediaAuditCard({ eventId }: { eventId: number }) {
             <img
               src={lightbox.src}
               alt={lightbox.label}
-              className="max-h-[70vh] w-full rounded-md border object-contain"
+              className="max-h-[70vh] w-full rounded-md object-contain bg-muted/30"
             />
           ) : null}
         </DialogContent>

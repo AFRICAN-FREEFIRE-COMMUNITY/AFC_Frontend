@@ -492,9 +492,9 @@ export const defaultMetadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
-  alternates: {
-    canonical: siteConfig.url,
-  },
+  // NO site-wide canonical (removed 2026-10-16). Next merges metadata shallowly, so a default here
+  // became the canonical of every page that forgot its own, pointing Google at the home page.
+  // Each page declares its own; scripts/check-seo.mjs (CANONICAL-INHERITED) fails one that does not.
   category: "esports",
 };
 
@@ -648,21 +648,50 @@ export function resolveOgImage(raw?: string | null): string {
 }
 
 /**
- * Format a raw team_tier value into a clean human label for copy/badges.
- * The backend stores tier as a bare code: "3", "tier_3", or sometimes a ready
- * label like "Tier 3". This normalizes all of them to "Tier 3"; an already-nice
- * label is returned as-is, and an empty value yields null (so callers can omit it).
- * Used by the team layout description and the team OG card.
+ * A team's published RANKING tier code as the label the Rankings page shows: code 0 -> "Tier 1".
+ * null / undefined (unranked) -> null, so a description can simply leave the tier out.
+ * The code is `ranking_tier` on the team endpoints (inbox #162, 8 Oct 2026); it replaced the
+ * hand-set team_tier, which said "3" for every team. Server-side twin of components/rankings/
+ * TierBadge.tsx useTierLabel, for metadata and the OG card. Used by the team layout, the team OG
+ * card, the invite page and the admin team page descriptions.
  */
-export function formatTier(raw?: string | number | null): string | null {
-  if (raw === null || raw === undefined || raw === "") return null;
-  const s = String(raw).trim();
-  // Bare number ("3") or "tier_3"/"tier-3" → "Tier 3".
-  const m = s.match(/(?:tier[_\s-]*)?(\d+)/i);
-  if (m) return `Tier ${m[1]}`;
-  // Already a friendly label (e.g. "Pro", "Tier 1") → leave it.
-  return s;
+export function formatTier(code?: string | number | null): string | null {
+  if (code === null || code === undefined || code === "") return null;
+  const n = Number(code);
+  return Number.isFinite(n) ? `Tier ${n + 1}` : null;
 }
+
+/**
+ * WHICH ENTITY PAGES ASK TO BE IN GOOGLE, AND WHICH ARE LISTED IN THE SITEMAP: the one rule.
+ *
+ * Search Console, 2026-10-16: 10 organization pages were "Soft 404" (every one an organization with
+ * no event: the page says "This organization has no events yet") and hundreds of team pages were
+ * "Crawled / Discovered, currently not indexed" (764 of 933 teams have never played an event).
+ *   - organization: no published event -> noindex,follow and out of the sitemap. The page has
+ *     nothing to find it for, and Google already reads it as empty.
+ *   - team: ALWAYS indexable (a team name is something people search, and noindexing 764 pages
+ *     would only move them to another Search Console list); listed in the sitemap only once it
+ *     has PLAYED an event (events_played, AFC-B team_activity, the same number on the list and on
+ *     the page), so the sitemap names the pages with something on them.
+ * Read by app/sitemap.ts and app/(user)/organizations/[slug]/layout.tsx. Change the rule HERE.
+ */
+export const indexRules = {
+  organization(eventCount: number | null | undefined) {
+    const has = (eventCount ?? 0) > 0;
+    return { index: has, sitemap: has };
+  },
+  team(eventsPlayed: number | null | undefined) {
+    return { index: true, sitemap: (eventsPlayed ?? 0) > 0 };
+  },
+  // A product that is not on sale (archived) keeps its page, which says it is no longer available
+  // to anyone holding an old link or an order, but asks not to be listed (Search Console
+  // 2026-10-16 listed /shop/tomiwa-coins, archived since the day it was made). The sitemap side is
+  // already held by the backend: app/sitemap.ts reads /shop/view-active-products/.
+  product(status: string | null | undefined) {
+    const onSale = status === "active";
+    return { index: onSale, sitemap: onSale };
+  },
+};
 
 /**
  * Build a complete, rich link-embed Metadata object for a single ENTITY page.
@@ -690,6 +719,7 @@ export function buildEntityMetadata({
   publishedTime,
   authors,
   omitImage = false,
+  noIndex = false,
 }: {
   title: string;
   description: string;
@@ -704,6 +734,9 @@ export function buildEntityMetadata({
   // the single image and we don't emit a second, competing tag. The Twitter card
   // type stays "summary_large_image" so the generated image still renders LARGE.
   omitImage?: boolean;
+  // noindex,follow: the page stays open to everyone and its links are still followed, but it asks
+  // not to be listed in search (indexRules above decides when).
+  noIndex?: boolean;
 }): Metadata {
   const pageUrl = `${siteConfig.url}${path}`;
   const fullTitle = `${title} | ${siteConfig.shortName}`;
@@ -735,6 +768,7 @@ export function buildEntityMetadata({
       ...(ogImage ? { images: [ogImage] } : {}),
     },
     alternates: { canonical: pageUrl },
+    ...(noIndex ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
@@ -935,14 +969,9 @@ export function generateWebsiteSchema() {
     alternateName: siteConfig.shortName,
     url: siteConfig.url,
     description: siteConfig.description,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: {
-        "@type": "EntryPoint",
-        urlTemplate: `${siteConfig.url}/teams?search={search_term_string}`,
-      },
-      "query-input": "required name=search_term_string",
-    },
+    // NO potentialAction / SearchAction (removed 2026-10-16). Google retired the sitelinks search
+    // box it powered, and the template address /teams?search={search_term_string} itself showed up
+    // in Search Console as a crawled page. scripts/check-seo.mjs (SEARCH-ACTION) keeps it out.
   };
 }
 

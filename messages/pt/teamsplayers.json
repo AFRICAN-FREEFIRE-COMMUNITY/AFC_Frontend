@@ -28,11 +28,12 @@
   "errors": {
     "generic": "Ops! Ocorreu um erro",
     "internalServer": "Erro interno do servidor",
-    "imageType": "Apenas arquivos PNG, JPG, JPEG ou WEBP são suportados."
+    "imageType": "Apenas arquivos PNG, JPG, JPEG ou WEBP são suportados.",
+    "signInAgain": "Sua sessão expirou. Entre novamente para criar sua equipe."
   },
   "teamsList": {
-    "pageTitle": "Equipes",
-    "pageDescription": "Explore e gerencie equipes de Freefire",
+    "pageTitle": "Equipes e jogadores",
+    "pageDescription": "Encontre equipes e jogadores de toda a África, abra os perfis ou crie sua própria equipe.",
     "createTeam": "Criar Equipe",
     "searchPlaceholder": "Buscar equipes...",
     "tabAllTeams": "Todas as Equipes",
@@ -41,7 +42,6 @@
     "allTeamsDescription": "Visualize e gerencie todas as equipes no sistema",
     "banned": "BANIDO",
     "members": "Membros: {count}",
-    "tier": "Nível: {tier}",
     "viewTeam": "Ver Equipe",
     "applied": "Candidatado",
     "applyToJoin": "Candidatar-se",
@@ -54,7 +54,6 @@
     "noTeamsAvailable": "Nenhuma equipe disponível.",
     "showing": "Mostrando {start}-{end} de {total}",
     "loadError": "Ops! Falha ao carregar equipes",
-    "tierLabel": "Nível {tier}",
     "memberCount": "{count, plural, =0 {# membros} one {# membro} other {# membros}}",
     "founded": "Fundada em <date></date>",
     "yourRole": "Seu Papel",
@@ -745,5 +744,20 @@
     "playerCount": "{count} jogadores",
     "noTeam": "Sem equipa registada",
     "tabLabel": "Perfis por reclamar"
+  },
+  "playersDirectory": {
+    "tabTeams": "Equipes",
+    "tabPlayers": "Jogadores",
+    "title": "Todos os jogadores",
+    "description": "Jogadores que estão em uma equipe ou têm uma partida registrada, por nome. Abra um jogador para ver o perfil.",
+    "searchPlaceholder": "Buscar pelo nome no jogo ou UID completo...",
+    "countryLabel": "País",
+    "allCountries": "Todos os países",
+    "noTeam": "Sem equipe",
+    "loading": "Carregando jogadores...",
+    "error": "Não foi possível carregar os jogadores.",
+    "retry": "Tentar novamente",
+    "empty": "Nenhum jogador para mostrar ainda.",
+    "noMatch": "Nenhum jogador corresponde à sua busca."
   }
 }

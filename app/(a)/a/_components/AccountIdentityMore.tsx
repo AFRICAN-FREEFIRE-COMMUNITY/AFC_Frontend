@@ -127,7 +127,7 @@ export const EditUsernameDialog = ({
         {/* Mid-event warning. The player's own edit is frozen here; the admin is the escape hatch,
             so this explains the cost instead of blocking (same treatment as the UID dialog). */}
         {identity.identity_locked && (
-          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3">
+          <div className="rounded-md bg-amber-500/10 p-3">
             <p className="flex items-center gap-1.5 text-xs font-medium text-amber-600 dark:text-amber-400">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0" />{" "}
               {lockedEvents ? t("lockedIn", { events: lockedEvents }) : t("username.lockedTitle")}
@@ -153,7 +153,7 @@ export const EditUsernameDialog = ({
             <p className="text-xs text-muted-foreground">{t("username.hint")}</p>
           </div>
 
-          <div className="rounded-md border bg-muted/40 p-3">
+          <div className="rounded-md bg-muted/40 p-3">
             <p className="text-xs font-medium">{t("username.consequencesTitle")}</p>
             <ul className="mt-1.5 space-y-1">
               <Consequence>{t("username.consequenceSignIn")}</Consequence>
@@ -343,7 +343,7 @@ export const EditWhatsappDialog = ({
 
         {confirmingRemove ? (
           <div className="space-y-3">
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3">
+            <div className="rounded-md bg-destructive/10 p-3">
               <p className="text-xs font-medium text-destructive">{t("whatsapp.removeTitle")}</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 {t("whatsapp.removeBody", {
@@ -394,7 +394,7 @@ export const EditWhatsappDialog = ({
 
             {/* Why this one is heavier than a contact-detail edit. Stated before saving, because
                 the number decides who can recover the account. */}
-            <div className="rounded-md border bg-muted/40 p-3">
+            <div className="rounded-md bg-muted/40 p-3">
               <p className="text-xs font-medium">{t("whatsapp.consequencesTitle")}</p>
               <ul className="mt-1.5 space-y-1">
                 <Consequence>{t("whatsapp.consequenceRecovery")}</Consequence>

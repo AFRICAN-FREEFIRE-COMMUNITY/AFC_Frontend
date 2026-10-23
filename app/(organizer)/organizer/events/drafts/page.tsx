@@ -226,7 +226,7 @@ export default function OrganizerDraftsPage() {
                         {draft.event_name || t("drafts.untitled")}
                         <Badge
                           variant="outline"
-                          className="border-muted-foreground text-muted-foreground"
+                          className="text-muted-foreground"
                         >
                           {t("drafts.draftBadge")}
                         </Badge>

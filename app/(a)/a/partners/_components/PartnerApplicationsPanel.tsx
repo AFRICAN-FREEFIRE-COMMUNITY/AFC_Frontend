@@ -117,10 +117,10 @@ const DATA_TOGGLES = [
 ] as const;
 
 const STATUS_CLASS: Record<ApplicationStatus, string> = {
-  pending: "border-blue-500/60 text-blue-400",
-  changes_requested: "border-gold/60 text-gold",
-  approved: "border-primary/60 text-primary",
-  rejected: "border-destructive/60 text-destructive",
+  pending: "text-blue-400 bg-blue-500/10",
+  changes_requested: "text-gold bg-gold/10",
+  approved: "text-primary bg-primary/10",
+  rejected: "text-destructive bg-destructive/10",
 };
 
 export default function PartnerApplicationsPanel() {
@@ -395,7 +395,7 @@ export default function PartnerApplicationsPanel() {
                 {/* Repeat applications from the same address. The one signal that a rejection is
                     being appealed by resubmission, which rejected-is-terminal makes possible. */}
                 {detail.earlier_applications > 0 && (
-                  <p className="rounded-md border border-gold/40 bg-gold/5 p-3 text-xs text-gold">
+                  <p className="rounded-md bg-gold/5 p-3 text-xs text-gold">
                     {t("admin.earlier", { count: detail.earlier_applications })}
                   </p>
                 )}
@@ -450,7 +450,7 @@ export default function PartnerApplicationsPanel() {
                       <img
                         src={detail.logo_url}
                         alt={detail.organisation_name}
-                        className="size-12 rounded-md border object-contain"
+                        className="size-12 rounded-md object-contain bg-muted/30"
                       />
                     </div>
                   )}
@@ -515,7 +515,7 @@ export default function PartnerApplicationsPanel() {
                           {SSO_TOGGLES.map((field) => (
                             <label
                               key={field}
-                              className="flex items-center justify-between gap-2 rounded-md border p-2 text-xs"
+                              className="flex items-center justify-between gap-2 rounded-md p-2 text-xs bg-muted/30"
                             >
                               <span>{t(`admin.toggles.${field}`)}</span>
                               <Switch
@@ -537,7 +537,7 @@ export default function PartnerApplicationsPanel() {
                           {DATA_TOGGLES.map((field) => (
                             <label
                               key={field}
-                              className="flex items-center justify-between gap-2 rounded-md border p-2 text-xs"
+                              className="flex items-center justify-between gap-2 rounded-md p-2 text-xs bg-muted/30"
                             >
                               <span className="font-mono">{field}</span>
                               <Switch
@@ -581,7 +581,7 @@ export default function PartnerApplicationsPanel() {
 
                 {/* ── Already decided: what exists now, and the reissue button ── */}
                 {detail.status === "approved" && (
-                  <section className="flex flex-col gap-3 rounded-md border border-primary/40 bg-primary/5 p-4">
+                  <section className="flex flex-col gap-3 rounded-md bg-primary/5 p-4">
                     <h3 className="text-sm font-medium text-primary">
                       {t("admin.provisioned")}
                     </h3>

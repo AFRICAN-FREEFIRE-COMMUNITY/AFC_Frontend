@@ -23,6 +23,10 @@
         "4": {
           "title": "Restrição relativa a várias equipas",
           "content": "Os jogadores não podem jogar nem assinar contrato com mais do que uma equipa de cada vez. Esta regra aplica-se tanto à participação em torneios como a jogos de treino."
+        },
+        "5": {
+          "title": "Contas",
+          "content": "Cada conta Free Fire (UID) pertence a uma única conta AFC, e cada conta AFC a uma única pessoa. Não partilhe, não venda e não compre contas. Se um UID com que joga já estiver ligado a outra conta AFC, resolva-o com o vendedor ou com quem partilhou a conta; o suporte da AFC não move UIDs entre contas."
         }
       }
     },

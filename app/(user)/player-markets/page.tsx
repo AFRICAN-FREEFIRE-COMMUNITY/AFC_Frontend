@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +76,7 @@ import {
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { useLocale, useTranslations } from "next-intl";
+import { TierBadge } from "@/components/rankings/TierBadge";
 // Type-to-search phone picker (curated list + free-text "Other") for the Current Mobile Device
 // field. Feature 1 of the "Player Available Post" set (owner 2026-06-29).
 import { PhoneCombobox } from "@/components/ui/phone-combobox";
@@ -114,6 +115,7 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 import { PlayerLink, TeamLink } from "@/components/ui/entity-link";
 import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
+import { teamPath } from "@/lib/routes";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -224,11 +226,11 @@ function labelFor(list: { value: string; label: string }[], value: string) {
 function getTierColor(tier: string) {
   switch (tier) {
     case "TIER_1":
-      return "bg-yellow-900/20 text-yellow-400 border-yellow-800";
+      return "bg-yellow-900/20 text-yellow-400";
     case "TIER_2":
-      return "bg-cyan-900/20 text-cyan-400 border-cyan-800";
+      return "bg-cyan-900/20 text-cyan-400";
     case "TIER_3":
-      return "bg-purple-900/20 text-purple-400 border-purple-800";
+      return "bg-purple-900/20 text-purple-400";
     default:
       return "";
   }
@@ -348,7 +350,7 @@ function CountryMultiSelect({
     <div className="relative">
       {/* Trigger */}
       <div
-        className={`min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm flex flex-wrap gap-1.5 ${
+        className={`min-h-10 w-full rounded-md bg-background px-3 py-2 text-sm flex flex-wrap gap-1.5 ${
           disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
         }`}
         onClick={() => !disabled && setOpen((o) => !o)}
@@ -380,7 +382,7 @@ function CountryMultiSelect({
 
       {/* Dropdown */}
       {open && !disabled && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+        <div className="absolute z-50 mt-1 w-full rounded-md bg-popover shadow-md">
           <div className="p-2">
             <Input
               placeholder={searchPlaceholder ?? t("countrySelect.searchPlaceholder")}
@@ -405,7 +407,7 @@ function CountryMultiSelect({
                     className="w-full flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent text-left"
                   >
                     <div
-                      className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${
+                      className={`h-4 w-4 rounded flex items-center justify-center shrink-0 ${
                         value.includes(c)
                           ? "bg-primary border-primary"
                           : "border-input"
@@ -507,7 +509,7 @@ function ScreenshotPicker({
           {previews.map((src, idx) => (
             <div
               key={idx}
-              className="relative h-20 w-20 overflow-hidden rounded-md border bg-muted"
+              className="relative h-20 w-20 overflow-hidden rounded-md bg-muted"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -528,7 +530,7 @@ function ScreenshotPicker({
         </div>
       )}
       {files.length < max && (
-        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground hover:bg-accent">
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground hover:bg-accent">
           <IconUpload className="h-3.5 w-3.5" />
           {labels.add}
           <input
@@ -753,6 +755,36 @@ function PlayerMarketPage() {
       }
     }
   }, [searchParams, teamPosts, playerPosts, loadingTeams, loadingPlayers]);
+
+  // ── Deep link to a tab: /player-markets?tab=my-invites (inbox #68, 2026-09-27) ──
+  // The player-market emails (afc_player_market/views.py: trial invite, trial started) link here
+  // with ?tab=; they used to point at /my-invites and /applications, pages that never existed. A tab
+  // opens only once it is actually shown to this viewer (the role arrives with the team fetch
+  // above), so nothing is decided while loading and a tab this viewer cannot see is never forced
+  // open; then the address is cleaned like ?post= above. The cleaned address re-arms it, so a
+  // second ?tab= link followed from this same page (the help panel's links, inbox #159) works too.
+  const tabLinkDone = useRef(false);
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (!tab) {
+      tabLinkDone.current = false;
+      return;
+    }
+    if (tabLinkDone.current) return;
+    const shown: Record<string, boolean> = {
+      teams: true,
+      players: true,
+      "my-applications": !!token && !isTeamLeader,
+      "my-invites": !!token,
+      "team-applications": !!token && isTeamLeader,
+      "my-team": !!token && !!currentTeam,
+      "my-posts": !!token,
+    };
+    if (!shown[tab]) return;
+    tabLinkDone.current = true;
+    setActiveTab(tab);
+    router.replace("/player-markets", { scroll: false });
+  }, [searchParams, token, isTeamLeader, currentTeam, router]);
 
   // My Posts membership = the server-computed is_owner flag (created_by == viewer), so BOTH a team
   // post AND a player availability post the user created show up, regardless of their current team /
@@ -1485,7 +1517,7 @@ function PlayerMarketPage() {
       <TransferWindowBanner />
 
       {/* Info Banner */}
-      <Card className="bg-primary/5 border-primary/20">
+      <Card className="bg-primary/5">
         <CardContent className="flex items-start gap-3">
           <IconInfoCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
           <div className="text-sm text-muted-foreground">
@@ -1500,57 +1532,44 @@ function PlayerMarketPage() {
           (lib/help-content.ts keys: player_market.one_active_post / tryout_limit /
           report_rules / rules_summary). Backend enforcement lives in views.py (J1/J2)
           and views_moderation.py (J4/J5). No em dashes (AFC hard rule). */}
-      <Card className="bg-card border">
+      <Card className="bg-card">
         <CardContent className="space-y-2">
           <div className="flex items-center gap-1.5">
             <h3 className="text-sm font-semibold">{t("rules.heading")}</h3>
             <InfoTip id="player_market.rules_summary" />
           </div>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
+          {/* A numbered list, not icon bullets: the design rules ban checkmark bullet lists
+              (owner 2026-08-17, inbox #113). These are rules, so numbers read right. */}
+          <ol className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
             <li className="flex items-start gap-1.5">
-              <IconCheck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+              <span className="w-3 shrink-0 font-semibold text-foreground tabular-nums">1.</span>
               <span>
                 {t("rules.oneActive")}
                 <InfoTip id="player_market.one_active_post" className="ml-1" />
               </span>
             </li>
             <li className="flex items-start gap-1.5">
-              <IconCheck className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+              <span className="w-3 shrink-0 font-semibold text-foreground tabular-nums">2.</span>
               <span>
                 {t("rules.twoTryouts")}
                 <InfoTip id="player_market.tryout_limit" className="ml-1" />
               </span>
             </li>
             <li className="flex items-start gap-1.5">
-              <IconFlag className="h-3.5 w-3.5 text-red-500 mt-0.5 shrink-0" />
+              <span className="w-3 shrink-0 font-semibold text-foreground tabular-nums">3.</span>
               <span>
                 {t("rules.reportHonestly")}
                 <InfoTip id="player_market.report_rules" className="ml-1" />
               </span>
             </li>
             <li className="flex items-start gap-1.5">
-              <IconShield className="h-3.5 w-3.5 text-yellow-500 mt-0.5 shrink-0" />
+              <span className="w-3 shrink-0 font-semibold text-foreground tabular-nums">4.</span>
               <span>
                 {t("rules.banBlocks")}
                 <InfoTip id="player_market.rules_summary" className="ml-1" />
               </span>
             </li>
-          </ul>
-        </CardContent>
-      </Card>
-
-      {/* Temporary Tier Disclaimer */}
-      <Card className="border-yellow-500/50 bg-yellow-500/5">
-        <CardContent className="flex items-start gap-1">
-          <IconInfoCircle className="size-3 text-yellow-500 shrink-0" />
-          <div className="text-xs text-muted-foreground">
-            <p>
-              <span className="font-medium text-yellow-600 dark:text-yellow-400">
-                {t("tierNotice.label")}
-              </span>{" "}
-              {t("tierNotice.body")}
-            </p>
-          </div>
+          </ol>
         </CardContent>
       </Card>
 
@@ -1671,7 +1690,7 @@ function PlayerMarketPage() {
               {filteredTeams.map((team) => (
                 <Card
                   key={team.id}
-                  className="hover:border-primary/50 transition-colors"
+                  className="transition-colors hover:bg-primary/10"
                 >
                   <CardContent className="space-y-3">
                     {/* Team header */}
@@ -1719,7 +1738,7 @@ function PlayerMarketPage() {
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       {team.minimum_tier_required && (
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(team.minimum_tier_required)}`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getTierColor(team.minimum_tier_required)}`}
                         >
                           <IconShield className="h-3 w-3" />
                           {labelFor(TIERS, team.minimum_tier_required)}+
@@ -1931,7 +1950,7 @@ function PlayerMarketPage() {
               {filteredPlayers.map((player) => (
                 <Card
                   key={player.id}
-                  className="hover:border-primary/50 transition-colors"
+                  className="transition-colors hover:bg-primary/10"
                 >
                   <CardContent className="space-y-3">
                     {/* Player header */}
@@ -1978,7 +1997,7 @@ function PlayerMarketPage() {
                             key={img.id}
                             src={img.url}
                             alt={t("screenshots.heading")}
-                            className="h-16 w-16 rounded-md border object-cover"
+                            className="h-16 w-16 rounded-md object-cover bg-muted/30"
                           />
                         ))}
                       </div>
@@ -2116,7 +2135,7 @@ function PlayerMarketPage() {
           <TabsContent value="my-invites" className="mt-4 space-y-3">
             {/* J2: tryout-cap rule note on the Trial Invites area. Accepting an invite
                 while already in 2 ongoing trials is rejected server-side. No em dashes. */}
-            <div className="flex items-start gap-2 rounded-md border bg-muted/30 p-2.5 text-xs text-muted-foreground">
+            <div className="flex items-start gap-2 rounded-md bg-muted/30 p-2.5 text-xs text-muted-foreground">
               <IconInfoCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
               <span className="flex items-center gap-1">
                 {t("invitesTab.maxTryouts")}
@@ -2141,20 +2160,20 @@ function PlayerMarketPage() {
                 const isExpired =
                   invite.expires_at && new Date(invite.expires_at) < new Date();
                 const statusColors: Record<string, string> = {
-                  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
-                  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  PENDING: "bg-yellow-900/20 text-yellow-400",
+                  ACCEPTED: "bg-green-900/20 text-green-400",
                   // Backend uses "REJECTED" for declined invites; "DECLINED" kept as
                   // a fallback in case any older record still carries that value.
-                  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
-                  DECLINED: "bg-red-900/20 text-red-400 border-red-800",
-                  EXPIRED: "bg-muted text-muted-foreground border-border",
+                  REJECTED: "bg-red-900/20 text-red-400",
+                  DECLINED: "bg-red-900/20 text-red-400",
+                  EXPIRED: "bg-muted text-muted-foreground",
                 };
                 const displayStatus =
                   isExpired && isPending ? "EXPIRED" : invite.status;
                 return (
                   <Card
                     key={invite.invite_id}
-                    className="hover:border-primary/50 transition-colors"
+                    className="transition-colors hover:bg-primary/10"
                   >
                     <CardContent className="space-y-3">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -2197,7 +2216,7 @@ function PlayerMarketPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="text-red-400 border-red-800 hover:bg-red-900/20"
+                              className="text-red-400 hover:bg-red-900/20 bg-red-800/10"
                               disabled={
                                 isRespondingToInvite === invite.invite_id
                               }
@@ -2266,18 +2285,18 @@ function PlayerMarketPage() {
             ) : (
               teamApplications.map((app) => {
                 const statusColors: Record<string, string> = {
-                  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
-                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400 border-cyan-800",
-                  INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
-                  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  PENDING: "bg-yellow-900/20 text-yellow-400",
+                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400",
+                  INVITED: "bg-blue-900/20 text-blue-400",
+                  ACCEPTED: "bg-green-900/20 text-green-400",
                   TRIAL_EXTENDED:
-                    "bg-purple-900/20 text-purple-400 border-purple-800",
-                  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+                    "bg-purple-900/20 text-purple-400",
+                  REJECTED: "bg-red-900/20 text-red-400",
                 };
                 return (
                   <Card
                     key={app.id}
-                    className="hover:border-primary/50 transition-colors"
+                    className="transition-colors hover:bg-primary/10"
                   >
                     <CardContent className="space-y-3">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -2300,7 +2319,7 @@ function PlayerMarketPage() {
                           {app.contact_unlocked && (
                             <Badge
                               variant="outline"
-                              className="text-xs text-green-400 border-green-800"
+                              className="text-xs text-green-400"
                             >
                               {t("common.contactUnlocked")}
                             </Badge>
@@ -2365,18 +2384,18 @@ function PlayerMarketPage() {
             ) : (
               myApplications.map((app) => {
                 const statusColors: Record<string, string> = {
-                  PENDING: "bg-yellow-900/20 text-yellow-400 border-yellow-800",
-                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400 border-cyan-800",
-                  INVITED: "bg-blue-900/20 text-blue-400 border-blue-800",
-                  ACCEPTED: "bg-green-900/20 text-green-400 border-green-800",
+                  PENDING: "bg-yellow-900/20 text-yellow-400",
+                  SHORTLISTED: "bg-cyan-900/20 text-cyan-400",
+                  INVITED: "bg-blue-900/20 text-blue-400",
+                  ACCEPTED: "bg-green-900/20 text-green-400",
                   TRIAL_EXTENDED:
-                    "bg-purple-900/20 text-purple-400 border-purple-800",
-                  REJECTED: "bg-red-900/20 text-red-400 border-red-800",
+                    "bg-purple-900/20 text-purple-400",
+                  REJECTED: "bg-red-900/20 text-red-400",
                 };
                 return (
                   <Card
                     key={app.id}
-                    className="hover:border-primary/50 transition-colors"
+                    className="transition-colors hover:bg-primary/10"
                   >
                     <CardContent className="space-y-3">
                       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -2396,7 +2415,7 @@ function PlayerMarketPage() {
                           {app.contact_unlocked && (
                             <Badge
                               variant="outline"
-                              className="text-xs text-green-400 border-green-800"
+                              className="text-xs text-green-400"
                             >
                               {t("common.contactUnlocked")}
                             </Badge>
@@ -2458,7 +2477,7 @@ function PlayerMarketPage() {
               <CardContent className="space-y-5">
                 {/* Header */}
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16 rounded-lg border">
+                  <Avatar className="h-16 w-16 rounded-lg bg-muted/30">
                     <AvatarImage src={currentTeam.team_logo ?? undefined} />
                     <AvatarFallback className="rounded-lg text-lg font-bold">
                       {currentTeam.team_name?.charAt(0) ?? "T"}
@@ -2475,12 +2494,8 @@ function PlayerMarketPage() {
                           [{currentTeam.team_tag}]
                         </Badge>
                       )}
-                      <Badge
-                        variant="outline"
-                        className={`text-xs shrink-0 ${getTierColor(`TIER_${currentTeam.team_tier}`)}`}
-                      >
-                        {t("myTeamTab.tier", { tier: currentTeam.team_tier })}
-                      </Badge>
+                      {/* The published Rankings tier (inbox #162), not the hand-set team_tier. */}
+                      <TierBadge tier={currentTeam.ranking_tier} className="text-xs shrink-0" />
                       {currentTeam.is_banned && (
                         <Badge
                           variant="destructive"
@@ -2524,7 +2539,7 @@ function PlayerMarketPage() {
 
                 {/* Stats grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("myTeamTab.yourRole")}
                     </p>
@@ -2533,7 +2548,7 @@ function PlayerMarketPage() {
                         t("myTeamTab.member")}
                     </p>
                   </div>
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("myTeamTab.owner")}
                     </p>
@@ -2542,7 +2557,7 @@ function PlayerMarketPage() {
                       <PlayerLink name={currentTeam.team_owner} />
                     </p>
                   </div>
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("myTeamTab.joined")}
                     </p>
@@ -2555,7 +2570,7 @@ function PlayerMarketPage() {
                     </p>
                   </div>
                   {currentTeam.in_game_role && (
-                    <div className="rounded-lg border bg-muted/30 p-3">
+                    <div className="rounded-lg bg-muted/30 p-3">
                       <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                         {t("myTeamTab.inGameRole")}
                       </p>
@@ -2564,7 +2579,7 @@ function PlayerMarketPage() {
                       </p>
                     </div>
                   )}
-                  <div className="rounded-lg border bg-muted/30 p-3">
+                  <div className="rounded-lg bg-muted/30 p-3">
                     <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                       {t("myTeamTab.joining")}
                     </p>
@@ -2579,7 +2594,7 @@ function PlayerMarketPage() {
                   {/* Team detail route is /teams/<team_name> (plural, name-keyed): teams/[id]/page.tsx
                       reads the [id] segment and POSTs it as team_name to get-team-details. The old
                       /team/<team_id> href 404'd (no singular /team route, and it used id not name). */}
-                  <Link href={`/teams/${currentTeam.team_name}`}>
+                  <Link href={teamPath(currentTeam.team_name)}>
                     <Button size="sm">
                       {t("myTeamTab.viewFullTeam")}
                       <IconChevronRight className="h-4 w-4 ml-1" />
@@ -2622,7 +2637,7 @@ function PlayerMarketPage() {
                     {myTeamPosts.map((post) => (
                       <Card
                         key={post.id}
-                        className="hover:border-primary/50 transition-colors"
+                        className="transition-colors hover:bg-primary/10"
                       >
                         <CardContent className="space-y-3">
                           <div className="flex items-center gap-3">
@@ -2660,7 +2675,7 @@ function PlayerMarketPage() {
                           <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             {post.minimum_tier_required && (
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTierColor(post.minimum_tier_required)}`}
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getTierColor(post.minimum_tier_required)}`}
                               >
                                 <IconShield className="h-3 w-3" />
                                 {labelFor(TIERS, post.minimum_tier_required)}+
@@ -2737,7 +2752,7 @@ function PlayerMarketPage() {
                     {myPlayerPosts.map((post) => (
                       <Card
                         key={post.id}
-                        className="hover:border-primary/50 transition-colors"
+                        className="transition-colors hover:bg-primary/10"
                       >
                         <CardContent className="space-y-3">
                           <div className="flex items-center gap-3">
@@ -2780,7 +2795,7 @@ function PlayerMarketPage() {
                             )}
                             {/* Signals the post carries a gameplay video link. */}
                             {post.video_url && (
-                              <Badge variant="outline" className="text-xs border-primary text-primary">
+                              <Badge variant="outline" className="text-xs text-primary">
                                 <IconVideo className="h-3 w-3 mr-1" />
                                 {t("common.video")}
                               </Badge>
@@ -2875,14 +2890,14 @@ function PlayerMarketPage() {
             <>
               {/* J1: spell out the one-active-post rule before the user picks a type, so
                   they understand why a create might be blocked (server enforces it). */}
-              <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs text-muted-foreground">
+              <div className="flex items-start gap-2 rounded-md bg-primary/5 p-2.5 text-xs text-muted-foreground">
                 <IconInfoCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                 <p>{t("createDialog.oneActiveNotice")}</p>
               </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-2">
               <button
                 onClick={() => setCreatePostType("team")}
-                className="flex flex-col items-center gap-2 p-6 rounded-lg border-2 border-muted hover:border-primary/50 transition-all text-center"
+                className="flex flex-col items-center gap-2 p-6 rounded-lg transition-all text-center hover:bg-primary/10 bg-muted/30"
               >
                 <IconUsers className="h-8 w-8 text-primary" />
                 <span className="font-semibold">{t("createDialog.teamRecruiting")}</span>
@@ -2892,7 +2907,7 @@ function PlayerMarketPage() {
               </button>
               <button
                 onClick={() => setCreatePostType("player")}
-                className="flex flex-col items-center gap-2 p-6 rounded-lg border-2 border-muted hover:border-primary/50 transition-all text-center"
+                className="flex flex-col items-center gap-2 p-6 rounded-lg transition-all text-center hover:bg-primary/10 bg-muted/30"
               >
                 <IconUser className="h-8 w-8 text-primary" />
                 <span className="font-semibold">{t("createDialog.playerAvailable")}</span>
@@ -3527,7 +3542,7 @@ function PlayerMarketPage() {
                         return (
                           <div
                             key={img.id}
-                            className="relative h-20 w-20 overflow-hidden rounded-md border bg-muted"
+                            className="relative h-20 w-20 overflow-hidden rounded-md bg-muted"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
@@ -3685,7 +3700,7 @@ function PlayerMarketPage() {
                           {t("teamsTab.minTier")}
                         </p>
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border mt-1 ${getTierColor(viewTeam.minimum_tier_required)}`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium mt-1 ${getTierColor(viewTeam.minimum_tier_required)}`}
                         >
                           <IconShield className="h-3 w-3" />
                           {labelFor(TIERS, viewTeam.minimum_tier_required)}+
@@ -3847,7 +3862,7 @@ function PlayerMarketPage() {
                         <img
                           src={img.url}
                           alt={t("screenshots.heading")}
-                          className="h-28 w-28 rounded-md border object-cover transition-opacity hover:opacity-90"
+                          className="h-28 w-28 rounded-md object-cover transition-opacity hover:opacity-90 bg-muted/30"
                         />
                       </button>
                     ))}
@@ -3884,10 +3899,10 @@ function PlayerMarketPage() {
                       embed.provider === "youtube" ||
                       embed.provider === "facebook" ||
                       embed.provider === "drive"
-                        ? "aspect-video w-full rounded-md border"
+                        ? "aspect-video w-full rounded-md bg-muted/30"
                         : embed.provider === "twitter"
-                          ? "h-[600px] w-full max-w-[550px] rounded-md border"
-                          : "h-[480px] w-full max-w-[325px] rounded-md border";
+                          ? "h-[600px] w-full max-w-[550px] rounded-md bg-muted/30"
+                          : "h-[480px] w-full max-w-[325px] rounded-md bg-muted/30";
                     return (
                       <iframe
                         src={embed.embedUrl}

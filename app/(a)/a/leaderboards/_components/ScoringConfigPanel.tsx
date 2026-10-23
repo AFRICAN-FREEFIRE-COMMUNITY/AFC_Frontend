@@ -485,7 +485,7 @@ export function ScoringConfigPanel({
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                 {config.ranks.map((r, i) => (
-                  <Card key={r.id} className="py-1 group relative border">
+                  <Card key={r.id} className="py-1 group relative bg-muted/30">
                     <CardContent className="p-2">
                       <div className="flex justify-between items-center mb-1">
                         <Label className="text-xs text-muted-foreground">

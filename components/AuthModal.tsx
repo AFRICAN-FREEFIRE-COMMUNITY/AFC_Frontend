@@ -7,6 +7,7 @@ import React, {
   useContext,
   useMemo,
   useEffect,
+  useRef,
   Suspense,
 } from "react";
 import { useForm } from "react-hook-form";
@@ -49,6 +50,14 @@ import { Checkbox } from "./ui/checkbox";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Progress } from "./ui/progress";
+// Sign-up from the popup goes through the same bot check as the create-account page: the server
+// refuses a sign-up with no token (afc_auth.views.signup -> require_human), and this tab sent
+// none, so every sign-up from the popup was refused (found 2026-10-16, inbox #273).
+import { BotCheck, botCheckEnabled, type BotCheckHandle } from "./BotCheck";
+// "Did you mean kofi@gmail.com?" when the server answers email_domain_typo (inbox #273).
+import { EmailTypoQuestion, TYPO_RESUBMIT_WAIT_MS } from "./EmailTypoQuestion";
+// A server answer in the reader's language by its code (lib/i18n/serverMessage.ts).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 // Shared-chrome auth strings live in messages/en/common.json under "common".
 // Each Client Component below (AuthModal, LoginTabContent, RegisterTabContent)
 // reads them via its own useTranslations() hook call.
@@ -406,8 +415,16 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
 // ---------------------------------------------------------------------------
 function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
   const t = useTranslations("common");
+  const serverMessage = useServerMessage();
   const { login } = useAuth();
   const [pending, startTransition] = useTransition();
+  // Bot check token (one post each, so reset after a refusal) and the email typo question,
+  // the same as app/(auth)/_components/CreateAccountForm.tsx.
+  const [botToken, setBotToken] = useState("");
+  const botRef = useRef<BotCheckHandle>(null);
+  const [emailTypo, setEmailTypo] = useState<{ typed: string; suggestion: string } | null>(null);
+  const [confirmedEmail, setConfirmedEmail] = useState("");
+  const [resubmit, setResubmit] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
 
@@ -426,6 +443,21 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
 
   const password = form.watch("password");
   const acceptTerms = form.watch("acceptTerms");
+  const typedEmail = form.watch("email");
+
+  // After an answer to the typo question, send again once a fresh bot token is in hand.
+  useEffect(() => {
+    if (!resubmit) return;
+    if (botCheckEnabled() && !botToken) {
+      // No fresh token yet. If none comes (Cloudflare blocked or failing), stop waiting: the answer
+      // is already in the form, and the create button sends it.
+      const giveUp = window.setTimeout(() => setResubmit(false), TYPO_RESUBMIT_WAIT_MS);
+      return () => window.clearTimeout(giveUp);
+    }
+    setResubmit(false);
+    form.handleSubmit(onSubmit)();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onSubmit is re-created each render; the trigger is the answer plus the token
+  }, [resubmit, botToken]);
 
   const checkStrength = (pass: string) => {
     // ... (rest of checkStrength logic remains the same)
@@ -471,13 +503,13 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
             password: data.password,
             confirm_password: data.confirmPassword,
             full_name: data.fullName,
+            cf_turnstile_response: botToken,
+            ...(confirmedEmail && confirmedEmail === data.email ? { email_domain_confirmed: true } : {}),
           },
         );
 
         if (response.status === 200 || response.status === 201) {
-          toast.success(
-            response.data.message || t("auth.accountCreated"),
-          );
+          toast.success(serverMessage(response.data, t("auth.accountCreated")));
           // If the API returns a session token on registration, auto-login
           if (response.data.session_token) {
             await login(response.data.session_token);
@@ -490,8 +522,18 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           toast.error(t("auth.genericError"));
         }
       } catch (error: any) {
+        // The token was spent on this post; get a new one for the next try.
+        botRef.current?.reset();
+        const errorData = error?.response?.data;
+        if (errorData?.code === "email_domain_typo" && errorData?.suggestion) {
+          setEmailTypo({ typed: data.email, suggestion: errorData.suggestion });
+          return;
+        }
         toast.error(
-          error?.response?.data?.message || t("auth.createAccountFailed"),
+          serverMessage(
+            { code: errorData?.code, message: errorData?.message || errorData?.error },
+            t("auth.createAccountFailed"),
+          ),
         );
       }
     });
@@ -549,6 +591,22 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
                 />
               </FormControl>
               <FormMessage />
+              {emailTypo && typedEmail === emailTypo.typed && (
+                <EmailTypoQuestion
+                  suggestion={emailTypo.suggestion}
+                  disabled={pending}
+                  onUse={() => {
+                    form.setValue("email", emailTypo.suggestion, { shouldValidate: true });
+                    setEmailTypo(null);
+                    setResubmit(true);
+                  }}
+                  onKeep={() => {
+                    setConfirmedEmail(emailTypo.typed);
+                    setEmailTypo(null);
+                    setResubmit(true);
+                  }}
+                />
+              )}
             </FormItem>
           )}
         />
@@ -693,7 +751,7 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
           control={form.control}
           name="acceptTerms"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-lg">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 rounded-lg bg-muted/30">
               <FormControl>
                 <Checkbox
                   checked={field.value}
@@ -723,6 +781,9 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
             </FormItem>
           )}
         />
+
+        {/* Renders nothing where this environment has no site key. */}
+        <BotCheck ref={botRef} onToken={setBotToken} className="mb-3" />
 
         <Button
           type="submit"

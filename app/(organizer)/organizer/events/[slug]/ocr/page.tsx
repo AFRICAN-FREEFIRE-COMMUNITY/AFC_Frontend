@@ -65,6 +65,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { useOrgEventMove } from "@/lib/addressRef";
 import { PageHeader } from "@/components/PageHeader";
 import { FullLoader } from "@/components/Loader";
 import { LocalTime } from "@/components/LocalTime";
@@ -132,6 +133,8 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function OrganizerOcrPage({ params }: { params: Promise<Params> }) {
   const { slug } = use(params);
+  // An old address (renamed event, legacy id) follows the event: lib/addressRef useOrgEventMove (inbox #209).
+  const followOrgEventMove = useOrgEventMove();
   const { token } = useAuth();
   const { membership, isOwner } = useOrganizer();
   // i18n: organizer-facing surface, namespace "organizer" (eventOcr.*);
@@ -188,6 +191,7 @@ export default function OrganizerOcrPage({ params }: { params: Promise<Params> }
         const match = (res.data?.events ?? []).find(
           (e: any) => e.slug === slug,
         );
+        if (!match && (await followOrgEventMove(res.data?.events ?? [], slug, (s) => `/organizer/events/${s}/ocr`))) return;
         if (!match) {
           setNotMine(true);
         } else {
@@ -204,7 +208,7 @@ export default function OrganizerOcrPage({ params }: { params: Promise<Params> }
       }
     };
     resolve();
-  }, [slug, organizationId, token, canUploadResults]);
+  }, [slug, organizationId, token, canUploadResults, followOrgEventMove]);
 
   // ── 2) Sessions list, ALWAYS event-scoped ─────────────────────────────────────
   // event_id is mandatory for organizers (the backend 400s without it and only

@@ -95,6 +95,7 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { formatWord } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { InfoTip } from "@/components/ui/info-tip";
 import { IconDownload, IconPencil } from "@tabler/icons-react";
 
@@ -199,6 +200,21 @@ const page = () => {
       return n === "head_admin" || n === "super_admin";
     }),
   );
+
+  // The open tab lives in the address (?tab=), like /a/teams and /a/events (inbox #54): the admin
+  // sidebar links straight to Admins / All users / Roles / Login history / History, and the old
+  // standalone /a/history page now redirects to ?tab=activities (next.config.ts).
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const SETTINGS_TABS = ["admins", "all-users", "roles", "login-history", ...(canSeeAudit ? ["activities"] : [])];
+  const tabParam = searchParams.get("tab") ?? "";
+  const settingsTab = SETTINGS_TABS.includes(tabParam) ? tabParam : "admins";
+  const onSettingsTab = (v: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", v);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   const [suspendPending, startSuspendTransition] = useTransition();
   const [editPending, startEditTransition] = useTransition();
@@ -758,7 +774,7 @@ const page = () => {
           </span>
         </div>
       </div>
-      <Tabs defaultValue="admins" className="space-y-4">
+      <Tabs value={settingsTab} onValueChange={onSettingsTab} className="space-y-4">
         <ScrollableTabsList className="w-full" data-tour="settings-misc-tabs-header">
           <TabsTrigger value="admins">Admin Users</TabsTrigger>
           <TabsTrigger value="all-users">All Users</TabsTrigger>
@@ -1540,7 +1556,7 @@ const page = () => {
                                           </CardHeader>
                                           {/* <label
                                             key={role.id}
-                                            className={`flex items-start gap-3 p-3 rounded-lg border transition-colors cursor-pointer hover:bg-muted/50 ${
+                                            className={`flex items-start gap-3 p-3 rounded-lg transition-colors cursor-pointer hover:bg-muted/50 ${
                                               selectedUser?.roles.includes(
                                                 role.name
                                               )
@@ -1977,7 +1993,7 @@ const page = () => {
                             {entry.is_vpn && (
                               <Badge
                                 variant="outline"
-                                className="rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
+                                className="rounded-full px-2 py-0.5 text-xs text-red-600"
                                 title={entry.org || "Datacenter / VPN network"}
                               >
                                 VPN
@@ -2041,7 +2057,7 @@ const page = () => {
                             {row.is_vpn && (
                               <Badge
                                 variant="outline"
-                                className="rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
+                                className="rounded-full px-2 py-0.5 text-xs text-red-600"
                                 title={row.org || "Datacenter / VPN network"}
                               >
                                 VPN
@@ -2112,7 +2128,7 @@ function AdminInfoCard({ token }: { token: string | null }) {
   if (!info && !loading) return null;
 
   return (
-    <Card className="border-primary/20 bg-primary/5">
+    <Card className="bg-primary/5">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />

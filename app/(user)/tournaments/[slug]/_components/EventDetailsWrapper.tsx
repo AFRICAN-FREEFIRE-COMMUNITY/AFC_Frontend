@@ -1,6 +1,8 @@
 "use client";
 
 import { formatNumber } from "@/lib/i18n/number";
+// Success answers in the reader's language, by the code the server sends (inbox #257).
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import React, {
   useState,
   useEffect,
@@ -43,6 +45,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
+import { QrShareButton } from "@/components/qr/QrShareButton";
 import { TournamentStructure } from "./TournamentStructure";
 // "Combined" view (owner 2026-07-05): a third main-view tab that merges several groups/stages
 // (or the whole event) into one aggregate leaderboard via events/get-event-combined-standings/.
@@ -73,9 +76,11 @@ import { TeamMapResultPanel } from "@/components/events/TeamMapResultPanel";
 import { LocalEventTime } from "@/components/LocalEventTime";
 import { formatLocalTime, zonedWallClockToInstant } from "@/lib/i18n/time";
 import { toast } from "sonner";
+import { toastUidTaken } from "@/lib/uidTaken";
 import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
+import { AskOrganizerButton } from "@/components/support/AskOrganizerDialog";
 import { AFC_DISCORD_SERVER, DEFAULT_IMAGE } from "@/constants";
 import axios from "axios";
 import Image from "next/image";
@@ -113,6 +118,7 @@ import {
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 // Rate-this-event + organizer-feedback widget (stars + comment box).
 import { EventReviewCard } from "./EventReviewCard";
@@ -161,6 +167,7 @@ import { QualifiedFromBanner } from "@/components/qualified-from-banner";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; the event-details fetch below re-runs
 // on each tick so standings / registered teams / structure / room details update by themselves.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { playerPath, teamPath } from "@/lib/routes";
 // localStorage key for the saved register-for-event payload, so it survives the Stripe
 // redirect. Keyed by payment_id; the success page reads `${PAID_REG_KEY_PREFIX}${payment_id}`.
 const PAID_REG_KEY_PREFIX = "afc_evt_reg_";
@@ -387,6 +394,9 @@ interface EventDetails {
   results_imported?: boolean;
   results_imported_at?: string | null;
   event_id: number;
+  // The event's current slug (event_contract Field("slug", read=PLAYER)). "Ask the organizer"
+  // sends it so the question is filed against this event (inbox #175).
+  slug?: string | null;
   competition_type: string;
   participant_type: string;
   registered_competitors: any[];
@@ -762,7 +772,7 @@ function MemberRequirementBadges({
       );
     }
     return (
-      <Badge variant="outline" className="border-primary text-primary">
+      <Badge variant="outline" className="text-primary">
         <CheckCircle />
         {t("register.rosterRequirements.ready")}
       </Badge>
@@ -775,7 +785,7 @@ function MemberRequirementBadges({
         <Badge
           key={k}
           variant="outline"
-          className="border-destructive text-destructive"
+          className="text-destructive"
         >
           <XCircle />
           {reqLabel(k)}
@@ -784,7 +794,7 @@ function MemberRequirementBadges({
       {discordUnverified && (
         <Badge
           variant="outline"
-          className="border-amber-500 text-amber-600"
+          className="text-amber-600"
         >
           <AlertTriangle />
           {t("register.rosterRequirements.discordPending")}
@@ -1195,7 +1205,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                 const allRejected =
                   rejectedOnRoster.length === currentRoster.length;
                 return (
-                  <Alert className="border-destructive/50 bg-destructive/10 text-destructive">
+                  <Alert className="bg-destructive/10 text-destructive">
                     <XCircle className="h-4 w-4" />
                     <AlertDescription>
                       {allRejected ? (
@@ -1246,7 +1256,7 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
                     return (
                       <div
                         key={member.id}
-                        className="flex items-center justify-between p-3 bg-background rounded-md border hover:border-primary transition"
+                        className="flex items-center justify-between p-3 bg-background rounded-md transition hover:bg-primary/10"
                       >
                         <div className="flex items-center gap-3">
                           <Checkbox
@@ -1603,7 +1613,7 @@ const StageResultsTable: React.FC<{
         {/* Results hidden by the organizer (owner 2026-06-29): a clean "not published yet" state in
             place of the standings table. The backend also withholds the rows; this explains why. */}
         {resultsHidden ? (
-          <div className="rounded-md border p-10 text-center">
+          <div className="rounded-md p-10 text-center bg-muted/30">
             <p className="text-sm font-medium text-muted-foreground">
               {t("stageResults.resultsNotPublished")}
             </p>
@@ -1612,7 +1622,7 @@ const StageResultsTable: React.FC<{
             </p>
           </div>
         ) : (
-        <div className="rounded-md border overflow-hidden shadow-inner">
+        <div className="rounded-md overflow-hidden shadow-inner bg-muted/30">
           <Table>
             <TableHeader>
               <TableRow>
@@ -1873,7 +1883,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                   // selecting, not only after pressing Continue.
                   <div
                     key={member.id}
-                    className="flex items-center justify-between gap-3 p-3 bg-background rounded-md border hover:border-primary transition"
+                    className="flex items-center justify-between gap-3 p-3 bg-background rounded-md transition hover:bg-primary/10"
                   >
                     <div className="flex items-center gap-3">
                       <Checkbox
@@ -2008,7 +2018,7 @@ const TeamRegistrationModals: React.FC<TeamRegistrationModalsProps> = ({
                               {
                                 teamEditLink: (chunks) => (
                                   <Link
-                                    href={`/teams/${encodeURIComponent(userTeam.team_name)}/edit`}
+                                    href={teamPath(userTeam.team_name, "/edit")}
                                     className="text-primary underline underline-offset-2"
                                   >
                                     {chunks}
@@ -2368,7 +2378,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                           ? t.rich("register.info.teamLogoNoteWithLink", {
                               teamEditLink: (chunks) => (
                                 <Link
-                                  href={`/teams/${encodeURIComponent(userTeam.team_name)}/edit`}
+                                  href={teamPath(userTeam.team_name, "/edit")}
                                   className="text-primary underline underline-offset-2"
                                 >
                                   {chunks}
@@ -2416,7 +2426,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 <Label htmlFor="uid-input">
                   {t("register.uidPrompt.label")}
                 </Label>
-                <Input
+                <UidInput
                   id="uid-input"
                   placeholder={t("register.uidPrompt.placeholder")}
                   value={uidInput}
@@ -3304,7 +3314,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                       return (
                         <div
                           key={result.user_id}
-                          className={`p-3 rounded-md border transition-all ${
+                          className={`p-3 rounded-md transition-all ${
                             result.ok && inAfcServer
                               ? "border-green-500/50 bg-green-500/10"
                               : "border-red-500/50 bg-red-500/10"
@@ -3382,7 +3392,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 </div>
 
                 {isCheckingDiscord && (
-                  <div className="p-3 bg-blue-600 border border-blue-600/50 rounded-md">
+                  <div className="p-3 bg-blue-600 rounded-md">
                     <p className="text-sm text-blue-100 text-center">
                       {t("register.discordStatus.checkingStatus")}
                     </p>
@@ -3392,7 +3402,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 {!allMembersOk &&
                   !isCheckingDiscord &&
                   validationResults.length > 0 && (
-                    <div className="p-3 bg-yellow-600 border border-yellow-600/50 rounded-md">
+                    <div className="p-3 bg-yellow-600 rounded-md">
                       <p className="text-sm text-yellow-100 text-center">
                         {t("register.discordStatus.waiting")}
                       </p>
@@ -3400,7 +3410,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                   )}
 
                 {allMembersOk && !allInAfcServer && (
-                  <div className="p-3 bg-orange-600 border border-orange-600/50 rounded-md">
+                  <div className="p-3 bg-orange-600 rounded-md">
                     <p className="text-sm text-orange-100 text-center">
                       {t("register.discordStatus.someNotJoined")}
                     </p>
@@ -3408,7 +3418,7 @@ const RegistrationModals: React.FC<ModalProps> = ({
                 )}
 
                 {allMembersOk && allInAfcServer && (
-                  <div className="p-3 bg-green-600 border border-green-600/50 rounded-md">
+                  <div className="p-3 bg-green-600 rounded-md">
                     <p className="text-sm text-green-100 text-center font-medium">
                       {t("register.discordStatus.allReady")}
                     </p>
@@ -3563,6 +3573,8 @@ const RegistrationModals: React.FC<ModalProps> = ({
 
 export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const t = useTranslations("tournaments");
+  const serverMessage = useServerMessage();
+  const tc = useTranslations("common");
   // Copy for the team's own result submission (owner backlog item 6). Read from the namespace the
   // organizer's queue and the per-event switch also read, so the three descriptions of one feature
   // cannot drift apart.
@@ -4248,6 +4260,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       setUserTeam(null);
       return null;
     } catch (err: any) {
+      // 404 not_in_team is the ordinary answer for a signed-in viewer with no team, not a
+      // failure (owner 2026-09-26: it logged an uncaught error on every event page they opened).
+      if (err.response?.data?.code === "not_in_team") {
+        setUserTeam(null);
+        return null;
+      }
       console.error(err);
       toast.error(err.response?.data?.message || t("detail.loadTeamFailed"));
       return null;
@@ -4487,32 +4505,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
     fetchEventDetails();
 
-    if (token) {
-      const fetchUser = async () => {
-        const resCurrent = await axios.post(
-          `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-user-current-team/`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (resCurrent.data && resCurrent.data.team) {
-          const resDetails = await axios.post(
-            `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-            { team_name: resCurrent.data.team.team_name },
-          );
-          setUserTeam(resDetails.data.team);
-        } else {
-          toast.error(t("detail.noTeam"));
-        }
-      };
-
-      fetchUser();
-    }
-  }, [fetchEventDetails, slug, token, authLoading, t]);
+    // The viewer's team, through the one fetch the Register gate also uses (fetchUserTeam above).
+    // This used to be a second copy with no error handling, so the 404 not_in_team every teamless
+    // viewer gets went uncaught.
+    if (token) void fetchUserTeam();
+  }, [fetchEventDetails, fetchUserTeam, slug, token, authLoading]);
 
   // Live refresh (owner 2026-07-02): on each site-wide tick, silently re-pull the read-only
   // event details (standings, registered teams, structure, room details, waitlist counts).
@@ -4875,13 +4872,15 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
       await refreshUser(); // the saved UID rides on get-user-profile (R66: cookie, no localStorage)
       setModalStep("RULES");
     } catch (error: any) {
+      // A UID already on another account names that account and links it (inbox #152).
+      if (toastUidTaken(error?.response?.data, tc, (path) => router.push(path))) return;
       toast.error(
         error?.response?.data?.message || t("register.toast.saveUidFailed"),
       );
     } finally {
       setSavingUid(false);
     }
-  }, [uidInput, user, token, refreshUser, t]);
+  }, [uidInput, user, token, refreshUser, t, tc, router]);
 
   const handleTeamContinueToRules = useCallback(() => {
     // Store selected team members data
@@ -4919,16 +4918,24 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     eventSponsorships,
   ]);
 
-  const handleDiscordConnect = useCallback(() => {
-    let redirectPath = `${window.location.origin}${window.location.pathname}?id=${slug}&discord=connected&step=discord`;
-    if (inviteToken) {
-      redirectPath += `&invitation=${encodeURIComponent(inviteToken)}`;
+  // Connect Discord from the registration modal (inbox #211, 9 Oct 2026). Two steps, like
+  // lib/connections.ts startConnection: ask AFC-B auth/connect-discord/ for Discord's consent
+  // address WITH the session header, then go there. This used to open the API address itself with
+  // ?session_token= in it: the token reached discord.com inside the OAuth state, and since
+  // 2026-08-26 the callback refused that state, so the step always ended on the profile page with
+  // "failed". Discord now sends the player back to this event (?discord=connected), which the
+  // effect above reads to resume at the Discord step.
+  const handleDiscordConnect = useCallback(async () => {
+    try {
+      const res = await axios.get(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/`, {
+        params: { tournament_id: slug, ...(inviteToken ? { invite_token: inviteToken } : {}) },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      window.location.href = res.data.authorize_url;
+    } catch {
+      toast.error(t("register.toast.discordFailed"));
     }
-    const redirectUrl = encodeURIComponent(redirectPath);
-
-    const url = `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/connect-discord/?session_token=${token}&tournament_id=${slug}&invite_token=${inviteToken}&redirect_url=${redirectUrl}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  }, [slug, token, inviteToken]);
+  }, [slug, token, inviteToken, t]);
 
   // Build the EXACT payload register-for-event/ expects, from the collected modal state.
   // Extracted so BOTH the free direct-register path AND the paid path (which saves this
@@ -5029,7 +5036,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             ? {
                 action: {
                   label: t("register.toast.teamLogoAction"),
-                  onClick: () => router.push(`/teams/${encodeURIComponent(userTeam.team_name)}/edit`),
+                  onClick: () => router.push(teamPath(userTeam.team_name, "/edit")),
                 },
               }
             : {}),
@@ -5124,7 +5131,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               onClick: () =>
                 router.push(
                   isTeam && userTeam?.team_id
-                    ? `/teams/${encodeURIComponent(userTeam.team_name)}/edit`
+                    ? teamPath(userTeam.team_name, "/edit")
                     : "/profile/edit",
                 ),
             },
@@ -5185,9 +5192,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             payload,
             { headers: { Authorization: `Bearer ${token}` } },
           );
-          toast.success(
-            res.data.message || t("register.toast.registeredFallback"),
-          );
+          toast.success(serverMessage(res.data, t("register.toast.registeredFallback")));
           setWasWaitlisted(!!res.data.waitlisted);
           setPendingSponsorApproval(!!res.data.pending_sponsor_approval);
           setModalStep("SUCCESS");
@@ -5215,7 +5220,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             payload,
             { headers: { Authorization: `Bearer ${token}` } },
           );
-          toast.success(res.data.message || t("register.toast.registeredFallback"));
+          toast.success(serverMessage(res.data, t("register.toast.registeredFallback")));
           setWasWaitlisted(!!res.data.waitlisted);
           // Sponsor redesign P3: true when a requires_approval sponsor must vet
           // the engagement submissions before the spot is confirmed.
@@ -5514,8 +5519,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   return (
     <div>
-      <Card className="p-0 bg-transparent border-0">
-        <PageHeader title={eventDetails.event_name} back />
+      <Card className="p-0 bg-muted/30">
+        {/* QR code for this event (inbox #46, 2026-09-26): anyone viewing can make one; its
+            organizers and AFC event admins also see the scan count. components/qr/QrShareButton.tsx */}
+        <PageHeader
+          title={eventDetails.event_name}
+          back
+          action={<QrShareButton targetType="event" targetRef={slug} name={eventDetails.event_name} />}
+        />
         <div className="p-0 space-y-2">
           <Image
             src={eventDetails.event_banner_url || DEFAULT_IMAGE}
@@ -5526,7 +5537,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           />
           {!eventDetails.is_public && (
             <div
-              className={`flex items-center gap-2 p-3 rounded-md border ${
+              className={`flex items-center gap-2 p-3 rounded-md ${
                 isInviteConsumed
                   ? "bg-red-500/10 border-red-500/30"
                   : "bg-yellow-500/10 border-yellow-500/30"
@@ -5647,7 +5658,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   alt={orgName}
                   width={24}
                   height={24}
-                  className="size-6 rounded-full object-cover border border-border"
+                  className="size-6 rounded-full object-cover bg-muted/30"
                 />
               ) : (
                 <span className="size-6 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-bold text-primary">
@@ -5687,7 +5698,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                       alt={co.name}
                       width={20}
                       height={20}
-                      className="size-5 rounded-full object-cover border border-border"
+                      className="size-5 rounded-full object-cover bg-muted/30"
                     />
                   )}
                   {co.slug ? (
@@ -5702,6 +5713,17 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             </div>
           );
         })()}
+        {/* ── Ask the organizer (inbox #175, owner 2026-10-08) ── a signed-in player's question to the
+            event's OWN organization, about this event; answered on the organizer portal's Support
+            page. Only on organizer events: a native AFC event already has /support. The control
+            sits inside NeedsAccount (R26). components/support/AskOrganizerDialog.tsx */}
+        {eventDetails.organization_slug && eventDetails.organization_name ? (
+          <AskOrganizerButton
+            organization={{ slug: eventDetails.organization_slug, name: eventDetails.organization_name }}
+            event={eventDetails.slug ? { slug: eventDetails.slug, name: eventDetails.event_name } : null}
+            className="w-fit"
+          />
+        ) : null}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           {/* i18n time: event start date in the viewer's timezone + language,
               injected as the <date> tag of the "Date: <date>" string (t.rich). */}
@@ -5754,7 +5776,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           {eventDetails.open_roster && (
             <Badge
               variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+              className="rounded-full px-2 py-0.5 text-xs text-primary"
               title={t("detail.openRosterHint")}
             >
               {t("detail.openRosterBadge")}
@@ -5774,7 +5796,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           <div className="space-y-1">
             <Badge
               variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+              className="rounded-full px-2 py-0.5 text-xs text-primary"
             >
               {viewerFee && !viewerFee.pays
                 ? t("detail.freeForCountryBadge")
@@ -5795,7 +5817,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           <div>
             <Badge
               variant="outline"
-              className="rounded-full px-2 py-0.5 text-xs border-primary/50 text-primary"
+              className="rounded-full px-2 py-0.5 text-xs text-primary"
             >
               {t("detail.discordRequiredBadge")}
             </Badge>
@@ -5829,7 +5851,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   slots are filled (the active mode) + who is waiting, with queue position. Backed by
                   eventDetails.waitlist_mode + waitlist_competitors from get-event-details. */}
               {eventDetails.is_waitlist_enabled && (
-                <div className="mb-6 rounded-md border bg-card p-4 shadow-sm">
+                <div className="mb-6 rounded-md bg-card p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-base font-bold text-primary">
                       {t("waitlist.title")}
@@ -5921,7 +5943,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                         </label>
                         <select
                           id="team-result-map"
-                          className="h-10 w-full rounded-md border bg-background px-2 text-xs sm:max-w-96"
+                          className="h-10 w-full rounded-md border border-input bg-background px-2 text-xs sm:max-w-96"
                           value={teamResultMatchId ?? undefined}
                           onChange={(e) => setTeamResultMatchId(Number(e.target.value))}
                         >
@@ -6116,7 +6138,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
         );
         if (myEntry?.status !== "rejected") return null;
         return (
-          <Alert className="mt-4 border-destructive/50 bg-destructive/10 text-destructive">
+          <Alert className="mt-4 bg-destructive/10 text-destructive">
             <XCircle className="h-4 w-4" />
             <p className="text-red-900 dark:text-red-100">
               {t.rich("detail.rejectionNotice.personal", {
@@ -6147,7 +6169,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             if (rejected.length === 0) return null;
             const allRejected = rejected.length === pageRoster.length;
             return (
-              <Alert className="border-destructive/50 bg-destructive/10 text-destructive text-left">
+              <Alert className="bg-destructive/10 text-destructive text-left">
                 <XCircle className="h-4 w-4" />
                 <AlertDescription>
                   {allRejected ? (
@@ -6420,8 +6442,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               eventDetails?.registered_competitors?.map(
                 (reg: any, index: number) => (
                   <Card
-                    className="hover:border-primary group cursor-pointer"
-                    onClick={() => router.push(`/players/${reg.username}`)}
+                    className="group cursor-pointer hover:bg-primary/10"
+                    onClick={() => router.push(playerPath(reg.username))}
                     key={`competitor-${reg.id || index}`}
                   >
                     <CardContent className="flex items-center justify-between gap-2">
@@ -6449,8 +6471,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               eventDetails?.tournament_teams?.map(
                 (team: any, index: number) => (
                   <Card
-                    className="hover:border-primary group cursor-pointer"
-                    onClick={() => router.push(`/teams/${team.team_name}`)}
+                    className="group cursor-pointer hover:bg-primary/10"
+                    onClick={() => router.push(teamPath(team.team_name))}
                     key={`competitor-${team.id || index}`}
                   >
                     <CardContent className="flex items-center justify-between gap-2">
@@ -6527,7 +6549,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             <div className="flex flex-wrap items-center gap-3">
               {eventDetails.public_sponsors.map((s: any) => {
                 const tile = (
-                  <span className="flex items-center gap-2.5 rounded-md border bg-background px-3 py-2">
+                  <span className="flex items-center gap-2.5 rounded-md bg-background px-3 py-2">
                     {s.logo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

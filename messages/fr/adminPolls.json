@@ -64,12 +64,6 @@
     "short_text": "Réponse courte",
     "long_text": "Réponse longue"
   },
-  "seasonTier": {
-    "0": "Élite",
-    "1": "Compétitif",
-    "2": "En progression",
-    "3": "Débutant"
-  },
   "teamRole": {
     "team_captain": "Capitaine",
     "vice_captain": "Vice-capitaine",
@@ -168,15 +162,12 @@
     "everyone": "Tout le monde avec un compte AFC",
     "everyoneHint": "Laissez activé pour un sondage communautaire. Désactivez pour restreindre.",
     "countries": "Pays",
-    "teamTiers": "Palier d'équipe",
-    "teamTiersHint": "Le palier fixé à la main par un admin. Le palier 1 est le plus fort.",
-    "seasonTiers": "Palier de saison",
-    "seasonTiersHint": "Le palier calculé par le classement ce trimestre. Élite est le plus fort. Figé à l'ouverture, pour que personne ne voie un bulletin puis se fasse refuser.",
+    "seasonTiers": "Niveau",
+    "seasonTiersHint": "Le niveau de l'équipe ou du joueur sur la page Classements, pour la dernière saison publiée par l'AFC. Le niveau 1 est le plus fort. Figé à l'ouverture, pour que personne ne voie un bulletin puis se fasse refuser.",
     "scopeTeam": "Le palier de saison de leur équipe",
     "scopePlayer": "Leur propre palier de saison",
     "teamRoles": "Rôle dans leur équipe",
     "teamRolesHint": "Capitaine compte quelle que soit la façon dont l'équipe l'enregistre.",
-    "intersectWarning": "Choisir les deux systèmes de paliers exige que les DEUX soient vrais, ce qui peut faire un groupe bien plus petit que chacun séparément.",
     "beforeTheyVote": "Avant de pouvoir voter",
     "beforeTheyVoteHint": "Cela ne restreint pas l'audience. Quelqu'un à qui il manque un élément reste invité, il doit juste le remplir d'abord, et il reçoit un lien pour le faire.",
     "preview": "Les compter",

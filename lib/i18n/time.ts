@@ -43,6 +43,7 @@
  *   const label = formatLocalTime(order.created_at, "datetime"); // "Jun 15, 2026, 3:42 PM"
  *   const tz = getBrowserTimeZone();                              // "Africa/Lagos"
  */
+import { readSegment } from "@/lib/routes";
 
 // The supported display modes. Mirrors the `mode` prop of <LocalTime/>.
 // - "datetime" → date + time   (default)
@@ -89,7 +90,7 @@ export function getActiveLocale(): string {
   // 1. NEXT_LOCALE cookie - the explicit UI-language choice.
   try {
     const match = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=([^;]+)/);
-    if (match?.[1]) return decodeURIComponent(match[1]);
+    if (match?.[1]) return readSegment(match[1]);
   } catch {
     // document.cookie can throw in sandboxed iframes; fall through.
   }
@@ -244,6 +245,20 @@ export function formatLocalDateOnly(value?: string | null, locale?: string): str
 // "YYYY-MM-DD" exactly: a Django DateField on the wire.
 export const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * A CALENDAR DATE formatted the same on the server and in the browser, for server-rendered text
+ * such as a page <title>. No viewer timezone is involved, because a calendar date is the same day
+ * everywhere (see formatLocalDateOnly above); only the month name follows `locale`. Anything that
+ * is not a bare "YYYY-MM-DD" gives "" so a caller can leave the date out rather than print a
+ * shifted one. First caller: the tournament page title (app/(user)/tournaments/[slug]/page.tsx),
+ * where 38 events are all called "CTL TRAINING" and only the date tells them apart (Search
+ * Console 2026-10-16, "Duplicate, Google chose different canonical than user").
+ */
+export function formatCalendarDateAnywhere(value: string | null | undefined, locale: string): string {
+  const v = (value ?? "").trim();
+  return DATE_ONLY.test(v) ? formatCalendarDate(v, locale) : "";
+}
+
 /** Render a bare calendar date at LOCAL midnight so it round-trips to the same day everywhere. */
 function formatCalendarDate(value: string, locale: string): string {
   const [y, mo, d] = value.split("-").map(Number);
@@ -328,4 +343,49 @@ export function formatTimeInZone(
     timeZone: tz,
     ...(opts?.withZoneName ? { timeZoneName: "short" } : {}),
   }).format(date);
+}
+
+/**
+ * An event's start as the HOST sees it, with the zone named ("4:00 PM GMT+2" in English, "16:00 UTC+2"
+ * in French): for text that has no viewer timezone to convert into, such as a server-rendered page
+ * <title>. Gives "" unless all three of date, time and IANA zone are present (eight legacy events
+ * have no zone, and a time without one would read as the reader's own). First caller: the
+ * tournament page title, where same-day scrims share a name AND a date ("CTL TRAINING", 28 Aug,
+ * 16:00 and 22:00; Search Console 2026-10-16) and only the start time tells them apart.
+ */
+export function formatEventStartInHostZone(
+  dateStr: string | null | undefined,
+  timeStr: string | null | undefined,
+  tz: string | null | undefined,
+  locale: string,
+): string {
+  try {
+    const instant = zonedWallClockToInstant(dateStr, timeStr, tz);
+    if (!instant || !tz) return "";
+    return formatTimeInZone(instant, tz, { withZoneName: true, locale });
+  } catch {
+    // An IANA name the runtime does not know throws a RangeError; the title then keeps the date only.
+    return "";
+  }
+}
+
+// ── <input type="datetime-local"> in and out (owner rule R31: one timing model) ─────────────────
+// datetime-local holds "YYYY-MM-DDTHH:MM" with NO timezone: it is the viewer's own wall clock.
+// These two are the only crossing points between that and the ISO instants the API speaks.
+// First caller: the support desk's date and time filters (inbox #174).
+
+/** An ISO instant -> a datetime-local value in the viewer's timezone ("" for nothing). */
+export function isoToLocalInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** A datetime-local value (the viewer's wall clock) -> an ISO instant the backend parses, or null. */
+export function localInputToIso(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d.toISOString();
 }

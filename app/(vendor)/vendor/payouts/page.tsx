@@ -230,7 +230,7 @@ export default function VendorPayoutsPage() {
           {/* How payouts work. (data-tour: Vendor Tour "how payouts work" step.) */}
           <div
             data-tour="vendor-payouts-info"
-            className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-muted-foreground"
+            className="flex items-start gap-2 rounded-md bg-primary/5 px-3 py-2 text-sm text-muted-foreground"
           >
             <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-primary" />
             <p>
@@ -250,7 +250,7 @@ export default function VendorPayoutsPage() {
                   {method.ready ? (
                     <Badge
                       variant="outline"
-                      className="rounded-full border-primary/40 px-2 py-0.5 text-xs text-primary"
+                      className="rounded-full px-2 py-0.5 text-xs text-primary"
                     >
                       <IconCheck className="mr-1 size-3" />
                       Ready
@@ -258,7 +258,7 @@ export default function VendorPayoutsPage() {
                   ) : (
                     <Badge
                       variant="outline"
-                      className="rounded-full border-orange-400/50 px-2 py-0.5 text-xs text-orange-500"
+                      className="rounded-full px-2 py-0.5 text-xs text-orange-500"
                     >
                       Pending
                     </Badge>

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -41,12 +41,34 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { BotCheck, type BotCheckHandle } from "@/components/BotCheck";
+import { cn } from "@/lib/utils";
 
-export const ContactForm = () => {
+// Used by the /support page (app/(user)/support/page.tsx via components/support/SupportPageBody.tsx;
+// /contact redirects there, inbox #71). Signed in, the page passes the account's name and email:
+// they fill the EMPTY fields once, never what the person has typed, and the hint says where they
+// came from. The page also passes a subtitle and its card classes (a filled surface, no outline).
+type ContactFormProps = {
+  accountPrefill?: { name: string; email: string } | null;
+  subtitle?: string;
+  prefilledHint?: string;
+  className?: string;
+  // Classes for the name / email / message fields (the /support page passes filled, no outline)
+  fieldClassName?: string;
+  // Shown above the fields, before anyone writes in (the /support page passes the notice about
+  // bought and shared accounts, inbox #265/#271).
+  notice?: React.ReactNode;
+};
+
+export const ContactForm = ({ accountPrefill = null, subtitle, prefilledHint, className, fieldClassName, notice }: ContactFormProps = {}) => {
   // Strings for the shared "Get in Touch" contact card + its success dialog
   // (namespace == messages/en/home.json).
   const t = useTranslations("home");
   const [openModal, setOpenModal] = useState<boolean>(false);
+  // The Cloudflare Turnstile token this form must send with its post (owner 2026-09-22).
+  const [botToken, setBotToken] = useState("");
+  // The widget itself, so a spent token can be swapped for a fresh one after each send.
+  const botRef = React.useRef<BotCheckHandle>(null);
   // What the desk answered: the number the person quotes back at us, and the address of their own
   // ticket page. Shown in the success dialog so they leave with both.
   const [ticket, setTicket] = useState<{ number: string; url: string } | null>(null);
@@ -65,10 +87,21 @@ export const ContactForm = () => {
       message: "",
     },
   });
+  // Fill the empty name / email from the account once it is known (the session loads after the page)
+  const [prefilled, setPrefilled] = useState(false);
+  useEffect(() => {
+    if (!accountPrefill || prefilled) return;
+    if (!form.getValues("name") && accountPrefill.name) form.setValue("name", accountPrefill.name);
+    if (!form.getValues("email") && accountPrefill.email) form.setValue("email", accountPrefill.email);
+    setPrefilled(true);
+  }, [accountPrefill, prefilled, form]);
+
   function onSubmit(data: ContactFormSchemaType) {
     startTransition(async () => {
       try {
-        const res = await sendContactMessage({ ...data, files });
+        // Bot check (owner 2026-09-22): the token goes with the message, and the server
+        // verifies it with Cloudflare before a ticket exists or staff are emailed.
+        const res = await sendContactMessage({ ...data, files, botToken });
         // A refused file is NAMED rather than dropped in silence: the desk tells us which one and
         // why, and the person can send it another way instead of assuming it arrived.
         res.rejected_files?.forEach((f) =>
@@ -86,16 +119,23 @@ export const ContactForm = () => {
           error?.response?.data?.message || t("contactForm.toast.serverError"),
         );
         return;
+      } finally {
+        // A Turnstile token is good for ONE post, sent or refused. The form stays open either way
+        // (a retry, or a second message after the dialog), so it gets a fresh token now, or that
+        // post is refused as a bot (inbox #310, as sign-up and the popup do since #273).
+        botRef.current?.reset();
       }
     });
   }
   return (
     <>
-      <Card>
+      <Card className={className}>
         <CardHeader>
           <CardTitle>{t("contactForm.title")}</CardTitle>
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </CardHeader>
         <CardContent>
+          {notice}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -105,7 +145,7 @@ export const ContactForm = () => {
                   <FormItem>
                     <FormLabel>{t("contactForm.name")}</FormLabel>
                     <FormControl>
-                      <Input placeholder={t("contactForm.namePlaceholder")} {...field} />
+                      <Input className={fieldClassName} placeholder={t("contactForm.namePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -120,10 +160,14 @@ export const ContactForm = () => {
                     <FormControl>
                       <Input
                         type="email"
+                        className={fieldClassName}
                         placeholder={t("contactForm.emailPlaceholder")}
                         {...field}
                       />
                     </FormControl>
+                    {prefilled && prefilledHint && (
+                      <p className="text-xs text-muted-foreground">{prefilledHint}</p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -137,7 +181,7 @@ export const ContactForm = () => {
                     <FormControl>
                       <Textarea
                         placeholder={t("contactForm.messagePlaceholder")}
-                        className="resize-none"
+                        className={cn("resize-none", fieldClassName)}
                         {...field}
                       />
                     </FormControl>
@@ -162,7 +206,7 @@ export const ContactForm = () => {
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     size="sm"
                     onClick={() => fileInput.current?.click()}
                   >
@@ -195,6 +239,8 @@ export const ContactForm = () => {
                   </div>
                 )}
               </div>
+              {/* Bot check (owner 2026-09-22): nothing renders without a site key. */}
+              <BotCheck ref={botRef} onToken={setBotToken} className="mb-3" />
               <Button disabled={pending} type="submit" className="w-full">
                 {pending ? (
                   <Loader text={t("contactForm.sending")} />

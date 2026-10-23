@@ -467,7 +467,7 @@ function HubOverlay() {
         animate="visible"
         exit="exit"
         className={cn(
-          "relative z-10 w-full max-w-md overflow-hidden rounded-md border bg-card py-6 shadow-2xl outline-none",
+          "relative z-10 w-full max-w-md overflow-hidden rounded-md bg-card py-6 shadow-2xl outline-none",
           "shadow-primary/10",
         )}
       >

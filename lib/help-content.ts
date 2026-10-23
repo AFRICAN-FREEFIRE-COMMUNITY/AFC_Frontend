@@ -472,9 +472,9 @@ export const HELP = {
   "teams.detail.remove_member":
     "Take this player off the team. They're notified and can be re-added at any time. The owner can't be removed - transfer ownership first.",
   "teams.detail.actions._section":
-    "Admin-only controls for this team: override its tier or transfer ownership. Both notify the team and are logged.",
+    "Admin-only controls for this team: set its tier or transfer ownership. Both notify the team and are logged.",
   "teams.detail.change_tier":
-    "Manually move the team to a chosen tier, overriding the ranking system's assignment. The owner is notified.",
+    "Set the team's tier by hand. It changes the tier every page shows (the published Rankings tier) and stays until you pick Automatic again. The owner is notified.",
   "teams.detail.transfer_ownership":
     "Hand ownership to another team member. The current owner becomes a regular member - undone only by transferring again.",
 
@@ -592,7 +592,7 @@ export const HELP = {
   // `newsCategories` in @/constants - it is the ⓘ shown right beside the picker, so an admin
   // reading it while filing an article must see every option that is actually in the dropdown.
   "news.category":
-    "Where the article is filed on the public site - General, Tournament updates, Education updates, or Ban announcements. Drives how readers filter the feed.",
+    "Where the article is filed on the public site: General, Tournament updates, Education updates, Team updates, Banned players, Banned teams. Pick one or several; the article shows under each one readers filter by.",
   "news.related_event":
     "Optionally tie the article to a tournament so it shows alongside that event. Leave blank for general news.",
 
@@ -791,7 +791,7 @@ export const HELP = {
 
   // ── Partners › Scope ────────────────────────────────────────────────────────
   "partners.scope_grants._section":
-    "Which events this partner may read. An event must ALSO be published to the partner API before it appears, no matter how it's granted here. Combine the three grants below freely.",
+    "Which events this partner may read. An event must ALSO be published to the partner API before it appears, no matter how it's granted here. Events publish themselves when they finish, and the Publish card below lists every event these grants reach. Combine the three grants below freely.",
   "partners.allow_all_native_afc":
     "Grant every native AFC event (one with no external organizer) in a single switch, including future ones. Leave off to grant events one by one instead.",
   "partners.allowed_events":

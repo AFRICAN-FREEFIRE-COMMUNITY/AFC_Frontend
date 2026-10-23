@@ -35,6 +35,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 // Subtle clickable player name -> public player profile.
 import { PlayerLink } from "@/components/ui/entity-link";
+import { readSegment } from "@/lib/routes";
 
 type Params = Promise<{ id: string }>;
 
@@ -98,7 +99,7 @@ export default function ApplicationsPage({ params }: { params: Params }) {
       <PageHeader
         back
         title={t("applications.pageTitle")}
-        description={t("applications.pageDescription", { team: decodeURIComponent(id) })}
+        description={t("applications.pageDescription", { team: readSegment(id) })}
       />
 
       {/* Summary Stats */}
@@ -173,7 +174,7 @@ export default function ApplicationsPage({ params }: { params: Params }) {
                     <TableCell>{getStatusBadge(app.status)}</TableCell>
                     <TableCell>
                       {app.contact_unlocked ? (
-                        <Badge variant="outline" className="text-green-400 border-green-800 text-xs">
+                        <Badge variant="outline" className="text-green-400 text-xs">
                           {t("applications.unlocked")}
                         </Badge>
                       ) : (

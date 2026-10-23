@@ -312,7 +312,7 @@ export function EditRosterModal({
               </p>
 
               {/* Member pool checklist. */}
-              <ScrollArea className="h-64 rounded-md border">
+              <ScrollArea className="h-64 rounded-md bg-muted/30">
                 <div className="p-1">
                   {pool.map((member) => {
                     const checked = selectedIds.includes(member.id);
@@ -367,7 +367,7 @@ export function EditRosterModal({
 
               {/* Sponsor-id inputs for the SELECTED players (sponsored events only). */}
               {is_sponsored && selectedMembers.length > 0 && (
-                <div className="rounded-md border p-3 space-y-3">
+                <div className="rounded-md p-3 space-y-3 bg-muted/30">
                   <p className="text-xs text-muted-foreground">
                     Each selected player needs a unique sponsor ID. Changing a
                     sponsor ID resets that player to pending for sponsor review.

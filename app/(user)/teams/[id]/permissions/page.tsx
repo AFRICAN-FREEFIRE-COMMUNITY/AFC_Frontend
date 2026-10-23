@@ -50,6 +50,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { NewBadge } from "@/components/NewBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
+import { readSegment } from "@/lib/routes";
 
 type Params = Promise<{ id: string }>;
 
@@ -92,7 +93,7 @@ export default function TeamRolePermissionsPage({ params }: { params: Params }) 
           // /teams/<team_name>/...), so resolve by name exactly as the detail, roster and edit
           // pages do. The numeric team_id comes back in the response and is what the save calls
           // below send.
-          params: { team_name: decodeURIComponent(id) },
+          params: { team_name: readSegment(id) },
           headers: { Authorization: `Bearer ${token}` },
         },
       );
@@ -244,7 +245,7 @@ export default function TeamRolePermissionsPage({ params }: { params: Params }) 
                   return (
                     <div
                       key={capability}
-                      className="flex items-center justify-between gap-3 rounded-lg border p-3"
+                      className="flex items-center justify-between gap-3 rounded-lg p-3 bg-muted/30"
                     >
                       <div className="space-y-0.5">
                         <Label htmlFor={inputId} className="text-sm font-medium">

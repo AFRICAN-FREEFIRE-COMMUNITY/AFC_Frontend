@@ -17,7 +17,18 @@
     "errors": {
       "redirectRequired": "Sign in with AFC needs at least one redirect URI.",
       "generic": "Your application could not be sent. Please check the form and try again.",
-      "countryRequired": "Please choose your country."
+      "countryRequired": "Please choose your country.",
+      "chooseProduct": "Choose at least one product before sending."
+    },
+    "products": {
+      "title": "What do you want to use",
+      "description": "Pick one or both. This only tells us what to set up, it is not a request for any particular data.",
+      "sso": "Sign in with AFC",
+      "ssoHint": "Let AFC players sign in to your site with their AFC account. Standard OpenID Connect, so you never handle a player's password.",
+      "ssoGuide": "Read the integration guide (PDF)",
+      "dataApi": "The AFC Data API",
+      "dataApiHint": "Read published tournament results, standings, rosters and player stats from your own server, with a key AFC issues you.",
+      "dataApiGuide": "Read the Data API guide"
     },
     "org": {
       "title": "Your organisation",
@@ -59,11 +70,6 @@
       "dataNeeded": "What do you need from AFC, and why",
       "dataNeededPlaceholder": "For example: a player's AFC name and their current rank, so we can show it on their profile.",
       "dataNeededHint": "Describe it in your own words. AFC decides which fields that works out to, and grants the minimum that does the job."
-    },
-    "intro": {
-      "title": "Sign in with AFC",
-      "description": "Let AFC players sign in to your site with their AFC account. Standard OpenID Connect, so you never handle a player's password. Read the guide before you apply if you want to see exactly what is involved.",
-      "guideCta": "Read the integration guide (PDF)"
     }
   },
   "statusLabel": {
@@ -109,7 +115,7 @@
     "collectDescription": "Use the link AFC emailed you. If you opened this page some other way, paste your reference and the code from that link.",
     "tokenLabel": "Code from your email",
     "beforeYouClickTitle": "Read this first",
-    "beforeYouClick": "Your client secret is shown on the next screen once, and never again. This link works one time. Have somewhere safe to paste it before you continue, such as your password manager or your server's secret store.",
+    "beforeYouClick": "Your secret credentials, a client secret, an API key or both, are shown on the next screen once, and never again. This link works one time. Have somewhere safe to paste them before you continue, such as your password manager or your server's secret store.",
     "claim": "Show my credentials",
     "claiming": "Working...",
     "failed": "Those credentials could not be collected.",

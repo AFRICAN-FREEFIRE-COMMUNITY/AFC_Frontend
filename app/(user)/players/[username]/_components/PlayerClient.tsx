@@ -104,9 +104,11 @@ import {
 import { ReportDialog } from "@/components/player/ReportDialog";
 // Public fan/hater reactions (owner 2026-06-20): counts visible to all, tap to react.
 import { FanHater } from "@/components/profile/FanHater";
+import { QrShareButton } from "@/components/qr/QrShareButton";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the read-only public-stats
 // fetch so the profile (stats, registered events, tier) updates without a manual refresh.
 import { useLiveTick } from "@/hooks/useLiveTick";
+import { readSegment, teamPath } from "@/lib/routes";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types: mirror the public endpoint response exactly (do not add fields the
@@ -287,7 +289,7 @@ export function PlayerClient({ username }: { username: string }) {
   const tReport = useTranslations("playerReports");
   // route username may be URL-encoded (spaces in IGNs); decode once for both the
   // request body and the own-profile comparison.
-  const ign = useMemo(() => decodeURIComponent(username), [username]);
+  const ign = useMemo(() => readSegment(username), [username]);
 
   const { user, token } = useAuth();
 
@@ -649,7 +651,7 @@ export function PlayerClient({ username }: { username: string }) {
                   <img
                     src={player.esport_image}
                     alt=""
-                    className="size-16 rounded-md border object-cover"
+                    className="size-16 rounded-md object-cover bg-muted/30"
                   />
                 </a>
               ) : null}
@@ -685,10 +687,10 @@ export function PlayerClient({ username }: { username: string }) {
                   {player.team && (
                     <Badge
                       variant="outline"
-                      className="border-primary/50 text-primary"
+                      className="text-primary"
                       asChild
                     >
-                      <Link href={`/teams/${player.team.team_name}`}>
+                      <Link href={teamPath(player.team.team_name)}>
                         {player.team.team_name}
                       </Link>
                     </Badge>
@@ -697,7 +699,7 @@ export function PlayerClient({ username }: { username: string }) {
                   {currentTier?.tier_label && (
                     <Badge
                       variant="outline"
-                      className="border-gold/60 text-gold"
+                      className="text-gold"
                     >
                       {currentTier.tier_label}
                     </Badge>
@@ -723,9 +725,19 @@ export function PlayerClient({ username }: { username: string }) {
               </div>
             </div>
 
-            {/* owner-only actions: Edit Profile + Disconnect (hidden for public viewers) */}
+            {/* Actions column. The QR code (inbox #46, 2026-09-26) is for everyone: anyone viewing a
+                profile can make one; the player also sees its scan count. Then the owner-only
+                Edit Profile + Disconnect, or, for a signed-in visitor, Report. One column so the
+                buttons stack together on a phone instead of as separate rows. */}
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 w-full md:w-auto">
+              <QrShareButton
+                targetType="player"
+                targetRef={player.username}
+                name={player.username}
+                className="w-full sm:w-auto"
+              />
             {isOwnProfile && (
-              <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <>
                 <Button className="w-full sm:w-auto" asChild>
                   <Link href="/profile/edit">{t("player.editProfile")}</Link>
                 </Button>
@@ -763,7 +775,7 @@ export function PlayerClient({ username }: { username: string }) {
                     </AlertDialogContent>
                   </AlertDialog>
                 )}
-              </div>
+              </>
             )}
 
             {/* Report action: shown to LOGGED-IN viewers looking at SOMEONE ELSE's
@@ -771,10 +783,10 @@ export function PlayerClient({ username }: { username: string }) {
                 actions above) and for logged-out visitors (reporting needs a session).
                 Opens ReportDialog (subjectType="player"), POST /auth/report-player/. */}
             {!isOwnProfile && !!token && (
-              <div className="w-full md:w-auto">
+              <div className="w-full sm:w-auto">
                 <Button
                   variant="outline"
-                  className="w-full sm:w-auto text-red-500 border-red-500/40 hover:bg-red-500/10 hover:text-red-500"
+                  className="w-full sm:w-auto text-red-500 hover:bg-red-500/10 hover:text-red-500 bg-red-500/5"
                   onClick={() => setReportOpen(true)}
                 >
                   <IconFlag className="h-4 w-4 mr-1" />
@@ -782,6 +794,7 @@ export function PlayerClient({ username }: { username: string }) {
                 </Button>
               </div>
             )}
+            </div>
           </div>
         </CardHeader>
 
@@ -841,7 +854,7 @@ export function PlayerClient({ username }: { username: string }) {
                   <p className="text-sm mt-0.5">
                     {player.team ? (
                       <Link
-                        href={`/teams/${player.team.team_name}`}
+                        href={teamPath(player.team.team_name)}
                         className="text-primary hover:underline"
                       >
                         {player.team.team_name}
@@ -966,7 +979,7 @@ export function PlayerClient({ username }: { username: string }) {
                   {t("player.noRegisteredEvents")}
                 </p>
               ) : (
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1051,7 +1064,7 @@ export function PlayerClient({ username }: { username: string }) {
                                 {h.tier_label && (
                                   <Badge
                                     variant="outline"
-                                    className="border-gold/60 text-gold"
+                                    className="text-gold"
                                   >
                                     {h.tier_label}
                                   </Badge>
@@ -1269,7 +1282,7 @@ export function PlayerClient({ username }: { username: string }) {
                                 {h.tier_label && (
                                   <Badge
                                     variant="outline"
-                                    className="border-gold/60 text-gold"
+                                    className="text-gold"
                                   >
                                     {h.tier_label}
                                   </Badge>
@@ -1357,7 +1370,7 @@ export function PlayerClient({ username }: { username: string }) {
               {player.per_event.length === 0 ? (
                 <NothingFound text={t("player.noEventsPlayed")} />
               ) : (
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1522,7 +1535,7 @@ export function PlayerClient({ username }: { username: string }) {
               {player.recent_matches.length === 0 ? (
                 <NothingFound text={t("player.noRecentMatches")} />
               ) : (
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1600,7 +1613,7 @@ export function PlayerClient({ username }: { username: string }) {
                     <TableRow>
                       <TableCell className="font-medium">
                         <Link
-                          href={`/teams/${player.team.team_name}`}
+                          href={teamPath(player.team.team_name)}
                           className="text-primary hover:underline inline-flex items-center gap-1"
                         >
                           <IconShieldCheck className="h-4 w-4" />
@@ -1655,7 +1668,7 @@ export function PlayerClient({ username }: { username: string }) {
 function PrivateStats() {
   const t = useTranslations("teamsplayers");
   return (
-    <div className="bg-card rounded-md border py-10 px-6 shadow-sm flex flex-col items-center justify-center text-center">
+    <div className="bg-card rounded-md py-10 px-6 shadow-sm flex flex-col items-center justify-center text-center">
       <div className="rounded-full bg-muted p-3 mb-3">
         <IconLock className="h-6 w-6 text-muted-foreground" />
       </div>
@@ -1722,7 +1735,7 @@ function TournamentWinningsCard({
             </div>
 
             {/* compact per-event winnings table (text-xs density) */}
-            <div className="rounded-md border overflow-hidden">
+            <div className="rounded-md overflow-hidden bg-muted/30">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -2035,7 +2048,7 @@ function MiniBox({
   value: string | number;
 }) {
   return (
-    <div className="bg-card rounded-md border px-3 py-2.5">
+    <div className="bg-card rounded-md px-3 py-2.5">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-base font-bold mt-0.5">{value}</p>
     </div>

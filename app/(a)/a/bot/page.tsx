@@ -160,7 +160,7 @@ export default function AdminBotPage() {
     return (
       <div className="space-y-4">
         <PageHeader title={t("title")} description={t("description")} />
-        <Card className="bg-card rounded-md border py-6 shadow-sm">
+        <Card className="bg-card rounded-md py-6 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
               <IconAlertTriangle className="size-4 text-gold" aria-hidden />
@@ -215,7 +215,7 @@ export default function AdminBotPage() {
 
         {/* ── STATUS ────────────────────────────────────────────────────── */}
         <TabsContent value="status" className="mt-4 space-y-4">
-          <Card className="bg-card rounded-md border py-6 shadow-sm">
+          <Card className="bg-card rounded-md py-6 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 {/* A solid dot, never a pulsing one. */}
@@ -247,7 +247,7 @@ export default function AdminBotPage() {
 
           {/* Which AI is actually answering. "Answering" and "answering on the last-resort free
               tier" look identical from Discord and cost very different things. */}
-          <Card className="bg-card rounded-md border py-6 shadow-sm">
+          <Card className="bg-card rounded-md py-6 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{t("status.providers")}</CardTitle>
               <p className="text-xs text-muted-foreground">{t("status.providersHint")}</p>
@@ -265,7 +265,7 @@ export default function AdminBotPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-card rounded-md border py-6 shadow-sm">
+          <Card className="bg-card rounded-md py-6 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{t("status.loops")}</CardTitle>
               <p className="text-xs text-muted-foreground">{t("status.loopsHint")}</p>
@@ -320,7 +320,7 @@ export default function AdminBotPage() {
 
         {/* ── KNOWLEDGE ─────────────────────────────────────────────────── */}
         <TabsContent value="knowledge" className="mt-4 space-y-4">
-          <Card className="bg-card rounded-md border py-6 shadow-sm">
+          <Card className="bg-card rounded-md py-6 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{t("knowledge.title")}</CardTitle>
               <p className="text-xs text-muted-foreground">{t("knowledge.hint")}</p>
@@ -420,7 +420,7 @@ export default function AdminBotPage() {
 
         {/* ── SETTINGS ──────────────────────────────────────────────────── */}
         <TabsContent value="settings" className="mt-4 space-y-4">
-          <Card className="bg-card rounded-md border py-6 shadow-sm">
+          <Card className="bg-card rounded-md py-6 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{t("settings.title")}</CardTitle>
               <p className="text-xs text-muted-foreground">{t("settings.hint")}</p>
@@ -489,7 +489,7 @@ export default function AdminBotPage() {
 
         {/* ── APPROVALS ─────────────────────────────────────────────────── */}
         <TabsContent value="approvals" className="mt-4 space-y-4">
-          <Card className="bg-card rounded-md border py-6 shadow-sm">
+          <Card className="bg-card rounded-md py-6 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{t("approvals.title")}</CardTitle>
               <p className="text-xs text-muted-foreground">{t("approvals.hint")}</p>

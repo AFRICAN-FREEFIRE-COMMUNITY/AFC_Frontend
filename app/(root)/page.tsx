@@ -1,8 +1,22 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+// app/(root)/page.tsx - the public landing page ("/").
+//
+// A SERVER component since 2026-10-16 (Search Console Core Web Vitals: LCP 5.9 s on phones, lab
+// 14.1 s). It used to be a client page whose whole hero sat at opacity-0 until React hydrated and
+// then faded in for a second, so the largest text appeared last; it also downloaded EVERY team
+// (GET team/get-all-teams/, 426 KB) only to print how many there are. Now the HTML arrives with
+// the hero and the numbers already in it.
+//
+// THE NUMBERS ARE REAL. The stats row used to print hard-coded "1,200+ tournaments held" and
+// "$500K+ prize pool distributed" while production held 175 events; the owner's rule is no
+// invented numbers and no fake money on the site. It now prints three counts from
+// GET /auth/get-total-number-of-users/ (AFC-B afc_auth/views.py get_total_number_of_users:
+// verified_users, total_teams, events_held), cached for 10 minutes, and shows NO stats row at all
+// when that answer cannot be read, rather than a made-up figure.
+//
+// CONNECTS TO: (user)/_components/Header + _components/Footer (client chrome), LandingTransfers
+// (client, its own fetch), messages/<locale>/home.json (landing.*).
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Logo } from "@/components/Logo";
@@ -14,23 +28,36 @@ import {
   Target,
   Shield,
   Award,
-  GamepadIcon,
-  Crown,
 } from "lucide-react";
-import { formatMoneyInput } from "@/lib/utils";
-import axios from "axios";
+import { formatNumber } from "@/lib/i18n/number";
 import { env } from "@/lib/env";
 import { Footer } from "../_components/Footer";
 import { Header } from "../(user)/_components/Header";
+import { LandingTransfers } from "./_components/LandingTransfers";
 
-const page = () => {
+// The three counts the stats row prints, or null when they cannot be read (then no row shows).
+type SiteCounts = { verified_users: number; total_teams: number; events_held: number };
+
+async function getSiteCounts(): Promise<SiteCounts | null> {
+  try {
+    const res = await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`, {
+      next: { revalidate: 600 },
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    // Type checks, never truthiness: a real 0 is a real answer (the falsy-zero trap).
+    const ok = ["verified_users", "total_teams", "events_held"].every((k) => typeof j?.[k] === "number");
+    return ok ? (j as SiteCounts) : null;
+  } catch {
+    return null;
+  }
+}
+
+const page = async () => {
   // Translations for the public landing page (namespace == messages/en/home.json).
-  const t = useTranslations("home");
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
+  const t = await getTranslations("home");
+  const locale = await getLocale();
+  const counts = await getSiteCounts();
 
   const features = [
     {
@@ -65,42 +92,14 @@ const page = () => {
     },
   ];
 
-  const [totalUsers, setTotalUsers] = useState<number>(0);
-  const [totalTeams, setTotalTeams] = useState<number>(0);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const users = await axios(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/get-total-number-of-users/`
-      );
-      const teams = await axios(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-all-teams/`
-      );
-      setTotalUsers(users?.data?.total_users);
-      setTotalTeams(teams?.data?.teams.length);
-    };
-
-    fetchUsers();
-  }, []);
-
-  const stats = [
-    {
-      label: t("landing.stats.activePlayers"),
-      value: `${formatMoneyInput(totalUsers)}+`,
-      icon: Users,
-    },
-    { label: t("landing.stats.tournamentsHeld"), value: "1,200+", icon: Trophy },
-    {
-      label: t("landing.stats.prizePoolDistributed"),
-      value: "$500K+",
-      icon: Crown,
-    },
-    {
-      label: t("landing.stats.teamsRegistered"),
-      value: `${formatMoneyInput(totalTeams)}+`,
-      icon: Shield,
-    },
-  ];
+  // Exact counts, no "+": they are the real numbers, not a floor someone typed in.
+  const stats = counts
+    ? [
+        { label: t("landing.stats.activePlayers"), value: formatNumber(counts.verified_users, undefined, locale), icon: Users },
+        { label: t("landing.stats.teamsRegistered"), value: formatNumber(counts.total_teams, undefined, locale), icon: Shield },
+        { label: t("landing.stats.eventsHeld"), value: formatNumber(counts.events_held, undefined, locale), icon: Trophy },
+      ]
+    : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
@@ -112,13 +111,9 @@ const page = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
 
         <div className="container mx-auto py-24 relative z-10">
-          <div
-            className={`text-center transition-all duration-1000 ${
-              isVisible
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-10"
-            }`}
-          >
+          {/* Visible from the first byte: no fade-in (it held the largest text back until
+              hydration, and decorative motion is banned house style). */}
+          <div className="text-center">
             {/* Season tagline. Was a breathing glow (animate-pulse plus a coloured text-shadow)
                 until 2026-09-04; both are banned house style, and a headline that throbs is the
                 single clearest tell of a generated page. The emphasis now comes from weight,
@@ -157,7 +152,7 @@ const page = () => {
                 <Button
 
                   variant="outline"
-                  className="border-primary/30 text-primary hover:bg-primary/10 px-8 py-6 text-lg bg-transparent"
+                  className="text-primary hover:bg-primary/10 px-8 py-6 text-lg bg-primary/5"
                 >
                   <Trophy className="w-5 h-5 mr-2" />
                   View Tournaments
@@ -174,26 +169,32 @@ const page = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-gradient-to-r from-background via-primary/5 to-background">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gold/20 text-gold mb-4">
-                  <stat.icon className="w-6 h-6" />
+      {/* Stats Section: three real counts (see the header comment), or nothing at all. */}
+      {stats.length > 0 && (
+        <section className="py-16 bg-gradient-to-r from-background via-primary/5 to-background">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-3 gap-4 md:gap-8">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gold/20 text-gold mb-4">
+                    <stat.icon className="w-6 h-6" />
+                  </div>
+                  <div className="text-2xl md:text-3xl font-bold text-gold mb-2">
+                    {stat.value}
+                  </div>
+                  <div className="text-muted-foreground text-xs md:text-sm">
+                    {stat.label}
+                  </div>
                 </div>
-                <div className="text-3xl font-bold text-gold mb-2">
-                  {stat.value}
-                </div>
-                <div className="text-muted-foreground text-sm">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Who's moving (owner-approved 2026-09-30, inbox #93 / #96): the latest player moves, public,
+          under the stats and before the feature pitch. */}
+      <LandingTransfers />
 
       {/* Features Section */}
       <section className="py-20">
@@ -214,7 +215,7 @@ const page = () => {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="bg-background/50 backdrop-blur-sm border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10"
+                className="bg-background/50 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:bg-primary/10"
               >
                 <CardContent>
                   <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gold/20 text-gold mb-4 transition-transform hover:scale-110">

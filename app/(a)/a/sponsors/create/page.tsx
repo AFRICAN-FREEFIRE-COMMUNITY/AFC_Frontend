@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { UidInput } from "@/components/UidInput";
 import { Checkbox } from "@/components/ui/checkbox";
 import { InfoTip } from "@/components/ui/info-tip";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -104,11 +105,11 @@ function StepIndicator({ step }: { step: 1 | 2 }) {
         <div key={n} className="flex items-center gap-2">
           <div
             className={cn(
-              "size-7 rounded-full flex items-center justify-center text-xs font-semibold border-2 transition-colors",
+              "size-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors bg-muted/30",
               step === n
-                ? "border-primary bg-primary text-primary-foreground"
+                ? "bg-primary text-primary-foreground"
                 : step > n
-                  ? "border-emerald-500 bg-emerald-500 text-white"
+                  ? "bg-emerald-500 text-white"
                   : "border-muted-foreground/30 text-muted-foreground",
             )}
           >
@@ -414,7 +415,7 @@ export default function CreateSponsorPage() {
                         <InfoTip id="sponsors.create.uid" className="ml-1" />
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. 123456789" {...field} />
+                        <UidInput placeholder="e.g. 123456789" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -616,7 +617,7 @@ export default function CreateSponsorPage() {
                     : "No events match your search."}
                 </p>
               ) : (
-                <ScrollArea className="h-64 rounded-md border">
+                <ScrollArea className="h-64 rounded-md bg-muted/30">
                   <div className="p-1">
                     {filteredEvents.map((e) => (
                       <label

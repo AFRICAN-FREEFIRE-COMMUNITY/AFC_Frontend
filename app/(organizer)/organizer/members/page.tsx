@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { NewBadge } from "@/components/NewBadge";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,8 @@ import {
 // permission management is owner-only, so granting it to a sub_organizer would be inert and
 // misleading. The field still exists on the model/type (kept for backward compat) but is no
 // longer offered as a grant.
-const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string }[] = [
+// `newSince`: the day a permission went live; NewBadge shows NEW beside it for 5 days, then hides itself.
+const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string; newSince?: string }[] = [
   { key: "can_create_events", label: "Create events" },
   { key: "can_edit_events", label: "Edit events" },
   { key: "can_upload_results", label: "Upload results" },
@@ -85,6 +87,8 @@ const PERMISSION_FIELDS: { key: keyof OrgPermissions; label: string }[] = [
   { key: "can_submit_designs", label: "Submit designs" },
   { key: "can_view_metrics", label: "View metrics" },
   { key: "can_view_reviews", label: "View reviews" },
+  // Inbox #175: the Support page, where players' questions to the organization are answered.
+  { key: "can_answer_support", label: "Answer support", newSince: "2026-10-08" },
 ];
 
 // Every permission off - the starting state for a new sub-organizer.
@@ -97,6 +101,7 @@ const EMPTY_PERMISSIONS: OrgPermissions = {
   can_view_metrics: false,
   can_view_reviews: false,
   can_manage_members: false,
+  can_answer_support: false,
 };
 
 // A single member row from getOrganizationMembers(slug).results[].
@@ -126,8 +131,8 @@ function RoleBadge({ role }: { role: string }) {
       variant="outline"
       className={
         isOwner
-          ? "border-primary text-primary capitalize"
-          : "border-blue-500 text-blue-600 capitalize"
+          ? "text-primary capitalize"
+          : "text-blue-600 capitalize"
       }
     >
       {roleLabel}
@@ -141,8 +146,8 @@ function StatusBadge({ status }: { status: string }) {
   const normalized = (status || "").toLowerCase();
   const colour =
     normalized === "active"
-      ? "border-green-500 text-green-600"
-      : "border-yellow-500 text-yellow-600";
+      ? "text-green-600 bg-green-500/10"
+      : "text-yellow-600 bg-yellow-500/10";
   return (
     <Badge variant="outline" className={`capitalize ${colour}`}>
       {status || "-"}
@@ -377,14 +382,15 @@ export default function OrganizerMembersPage() {
                   {/* Permission switches. */}
                   <div className="space-y-2">
                     <Label>{t("members.permissionsLabel")}</Label>
-                    <div className="flex flex-col gap-2.5 rounded-md border p-3">
+                    <div className="flex flex-col gap-2.5 rounded-md p-3 bg-muted/30">
                       {PERMISSION_FIELDS.map((field) => (
                         <div
                           key={field.key}
                           className="flex items-center justify-between"
                         >
-                          <span className="text-xs">
+                          <span className="flex items-center gap-1.5 text-xs">
                             {t(`members.permissions.${field.key}`)}
+                            {field.newSince ? <NewBadge since={field.newSince} /> : null}
                           </span>
                           <Switch
                             checked={addPermissions[field.key]}
@@ -501,6 +507,7 @@ export default function OrganizerMembersPage() {
                                     <span className="text-[11px] text-muted-foreground whitespace-nowrap">
                                       {t(`members.permissions.${field.key}`)}
                                     </span>
+                                    {field.newSince ? <NewBadge since={field.newSince} /> : null}
                                   </label>
                                 ))}
                               </div>
@@ -521,7 +528,7 @@ export default function OrganizerMembersPage() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="text-red-600 border-red-200 hover:bg-red-50 h-8 text-xs"
+                                    className="text-red-600 hover:bg-red-50 h-8 text-xs bg-red-200/10"
                                     disabled={isBusy}
                                   >
                                     {isBusy ? (

@@ -18,6 +18,7 @@
 // lib/seo.ts (AFC palette mirrored below), backend get_public_player_stats.
 // ─────────────────────────────────────────────────────────────────────────────
 import { ImageResponse } from "next/og";
+import { readSegment } from "@/lib/routes";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -37,7 +38,7 @@ async function getPlayer(ign: string) {
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player_ign: decodeURIComponent(ign) }),
+        body: JSON.stringify({ player_ign: readSegment(ign) }),
         next: { revalidate: 3600 },
       },
     );
@@ -73,7 +74,7 @@ export default async function Image({
   const { username } = await params;
   const player = await getPlayer(username);
 
-  const name = player?.username || decodeURIComponent(username);
+  const name = player?.username || readSegment(username);
   const teamName = player?.team?.team_name || null;
   const role = player?.in_game_role || null;
   // Probe the avatar before handing it to Satori so a missing image can't 500

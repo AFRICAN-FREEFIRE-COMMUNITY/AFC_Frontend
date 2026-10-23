@@ -141,7 +141,7 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
         {/* Opens automatically if the legacy toggle is already on (e.g. a duplicate
             of an old event pre-filled is_sponsored). Saved through the normal
             create-event FormData exactly as before. */}
-        <details className="group rounded-md border" open={sponsorRequired}>
+        <details className="group rounded-md bg-muted/30" open={sponsorRequired}>
           <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
             <IconChevronRight className="size-4 transition-transform group-open:rotate-90" />
             {t("sponsor.legacyFields")}
@@ -158,7 +158,7 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
             </p>
 
             {/* Toggle */}
-            <div className="flex items-center justify-between rounded-lg border p-4">
+            <div className="flex items-center justify-between rounded-lg p-4 bg-muted/30">
               <div className="space-y-0.5">
                 <Label htmlFor="sponsor-toggle">{t("sponsor.enableRequirement")}</Label>
                 <p className="text-xs text-muted-foreground">
@@ -217,7 +217,7 @@ export function StepSponsorRequirement({ form }: StepSponsorRequirementProps) {
                       {t("sponsor.noSponsors")}
                     </p>
                   ) : (
-                    <div className="rounded-md border divide-y max-h-48 overflow-y-auto">
+                    <div className="rounded-md zebra max-h-48 overflow-y-auto bg-muted/30">
                       {sponsors.map((s) => (
                         <label
                           key={s.user_id}

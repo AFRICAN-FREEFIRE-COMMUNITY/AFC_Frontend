@@ -71,7 +71,6 @@
   "reviewTable.emptyDescription": "No rows were read from this screenshot.",
   "reviewTable.emptyWarning": "Check that the screenshot is clear and shows the match results, then try again.",
   "reviewTable.title": "Review OCR Result",
-  "reviewTable.enginePrefix": "Engine: {engine}",
   "reviewTable.description": "Check each player the screenshot read, correct any mistakes, then commit to write the results to the leaderboard.",
   "reviewTable.needMatchedPlayer": "{count, plural, one {# row still needs a matched player.} other {# rows still need a matched player.}}",
   "reviewTable.needAcknowledging": "{count, plural, one {# team mismatch still needs acknowledging.} other {# team mismatches still need acknowledging.}}",
@@ -331,5 +330,13 @@
   "whyNot.below_floor": "The closest match was not close enough to be sure, so nothing was picked.",
   "whyNot.ambiguous": "Two or more entries matched exactly as well as each other, so nothing was picked.",
   "whyNot.tag_needs_corroboration": "Only the short team tag matched. None of this row's players are on that team and their names do not carry the tag, so it was not applied on its own.",
-  "whyNot.team_conflict": "The team name and the players point at two different teams."
+  "whyNot.team_conflict": "The team name and the players point at two different teams.",
+  "engine.local": "On-site reader",
+  "engine.localCheck": "On-site reader: check every row",
+  "engine.ai": "AI: {engine}",
+  "engine.checkNotice": "The on-site reader was not sure about this screenshot and no AI key could read it. Check every name, kill count and placement against the screenshot before you save.",
+  "memory.remembered": "Remembered from your earlier reviews",
+  "whyNot.rejected_before": "You turned this player down for this name before, so they were not picked again. Pick them yourself if it is them.",
+  "stdBatch.queueSeconds": "Waiting in line: {ahead, plural, =0 {next up} one {# of your maps ahead} other {# of your maps ahead}}, about {seconds, number} seconds.",
+  "stdBatch.queueMinutes": "Waiting in line: {ahead, plural, =0 {next up} one {# of your maps ahead} other {# of your maps ahead}}, about {minutes, plural, one {# minute} other {# minutes}}."
 }

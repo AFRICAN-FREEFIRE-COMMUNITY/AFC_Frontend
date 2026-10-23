@@ -154,7 +154,7 @@ export default function OrganizerCapturePage() {
       <PageHeader title={t("title")} description={t("subtitle")} />
 
       {/* ── 1. Download ── */}
-      <Card className="bg-card rounded-md border">
+      <Card className="bg-card rounded-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <IconDownload className="size-5 text-primary" />
@@ -184,7 +184,7 @@ export default function OrganizerCapturePage() {
       </Card>
 
       {/* ── 2. Capture key ── */}
-      <Card className="bg-card rounded-md border">
+      <Card className="bg-card rounded-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <IconKey className="size-5 text-primary" />
@@ -261,7 +261,7 @@ export default function OrganizerCapturePage() {
       </Card>
 
       {/* ── 3. How to use ── */}
-      <Card className="bg-card rounded-md border">
+      <Card className="bg-card rounded-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <IconBroadcast className="size-5 text-primary" />
@@ -286,7 +286,7 @@ export default function OrganizerCapturePage() {
       </Card>
 
       {/* ── 4. FAQ / troubleshooting (owner 2026-07-01: cover how-tos + what-ifs) ── */}
-      <Card className="bg-card rounded-md border">
+      <Card className="bg-card rounded-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <IconHelp className="size-5 text-primary" />

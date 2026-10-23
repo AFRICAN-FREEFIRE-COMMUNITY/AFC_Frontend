@@ -42,6 +42,8 @@
     "about": "À propos de nous",
     "contact": "Contact",
     "fantasy": "Fantasy",
+    "support": "Assistance",
+    "teamsPlayers": "Équipes et joueurs",
     "wagers": "Paris",
     "winnings": "Gains"
   },
@@ -94,7 +96,7 @@
     "aboutUs": "À propos de nous",
     "contact": "Contact",
     "news": "Actualités",
-    "support": "Support",
+    "support": "Assistance",
     "termsOfService": "Conditions d'utilisation",
     "privacyPolicy": "Politique de confidentialité",
     "rules": "Règles",
@@ -217,5 +219,20 @@
     "storedIn": "Ces heures sont dans le fuseau {tz}, celui de l'événement, pas le vôtre.",
     "yourTime": "Cette heure de début correspond à {time} chez vous.",
     "noneStored": "Aucun fuseau horaire n'est enregistré pour cet événement, ces heures sont donc affichées telles qu'elles ont été saisies."
+  },
+  "uidTaken": {
+    "byName": "Cet UID est déjà utilisé par {name}.",
+    "byAnother": "Cet UID est déjà utilisé par un autre compte.",
+    "viewProfile": "Voir son profil"
+  },
+  "pager": {
+    "label": "Pages",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "showing": "{start}-{end} sur {total}"
+  },
+  "accountSharing": {
+    "fieldNote": "Un compte Free Fire, un compte AFC. Ne partagez pas votre compte. Si vous avez acheté ou reçu un compte Free Fire dont l'UID est déjà lié à un autre compte AFC, demandez au vendeur ou à la personne qui l'a partagé de le retirer de son profil : le support AFC ne peut pas déplacer un UID d'un compte à l'autre.",
+    "takenLine": "Compte acheté ou partagé ? Demandez à la personne qui vous l'a fourni de retirer l'UID de son profil AFC. Le support AFC ne peut pas le déplacer."
   }
 }

@@ -103,6 +103,7 @@ import { NewBadge } from "@/components/NewBadge";
 import { useLiveTick } from "@/hooks/useLiveTick";
 import {
   leaderboardDesignsApi,
+  type DefaultDesignPreset,
   type LeaderboardDesign,
   type GraphicSize,
   type LogoSize,
@@ -234,7 +235,7 @@ export function LeaderboardDesignsManager({
 
   // One-click AFC default-design generator (owner 2026-07-04): which preset (12 | 15 | 24) is being
   // created right now, or null. Drives the per-button spinner + disables the trio while in flight.
-  const [creatingDefault, setCreatingDefault] = useState<12 | 15 | 24 | null>(null);
+  const [creatingDefault, setCreatingDefault] = useState<DefaultDesignPreset | null>(null);
 
   // ── Load the library. ──
   // Live refresh (owner 2026-07-02): background=true skips the "Loading designs..." state
@@ -543,12 +544,19 @@ export function LeaderboardDesignsManager({
   // BOOYAHS, TOTAL POINTS) pre-placed for the chosen size: 12/15 = one column, 24 = two 12-row
   // columns. On success we reload the library so the new design appears; it is then editable in the
   // DesignFieldsEditor like any other. The org-scoping (organizationId) matches the manager's library.
-  const handleCreateDefault = async (preset: 12 | 15 | 24) => {
+  const handleCreateDefault = async (preset: DefaultDesignPreset) => {
     if (!canManage || creatingDefault !== null) return;
     setCreatingDefault(preset);
     try {
       const res = await leaderboardDesignsApi.createDefault(preset, organizationId);
-      toast.success(t("defaultCreated", { name: res.design.name }));
+      // "set" returns the whole kit; name the count rather than just the first design, so the
+      // operator knows five looks landed and not one.
+      const made = res.designs?.length ?? 1;
+      toast.success(
+        made > 1
+          ? t("defaultSetCreated", { count: made })
+          : t("defaultCreated", { name: res.design.name }),
+      );
       load();
     } catch (err: any) {
       toast.error(
@@ -593,7 +601,7 @@ export function LeaderboardDesignsManager({
             {/* One-click AFC default designs (owner 2026-07-04): each button creates a ready-to-use
                 design for a team-capacity preset (12 / 15 = one column; 24 = two 12-row columns) and
                 refreshes the list. Handy starting point that stays fully editable afterwards. */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
               <span className="hidden text-xs text-muted-foreground sm:inline">
                 {t("createDefault")}
               </span>
@@ -615,6 +623,49 @@ export function LeaderboardDesignsManager({
                     <IconLoader2 className="size-4 animate-spin" />
                   ) : (
                     preset
+                  )}
+                </Button>
+              ))}
+            </div>
+            {/* The live-scene defaults + the whole kit (owner 2026-09-22, inbox #38: "default
+                designs that can be used for any event as overlay"). The buttons above size the
+                STANDINGS board by team count; these give the booyah moment, the MVP, the top
+                killers and the head to head a finished AFC look, and "kit" creates all five at
+                once. Every one stays editable afterwards, like any other design. */}
+            {/* wrap, not overflow: at 390 the four scene buttons ran past the edge of the row and
+                Top killers and Head to head were unreachable (walked on production 2026-09-22). */}
+            <div className="flex flex-wrap items-center justify-end gap-1.5">
+              <span className="hidden text-xs text-muted-foreground sm:inline">
+                {t("createScene")}
+                <NewBadge since="2026-09-22" className="ml-1.5" />
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={creatingDefault !== null}
+                onClick={() => handleCreateDefault("set")}
+                title={t("createSetTitle")}
+              >
+                {creatingDefault === "set" ? (
+                  <IconLoader2 className="size-4 animate-spin" />
+                ) : (
+                  t("createSet")
+                )}
+              </Button>
+              {(["booyah", "mvp", "top_killers", "h2h"] as const).map((scene) => (
+                <Button
+                  key={scene}
+                  variant="outline"
+                  size="sm"
+                  disabled={creatingDefault !== null}
+                  onClick={() => handleCreateDefault(scene)}
+                  title={t("createSceneTitle", { scene: t(`scene.${scene}`) })}
+                  aria-label={t("createSceneTitle", { scene: t(`scene.${scene}`) })}
+                >
+                  {creatingDefault === scene ? (
+                    <IconLoader2 className="size-4 animate-spin" />
+                  ) : (
+                    t(`scene.${scene}`)
                   )}
                 </Button>
               ))}
@@ -643,7 +694,7 @@ export function LeaderboardDesignsManager({
             )}
           </div>
         ) : (
-          <div className="overflow-hidden rounded-md border">
+          <div className="overflow-hidden rounded-md bg-muted/30">
             <Table>
               <TableHeader>
                 <TableRow className="h-10">
@@ -663,7 +714,7 @@ export function LeaderboardDesignsManager({
                         {d.is_default && (
                           <Badge
                             variant="outline"
-                            className="rounded-full border-primary px-2 py-0.5 text-xs text-primary"
+                            className="rounded-full px-2 py-0.5 text-xs text-primary"
                           >
                             <IconStar className="mr-0.5 size-3" /> {t("defaultBadge")}
                           </Badge>
@@ -676,8 +727,8 @@ export function LeaderboardDesignsManager({
                           variant="outline"
                           className={
                             d.background_instagram
-                              ? "rounded-full border-blue-500 px-2 py-0.5 text-xs text-blue-600"
-                              : "rounded-full border-muted-foreground px-2 py-0.5 text-xs text-muted-foreground"
+                              ? "rounded-full px-2 py-0.5 text-xs text-blue-600"
+                              : "rounded-full px-2 py-0.5 text-xs text-muted-foreground"
                           }
                         >
                           {d.background_instagram ? t("igSet") : t("igNone")}
@@ -686,8 +737,8 @@ export function LeaderboardDesignsManager({
                           variant="outline"
                           className={
                             d.background_youtube
-                              ? "rounded-full border-red-500 px-2 py-0.5 text-xs text-red-600"
-                              : "rounded-full border-muted-foreground px-2 py-0.5 text-xs text-muted-foreground"
+                              ? "rounded-full px-2 py-0.5 text-xs text-red-600"
+                              : "rounded-full px-2 py-0.5 text-xs text-muted-foreground"
                           }
                         >
                           {d.background_youtube ? t("ytSet") : t("ytNone")}
@@ -701,12 +752,12 @@ export function LeaderboardDesignsManager({
                     <TableCell className="p-2 text-xs">
                       <div className="flex items-center gap-1.5">
                         <span
-                          className="inline-block size-4 rounded-full border"
+                          className="inline-block size-4 rounded-full bg-muted/30"
                           style={{ backgroundColor: d.text_color }}
                           title={t("textSwatch", { colour: d.text_color })}
                         />
                         <span
-                          className="inline-block size-4 rounded-full border"
+                          className="inline-block size-4 rounded-full bg-muted/30"
                           style={{ backgroundColor: d.accent_color }}
                           title={t("accentSwatch", { colour: d.accent_color })}
                         />
@@ -797,7 +848,7 @@ export function LeaderboardDesignsManager({
               <div className="flex items-center justify-between">
                 <Label>{tDlg("preview")}</Label>
                 {/* Size toggle: positions are percent-based so they carry across both. */}
-                <div className="flex overflow-hidden rounded-md border text-xs">
+                <div className="flex overflow-hidden rounded-md text-xs bg-muted/30">
                   {(["instagram", "youtube"] as GraphicSize[]).map((s) => (
                     <button
                       key={s}
@@ -820,7 +871,7 @@ export function LeaderboardDesignsManager({
               <div ref={wrapRef} className="flex w-full justify-center">
               <div
                 ref={canvasRef}
-                className="relative select-none overflow-hidden rounded-md border bg-[#0a0e0c]"
+                className="relative select-none overflow-hidden rounded-md bg-[#0a0e0c]"
                 style={{ width: canvasDims.w, height: canvasDims.h }}
               >
                 {previewBg ? (
@@ -848,7 +899,7 @@ export function LeaderboardDesignsManager({
                     <div
                       key={lg.key}
                       onPointerDown={(e) => startDrag(e, lg.key)}
-                      className="absolute cursor-grab touch-none rounded-sm ring-1 ring-white/40 active:cursor-grabbing"
+                      className="absolute cursor-grab touch-none rounded-sm bg-white/15 active:cursor-grabbing"
                       style={{
                         left: `${lg.x_pct}%`,
                         top: `${lg.y_pct}%`,
@@ -897,7 +948,7 @@ export function LeaderboardDesignsManager({
                     {form.logos.map((lg) => (
                       <div
                         key={lg.key}
-                        className="flex items-center gap-2 rounded-md border p-1.5"
+                        className="flex items-center gap-2 rounded-md p-1.5 bg-muted/30"
                       >
                         <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded bg-muted">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1005,7 +1056,7 @@ export function LeaderboardDesignsManager({
                       onChange={(e) =>
                         setForm((f) => ({ ...f, textColor: e.target.value }))
                       }
-                      className="h-9 w-12 cursor-pointer rounded-md border bg-transparent p-1"
+                      className="h-9 w-12 cursor-pointer rounded-md border border-input bg-transparent p-1"
                       aria-label={tDlg("textColour")}
                     />
                     <span className="text-xs text-muted-foreground">
@@ -1022,7 +1073,7 @@ export function LeaderboardDesignsManager({
                       onChange={(e) =>
                         setForm((f) => ({ ...f, accentColor: e.target.value }))
                       }
-                      className="h-9 w-12 cursor-pointer rounded-md border bg-transparent p-1"
+                      className="h-9 w-12 cursor-pointer rounded-md border border-input bg-transparent p-1"
                       aria-label={tDlg("accentColour")}
                     />
                     <span className="text-xs text-muted-foreground">
@@ -1275,7 +1326,7 @@ function BackgroundField({
       </Label>
       {!preview ? (
         <div
-          className={`flex ${aspectClass} cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border-2 border-dashed border-border bg-muted p-3 text-center transition-colors hover:border-primary`}
+          className={`flex ${aspectClass} cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md bg-muted p-3 text-center transition-colors hover:bg-muted/70`}
           onClick={() => inputRef.current?.click()}
         >
           <div className="flex size-8 items-center justify-center rounded-full bg-primary/10">
@@ -1291,7 +1342,7 @@ function BackgroundField({
       ) : (
         <div className="space-y-2">
           <div
-            className={`relative ${aspectClass} w-full overflow-hidden rounded-md border bg-muted`}
+            className={`relative ${aspectClass} w-full overflow-hidden rounded-md bg-muted`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

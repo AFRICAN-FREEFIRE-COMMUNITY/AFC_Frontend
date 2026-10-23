@@ -24,6 +24,7 @@ import { cosignAdjustment, listAdjustments, type Adjustment } from "@/lib/api/wa
 
 import { Pager, useAdminRefusal, useWagerRoles } from "../../wagers/_components/shared";
 
+import { winningsPlayerPath } from "@/lib/routes";
 const LIMIT = 25;
 
 export function AdjustmentsTab() {
@@ -102,7 +103,7 @@ export function AdjustmentsTab() {
               <TableBody>
                 {rows.map((a, i) => (
                   <TableRow key={a.id} className={i % 2 ? "bg-muted/40" : ""}>
-                    <TableCell className="font-medium"><Link href={`/a/winnings/players/${a.user}`} className="hover:underline">{a.user}</Link></TableCell>
+                    <TableCell className="font-medium"><Link href={winningsPlayerPath(a.user)} className="hover:underline">{a.user}</Link></TableCell>
                     <TableCell className={`text-right font-semibold ${a.direction === "CREDIT" ? "text-primary" : ""}`}>{a.direction === "CREDIT" ? "+" : "-"}{naira(a.amount_kobo)}</TableCell>
                     <TableCell className="max-w-xs">{a.reason}{a.reject_reason && <p className="text-muted-foreground text-[11px]">{t("adjustments.rejectedBecause", { reason: a.reject_reason })}</p>}</TableCell>
                     <TableCell><Badge variant={a.status === "EXECUTED" ? "default" : a.status === "REJECTED" ? "destructive" : "pending"}>{t(`adjustmentStatus.${a.status}`)}</Badge></TableCell>

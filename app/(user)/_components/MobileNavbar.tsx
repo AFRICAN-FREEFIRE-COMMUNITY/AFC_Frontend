@@ -29,13 +29,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useTheme } from "next-themes";
-import { adminNavLinks, homeNavLinksMobile } from "@/constants/nav-links";
+import { adminNavSections, homeNavLinksMobile } from "@/constants/nav-links";
 import { cn } from "@/lib/utils";
 // Shared-chrome strings live in messages/en/common.json under "common"; this
 // Client Component reads them via the useTranslations() hook. Note: the nav
 // item labels themselves come from constants/nav-links.ts (shared data also
 // consumed by the admin sidebar) and are intentionally NOT translated here.
 import { useTranslations } from "next-intl";
+import { useSupportWaiting } from "@/hooks/useSupportWaiting";
 
 export function MobileNavbar() {
   const [open, setOpen] = useState(false);
@@ -43,6 +44,10 @@ export function MobileNavbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const t = useTranslations("common");
+  // Support tickets waiting on the signed-in player (inbox #71): a gold count on the menu button
+  // and beside "Support". 0 signed out, so nothing shows.
+  const supportWaiting = useSupportWaiting();
+  const tSupport = useTranslations("supportPage");
 
   const { user, isAdmin, isOrganizer } = useAuth();
 
@@ -75,6 +80,8 @@ export function MobileNavbar() {
     setOpen(false);
   };
 
+  // Admin section labels (adminNav namespace, the same keys as the admin sidebar)
+  const tAdmin = useTranslations("adminNav");
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
     {},
   );
@@ -129,8 +136,13 @@ export function MobileNavbar() {
         }
       `}</style>
       <SheetTrigger asChild>
-        <Button size={"icon"} variant="ghost">
+        <Button size={"icon"} variant="ghost" className="relative" aria-label={supportWaiting > 0 ? tSupport("menuWaiting", { count: supportWaiting }) : undefined}>
           <IconMenu2 />
+          {supportWaiting > 0 && (
+            <span aria-hidden className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-black">
+              {supportWaiting}
+            </span>
+          )}
         </Button>
       </SheetTrigger>
       <SheetContent className="h-screen">
@@ -290,6 +302,14 @@ export function MobileNavbar() {
                   <Link href={slug!}>
                     <Icon size={20} className="mr-2" />
                     {displayLabel}
+                    {slug === "/support" && supportWaiting > 0 && (
+                      <span
+                        className="ml-2 grid h-5 min-w-5 place-items-center rounded-full bg-gold px-1.5 text-[11px] font-bold text-black"
+                        aria-label={tSupport("menuWaiting", { count: supportWaiting })}
+                      >
+                        {supportWaiting}
+                      </span>
+                    )}
                     {showNewBadge && (
                       <Badge
                         variant="default"
@@ -311,39 +331,57 @@ export function MobileNavbar() {
                 at). The admin SIDEBAR (components/app-sidebar.tsx) keeps its own entries. */}
             {isAdmin && (
               <>
-                <Separator className="my-2" />
-                <p className="text-xs font-semibold text-muted-foreground px-2 mb-1">
+                {/* Space, not a rule, separates the admin block (design rule 2026-08-17) */}
+                <p className="text-xs font-semibold text-muted-foreground px-2 mt-4 mb-1">
                   {t("mobileNav.sectionAdmin")}
                 </p>
-                {adminNavLinks
-                  .filter(
-                    (link) =>
-                      canAccess(link.allowedRoles) &&
-                      !["/a/sponsor-dashboard", "/organizer/overview"].includes(link.slug),
-                  )
-                  .map(({ icon: Icon, slug, label, comingSoon }, index) => (
-                    <Button
-                      key={index}
-                      className="justify-start"
-                      asChild={!comingSoon}
-                      disabled={comingSoon}
-                      variant={isActive(slug) ? "default" : "ghost"}
-                      onClick={comingSoon ? undefined : handleLinkClick}
-                    >
-                      {comingSoon ? (
-                        <div className="flex items-center w-full">
-                          <Icon size={18} className="mr-2" /> {label}
-                          <Badge variant="secondary" className="ml-auto">
-                            {t("mobileNav.badgeSoon")}
-                          </Badge>
-                        </div>
-                      ) : (
-                        <Link href={slug}>
-                          <Icon size={18} className="mr-2" /> {label}
-                        </Link>
-                      )}
-                    </Button>
-                  ))}
+                {/* The admin pages in the same SECTIONS as the admin sidebar (inbox #54, owner
+                    2026-09-26: "a lot on the hamburger menu now, A LOT"), folded until tapped. Each
+                    page opens its first sub-page this person may see. Source: adminNavSections. */}
+                {adminNavSections.map((section) => {
+                  const items = section.items
+                    .filter((item) => canAccess(item.allowedRoles))
+                    .map((item) => ({
+                      item,
+                      href:
+                        item.subs?.find((sub) => canAccess(sub.allowedRoles ?? item.allowedRoles))?.href ??
+                        (item.subs ? null : item.slug),
+                    }))
+                    .filter((entry): entry is { item: (typeof section.items)[number]; href: string } => entry.href !== null);
+                  if (items.length === 0) return null;
+                  const key = `admin:${section.sectionKey}`;
+                  const sectionOpen = expandedMenus[key] ?? items.some(({ item }) => isActive(item.slug));
+                  return (
+                    <div key={key}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-between"
+                        aria-expanded={sectionOpen}
+                        onClick={() => setExpandedMenus((prev) => ({ ...prev, [key]: !sectionOpen }))}
+                      >
+                        {tAdmin(`section.${section.sectionKey}`)}
+                        <IconChevronDown className={cn("size-4 transition-transform motion-reduce:transition-none", !sectionOpen && "-rotate-90")} />
+                      </Button>
+                      {sectionOpen &&
+                        items.map(({ item, href }) => {
+                          const Icon = item.icon;
+                          return (
+                            <Button
+                              key={item.slug}
+                              className="w-full justify-start pl-6"
+                              asChild
+                              variant={isActive(item.slug) ? "default" : "ghost"}
+                              onClick={handleLinkClick}
+                            >
+                              <Link href={href}>
+                                <Icon size={18} className="mr-2" /> {item.navKey ? tAdmin(item.navKey) : item.label}
+                              </Link>
+                            </Button>
+                          );
+                        })}
+                    </div>
+                  );
+                })}
               </>
             )}
 
@@ -410,7 +448,7 @@ export function MobileNavbar() {
                   variant={isActive("/vendor") ? "default" : "ghost"}
                   onClick={handleLinkClick}
                 >
-                  <Link href="/vendor">
+                  <Link href="/vendor/orders">
                     <IconBuildingStore size={18} className="mr-2" />{" "}
                     {t("mobileNav.vendorDashboard")}
                   </Link>

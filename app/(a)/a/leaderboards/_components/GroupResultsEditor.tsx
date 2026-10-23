@@ -67,6 +67,7 @@ import {
   scoreOrZero,
   type ScoreValue,
 } from "@/lib/scoreInput";
+import { richFromRawPlayer, richStatsLine } from "@/components/leaderboards/MatchResultsGrid";
 
 // ── Shapes (subset of the leaderboard-details API rows) ──────────────────────
 interface RawPlayer {
@@ -121,6 +122,8 @@ interface PlayerEditRow {
   damage: ScoreValue;
   assists: ScoreValue;
   played: boolean;
+  // Read-only per-player stats the game log recorded (AFC Capture / backfill), never sent on save.
+  rich?: ReturnType<typeof richFromRawPlayer>;
 }
 interface TeamPlayerGroup {
   teamId: number;
@@ -155,6 +158,7 @@ function statToTeamPlayerGroup(stat: RawStat): TeamPlayerGroup {
       damage: p.damage ?? 0,
       assists: p.assists ?? 0,
       played: true,
+      rich: richFromRawPlayer(p),
     })),
   };
 }
@@ -443,14 +447,14 @@ export function GroupResultsEditor({
             </div>
 
             {currentRows.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground border-2 border-dashed rounded-lg">
+              <p className="py-10 text-center text-sm text-muted-foreground rounded-lg bg-muted/40">
                 No results entered for this map yet. Use the per-map editor or bulk
                 upload to enter them first.
               </p>
             ) : (
               <>
                 {/* Placement table */}
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-md overflow-hidden bg-muted/30">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -562,7 +566,7 @@ export function GroupResultsEditor({
                       return (
                         <div
                           key={tg.teamId}
-                          className="border rounded-lg overflow-hidden"
+                          className="rounded-lg overflow-hidden bg-muted/30"
                         >
                           <button
                             type="button"
@@ -606,6 +610,11 @@ export function GroupResultsEditor({
                                       <TableRow key={player.player_id}>
                                         <TableCell className="font-medium">
                                           {player.username}
+                                          {player.rich && (
+                                            <span className="mt-0.5 block w-60 max-w-full text-xs font-normal break-words whitespace-normal text-muted-foreground sm:w-auto sm:max-w-none">
+                                              {richStatsLine(player.rich)}
+                                            </span>
+                                          )}
                                         </TableCell>
                                         <TableCell>
                                           <Input

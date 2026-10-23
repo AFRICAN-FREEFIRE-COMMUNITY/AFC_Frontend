@@ -113,6 +113,7 @@ import {
 // form field; after create-event returns the new event_id, onSubmit attaches +
 // configures each via sponsorsApi (the endpoints allow the event's organizer too).
 import { sponsorsApi } from "@/lib/sponsors";
+import { appendRemainingEventFields } from "@/lib/eventFields";
 import {
   SponsorshipDraft,
   sponsorshipIssues,
@@ -1034,6 +1035,12 @@ export default function OrganizerCreateEventPage() {
         // event would be a native AFC event (org=None) - so this line is what preserves
         // org attribution for organizer-created events.
         formData.append("organization_id", organizationId.toString());
+
+        // Everything else the contract says this role may write, in one line instead of four files
+        // (owner 2026-09-22, inbox #41). It appends ONLY fields this FormData does not already
+        // carry, so every hand-written append above wins; a NEW plain field reaches all four
+        // event forms as soon as the form state holds it. See lib/eventFields.ts.
+        appendRemainingEventFields(formData, data as Record<string, unknown>, "organizer");
 
         const response = await fetch(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/create-event/`,

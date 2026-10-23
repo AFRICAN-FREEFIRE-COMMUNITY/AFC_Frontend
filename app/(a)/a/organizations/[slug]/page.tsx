@@ -83,10 +83,11 @@ import { InfoTip } from "@/components/ui/info-tip";
 // logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
 // modal in place.
 import { authHeaders } from "@/lib/http";
+import { readSegment } from "@/lib/routes";
 
 // ── Types (mirror the adminGetOrganization payload) ──────────────────────────
 
-// The 8 granular organizer permission keys. Kept as a const array so the add-
+// The granular organizer permission keys. Kept as a const array so the add-
 // member switch grid, the per-member summary, and the default-permissions seed
 // all iterate the same source of truth.
 const PERMISSION_KEYS = [
@@ -98,6 +99,8 @@ const PERMISSION_KEYS = [
   "can_view_metrics",
   "can_view_reviews",
   "can_manage_members",
+  // Inbox #175: the organizer portal's Support page.
+  "can_answer_support",
 ] as const;
 
 type PermissionKey = (typeof PERMISSION_KEYS)[number];
@@ -113,6 +116,7 @@ const PERMISSION_LABELS: Record<PermissionKey, string> = {
   can_view_metrics: "View metrics",
   can_view_reviews: "View reviews",
   can_manage_members: "Manage members",
+  can_answer_support: "Answer support",
 };
 
 interface OrgSocials {
@@ -177,7 +181,7 @@ export default function OrganizationDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug: rawSlug } = use(params);
-  const slug = decodeURIComponent(rawSlug);
+  const slug = readSegment(rawSlug);
   const router = useRouter();
 
   const [detail, setDetail] = useState<OrgDetail | null>(null);
@@ -718,7 +722,7 @@ export default function OrganizationDetailPage({
                             variant="outline"
                             className={
                               m.role === "owner"
-                                ? "border-green-600/60 text-green-400 capitalize"
+                                ? "text-green-400 capitalize"
                                 : "capitalize"
                             }
                           >
@@ -756,7 +760,7 @@ export default function OrganizationDetailPage({
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive bg-destructive/5"
                               disabled={memberBusy === m.user_id}
                               onClick={() => setRemoveTarget(m)}
                             >
@@ -815,7 +819,7 @@ export default function OrganizationDetailPage({
                           {ev.is_draft ? (
                             <Badge
                               variant="outline"
-                              className="border-orange-500/40 text-orange-400"
+                              className="text-orange-400"
                             >
                               Draft
                             </Badge>
@@ -829,7 +833,7 @@ export default function OrganizationDetailPage({
                           {ev.rankings_verified ? (
                             <Badge
                               variant="outline"
-                              className="border-green-600/60 text-green-400"
+                              className="text-green-400"
                             >
                               Verified
                             </Badge>
@@ -937,7 +941,7 @@ export default function OrganizationDetailPage({
                 {PERMISSION_KEYS.map((key) => (
                   <label
                     key={key}
-                    className="flex items-center justify-between gap-2 rounded-md border px-3 py-2"
+                    className="flex items-center justify-between gap-2 rounded-md px-3 py-2 bg-muted/30"
                   >
                     <span className="text-xs">{PERMISSION_LABELS[key]}</span>
                     <Switch

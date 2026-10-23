@@ -6,5 +6,17 @@
   "openBadge": "OPEN",
   "closedBadge": "CLOSED",
   "windowRange": "This season's window: {open} to {close}.",
-  "nextWindowOpens": "The next window opens {date}."
+  "nextWindowOpens": "The next window opens {date}.",
+  "joinWarning.title": "You won't be able to leave this team for a while",
+  "joinWarning.body.join": "The transfer window is closed. You can still join {team}, but once you do you can't leave it.",
+  "joinWarning.body.request": "The transfer window is closed. If {team} accepts your request, you can't leave the team.",
+  "joinWarning.body.invite": "The transfer window is closed. You can still accept this invite to {team}, but once you do you can't leave it.",
+  "joinWarning.body.create": "The transfer window is closed. You can still create {team}, but you can't leave or disband it.",
+  "joinWarning.until": "You'll be free to leave from {date}, when the window opens.",
+  "joinWarning.untilUnknown": "You'll be free to leave when the next window opens. No date has been set yet.",
+  "joinWarning.cancel": "Cancel",
+  "joinWarning.confirm.join": "Join anyway",
+  "joinWarning.confirm.request": "Send request",
+  "joinWarning.confirm.invite": "Accept invite",
+  "joinWarning.confirm.create": "Create team"
 }

@@ -41,6 +41,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 // Subtle clickable player name -> public player profile.
 import { PlayerLink } from "@/components/ui/entity-link";
+import { readSegment, teamPath } from "@/lib/routes";
 
 interface MemberUpdate {
   member_id: number;
@@ -102,7 +103,7 @@ export default function page({ params }: { params: Params }) {
 
     startTransition(async () => {
       try {
-        const decodedId = decodeURIComponent(id);
+        const decodedId = readSegment(id);
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
           { team_name: decodedId }
@@ -194,7 +195,7 @@ export default function page({ params }: { params: Params }) {
         // Refresh team details
         const res = await axios.post(
           `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-          { team_name: decodeURIComponent(id) }
+          { team_name: readSegment(id) }
         );
         setTeamDetails(res.data.team);
       } catch (error: any) {
@@ -245,7 +246,7 @@ export default function page({ params }: { params: Params }) {
         if (!has_errors) {
           toast.success(t("roster.rosterUpdated"));
           setRoleChanges(new Map());
-          router.push(`/teams/${id}`);
+          router.push(teamPath(readSegment(id)));
         } else {
           // Show a toast per failure so the user knows exactly what didn't save
           results.forEach((r: any) => {
@@ -262,7 +263,7 @@ export default function page({ params }: { params: Params }) {
             // Refresh so saved changes reflect immediately
             const refresh = await axios.post(
               `${env.NEXT_PUBLIC_BACKEND_API_URL}/team/get-team-details/`,
-              { team_name: decodeURIComponent(id) }
+              { team_name: readSegment(id) }
             );
             setTeamDetails(refresh.data.team);
           }
@@ -298,7 +299,7 @@ export default function page({ params }: { params: Params }) {
             {/* Over-cap warning (owner 2026-06-30): a team can field at most 6 (captain + vice + 4).
                 When there are more playing members, the extras must be moved to a management role. */}
             {playingCount > MAX_PLAYERS && (
-              <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-600">
+              <div className="mb-4 flex items-start gap-2 rounded-md bg-amber-500/5 p-3 text-xs text-amber-600">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>{t("roster.capWarning", { count: playingCount, max: MAX_PLAYERS })}</p>
               </div>
@@ -446,7 +447,7 @@ export default function page({ params }: { params: Params }) {
               <Button
                 className="flex-1"
                 variant="outline"
-                onClick={() => router.push(`/teams/${id}`)}
+                onClick={() => router.push(teamPath(readSegment(id)))}
                 disabled={savePending}
               >
                 {t("roster.back")}
@@ -505,7 +506,7 @@ export default function page({ params }: { params: Params }) {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
                   <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-amber-800 dark:text-amber-200">
                     <p className="font-medium">{t("roster.areYouSure")}</p>

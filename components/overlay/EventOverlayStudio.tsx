@@ -355,7 +355,7 @@ function OverlayCard({
     stages.find((s) => String(s.stage_id) === String(cfg.stage_id ?? ""))?.groups ?? [];
 
   return (
-    <div className="bg-card space-y-3 rounded-md border p-3 shadow-sm" style={{ width: PREVIEW_W + 26, maxWidth: "100%" }}>
+    <div className="bg-card space-y-3 rounded-md p-3 shadow-sm" style={{ width: PREVIEW_W + 26, maxWidth: "100%" }}>
       {/* ── Name row: inline rename + kind badge. ── */}
       <div className="flex items-center gap-2">
         {renaming ? (
@@ -405,7 +405,7 @@ function OverlayCard({
 
       {/* ── Live preview: the overlay's REAL stable link, scaled. ── */}
       <div
-        className="relative overflow-hidden rounded-md border bg-black"
+        className="relative overflow-hidden rounded-md bg-black"
         style={{ width: PREVIEW_W, height: PREVIEW_W * (9 / 16), maxWidth: "100%" }}
       >
         <iframe
@@ -495,7 +495,7 @@ function OverlayCard({
                 <div className="col-span-2 space-y-1">
                   <Label className="text-xs">{t("studio.combineUnits")}</Label>
                   <p className="text-muted-foreground text-[0.65rem]">{t("studio.combineHint")}</p>
-                  <div className="max-h-44 space-y-2 overflow-y-auto rounded-md border p-2">
+                  <div className="max-h-44 space-y-2 overflow-y-auto rounded-md p-2 bg-muted/30">
                     {(() => {
                       const stageIds: number[] = Array.isArray(cfg.stage_ids)
                         ? cfg.stage_ids.map(Number)
@@ -789,7 +789,7 @@ function OverlayCard({
             <div className="col-span-2 space-y-1">
               <Label className="text-xs">{t("studio.combineUnits")}</Label>
               <p className="text-muted-foreground text-[0.65rem]">{t("studio.combineHint")}</p>
-              <div className="max-h-44 space-y-2 overflow-y-auto rounded-md border p-2">
+              <div className="max-h-44 space-y-2 overflow-y-auto rounded-md p-2 bg-muted/30">
                 {(() => {
                   const stageIds: number[] = Array.isArray(cfg.stage_ids)
                     ? cfg.stage_ids.map(Number)
@@ -1398,7 +1398,7 @@ export function EventOverlayStudio({
 
       {/* ── New overlay: from a design, or a timer scene. ── */}
       <div
-        className="bg-card flex flex-wrap items-end gap-3 rounded-md border p-4 shadow-sm"
+        className="bg-card flex flex-wrap items-end gap-3 rounded-md p-4 shadow-sm"
         data-tour="studio-new-overlay"
       >
         <div className="flex items-center gap-2">

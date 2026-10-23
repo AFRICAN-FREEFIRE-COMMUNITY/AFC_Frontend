@@ -140,16 +140,18 @@ export default function AdminBroadcastsPage() {
       return next;
     });
 
-  // First load only - keep everything on-screen during filter/page refetches.
-  if (loading && rows.length === 0) return <FullLoader />;
-
   // MIRRORS the server gate on the send endpoint (_is_broadcast_audience_admin): the coarse
   // role=="admin", or a granular head_admin / super_admin. Deliberately NARROWER than the four
   // roles this page admits, because those extra roles may read the audit but may not send, and a
   // compose form that 403s on the last click is worse than no compose form.
+  // Called ABOVE the loading return (2026-09-28): below it, the first render ran one hook fewer
+  // than every later one, which React reports as "a change in the order of Hooks".
   const { user, hasAnyRole } = useAuth();
   const canSendBroadcast =
     user?.role === "admin" || hasAnyRole(["head_admin", "super_admin"]);
+
+  // First load only - keep everything on-screen during filter/page refetches.
+  if (loading && rows.length === 0) return <FullLoader />;
 
   const hasFilters = !!debouncedSearch || scope !== "all" || !!sender;
 
@@ -244,7 +246,7 @@ export default function AdminBroadcastsPage() {
             // Long enough to warrant a "Show more" toggle (otherwise the 4-line clamp shows it all).
             const isLong = b.message.length > 240 || b.message.split("\n").length > 4;
             return (
-              <div key={b.id} className="rounded-md border bg-card p-3 shadow-sm">
+              <div key={b.id} className="rounded-md bg-card p-3 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <Badge variant="outline" className="rounded-full text-[11px]">

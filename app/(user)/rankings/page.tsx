@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+// ?tab=tiers and ?subject=players open those tabs, so the help bot can link them (inbox #159).
+import { useAddressTab } from "@/lib/useAddressTab";
 import { PageHeader } from "@/components/PageHeader";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,6 +53,8 @@ import { useLiveTick } from "@/hooks/useLiveTick";
 import { ClaimGhostDialog, ClaimGhostTarget } from "./_components/ClaimGhostDialog";
 
 type Subject = "teams" | "players";
+const SUBJECTS = ["teams", "players"] as const;
+const PAGE_TABS = ["rankings", "tiers"] as const;
 
 // The sentinel the role tab strip uses for "everybody". Radix Tabs cannot hold an empty value,
 // and the backend accepts "all" for the same reason (afc_rankings/player_roles.py ROLE_ALL).
@@ -120,7 +124,7 @@ function LoadError({ onRetry }: { onRetry: () => void }) {
 function TruncatedNote() {
   const t = useTranslations("teamsplayers");
   return (
-    <div className="mb-4 flex items-start gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+    <div className="mb-4 flex items-start gap-2 rounded-md bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
       <IconInfoCircle className="mt-0.5 size-4 shrink-0" />
       <span>{t("rankings.truncatedNote")}</span>
     </div>
@@ -139,7 +143,7 @@ function TruncatedNote() {
 function PreviousPeriodNote({ shown, pending }: { shown: string; pending: string }) {
   const t = useTranslations("teamsplayers");
   return (
-    <div className="mb-4 flex items-start gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+    <div className="mb-4 flex items-start gap-2 rounded-md bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
       <IconClock className="mt-0.5 size-4 shrink-0" />
       <span>
         {t.rich("rankings.showingPrevious", {
@@ -262,7 +266,7 @@ function RoleEmpty({ role }: { role: string }) {
 function RoleDataNotice() {
   const t = useTranslations("teamsplayers");
   return (
-    <div className="mb-4 flex items-start gap-2.5 rounded-md border bg-muted/40 p-3">
+    <div className="mb-4 flex items-start gap-2.5 rounded-md bg-muted/40 p-3">
       <IconInfoCircle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
       <div className="space-y-0.5">
         <p className="text-sm font-semibold">{t("rankings.roleNoDataTitle")}</p>
@@ -291,7 +295,7 @@ function RankingsView() {
   const t = useTranslations("teamsplayers");
   // isAuthenticated gates the "Claim" button on ghost rows (only logged-in users can request a claim).
   const { isAuthenticated } = useAuth();
-  const [subject, setSubject] = useState<Subject>("teams");
+  const [subject, setSubject] = useAddressTab<Subject>("subject", SUBJECTS, "teams");
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [players, setPlayers] = useState<PlayerRow[]>([]);
   const [month, setMonth] = useState("");
@@ -741,7 +745,7 @@ function RankingsView() {
                               {r.claim_status === "pending" && (
                                 <Badge
                                   variant="outline"
-                                  className="rounded-full px-2 py-0.5 text-[10px] border-orange-500/40 text-orange-400"
+                                  className="rounded-full px-2 py-0.5 text-[10px] text-orange-400"
                                 >
                                   {t("rankings.claimPending")}
                                 </Badge>
@@ -912,7 +916,7 @@ function TierTeamRow({ row, elite }: { row: any; elite?: boolean }) {
   );
 }
 
-function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any[]; searching: boolean }) {
+function TierSection({ tier, rows, searching }: { tier: number; rows: any[]; searching: boolean }) {
   const t = useTranslations("teamsplayers");
   const elite = tier === 0;
   if (!rows.length && (tier !== 0 || searching)) return null;
@@ -922,10 +926,13 @@ function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any
         {elite && <IconCrown className="size-4 text-amber-400" />}
         <TierBadge tier={tier} />
         <span className="text-xs text-muted-foreground">{t("rankings.teamCount", { count: rows.length })}</span>
-        <span className="ml-auto text-[11px] text-muted-foreground">{t("rankings.minPts", { min: tierMeta[tier].min })}</span>
+        {/* Cutoffs are only known here for the standard four; an added tier shows none. */}
+        {tierMeta[tier] && (
+          <span className="ml-auto text-[11px] text-muted-foreground">{t("rankings.minPts", { min: tierMeta[tier].min })}</span>
+        )}
       </div>
       {rows.length === 0 ? (
-        <Card className={cn(elite && "border-amber-500/40")}>
+        <Card className={cn(elite && "bg-amber-500/10")}>
           <CardContent className="py-6 text-center text-sm text-muted-foreground">
             {t("rankings.noEliteYet")}
           </CardContent>
@@ -934,7 +941,7 @@ function TierSection({ tier, rows, searching }: { tier: 0 | 1 | 2 | 3; rows: any
         // Elite reads as elite through a warmer FILL, not a coloured bloom around the card. The
         // shadow-[0_0_40px] glow that was here came off on 2026-09-04: house rule is neutral,
         // offset elevation only, never a centred colour halo.
-        <Card className={cn(elite && "border-amber-500/50 bg-amber-500/[0.07]")}>
+        <Card className={cn(elite && "bg-amber-500/[0.07]")}>
           <CardContent className="p-0">
             {rows.map((r, i) => <TierTeamRow key={i} row={r} elite={elite} />)}
           </CardContent>
@@ -1031,17 +1038,22 @@ function TiersView() {
     () => Array.from(new Set(teams.map((r) => r.country).filter(Boolean))).sort() as string[],
     [teams],
   );
+  // One section per tier. The four standard ones always show (Tier 1 keeps its "nobody yet"
+  // card); a tier added in the scoring config later (a code above 3) gets its own section as
+  // soon as a team holds it. Inbox #108: a fixed {0..3} map crashed the tab on g[4].push.
   const byTier = useMemo(() => {
-    const g: Record<number, any[]> = { 0: [], 1: [], 2: [], 3: [] };
+    const top = Math.max(3, ...teams.map((r) => (typeof r.tier === "number" ? r.tier : 0)));
+    const g: Record<number, any[]> = {};
+    for (let code = 0; code <= top; code++) g[code] = [];
     teams
       // Shared matchesSearch() helper (lib/search.ts): punctuation/space/accent-insensitive
       // and folds stylized "fancy font" team names, unlike the old .toLowerCase().includes().
       // Country filter applied alongside ("" = all countries).
       .filter((r) => matchesSearch(r.team_name, q) && (!countryFilter || r.country === countryFilter))
-      .forEach((r) => { if (r.tier != null) g[r.tier].push(r); });
+      .forEach((r) => { if (r.tier != null && r.tier >= 0) g[r.tier]?.push(r); });
     return g;
   }, [teams, q, countryFilter]);
-  const filteredTotal = byTier[0].length + byTier[1].length + byTier[2].length + byTier[3].length;
+  const filteredTotal = Object.values(byTier).reduce((sum, rows) => sum + rows.length, 0);
   const searching = q.trim().length > 0;
 
   return (
@@ -1084,7 +1096,7 @@ function TiersView() {
       {tiersHidden && (
         // Rankings are published but tiers aren't graded/published yet - say so instead of
         // dropping every (null-tier) team and showing a misleading empty state.
-        <div className="mb-4 flex items-center gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+        <div className="mb-4 flex items-center gap-2 rounded-md bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
           <IconClock className="size-4 shrink-0" />
           {t("rankings.tiersComingSoon")}{" "}
           <span className="font-medium text-foreground">{season?.name ?? t("rankings.thisSeason")}</span> {t("rankings.tiersComingSoonNotPublished")}
@@ -1110,10 +1122,9 @@ function TiersView() {
         <Card><CardContent><NoMatch q={q} /></CardContent></Card>
       ) : (
         <div className="space-y-6">
-          <TierSection tier={0} rows={byTier[0]} searching={searching} />
-          <TierSection tier={1} rows={byTier[1]} searching={searching} />
-          <TierSection tier={2} rows={byTier[2]} searching={searching} />
-          <TierSection tier={3} rows={byTier[3]} searching={searching} />
+          {Object.keys(byTier).map(Number).sort((a, b) => a - b).map((code) => (
+            <TierSection key={code} tier={code} rows={byTier[code]} searching={searching} />
+          ))}
         </div>
       )}
     </div>
@@ -1141,6 +1152,8 @@ export default function RankingsPage() {
   const t = useTranslations("teamsplayers");
   // The transfer-window banner self-fetches the current season (Phase 2c flags); the
   // per-view RankingsView/TiersView fetch their own standings data independently.
+  // The tabs sit in a Suspense boundary because they read the address (useAddressTab); the
+  // header above stays server-rendered.
   return (
     <div>
       <PageHeader
@@ -1152,20 +1165,31 @@ export default function RankingsPage() {
 
       <TransferWindowBanner className="mb-5" />
 
-      <Tabs defaultValue="rankings">
-        {/* data-tour anchor (rankings-tabs): guided-tour "Rankings" stop explains the Rankings vs
-            Tiers tabs so a player knows where the AFC ladder + tier system live. */}
-        <TabsList className="mb-5 h-10" data-tour="rankings-tabs">
-          <TabsTrigger value="rankings" className="text-sm">
-            <IconChartBar className="mr-1.5 size-4" /> {t("rankings.rankingsTabLabel")}
-          </TabsTrigger>
-          <TabsTrigger value="tiers" className="text-sm">
-            <IconStairsUp className="mr-1.5 size-4" /> {t("rankings.tiersTabLabel")}
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="rankings"><RankingsView /></TabsContent>
-        <TabsContent value="tiers"><TiersView /></TabsContent>
-      </Tabs>
+      <Suspense>
+        <PageTabs />
+      </Suspense>
     </div>
+  );
+}
+
+// ─── Rankings / Tiers tabs, opened from ?tab= ────────────────────────────────
+function PageTabs() {
+  const t = useTranslations("teamsplayers");
+  const [tab, setTab] = useAddressTab("tab", PAGE_TABS, "rankings");
+  return (
+    <Tabs value={tab} onValueChange={(v) => setTab(v as (typeof PAGE_TABS)[number])}>
+      {/* data-tour anchor (rankings-tabs): guided-tour "Rankings" stop explains the Rankings vs
+          Tiers tabs so a player knows where the AFC ladder + tier system live. */}
+      <TabsList className="mb-5 h-10" data-tour="rankings-tabs">
+        <TabsTrigger value="rankings" className="text-sm">
+          <IconChartBar className="mr-1.5 size-4" /> {t("rankings.rankingsTabLabel")}
+        </TabsTrigger>
+        <TabsTrigger value="tiers" className="text-sm">
+          <IconStairsUp className="mr-1.5 size-4" /> {t("rankings.tiersTabLabel")}
+        </TabsTrigger>
+      </TabsList>
+      <TabsContent value="rankings"><RankingsView /></TabsContent>
+      <TabsContent value="tiers"><TiersView /></TabsContent>
+    </Tabs>
   );
 }

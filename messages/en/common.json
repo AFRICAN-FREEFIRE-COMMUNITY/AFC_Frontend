@@ -42,6 +42,8 @@
     "about": "About Us",
     "contact": "Contact",
     "fantasy": "Fantasy",
+    "support": "Support",
+    "teamsPlayers": "Teams & Players",
     "wagers": "Wagers",
     "winnings": "Winnings"
   },
@@ -217,5 +219,20 @@
     "storedIn": "These times are in {tz}, the event's timezone, not yours.",
     "yourTime": "That start time is {time} where you are.",
     "noneStored": "This event has no timezone saved, so these times are shown exactly as they were entered."
+  },
+  "uidTaken": {
+    "byName": "That UID is already used by {name}.",
+    "byAnother": "That UID is already used by another account.",
+    "viewProfile": "View their profile"
+  },
+  "pager": {
+    "label": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "{start}-{end} of {total}"
+  },
+  "accountSharing": {
+    "fieldNote": "One Free Fire account, one AFC account. Do not share your account. If you bought or were given a Free Fire account and its UID is already on another AFC account, ask the seller or the person who shared it to remove it from their profile: AFC support cannot move a UID between accounts.",
+    "takenLine": "Bought or shared this account? Ask the person you got it from to remove the UID from their AFC profile. AFC support cannot move it."
   }
 }
