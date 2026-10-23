@@ -19,6 +19,19 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Fixed
+- The awards hall of fame showed "Ballots 2" for NFCA 2025, which read as two votes cast. It counts the
+  season's polls, so it now says "Polls" (French "Sondages", Portuguese "Enquetes").
+- The admin "Create leaderboard" page titles (Step 1 of 5, Basic Information, Manual Input and the rest)
+  were English on the French and Portuguese site. They now use the same translated words as the
+  organizer's leaderboard wizard.
+
+### Security
+- zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high: memory could run out while validating very large
+  constrained lists). Found by the security ledger in check-all, which was blocking every commit.
+
 ## v7.3.1 - 2026-10-22
 
 ### Fixed
