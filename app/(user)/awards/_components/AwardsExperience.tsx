@@ -941,13 +941,15 @@ function WinnerBand({
 
       {poster && (
         <Dialog open={posterOpen} onOpenChange={setPosterOpen}>
-          <DialogContent className="w-auto max-w-[min(92vw,1080px)] bg-transparent p-0 shadow-none sm:max-w-[min(92vw,1080px)]">
+          {/* Sized to the poster (4:5): as wide as the screen, or as tall as it allows, never above its own
+            1080 px. A w-auto dialog shrank to 195 px on a phone. */}
+          <DialogContent className="w-[min(92vw,1080px,calc((100vh-140px)*0.8))] max-w-none bg-transparent p-0 shadow-none sm:max-w-none">
             <DialogTitle className="sr-only">{t("nomineePoster")}</DialogTitle>
             {/* eslint-disable-next-line @next/next/no-img-element -- API-host media */}
             <img
               src={poster}
               alt={t("posterCaption", { category, season })}
-              className="mx-auto h-auto max-h-[calc(100vh-140px)] w-auto max-w-full rounded-md"
+              className="h-auto w-full rounded-md"
             />
             <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
               <IconPhoto className="h-3.5 w-3.5" />
