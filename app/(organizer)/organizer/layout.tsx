@@ -481,7 +481,7 @@ function OrganizerShell({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-2 min-w-0">
               {/* Persistent hamburger - mirrors the admin's "Toggle Sidebar"
                   button (components/site-header.tsx). Always visible. */}
-              <SidebarTrigger className="-ml-1 size-9 md:size-7" />
+              <SidebarTrigger className="-ml-1" />
               <Separator
                 orientation="vertical"
                 className="data-[orientation=vertical]:h-4"
