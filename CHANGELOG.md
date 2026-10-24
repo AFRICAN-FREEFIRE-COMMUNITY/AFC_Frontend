@@ -21,6 +21,11 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+### Fixed
+- A welcome tour left half-way no longer comes back on every page you open and moves you to its next
+  stop after a few seconds (signed out, that ended on the login page). A tour nobody has touched for
+  half an hour is over; the sparkles button in the header still replays it.
+
 ## v7.4.0 - 2026-10-24
 
 ### Added
