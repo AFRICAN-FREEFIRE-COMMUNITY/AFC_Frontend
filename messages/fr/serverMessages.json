@@ -14,5 +14,7 @@
   "password_changed": "Mot de passe modifié.",
   "team_name_needs_letter": "Le nom d'une équipe doit contenir au moins une lettre ou un chiffre.",
   "team_name_reserved": "Ce nom est celui d'une page d'AFC. Veuillez choisir un autre nom.",
-  "email_invalid": "Cette adresse e-mail ne semble pas correcte. Veuillez la vérifier."
+  "email_invalid": "Cette adresse e-mail ne semble pas correcte. Veuillez la vérifier.",
+  "claims_not_open_yet": "Les résultats de cette carte s'ouvrent quand son groupe commence à jouer.",
+  "claims_closed": "Les résultats de cette carte sont fermés : son groupe a fini de jouer."
 }
