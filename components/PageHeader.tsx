@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { Button } from "./ui/button";
 import { IconArrowLeft } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 interface PageHeaderProps {
   title: string | React.ReactNode;
@@ -23,6 +24,7 @@ export function PageHeader({
   dataTour,
 }: PageHeaderProps) {
   const router = useRouter();
+  const t = useTranslations("common");
 
   return (
     <div className="mb-4" data-tour={dataTour}>
@@ -39,6 +41,7 @@ export function PageHeader({
             onClick={() => router.back()}
             size="icon"
             variant={"secondary"}
+            aria-label={t("actions.back")}
           >
             <IconArrowLeft />
           </Button>

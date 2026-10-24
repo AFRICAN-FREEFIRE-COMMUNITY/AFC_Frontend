@@ -170,7 +170,7 @@ export function GoogleSignInButton({
         onClick={onClick}
         disabled={busy}
         aria-busy={busy}
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-100 disabled:opacity-60"
+        className="hit-44 active:brightness-90 flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-100 disabled:opacity-60"
       >
         <GoogleG className="h-5 w-5" />
         {t("google.continue")}

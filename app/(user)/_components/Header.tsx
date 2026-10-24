@@ -75,7 +75,7 @@ export const Header = () => {
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
         <div className="container mx-auto h-20 flex items-center justify-between">
-          <Link href={"/home"} className="flex items-center space-x-2">
+          <Link href={"/home"} className="hit-44 flex items-center space-x-2">
             <Logo size="small" />
             <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
               {t("brand.name")}
@@ -104,11 +104,15 @@ export const Header = () => {
           </nav>
 
           <div className="flex items-center gap-2 md:gap-3">
-            <NotificationDropdown
-              notifications={notifications}
-              unreadCount={unreadCount}
-              onNotificationUpdate={fetchNotifications}
-            />
+            {/* Signed in only (R26, Apple fix 9): a visitor has no notifications, so the bell
+                was a control that could only ever open an empty sheet. */}
+            {user && (
+              <NotificationDropdown
+                notifications={notifications}
+                unreadCount={unreadCount}
+                onNotificationUpdate={fetchNotifications}
+              />
+            )}
             {/* Replay the first-time welcome tour. Always available; force-opens the
                 animated tour (mounted in (user)/layout.tsx) regardless of the seen flags.
                 Same ghost icon-button style as the ThemeToggle next to it. */}
@@ -130,6 +134,7 @@ export const Header = () => {
                   size={"icon"}
                   className="relative"
                   onClick={() => setIsCartOpen(true)}
+                  aria-label={t("cart.title")}
                 >
                   <IconShoppingCart />
                   {itemCount > 0 && (

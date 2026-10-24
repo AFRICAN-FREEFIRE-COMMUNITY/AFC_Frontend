@@ -158,7 +158,7 @@ export function DashboardIntroCoachmark() {
           <button
             type="button"
             aria-label={t("dashboardIntro.dismiss")}
-            className="rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="hit-44 rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
             onClick={dismiss}
           >
             <IconX size={14} />

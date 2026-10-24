@@ -57,7 +57,7 @@ export default function SponsorPortalLayout({
             data-tour="sponsor-header"
             className="container mx-auto h-20 flex items-center justify-between"
           >
-            <Link href={"/home"} className="flex items-center space-x-2">
+            <Link href={"/home"} className="hit-44 flex items-center space-x-2">
               <Logo size="small" />
               <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
                 African Free Fire Community

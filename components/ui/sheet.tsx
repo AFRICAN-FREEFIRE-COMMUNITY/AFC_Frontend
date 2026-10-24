@@ -103,7 +103,7 @@ function SheetContent({
         // <Presence> unmounts the content immediately on close and it can never linger as
         // a tap-blocking overlay. Keep the OPEN slide-in for a smooth appearance.
         className={cn(
-          "bg-background data-[state=open]:animate-in fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=open]:duration-500",
+          "bg-background data-[state=open]:animate-in fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=open]:duration-300",
           side === "right" &&
             "data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-[90vw] border-l sm:max-w-sm",
           side === "left" &&

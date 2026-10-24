@@ -30,12 +30,26 @@ workflow checks it again before it builds.
   NEW tag for five days (set its date to the go-live day at ship).
 
 ### Changed
+- On a phone, the small buttons, tabs, switches, checkboxes, dropdowns, info tips, dialog close
+  crosses and banner crosses answer a tap across at least 44 x 44 px, Apple's minimum, while they
+  look exactly the same size. Measured on 9 pages at 390 px with touch: 81 of the 91 small controls
+  on the first screen now take a full 44 px tap, against 1 before. Mouse screens are unchanged.
+- Buttons, tabs and toggles darken slightly (and shrink 3%) the moment a finger lands, so a tap shows
+  it registered.
+- The menu panel slides in over 0.3 s instead of 0.5 s. A phone set to "Reduce motion" gets every
+  panel, dialog and menu as a short fade instead of a slide or zoom.
+- The notifications bell shows only when signed in. A visitor had a bell that could only open an
+  empty panel.
 - "Submit your result" on an event page now opens only while your group is playing: from the
   group's start time until its maps are done plus a few hours, and only for maps of groups your
   team is in. It used to offer every map of the event, days before or weeks after. It shows when
   the window closes. The server refuses a claim outside the window too, in your language.
 
 ### Fixed
+- Buttons that show only an icon now have a name for screen readers, in English, French and
+  Portuguese: the bell, cart, menu, back arrow, the password eye in the sign-in window, the trash
+  button on event lists, the WhatsApp switch on profile edit, the dialog close cross and the info
+  tips (which said "More info" in English in every language).
 - An organizer's "Let teams submit their own map results" switch did nothing: the organizer edit page showed it
   but never loaded or saved it. It now saves.
 - The line above the map picker told players "Nothing is counted until you approve it" (the

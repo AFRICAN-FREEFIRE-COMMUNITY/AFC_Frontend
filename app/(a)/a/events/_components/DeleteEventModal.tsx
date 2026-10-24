@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/Loader";
 import { Trash2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 export const DeleteEventModal = ({
   eventId,
@@ -36,6 +37,8 @@ export const DeleteEventModal = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  // The icon-only trash button's name for screen readers (Apple fix 9, inbox #380).
+  const tCommon = useTranslations("common");
   const { token } = useAuth();
   const router = useRouter();
 
@@ -69,6 +72,7 @@ export const DeleteEventModal = ({
         <Button
           variant="destructive"
           size={size}
+          aria-label={showLabel ? undefined : tCommon("actions.delete")}
           // className={cn("h-full", !isIcon && "flex-1", showLabel ? "" : "px-8")}
           // size={isIcon ? "icon" : "default"}
         >
