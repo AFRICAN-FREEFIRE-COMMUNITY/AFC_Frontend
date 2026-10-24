@@ -37,7 +37,10 @@
       "allDatesPlaceholder": "Todas as Datas",
       "allDates": "Todas as Datas",
       "newestFirst": "Mais Recentes Primeiro",
-      "oldestFirst": "Mais Antigos Primeiro"
+      "oldestFirst": "Mais Antigos Primeiro",
+      "button": "Filtrar",
+      "title": "Filtros",
+      "showEvents": "Ver eventos"
     },
     "status": {
       "all": "Todos",

@@ -642,5 +642,8 @@
   "draw.salt": "Secret",
   "draw.mapping": "Cards",
   "draw.yourCardAuto": "<b>{name}</b> did not pick in time and was placed by the draw: card {number}, <b>{group}</b>",
-  "review.rateAction": "rate this event and leave feedback"
+  "review.rateAction": "rate this event and leave feedback",
+  "list.filters.button": "Filter",
+  "list.filters.title": "Filters",
+  "list.filters.showEvents": "Show events"
 }

@@ -37,7 +37,10 @@
       "allDatesPlaceholder": "All Dates",
       "allDates": "All Dates",
       "newestFirst": "Newest First",
-      "oldestFirst": "Oldest First"
+      "oldestFirst": "Oldest First",
+      "button": "Filter",
+      "title": "Filters",
+      "showEvents": "Show events"
     },
     "status": {
       "all": "All",

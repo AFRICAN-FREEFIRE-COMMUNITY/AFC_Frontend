@@ -37,7 +37,10 @@
       "allDatesPlaceholder": "Toutes les dates",
       "allDates": "Toutes les dates",
       "newestFirst": "Du plus récent au plus ancien",
-      "oldestFirst": "Du plus ancien au plus récent"
+      "oldestFirst": "Du plus ancien au plus récent",
+      "button": "Filtrer",
+      "title": "Filtres",
+      "showEvents": "Voir les événements"
     },
     "status": {
       "all": "Tous",

@@ -35,7 +35,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search, ArrowLeft } from "lucide-react";
+import { Search, ArrowLeft, SlidersHorizontal } from "lucide-react";
+import { Sheet, SheetClose, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import Image from "next/image";
 import { ITEMS_PER_PAGE } from "@/constants";
 // Banner, or the event's name on an AFC surface when it has none (Apple fix 4).
@@ -851,6 +852,9 @@ const EventsPage = () => {
   const [organizerFilter, setOrganizerFilter] =
     useState<OrganizerFilter>("all");
   const [dateSort, setDateSort] = useState<DateSort>("newest");
+  // The phone filter sheet (Apple fix 5).
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const tCommon = useTranslations("common");
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -981,15 +985,110 @@ const EventsPage = () => {
     return counts;
   }, [events]);
 
+  // ── Filter controls, built once and placed twice (Apple fix 5): the desktop row beside the search,
+  // and the phone filter sheet. Same state either way, so a filter picked on one shows on the other. ──
+  const filterSelects = (triggerClass: string) => (
+    <>
+      {/* ── Organizer filter ──
+          Built from the distinct organization_name values in the fetched
+          events. "All organizers" is the default; "AFC (official)" matches
+          events that have no organization. */}
+      <Select
+        value={organizerFilter}
+        onValueChange={(v) => setOrganizerFilter(v as OrganizerFilter)}
+      >
+        <SelectTrigger className={triggerClass}>
+          <SelectValue placeholder={t("list.filters.allOrganizers")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">
+            {t("list.filters.allOrganizers")}
+          </SelectItem>
+          <SelectItem value="afc">
+            {t("list.filters.afcOfficial")}
+          </SelectItem>
+          {organizerOptions.map((name) => (
+            <SelectItem key={name} value={name}>
+              {name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={monthFilter}
+        onValueChange={(v) => setMonthFilter(v as MonthFilter)}
+      >
+        <SelectTrigger className={triggerClass}>
+          <SelectValue placeholder={t("list.filters.allDatesPlaceholder")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t("list.filters.allDates")}</SelectItem>
+          {monthOptions.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {/* Date sort */}
+      <Select
+        value={dateSort}
+        onValueChange={(v) => setDateSort(v as DateSort)}
+      >
+        <SelectTrigger className={triggerClass}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="newest">
+            {t("list.filters.newestFirst")}
+          </SelectItem>
+          <SelectItem value="oldest">
+            {t("list.filters.oldestFirst")}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+    </>
+  );
+
+  const statusChips = (
+    // Status filter buttons
+    <div className="flex flex-wrap gap-1">
+      {(["all", "upcoming", "ongoing", "completed"] as StatusFilter[]).map(
+        (s) => (
+          <Button
+            key={s}
+            size="sm"
+            variant={statusFilter === s ? "default" : "outline"}
+            onClick={() => setStatusFilter(s)}
+            className="capitalize text-xs"
+          >
+            {t(`list.status.${s}` as any)}
+            <span className="ml-1 text-xs opacity-70">
+              ({s === "all" ? statusCounts.all : statusCounts[s]})
+            </span>
+          </Button>
+        ),
+      )}
+    </div>
+  );
+
+  // How many filters are on (the sort is an order, not a filter), shown on the phone Filter button.
+  const activeFilterCount = [statusFilter, monthFilter, organizerFilter].filter((v) => v !== "all").length;
+
   if (isLoading) return <FullLoader />;
 
   return (
     <div>
       <PageHeader title={t("list.pageTitle")} />
 
-      {/* Search */}
-      <div className="flex w-full mb-3 items-center justify-center gap-2 flex-col md:flex-row">
-        <div className="relative w-full">
+      {/* Search. On a phone it shares its row with one Filter button (Apple fix 5, owner approved the
+          mockup 24 Oct 2026, inbox #381): the three pickers and the status chips filled the whole first
+          screen and cut the search hint off, so the first event started below the fold. From md up the
+          row is exactly as before. */}
+      <div className="flex w-full mb-3 items-center justify-center gap-2 md:flex-row">
+        <div className="relative w-full min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
@@ -999,92 +1098,53 @@ const EventsPage = () => {
             className="bg-background/50 backdrop-blur-sm pl-10"
           />
         </div>
-        <div className="flex w-full md:w-auto flex-wrap items-center gap-2 justify-center">
-          {/* ── Organizer filter ──
-              Built from the distinct organization_name values in the fetched
-              events. "All organizers" is the default; "AFC (official)" matches
-              events that have no organization. */}
-          <Select
-            value={organizerFilter}
-            onValueChange={(v) => setOrganizerFilter(v as OrganizerFilter)}
-          >
-            <SelectTrigger className="w-full md:w-44 text-xs">
-              <SelectValue placeholder={t("list.filters.allOrganizers")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                {t("list.filters.allOrganizers")}
-              </SelectItem>
-              <SelectItem value="afc">
-                {t("list.filters.afcOfficial")}
-              </SelectItem>
-              {organizerOptions.map((name) => (
-                <SelectItem key={name} value={name}>
-                  {name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={monthFilter}
-            onValueChange={(v) => setMonthFilter(v as MonthFilter)}
-          >
-            <SelectTrigger className="w-full md:w-44 text-xs">
-              <SelectValue placeholder={t("list.filters.allDatesPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("list.filters.allDates")}</SelectItem>
-              {monthOptions.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Date sort */}
-          <Select
-            value={dateSort}
-            onValueChange={(v) => setDateSort(v as DateSort)}
-          >
-            <SelectTrigger className="w-full md:w-44 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">
-                {t("list.filters.newestFirst")}
-              </SelectItem>
-              <SelectItem value="oldest">
-                {t("list.filters.oldestFirst")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        {/* Status filter buttons */}
-        <div className="flex flex-wrap gap-1">
-          {(["all", "upcoming", "ongoing", "completed"] as StatusFilter[]).map(
-            (s) => (
-              <Button
-                key={s}
-                size="sm"
-                variant={statusFilter === s ? "default" : "outline"}
-                onClick={() => setStatusFilter(s)}
-                className="capitalize text-xs"
-              >
-                {t(`list.status.${s}` as any)}
-                <span className="ml-1 text-xs opacity-70">
-                  ({s === "all" ? statusCounts.all : statusCounts[s]})
-                </span>
-              </Button>
-            ),
+        {/* Phone only: opens the filter sheet below; the number counts the filters that are on. */}
+        <Button
+          variant="secondary"
+          className="md:hidden shrink-0"
+          onClick={() => setFiltersOpen(true)}
+          aria-haspopup="dialog"
+        >
+          <SlidersHorizontal className="size-4" aria-hidden />
+          {t("list.filters.button")}
+          {activeFilterCount > 0 && (
+            <span className="text-muted-foreground">({activeFilterCount})</span>
           )}
+        </Button>
+        <div className="hidden md:flex w-auto flex-wrap items-center gap-2 justify-center">
+          {filterSelects("w-44 text-xs")}
         </div>
       </div>
+
+      {/* Filters (desktop row; on a phone the same chips sit in the sheet) */}
+      <div className="hidden md:flex flex-wrap items-center gap-2 mb-4">{statusChips}</div>
+
+      {/* ── Phone filter sheet (Apple fix 5) ──
+          Slides up from the bottom; closes on Show events, Close, the grey area or Escape.
+          The filters apply as they are picked (same state as the desktop row), so Show events only
+          closes the sheet. md:hidden so a sheet left open while the window widens never shows on desktop. */}
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent
+          side="bottom"
+          aria-describedby={undefined}
+          className="md:hidden border-0 rounded-t-[20px] bg-card px-4 pt-2.5 pb-6 gap-3 max-h-[85dvh] overflow-y-auto"
+        >
+          <div aria-hidden className="mx-auto h-[5px] w-9 rounded-full bg-muted" />
+          <div className="flex items-center justify-between">
+            <SheetTitle>{t("list.filters.title")}</SheetTitle>
+            <SheetClose asChild>
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                {tCommon("actions.close")}
+              </Button>
+            </SheetClose>
+          </div>
+          <div className="flex flex-col gap-2">{filterSelects("w-full h-11 text-sm")}</div>
+          {statusChips}
+          <SheetClose asChild>
+            <Button className="w-full h-11 mt-1">{t("list.filters.showEvents")}</Button>
+          </SheetClose>
+        </SheetContent>
+      </Sheet>
 
       {error && (
         <div className="p-4 bg-destructive/10 text-destructive rounded-lg mb-4">
