@@ -151,7 +151,8 @@
     "body": "Your account can approve payouts, edit events and see player data. A code on top of your password makes it much harder to take over.",
     "action": "Set it up",
     "dismiss": "Not now",
-    "close": "Dismiss"
+    "close": "Dismiss",
+    "short": "Turn on two-step sign-in to protect payouts and event edits."
   },
   "profileCard": {
     "title": "Account and security",

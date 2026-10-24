@@ -266,7 +266,8 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("size-7", className)}
+      // size-11: the collapse button is a 44 px target (Apple fix 17). Was size-7, 28 px.
+      className={cn("size-11", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
@@ -483,7 +484,9 @@ const sidebarMenuButtonVariants = cva(
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
       size: {
-        default: "h-10 text-sm",
+        // h-11 (44 px, Apple's touch minimum; Apple fix 17, inbox #381): the admin, organizer and
+        // vendor sidebars all use the default size. Was h-10.
+        default: "h-11 text-sm",
         sm: "h-7 text-xs",
         lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
       },

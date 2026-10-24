@@ -37,7 +37,10 @@
       "allDatesPlaceholder": "All Dates",
       "allDates": "All Dates",
       "newestFirst": "Newest First",
-      "oldestFirst": "Oldest First"
+      "oldestFirst": "Oldest First",
+      "button": "Filter",
+      "title": "Filters",
+      "showEvents": "Show events"
     },
     "status": {
       "all": "All",
@@ -202,7 +205,31 @@
       "title": "Sponsors"
     },
     "openRosterBadge": "Open roster",
-    "openRosterHint": "Any AFC player can be fielded. This event does not count toward rankings or tiers."
+    "openRosterHint": "Any AFC player can be fielded. This event does not count toward rankings or tiers.",
+    "facts": {
+      "date": "Date",
+      "time": "Time",
+      "prize": "Prize pool",
+      "location": "Location",
+      "online": "Online",
+      "format": "Format",
+      "participants": "Participants",
+      "formatValue": "{mode}, {kind}",
+      "mode": {
+        "virtual": "Virtual",
+        "physical": "In person (LAN)",
+        "hybrid": "Hybrid"
+      },
+      "kind": {
+        "tournament": "tournament",
+        "scrims": "scrims"
+      },
+      "size": {
+        "solo": "{count, plural, one {# player} other {# players}}",
+        "duo": "{count, plural, one {# duo} other {# duos}}",
+        "squad": "{count, plural, one {# squad} other {# squads}}"
+      }
+    }
   },
   "leaveModal": {
     "trigger": "Leave Tournament",

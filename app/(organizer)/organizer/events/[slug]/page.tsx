@@ -63,7 +63,6 @@ import React, { use, useCallback, useEffect, useMemo, useRef, useState } from "r
 import { formatNumber } from "@/lib/i18n/number";
 // One rule for "is this Clash Squad?" (lib/eventFormats).
 import { isClashSquadFormat } from "@/lib/eventFormats";
-import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
 import { useTranslations } from "next-intl";
@@ -128,7 +127,7 @@ import {
   IconUsers,
   IconUsersGroup,
 } from "@tabler/icons-react";
-import { DEFAULT_IMAGE } from "@/constants";
+import { EventBanner } from "@/components/EventBanner";
 import { env } from "@/lib/env";
 import { useOrgEventMove } from "@/lib/addressRef";
 // Team country flag beside team names in the organizer registered-teams table (owner 2026-07-03).
@@ -810,19 +809,16 @@ export default function OrganizerEventDetailPage({ params }: { params: Promise<P
       {/* ── banner (same treatment as the admin view page) ──
           bg-muted keeps this box OPAQUE so a broken banner URL can never let the fixed
           site-wide PageGradient feTurbulence dither show through as colored static (the
-          "hash thing", owner 2026-07-14). onError swaps in DEFAULT_IMAGE because the
-          `|| DEFAULT_IMAGE` guard only catches an EMPTY url, not a non-empty-but-unloadable
-          one (expired/hotlink-blocked/404/wrong content-type). */}
+          "hash thing", owner 2026-07-14). EventBanner draws the event's name on an AFC
+          surface when the URL is empty OR does not load (Apple fix 4; it used to swap in the
+          grey "600 x 400" DEFAULT_IMAGE in onError). */}
       <div className="overflow-hidden rounded-md bg-muted">
-        <Image
-          src={details.event_banner_url || DEFAULT_IMAGE}
+        <EventBanner
+          src={details.event_banner_url}
+          name={details.event_name}
+          kind={details.competition_type}
           alt={`${details.event_name}'s image`}
-          width={1000}
-          height={1000}
           className="w-full h-50 aspect-video object-cover"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = DEFAULT_IMAGE;
-          }}
         />
       </div>
 

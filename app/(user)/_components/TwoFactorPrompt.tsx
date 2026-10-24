@@ -89,45 +89,24 @@ export function TwoFactorPrompt() {
     }
   }
 
+  // ONE QUIET LINE IN THE PAGE (Apple fix 14, owner approved the mockup 24 Oct 2026, inbox #381).
+  // It was a full card with a heading, a paragraph and a full-width button at the top of every page,
+  // which on a first visit stacked with the "New access" card and the welcome tour. It is now one
+  // sentence on a muted surface with a small Set it up and a close cross, so it reads as part of the
+  // page rather than one more thing to deal with. The full reason stays on the security page.
   return (
     <div className="container mt-4">
-      <div className="relative flex flex-col gap-3 rounded-md bg-card p-4 shadow-sm sm:flex-row sm:items-center">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10">
-          <IconShieldLock className="size-5 text-primary" />
-        </div>
-
-        {/* pe-8 keeps the text clear of the absolute close button at 390px. */}
-        <div className="min-w-0 flex-1 pe-8 sm:pe-0">
-          <h3 className="text-sm font-semibold">{t("prompt.title")}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{t("prompt.body")}</p>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <Button
-            size="sm"
-            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
-            asChild
-            onClick={dismiss}
-          >
-            <Link href="/profile/security">{t("prompt.action")}</Link>
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="hidden sm:inline-flex"
-            onClick={dismiss}
-          >
-            {t("prompt.dismiss")}
-          </Button>
-        </div>
-
-        {/* On a phone the "Not now" button would push the card taller for no reason, so the
-            dismiss affordance is the corner X instead. */}
+      <div className="flex items-center gap-3 rounded-xl bg-muted px-3 py-2.5 text-sm">
+        <IconShieldLock className="size-[18px] shrink-0 text-primary" aria-hidden />
+        <p className="min-w-0 flex-1 leading-snug">{t("prompt.short")}</p>
+        <Button size="sm" className="shrink-0" asChild onClick={dismiss}>
+          <Link href="/profile/security">{t("prompt.action")}</Link>
+        </Button>
         <button
           type="button"
           onClick={dismiss}
           aria-label={t("prompt.close")}
-          className="hit-44 absolute end-2 top-2 rounded-md p-2 text-muted-foreground hover:bg-muted sm:hidden"
+          className="hit-44 shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-background hover:text-foreground"
         >
           <IconX className="size-4" />
         </button>

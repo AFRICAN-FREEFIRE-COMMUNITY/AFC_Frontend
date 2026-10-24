@@ -18,5 +18,11 @@
   "joinWarning.confirm.join": "Join anyway",
   "joinWarning.confirm.request": "Send request",
   "joinWarning.confirm.invite": "Accept invite",
-  "joinWarning.confirm.create": "Create team"
+  "joinWarning.confirm.create": "Create team",
+  "closedLine": "Transfer window closed. Opens again on {date}.",
+  "closedLineNoDate": "Transfer window closed. The date it opens again is not set yet.",
+  "openLine": "Transfer window open until {date}.",
+  "openLineNoDate": "Transfer window open.",
+  "details": "Details",
+  "hideDetails": "Hide details"
 }

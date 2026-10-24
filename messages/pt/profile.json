@@ -341,7 +341,9 @@
       "successConfirm": "O seu endereço de e-mail foi atualizado.",
       "genericError": "Ocorreu um erro. Por favor, tente novamente."
     },
-    "whatsappTaken": "Esse número de WhatsApp já está noutra conta AFC. Cada número só pode pertencer a uma conta, como um e-mail ou um nome no jogo."
+    "whatsappTaken": "Esse número de WhatsApp já está noutra conta AFC. Cada número só pode pertencer a uma conta, como um e-mail ou um nome no jogo.",
+    "choosePicture": "Escolher foto de perfil",
+    "tapToChoose": "Toque na foto para trocá-la."
   },
   "password": {
     "title": "Alterar Senha",

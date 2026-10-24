@@ -21,13 +21,15 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+## v7.4.0 - 2026-10-24
+
 ### Added
 - Event edit (admin and organizer), Basic Info: three switches for the kill stats (sniper kills recorded, head to
   head): a tab on the event page, the live overlays, a CSV for the graphics team. Off by default; NEW tag.
 - Every winner on an awards season page now shows the rest of the category's nominees ("Also nominated", with
   their pictures, no vote counts) and the category's nominee poster: beside the winner on a computer, a strip
   to tap on a phone, full size in a viewer that closes with Esc. NFCA 2025 has posters for 26 of 27 categories.
-  NEW tag for five days (set its date to the go-live day at ship).
+  NEW tag for five days.
 
 ### Changed
 - On a phone, the small buttons, tabs, switches, checkboxes, dropdowns, info tips, dialog close
@@ -40,6 +42,26 @@ workflow checks it again before it builds.
   panel, dialog and menu as a short fade instead of a slide or zoom.
 - The notifications bell shows only when signed in. A visitor had a bell that could only open an
   empty panel.
+- An event with no banner shows its own name and type on an AFC surface instead of a grey
+  "600 x 400" picture, on the tournaments list, the event page and the organization page.
+- On a phone, /tournaments shows the search and one Filter button; the pickers and status chips
+  open in a sheet from the bottom, so the events start on the first screen.
+- The transfer window is one calm line ("closed, opens again on <date>") with the rules behind
+  Details, instead of a large red card.
+- On a phone the Help button shrinks to a round icon once you scroll, and the footer leaves room
+  under it.
+- The phone header says "AFC" next to the logo instead of a cut-off name.
+- The header and the menu panel are frosted glass with a thin light edge; a device set to reduce
+  transparency gets them solid.
+- Large titles are set slightly tighter.
+- The event page lists its details as a two-column grid, and the QR code moved into a Share
+  button beside the title (Copy link, Show QR code).
+- On profile edit you press the round picture to choose a new one; the browser's file box is gone.
+- Admin and organizer sidebars: every row and the collapse button are 44 px, and the group names
+  are no longer small spaced-out capitals.
+- On a first visit things come one at a time: the "New access" card first, then the welcome tour,
+  and the Help button steps aside while either is open or a page tour runs. The two-step sign-in
+  reminder is one line in the page.
 - "Submit your result" on an event page now opens only while your group is playing: from the
   group's start time until its maps are done plus a few hours, and only for maps of groups your
   team is in. It used to offer every map of the event, days before or weeks after. It shows when
@@ -50,6 +72,10 @@ workflow checks it again before it builds.
   Portuguese: the bell, cart, menu, back arrow, the password eye in the sign-in window, the trash
   button on event lists, the WhatsApp switch on profile edit, the dialog close cross and the info
   tips (which said "More info" in English in every language).
+- The site header stays at the top again while you scroll. It had stopped sticking on 30 Jun,
+  when a wrapper for printing was put around it.
+- On the event page the mode, the kind and the team size are in your language (they were English
+  capitals), and Location says Online only for online events (LAN events said Online too).
 - An organizer's "Let teams submit their own map results" switch did nothing: the organizer edit page showed it
   but never loaded or saved it. It now saves.
 - The line above the map picker told players "Nothing is counted until you approve it" (the
@@ -61,10 +87,9 @@ workflow checks it again before it builds.
   organizer's leaderboard wizard.
 
 ### Security
-- zod 4.6.7 (GHSA-mrhx-c7xc-m3w5) and happy-dom 21.0.4 (GHSA-834v-8h66-3h79), as in #118 / #120.
-- zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high), same bump as PR #118.
 - zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high: memory could run out while validating very large
-  constrained lists). Found by the security ledger in check-all, which was blocking every commit.
+  constrained lists) and happy-dom to 21.0.4 (GHSA-834v-8h66-3h79, high). Found by the security ledger in
+  check-all, which was blocking every commit.
 
 ### Internal
 - Design lint follows the Apple materials rule adopted for AFC on 23 Oct (inbox #375): `backdrop-filter: blur()`

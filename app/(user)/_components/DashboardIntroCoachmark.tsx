@@ -42,6 +42,8 @@ import { isStaffUser } from "@/lib/adminRoles";
 // logged the user out. authHeaders throws SessionExpiredError instead, which opens the login
 // modal in place.
 import { authHeaders } from "@/lib/http";
+// First visit, one layer at a time (Apple fix 14): this card goes first, the welcome tour waits.
+import { FIRST_VISIT_ORDER, useFirstVisitTurn } from "@/lib/firstVisitQueue";
 
 // One dashboard the callout can introduce: how access is detected + where the menu entry lives.
 // The user-visible label + section text are NOT stored here anymore; they are resolved at render
@@ -112,7 +114,12 @@ export function DashboardIntroCoachmark() {
     setVisible(false);
   }, [user, isAdmin]);
 
-  if (!user || !active || !visible) return null;
+  // Ask for a first-visit turn while there is a dashboard to introduce (lib/firstVisitQueue.ts). The
+  // card is first in line, so it shows at once unless the welcome tour was already open; the tour
+  // then waits for "Got it" (Apple fix 14, inbox #381).
+  const myTurn = useFirstVisitTurn("dashboardIntro", FIRST_VISIT_ORDER.dashboardIntro, !!active);
+
+  if (!user || !active || !visible || !myTurn) return null;
 
   // Resolved, translated label + section for the active dashboard. `key` is the stable id
   // ("admin" | "sponsor" | "organizer" | "vendor"); the en strings live under

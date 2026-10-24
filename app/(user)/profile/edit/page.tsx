@@ -7,6 +7,8 @@ import { toast } from "sonner";
 // namespace (messages/en/profile.json). Locale comes from the NEXT_LOCALE cookie
 // (set on save below) and falls back to English.
 import { useLocale, useTranslations } from "next-intl";
+// The camera badge on the profile picture (Apple fix 15).
+import { Camera } from "lucide-react";
 // js-cookie: used to persist the chosen UI language to a NEXT_LOCALE cookie on save (i18n
 // Phase 0). Same library + options pattern the auth_token cookie uses in
 // contexts/AuthContext.tsx, so Phase 1 (next-intl, not built yet) can read the locale server-side.
@@ -376,27 +378,45 @@ const Page = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="flex justify-center mb-4">
-                <Avatar className="w-32 h-32 mb-4 object-cover">
-                  <AvatarImage
-                    src={avatar || user?.profile_pic || DEFAULT_PROFILE_PICTURE}
-                    alt={t("edit.avatarAlt", { name: user.full_name })}
-                    className="object-cover"
-                  />
-                  <AvatarFallback>{user.full_name.charAt(0)}</AvatarFallback>
-                </Avatar>
-              </div>
-
+              {/* ── Profile picture: tap the circle (Apple fix 15, owner approved the mockup 24 Oct 2026,
+                  inbox #381) ──
+                  The picture itself is the control: the whole circle and its camera badge sit inside a
+                  <label> around the file input, so pressing it opens the picker. The browser's own
+                  "Choose file / No file chosen" box was the field before; it is now sr-only, still
+                  reachable by keyboard and screen readers (focus shows a ring on the circle). The chosen
+                  picture previews in the circle at once, as before; nothing uploads until Save. */}
               <FormField
                 control={form.control}
                 name="avatar"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("edit.profilePicture")}</FormLabel>
+                  <FormItem className="flex flex-col items-center">
+                    <FormLabel className="self-start">{t("edit.profilePicture")}</FormLabel>
+                    <label
+                      className="relative mt-2 cursor-pointer rounded-full focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary active:brightness-90"
+                      title={t("edit.choosePicture")}
+                    >
+                      <Avatar className="w-32 h-32 object-cover">
+                        <AvatarImage
+                          src={avatar || user?.profile_pic || DEFAULT_PROFILE_PICTURE}
+                          alt={t("edit.avatarAlt", { name: user.full_name })}
+                          className="object-cover"
+                        />
+                        <AvatarFallback>{user.full_name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span
+                        aria-hidden="true"
+                        className="absolute bottom-1 right-1 grid size-9 place-items-center rounded-full bg-primary text-primary-foreground shadow-sm"
+                      >
+                        <Camera className="size-[18px]" />
+                      </span>
                     <FormControl>
-                      <Input
+                      {/* A plain input, not the shared <Input>: its width and height classes would win
+                          over sr-only and leave a clipped 128 x 44 box instead of a 1 px one. */}
+                      <input
                         type="file"
                         accept="image/*"
+                        className="sr-only"
+                        aria-label={t("edit.choosePicture")}
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
@@ -414,6 +434,8 @@ const Page = () => {
                         }}
                       />
                     </FormControl>
+                    </label>
+                    <p className="text-xs text-muted-foreground">{t("edit.tapToChoose")}</p>
                     <FormMessage />
                   </FormItem>
                 )}
