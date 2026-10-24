@@ -59,6 +59,5 @@
   "settings.label": "Let teams submit their own map results",
   "settings.help": "Teams file their own row for a map and you approve it before it counts. Useful on big events where you would otherwise be typing in results teams already sent you. Off by default.",
   "team.pickMap": "Which map are you sending a result for?",
-  "team.matchLabel": "Match {number}",
-  "team.openUntil": "Open until"
+  "team.matchLabel": "Match {number}"
 }

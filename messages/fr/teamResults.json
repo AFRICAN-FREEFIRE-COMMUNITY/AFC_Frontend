@@ -29,8 +29,7 @@
     "pickFour": "Cochez les {count} joueurs qui étaient dans le lobby.",
     "selectedCount": "{selected} sur {max} sélectionnés.",
     "pickMap": "Pour quelle carte envoyez-vous un résultat ?",
-    "matchLabel": "Match {number}",
-    "openUntil": "Ouvert jusqu'à"
+    "matchLabel": "Match {number}"
   },
   "queue": {
     "title": "Résultats envoyés par les équipes",

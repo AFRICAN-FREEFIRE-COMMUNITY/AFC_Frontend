@@ -21,6 +21,11 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+### Changed
+- "Submit your result" on an event page stays open after your group has played: it opens when the
+  group starts and no longer closes, so a team can still send a result it forgot. The map you just
+  played is picked first. The "Open until" line is gone.
+
 ## v7.4.0 - 2026-10-24
 
 ### Added

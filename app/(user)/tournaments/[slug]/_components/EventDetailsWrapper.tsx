@@ -3607,16 +3607,16 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
 
-  // The maps this viewer's team may send a result for RIGHT NOW (owner 2026-10-23, inbox #379:
-  // "it should only open for matches, stages or groups that are actively playing"). It used to be
-  // every map of the event, including groups the team was not in and maps days away. The server
-  // decides (AFC-B views_team_submissions.open_team_map_results: the team's own groups only, from
-  // the group's start in the event's time zone until its maps are done plus a grace), so this
-  // picker can never offer a map the submit endpoint would refuse. Re-read on the live tick, so the
-  // form appears when the group starts and goes once it is over, with no reload. Empty hides it.
-  const [teamResultMaps, setTeamResultMaps] = useState<
-    { matchId: number; label: string; closesAt: string }[]
-  >([]);
+  // The maps this viewer's team may send a result for (owner 2026-10-23, inbox #379: "it should
+  // only open for matches, stages or groups that are actively playing"; then 2026-10-24, #389: "and
+  // also after it has happened, just not before it has happened"). It used to be every map of the
+  // event, including groups the team was not in and maps days away. The server decides (AFC-B
+  // views_team_submissions.open_team_map_results: the team's own groups only, from the group's
+  // start in the event's time zone, and still after it), so this picker can never offer a map the
+  // submit endpoint would refuse. The latest group comes first, so the map a team just played is
+  // the one already picked. Re-read on the live tick, so the form appears when the group starts,
+  // with no reload. Empty hides it.
+  const [teamResultMaps, setTeamResultMaps] = useState<{ matchId: number; label: string }[]>([]);
   const claimsSlug =
     eventDetails?.allow_team_result_submissions && eventDetails?.is_registered && token
       ? eventDetails.slug
@@ -3641,7 +3641,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           ]
             .filter(Boolean)
             .join(" / "),
-          closesAt: m.closes_at,
         }));
         // Same list as last time: keep the old array so the poll does not re-render the form.
         setTeamResultMaps((prev) =>
@@ -6009,18 +6008,6 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                             </option>
                           ))}
                         </select>
-                        {/* How long the team has: the group's claims close at this moment. */}
-                        {(() => {
-                          const closesAt = teamResultMaps.find(
-                            (m) => m.matchId === teamResultMatchId,
-                          )?.closesAt;
-                          return closesAt ? (
-                            <p className="text-xs text-muted-foreground">
-                              {tTeamResults("team.openUntil")}{" "}
-                              <LocalTime value={closesAt} mode="datetime" />
-                            </p>
-                          ) : null;
-                        })()}
                       </div>
                       {teamResultMatchId && (
                         <TeamMapResultPanel
