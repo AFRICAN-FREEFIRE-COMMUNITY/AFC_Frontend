@@ -47,6 +47,11 @@ workflow checks it again before it builds.
 - zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high: memory could run out while validating very large
   constrained lists). Found by the security ledger in check-all, which was blocking every commit.
 
+### Internal
+- Design lint follows the Apple materials rule adopted for AFC on 23 Oct (inbox #375): `backdrop-filter: blur()`
+  on chrome is no longer read as a decorative blur, and a `ring-1` edge on an element that carries `backdrop-blur`
+  is allowed. Self-test 33 cases.
+
 ## v7.3.1 - 2026-10-22
 
 ### Fixed
