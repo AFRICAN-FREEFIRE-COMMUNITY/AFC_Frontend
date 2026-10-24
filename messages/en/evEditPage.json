@@ -138,6 +138,9 @@
     "requireUid": "Free Fire UID required",
     "requireWhatsapp": "WhatsApp number required",
     "allowTeamResults": "Teams submit their own results",
+    "killFeedTab": "Kill stats tab",
+    "killFeedOverlay": "Kill stats on overlays",
+    "killFeedExport": "Kill stats CSV export",
     "minLetterAvatars": "Minimum letter avatars",
     "waitlistMode": "Waitlist order",
     "openRoster": "Open roster"

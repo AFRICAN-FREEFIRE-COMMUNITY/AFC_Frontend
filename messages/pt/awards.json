@@ -47,7 +47,7 @@
   },
   "stats": {
     "categories": "Categorias",
-    "ballots": "Votações",
+    "polls": "Enquetes",
     "mostDecorated": "Mais premiado"
   },
   "ceremony": {
@@ -57,6 +57,12 @@
   },
   "winner": "Vencedor",
   "viewProfile": "Ver perfil",
+  "alsoNominated": "Também indicados",
+  "nomineePoster": "Pôster dos indicados",
+  "posterHint": "Toque para ver em tamanho real",
+  "posterCaption": "Indicados, {category}, {season}",
+  "openPoster": "Abrir o pôster dos indicados de {category}",
+  "closePoster": "Fechar",
   "archive": {
     "heading": "Galeria dos campeões",
     "search": "Buscar um vencedor ou uma categoria",

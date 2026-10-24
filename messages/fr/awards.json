@@ -47,7 +47,7 @@
   },
   "stats": {
     "categories": "Catégories",
-    "ballots": "Bulletins",
+    "polls": "Sondages",
     "mostDecorated": "Le plus récompensé"
   },
   "ceremony": {
@@ -57,6 +57,12 @@
   },
   "winner": "Lauréat",
   "viewProfile": "Voir le profil",
+  "alsoNominated": "Également nommés",
+  "nomineePoster": "Affiche des nommés",
+  "posterHint": "Touchez pour la voir en grand",
+  "posterCaption": "Nommés, {category}, {season}",
+  "openPoster": "Ouvrir l'affiche des nommés de {category}",
+  "closePoster": "Fermer",
   "archive": {
     "heading": "Panthéon",
     "search": "Rechercher un lauréat ou une catégorie",

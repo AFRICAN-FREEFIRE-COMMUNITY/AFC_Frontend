@@ -14,5 +14,7 @@
   "password_changed": "Palavra-passe alterada.",
   "team_name_needs_letter": "O nome de uma equipa precisa de ter pelo menos uma letra ou um número.",
   "team_name_reserved": "Esse nome pertence a uma página da AFC. Escolha outro nome.",
-  "email_invalid": "Esse endereço de e-mail não parece correto. Verifique-o, por favor."
+  "email_invalid": "Esse endereço de e-mail não parece correto. Verifique-o, por favor.",
+  "claims_not_open_yet": "Os resultados deste mapa abrem quando o grupo começar a jogar.",
+  "claims_closed": "Os resultados deste mapa estão fechados: o grupo já terminou de jogar."
 }

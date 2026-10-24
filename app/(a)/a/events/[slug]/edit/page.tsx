@@ -417,6 +417,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     // event, but it rides the same waitlistForm state and the same save so an organizer does not
     // have to hunt for a second Save button. Default OFF: most organizers will not want it.
     allow_team_result_submissions: false,
+    // Kill stats switches (inbox #350), edited on Basic Info, off by default.
+    kill_feed_tab: false,
+    kill_feed_overlay: false,
+    kill_feed_export: false,
     // Letter-avatars gate (feature #7, owner 2026-06-29): a NUMBER (0 = off, 1-26 = required min),
     // not a bool. Edited on Basic Info (BasicInfoTab) alongside the require_* toggles, prefilled from
     // ed.min_letter_avatars below and persisted by saveWaitlistSettings -> edit_event.
@@ -813,6 +817,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           // Rehydrate the list so a reopened form shows what is stored, not an empty picker.
           required_connections: ed.required_connections ?? [],
           allow_team_result_submissions: ed.allow_team_result_submissions ?? false,
+          kill_feed_tab: ed.kill_feed_tab ?? false,
+          kill_feed_overlay: ed.kill_feed_overlay ?? false,
+          kill_feed_export: ed.kill_feed_export ?? false,
           // Letter-avatars gate (feature #7): rehydrate the count from the event (0 = off). Coerced
           // to a clean 0-or-positive number so the BasicInfoTab control reads a real value.
           min_letter_avatars: Number(ed.min_letter_avatars ?? 0) || 0,
@@ -1653,6 +1660,10 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         "allow_team_result_submissions",
         waitlistForm.allow_team_result_submissions ? "True" : "False",
       );
+      // Kill stats switches (inbox #350): read by edit_event through the event contract.
+      formData.append("kill_feed_tab", waitlistForm.kill_feed_tab ? "True" : "False");
+      formData.append("kill_feed_overlay", waitlistForm.kill_feed_overlay ? "True" : "False");
+      formData.append("kill_feed_export", waitlistForm.kill_feed_export ? "True" : "False");
       // Letter-avatars gate (feature #7): a NUMBER (0-26), not a bool. edit_event re-parses + clamps
       // it (_parse_min_letter_avatars). Without this append, editing the count never reached the API.
       formData.append(
@@ -1938,6 +1949,9 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           "allow_team_result_submissions",
           waitlistForm.allow_team_result_submissions ? "True" : "False",
         );
+        formData.append("kill_feed_tab", waitlistForm.kill_feed_tab ? "True" : "False");
+        formData.append("kill_feed_overlay", waitlistForm.kill_feed_overlay ? "True" : "False");
+        formData.append("kill_feed_export", waitlistForm.kill_feed_export ? "True" : "False");
         formData.append("min_letter_avatars", String(Number(waitlistForm.min_letter_avatars ?? 0) || 0));
         // Paid-vs-free registration (re-sent on save so the values persist).
         appendRegistrationFeeFields(formData, data);
