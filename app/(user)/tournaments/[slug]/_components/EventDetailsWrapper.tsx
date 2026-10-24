@@ -3616,7 +3616,9 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   // submit endpoint would refuse. The latest group comes first, so the map a team just played is
   // the one already picked. Re-read on the live tick, so the form appears when the group starts,
   // with no reload. Empty hides it.
-  const [teamResultMaps, setTeamResultMaps] = useState<{ matchId: number; label: string }[]>([]);
+  const [teamResultMaps, setTeamResultMaps] = useState<
+    { matchId: number; label: string; closesAt: string | null }[]
+  >([]);
   const claimsSlug =
     eventDetails?.allow_team_result_submissions && eventDetails?.is_registered && token
       ? eventDetails.slug
@@ -3641,6 +3643,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           ]
             .filter(Boolean)
             .join(" / "),
+          // Set only when the organizer chose a closing time (#393); null keeps them open for good.
+          closesAt: m.closes_at ?? null,
         }));
         // Same list as last time: keep the old array so the poll does not re-render the form.
         setTeamResultMaps((prev) =>
@@ -6008,6 +6012,18 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                             </option>
                           ))}
                         </select>
+                        {/* The organizer's closing time for this map's group, when one is set (#393). */}
+                        {(() => {
+                          const closesAt = teamResultMaps.find(
+                            (m) => m.matchId === teamResultMatchId,
+                          )?.closesAt;
+                          return closesAt ? (
+                            <p className="text-xs text-muted-foreground">
+                              {tTeamResults("team.openUntil")}{" "}
+                              <LocalTime value={closesAt} mode="datetime" />
+                            </p>
+                          ) : null;
+                        })()}
                       </div>
                       {teamResultMatchId && (
                         <TeamMapResultPanel

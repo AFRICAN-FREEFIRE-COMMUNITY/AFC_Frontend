@@ -59,5 +59,10 @@
   "settings.label": "Let teams submit their own map results",
   "settings.help": "Teams file their own row for a map and you approve it before it counts. Useful on big events where you would otherwise be typing in results teams already sent you. Off by default.",
   "team.pickMap": "Which map are you sending a result for?",
-  "team.matchLabel": "Match {number}"
+  "team.matchLabel": "Match {number}",
+  "settings.closeLabel": "Close submissions after",
+  "settings.closeUnit": "hours from each group's start",
+  "settings.closeNever": "Never",
+  "settings.closeHelp": "Leave it empty to keep them open after the group has played. A team can never send a result before its group starts.",
+  "team.openUntil": "Open until"
 }

@@ -29,7 +29,8 @@
     "pickFour": "Cochez les {count} joueurs qui étaient dans le lobby.",
     "selectedCount": "{selected} sur {max} sélectionnés.",
     "pickMap": "Pour quelle carte envoyez-vous un résultat ?",
-    "matchLabel": "Match {number}"
+    "matchLabel": "Match {number}",
+    "openUntil": "Ouvert jusqu'à"
   },
   "queue": {
     "title": "Résultats envoyés par les équipes",
@@ -66,6 +67,10 @@
   },
   "settings": {
     "label": "Autoriser les équipes à envoyer leurs propres résultats de carte",
-    "help": "Les équipes envoient leur propre ligne pour une carte et vous l'approuvez avant qu'elle ne compte. Utile sur les gros événements où vous saisiriez sinon des résultats que les équipes vous ont déjà envoyés. Désactivé par défaut."
+    "help": "Les équipes envoient leur propre ligne pour une carte et vous l'approuvez avant qu'elle ne compte. Utile sur les gros événements où vous saisiriez sinon des résultats que les équipes vous ont déjà envoyés. Désactivé par défaut.",
+    "closeLabel": "Fermer les envois après",
+    "closeUnit": "heures après le début de chaque groupe",
+    "closeNever": "Jamais",
+    "closeHelp": "Laissez vide pour les garder ouverts après le passage du groupe. Une équipe ne peut jamais envoyer de résultat avant le début de son groupe."
   }
 }
