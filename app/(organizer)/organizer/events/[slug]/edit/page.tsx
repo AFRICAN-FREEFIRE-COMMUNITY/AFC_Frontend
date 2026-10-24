@@ -455,6 +455,13 @@ export default function OrganizerEditEventPage({
     require_player_profile_image: false,
     // WhatsApp number gate (owner 2026-08-03): same shape as the four above.
     require_whatsapp: false,
+    // Shown on the shared Basic Info tab, so held and saved here too. Team results was SHOWN to
+    // organizers but never carried or saved by this page (found 2026-10-24 with the kill stats
+    // switches, inbox #350): flipping it did nothing.
+    allow_team_result_submissions: false,
+    kill_feed_tab: false,
+    kill_feed_overlay: false,
+    kill_feed_export: false,
     // Required connected accounts (owner 2026-08-26): a LIST of provider slugs, not a bool.
     // Edited on Basic Info by the shared RequiredConnectionsPicker, prefilled below, and saved by
     // the waitlist save -> edit_event, same route as min_letter_avatars.
@@ -877,6 +884,10 @@ export default function OrganizerEditEventPage({
           require_player_uid: ed.require_player_uid ?? false,
           require_player_profile_image: ed.require_player_profile_image ?? false,
           require_whatsapp: ed.require_whatsapp ?? false,
+          allow_team_result_submissions: ed.allow_team_result_submissions ?? false,
+          kill_feed_tab: ed.kill_feed_tab ?? false,
+          kill_feed_overlay: ed.kill_feed_overlay ?? false,
+          kill_feed_export: ed.kill_feed_export ?? false,
           // Required connected accounts (owner 2026-08-26): rehydrate the list so a reopened form
           // shows what is actually stored rather than an empty picker.
           required_connections: ed.required_connections ?? [],
@@ -1655,6 +1666,10 @@ export default function OrganizerEditEventPage({
       );
       // WhatsApp number gate (owner 2026-08-03), saved with the requirements above.
       formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
+      formData.append("allow_team_result_submissions", waitlistForm.allow_team_result_submissions ? "True" : "False");
+      formData.append("kill_feed_tab", waitlistForm.kill_feed_tab ? "True" : "False");
+      formData.append("kill_feed_overlay", waitlistForm.kill_feed_overlay ? "True" : "False");
+      formData.append("kill_feed_export", waitlistForm.kill_feed_export ? "True" : "False");
       // Required connected accounts (owner 2026-08-26): a LIST, so it travels as JSON because
       // multipart FormData can only carry strings. edit_event coerces it back with _as_list and
       // validates each slug against the provider registry. Without this append, editing the
@@ -1699,6 +1714,10 @@ export default function OrganizerEditEventPage({
               require_player_uid: waitlistForm.require_player_uid,
               require_player_profile_image: waitlistForm.require_player_profile_image,
               require_whatsapp: waitlistForm.require_whatsapp,
+              allow_team_result_submissions: waitlistForm.allow_team_result_submissions,
+              kill_feed_tab: waitlistForm.kill_feed_tab,
+              kill_feed_overlay: waitlistForm.kill_feed_overlay,
+              kill_feed_export: waitlistForm.kill_feed_export,
               // Mirror the saved list into the cached event so a reopened Basic Info reflects it
               // without a refetch.
               required_connections: waitlistForm.required_connections,
@@ -1907,6 +1926,10 @@ export default function OrganizerEditEventPage({
         formData.append("require_player_uid", waitlistForm.require_player_uid ? "True" : "False");
         formData.append("require_player_profile_image", waitlistForm.require_player_profile_image ? "True" : "False");
         formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
+        formData.append("allow_team_result_submissions", waitlistForm.allow_team_result_submissions ? "True" : "False");
+        formData.append("kill_feed_tab", waitlistForm.kill_feed_tab ? "True" : "False");
+        formData.append("kill_feed_overlay", waitlistForm.kill_feed_overlay ? "True" : "False");
+        formData.append("kill_feed_export", waitlistForm.kill_feed_export ? "True" : "False");
         formData.append("min_letter_avatars", String(Number(waitlistForm.min_letter_avatars ?? 0) || 0));
         // Paid-vs-free registration (re-sent on save so the values persist).
         appendRegistrationFeeFields(formData, data);

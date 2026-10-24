@@ -19,6 +19,19 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- Event edit (admin and organizer), Basic Info: three switches for the kill stats (sniper kills recorded, head to
+  head): a tab on the event page, the live overlays, a CSV for the graphics team. Off by default; NEW tag.
+
+### Fixed
+- An organizer's "Let teams submit their own map results" switch did nothing: the organizer edit page showed it
+  but never loaded or saved it. It now saves.
+
+### Security
+- zod 4.6.7 (GHSA-mrhx-c7xc-m3w5) and happy-dom 21.0.4 (GHSA-834v-8h66-3h79), as in #118 / #120.
+
 ## v7.3.1 - 2026-10-22
 
 ### Fixed
