@@ -74,6 +74,7 @@ import { LocalTime } from "@/components/LocalTime";
 // The team's own half of team-submitted map results (owner backlog item 6). The organizer's half
 // is app/(a)/a/events/[slug]/team-results.
 import { TeamMapResultPanel } from "@/components/events/TeamMapResultPanel";
+import { teamMapResultsApi } from "@/lib/teamMapResults";
 import { LocalEventTime } from "@/components/LocalEventTime";
 import { formatLocalTime, zonedWallClockToInstant } from "@/lib/i18n/time";
 import { toast } from "sonner";
@@ -3606,31 +3607,65 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
 
-  // Every map in the event, flattened for the "which map are you filing?" picker. A match IS a map
-  // here, which is why the label names the stage and group rather than a fixture. Empty until the
-  // structure loads, which is also what hides the panel on an event with no maps yet.
-  const teamResultMaps = useMemo(() => {
-    const out: { matchId: number; label: string }[] = [];
-    for (const stage of eventDetails?.stages ?? []) {
-      for (const group of stage.groups ?? []) {
-        for (const m of (group.matches ?? []) as any[]) {
-          if (!m?.match_id) continue;
-          out.push({
-            matchId: m.match_id,
-            label: [stage.stage_name, group.group_name, m.match_number ? `${m.match_number}` : ""]
-              .filter(Boolean)
-              .join(" / "),
-          });
-        }
-      }
-    }
-    return out;
-  }, [eventDetails]);
-
-  // Seed the picker once, and only once: re-seeding on every structure refresh (this page polls)
-  // would yank the selection back to the first map while a team was typing into another one.
+  // The maps this viewer's team may send a result for RIGHT NOW (owner 2026-10-23, inbox #379:
+  // "it should only open for matches, stages or groups that are actively playing"). It used to be
+  // every map of the event, including groups the team was not in and maps days away. The server
+  // decides (AFC-B views_team_submissions.open_team_map_results: the team's own groups only, from
+  // the group's start in the event's time zone until its maps are done plus a grace), so this
+  // picker can never offer a map the submit endpoint would refuse. Re-read on the live tick, so the
+  // form appears when the group starts and goes once it is over, with no reload. Empty hides it.
+  const [teamResultMaps, setTeamResultMaps] = useState<
+    { matchId: number; label: string; closesAt: string }[]
+  >([]);
+  const claimsSlug =
+    eventDetails?.allow_team_result_submissions && eventDetails?.is_registered && token
+      ? eventDetails.slug
+      : null;
   useEffect(() => {
-    if (teamResultMatchId === null && teamResultMaps.length > 0) {
+    if (!claimsSlug) {
+      setTeamResultMaps((prev) => (prev.length ? [] : prev));
+      return;
+    }
+    let cancelled = false;
+    teamMapResultsApi
+      .openMaps(claimsSlug)
+      .then(({ maps }) => {
+        if (cancelled) return;
+        // A match IS a map here, so the label names the stage and group, then MATCH n.
+        const next = (maps ?? []).map((m) => ({
+          matchId: m.match_id,
+          label: [
+            m.stage_name,
+            m.group_name,
+            m.match_number ? tTeamResults("team.matchLabel", { number: m.match_number }) : "",
+          ]
+            .filter(Boolean)
+            .join(" / "),
+          closesAt: m.closes_at,
+        }));
+        // Same list as last time: keep the old array so the poll does not re-render the form.
+        setTeamResultMaps((prev) =>
+          JSON.stringify(prev) === JSON.stringify(next) ? prev : next,
+        );
+      })
+      .catch(() => {
+        // Not on a team here, or the event is gone: nothing to send, so no form.
+        if (!cancelled) setTeamResultMaps((prev) => (prev.length ? [] : prev));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [claimsSlug, tick, tTeamResults]);
+
+  // Keep the picked map while it stays open: re-seeding on every poll would yank the selection
+  // back to the first map while a team was typing into another one. Move only when the picked map
+  // has closed (or nothing was picked yet).
+  useEffect(() => {
+    if (teamResultMaps.length === 0) {
+      if (teamResultMatchId !== null) setTeamResultMatchId(null);
+      return;
+    }
+    if (!teamResultMaps.some((m) => m.matchId === teamResultMatchId)) {
       setTeamResultMatchId(teamResultMaps[0].matchId);
     }
   }, [teamResultMaps, teamResultMatchId]);
@@ -5957,8 +5992,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                     <CardContent className="space-y-3 pt-6">
                       {/* One map at a time, because a submission is filed against one match. */}
                       <div className="space-y-1">
+                        {/* Was queue.subtitle, the ORGANIZER's line ("Nothing is counted until you
+                            approve it"), which told a player they were the one approving. */}
                         <label className="text-xs text-muted-foreground" htmlFor="team-result-map">
-                          {tTeamResults("queue.subtitle")}
+                          {tTeamResults("team.pickMap")}
                         </label>
                         <select
                           id="team-result-map"
@@ -5972,6 +6009,18 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                             </option>
                           ))}
                         </select>
+                        {/* How long the team has: the group's claims close at this moment. */}
+                        {(() => {
+                          const closesAt = teamResultMaps.find(
+                            (m) => m.matchId === teamResultMatchId,
+                          )?.closesAt;
+                          return closesAt ? (
+                            <p className="text-xs text-muted-foreground">
+                              {tTeamResults("team.openUntil")}{" "}
+                              <LocalTime value={closesAt} mode="datetime" />
+                            </p>
+                          ) : null;
+                        })()}
                       </div>
                       {teamResultMatchId && (
                         <TeamMapResultPanel
