@@ -24,5 +24,11 @@
       "invite": "Aceitar convite",
       "create": "Criar equipa"
     }
-  }
+  },
+  "closedLine": "Período de transferências encerrado. Volta a abrir a {date}.",
+  "closedLineNoDate": "Período de transferências encerrado. A data de reabertura ainda não foi marcada.",
+  "openLine": "Período de transferências aberto até {date}.",
+  "openLineNoDate": "Período de transferências aberto.",
+  "details": "Detalhes",
+  "hideDetails": "Ocultar detalhes"
 }
