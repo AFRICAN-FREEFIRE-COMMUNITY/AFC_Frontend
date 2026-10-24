@@ -486,6 +486,37 @@ export default function BasicInfoTab({
           </div>
         </div>
 
+        {/* ── Kill stats switches (owner 2026-10-23, inbox #350: "all three, but an admin or organizer
+            can decide to put it off or on for it show or not wherever") ─────────────────────
+            Event.kill_feed_tab / kill_feed_overlay / kill_feed_export (AFC-B event_contract.py), read by
+            GET events/kill-stats/ (views_kill_feed.py). Same requirementsForm state and the same Save as
+            the blocks around it. Off by default. Filled surface, no outline. */}
+        <div className="space-y-3 rounded-lg bg-muted/30 p-4">
+          <div className="space-y-0.5">
+            <p className="flex items-center gap-2 text-sm font-medium">
+              {t("basicInfo.killFeedTitle")}
+              <NewBadge since="2026-10-24" />
+            </p>
+            <p className="text-xs text-muted-foreground">{t("basicInfo.killFeedHelp")}</p>
+          </div>
+          {(
+            [
+              ["kill_feed_tab", "killFeedTab"],
+              ["kill_feed_overlay", "killFeedOverlay"],
+              ["kill_feed_export", "killFeedExport"],
+            ] as const
+          ).map(([field, label]) => (
+            <div key={field} className="flex items-center justify-between gap-4">
+              <Label htmlFor={`switch-${field}`}>{t(`basicInfo.${label}`)}</Label>
+              <Switch
+                id={`switch-${field}`}
+                checked={Boolean(requirementsForm[field])}
+                onCheckedChange={(v) => setRequirementsForm((p: any) => ({ ...p, [field]: v }))}
+              />
+            </div>
+          ))}
+        </div>
+
         {/* ── Open roster (owner 2026-09-11) ─────────────────────────────────────────────
             Same reasoning as the block above: this LIFTS a rule (any AFC player may be
             fielded) rather than adding a gate, so it is not a REQUIREMENT_TOGGLES row. Backed by

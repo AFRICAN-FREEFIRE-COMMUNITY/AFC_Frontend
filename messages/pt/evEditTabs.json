@@ -86,7 +86,12 @@
     "eventDescriptionPlaceholder": "O que e este torneio, para quem e, e porque vale a pena participar?",
     "eventDescriptionHelp": "Mostrado na pagina publica do evento. Diferente das regras: e a historia do evento, nao o que desqualifica uma equipa. Deixe em branco e a seccao fica oculta.",
     "openRosterLabel": "Plantel aberto",
-    "openRosterHelp": "As equipas podem alinhar qualquer jogador AFC, não apenas os seus próprios membros. Este evento não conta para os rankings nem para os escalões, e os resultados são introduzidos por equipa."
+    "openRosterHelp": "As equipas podem alinhar qualquer jogador AFC, não apenas os seus próprios membros. Este evento não conta para os rankings nem para os escalões, e os resultados são introduzidos por equipa.",
+    "killFeedTitle": "Estatísticas de abates (sniper, frente a frente)",
+    "killFeedHelp": "Cada abate e derrube que o AFC Capture regista neste evento. Escolha onde aparecem; os três ficam desligados até os ligar.",
+    "killFeedTab": "Separador na página do evento",
+    "killFeedOverlay": "Overlays em direto",
+    "killFeedExport": "CSV para a equipa de grafismo"
   },
   "prizeRules": {
     "cardTitle": "Prémios e Regras",

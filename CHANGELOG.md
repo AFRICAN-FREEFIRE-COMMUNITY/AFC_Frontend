@@ -22,6 +22,8 @@ workflow checks it again before it builds.
 ## Unreleased
 
 ### Added
+- Event edit (admin and organizer), Basic Info: three switches for the kill stats (sniper kills recorded, head to
+  head): a tab on the event page, the live overlays, a CSV for the graphics team. Off by default; NEW tag.
 - Every winner on an awards season page now shows the rest of the category's nominees ("Also nominated", with
   their pictures, no vote counts) and the category's nominee poster: beside the winner on a computer, a strip
   to tap on a phone, full size in a viewer that closes with Esc. NFCA 2025 has posters for 26 of 27 categories.
@@ -34,6 +36,8 @@ workflow checks it again before it builds.
   the window closes. The server refuses a claim outside the window too, in your language.
 
 ### Fixed
+- An organizer's "Let teams submit their own map results" switch did nothing: the organizer edit page showed it
+  but never loaded or saved it. It now saves.
 - The line above the map picker told players "Nothing is counted until you approve it" (the
   organizer's line). It now asks which map they are sending a result for.
 - The awards hall of fame showed "Ballots 2" for NFCA 2025, which read as two votes cast. It counts the
@@ -43,6 +47,7 @@ workflow checks it again before it builds.
   organizer's leaderboard wizard.
 
 ### Security
+- zod 4.6.7 (GHSA-mrhx-c7xc-m3w5) and happy-dom 21.0.4 (GHSA-834v-8h66-3h79), as in #118 / #120.
 - zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high), same bump as PR #118.
 - zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high: memory could run out while validating very large
   constrained lists). Found by the security ledger in check-all, which was blocking every commit.

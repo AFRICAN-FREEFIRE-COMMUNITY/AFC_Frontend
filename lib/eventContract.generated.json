@@ -478,6 +478,27 @@
       "computed": false
     },
     {
+      "name": "kill_feed_tab",
+      "source": "kill_feed_tab",
+      "read": "public",
+      "write": "organizer",
+      "computed": false
+    },
+    {
+      "name": "kill_feed_overlay",
+      "source": "kill_feed_overlay",
+      "read": "public",
+      "write": "organizer",
+      "computed": false
+    },
+    {
+      "name": "kill_feed_export",
+      "source": "kill_feed_export",
+      "read": "public",
+      "write": "organizer",
+      "computed": false
+    },
+    {
       "name": "waitlist_capacity",
       "source": "waitlist_capacity",
       "read": "public",
@@ -611,6 +632,9 @@
       "is_draft",
       "is_public",
       "is_waitlist_enabled",
+      "kill_feed_export",
+      "kill_feed_overlay",
+      "kill_feed_tab",
       "max_teams_or_players",
       "min_letter_avatars",
       "number_of_stages",
@@ -663,6 +687,9 @@
       "is_draft",
       "is_public",
       "is_waitlist_enabled",
+      "kill_feed_export",
+      "kill_feed_overlay",
+      "kill_feed_tab",
       "max_teams_or_players",
       "min_letter_avatars",
       "number_of_stages",
