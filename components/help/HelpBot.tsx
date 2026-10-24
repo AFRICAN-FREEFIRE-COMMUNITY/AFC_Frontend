@@ -56,6 +56,8 @@ import { formatLocalTime } from "@/lib/i18n/time";
 import { cn } from "@/lib/utils";
 
 import { HelpMessageText } from "./HelpMessageText";
+// First visit, one layer at a time (Apple fix 14): Help steps aside while a card or tour shows.
+import { useAnyFirstVisitLayer } from "@/lib/firstVisitQueue";
 
 // The day the panel went live, for the 5-day NEW tag (CLAUDE.md rule; components/NewBadge.tsx).
 const LIVE_SINCE = "2026-10-05";
@@ -202,6 +204,22 @@ function HelpBotPanel() {
   // scrolls it shrinks to a round 44 px icon (same button, same name for screen readers), and grows
   // back at the top. From sm up nothing changes. React skips the re-render while the value is unchanged,
   // so the scroll listener costs one comparison per event.
+  // ── Apple design fix 14 (inbox #381): one thing at a time. While the "New access" card or the
+  // welcome tour has the floor (lib/firstVisitQueue.ts), or a driver.js page tour runs (it marks
+  // the body driver-active and switches off taps everywhere else), the Help button is hidden rather
+  // than sitting on top as a second thing to read that cannot even be pressed. It comes back the
+  // moment they close. An OPEN help panel is never hidden by this.
+  const firstVisitLayer = useAnyFirstVisitLayer();
+  const [pageTour, setPageTour] = useState(false);
+  useEffect(() => {
+    const sync = () => setPageTour(document.body.classList.contains("driver-active"));
+    sync();
+    const watcher = new MutationObserver(sync);
+    watcher.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return () => watcher.disconnect();
+  }, []);
+  const stepAside = !open && (firstVisitLayer || pageTour);
+
   const [compact, setCompact] = useState(false);
   useEffect(() => {
     const onScroll = () => setCompact(window.scrollY > 8);
@@ -585,6 +603,8 @@ function HelpBotPanel() {
           open && "max-sm:hidden",
           // Phone, scrolled: a round icon (Apple fix 8). The label stays for screen readers.
           compact && !open && "max-sm:w-11 max-sm:justify-center max-sm:px-0",
+          // A first-visit card or a page tour has the floor (Apple fix 14).
+          stepAside && "hidden",
         )}
       >
         {Icon.chat}

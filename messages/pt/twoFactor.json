@@ -151,7 +151,8 @@
     "body": "A sua conta pode aprovar pagamentos, editar eventos e ver dados dos jogadores. Um código além da palavra-passe torna muito mais difícil tomarem-lhe a conta.",
     "action": "Configurar",
     "dismiss": "Agora não",
-    "close": "Fechar"
+    "close": "Fechar",
+    "short": "Ative o início de sessão em duas etapas para proteger pagamentos e edições de eventos."
   },
   "profileCard": {
     "title": "Conta e segurança",

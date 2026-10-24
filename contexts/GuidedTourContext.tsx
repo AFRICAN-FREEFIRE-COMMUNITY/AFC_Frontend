@@ -54,6 +54,8 @@ import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { GUIDED_STOPS, type GuidedStop } from "@/app/(user)/_components/guided-tour-stops";
+// First visit, one layer at a time (Apple fix 14): the auto-start waits for its turn.
+import { FIRST_VISIT_ORDER, useFirstVisitTurn } from "@/lib/firstVisitQueue";
 
 // ── Storage keys + window event (shared with WelcomeTour.tsx) ────────────────
 // The orchestration state (which stop, hub vs on-page) survives a navigation here.
@@ -277,6 +279,13 @@ export function GuidedTourProvider({ children }: { children: React.ReactNode }) 
   // Only once per session (autoEvaluatedRef), never while auth is still loading, and
   // ONLY if a run is not already in flight (a navigation mid-tour restores via the
   // hydrate effect above, and must not be clobbered by a fresh auto-start).
+  //
+  // ONE LAYER AT A TIME (Apple fix 14, owner approved the mockup 24 Oct 2026, inbox #381): the
+  // decision to auto-start no longer opens the hub itself. It asks for a first-visit turn
+  // (lib/firstVisitQueue.ts) and the hub opens when the turn comes, so a "New access" card showing
+  // at the same moment goes first and the tour follows its "Got it". The hub keeps the turn while it
+  // is open, and the Help button steps aside meanwhile.
+  const [autoPending, setAutoPending] = React.useState(false);
   React.useEffect(() => {
     if (loading) return;
     if (autoEvaluatedRef.current) return;
@@ -288,12 +297,20 @@ export function GuidedTourProvider({ children }: { children: React.ReactNode }) 
 
     // Logged-in + first run only. No `user` (anonymous) => never auto-start.
     const shouldShow = !!user && user.has_seen_welcome === false;
-    if (shouldShow) {
-      // Small delay so the landing page paints first, then the hub springs in.
-      const t = window.setTimeout(() => start(), 700);
-      return () => window.clearTimeout(t);
-    }
-  }, [loading, user, start]);
+    if (shouldShow) setAutoPending(true);
+  }, [loading, user]);
+
+  const hubShowing = state.active && state.phase === "hub";
+  const tourTurn = useFirstVisitTurn("welcomeTour", FIRST_VISIT_ORDER.welcomeTour, autoPending || hubShowing);
+  React.useEffect(() => {
+    if (!autoPending || !tourTurn) return;
+    // Small delay so the landing page paints first, then the hub springs in.
+    const t = window.setTimeout(() => {
+      setAutoPending(false);
+      start();
+    }, 700);
+    return () => window.clearTimeout(t);
+  }, [autoPending, tourTurn, start]);
 
   const currentStop =
     state.active && state.index >= 0 && state.index < GUIDED_STOPS.length
