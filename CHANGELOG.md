@@ -39,6 +39,11 @@ workflow checks it again before it builds.
   button on event lists, the WhatsApp switch on profile edit, the dialog close cross and the info
   tips (which said "More info" in English in every language).
 
+### Internal
+- Design lint follows the Apple materials rule adopted for AFC on 23 Oct (inbox #375): `backdrop-filter: blur()`
+  on chrome is no longer read as a decorative blur, and a `ring-1` edge on an element that carries `backdrop-blur`
+  is allowed. Self-test 33 cases.
+
 ## v7.3.1 - 2026-10-22
 
 ### Fixed
