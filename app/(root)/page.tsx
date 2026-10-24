@@ -124,7 +124,8 @@ const page = async () => {
               </span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold mb-4">
+            {/* Tighter tracking and leading for display-size type (Apple fix 11, inbox #381). */}
+            <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-[-0.025em] leading-[1.02]">
               <span className="bg-gradient-to-r from-primary via-gold to-primary bg-clip-text text-transparent">
                 {t("landing.hero.titleHighlight")}
               </span>
