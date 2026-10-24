@@ -73,8 +73,8 @@ export function TeamMapResultPanel({
   roster: RosterPlayer[];
 }) {
   const t = useTranslations("teamResults");
-  // A refusal arrives with a code (claims_not_open_yet / claims_closed when the group is not
-  // playing, inbox #379) and is printed from serverMessages.json in the reader's language.
+  // A refusal arrives with a code (claims_not_open_yet before the group has started, inbox #379 and
+  // #389) and is printed from serverMessages.json in the reader's language.
   const serverMessage = useServerMessage();
 
   const [submissions, setSubmissions] = useState<TeamMapSubmission[]>([]);

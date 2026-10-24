@@ -67,6 +67,10 @@
   },
   "settings": {
     "label": "Permitir que as equipas enviem os seus próprios resultados de mapa",
-    "help": "As equipas enviam a sua própria linha para um mapa e o organizador aprova antes de contar. Útil em eventos grandes onde, de outra forma, estaria a escrever resultados que as equipas já lhe enviaram. Desativado por predefinição."
+    "help": "As equipas enviam a sua própria linha para um mapa e o organizador aprova antes de contar. Útil em eventos grandes onde, de outra forma, estaria a escrever resultados que as equipas já lhe enviaram. Desativado por predefinição.",
+    "closeLabel": "Fechar os envios após",
+    "closeUnit": "horas após o início de cada grupo",
+    "closeNever": "Nunca",
+    "closeHelp": "Deixe vazio para os manter abertos depois de o grupo jogar. Uma equipa nunca pode enviar um resultado antes de o seu grupo começar."
   }
 }

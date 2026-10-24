@@ -478,6 +478,13 @@
       "computed": false
     },
     {
+      "name": "team_result_claims_close_hours",
+      "source": "team_result_claims_close_hours",
+      "read": "public",
+      "write": "organizer",
+      "computed": false
+    },
+    {
       "name": "kill_feed_tab",
       "source": "kill_feed_tab",
       "read": "public",
@@ -662,6 +669,7 @@
       "sponsor_name",
       "sponsor_requirement_description",
       "start_date",
+      "team_result_claims_close_hours",
       "timezone",
       "waitlist_capacity",
       "waitlist_discord_role_id",
@@ -717,6 +725,7 @@
       "sponsor_name",
       "sponsor_requirement_description",
       "start_date",
+      "team_result_claims_close_hours",
       "timezone",
       "waitlist_capacity",
       "waitlist_discord_role_id",

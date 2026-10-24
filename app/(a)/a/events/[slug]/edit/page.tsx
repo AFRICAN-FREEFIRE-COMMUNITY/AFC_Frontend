@@ -418,6 +418,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
     // have to hunt for a second Save button. Default OFF: most organizers will not want it.
     allow_team_result_submissions: false,
     // Kill stats switches (inbox #350), edited on Basic Info, off by default.
+    // Hours after each group starts when team claims close; null = never (inbox #393).
+    team_result_claims_close_hours: null as number | string | null,
     kill_feed_tab: false,
     kill_feed_overlay: false,
     kill_feed_export: false,
@@ -817,6 +819,7 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           // Rehydrate the list so a reopened form shows what is stored, not an empty picker.
           required_connections: ed.required_connections ?? [],
           allow_team_result_submissions: ed.allow_team_result_submissions ?? false,
+          team_result_claims_close_hours: ed.team_result_claims_close_hours ?? null,
           kill_feed_tab: ed.kill_feed_tab ?? false,
           kill_feed_overlay: ed.kill_feed_overlay ?? false,
           kill_feed_export: ed.kill_feed_export ?? false,
@@ -1661,6 +1664,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
         waitlistForm.allow_team_result_submissions ? "True" : "False",
       );
       // Kill stats switches (inbox #350): read by edit_event through the event contract.
+      // When team claims close: hours after each group starts, "" = never (inbox #393).
+      formData.append("team_result_claims_close_hours", String(waitlistForm.team_result_claims_close_hours ?? ""));
       formData.append("kill_feed_tab", waitlistForm.kill_feed_tab ? "True" : "False");
       formData.append("kill_feed_overlay", waitlistForm.kill_feed_overlay ? "True" : "False");
       formData.append("kill_feed_export", waitlistForm.kill_feed_export ? "True" : "False");
@@ -1949,6 +1954,8 @@ export default function EditEventPage({ params }: { params: Promise<Params> }) {
           "allow_team_result_submissions",
           waitlistForm.allow_team_result_submissions ? "True" : "False",
         );
+        // When team claims close: hours after each group starts, "" = never (inbox #393).
+        formData.append("team_result_claims_close_hours", String(waitlistForm.team_result_claims_close_hours ?? ""));
         formData.append("kill_feed_tab", waitlistForm.kill_feed_tab ? "True" : "False");
         formData.append("kill_feed_overlay", waitlistForm.kill_feed_overlay ? "True" : "False");
         formData.append("kill_feed_export", waitlistForm.kill_feed_export ? "True" : "False");
