@@ -233,5 +233,9 @@
   "accountSharing": {
     "fieldNote": "Uma conta Free Fire, uma conta AFC. Não compartilhe a sua conta. Se você comprou ou recebeu uma conta Free Fire cujo UID já está em outra conta AFC, peça ao vendedor ou a quem compartilhou que o remova do perfil dele: o suporte da AFC não pode mover um UID entre contas.",
     "takenLine": "Conta comprada ou compartilhada? Peça a quem passou a conta para você remover o UID do perfil AFC dele. O suporte da AFC não pode mover o UID."
+  },
+  "eventKind": {
+    "tournament": "Torneio",
+    "scrims": "Scrim"
   }
 }

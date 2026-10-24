@@ -37,7 +37,9 @@ import {
 } from "@/components/ui/pagination";
 import { Search, ArrowLeft } from "lucide-react";
 import Image from "next/image";
-import { DEFAULT_IMAGE, ITEMS_PER_PAGE } from "@/constants";
+import { ITEMS_PER_PAGE } from "@/constants";
+// Banner, or the event's name on an AFC surface when it has none (Apple fix 4).
+import { EventBanner } from "@/components/EventBanner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { organizersApi } from "@/lib/organizers";
 import { toast } from "sonner";
@@ -146,11 +148,10 @@ const EventCard: React.FC<{ event: Event }> = ({ event }) => {
       key={event.event_id}
     >
       <Link href={`/tournaments/${event.slug}`}>
-        <Image
-          src={event.event_banner || DEFAULT_IMAGE}
-          alt={event.event_name}
-          width={1000}
-          height={1000}
+        <EventBanner
+          src={event.event_banner}
+          name={event.event_name}
+          kind={event.competition_type}
           className="object-cover size-full aspect-video"
         />
       </Link>

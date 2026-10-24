@@ -81,7 +81,8 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
 import { AskOrganizerButton } from "@/components/support/AskOrganizerDialog";
-import { AFC_DISCORD_SERVER, DEFAULT_IMAGE } from "@/constants";
+import { AFC_DISCORD_SERVER } from "@/constants";
+import { EventBanner } from "@/components/EventBanner";
 import axios from "axios";
 import Image from "next/image";
 import {
@@ -5528,11 +5529,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           action={<QrShareButton targetType="event" targetRef={slug} name={eventDetails.event_name} />}
         />
         <div className="p-0 space-y-2">
-          <Image
-            src={eventDetails.event_banner_url || DEFAULT_IMAGE}
+          {/* Banner, or the event's name on an AFC surface when it has none or it fails to
+              load (Apple fix 4; was the grey "600 x 400" DEFAULT_IMAGE). */}
+          <EventBanner
+            src={eventDetails.event_banner_url}
+            name={eventDetails.event_name}
+            kind={eventDetails.competition_type}
+            size="hero"
             alt={eventDetails.event_name || t("detail.bannerAlt")}
-            width={1000}
-            height={1000}
             className="aspect-video size-full object-cover rounded-md"
           />
           {!eventDetails.is_public && (
