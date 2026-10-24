@@ -16,5 +16,5 @@
   "team_name_reserved": "That name belongs to a page on AFC. Please choose another name.",
   "email_invalid": "That email address does not look right. Please check it.",
   "claims_not_open_yet": "Results for this map open when its group starts playing.",
-  "claims_closed": "Results for this map are closed: its group has finished playing."
+  "claims_closed": "Results for this map are closed: the organizer's time for sending them has passed."
 }
