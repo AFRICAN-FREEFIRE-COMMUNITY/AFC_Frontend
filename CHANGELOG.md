@@ -24,13 +24,38 @@ workflow checks it again before it builds.
 ### Added
 - Event edit (admin and organizer), Basic Info: three switches for the kill stats (sniper kills recorded, head to
   head): a tab on the event page, the live overlays, a CSV for the graphics team. Off by default; NEW tag.
+- Every winner on an awards season page now shows the rest of the category's nominees ("Also nominated", with
+  their pictures, no vote counts) and the category's nominee poster: beside the winner on a computer, a strip
+  to tap on a phone, full size in a viewer that closes with Esc. NFCA 2025 has posters for 26 of 27 categories.
+  NEW tag for five days (set its date to the go-live day at ship).
+
+### Changed
+- "Submit your result" on an event page now opens only while your group is playing: from the
+  group's start time until its maps are done plus a few hours, and only for maps of groups your
+  team is in. It used to offer every map of the event, days before or weeks after. It shows when
+  the window closes. The server refuses a claim outside the window too, in your language.
 
 ### Fixed
 - An organizer's "Let teams submit their own map results" switch did nothing: the organizer edit page showed it
   but never loaded or saved it. It now saves.
+- The line above the map picker told players "Nothing is counted until you approve it" (the
+  organizer's line). It now asks which map they are sending a result for.
+- The awards hall of fame showed "Ballots 2" for NFCA 2025, which read as two votes cast. It counts the
+  season's polls, so it now says "Polls" (French "Sondages", Portuguese "Enquetes").
+- The admin "Create leaderboard" page titles (Step 1 of 5, Basic Information, Manual Input and the rest)
+  were English on the French and Portuguese site. They now use the same translated words as the
+  organizer's leaderboard wizard.
 
 ### Security
 - zod 4.6.7 (GHSA-mrhx-c7xc-m3w5) and happy-dom 21.0.4 (GHSA-834v-8h66-3h79), as in #118 / #120.
+- zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high), same bump as PR #118.
+- zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high: memory could run out while validating very large
+  constrained lists). Found by the security ledger in check-all, which was blocking every commit.
+
+### Internal
+- Design lint follows the Apple materials rule adopted for AFC on 23 Oct (inbox #375): `backdrop-filter: blur()`
+  on chrome is no longer read as a decorative blur, and a `ring-1` edge on an element that carries `backdrop-blur`
+  is allowed. Self-test 33 cases.
 
 ## v7.3.1 - 2026-10-22
 

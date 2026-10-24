@@ -38,6 +38,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LocalTime } from "@/components/LocalTime";
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import {
   teamMapResultsApi,
   type TeamMapSubmission,
@@ -72,6 +73,9 @@ export function TeamMapResultPanel({
   roster: RosterPlayer[];
 }) {
   const t = useTranslations("teamResults");
+  // A refusal arrives with a code (claims_not_open_yet / claims_closed when the group is not
+  // playing, inbox #379) and is printed from serverMessages.json in the reader's language.
+  const serverMessage = useServerMessage();
 
   const [submissions, setSubmissions] = useState<TeamMapSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,7 +148,7 @@ export function TeamMapResultPanel({
       toast.success(t("team.sent"));
       await load();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || t("team.failed"));
+      toast.error(serverMessage(err?.response?.data, t("team.failed")));
     } finally {
       setSending(false);
     }

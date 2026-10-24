@@ -1118,7 +1118,9 @@
       "manualInput": "Manual Input",
       "imageUpload": "Image Upload",
       "roomFileUpload": "3D Room File Upload",
-      "editLeaderboard": "Edit Leaderboard"
+      "editLeaderboard": "Edit Leaderboard",
+      "reviewPublish": "Review & Publish",
+      "stepProgress": "Step {current} of {total}: {title}"
     },
     "createLeaderboard": "Create Leaderboard",
     "tournamentDescription": "{type} Tournament • {count} Stages",
