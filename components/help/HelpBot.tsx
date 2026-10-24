@@ -197,6 +197,18 @@ function HelpBotPanel() {
   const [pastState, setPastState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [pastNext, setPastNext] = useState<number | null>(null);
   const [opening, setOpening] = useState("");
+  // ── Apple design fix 8 (owner approved the mockup 24 Oct 2026, inbox #381) ──
+  // On a phone the Help pill sat over home stats, tournament cards and shop buttons. Once the page
+  // scrolls it shrinks to a round 44 px icon (same button, same name for screen readers), and grows
+  // back at the top. From sm up nothing changes. React skips the re-render while the value is unchanged,
+  // so the scroll listener costs one comparison per event.
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setCompact(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const restored = useRef(false);
   // The page the panel is open on, sent with each question for the staff Help log (inbox #156).
   const pathname = usePathname() || "";
@@ -571,12 +583,17 @@ function HelpBotPanel() {
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
           // On a phone the open panel fills the screen and has its own close button.
           open && "max-sm:hidden",
+          // Phone, scrolled: a round icon (Apple fix 8). The label stays for screen readers.
+          compact && !open && "max-sm:w-11 max-sm:justify-center max-sm:px-0",
         )}
       >
         {Icon.chat}
-        <span>{open ? t("buttonClose") : t("button")}</span>
+        <span className={cn(compact && !open && "max-sm:sr-only")}>{open ? t("buttonClose") : t("button")}</span>
         {!open && (
-          <NewBadge since={LIVE_SINCE} className="bg-primary-foreground/15 px-1.5 py-0 text-[10px] text-primary-foreground" />
+          <NewBadge
+            since={LIVE_SINCE}
+            className={cn("bg-primary-foreground/15 px-1.5 py-0 text-[10px] text-primary-foreground", compact && "max-sm:hidden")}
+          />
         )}
       </button>
 
