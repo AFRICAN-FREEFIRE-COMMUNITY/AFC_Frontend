@@ -1,0 +1,50 @@
+{
+  "tab": "Stats de kills",
+  "allStages": "Toutes les phases",
+  "coverage": "Arme connue pour {known} kills sur {total}",
+  "empty": "Aucun kill enregistré pour cet événement pour l’instant. Ils apparaissent dès qu’un fichier debugger ou AFC Capture envoie les maps.",
+  "loadError": "Les stats de kills n’ont pas pu être chargées.",
+  "csv": "Télécharger pour l’équipe graphique (CSV)",
+  "sniper": {
+    "title": "Kills au sniper enregistrés",
+    "lead": "Kills au fusil à verrou (AWM, M82B, Kar98k, M24). Seuls comptent les kills dont le jeu a donné l’arme : c’est ce qui a été enregistré, pas tous les kills au sniper.",
+    "player": "Joueur",
+    "team": "Équipe",
+    "kills": "Kills",
+    "empty": "Aucun kill au sniper enregistré."
+  },
+  "h2h": {
+    "title": "Face-à-face",
+    "lead": "Chaque combat entre deux équipes. Un combat se termine après 30 secondes sans kill ni knock entre ses équipes. Une équipe qui arrive pendant le combat est la troisième équipe : elle rejoint le même combat, et chaque équipe qu’elle a affrontée compte sur sa propre ligne. Touchez une paire pour voir chaque combat.",
+    "teams": "Équipes",
+    "met": "Rencontres",
+    "wins": "Victoires",
+    "draws": "Nuls",
+    "thirdParty": "Troisième équipe",
+    "empty": "Aucun combat entre équipes pour l’instant.",
+    "whoTitle": "Qui a tué et knocké qui, {a} contre {b}",
+    "kills": "Kills",
+    "knocks": "Knocks",
+    "eachFight": "Chaque combat"
+  },
+  "fight": {
+    "loading": "Chargement des combats",
+    "where": "{stage}, {group}, Match {number}, temps de jeu {time}",
+    "started": "{a} contre {b}",
+    "cameIn": "puis {team} est arrivée",
+    "thirdParty": "Troisième équipe",
+    "left": "Joueurs restants : {list}",
+    "killed": "<b>{killer}</b> a tué <b>{victim}</b>",
+    "knocked": "<b>{killer}</b> a knocké <b>{victim}</b>",
+    "result": "{a} contre {b} :",
+    "won": "{team} a gagné",
+    "draw": "Nul"
+  },
+  "players": {
+    "title": "Face-à-face des joueurs",
+    "lead": "Qui a tué et knocké qui. Choisissez un joueur pour voir chaque adversaire rencontré en combat, avec les kills et les knocks dans chaque sens, le chiffre du joueur choisi en premier. Un knock compte comme un knock même si le joueur a été relevé.",
+    "pick": "Joueur",
+    "opponent": "Adversaire",
+    "team": "Équipe"
+  }
+}

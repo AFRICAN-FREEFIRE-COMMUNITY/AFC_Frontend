@@ -21,6 +21,14 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+### Added
+- A "Kill stats" tab on the event page, shown when the organizer or an admin switches it on: sniper kills
+  recorded; team head to head with how often a third team came in, where a pair opens to who killed and
+  knocked who between their players and then each fight (where and when, who came in as the third party,
+  players left, every knock and kill, the result); a player head to head (pick a player, every opponent,
+  kills and knocks each way); stage chips; and the CSV for the graphics team when that switch is on. In
+  English, French and Portuguese, NEW tag for five days (set its date to the go-live day at ship).
+
 ## v7.4.0 - 2026-10-24
 
 ### Added
