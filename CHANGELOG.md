@@ -21,13 +21,15 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+## v7.4.0 - 2026-10-24
+
 ### Added
 - Event edit (admin and organizer), Basic Info: three switches for the kill stats (sniper kills recorded, head to
   head): a tab on the event page, the live overlays, a CSV for the graphics team. Off by default; NEW tag.
 - Every winner on an awards season page now shows the rest of the category's nominees ("Also nominated", with
   their pictures, no vote counts) and the category's nominee poster: beside the winner on a computer, a strip
   to tap on a phone, full size in a viewer that closes with Esc. NFCA 2025 has posters for 26 of 27 categories.
-  NEW tag for five days (set its date to the go-live day at ship).
+  NEW tag for five days.
 
 ### Changed
 - On a phone, the small buttons, tabs, switches, checkboxes, dropdowns, info tips, dialog close
@@ -85,10 +87,9 @@ workflow checks it again before it builds.
   organizer's leaderboard wizard.
 
 ### Security
-- zod 4.6.7 (GHSA-mrhx-c7xc-m3w5) and happy-dom 21.0.4 (GHSA-834v-8h66-3h79), as in #118 / #120.
-- zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high), same bump as PR #118.
 - zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high: memory could run out while validating very large
-  constrained lists). Found by the security ledger in check-all, which was blocking every commit.
+  constrained lists) and happy-dom to 21.0.4 (GHSA-834v-8h66-3h79, high). Found by the security ledger in
+  check-all, which was blocking every commit.
 
 ### Internal
 - Design lint follows the Apple materials rule adopted for AFC on 23 Oct (inbox #375): `backdrop-filter: blur()`
