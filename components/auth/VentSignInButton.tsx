@@ -52,7 +52,7 @@ export function VentSignInButton() {
     <button
       type="button"
       onClick={start}
-      className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#1a1a1e] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#26262c]"
+      className="hit-44 active:brightness-90 mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#1a1a1e] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#26262c]"
     >
       {brand ? (
         <Image

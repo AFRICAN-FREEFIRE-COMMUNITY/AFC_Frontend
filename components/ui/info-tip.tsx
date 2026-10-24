@@ -22,6 +22,8 @@ export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
   // (i18n-exempt) fall back to the raw English HELP catalog. English is identical
   // either way, since help.json/en holds the same strings as HELP.
   const t = useTranslations("help");
+  // The trigger's name for screen readers, in the reader's language (Apple fix 9, inbox #380).
+  const tCommon = useTranslations("common");
   const content =
     text ??
     (id ? (USER_HELP_IDS.has(id) ? t(id) : HELP[id]) : "");
@@ -32,7 +34,7 @@ export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label="More info"
+          aria-label={tCommon("actions.moreInfo")}
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
           onClick={(e) => {
@@ -44,7 +46,7 @@ export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
             setOpen((o) => !o);
           }}
           className={cn(
-            "inline-flex align-middle text-muted-foreground hover:text-primary focus:text-primary focus:outline-none",
+            "hit-44 inline-flex align-middle text-muted-foreground hover:text-primary focus:text-primary focus:outline-none",
             className,
           )}
         >

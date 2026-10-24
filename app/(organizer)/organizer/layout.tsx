@@ -497,7 +497,7 @@ function OrganizerShell({ children }: { children: ReactNode }) {
                 <IconArrowLeft className="size-4" />
                 <span className="hidden sm:inline">{t("nav.back")}</span>
               </Button>
-              <Link href={"/home"} className="flex items-center space-x-2 min-w-0">
+              <Link href={"/home"} className="hit-44 flex items-center space-x-2 min-w-0">
                 <Logo size="small" />
                 <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
                   African Free Fire Community

@@ -19,6 +19,26 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Changed
+- On a phone, the small buttons, tabs, switches, checkboxes, dropdowns, info tips, dialog close
+  crosses and banner crosses answer a tap across at least 44 x 44 px, Apple's minimum, while they
+  look exactly the same size. Measured on 9 pages at 390 px with touch: 81 of the 91 small controls
+  on the first screen now take a full 44 px tap, against 1 before. Mouse screens are unchanged.
+- Buttons, tabs and toggles darken slightly (and shrink 3%) the moment a finger lands, so a tap shows
+  it registered.
+- The menu panel slides in over 0.3 s instead of 0.5 s. A phone set to "Reduce motion" gets every
+  panel, dialog and menu as a short fade instead of a slide or zoom.
+- The notifications bell shows only when signed in. A visitor had a bell that could only open an
+  empty panel.
+
+### Fixed
+- Buttons that show only an icon now have a name for screen readers, in English, French and
+  Portuguese: the bell, cart, menu, back arrow, the password eye in the sign-in window, the trash
+  button on event lists, the WhatsApp switch on profile edit, the dialog close cross and the info
+  tips (which said "More info" in English in every language).
+
 ## v7.3.1 - 2026-10-22
 
 ### Fixed

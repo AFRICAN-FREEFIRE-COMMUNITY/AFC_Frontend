@@ -126,6 +126,51 @@
   }
 }
 
+/* ── Touch targets and calm overlays (Apple design fixes 2 and 10, inbox #375 / #380) ──────────
+   hit-44: on a touch screen (pointer: coarse) the control answers taps across at least 44 x 44 px,
+   Apple's minimum, while what you SEE stays the same size: an invisible ::after box centred on the
+   control. The shared Button, tab, toggle, switch, checkbox, select, dialog close and info-tip carry
+   the class. It sits in @layer base on purpose: a caller's `absolute` / `fixed` utility always beats
+   the `position: relative` here, so the password eye and the cart badge keep their own positioning.
+   Mouse and trackpad screens get nothing at all.
+
+   Reduced motion: anyone who asked their device for less motion gets every Radix overlay (sheets,
+   dialogs, menus, popovers, selects) as a plain cross-fade. The tw-animate-css enter/exit offsets
+   are zeroed, the opacity fade stays, so the overlay still arrives, it just does not slide or zoom. */
+@layer base {
+  @media (pointer: coarse) {
+    .hit-44 {
+      position: relative;
+    }
+    .hit-44::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: max(100%, 44px);
+      height: max(100%, 44px);
+      translate: -50% -50%;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-state="open"] {
+      /* the sheet slides without fading, so give every overlay the fade the motion is swapped for */
+      --tw-enter-opacity: 0 !important;
+    }
+    [data-state="open"],
+    [data-state="closed"] {
+      --tw-enter-translate-x: 0 !important;
+      --tw-enter-translate-y: 0 !important;
+      --tw-enter-scale: 1 !important;
+      --tw-enter-rotate: 0 !important;
+      --tw-exit-translate-x: 0 !important;
+      --tw-exit-translate-y: 0 !important;
+      --tw-exit-scale: 1 !important;
+      --tw-exit-rotate: 0 !important;
+    }
+  }
+}
+
 /* ── OBS live-overlay pages (app/overlay/*) ──────────────────────────────────
    The overlay routes are broadcast graphics loaded as an OBS Browser Source, so the
    page itself must be fully see-through (only the leaderboard board paints). app/overlay/

@@ -136,7 +136,7 @@ export function MobileNavbar() {
         }
       `}</style>
       <SheetTrigger asChild>
-        <Button size={"icon"} variant="ghost" className="relative" aria-label={supportWaiting > 0 ? tSupport("menuWaiting", { count: supportWaiting }) : undefined}>
+        <Button size={"icon"} variant="ghost" className="relative" aria-label={supportWaiting > 0 ? tSupport("menuWaiting", { count: supportWaiting }) : t("mobileNav.menu")}>
           <IconMenu2 />
           {supportWaiting > 0 && (
             <span aria-hidden className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-gold px-1 text-[10px] font-bold text-black">

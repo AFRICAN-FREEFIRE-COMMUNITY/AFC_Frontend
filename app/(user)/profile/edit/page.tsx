@@ -765,6 +765,7 @@ const Page = () => {
                             </p>
                             <Switch
                               id="whatsapp-opt-in-toggle"
+                              aria-label={t("edit.whatsapp.optInLabel")}
                               checked={optField.value ?? false}
                               onCheckedChange={optField.onChange}
                             />

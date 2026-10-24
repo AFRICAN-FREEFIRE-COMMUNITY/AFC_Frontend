@@ -127,7 +127,7 @@ export function TwoFactorPrompt() {
           type="button"
           onClick={dismiss}
           aria-label={t("prompt.close")}
-          className="absolute end-2 top-2 rounded-md p-2 text-muted-foreground hover:bg-muted sm:hidden"
+          className="hit-44 absolute end-2 top-2 rounded-md p-2 text-muted-foreground hover:bg-muted sm:hidden"
         >
           <IconX className="size-4" />
         </button>
