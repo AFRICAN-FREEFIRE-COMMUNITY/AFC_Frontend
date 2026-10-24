@@ -27,7 +27,15 @@ workflow checks it again before it builds.
   to tap on a phone, full size in a viewer that closes with Esc. NFCA 2025 has posters for 26 of 27 categories.
   NEW tag for five days (set its date to the go-live day at ship).
 
+### Changed
+- "Submit your result" on an event page now opens only while your group is playing: from the
+  group's start time until its maps are done plus a few hours, and only for maps of groups your
+  team is in. It used to offer every map of the event, days before or weeks after. It shows when
+  the window closes. The server refuses a claim outside the window too, in your language.
+
 ### Fixed
+- The line above the map picker told players "Nothing is counted until you approve it" (the
+  organizer's line). It now asks which map they are sending a result for.
 - The awards hall of fame showed "Ballots 2" for NFCA 2025, which read as two votes cast. It counts the
   season's polls, so it now says "Polls" (French "Sondages", Portuguese "Enquetes").
 - The admin "Create leaderboard" page titles (Step 1 of 5, Basic Information, Manual Input and the rest)
@@ -35,9 +43,9 @@ workflow checks it again before it builds.
   organizer's leaderboard wizard.
 
 ### Security
+- zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high), same bump as PR #118.
 - zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high: memory could run out while validating very large
   constrained lists). Found by the security ledger in check-all, which was blocking every commit.
-- zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high), same bump as PR #118.
 
 ## v7.3.1 - 2026-10-22
 

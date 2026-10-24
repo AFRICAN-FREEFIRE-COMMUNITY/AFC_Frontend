@@ -87,6 +87,17 @@ export type TeamMapSubmission = {
   conflicts?: TeamMapSubmissionConflict[];
 };
 
+/** One map the team may claim now (AFC-B views_team_submissions.open_team_map_results). */
+export type OpenTeamResultMap = {
+  match_id: number;
+  match_number: number | null;
+  match_map: string | null;
+  stage_name: string;
+  group_name: string;
+  /** When claims for this map's group close (ISO, UTC). */
+  closes_at: string;
+};
+
 export const teamMapResultsApi = {
   /** POST submit/ - propose this team's row for one map. Replaces the team's own pending row
    *  rather than queueing a second one, so the organizer always sees one current answer. */
@@ -98,6 +109,17 @@ export const teamMapResultsApi = {
         { headers: authHeaders() },
       )
     ).data as { submission: TeamMapSubmission },
+
+  /** GET open/?event=<slug> - the maps this player's team may send a result for RIGHT NOW: only
+   *  its own groups, only while the group is playing (inbox #379). The server decides, so the
+   *  picker never offers a map the submit endpoint would refuse. Empty means: show no form. */
+  openMaps: async (eventSlug: string) =>
+    (
+      await axios.get(url("open/"), {
+        params: { event: eventSlug },
+        headers: authHeaders(),
+      })
+    ).data as { maps: OpenTeamResultMap[] },
 
   /** GET mine/ - every submission this player's team has made for one map, in any state, so a
    *  rejection and its note stay readable after the fact. */
