@@ -77,7 +77,13 @@ export const Header = () => {
         <div className="container mx-auto h-20 flex items-center justify-between">
           <Link href={"/home"} className="hit-44 flex items-center space-x-2">
             <Logo size="small" />
-            <span className="text-base md:text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
+            {/* Phone: "AFC" (brand.shortName), so the name is never cut to "African Free Fire..." and the
+                buttons keep their room (Apple fix 13, owner approved the mockup 24 Oct 2026, inbox #381).
+                From md up: the full name, as before. */}
+            <span className="md:hidden text-base font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent hover:text-primary">
+              {t("brand.shortName")}
+            </span>
+            <span className="hidden md:inline text-xl font-bold bg-gradient-to-r from-primary to-[var(--gold)] bg-clip-text text-transparent line-clamp-1 hover:text-primary">
               {t("brand.name")}
             </span>
           </Link>
