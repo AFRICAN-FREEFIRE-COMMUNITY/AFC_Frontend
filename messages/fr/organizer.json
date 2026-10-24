@@ -1118,7 +1118,9 @@
       "manualInput": "Saisie manuelle",
       "imageUpload": "Import d'images",
       "roomFileUpload": "Import du fichier de salle 3D",
-      "editLeaderboard": "Modifier le classement"
+      "editLeaderboard": "Modifier le classement",
+      "reviewPublish": "Vérifier et publier",
+      "stepProgress": "Étape {current} sur {total} : {title}"
     },
     "createLeaderboard": "Créer un classement",
     "tournamentDescription": "Tournoi {type} • {count} phases",
