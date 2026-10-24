@@ -21,15 +21,20 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+### Added
+- "Close submissions after": admins and organizers can close team result submissions a number of
+  hours after each group starts, on Basic Info beside "Let teams submit their own map results". Empty
+  keeps them open. When it is set, teams see "Open until" with the time under the map picker.
+
 ### Changed
 - "Submit your result" on an event page stays open after your group has played: it opens when the
   group starts, so a team can still send a result it forgot. The map you just played is picked
   first. It stays open for good unless the organizer sets a closing time (below).
 
-### Added
-- "Close submissions after": admins and organizers can close team result submissions a number of
-  hours after each group starts, on Basic Info beside "Let teams submit their own map results". Empty
-  keeps them open. When it is set, teams see "Open until" with the time under the map picker.
+### Fixed
+- A welcome tour left half-way no longer comes back on every page you open and moves you to its next
+  stop after a few seconds (signed out, that ended on the login page). A tour nobody has touched for
+  half an hour is over; the sparkles button in the header still replays it.
 
 ## v7.4.0 - 2026-10-24
 
