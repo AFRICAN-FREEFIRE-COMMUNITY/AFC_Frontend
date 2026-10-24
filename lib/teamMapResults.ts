@@ -87,15 +87,18 @@ export type TeamMapSubmission = {
   conflicts?: TeamMapSubmissionConflict[];
 };
 
-/** One map the team may claim now (AFC-B views_team_submissions.open_team_map_results). */
+/** One map the team may claim: its group has started and not passed the organizer's closing time
+ *  (AFC-B views_team_submissions.open_team_map_results; #389 open after play, #393 closing time). */
 export type OpenTeamResultMap = {
   match_id: number;
   match_number: number | null;
   match_map: string | null;
   stage_name: string;
   group_name: string;
-  /** When claims for this map's group close (ISO, UTC). */
-  closes_at: string;
+  /** When this map's group started, i.e. when its claims opened (ISO, UTC). */
+  opens_at: string;
+  /** When they close (ISO, UTC), or null when the organizer keeps them open (inbox #393). */
+  closes_at: string | null;
 };
 
 export const teamMapResultsApi = {

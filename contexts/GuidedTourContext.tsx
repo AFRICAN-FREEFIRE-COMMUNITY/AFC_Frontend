@@ -84,13 +84,27 @@ interface GuidedState {
 
 const INACTIVE_STATE: GuidedState = { active: false, index: 0, phase: "hub" };
 
+// ── A run left half-way expires (owner 2026-10-24, inbox #390) ──
+// The saved run used to live forever: someone who left the tour half-way got the hub back on every
+// page load, days later, and its countdown then moved them to the stop's page (signed out: /home,
+// then /login). Found in the v7.4.0 live check. Every save now carries the time, and a run that has
+// not moved for TOUR_STALE_MS (or an old one saved before this, with no time) is treated as over on
+// the next read: removed, nothing reopens. A live run moves every few seconds to minutes, so half an
+// hour of silence means it was left. Replaying it is one press on the header's sparkles button.
+const TOUR_STALE_MS = 30 * 60 * 1000;
+
 // ── localStorage helpers (guarded: storage can throw in private mode / SSR) ──
 function readState(): GuidedState {
   if (typeof window === "undefined") return INACTIVE_STATE;
   try {
     const raw = window.localStorage.getItem(STATE_KEY);
     if (!raw) return INACTIVE_STATE;
-    const parsed = JSON.parse(raw) as Partial<GuidedState>;
+    const parsed = JSON.parse(raw) as Partial<GuidedState> & { at?: number };
+    // Left half-way and not touched since: over (see TOUR_STALE_MS above).
+    if (parsed.active && !(typeof parsed.at === "number" && Date.now() - parsed.at < TOUR_STALE_MS)) {
+      window.localStorage.removeItem(STATE_KEY);
+      return INACTIVE_STATE;
+    }
     // Validate the index against the current stop list so a stale/corrupt value can
     // never index out of bounds.
     const index =
@@ -115,7 +129,8 @@ function writeState(state: GuidedState): void {
     if (!state.active) {
       window.localStorage.removeItem(STATE_KEY);
     } else {
-      window.localStorage.setItem(STATE_KEY, JSON.stringify(state));
+      // `at`: when the run last moved, so a run left half-way can expire (TOUR_STALE_MS).
+      window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...state, at: Date.now() }));
     }
   } catch {
     /* storage unavailable - ignore */
