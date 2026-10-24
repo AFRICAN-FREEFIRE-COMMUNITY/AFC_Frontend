@@ -205,7 +205,31 @@
       "title": "Patrocinadores"
     },
     "openRosterBadge": "Plantel aberto",
-    "openRosterHint": "Qualquer jogador AFC pode ser alinhado. Este evento não conta para os rankings nem para os escalões."
+    "openRosterHint": "Qualquer jogador AFC pode ser alinhado. Este evento não conta para os rankings nem para os escalões.",
+    "facts": {
+      "date": "Data",
+      "time": "Hora",
+      "prize": "Premiação",
+      "location": "Local",
+      "online": "Online",
+      "format": "Formato",
+      "participants": "Participantes",
+      "formatValue": "{mode}, {kind}",
+      "mode": {
+        "virtual": "Virtual",
+        "physical": "Presencial (LAN)",
+        "hybrid": "Híbrido"
+      },
+      "kind": {
+        "tournament": "torneio",
+        "scrims": "scrims"
+      },
+      "size": {
+        "solo": "{count, plural, one {# jogador} other {# jogadores}}",
+        "duo": "{count, plural, one {# dupla} other {# duplas}}",
+        "squad": "{count, plural, one {# esquadrão} other {# esquadrões}}"
+      }
+    }
   },
   "leaveModal": {
     "trigger": "Sair do Torneio",

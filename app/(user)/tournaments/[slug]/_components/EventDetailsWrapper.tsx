@@ -45,7 +45,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
-import { QrShareButton } from "@/components/qr/QrShareButton";
+// Share (Copy link / Show QR code) beside the title (Apple fix 12).
+import { ShareMenu } from "@/components/qr/ShareMenu";
 import { TournamentStructure } from "./TournamentStructure";
 // "Combined" view (owner 2026-07-05): a third main-view tab that merges several groups/stages
 // (or the whole event) into one aggregate leaderboard via events/get-event-combined-standings/.
@@ -5329,13 +5330,21 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   if (isLoading) return <FullLoader />;
   if (error || !eventDetails) return notFound();
 
-  const formatText = `${eventDetails.event_mode.toUpperCase()} / ${eventDetails.competition_type.toUpperCase()}`;
-  const participantText = `${formatMoneyInput(
-    eventDetails.max_teams_or_players,
-  )} ${
-    eventDetails.participant_type.charAt(0).toUpperCase() +
-    eventDetails.participant_type.slice(1)
-  }s`;
+  // The facts grid's values (Apple fix 12), translated: "Virtual, scrims", "15 squads". An enum the
+  // dictionaries do not know yet falls back to its raw value rather than a key on screen (t.has).
+  const modeKey = eventDetails.event_mode === "physical(lan)" ? "physical" : eventDetails.event_mode;
+  const modeLabel = t.has(`detail.facts.mode.${modeKey}` as any)
+    ? t(`detail.facts.mode.${modeKey}` as any)
+    : eventDetails.event_mode;
+  const kindLabel = t.has(`detail.facts.kind.${eventDetails.competition_type}` as any)
+    ? t(`detail.facts.kind.${eventDetails.competition_type}` as any)
+    : eventDetails.competition_type;
+  const formatText = t("detail.facts.formatValue", { mode: modeLabel, kind: kindLabel });
+  const participantText = t.has(`detail.facts.size.${eventDetails.participant_type}` as any)
+    ? t(`detail.facts.size.${eventDetails.participant_type}` as any, {
+        count: Number(eventDetails.max_teams_or_players) || 0,
+      })
+    : `${formatMoneyInput(eventDetails.max_teams_or_players)} ${eventDetails.participant_type}`;
 
   // "Consumed" = a single-use invite that has already been used. A SHARED link is the
   // reusable first-come-first-serve link, so it is NOT consumed even when is_used is true.
@@ -5521,12 +5530,14 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   return (
     <div>
       <Card className="p-0 bg-muted/30">
-        {/* QR code for this event (inbox #46, 2026-09-26): anyone viewing can make one; its
-            organizers and AFC event admins also see the scan count. components/qr/QrShareButton.tsx */}
+        {/* Share beside the title (Apple fix 12, owner approved the mockup 24 Oct 2026, inbox #381):
+            Copy link, or Show QR code, the QR dialog of inbox #46 (anyone viewing can make one; its
+            organizers and AFC event admins also see the scan count). components/qr/ShareMenu.tsx */}
         <PageHeader
           title={eventDetails.event_name}
           back
-          action={<QrShareButton targetType="event" targetRef={slug} name={eventDetails.event_name} />}
+          actionInline
+          action={<ShareMenu targetType="event" targetRef={slug} name={eventDetails.event_name} />}
         />
         <div className="p-0 space-y-2">
           {/* Banner, or the event's name on an AFC surface when it has none or it fails to
@@ -5728,47 +5739,51 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             className="w-fit"
           />
         ) : null}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          {/* i18n time: event start date in the viewer's timezone + language,
-              injected as the <date> tag of the "Date: <date>" string (t.rich). */}
-          <p>
-            {t.rich("detail.date", {
-              date: () => (
-                <LocalTime value={eventDetails.start_date} mode="date" />
-              ),
-            })}
-          </p>
+        {/* ── The event's facts as a label / value grid (Apple fix 12, inbox #381) ──
+            Labels quiet, values strong, in one aligned column, instead of flat "Label: VALUE" lines.
+            Mode, kind and team size are translated now (they printed the raw English enums in
+            capitals in every language), and Location shows "Online" only for an online event: it
+            said Online for LAN events too. */}
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-sm md:max-w-xl">
+          {/* i18n time: event start date in the viewer's timezone + language. */}
+          <dt className="text-muted-foreground">{t("detail.facts.date")}</dt>
+          <dd className="font-semibold">
+            <LocalTime value={eventDetails.start_date} mode="date" />
+          </dd>
           {/* Event time (owner 2026-06-21): shows BOTH the viewer's local time and the
               host's time with a tz label, pinned from the host wall-clock + Event.timezone.
               Only rendered once a start time exists (it is compulsory on new events; older
               events may have none). */}
           {eventDetails.event_start_time && (
-            <p>
-              {t.rich("detail.time", {
-                time: () => (
-                  <LocalEventTime
-                    date={eventDetails.start_date}
-                    startTime={eventDetails.event_start_time}
-                    endTime={eventDetails.event_end_time}
-                    tz={eventDetails.timezone}
-                  />
-                ),
-              })}
-            </p>
+            <>
+              <dt className="text-muted-foreground">{t("detail.facts.time")}</dt>
+              <dd className="font-semibold">
+                <LocalEventTime
+                  date={eventDetails.start_date}
+                  startTime={eventDetails.event_start_time}
+                  endTime={eventDetails.event_end_time}
+                  tz={eventDetails.timezone}
+                />
+              </dd>
+            </>
           )}
-          <p>
-            {t("detail.prizePool", {
-              value: /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
-                ? `$${formatNumber(parseFloat(eventDetails.prizepool))}`
-                : eventDetails.prizepool,
-            })}
-          </p>
-          <p>{t("detail.locationOnline")}</p>
-          <p>{t("detail.format", { value: formatText })}</p>
-        </div>
-        <p className="text-sm">
-          {t("detail.participants", { value: participantText })}
-        </p>
+          <dt className="text-muted-foreground">{t("detail.facts.prize")}</dt>
+          <dd className="font-semibold break-words">
+            {/^\d+(\.\d+)?$/.test(eventDetails.prizepool)
+              ? `$${formatNumber(parseFloat(eventDetails.prizepool))}`
+              : eventDetails.prizepool}
+          </dd>
+          {eventDetails.event_mode === "virtual" && (
+            <>
+              <dt className="text-muted-foreground">{t("detail.facts.location")}</dt>
+              <dd className="font-semibold">{t("detail.facts.online")}</dd>
+            </>
+          )}
+          <dt className="text-muted-foreground">{t("detail.facts.format")}</dt>
+          <dd className="font-semibold">{formatText}</dd>
+          <dt className="text-muted-foreground">{t("detail.facts.participants")}</dt>
+          <dd className="font-semibold">{participantText}</dd>
+        </dl>
 
         {/* ── Tournament tier badge (owner 2026-06-29) ──
             Always shown so viewers know how this event is ranked (tier_1/2/3). Reuses the shared

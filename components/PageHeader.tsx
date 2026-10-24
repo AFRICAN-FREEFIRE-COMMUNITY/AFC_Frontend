@@ -14,6 +14,9 @@ interface PageHeaderProps {
   // root so the comprehensive welcome tour (guided-tour-stops.ts + PageGuide.tsx) can spotlight
   // "you are on the <page> page" as its first step on each route. Attribute-only, no layout change.
   dataTour?: string;
+  // A small action (one button) that stays BESIDE the title on a phone instead of dropping to its
+  // own full-width row (Apple fix 12: the event page's Share button). Default keeps the old layout.
+  actionInline?: boolean;
 }
 
 export function PageHeader({
@@ -22,6 +25,7 @@ export function PageHeader({
   action,
   back,
   dataTour,
+  actionInline,
 }: PageHeaderProps) {
   const router = useRouter();
   const t = useTranslations("common");
@@ -66,7 +70,7 @@ export function PageHeader({
             )}
           </div>
         </div>
-        {action && <div className="w-full md:w-auto">{action}</div>}
+        {action && <div className={actionInline ? "shrink-0" : "w-full md:w-auto"}>{action}</div>}
       </div>
     </div>
   );

@@ -645,5 +645,21 @@
   "review.rateAction": "rate this event and leave feedback",
   "list.filters.button": "Filter",
   "list.filters.title": "Filters",
-  "list.filters.showEvents": "Show events"
+  "list.filters.showEvents": "Show events",
+  "detail.facts.date": "Date",
+  "detail.facts.time": "Time",
+  "detail.facts.prize": "Prize pool",
+  "detail.facts.location": "Location",
+  "detail.facts.online": "Online",
+  "detail.facts.format": "Format",
+  "detail.facts.participants": "Participants",
+  "detail.facts.formatValue": "{mode}, {kind}",
+  "detail.facts.mode.virtual": "Virtual",
+  "detail.facts.mode.physical": "In person (LAN)",
+  "detail.facts.mode.hybrid": "Hybrid",
+  "detail.facts.kind.tournament": "tournament",
+  "detail.facts.kind.scrims": "scrims",
+  "detail.facts.size.solo": "{count, plural, one {# player} other {# players}}",
+  "detail.facts.size.duo": "{count, plural, one {# duo} other {# duos}}",
+  "detail.facts.size.squad": "{count, plural, one {# squad} other {# squads}}"
 }
