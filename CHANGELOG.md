@@ -19,6 +19,17 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- Every winner on an awards season page now shows the rest of the category's nominees ("Also nominated", with
+  their pictures, no vote counts) and the category's nominee poster: beside the winner on a computer, a strip
+  to tap on a phone, full size in a viewer that closes with Esc. NFCA 2025 has posters for 26 of 27 categories.
+  NEW tag for five days (set its date to the go-live day at ship).
+
+### Security
+- zod 4.1.13 to 4.6.7 (GHSA-mrhx-c7xc-m3w5, high), same bump as PR #118.
+
 ## v7.3.1 - 2026-10-22
 
 ### Fixed

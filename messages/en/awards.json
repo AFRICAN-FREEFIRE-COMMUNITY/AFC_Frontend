@@ -57,6 +57,12 @@
   },
   "winner": "Winner",
   "viewProfile": "View profile",
+  "alsoNominated": "Also nominated",
+  "nomineePoster": "Nominee poster",
+  "posterHint": "Tap to see it full size",
+  "posterCaption": "Nominees, {category}, {season}",
+  "openPoster": "Open the nominee poster for {category}",
+  "closePoster": "Close",
   "archive": {
     "heading": "Hall of fame",
     "search": "Search a winner or a category",

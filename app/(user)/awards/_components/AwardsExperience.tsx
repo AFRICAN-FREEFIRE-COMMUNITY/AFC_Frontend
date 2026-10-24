@@ -48,6 +48,7 @@ import {
   IconBell,
   IconCheck,
   IconChevronRight,
+  IconPhoto,
   IconPlayerPause,
   IconPlayerPlay,
   IconSearch,
@@ -62,6 +63,7 @@ import { NewBadge } from "@/components/NewBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -703,6 +705,7 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
           <WinnerBand
             key={row.key}
             row={row}
+            season={data.edition.title}
             dimmed={ceremony && index !== lit}
             innerRef={(element) => {
               bandRefs.current[row.key] = element;
@@ -798,16 +801,29 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
   );
 }
 
+// ── NOMINEES + POSTER on each winner band (owner 2026-10-23, inbox #351: option "A" of
+// mockups/awards-nominees/) ──
+// "Also nominated": every option of the category except the winner, with their picture, neutral on
+// purpose (gold stays on the winner) and with NO vote counts (owner 2026-08-16: the awards show the
+// winner, not the margin). The poster: question.config.poster_url (26 of the 27 NFCA 2025 categories),
+// beside the winner from md up, a tap-to-open strip on a phone, full size in a dialog that never draws
+// it above its own 1080 x 1350. Data: GET polls/editions/<slug>/ (lib/polls.ts getEdition).
 function WinnerBand({
   row,
+  season,
   dimmed,
   innerRef,
 }: {
   row: WinnerRow;
+  season: string;
   dimmed: boolean;
   innerRef: (element: HTMLElement | null) => void;
 }) {
   const t = useTranslations("awards");
+  const [posterOpen, setPosterOpen] = useState(false);
+  const poster = row.question.config?.poster_url || "";
+  const others = row.question.options.filter((option) => option.option_id !== row.winner.option_id);
+  const category = row.question.prompt;
 
   return (
     <article
@@ -819,6 +835,8 @@ function WinnerBand({
         dimmed && "opacity-[0.22]",
       )}
     >
+      <div className="flex gap-6">
+      <div className="min-w-0 flex-1">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <Portrait option={row.winner} size={92} gold />
         <div className="min-w-0 flex-1">
@@ -857,6 +875,89 @@ function WinnerBand({
         </div>
       </div>
 
+      {/* The poster on a phone: a strip under the winner (the picture beside it needs md width). */}
+      {poster && (
+        <button
+          type="button"
+          onClick={() => setPosterOpen(true)}
+          className="mt-4 flex w-full items-center gap-3 rounded-md bg-muted/40 p-2 text-left md:hidden"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- API-host media */}
+          <img src={poster} alt="" className="h-[55px] w-11 rounded object-cover" />
+          <span className="min-w-0">
+            <span className="block text-sm font-medium text-foreground">{t("nomineePoster")}</span>
+            <span className="block text-xs text-muted-foreground">{t("posterHint")}</span>
+          </span>
+        </button>
+      )}
+
+      {others.length > 0 && (
+        <div className="mt-7">
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("alsoNominated")}
+            <NewBadge since="2026-10-24" />
+          </p>
+          {/* One column on a phone: two left too little room for a name like HYDRADABOSS. */}
+          <div className="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-[repeat(auto-fill,minmax(210px,1fr))] sm:gap-2">
+            {others.map((option) => (
+              <div
+                key={option.option_id}
+                className="flex min-w-0 items-center gap-2.5 rounded-md bg-muted/40 px-2 py-1.5 sm:p-2"
+              >
+                <Portrait option={option} size={40} />
+                <span className="min-w-0">
+                  <span className="line-clamp-2 break-words text-sm font-medium leading-tight text-foreground">
+                    {option.label}
+                  </span>
+                  {option.linked?.team_name && (
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {option.linked.team_name}
+                    </span>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      </div>
+
+      {/* The poster beside the winner, md and up. */}
+      {poster && (
+        <button
+          type="button"
+          onClick={() => setPosterOpen(true)}
+          aria-label={t("openPoster", { category })}
+          className="group hidden w-[168px] shrink-0 text-left md:block"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- API-host media */}
+          <img src={poster} alt="" className="aspect-[4/5] w-full rounded-md object-cover" />
+          <span className="mt-2 block text-xs text-muted-foreground group-hover:text-foreground">
+            {t("nomineePoster")}
+          </span>
+        </button>
+      )}
+      </div>
+
+      {poster && (
+        <Dialog open={posterOpen} onOpenChange={setPosterOpen}>
+          {/* Sized to the poster (4:5): as wide as the screen, or as tall as it allows, never above its own
+            1080 px. A w-auto dialog shrank to 195 px on a phone. */}
+          <DialogContent className="w-[min(92vw,1080px,calc((100vh-140px)*0.8))] max-w-none bg-transparent p-0 shadow-none sm:max-w-none">
+            <DialogTitle className="sr-only">{t("nomineePoster")}</DialogTitle>
+            {/* eslint-disable-next-line @next/next/no-img-element -- API-host media */}
+            <img
+              src={poster}
+              alt={t("posterCaption", { category, season })}
+              className="h-auto w-full rounded-md"
+            />
+            <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground">
+              <IconPhoto className="h-3.5 w-3.5" />
+              {t("posterCaption", { category, season })}
+            </p>
+          </DialogContent>
+        </Dialog>
+      )}
     </article>
   );
 }
