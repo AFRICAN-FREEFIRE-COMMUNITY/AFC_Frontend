@@ -371,10 +371,14 @@ export default function AdminDashboardPage() {
         >
           {/* All four are real links now. Three were `disabled` buttons with their <Link> sitting
               commented out beside them, so the page offered four actions and performed two. */}
+          {/* Leaderboards are made automatically for every group when an event's stages are set up; the
+              server retired manual creation (AFC-B urls.py: create-leaderboard-manually commented out) and
+              the manual wizard this used to open failed at step 2 with a 404 (found 2026-10-23, inbox #371).
+              The action now opens the leaderboards list, where every event's boards are managed. */}
           <Button asChild variant="outline" className="h-auto p-4 bg-transparent">
-            <Link href="/a/leaderboards/create" className="flex flex-col items-center gap-2">
+            <Link href="/a/events?tab=leaderboards" className="flex flex-col items-center gap-2">
               <IconTrophy className="h-6 w-6" />
-              <span>Create Leaderboard</span>
+              <span>Leaderboards</span>
             </Link>
           </Button>
 

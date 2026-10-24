@@ -2,6 +2,7 @@
 
 import React, { useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 // ?event=<slug> is the preselected event's address (owner rule R22); the wizard keys on the id.
 import { useEventRef } from "@/lib/addressRef";
 import { PageHeader } from "@/components/PageHeader";
@@ -41,6 +42,9 @@ interface FormData {
 
 export default function CreateLeaderboardPage() {
   const router = useRouter();
+  // Step titles share the organizer wizard's keys (organizer.json eventLeaderboard.wizard.*):
+  // it runs the same steps, so one set of en / fr / pt words serves both pages (inbox #371).
+  const t = useTranslations("organizer");
   const searchParams = useSearchParams();
   // Read ?event=<slug> from the URL (set by the leaderboards list page; owner rule R22). The
   // wizard below keys on the numeric id, so the slug is resolved once here. ?event_id= from an
@@ -84,18 +88,18 @@ export default function CreateLeaderboardPage() {
   const TOTAL_DISPLAY_STEPS = 5;
 
   const getStepTitle = () => {
-    if (currentStep === 1) return "Basic Information";
-    if (currentStep === 2) return "Configure Point System";
+    if (currentStep === 1) return t("eventLeaderboard.wizard.basicInfo");
+    if (currentStep === 2) return t("eventLeaderboard.wizard.configurePoints");
     if (currentStep === 3) {
-      if (!enteringMatch) return "Match Overview";
-      if (enteringMatch.view === "method") return "Select Upload Method";
-      if (enteringMatch.view === "manual") return "Manual Input";
-      if (enteringMatch.view === "image_upload") return "Image Upload";
+      if (!enteringMatch) return t("eventLeaderboard.wizard.matchOverview");
+      if (enteringMatch.view === "method") return t("eventLeaderboard.wizard.selectMethod");
+      if (enteringMatch.view === "manual") return t("eventLeaderboard.wizard.manualInput");
+      if (enteringMatch.view === "image_upload") return t("eventLeaderboard.wizard.imageUpload");
       if (enteringMatch.view === "room_file_upload")
-        return "3D Room File Upload";
+        return t("eventLeaderboard.wizard.roomFileUpload");
     }
-    if (currentStep === 4) return "Edit Leaderboard";
-    if (currentStep === 5) return "Review & Publish";
+    if (currentStep === 4) return t("eventLeaderboard.wizard.editLeaderboard");
+    if (currentStep === 5) return t("eventLeaderboard.wizard.reviewPublish");
     return "";
   };
 
@@ -113,10 +117,14 @@ export default function CreateLeaderboardPage() {
             currentStep !== 4 &&
             currentStep !== 5
           }
-          title="Create Leaderboard"
+          title={t("eventLeaderboard.createLeaderboard")}
           description={
             !isSuccess
-              ? `Step ${currentStep} of ${TOTAL_DISPLAY_STEPS}: ${getStepTitle()}`
+              ? t("eventLeaderboard.wizard.stepProgress", {
+                  current: currentStep,
+                  total: TOTAL_DISPLAY_STEPS,
+                  title: getStepTitle(),
+                })
               : undefined
           }
         />

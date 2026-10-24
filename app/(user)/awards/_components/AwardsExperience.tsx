@@ -676,7 +676,9 @@ function WinnersReveal({ data, onChanged }: { data: EditionDetail; onChanged: ()
     <div className="mt-10 space-y-8">
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatTile label={t("stats.categories")} value={winners.length.toLocaleString(locale)} />
-        <StatTile label={t("stats.ballots")} value={data.polls.length.toLocaleString(locale)} />
+        {/* The number of polls in the season (NFCA 2025 has two: creators and esports). It was
+            labelled "Ballots", which read as votes cast (inbox #370). */}
+        <StatTile label={t("stats.polls")} value={data.polls.length.toLocaleString(locale)} />
         <StatTile
           label={t("stats.mostDecorated")}
           value={mostDecorated[0] ? `${mostDecorated[0][0]} (${mostDecorated[0][1]})` : "-"}
