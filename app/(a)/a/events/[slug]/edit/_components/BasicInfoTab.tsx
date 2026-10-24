@@ -484,6 +484,38 @@ export default function BasicInfoTab({
               }
             />
           </div>
+          {/* When those claims close (owner 2026-10-24, inbox #393: "admins or organizers can set when
+              it closes"): hours after each group's start, empty = never (the #389 default). Saved with
+              the switch above (Event.team_result_claims_close_hours, AFC-B event_contract.py, 1 to 1440). */}
+          {requirementsForm.allow_team_result_submissions && (
+            <div className="space-y-1.5">
+              <Label htmlFor="team-results-close" className="flex items-center gap-2">
+                {tr("settings.closeLabel")}
+                <NewBadge since="2026-10-24" />
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="team-results-close"
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={1440}
+                  step={1}
+                  className="w-28"
+                  placeholder={tr("settings.closeNever")}
+                  value={requirementsForm.team_result_claims_close_hours ?? ""}
+                  onChange={(e) =>
+                    setRequirementsForm((p: any) => ({
+                      ...p,
+                      team_result_claims_close_hours: e.target.value === "" ? null : e.target.value,
+                    }))
+                  }
+                />
+                <span className="text-xs text-muted-foreground">{tr("settings.closeUnit")}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">{tr("settings.closeHelp")}</p>
+            </div>
+          )}
         </div>
 
         {/* ── Kill stats switches (owner 2026-10-23, inbox #350: "all three, but an admin or organizer

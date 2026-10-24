@@ -21,6 +21,16 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+### Changed
+- "Submit your result" on an event page stays open after your group has played: it opens when the
+  group starts, so a team can still send a result it forgot. The map you just played is picked
+  first. It stays open for good unless the organizer sets a closing time (below).
+
+### Added
+- "Close submissions after": admins and organizers can close team result submissions a number of
+  hours after each group starts, on Basic Info beside "Let teams submit their own map results". Empty
+  keeps them open. When it is set, teams see "Open until" with the time under the map picker.
+
 ## v7.4.0 - 2026-10-24
 
 ### Added

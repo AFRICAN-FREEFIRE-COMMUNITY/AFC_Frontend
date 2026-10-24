@@ -459,6 +459,8 @@ export default function OrganizerEditEventPage({
     // organizers but never carried or saved by this page (found 2026-10-24 with the kill stats
     // switches, inbox #350): flipping it did nothing.
     allow_team_result_submissions: false,
+    // Hours after each group starts when team claims close; null = never (inbox #393).
+    team_result_claims_close_hours: null as number | string | null,
     kill_feed_tab: false,
     kill_feed_overlay: false,
     kill_feed_export: false,
@@ -885,6 +887,7 @@ export default function OrganizerEditEventPage({
           require_player_profile_image: ed.require_player_profile_image ?? false,
           require_whatsapp: ed.require_whatsapp ?? false,
           allow_team_result_submissions: ed.allow_team_result_submissions ?? false,
+          team_result_claims_close_hours: ed.team_result_claims_close_hours ?? null,
           kill_feed_tab: ed.kill_feed_tab ?? false,
           kill_feed_overlay: ed.kill_feed_overlay ?? false,
           kill_feed_export: ed.kill_feed_export ?? false,
@@ -1667,6 +1670,8 @@ export default function OrganizerEditEventPage({
       // WhatsApp number gate (owner 2026-08-03), saved with the requirements above.
       formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
       formData.append("allow_team_result_submissions", waitlistForm.allow_team_result_submissions ? "True" : "False");
+      // When team claims close: hours after each group starts, "" = never (inbox #393).
+      formData.append("team_result_claims_close_hours", String(waitlistForm.team_result_claims_close_hours ?? ""));
       formData.append("kill_feed_tab", waitlistForm.kill_feed_tab ? "True" : "False");
       formData.append("kill_feed_overlay", waitlistForm.kill_feed_overlay ? "True" : "False");
       formData.append("kill_feed_export", waitlistForm.kill_feed_export ? "True" : "False");
@@ -1715,6 +1720,7 @@ export default function OrganizerEditEventPage({
               require_player_profile_image: waitlistForm.require_player_profile_image,
               require_whatsapp: waitlistForm.require_whatsapp,
               allow_team_result_submissions: waitlistForm.allow_team_result_submissions,
+              team_result_claims_close_hours: waitlistForm.team_result_claims_close_hours ?? null,
               kill_feed_tab: waitlistForm.kill_feed_tab,
               kill_feed_overlay: waitlistForm.kill_feed_overlay,
               kill_feed_export: waitlistForm.kill_feed_export,
@@ -1927,6 +1933,8 @@ export default function OrganizerEditEventPage({
         formData.append("require_player_profile_image", waitlistForm.require_player_profile_image ? "True" : "False");
         formData.append("require_whatsapp", waitlistForm.require_whatsapp ? "True" : "False");
         formData.append("allow_team_result_submissions", waitlistForm.allow_team_result_submissions ? "True" : "False");
+        // When team claims close: hours after each group starts, "" = never (inbox #393).
+        formData.append("team_result_claims_close_hours", String(waitlistForm.team_result_claims_close_hours ?? ""));
         formData.append("kill_feed_tab", waitlistForm.kill_feed_tab ? "True" : "False");
         formData.append("kill_feed_overlay", waitlistForm.kill_feed_overlay ? "True" : "False");
         formData.append("kill_feed_export", waitlistForm.kill_feed_export ? "True" : "False");

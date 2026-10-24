@@ -67,6 +67,10 @@
   },
   "settings": {
     "label": "Autoriser les équipes à envoyer leurs propres résultats de carte",
-    "help": "Les équipes envoient leur propre ligne pour une carte et vous l'approuvez avant qu'elle ne compte. Utile sur les gros événements où vous saisiriez sinon des résultats que les équipes vous ont déjà envoyés. Désactivé par défaut."
+    "help": "Les équipes envoient leur propre ligne pour une carte et vous l'approuvez avant qu'elle ne compte. Utile sur les gros événements où vous saisiriez sinon des résultats que les équipes vous ont déjà envoyés. Désactivé par défaut.",
+    "closeLabel": "Fermer les envois après",
+    "closeUnit": "heures après le début de chaque groupe",
+    "closeNever": "Jamais",
+    "closeHelp": "Laissez vide pour les garder ouverts après le passage du groupe. Une équipe ne peut jamais envoyer de résultat avant le début de son groupe."
   }
 }
