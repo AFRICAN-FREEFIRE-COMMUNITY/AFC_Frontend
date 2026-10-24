@@ -55,6 +55,8 @@ import { CombinedStandings } from "./CombinedStandings";
 // surfaces their play time + room ID/password without digging into the Structure tab.
 import { YourMatchCallout } from "./YourMatchCallout";
 import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
+// The Kill stats view (inbox #392): sniper kills recorded, team and player head to head.
+import { KillStatsTab } from "@/components/events/KillStatsTab";
 import {
   Dialog,
   DialogContent,
@@ -451,6 +453,9 @@ interface EventDetails {
   // get_event_details_not_logged_in. Absent on older payloads, hence optional: absent reads as off,
   // which is the safe default for a feature most organizers will not want.
   allow_team_result_submissions?: boolean;
+  // Kill stats switches (event_contract.py, set on the edit forms): the tab, and the CSV link in it.
+  kill_feed_tab?: boolean;
+  kill_feed_export?: boolean;
   is_public: boolean;
   // Per-event results visibility (owner 2026-06-29): Event.results_published, echoed by the detail
   // endpoints. false => the organizer has HIDDEN the public standings, so the Results + Structure
@@ -3678,9 +3683,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const [activeStageTab, setActiveStageTab] = useState<string>("");
   // Results ⇄ Structure ⇄ Combined view toggle for the main stage area (default Results =
   // existing behavior). "combined" (owner 2026-07-05) renders the CombinedStandings view.
+  // "kills" (inbox #392) renders KillStatsTab, offered only when the event switched it on.
   const [mainView, setMainView] = useState<
-    "results" | "structure" | "combined"
+    "results" | "structure" | "combined" | "kills"
   >("results");
+  const tKill = useTranslations("killStats");
   const [modalStep, setModalStep] = useState<ModalStep>("CLOSED");
   // M: remember whether the last registration was routed to the waitlist so the
   // success step shows accurate copy instead of "Welcome to the tournament!".
@@ -6102,10 +6109,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               <Tabs
                 value={mainView}
                 onValueChange={(v) =>
-                  setMainView(v as "results" | "structure" | "combined")
+                  setMainView(v as "results" | "structure" | "combined" | "kills")
                 }
               >
-                <TabsList>
+                {/* Scrolls sideways on a narrow phone rather than squeezing four labels. */}
+                <ScrollableTabsList>
                   <TabsTrigger value="results">
                     {t("detail.viewToggle.results")}
                   </TabsTrigger>
@@ -6115,10 +6123,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   <TabsTrigger value="combined">
                     {t("combined.tabLabel")}
                   </TabsTrigger>
-                </TabsList>
+                  {/* Kill stats (inbox #392): only when the organizer or an admin switched it on. NEW for
+                      five days from the go-live day (set its date at ship). */}
+                  {eventDetails.kill_feed_tab && (
+                    <TabsTrigger value="kills">
+                      {tKill("tab")}
+                      <NewBadge since="2026-10-24" />
+                    </TabsTrigger>
+                  )}
+                </ScrollableTabsList>
               </Tabs>
 
-              {mainView === "structure" ? (
+              {mainView === "kills" && eventDetails.kill_feed_tab ? (
+                <KillStatsTab slug={eventDetails.slug || slug} exportOn={!!eventDetails.kill_feed_export} />
+              ) : mainView === "structure" ? (
                 <TournamentStructure
                   stages={eventDetails.stages as any}
                   participantType={eventDetails.participant_type}

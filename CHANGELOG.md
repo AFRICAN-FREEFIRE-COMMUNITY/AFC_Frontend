@@ -21,7 +21,15 @@ workflow checks it again before it builds.
 
 ## Unreleased
 
+## v7.5.0 - 2026-10-24
+
 ### Added
+- A "Kill stats" tab on the event page, shown when the organizer or an admin switches it on: sniper kills
+  recorded; team head to head with how often a third team came in, where a pair opens to who killed and
+  knocked who between their players and then each fight (where and when, who came in as the third party,
+  players left, every knock and kill, the result); a player head to head (pick a player, every opponent,
+  kills and knocks each way); stage chips; and the CSV for the graphics team when that switch is on. In
+  English, French and Portuguese, NEW tag for five days.
 - "Close submissions after": admins and organizers can close team result submissions a number of
   hours after each group starts, on Basic Info beside "Let teams submit their own map results". Empty
   keeps them open. When it is set, teams see "Open until" with the time under the map picker.
@@ -29,7 +37,7 @@ workflow checks it again before it builds.
 ### Changed
 - "Submit your result" on an event page stays open after your group has played: it opens when the
   group starts, so a team can still send a result it forgot. The map you just played is picked
-  first. It stays open for good unless the organizer sets a closing time (below).
+  first. It stays open for good unless the organizer sets a closing time (above).
 
 ### Fixed
 - A welcome tour left half-way no longer comes back on every page you open and moves you to its next

@@ -1,0 +1,50 @@
+{
+  "tab": "Kill stats",
+  "allStages": "All stages",
+  "coverage": "Weapon known on {known} of {total} kills",
+  "empty": "No kills recorded for this event yet. They appear once a debugger file or AFC Capture sends the maps.",
+  "loadError": "Kill stats could not be loaded.",
+  "csv": "Download for the graphics team (CSV)",
+  "sniper": {
+    "title": "Sniper kills recorded",
+    "lead": "Kills with a bolt-action rifle (AWM, M82B, Kar98k, M24). Only kills where the game reported the weapon count, so this is what was recorded, not every sniper kill.",
+    "player": "Player",
+    "team": "Team",
+    "kills": "Kills",
+    "empty": "No sniper kills recorded."
+  },
+  "h2h": {
+    "title": "Head to head",
+    "lead": "Every fight between two teams. A fight ends after 30 seconds with no kill or knock among its teams. A team that comes in while it is going is the third party: it joins the same fight, and each team it fought counts in its own row. Tap a pair to see each fight.",
+    "teams": "Teams",
+    "met": "Met",
+    "wins": "Wins",
+    "draws": "Draws",
+    "thirdParty": "Third party",
+    "empty": "No fights between teams yet.",
+    "whoTitle": "Who killed and knocked who, {a} v {b}",
+    "kills": "Kills",
+    "knocks": "Knocks",
+    "eachFight": "Each fight"
+  },
+  "fight": {
+    "loading": "Loading the fights",
+    "where": "{stage}, {group}, Match {number}, game time {time}",
+    "started": "{a} v {b}",
+    "cameIn": "then {team} came in",
+    "thirdParty": "Third party",
+    "left": "Players left: {list}",
+    "killed": "<b>{killer}</b> killed <b>{victim}</b>",
+    "knocked": "<b>{killer}</b> knocked <b>{victim}</b>",
+    "result": "{a} v {b}:",
+    "won": "{team} won",
+    "draw": "Draw"
+  },
+  "players": {
+    "title": "Player head to head",
+    "lead": "Who killed and knocked who. Pick a player to see every opponent they met in a fight, with the kills and the knocks each way, the picked player's number first. A knock counts as a knock even when the player was revived.",
+    "pick": "Player",
+    "opponent": "Opponent",
+    "team": "Team"
+  }
+}
