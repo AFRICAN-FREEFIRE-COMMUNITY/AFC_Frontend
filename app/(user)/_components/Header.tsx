@@ -26,6 +26,9 @@ import { useTranslations } from "next-intl";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-runs the notifications
 // fetch so the bell badge + dropdown list stay current without a page refresh.
 import { useLiveTick } from "@/hooks/useLiveTick";
+// The frosted chrome material + its thin edge (Apple fix 16).
+import { MATERIAL_CHROME, MATERIAL_EDGE_BOTTOM } from "@/lib/materials";
+import { cn } from "@/lib/utils";
 
 export const Header = () => {
   const pathname = usePathname();
@@ -73,7 +76,10 @@ export const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/50 backdrop-blur-sm">
+      {/* Frosted material (Apple fix 16, inbox #381): the page passes under the header blurred, a 1 px light
+          edge along its bottom on the same element replaces the old border line, and a device that asks for
+          less transparency gets it solid (lib/materials.ts). */}
+      <header className={cn("sticky top-0 z-50 w-full", MATERIAL_CHROME, MATERIAL_EDGE_BOTTOM)}>
         <div className="container mx-auto h-20 flex items-center justify-between">
           <Link href={"/home"} className="hit-44 flex items-center space-x-2">
             <Logo size="small" />

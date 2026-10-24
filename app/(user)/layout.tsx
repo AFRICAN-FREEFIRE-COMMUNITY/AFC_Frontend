@@ -38,8 +38,12 @@ const layout = ({ children }: { children: ReactNode }) => {
         <div className="relative z-10">
           {/* print:hidden on the site chrome so window.print() (e.g. the order "Print Receipt"
               button) yields a clean printout of just the page content, not the nav header + the
-              full site footer bleeding onto a 2nd page (owner 2026-06-29). */}
-          <div className="print:hidden">
+              full site footer bleeding onto a 2nd page (owner 2026-06-29).
+              `contents` (Apple fix 16, inbox #381): the wrapper draws no box of its own, so the header's
+              `sticky top-0` works against the whole page again. Inside an 80 px wrapper it had nowhere to
+              stick and scrolled away on every page of this layout since 30 Jun 2026 (/home, which has
+              its own layout, kept sticking). print:hidden still removes it when printing. */}
+          <div className="print:hidden contents">
             <Header />
           </div>
           {/* First-login onboarding: redirect a brand-new user to /onboarding once. Renders nothing. */}

@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+/* A device set to reduce transparency: the Apple materials fall back to a solid surface (lib/materials.ts,
+   Apple fix 16, inbox #381). */
+@custom-variant reduced-transparency (@media (prefers-reduced-transparency: reduce));
 
 @theme inline {
   --color-background: var(--background);

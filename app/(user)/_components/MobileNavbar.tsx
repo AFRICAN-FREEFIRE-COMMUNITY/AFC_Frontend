@@ -31,6 +31,8 @@ import { useState } from "react";
 import { useTheme } from "next-themes";
 import { adminNavSections, homeNavLinksMobile } from "@/constants/nav-links";
 import { cn } from "@/lib/utils";
+// The frosted chrome material + its thin edge, shared with the header (Apple fix 16).
+import { MATERIAL_CHROME, MATERIAL_EDGE_LEFT } from "@/lib/materials";
 // Shared-chrome strings live in messages/en/common.json under "common"; this
 // Client Component reads them via the useTranslations() hook. Note: the nav
 // item labels themselves come from constants/nav-links.ts (shared data also
@@ -145,7 +147,9 @@ export function MobileNavbar() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="h-screen">
+      {/* The menu sheet is the same frosted material as the header, with its light edge on the left
+          instead of the old border line (Apple fix 16, inbox #381; lib/materials.ts). */}
+      <SheetContent className={cn("h-screen border-0", MATERIAL_CHROME, MATERIAL_EDGE_LEFT)}>
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             <span>{t("mobileNav.menu")}</span>
