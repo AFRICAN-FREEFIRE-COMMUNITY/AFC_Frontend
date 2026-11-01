@@ -37,6 +37,8 @@
     "(user)/teams/[id]": { "kind": "text", "prefix": "/teams/", "why": "the team name" },
     "(user)/tournaments/[slug]": { "kind": "slug", "why": "Event.slug" },
     "(vendor)/vendor/orders/[id]": { "kind": "token", "why": "order public token" },
+    "overlay/duel/[slug]": { "kind": "slug", "why": "Event.slug, the player duel overlay (players come from ?a= and ?b= as usernames)" },
+    "overlay/kill-stats/[slug]": { "kind": "slug", "why": "Event.slug, the kill stats overlay" },
     "overlay/leaderboard/[token]": { "kind": "token", "why": "overlay token" },
     "overlay/view/[token]": { "kind": "token", "why": "overlay token" },
     "overlay/view/[token]/[overlayId]": { "kind": "number", "why": "overlay id" },
