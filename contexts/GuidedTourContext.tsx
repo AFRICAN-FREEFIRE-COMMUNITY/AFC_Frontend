@@ -54,6 +54,8 @@ import axios from "axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { GUIDED_STOPS, type GuidedStop } from "@/app/(user)/_components/guided-tour-stops";
+// First visit, one layer at a time (Apple fix 14): the auto-start waits for its turn.
+import { FIRST_VISIT_ORDER, useFirstVisitTurn } from "@/lib/firstVisitQueue";
 
 // ── Storage keys + window event (shared with WelcomeTour.tsx) ────────────────
 // The orchestration state (which stop, hub vs on-page) survives a navigation here.
@@ -82,13 +84,27 @@ interface GuidedState {
 
 const INACTIVE_STATE: GuidedState = { active: false, index: 0, phase: "hub" };
 
+// ── A run left half-way expires (owner 2026-10-24, inbox #390) ──
+// The saved run used to live forever: someone who left the tour half-way got the hub back on every
+// page load, days later, and its countdown then moved them to the stop's page (signed out: /home,
+// then /login). Found in the v7.4.0 live check. Every save now carries the time, and a run that has
+// not moved for TOUR_STALE_MS (or an old one saved before this, with no time) is treated as over on
+// the next read: removed, nothing reopens. A live run moves every few seconds to minutes, so half an
+// hour of silence means it was left. Replaying it is one press on the header's sparkles button.
+const TOUR_STALE_MS = 30 * 60 * 1000;
+
 // ── localStorage helpers (guarded: storage can throw in private mode / SSR) ──
 function readState(): GuidedState {
   if (typeof window === "undefined") return INACTIVE_STATE;
   try {
     const raw = window.localStorage.getItem(STATE_KEY);
     if (!raw) return INACTIVE_STATE;
-    const parsed = JSON.parse(raw) as Partial<GuidedState>;
+    const parsed = JSON.parse(raw) as Partial<GuidedState> & { at?: number };
+    // Left half-way and not touched since: over (see TOUR_STALE_MS above).
+    if (parsed.active && !(typeof parsed.at === "number" && Date.now() - parsed.at < TOUR_STALE_MS)) {
+      window.localStorage.removeItem(STATE_KEY);
+      return INACTIVE_STATE;
+    }
     // Validate the index against the current stop list so a stale/corrupt value can
     // never index out of bounds.
     const index =
@@ -113,7 +129,8 @@ function writeState(state: GuidedState): void {
     if (!state.active) {
       window.localStorage.removeItem(STATE_KEY);
     } else {
-      window.localStorage.setItem(STATE_KEY, JSON.stringify(state));
+      // `at`: when the run last moved, so a run left half-way can expire (TOUR_STALE_MS).
+      window.localStorage.setItem(STATE_KEY, JSON.stringify({ ...state, at: Date.now() }));
     }
   } catch {
     /* storage unavailable - ignore */
@@ -277,6 +294,13 @@ export function GuidedTourProvider({ children }: { children: React.ReactNode }) 
   // Only once per session (autoEvaluatedRef), never while auth is still loading, and
   // ONLY if a run is not already in flight (a navigation mid-tour restores via the
   // hydrate effect above, and must not be clobbered by a fresh auto-start).
+  //
+  // ONE LAYER AT A TIME (Apple fix 14, owner approved the mockup 24 Oct 2026, inbox #381): the
+  // decision to auto-start no longer opens the hub itself. It asks for a first-visit turn
+  // (lib/firstVisitQueue.ts) and the hub opens when the turn comes, so a "New access" card showing
+  // at the same moment goes first and the tour follows its "Got it". The hub keeps the turn while it
+  // is open, and the Help button steps aside meanwhile.
+  const [autoPending, setAutoPending] = React.useState(false);
   React.useEffect(() => {
     if (loading) return;
     if (autoEvaluatedRef.current) return;
@@ -288,12 +312,20 @@ export function GuidedTourProvider({ children }: { children: React.ReactNode }) 
 
     // Logged-in + first run only. No `user` (anonymous) => never auto-start.
     const shouldShow = !!user && user.has_seen_welcome === false;
-    if (shouldShow) {
-      // Small delay so the landing page paints first, then the hub springs in.
-      const t = window.setTimeout(() => start(), 700);
-      return () => window.clearTimeout(t);
-    }
-  }, [loading, user, start]);
+    if (shouldShow) setAutoPending(true);
+  }, [loading, user]);
+
+  const hubShowing = state.active && state.phase === "hub";
+  const tourTurn = useFirstVisitTurn("welcomeTour", FIRST_VISIT_ORDER.welcomeTour, autoPending || hubShowing);
+  React.useEffect(() => {
+    if (!autoPending || !tourTurn) return;
+    // Small delay so the landing page paints first, then the hub springs in.
+    const t = window.setTimeout(() => {
+      setAutoPending(false);
+      start();
+    }, 700);
+    return () => window.clearTimeout(t);
+  }, [autoPending, tourTurn, start]);
 
   const currentStop =
     state.active && state.index >= 0 && state.index < GUIDED_STOPS.length

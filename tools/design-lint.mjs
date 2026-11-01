@@ -80,7 +80,11 @@ const RULES = [
     id: "decorative-blur",
     tier: "BLOCK",
     where: "code",
-    test: /\bblur-(2xl|3xl)\b|filter:\s*blur\(/,
+    // `backdrop-filter: blur()` is NOT a decorative orb: it is the frosted material Apple's guidance
+    // puts on toolbars, sheets and nav, adopted for AFC by the owner on 2026-10-23 (inbox #375, "just
+    // for now, go ahead with apple design rules"; WEBSITE/CLAUDE.md "Apple materials"). The old pattern
+    // matched it by accident, because "backdrop-filter: blur(" contains "filter: blur(".
+    test: /\bblur-(2xl|3xl)\b|(?<!backdrop-)filter:\s*blur\(/,
     says: "blurred decorative orb / colour bloom.",
   },
   {
@@ -115,7 +119,10 @@ const RULES = [
     test: /(?<!focus-visible:)\bring-[12]\b|\bdivide-[xy]\b|\bborder-dashed\b|<hr\b|\boutline:\s*1px/,
     // Table rows keep their lines: owner 2026-09-28, "Standings tables: lines between rows and
     // green stripes down the left edge. - leave like that".
-    allow: (line) => /<(table|thead|tbody|tr)\b/.test(line),
+    // ...and a thin light edge ON a material (a class list that also carries backdrop-blur) is the
+    // Apple "thin glass edge", allowed for AFC since 2026-10-23 (inbox #375). A ring on anything else
+    // is still a hairline.
+    allow: (line) => /<(table|thead|tbody|tr)\b/.test(line) || /\bbackdrop-blur(?:-\w+)?\b[^"'`\n]*\bring-1\b|\bring-1\b[^"'`\n]*\bbackdrop-blur/.test(line),
     says: "structure drawn with a line. Use a filled surface and space instead.",
   },
   {
@@ -270,6 +277,8 @@ function selfTest() {
     ["pulsing-accent", '<Loader className="animate-pulse" /> {t("loading")}', false],
     ["decorative-blur", 'className="bg-green-500/20 blur-3xl rounded-full"', true],
     ["decorative-blur", 'className="rounded-full bg-green-500"', false],
+    ["decorative-blur", "backdrop-filter: blur(20px) saturate(180%);", false],
+    ["decorative-blur", "filter: blur(40px);", true],
     ["glow-shadow", "box-shadow: 0 0 12px #0f0;", true],
     ["glow-shadow", "box-shadow: 0 2px 8px rgba(0,0,0,.4);", false],
     // A ring drawn with a zero-blur shadow is a hairline, not a glow. Learned from a false
@@ -280,6 +289,7 @@ function selfTest() {
     ["banned-typeface", 'import { Space_Grotesk } from "next/font/google";', true],
     ["banned-typeface", 'import { DM_Sans } from "next/font/google";', false],
     ["hairline-structure", 'className="ring-1 ring-white/10"', true],
+    ["hairline-structure", 'className="sticky top-0 bg-background/70 backdrop-blur-xl ring-1 ring-white/10"', false],
     ["hairline-structure", "<hr />", true],
     ["hairline-structure", 'className="rounded-md bg-muted/40 p-2"', false],
     ["hairline-structure", '<tbody className="divide-y divide-zinc-900">', false],

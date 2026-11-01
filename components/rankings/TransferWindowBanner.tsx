@@ -1,5 +1,6 @@
 "use client";
 
+import { useId, useState } from "react";
 import { IconArrowsExchange, IconLock } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { useTransferLock } from "@/lib/useTransferLock";
@@ -11,11 +12,17 @@ import { useTranslations } from "next-intl";
 import { formatLocalDateOnly } from "@/lib/i18n/time";
 
 /**
- * Prominent, self-contained OPEN / CLOSED transfer-window banner.
+ * Self-contained OPEN / CLOSED transfer-window status line.
  *
  * Drop it near the top of any user-facing page (Rankings, Teams, Player Market). It
- * fetches the active ranking season and shows - impossible to miss - whether roster
- * moves are currently allowed. The window is the active season's
+ * fetches the active ranking season and says, in one line, whether roster moves are
+ * currently allowed and the date that changes.
+ *
+ * A STATUS, NOT AN ALARM (Apple design fix 6, owner approved the mockup 24 Oct 2026, inbox #381).
+ * The closed window is the normal state for most of a season, and it used to be a large red card
+ * with CLOSED twice, which reads as an error. It is now one calm line on a muted surface, "closed,
+ * opens again on <date>", with the rules and this season's dates one tap away under Details. Open
+ * looks the same with a green icon. The window is the active season's
  * transfer_window_open..transfer_window_close range, toggled by admins; when it's CLOSED
  * the backend also freezes rosters - blocking leave (afc_team.exit_team), kick
  * (kick_team_member), and disband (disband_team). Joining a team stays allowed.
@@ -55,6 +62,9 @@ export function TransferWindowBanner({ className }: { className?: string }) {
   // Season + next-window date come from the shared hook, which the join warning
   // (components/team/JoinLockDialog.tsx) reads too, so the two can never quote different dates.
   const { season, nextWindowOpen } = useTransferLock();
+  // Details (the rules + this season's window) stay folded until asked for.
+  const [showDetails, setShowDetails] = useState(false);
+  const detailsId = useId();
   if (!season) return null; // nothing to show until a season loads
   const open = !!season.transfer_window_is_open;
 
@@ -62,43 +72,52 @@ export function TransferWindowBanner({ className }: { className?: string }) {
   // window that has not opened yet, one that is open, and one that is finished.
   const hasRange = !!season.transfer_window_open && !!season.transfer_window_close;
 
+  // The one line: what the window is now and the date that changes it.
+  const line = open
+    ? season.transfer_window_close
+      ? t("openLine", { date: fmtDate(season.transfer_window_close) })
+      : t("openLineNoDate")
+    : nextWindowOpen
+      ? t("closedLine", { date: fmtDate(nextWindowOpen) })
+      : t("closedLineNoDate");
+
   return (
     <div
-      // Filled surface, no stroke: house rule bans building structure out of hairline borders. The
-      // state is already carried by the fill, the icon and the chip, which is three signals.
-      className={cn(
-        "flex items-center gap-3 rounded-md p-4",
-        open ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive",
-        className,
-      )}
+      // Filled muted surface, no stroke (house rule), the same in both states: the state is in the words
+      // and the icon colour, never in a red or green card.
+      className={cn("flex items-start gap-3 rounded-xl bg-muted px-3.5 py-3 text-sm", className)}
+      role="status"
     >
-      {open ? <IconArrowsExchange className="size-6 shrink-0" /> : <IconLock className="size-6 shrink-0" />}
-      <div className="flex-1">
-        <p className="text-base font-bold">{open ? t("openTitle") : t("closedTitle")}</p>
-        <p className="text-sm text-muted-foreground">{open ? t("openBody") : t("closedBody")}</p>
-        {hasRange && (
-          <p className="text-sm font-medium">
-            {t("windowRange", {
-              open: fmtDate(season.transfer_window_open),
-              close: fmtDate(season.transfer_window_close),
-            })}
-          </p>
+      {open ? (
+        <IconArrowsExchange className="mt-0.5 size-[18px] shrink-0 text-primary" aria-hidden />
+      ) : (
+        <IconLock className="mt-0.5 size-[18px] shrink-0 text-muted-foreground" aria-hidden />
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="leading-snug">{line}</p>
+        {showDetails && (
+          <div id={detailsId} className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+            <p>{open ? t("openBody") : t("closedBody")}</p>
+            {hasRange && (
+              <p>
+                {t("windowRange", {
+                  open: fmtDate(season.transfer_window_open),
+                  close: fmtDate(season.transfer_window_close),
+                })}
+              </p>
+            )}
+          </div>
         )}
-        {!open && nextWindowOpen && (
-          <p className="text-sm font-medium">
-            {t("nextWindowOpens", { date: fmtDate(nextWindowOpen) })}
-          </p>
-        )}
+        <button
+          type="button"
+          className="hit-44 mt-1.5 text-xs font-semibold text-primary"
+          aria-expanded={showDetails}
+          aria-controls={detailsId}
+          onClick={() => setShowDetails((v) => !v)}
+        >
+          {showDetails ? t("hideDetails") : t("details")}
+        </button>
       </div>
-      <span
-        // Filled chip, never a ring. Same house rule as the surface above.
-        className={cn(
-          "rounded-full px-2.5 py-0.5 text-xs font-semibold shrink-0",
-          open ? "bg-primary/20 text-primary" : "bg-destructive/20 text-destructive",
-        )}
-      >
-        {open ? t("openBadge") : t("closedBadge")}
-      </span>
     </div>
   );
 }

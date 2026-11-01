@@ -800,6 +800,8 @@
   "eventLeaderboard.wizard.imageUpload": "Image Upload",
   "eventLeaderboard.wizard.roomFileUpload": "3D Room File Upload",
   "eventLeaderboard.wizard.editLeaderboard": "Edit Leaderboard",
+  "eventLeaderboard.wizard.reviewPublish": "Review & Publish",
+  "eventLeaderboard.wizard.stepProgress": "Step {current} of {total}: {title}",
   "eventLeaderboard.createLeaderboard": "Create Leaderboard",
   "eventLeaderboard.tournamentDescription": "{type} Tournament • {count} Stages",
   "eventLeaderboard.solo": "Solo",

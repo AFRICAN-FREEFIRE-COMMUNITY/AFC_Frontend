@@ -183,6 +183,8 @@ export function AuthModal({
 }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const t = useTranslations("common");
+  // The password eye's name, shared with the /login page (auth.showHidePassword).
+  const tAuth = useTranslations("auth");
 
   // Sync tab when defaultTab changes (i.e. when modal is re-opened)
   React.useEffect(() => {
@@ -241,6 +243,8 @@ export function AuthModal({
 function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
   const router = useRouter();
   const t = useTranslations("common");
+  // The password eye's name, shared with the /login page (auth.showHidePassword).
+  const tAuth = useTranslations("auth");
 
   const { login } = useAuth();
   const [pending, startTransition] = useTransition();
@@ -369,6 +373,8 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
                     size="icon"
                     className="absolute top-1/2 -translate-y-1/2 end-1 text-muted-foreground/80"
                     onClick={() => setIsVisible((v) => !v)}
+                    aria-label={tAuth(isVisible ? "showHidePassword.hide" : "showHidePassword.show")}
+                    aria-pressed={isVisible}
                   >
                     {isVisible ? (
                       <EyeOffIcon className="size-4" />
@@ -415,6 +421,8 @@ function LoginTabContent({ onSuccess }: { onSuccess?: () => void }) {
 // ---------------------------------------------------------------------------
 function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
   const t = useTranslations("common");
+  // The password eye's name, shared with the /login page (auth.showHidePassword).
+  const tAuth = useTranslations("auth");
   const serverMessage = useServerMessage();
   const { login } = useAuth();
   const [pending, startTransition] = useTransition();
@@ -648,6 +656,8 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
                     size="icon"
                     className="absolute top-1/2 -translate-y-1/2 end-1 text-muted-foreground/80"
                     onClick={() => setIsVisible((v) => !v)}
+                    aria-label={tAuth(isVisible ? "showHidePassword.hide" : "showHidePassword.show")}
+                    aria-pressed={isVisible}
                   >
                     {isVisible ? (
                       <EyeOffIcon className="size-4" />
@@ -733,6 +743,8 @@ function RegisterTabContent({ onSuccess }: { onSuccess?: () => void }) {
                     size="icon"
                     className="absolute top-1/2 -translate-y-1/2 end-1 text-muted-foreground/80"
                     onClick={() => setIsConfirmVisible((v) => !v)}
+                    aria-label={tAuth(isConfirmVisible ? "showHidePassword.hide" : "showHidePassword.show")}
+                    aria-pressed={isConfirmVisible}
                   >
                     {isConfirmVisible ? (
                       <EyeOffIcon className="size-4" />

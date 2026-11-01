@@ -38,7 +38,7 @@ export function DiscordSignInButton() {
     <button
       type="button"
       onClick={start}
-      className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#5865F2] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4]"
+      className="hit-44 active:brightness-90 mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-[#5865F2] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#4752c4]"
     >
       <IconBrandDiscordFilled className="h-5 w-5" />
       {t("discord.continue")}

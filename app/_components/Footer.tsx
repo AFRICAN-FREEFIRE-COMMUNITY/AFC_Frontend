@@ -15,7 +15,9 @@ export const Footer = () => {
 
   return (
     <footer className="border-t border-border/40 bg-background/50 backdrop-blur-sm mt-8">
-      <div className="container mx-auto px-4 py-8">
+      {/* max-sm:pb-24: room under the last footer line on a phone, so the floating Help button never
+          sits on it (Apple fix 8, inbox #381). */}
+      <div className="container mx-auto px-4 py-8 max-sm:pb-24">
         {/* Brand column wider (2fr) so the three link columns (Platform / Community /
             Support) are equal width AND sit further right - the Support column then lines
             up under the right-aligned "Powered by" text in the bottom bar (owner 2026-06-20). */}

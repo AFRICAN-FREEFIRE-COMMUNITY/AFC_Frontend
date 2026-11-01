@@ -45,7 +45,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { env } from "@/lib/env";
 import { PageHeader } from "@/components/PageHeader";
-import { QrShareButton } from "@/components/qr/QrShareButton";
+// Share (Copy link / Show QR code) beside the title (Apple fix 12).
+import { ShareMenu } from "@/components/qr/ShareMenu";
 import { TournamentStructure } from "./TournamentStructure";
 // "Combined" view (owner 2026-07-05): a third main-view tab that merges several groups/stages
 // (or the whole event) into one aggregate leaderboard via events/get-event-combined-standings/.
@@ -54,6 +55,8 @@ import { CombinedStandings } from "./CombinedStandings";
 // surfaces their play time + room ID/password without digging into the Structure tab.
 import { YourMatchCallout } from "./YourMatchCallout";
 import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
+// The Kill stats view (inbox #392): sniper kills recorded, team and player head to head.
+import { KillStatsTab } from "@/components/events/KillStatsTab";
 import {
   Dialog,
   DialogContent,
@@ -73,6 +76,7 @@ import { LocalTime } from "@/components/LocalTime";
 // The team's own half of team-submitted map results (owner backlog item 6). The organizer's half
 // is app/(a)/a/events/[slug]/team-results.
 import { TeamMapResultPanel } from "@/components/events/TeamMapResultPanel";
+import { teamMapResultsApi } from "@/lib/teamMapResults";
 import { LocalEventTime } from "@/components/LocalEventTime";
 import { formatLocalTime, zonedWallClockToInstant } from "@/lib/i18n/time";
 import { toast } from "sonner";
@@ -81,7 +85,8 @@ import { FullLoader, Loader } from "@/components/Loader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
 import { AskOrganizerButton } from "@/components/support/AskOrganizerDialog";
-import { AFC_DISCORD_SERVER, DEFAULT_IMAGE } from "@/constants";
+import { AFC_DISCORD_SERVER } from "@/constants";
+import { EventBanner } from "@/components/EventBanner";
 import axios from "axios";
 import Image from "next/image";
 import {
@@ -448,6 +453,9 @@ interface EventDetails {
   // get_event_details_not_logged_in. Absent on older payloads, hence optional: absent reads as off,
   // which is the safe default for a feature most organizers will not want.
   allow_team_result_submissions?: boolean;
+  // Kill stats switches (event_contract.py, set on the edit forms): the tab, and the CSV link in it.
+  kill_feed_tab?: boolean;
+  kill_feed_export?: boolean;
   is_public: boolean;
   // Per-event results visibility (owner 2026-06-29): Event.results_published, echoed by the detail
   // endpoints. false => the organizer has HIDDEN the public standings, so the Results + Structure
@@ -3604,31 +3612,68 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
 
   const [eventDetails, setEventDetails] = useState<EventDetails | null>(null);
 
-  // Every map in the event, flattened for the "which map are you filing?" picker. A match IS a map
-  // here, which is why the label names the stage and group rather than a fixture. Empty until the
-  // structure loads, which is also what hides the panel on an event with no maps yet.
-  const teamResultMaps = useMemo(() => {
-    const out: { matchId: number; label: string }[] = [];
-    for (const stage of eventDetails?.stages ?? []) {
-      for (const group of stage.groups ?? []) {
-        for (const m of (group.matches ?? []) as any[]) {
-          if (!m?.match_id) continue;
-          out.push({
-            matchId: m.match_id,
-            label: [stage.stage_name, group.group_name, m.match_number ? `${m.match_number}` : ""]
-              .filter(Boolean)
-              .join(" / "),
-          });
-        }
-      }
-    }
-    return out;
-  }, [eventDetails]);
-
-  // Seed the picker once, and only once: re-seeding on every structure refresh (this page polls)
-  // would yank the selection back to the first map while a team was typing into another one.
+  // The maps this viewer's team may send a result for (owner 2026-10-23, inbox #379: "it should
+  // only open for matches, stages or groups that are actively playing"; then 2026-10-24, #389: "and
+  // also after it has happened, just not before it has happened"). It used to be every map of the
+  // event, including groups the team was not in and maps days away. The server decides (AFC-B
+  // views_team_submissions.open_team_map_results: the team's own groups only, from the group's
+  // start in the event's time zone, and still after it), so this picker can never offer a map the
+  // submit endpoint would refuse. The latest group comes first, so the map a team just played is
+  // the one already picked. Re-read on the live tick, so the form appears when the group starts,
+  // with no reload. Empty hides it.
+  const [teamResultMaps, setTeamResultMaps] = useState<
+    { matchId: number; label: string; closesAt: string | null }[]
+  >([]);
+  const claimsSlug =
+    eventDetails?.allow_team_result_submissions && eventDetails?.is_registered && token
+      ? eventDetails.slug
+      : null;
   useEffect(() => {
-    if (teamResultMatchId === null && teamResultMaps.length > 0) {
+    if (!claimsSlug) {
+      setTeamResultMaps((prev) => (prev.length ? [] : prev));
+      return;
+    }
+    let cancelled = false;
+    teamMapResultsApi
+      .openMaps(claimsSlug)
+      .then(({ maps }) => {
+        if (cancelled) return;
+        // A match IS a map here, so the label names the stage and group, then MATCH n.
+        const next = (maps ?? []).map((m) => ({
+          matchId: m.match_id,
+          label: [
+            m.stage_name,
+            m.group_name,
+            m.match_number ? tTeamResults("team.matchLabel", { number: m.match_number }) : "",
+          ]
+            .filter(Boolean)
+            .join(" / "),
+          // Set only when the organizer chose a closing time (#393); null keeps them open for good.
+          closesAt: m.closes_at ?? null,
+        }));
+        // Same list as last time: keep the old array so the poll does not re-render the form.
+        setTeamResultMaps((prev) =>
+          JSON.stringify(prev) === JSON.stringify(next) ? prev : next,
+        );
+      })
+      .catch(() => {
+        // Not on a team here, or the event is gone: nothing to send, so no form.
+        if (!cancelled) setTeamResultMaps((prev) => (prev.length ? [] : prev));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [claimsSlug, tick, tTeamResults]);
+
+  // Keep the picked map while it stays open: re-seeding on every poll would yank the selection
+  // back to the first map while a team was typing into another one. Move only when the picked map
+  // has closed (or nothing was picked yet).
+  useEffect(() => {
+    if (teamResultMaps.length === 0) {
+      if (teamResultMatchId !== null) setTeamResultMatchId(null);
+      return;
+    }
+    if (!teamResultMaps.some((m) => m.matchId === teamResultMatchId)) {
       setTeamResultMatchId(teamResultMaps[0].matchId);
     }
   }, [teamResultMaps, teamResultMatchId]);
@@ -3638,9 +3683,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const [activeStageTab, setActiveStageTab] = useState<string>("");
   // Results ⇄ Structure ⇄ Combined view toggle for the main stage area (default Results =
   // existing behavior). "combined" (owner 2026-07-05) renders the CombinedStandings view.
+  // "kills" (inbox #392) renders KillStatsTab, offered only when the event switched it on.
   const [mainView, setMainView] = useState<
-    "results" | "structure" | "combined"
+    "results" | "structure" | "combined" | "kills"
   >("results");
+  const tKill = useTranslations("killStats");
   const [modalStep, setModalStep] = useState<ModalStep>("CLOSED");
   // M: remember whether the last registration was routed to the waitlist so the
   // success step shows accurate copy instead of "Welcome to the tournament!".
@@ -5328,13 +5375,21 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   if (isLoading) return <FullLoader />;
   if (error || !eventDetails) return notFound();
 
-  const formatText = `${eventDetails.event_mode.toUpperCase()} / ${eventDetails.competition_type.toUpperCase()}`;
-  const participantText = `${formatMoneyInput(
-    eventDetails.max_teams_or_players,
-  )} ${
-    eventDetails.participant_type.charAt(0).toUpperCase() +
-    eventDetails.participant_type.slice(1)
-  }s`;
+  // The facts grid's values (Apple fix 12), translated: "Virtual, scrims", "15 squads". An enum the
+  // dictionaries do not know yet falls back to its raw value rather than a key on screen (t.has).
+  const modeKey = eventDetails.event_mode === "physical(lan)" ? "physical" : eventDetails.event_mode;
+  const modeLabel = t.has(`detail.facts.mode.${modeKey}` as any)
+    ? t(`detail.facts.mode.${modeKey}` as any)
+    : eventDetails.event_mode;
+  const kindLabel = t.has(`detail.facts.kind.${eventDetails.competition_type}` as any)
+    ? t(`detail.facts.kind.${eventDetails.competition_type}` as any)
+    : eventDetails.competition_type;
+  const formatText = t("detail.facts.formatValue", { mode: modeLabel, kind: kindLabel });
+  const participantText = t.has(`detail.facts.size.${eventDetails.participant_type}` as any)
+    ? t(`detail.facts.size.${eventDetails.participant_type}` as any, {
+        count: Number(eventDetails.max_teams_or_players) || 0,
+      })
+    : `${formatMoneyInput(eventDetails.max_teams_or_players)} ${eventDetails.participant_type}`;
 
   // "Consumed" = a single-use invite that has already been used. A SHARED link is the
   // reusable first-come-first-serve link, so it is NOT consumed even when is_used is true.
@@ -5520,19 +5575,24 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   return (
     <div>
       <Card className="p-0 bg-muted/30">
-        {/* QR code for this event (inbox #46, 2026-09-26): anyone viewing can make one; its
-            organizers and AFC event admins also see the scan count. components/qr/QrShareButton.tsx */}
+        {/* Share beside the title (Apple fix 12, owner approved the mockup 24 Oct 2026, inbox #381):
+            Copy link, or Show QR code, the QR dialog of inbox #46 (anyone viewing can make one; its
+            organizers and AFC event admins also see the scan count). components/qr/ShareMenu.tsx */}
         <PageHeader
           title={eventDetails.event_name}
           back
-          action={<QrShareButton targetType="event" targetRef={slug} name={eventDetails.event_name} />}
+          actionInline
+          action={<ShareMenu targetType="event" targetRef={slug} name={eventDetails.event_name} />}
         />
         <div className="p-0 space-y-2">
-          <Image
-            src={eventDetails.event_banner_url || DEFAULT_IMAGE}
+          {/* Banner, or the event's name on an AFC surface when it has none or it fails to
+              load (Apple fix 4; was the grey "600 x 400" DEFAULT_IMAGE). */}
+          <EventBanner
+            src={eventDetails.event_banner_url}
+            name={eventDetails.event_name}
+            kind={eventDetails.competition_type}
+            size="hero"
             alt={eventDetails.event_name || t("detail.bannerAlt")}
-            width={1000}
-            height={1000}
             className="aspect-video size-full object-cover rounded-md"
           />
           {!eventDetails.is_public && (
@@ -5724,47 +5784,51 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
             className="w-fit"
           />
         ) : null}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          {/* i18n time: event start date in the viewer's timezone + language,
-              injected as the <date> tag of the "Date: <date>" string (t.rich). */}
-          <p>
-            {t.rich("detail.date", {
-              date: () => (
-                <LocalTime value={eventDetails.start_date} mode="date" />
-              ),
-            })}
-          </p>
+        {/* ── The event's facts as a label / value grid (Apple fix 12, inbox #381) ──
+            Labels quiet, values strong, in one aligned column, instead of flat "Label: VALUE" lines.
+            Mode, kind and team size are translated now (they printed the raw English enums in
+            capitals in every language), and Location shows "Online" only for an online event: it
+            said Online for LAN events too. */}
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-sm md:max-w-xl">
+          {/* i18n time: event start date in the viewer's timezone + language. */}
+          <dt className="text-muted-foreground">{t("detail.facts.date")}</dt>
+          <dd className="font-semibold">
+            <LocalTime value={eventDetails.start_date} mode="date" />
+          </dd>
           {/* Event time (owner 2026-06-21): shows BOTH the viewer's local time and the
               host's time with a tz label, pinned from the host wall-clock + Event.timezone.
               Only rendered once a start time exists (it is compulsory on new events; older
               events may have none). */}
           {eventDetails.event_start_time && (
-            <p>
-              {t.rich("detail.time", {
-                time: () => (
-                  <LocalEventTime
-                    date={eventDetails.start_date}
-                    startTime={eventDetails.event_start_time}
-                    endTime={eventDetails.event_end_time}
-                    tz={eventDetails.timezone}
-                  />
-                ),
-              })}
-            </p>
+            <>
+              <dt className="text-muted-foreground">{t("detail.facts.time")}</dt>
+              <dd className="font-semibold">
+                <LocalEventTime
+                  date={eventDetails.start_date}
+                  startTime={eventDetails.event_start_time}
+                  endTime={eventDetails.event_end_time}
+                  tz={eventDetails.timezone}
+                />
+              </dd>
+            </>
           )}
-          <p>
-            {t("detail.prizePool", {
-              value: /^\d+(\.\d+)?$/.test(eventDetails.prizepool)
-                ? `$${formatNumber(parseFloat(eventDetails.prizepool))}`
-                : eventDetails.prizepool,
-            })}
-          </p>
-          <p>{t("detail.locationOnline")}</p>
-          <p>{t("detail.format", { value: formatText })}</p>
-        </div>
-        <p className="text-sm">
-          {t("detail.participants", { value: participantText })}
-        </p>
+          <dt className="text-muted-foreground">{t("detail.facts.prize")}</dt>
+          <dd className="font-semibold break-words">
+            {/^\d+(\.\d+)?$/.test(eventDetails.prizepool)
+              ? `$${formatNumber(parseFloat(eventDetails.prizepool))}`
+              : eventDetails.prizepool}
+          </dd>
+          {eventDetails.event_mode === "virtual" && (
+            <>
+              <dt className="text-muted-foreground">{t("detail.facts.location")}</dt>
+              <dd className="font-semibold">{t("detail.facts.online")}</dd>
+            </>
+          )}
+          <dt className="text-muted-foreground">{t("detail.facts.format")}</dt>
+          <dd className="font-semibold">{formatText}</dd>
+          <dt className="text-muted-foreground">{t("detail.facts.participants")}</dt>
+          <dd className="font-semibold">{participantText}</dd>
+        </dl>
 
         {/* ── Tournament tier badge (owner 2026-06-29) ──
             Always shown so viewers know how this event is ranked (tier_1/2/3). Reuses the shared
@@ -5938,8 +6002,10 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                     <CardContent className="space-y-3 pt-6">
                       {/* One map at a time, because a submission is filed against one match. */}
                       <div className="space-y-1">
+                        {/* Was queue.subtitle, the ORGANIZER's line ("Nothing is counted until you
+                            approve it"), which told a player they were the one approving. */}
                         <label className="text-xs text-muted-foreground" htmlFor="team-result-map">
-                          {tTeamResults("queue.subtitle")}
+                          {tTeamResults("team.pickMap")}
                         </label>
                         <select
                           id="team-result-map"
@@ -5953,6 +6019,18 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                             </option>
                           ))}
                         </select>
+                        {/* The organizer's closing time for this map's group, when one is set (#393). */}
+                        {(() => {
+                          const closesAt = teamResultMaps.find(
+                            (m) => m.matchId === teamResultMatchId,
+                          )?.closesAt;
+                          return closesAt ? (
+                            <p className="text-xs text-muted-foreground">
+                              {tTeamResults("team.openUntil")}{" "}
+                              <LocalTime value={closesAt} mode="datetime" />
+                            </p>
+                          ) : null;
+                        })()}
                       </div>
                       {teamResultMatchId && (
                         <TeamMapResultPanel
@@ -6031,10 +6109,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               <Tabs
                 value={mainView}
                 onValueChange={(v) =>
-                  setMainView(v as "results" | "structure" | "combined")
+                  setMainView(v as "results" | "structure" | "combined" | "kills")
                 }
               >
-                <TabsList>
+                {/* Scrolls sideways on a narrow phone rather than squeezing four labels. */}
+                <ScrollableTabsList>
                   <TabsTrigger value="results">
                     {t("detail.viewToggle.results")}
                   </TabsTrigger>
@@ -6044,10 +6123,20 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
                   <TabsTrigger value="combined">
                     {t("combined.tabLabel")}
                   </TabsTrigger>
-                </TabsList>
+                  {/* Kill stats (inbox #392): only when the organizer or an admin switched it on. NEW for
+                      five days from the go-live day (set its date at ship). */}
+                  {eventDetails.kill_feed_tab && (
+                    <TabsTrigger value="kills">
+                      {tKill("tab")}
+                      <NewBadge since="2026-10-24" />
+                    </TabsTrigger>
+                  )}
+                </ScrollableTabsList>
               </Tabs>
 
-              {mainView === "structure" ? (
+              {mainView === "kills" && eventDetails.kill_feed_tab ? (
+                <KillStatsTab slug={eventDetails.slug || slug} exportOn={!!eventDetails.kill_feed_export} />
+              ) : mainView === "structure" ? (
                 <TournamentStructure
                   stages={eventDetails.stages as any}
                   participantType={eventDetails.participant_type}

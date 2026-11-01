@@ -23,7 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { Tabs, TabsTrigger } from "@/components/ui/tabs";
-import { DEFAULT_IMAGE } from "@/constants";
+import { EventBanner } from "@/components/EventBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 // Team country flag beside team names in the registered / waitlist / group-roster tables (owner
@@ -53,7 +53,6 @@ import {
   IconSearch,
 } from "@tabler/icons-react";
 import axios from "axios";
-import Image from "next/image";
 import Link from "next/link";
 // Broadcast media hygiene (owner 2026-07-02): also surfaced on the event view page.
 import { MediaAuditCard } from "@/components/overlay/MediaAuditCard";
@@ -1042,19 +1041,16 @@ const Page = ({ params }: { params: Promise<Params> }) => {
       </div>
       {/* bg-muted keeps this box OPAQUE so a broken banner URL can never let the fixed
           site-wide PageGradient feTurbulence dither show through as colored static (the
-          "hash thing", owner 2026-07-14). onError swaps in DEFAULT_IMAGE because the
-          `|| DEFAULT_IMAGE` guard only catches an EMPTY url, not a non-empty-but-unloadable
-          one (expired/hotlink-blocked/404/wrong content-type). */}
+          "hash thing", owner 2026-07-14). EventBanner draws the event's name on an AFC
+          surface when the URL is empty OR does not load (Apple fix 4; it used to swap in the
+          grey "600 x 400" DEFAULT_IMAGE in onError). */}
       <div className="mt-4 overflow-hidden rounded-md bg-muted">
-        <Image
-          src={event_banner_url || DEFAULT_IMAGE}
+        <EventBanner
+          src={event_banner_url}
+          name={event_name}
+          kind={competition_type}
           alt={`${event_name}'s image`}
-          width={1000}
-          height={1000}
           className="w-full h-50 aspect-video object-cover"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = DEFAULT_IMAGE;
-          }}
         />
       </div>
 

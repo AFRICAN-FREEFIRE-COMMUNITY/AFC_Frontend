@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { Button } from "./ui/button";
 import { IconArrowLeft } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 interface PageHeaderProps {
   title: string | React.ReactNode;
@@ -13,6 +14,9 @@ interface PageHeaderProps {
   // root so the comprehensive welcome tour (guided-tour-stops.ts + PageGuide.tsx) can spotlight
   // "you are on the <page> page" as its first step on each route. Attribute-only, no layout change.
   dataTour?: string;
+  // A small action (one button) that stays BESIDE the title on a phone instead of dropping to its
+  // own full-width row (Apple fix 12: the event page's Share button). Default keeps the old layout.
+  actionInline?: boolean;
 }
 
 export function PageHeader({
@@ -21,8 +25,10 @@ export function PageHeader({
   action,
   back,
   dataTour,
+  actionInline,
 }: PageHeaderProps) {
   const router = useRouter();
+  const t = useTranslations("common");
 
   return (
     <div className="mb-4" data-tour={dataTour}>
@@ -39,6 +45,7 @@ export function PageHeader({
             onClick={() => router.back()}
             size="icon"
             variant={"secondary"}
+            aria-label={t("actions.back")}
           >
             <IconArrowLeft />
           </Button>
@@ -46,8 +53,11 @@ export function PageHeader({
         <div className="flex min-w-0 flex-1 flex-col md:flex-row justify-between items-start gap-4 md:gap-0 md:items-center">
           <div className="min-w-0">
             {/* break-words: a long event or organisation name in a heading this size is otherwise
-                a single unbreakable run that widens the page on a phone. */}
-            <h1 className="text-3xl md:text-4xl font-bold text-primary break-words">
+                a single unbreakable run that widens the page on a phone.
+                tracking + leading (Apple fix 11, owner approved the mockup 24 Oct 2026, inbox #381): large
+                type is set a little tighter than body text, and a title that runs to two or three lines
+                (most event names) sits closer together. The size stays the AFC page-title size. */}
+            <h1 className="text-3xl md:text-4xl font-bold text-primary break-words tracking-[-0.02em] leading-[1.1]">
               {title}
             </h1>
             {/* A <div>, not a <p> (2026-09-26): callers pass markup here (news passes a row of date,
@@ -60,7 +70,7 @@ export function PageHeader({
             )}
           </div>
         </div>
-        {action && <div className="w-full md:w-auto">{action}</div>}
+        {action && <div className={actionInline ? "shrink-0" : "w-full md:w-auto"}>{action}</div>}
       </div>
     </div>
   );

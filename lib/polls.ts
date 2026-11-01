@@ -112,7 +112,15 @@ export type PollQuestion = {
   help_text: string;
   answer_type: AnswerType;
   required: boolean;
-  config: { max_choices?: number; scale_points?: number; scale_labels?: string[]; max_length?: number };
+  // poster_url: the category's nominee poster (NFCA 2025, inbox #322), drawn beside the winner on the
+  // awards page (AwardsExperience WinnerBand, inbox #351). Absent on most questions.
+  config: {
+    max_choices?: number;
+    scale_points?: number;
+    scale_labels?: string[];
+    max_length?: number;
+    poster_url?: string;
+  };
   options: PollOption[];
   published_winner_option_id?: number | null;
   published_winner_votes?: number | null;

@@ -151,7 +151,8 @@
     "body": "Votre compte peut valider des paiements, modifier des événements et consulter les données des joueurs. Un code en plus de votre mot de passe rend la prise de contrôle bien plus difficile.",
     "action": "Configurer",
     "dismiss": "Pas maintenant",
-    "close": "Fermer"
+    "close": "Fermer",
+    "short": "Activez la connexion en deux étapes pour protéger les paiements et les modifications d’événements."
   },
   "profileCard": {
     "title": "Compte et sécurité",

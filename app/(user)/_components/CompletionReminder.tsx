@@ -88,7 +88,7 @@ export function CompletionReminder() {
           type="button"
           onClick={dismiss}
           aria-label={t("dismiss")}
-          className="mt-0.5 text-muted-foreground transition-colors hover:text-foreground"
+          className="hit-44 mt-0.5 text-muted-foreground transition-colors hover:text-foreground"
         >
           <X className="size-4" />
         </button>

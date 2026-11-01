@@ -119,6 +119,9 @@
   "changes.requireUid": "Free Fire UID required",
   "changes.requireWhatsapp": "WhatsApp number required",
   "changes.allowTeamResults": "Teams submit their own results",
+  "changes.killFeedTab": "Kill stats tab",
+  "changes.killFeedOverlay": "Kill stats on overlays",
+  "changes.killFeedExport": "Kill stats CSV export",
   "changes.minLetterAvatars": "Minimum letter avatars",
   "changes.waitlistMode": "Waitlist order",
   "openRoster": "Open roster"

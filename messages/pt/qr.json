@@ -41,5 +41,8 @@
   "close": "Fechar",
   "notFoundTitle": "Este código QR já não leva a lado nenhum",
   "notFoundBody": "A página para onde apontava foi removida ou já não é pública.",
-  "backHome": "Ir para a página inicial"
+  "backHome": "Ir para a página inicial",
+  "share": "Partilhar",
+  "showQr": "Mostrar código QR",
+  "linkCopied": "Link copiado"
 }

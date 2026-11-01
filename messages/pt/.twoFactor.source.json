@@ -171,5 +171,6 @@
   "step.switching": "One moment",
   "step.switchToApp": "Use my authenticator app instead",
   "step.switchToEmail": "Email me a code instead",
-  "account.jumpEmailNews": "Email news"
+  "account.jumpEmailNews": "Email news",
+  "prompt.short": "Turn on two-step sign-in to protect payouts and event edits."
 }

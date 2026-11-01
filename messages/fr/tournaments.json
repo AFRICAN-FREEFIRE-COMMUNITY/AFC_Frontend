@@ -37,7 +37,10 @@
       "allDatesPlaceholder": "Toutes les dates",
       "allDates": "Toutes les dates",
       "newestFirst": "Du plus récent au plus ancien",
-      "oldestFirst": "Du plus ancien au plus récent"
+      "oldestFirst": "Du plus ancien au plus récent",
+      "button": "Filtrer",
+      "title": "Filtres",
+      "showEvents": "Voir les événements"
     },
     "status": {
       "all": "Tous",
@@ -202,7 +205,31 @@
       "title": "Partenaires"
     },
     "openRosterBadge": "Effectif ouvert",
-    "openRosterHint": "N'importe quel joueur AFC peut être aligné. Cet événement ne compte ni pour les classements ni pour les niveaux."
+    "openRosterHint": "N'importe quel joueur AFC peut être aligné. Cet événement ne compte ni pour les classements ni pour les niveaux.",
+    "facts": {
+      "date": "Date",
+      "time": "Heure",
+      "prize": "Cagnotte",
+      "location": "Lieu",
+      "online": "En ligne",
+      "format": "Format",
+      "participants": "Participants",
+      "formatValue": "{mode}, {kind}",
+      "mode": {
+        "virtual": "Virtuel",
+        "physical": "En présentiel (LAN)",
+        "hybrid": "Hybride"
+      },
+      "kind": {
+        "tournament": "tournoi",
+        "scrims": "scrims"
+      },
+      "size": {
+        "solo": "{count, plural, one {# joueur} other {# joueurs}}",
+        "duo": "{count, plural, one {# duo} other {# duos}}",
+        "squad": "{count, plural, one {# escouade} other {# escouades}}"
+      }
+    }
   },
   "leaveModal": {
     "trigger": "Quitter le tournoi",

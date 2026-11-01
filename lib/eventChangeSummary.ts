@@ -109,6 +109,9 @@ const FIELD_LABEL_KEYS: Record<string, string> = {
   require_player_uid: "requireUid",
   require_whatsapp: "requireWhatsapp",
   allow_team_result_submissions: "allowTeamResults",
+  kill_feed_tab: "killFeedTab",
+  kill_feed_overlay: "killFeedOverlay",
+  kill_feed_export: "killFeedExport",
   min_letter_avatars: "minLetterAvatars",
   waitlist_mode: "waitlistMode",
 };
@@ -128,6 +131,9 @@ const BOOLEAN_FIELDS = new Set([
   "require_player_uid",
   "require_whatsapp",
   "allow_team_result_submissions",
+  "kill_feed_tab",
+  "kill_feed_overlay",
+  "kill_feed_export",
 ]);
 
 /** A long value (the rules body, a country list) would push the dialog off a phone screen. */

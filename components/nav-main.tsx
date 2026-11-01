@@ -199,7 +199,9 @@ export function NavMain({ sections }: { sections: AdminNavSection[] }) {
                 type="button"
                 aria-expanded={open}
                 onClick={() => setToggled((prev) => ({ ...prev, [section.sectionKey]: !open }))}
-                className="flex w-full items-center justify-between rounded-md px-2 pt-2 pb-1.5 text-[11px] font-bold tracking-[0.12em] text-muted-foreground uppercase hover:text-foreground"
+                // A 44 px row in sentence case (Apple fix 17, owner approved the mockup 24 Oct 2026,
+                // inbox #381): it was 11 px spaced-out capitals on a ~26 px row.
+                className="flex h-11 w-full items-center justify-between rounded-md px-2 text-[13px] font-semibold text-muted-foreground hover:text-foreground"
               >
                 {t(`section.${section.sectionKey}`)}
                 {sectionWaiting > 0 && (
@@ -272,7 +274,8 @@ export function NavMain({ sections }: { sections: AdminNavSection[] }) {
                                   onClick={close}
                                   aria-current={on ? "page" : undefined}
                                   className={cn(
-                                    "rounded-md px-2.5 py-1.5 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground",
+                                    // min-h-11: a 44 px row, was ~30 px (Apple fix 17)
+                                    "flex min-h-11 items-center rounded-md px-2.5 text-[13px] text-muted-foreground hover:bg-muted hover:text-foreground",
                                     on && "bg-muted font-semibold text-foreground",
                                   )}
                                 >
@@ -304,7 +307,7 @@ export function NavSwitch({ links }: { links: AdminNavLink[] }) {
   if (shown.length === 0) return null;
   return (
     <div className="rounded-lg bg-muted/50 p-2">
-      <p className="px-1.5 pb-1 text-[11px] font-bold tracking-[0.12em] text-muted-foreground uppercase">{t("switchTo")}</p>
+      <p className="px-1.5 pb-1 text-[13px] font-semibold text-muted-foreground">{t("switchTo")}</p>
       {shown.map((link) => {
         const Icon = link.icon;
         return (
@@ -312,7 +315,7 @@ export function NavSwitch({ links }: { links: AdminNavLink[] }) {
             key={link.slug}
             href={link.slug}
             onClick={() => setOpenMobile(false)}
-            className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-sm hover:bg-muted"
+            className="flex min-h-11 items-center gap-2 rounded-md px-1.5 text-sm hover:bg-muted"
           >
             {Icon && <Icon className="size-4" />}
             {link.navKey ? t(link.navKey) : link.label}

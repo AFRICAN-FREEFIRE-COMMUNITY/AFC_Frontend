@@ -9,6 +9,7 @@
   "actions.save": "Save",
   "actions.cancel": "Cancel",
   "actions.delete": "Delete",
+  "actions.moreInfo": "More info",
   "actions.edit": "Edit",
   "actions.create": "Create",
   "actions.submit": "Submit",
@@ -188,5 +189,7 @@
   "accountSharing.fieldNote": "One Free Fire account, one AFC account. Do not share your account. If you bought or were given a Free Fire account and its UID is already on another AFC account, ask the seller or the person who shared it to remove it from their profile: AFC support cannot move a UID between accounts.",
   "accountSharing.takenLine": "Bought or shared this account? Ask the person you got it from to remove the UID from their AFC profile. AFC support cannot move it.",
   "nav.wagers": "Wagers",
-  "nav.winnings": "Winnings"
+  "nav.winnings": "Winnings",
+  "eventKind.tournament": "Tournament",
+  "eventKind.scrims": "Scrim"
 }

@@ -24,5 +24,11 @@
       "invite": "Accepter l'invitation",
       "create": "Créer l'équipe"
     }
-  }
+  },
+  "closedLine": "Mercato fermé. Réouverture le {date}.",
+  "closedLineNoDate": "Mercato fermé. La date de réouverture n’est pas encore fixée.",
+  "openLine": "Mercato ouvert jusqu’au {date}.",
+  "openLineNoDate": "Mercato ouvert.",
+  "details": "Détails",
+  "hideDetails": "Masquer les détails"
 }

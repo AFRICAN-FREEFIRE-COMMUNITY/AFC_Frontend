@@ -64,15 +64,23 @@ type Props = {
   /** Shown in the title and on the card while the link loads. */
   name: string;
   className?: string;
+  /** Controlled from outside (components/qr/ShareMenu.tsx, Apple fix 12): the dialog opens on `open`
+   *  and this component draws no button of its own. Leave both out for the usual QR code button. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 type LoadState = "idle" | "loading" | "ready" | "error" | "limited";
 
-export function QrShareButton({ targetType, targetRef, name, className }: Props) {
+export function QrShareButton({ targetType, targetRef, name, className, open: openProp, onOpenChange }: Props) {
   const t = useTranslations("qr");
   const locale = useLocale();
   const { signedIn } = useViewer();
-  const [open, setOpen] = useState(false);
+  const [openState, setOpenState] = useState(false);
+  // Controlled when the caller passes `open` (the Share menu); otherwise this button owns the state.
+  const controlled = openProp !== undefined;
+  const open = controlled ? openProp : openState;
+  const setOpen = (next: boolean) => (controlled ? onOpenChange?.(next) : setOpenState(next));
   const [state, setState] = useState<LoadState>("idle");
   const [link, setLink] = useState<QrLink | null>(null);
   const [stats, setStats] = useState<QrStats | null>(null);
@@ -138,16 +146,18 @@ export function QrShareButton({ targetType, targetRef, name, className }: Props)
 
   return (
     <>
-      <Button
-        type="button"
-        variant="secondary"
-        className={className ?? "w-full md:w-auto"}
-        onClick={() => setOpen(true)}
-      >
-        <QrCode aria-hidden="true" />
-        {t("button")}
-        <NewBadge since={QR_LAUNCH_DATE} />
-      </Button>
+      {!controlled && (
+        <Button
+          type="button"
+          variant="secondary"
+          className={className ?? "w-full md:w-auto"}
+          onClick={() => setOpen(true)}
+        >
+          <QrCode aria-hidden="true" />
+          {t("button")}
+          <NewBadge since={QR_LAUNCH_DATE} />
+        </Button>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         {/* grid-cols-[minmax(0,1fr)]: DialogContent is a CSS grid, and a grid column grows to fit its

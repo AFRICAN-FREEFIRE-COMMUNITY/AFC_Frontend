@@ -1,0 +1,50 @@
+{
+  "tab": "Estatísticas de abates",
+  "allStages": "Todas as fases",
+  "coverage": "Arma conhecida em {known} de {total} abates",
+  "empty": "Nenhum abate registrado neste evento ainda. Eles aparecem quando um arquivo do debugger ou o AFC Capture envia os mapas.",
+  "loadError": "Não foi possível carregar as estatísticas de abates.",
+  "csv": "Baixar para a equipe de artes (CSV)",
+  "sniper": {
+    "title": "Abates de sniper registrados",
+    "lead": "Abates com rifle de ferrolho (AWM, M82B, Kar98k, M24). Só contam os abates em que o jogo informou a arma: é o que foi registrado, não todos os abates de sniper.",
+    "player": "Jogador",
+    "team": "Equipe",
+    "kills": "Abates",
+    "empty": "Nenhum abate de sniper registrado."
+  },
+  "h2h": {
+    "title": "Confronto direto",
+    "lead": "Cada luta entre duas equipes. Uma luta termina após 30 segundos sem abate nem derrubada entre suas equipes. Uma equipe que chega durante a luta é o terceiro: ela entra na mesma luta, e cada equipe que enfrentou conta na sua própria linha. Toque em uma dupla para ver cada luta.",
+    "teams": "Equipes",
+    "met": "Encontros",
+    "wins": "Vitórias",
+    "draws": "Empates",
+    "thirdParty": "Terceiro",
+    "empty": "Nenhuma luta entre equipes ainda.",
+    "whoTitle": "Quem abateu e derrubou quem, {a} x {b}",
+    "kills": "Abates",
+    "knocks": "Derrubadas",
+    "eachFight": "Cada luta"
+  },
+  "fight": {
+    "loading": "Carregando as lutas",
+    "where": "{stage}, {group}, Partida {number}, tempo de jogo {time}",
+    "started": "{a} x {b}",
+    "cameIn": "depois {team} chegou",
+    "thirdParty": "Terceiro",
+    "left": "Jogadores restantes: {list}",
+    "killed": "<b>{killer}</b> abateu <b>{victim}</b>",
+    "knocked": "<b>{killer}</b> derrubou <b>{victim}</b>",
+    "result": "{a} x {b}:",
+    "won": "{team} venceu",
+    "draw": "Empate"
+  },
+  "players": {
+    "title": "Confronto entre jogadores",
+    "lead": "Quem abateu e derrubou quem. Escolha um jogador para ver cada adversário que ele enfrentou em uma luta, com os abates e as derrubadas de cada lado, o número do jogador escolhido primeiro. Uma derrubada conta mesmo quando o jogador foi reanimado.",
+    "pick": "Jogador",
+    "opponent": "Adversário",
+    "team": "Equipe"
+  }
+}

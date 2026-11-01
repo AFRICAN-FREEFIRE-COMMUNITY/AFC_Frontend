@@ -62,6 +62,7 @@ import { organizersApi } from "@/lib/organizers";
 // LocalTime renders a stored UTC timestamp in the viewer's own timezone + language.
 import { LocalTime } from "@/components/LocalTime";
 import { DEFAULT_IMAGE } from "@/constants";
+import { EventBanner } from "@/components/EventBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/components/AuthModal";
 import { toast } from "sonner";
@@ -117,11 +118,10 @@ const EventCard: React.FC<{ event: PublicOrgEvent }> = ({ event }) => {
       key={event.event_id}
     >
       <Link href={`/tournaments/${event.slug}`}>
-        <Image
-          src={event.banner || DEFAULT_IMAGE}
-          alt={event.event_name}
-          width={1000}
-          height={1000}
+        {/* Banner, or the event's name on an AFC surface when it has none (Apple fix 4). */}
+        <EventBanner
+          src={event.banner}
+          name={event.event_name}
           className="object-cover size-full aspect-video"
         />
       </Link>

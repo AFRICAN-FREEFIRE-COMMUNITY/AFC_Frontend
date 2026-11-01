@@ -1118,7 +1118,9 @@
       "manualInput": "Introdução manual",
       "imageUpload": "Carregamento de imagens",
       "roomFileUpload": "Carregamento de ficheiros de salas em 3D",
-      "editLeaderboard": "Editar Tabela de Classificação"
+      "editLeaderboard": "Editar Tabela de Classificação",
+      "reviewPublish": "Rever e publicar",
+      "stepProgress": "Passo {current} de {total}: {title}"
     },
     "createLeaderboard": "Criar tabela de classificação",
     "tournamentDescription": "{type} Torneio • Fases do «{count}»",

@@ -41,5 +41,8 @@
   "close": "Close",
   "notFoundTitle": "This QR code does not lead anywhere",
   "notFoundBody": "The page it pointed to has been removed or is no longer public.",
-  "backHome": "Go to the home page"
+  "backHome": "Go to the home page",
+  "share": "Share",
+  "showQr": "Show QR code",
+  "linkCopied": "Link copied"
 }

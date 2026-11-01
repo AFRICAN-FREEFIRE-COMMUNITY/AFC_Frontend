@@ -184,7 +184,8 @@ export function NotificationDropdown({
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-auto p-0 hover:bg-transparent"
+          className="relative hover:bg-transparent"
+          aria-label={t("notifications.title")}
         >
           <IconBell />
           {unreadCount > 0 && (
