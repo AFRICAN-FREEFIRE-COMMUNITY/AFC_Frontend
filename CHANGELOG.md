@@ -19,6 +19,15 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- AFC Capture 1.5.0 on the download page: a live dashboard opened from the tray icon (the watched folder, the
+  match in progress, every kill and knock as it lands, the upload queue with retries and the server's answers,
+  the version and the log), and Capture now counts a game exactly the way the Game files upload does, bleed-outs
+  after the knocker left included. The installer is about 14 MB smaller than 1.4.1. Copies already installed
+  update themselves the next time they start, once 1.5.0 is marked as the latest release on the server.
+
 ## v7.5.1 - 2026-11-01
 
 ### Fixed
