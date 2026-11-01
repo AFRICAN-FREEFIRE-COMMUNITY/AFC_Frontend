@@ -631,6 +631,7 @@
   "draw.revealTitle": "You are in {group}",
   "draw.revealBody": "Card {number}. Your team's group is set for this stage.",
   "draw.revealDone": "Got it",
+  "draw.skipReveal": "Skip the animation",
   "draw.autoPlaced": "auto",
   "draw.toastPickFailed": "Could not turn that card over.",
   "draw.sealTitle": "Fair-draw seal",

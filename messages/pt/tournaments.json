@@ -820,6 +820,7 @@
     "revealTitle": "Estás no {group}",
     "revealBody": "Carta {number}. O grupo da tua equipa está definido para esta fase.",
     "revealDone": "Entendido",
+    "skipReveal": "Saltar a animação",
     "autoPlaced": "auto",
     "toastPickFailed": "Não foi possível virar essa carta.",
     "sealTitle": "Selo do sorteio",

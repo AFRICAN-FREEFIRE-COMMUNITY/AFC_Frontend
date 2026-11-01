@@ -19,6 +19,14 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Changed
+- The group draw board deals its cards in, and picking a card is now a moment: the chosen card lifts
+  onto a dimmed stage, turns over to show the group, with one flash, a small shake of the board and a
+  burst of confetti, then flies home. Tap anywhere or press Escape to skip. Light on phones (no
+  3D library) and switched off for anyone who prefers reduced motion.
+
 ## v7.5.1 - 2026-11-01
 
 ### Fixed
