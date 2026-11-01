@@ -788,6 +788,10 @@
       "debuggerBackfill": {
         "title": "Recuperação do registo debugger (separador Carregamento)",
         "description": "Carregue o ficheiro debugger-*.log do PC do observador para acrescentar A POSTERIORI as mortes, os derrubes, os tiros na cabeça, as reanimações e o tempo de sobrevivência aos jogos. Associe cada ronda detetada ao seu jogo e aplique: os jogadores são reconhecidos pelo UID do Free Fire e os critérios de MVP da sala 3D ficam automaticamente disponíveis."
+      },
+      "gameFiles": {
+        "title": "Ficheiros de jogo (separador Carregamento)",
+        "description": "Largue de uma vez todos os ficheiros debugger e de resultado de uma noite. Cada jogo é encontrado, juntado se o cliente reiniciou, associado ao seu ficheiro de resultado e ao seu mapa; confirme as sugestões, compare onde os dois ficheiros diferem e aplique. Os abates, os derrubes, as mortes, as reanimações e o registo de abates ficam guardados com o resultado."
       }
     },
     "live-overlays-list": {

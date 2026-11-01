@@ -1,0 +1,93 @@
+{
+  "title": "Game files",
+  "intro": "Drop every debugger file and result file from the evening at once. AFC finds each game in them, joins a game that is split across two debugger files, pairs it with its result file and suggests the match it belongs to. Nothing is saved until you press Apply.",
+  "drop": "Drop debugger and result files here, or click to choose",
+  "dropHint": "debugger-*.log from Free Fire_64_Data\\Debugger, and MatchResult_*.log. As many as you have, in any order.",
+  "choose": "Choose files",
+  "files": "Files ({count})",
+  "startAgain": "Start again",
+  "kind": {
+    "debugger": "Debugger",
+    "result": "Result",
+    "unknown": "File"
+  },
+  "file": {
+    "reading": "Reading",
+    "result": "The result of one game",
+    "debuggerGames": "{count, plural, =0 {No games played in it} one {# game} other {# games}}"
+  },
+  "noGames": "No games were found in these files.",
+  "gamesFound": "Games found ({count})",
+  "game": "Game {n}",
+  "whenRange": "{start} to {end}",
+  "state": {
+    "ok": "Ready",
+    "look": "Check",
+    "skip": "Not used"
+  },
+  "source": {
+    "debugger": "Debugger: {file}",
+    "noDebugger": "No debugger",
+    "result": "Result file",
+    "resultMissing": "Result file missing"
+  },
+  "match": "Match",
+  "matchN": "Match {n}",
+  "dontUse": "Don't use",
+  "why": {
+    "onRoster": "{on} of {total} players are on this event's rosters.",
+    "paired": "Paired with its result file by the game's own match id.",
+    "agree": "The two files agree on every team and every player."
+  },
+  "notes": {
+    "joinedTitle": "Joined.",
+    "joined": "Joined from {count} debugger files: the observer client was away for {seconds} seconds of this game. Kills in that gap come from the result file; knocks there are missing.",
+    "notEnded": "The debugger stops before this game ended, so the game has no match id.",
+    "notUsedTitle": "Not used.",
+    "beforeEvent": "Played before this event started, so it is set to \"Don't use\". Pick a match if it is one.",
+    "afterEvent": "Played after this event ended, so it is set to \"Don't use\". Pick a match if it is one.",
+    "notOnRoster": "Only {on} of {total} players are on this event's rosters, probably another room. It is set to \"Don't use\" until you pick a match.",
+    "noResultTitle": "No result file.",
+    "noResult": "Kills, knocks and the kill feed come from the debugger. The debugger cannot tell placement, so give each team its placement.",
+    "alreadySaved": "This game is already saved on that match. Applying again replaces it with the same game."
+  },
+  "placement": {
+    "team": "Team",
+    "kills": "Kills",
+    "place": "Placement",
+    "pick": "Pick",
+    "placeFor": "Placement for {team}"
+  },
+  "compare": "{count, plural, one {Compare # difference} other {Compare # differences}}",
+  "cmp": {
+    "partial": "The debugger saw {dbg} of the {res} kills: it missed part of this game.",
+    "counted": "The two files count these kills differently.",
+    "resultFile": "Result file",
+    "debugger": "Debugger",
+    "keep": "Keep",
+    "keepWhich": "Keep which value",
+    "keepResult": "Result",
+    "keepDebugger": "Debugger",
+    "teamRow": "{team}, team kills",
+    "playerRow": "{name} ({team})",
+    "followsPlayers": "Follows its players"
+  },
+  "summary": {
+    "games": "{count, plural, =0 {No game is set to a match.} one {# game goes to its match.} other {# games go to their matches.}}",
+    "debuggerOnly": "{count, plural, one {# from the debugger only.} other {# from the debugger only.}}",
+    "notUsed": "{count, plural, one {# not used.} other {# not used.}}",
+    "twice": "Two games are set to {match}."
+  },
+  "apply": "{count, plural, =0 {Apply} one {Apply # game} other {Apply # games}}",
+  "saving": "Saving",
+  "done": {
+    "game": "Saved: {players} players credited, {flags} flagged, {events} kills and knocks in the kill feed.",
+    "all": "{count, plural, one {# game saved.} other {# games saved.}}"
+  },
+  "errors": {
+    "generic": "Something went wrong. Try again.",
+    "twice": "Two games are set to the same match. Pick another match or \"Don't use\".",
+    "placements": "Give every team in game {n} its placement, each place once.",
+    "failed": "Game {n} was not saved: {reason}"
+  }
+}

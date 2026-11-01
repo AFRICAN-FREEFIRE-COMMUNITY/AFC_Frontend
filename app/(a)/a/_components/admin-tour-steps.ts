@@ -1464,6 +1464,14 @@ export const ADMIN_TOUR_STEPS: Record<AdminTourPageKey, AdminTourStep[]> = {
       align: "center",
     },
     {
+      // Team events show the Game files box instead of the debugger card (inbox #396); a missing element
+      // is skipped, so each event type sees the step it has.
+      id: "gameFiles",
+      element: '[data-tour="leaderboard-game-files"]',
+      side: "top",
+      align: "center",
+    },
+    {
       id: "debuggerBackfill",
       element: '[data-tour="leaderboard-debugger-backfill"]',
       side: "top",

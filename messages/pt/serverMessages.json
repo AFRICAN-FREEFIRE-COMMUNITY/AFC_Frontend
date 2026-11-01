@@ -16,5 +16,17 @@
   "team_name_reserved": "Esse nome pertence a uma página da AFC. Escolha outro nome.",
   "email_invalid": "Esse endereço de e-mail não parece correto. Verifique-o, por favor.",
   "claims_not_open_yet": "Os resultados deste mapa abrem quando o grupo começar a jogar.",
-  "claims_closed": "Os resultados deste mapa estão fechados: o prazo do organizador para enviá-los já passou."
+  "claims_closed": "Os resultados deste mapa estão fechados: o prazo do organizador para enviá-los já passou.",
+  "attach_game_file": "Anexe um ficheiro debugger ou de resultado.",
+  "game_file_too_large": "Esse ficheiro é demasiado grande para enviar. Volte a adicioná-lo pela caixa, que o comprime primeiro.",
+  "game_file_unreadable": "Esse ficheiro é demasiado grande ou está danificado.",
+  "not_a_game_file": "Isso não é um ficheiro debugger nem um ficheiro de resultado de jogo.",
+  "game_files_ids_required": "Envie os identificadores dos ficheiros que adicionou.",
+  "game_files_expired": "Estes ficheiros foram lidos há demasiado tempo. Volte a adicioná-los.",
+  "game_not_in_files": "Esse jogo não está nestes ficheiros.",
+  "game_files_bad_choices": "Não foi possível ler as escolhas para esse jogo.",
+  "placement_missing": "Indique a classificação de cada equipa.",
+  "placements_not_one_each": "Cada classificação só pode ser usada uma vez: 1 para o vencedor, depois 2, 3 e assim por diante.",
+  "no_files_for_game": "Não há nada para carregar nesse jogo.",
+  "match_not_on_event": "Esse jogo não pertence a este evento."
 }

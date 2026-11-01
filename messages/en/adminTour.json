@@ -788,6 +788,10 @@
       "debuggerBackfill": {
         "title": "Debugger log backfill (Upload tab)",
         "description": "Upload the observer PC's debugger-*.log to add deaths, knockdowns, headshots, revives and survival time to matches AFTER the fact. Map each detected round to its match and apply - players are matched by their Free Fire UID, and the 3D-room MVP criteria unlock automatically."
+      },
+      "gameFiles": {
+        "title": "Game files (Upload tab)",
+        "description": "Drop every debugger file and result file of an evening at once. Each game is found, joined across client restarts, paired with its result file and matched to its map; check the suggestions, compare where the two files differ, then apply. Kills, knocks, deaths, revives and the kill feed are saved with the result."
       }
     },
     "live-overlays-list": {
