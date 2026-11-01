@@ -19,7 +19,15 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
-## Unreleased
+## v7.5.1 - 2026-11-01
+
+### Fixed
+- AFC Capture 1.4.1 on the download page: game files already in the folder when Capture starts are no
+  longer sent again, and every kill and knock now rides with each map's result. Copies already installed
+  update themselves the next time they start.
+
+### Security
+- `follow-redirects` (reached through axios) pinned to 1.16.2 or newer for advisory GHSA-mrwp-f3q8-3g9p.
 
 ## v7.5.0 - 2026-10-24
 
