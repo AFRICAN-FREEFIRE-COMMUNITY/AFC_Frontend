@@ -373,3 +373,34 @@ body:has(.kol){overflow-x:clip}
 /* the site's Help button sits bottom right on every page and would hide the bar's close button, so the close button rides on the bar's top edge instead */
 .kol .cta-bar .x{top:-22px;right:16px;transform:none}
 .kol .cta-bar .txt{padding-right:24px}
+
+/* ── winners (edition phase: winners), ported from the mockup's winners stage ── */
+.kol .wins{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:84px 28px;padding:96px 0 40px}
+@media (max-width:900px){.kol .wins{grid-template-columns:1fr 1fr;gap:72px 16px}}
+@media (max-width:520px){.kol .wins{grid-template-columns:1fr}}
+.kol .win{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center}
+.kol .wtag{background:var(--yel);color:var(--ground);font-family:var(--f-sub);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:15px;padding:5px 16px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin-bottom:58px}
+.kol .wphoto{position:relative;display:block;width:min(250px,100%);aspect-ratio:4/5;transform:rotate(-2deg)}
+.kol .win:nth-child(even) .wphoto{transform:rotate(2.5deg)}
+.kol .wphoto > img:first-child,.kol .wphoto .typecard{width:100%;height:100%;object-fit:cover;clip-path:var(--torn)}
+.kol .wcrown{position:absolute;left:50%;top:-64px;width:130px;transform:translateX(-50%) rotate(-6deg);pointer-events:none}
+.kol .win h3{font-family:var(--f-title);font-size:clamp(34px,4vw,48px);color:var(--fg);margin-top:22px;line-height:1;overflow-wrap:anywhere;text-transform:uppercase}
+.kol .win .acts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+.kol .all-noms{padding:30px 0 90px}
+.kol .all-noms .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.kol .all-noms .row span{background:var(--panel);color:var(--body);font-family:var(--f-sub);font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:15px;padding:7px 14px}
+.kol .wblock{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:56px;align-items:center;padding:96px 0 40px}
+@media (max-width:760px){.kol .wblock{grid-template-columns:1fr;gap:70px;padding-top:84px;justify-items:center;text-align:center}}
+.kol .wblock .wphoto{width:min(280px,100%)}
+.kol .wblock .stamp,.kol .np-sticker .stamp{opacity:1}
+.kol .wblock .wb-info .t1{font-size:clamp(56px,9vw,128px);margin:10px 0 8px;overflow-wrap:anywhere}
+.kol .wblock .acts{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+@media (max-width:760px){.kol .wblock .acts{justify-content:center}}
+.kol .np-sticker{position:relative}
+.kol .np-sticker img.wcrown{width:96px;height:auto;top:-50px;clip-path:none;object-fit:contain}
+@media (max-width:960px){.kol .np-sticker img.wcrown{width:64px;top:-34px}}
+.kol .np-sticker .stamp{font-size:22px;top:88%}
+.kol .wblock .stamp{top:88%}
+.kol .award .winner-line{display:inline-block;margin-top:10px;background:var(--yel);color:var(--ground);font-family:var(--f-sub);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:14px;padding:3px 12px;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.kol .wphoto .typecard{display:grid;place-items:center;background:var(--mag) url("/kol/splat-magenta.webp") center/90% no-repeat;padding:14px}
+.kol .wphoto .typecard span{font-family:var(--f-title);color:var(--fg);font-size:clamp(26px,3vw,40px);line-height:.95;word-break:break-word}

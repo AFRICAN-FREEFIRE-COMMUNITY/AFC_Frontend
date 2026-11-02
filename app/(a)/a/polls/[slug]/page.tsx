@@ -63,7 +63,7 @@ type BuilderQuestion = {
   answer_type: string;
   required: boolean;
   config: Record<string, any>;
-  options: { option_id?: number; label: string; description?: string; image_url?: string; film_url?: string }[];
+  options: { option_id?: number; label: string; description?: string; image_url?: string; film_url?: string; winner_film_url?: string }[];
   published_winner_option_id?: number | null;
   published_winner_votes?: number | null;
 };
@@ -627,6 +627,17 @@ function QuestionsTab({
                           onChange={(url) => {
                             const next = [...question.options];
                             next[optionIndex] = { ...next[optionIndex], film_url: url };
+                            patch(index, { options: next });
+                          }}
+                        />
+                        <OptionFilm
+                          kind="winner-film"
+                          pollSlug={pollSlug}
+                          optionId={option.option_id}
+                          filmUrl={option.winner_film_url}
+                          onChange={(url) => {
+                            const next = [...question.options];
+                            next[optionIndex] = { ...next[optionIndex], winner_film_url: url };
                             patch(index, { options: next });
                           }}
                         />

@@ -19,9 +19,11 @@ import { KolAward } from "./KolAward";
 import { KolLanding } from "./KolLanding";
 import { KolNominee } from "./KolNominee";
 import { KolVoteSheet } from "./KolVoteSheet";
+import { KolWinners } from "./KolWinners";
 
 export type KolView =
   | { kind: "landing" }
+  | { kind: "winners" }
   | { kind: "award"; award: string }
   | { kind: "nominee"; award: string; nominee: string };
 
@@ -31,6 +33,7 @@ export function KolEdition({ slug, initial, view }: { slug: string; initial: Edi
       <div className={`kol ${kolSub.variable} ${kolBody.variable}`}>
         <main>
           {view.kind === "landing" && <KolLanding />}
+          {view.kind === "winners" && <KolWinners />}
           {view.kind === "award" && <KolAward awardSlug={view.award} />}
           {view.kind === "nominee" && <KolNominee awardSlug={view.award} nomineeSlug={view.nominee} />}
         </main>

@@ -90,6 +90,16 @@ export function awardsOfNominee(model: KolModel, nominee: KolNominee): KolAward[
   return model.awards.filter((a) => a.nominees.some((n) => n.slug === nominee.slug || n.label === nominee.label));
 }
 
+/** The winning nominee of an award, once winners are public and the admin has published one. */
+export function winnerOf(award: KolAward): KolNominee | undefined {
+  return award.winnerId ? award.nominees.find((n) => n.option_id === award.winnerId) : undefined;
+}
+
+/** The film a winner surface plays: the winner film, else the nominee film, else "". */
+export function winnerFilm(n: PollOption): string {
+  return n.winner_film_url || n.film_url || "";
+}
+
 /** Two-digit award number, "03". */
 export const pad2 = (n: number) => String(n).padStart(2, "0");
 

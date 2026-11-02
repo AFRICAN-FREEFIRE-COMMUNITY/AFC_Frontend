@@ -18,6 +18,7 @@
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 
@@ -28,7 +29,7 @@ import { useKol } from "./KolContext";
 import { KolIcon } from "./icons";
 import { Reveal, SplitTitle, useReduceMotion } from "./KolMotion";
 import { KolTrophy } from "./KolTrophy";
-import { nomineePhoto, pad2, type KolAward, type Stage } from "./model";
+import { nomineePhoto, pad2, winnerOf, type KolAward, type Stage } from "./model";
 
 /** The day the themed edition went live, for its NEW badge (5 days, expires by itself). */
 const KOL_NEW_SINCE = "2026-11-02";
@@ -76,6 +77,7 @@ export function KolLanding() {
   const t = useTranslations("awardsKol");
   const { model, slug } = useKol();
   const reduce = useReduceMotion();
+  const router = useRouter();
   // The accessible name of a title: the message with its <em> markers taken off (t.raw is unformatted).
   const plain = (key: Parameters<typeof t.raw>[0]) => String(t.raw(key)).replace(/<\/?em>/g, "");
   const { edition } = model.detail;
@@ -165,16 +167,20 @@ export function KolLanding() {
               {edition.title}
             </SplitTitle>
             <Reveal now delay={0.8} as="p" className="lede">
-              {edition.tagline || t("hero.lede")}
+              {stage === "winners" ? t("hero.winnersLede", { count }) : edition.tagline || t("hero.lede")}
             </Reveal>
             <Reveal now delay={0.9} className="stagetag">
               <span className="flag">{t(`stage.flag.${stage === "announced" ? "announced" : stage}`)}</span>
               {stageNote && <span className="count" suppressHydrationWarning>{stageNote}</span>}
             </Reveal>
             <Reveal now delay={1} className="ctas">
-              <button className="btn y" onClick={() => scrollToId("awards", reduce)}>
-                {stage === "voting" ? t("hero.voteNow") : t("hero.seeNominees")}
-              </button>
+              {stage === "winners" ? (
+                <Link className="btn y" href={`/awards/${slug}/winners`}>{t("hero.seeWinners")}</Link>
+              ) : (
+                <button className="btn y" onClick={() => scrollToId("awards", reduce)}>
+                  {stage === "voting" ? t("hero.voteNow") : t("hero.seeNominees")}
+                </button>
+              )}
               <button className="btn l" onClick={() => scrollToId("how", reduce)}>{t("hero.how")}</button>
             </Reveal>
           </div>
@@ -350,7 +356,11 @@ export function KolLanding() {
           <div className="txt">
             <span className="big">{t.rich(cta.big, rich)}</span>
             {cta.small && <span className="small">{t(cta.small, { done: model.picked, total: count })}</span>}
-            <button className="btn y sm" tabIndex={ctaShown && !ctaClosed ? 0 : -1} onClick={() => scrollToId(cta.to, reduce)}>
+            <button
+              className="btn y sm"
+              tabIndex={ctaShown && !ctaClosed ? 0 : -1}
+              onClick={() => (stage === "winners" ? router.push(`/awards/${slug}/winners`) : scrollToId(cta.to, reduce))}
+            >
               {t(cta.btn)}
             </button>
           </div>
@@ -366,8 +376,10 @@ export function KolLanding() {
 /** One row of the awards list: number, name, description, the faces of up to four nominees, a link. */
 function AwardRow({ award, stage, editionSlug }: { award: KolAward; stage: Stage; editionSlug: string }) {
   const t = useTranslations("awardsKol");
-  const faces = award.nominees.filter((n) => nomineePhoto(n)).slice(0, 4);
-  const rest = award.nominees.length - faces.length;
+  const winner = stage === "winners" ? winnerOf(award) : undefined;
+  // Once winners are public the row shows the winner's face instead of the nominee faces.
+  const faces = (winner ? [winner] : award.nominees).filter((n) => nomineePhoto(n)).slice(0, 4);
+  const rest = winner ? 0 : award.nominees.length - faces.length;
   const mine = award.myPickId ? award.nominees.find((n) => n.option_id === award.myPickId) : undefined;
   return (
     <Link className="award hud" href={`/awards/${editionSlug}/${award.slug}`}>
@@ -377,7 +389,11 @@ function AwardRow({ award, stage, editionSlug }: { award: KolAward; stage: Stage
         <span className="adesc">
           {award.question.help_text} {t("awards.nominees", { count: award.nominees.length })}.
         </span>
-        {mine && stage !== "announced" && <span className="mine">{t("awards.yourPick", { name: mine.label })}</span>}
+        {winner ? (
+          <span className="winner-line">{t("awards.winnerLine", { name: winner.label })}</span>
+        ) : (
+          mine && stage !== "announced" && <span className="mine">{t("awards.yourPick", { name: mine.label })}</span>
+        )}
       </span>
       <span className="right">
         <span className="faces">

@@ -10,9 +10,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { fetchEditionDetail, isKolTheme } from "@/lib/awardsEdition";
-import { buildEntityMetadata, generateBreadcrumbSchema, jsonLd, siteConfig } from "@/lib/seo";
+import { generateBreadcrumbSchema, jsonLd, siteConfig } from "@/lib/seo";
 
 import { KolEdition } from "../../../_kol/KolEdition";
+import { kolMetadata } from "../../../_kol/kolMetadata";
 import { buildModel, nomineePhoto } from "../../../_kol/model";
 
 type Params = { params: Promise<{ edition: string; award: string; nominee: string }> };
@@ -29,9 +30,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const p = await params;
   const hit = await resolve(p);
   const path = `/awards/${p.edition}/${p.award}/${p.nominee}`;
-  if (!hit) return buildEntityMetadata({ title: "Awards", description: "AFC awards.", path, noIndex: true });
+  if (!hit) return kolMetadata({ title: "Awards", description: "Awards.", path, noIndex: true });
   const { detail, award, nominee } = hit;
-  return buildEntityMetadata({
+  return kolMetadata({
     title: `${nominee.label}, ${award.question.prompt}`,
     description: (nominee.description || `${nominee.label} is nominated for ${award.question.prompt} in ${detail.edition.title}.`).slice(0, 180),
     path,

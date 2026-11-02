@@ -9,9 +9,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { fetchEditionDetail, isKolTheme } from "@/lib/awardsEdition";
-import { buildEntityMetadata, generateBreadcrumbSchema, jsonLd, siteConfig } from "@/lib/seo";
+import { generateBreadcrumbSchema, jsonLd, siteConfig } from "@/lib/seo";
 
 import { KolEdition } from "../../_kol/KolEdition";
+import { kolMetadata } from "../../_kol/kolMetadata";
 import { buildModel } from "../../_kol/model";
 
 type Params = { params: Promise<{ edition: string; award: string }> };
@@ -21,11 +22,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const detail = await fetchEditionDetail(edition);
   const found = isKolTheme(detail) ? buildModel(detail).awards.find((a) => a.slug === award) : undefined;
   if (!found || !detail) {
-    return buildEntityMetadata({ title: "Awards", description: "AFC awards.", path: `/awards/${edition}/${award}`, noIndex: true });
+    return kolMetadata({ title: "Awards", description: "Awards.", path: `/awards/${edition}/${award}`, noIndex: true });
   }
   const title = `${found.question.prompt} | ${detail.edition.title}`;
   const description = (found.question.help_text || `${found.question.prompt}: ${found.nominees.length} nominees in ${detail.edition.title}.`).slice(0, 180);
-  return buildEntityMetadata({ title, description, path: `/awards/${edition}/${award}` });
+  return kolMetadata({ title, description, path: `/awards/${edition}/${award}` });
 }
 
 export default async function AwardPage({ params }: Params) {

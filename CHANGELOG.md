@@ -26,8 +26,12 @@ workflow checks it again before it builds.
   one page per nominee with the nominee film (landscape), and a vote sheet that signs you in, links your
   Free Fire UID if the ballot asks for it, and confirms your pick. It appears when an awards edition is
   set to the Detty Royale design in the admin; any other edition looks as before.
-- The admin poll builder can upload a nominee film and set a nominee picture address, and the awards
-  edition form has a page design choice.
+- The admin poll builder can upload a nominee film and a separate winner film, and set a nominee
+  picture address, and the awards edition form has a page design choice.
+- When winners are published: a winners page (`/awards/<edition>/winners`), each award page led by its
+  winner, the winner's own page with the winner film, and the winners on the landing rows.
+- The KOL pages show the redesigned trophy (option A) and share only the KOL Awards art (no site name or
+  address on the share image or titles).
 
 ## v7.5.1 - 2026-11-01
 

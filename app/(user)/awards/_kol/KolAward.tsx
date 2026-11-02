@@ -11,12 +11,13 @@
  */
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 import { useKol } from "./KolContext";
 import { KolIcon } from "./icons";
 import { SplitTitle, useReduceMotion } from "./KolMotion";
-import { nomineePhoto, pad2, type KolAward as Award, type KolNominee } from "./model";
+import { nomineePhoto, pad2, winnerFilm, winnerOf, type KolAward as Award, type KolNominee } from "./model";
 
 const rich = {
   em: (c: React.ReactNode) => <em>{c}</em>,
@@ -30,13 +31,16 @@ export function KolAward({ awardSlug }: { awardSlug: string }) {
   if (!award) return <NotFound />;
 
   const { stage, awards } = model;
-  const winner = award.winnerId ? award.nominees.find((n) => n.option_id === award.winnerId) : undefined;
+  const winner = winnerOf(award);
+  // Winners phase: the award page is led by its winner, and the others follow undimmed (no counts).
+  const leadWinner = stage === "winners" && !!winner;
+  const others = leadWinner ? award.nominees.filter((n) => n.option_id !== winner!.option_id) : award.nominees;
   const canVote = stage === "voting" && award.accepting;
 
   let notice: React.ReactNode = null;
   if (stage === "announced") notice = t.rich("award.noticeAnnounced", rich);
   else if (stage === "counting") notice = t.rich("award.noticeCounting", rich);
-  else if (stage === "winners") notice = winner ? t.rich("award.noticeWinner", { ...rich, name: winner.label }) : t("award.noticeWinnersPending");
+  else if (stage === "winners" && !winner) notice = t("award.noticeWinnersPending");
 
   return (
     <>
@@ -67,12 +71,15 @@ export function KolAward({ awardSlug }: { awardSlug: string }) {
         </div>
       </section>
 
+      {leadWinner && <WinnerBlock award={award} winner={winner!} />}
+
       <div className="wrap">
+        {leadWinner && others.length > 0 && <p className="eyebrow" style={{ marginTop: 40 }}>{t("award.nomineesHeading")}</p>}
         {award.nominees.length === 0 ? (
           <p className="empty">{t("award.noNominees")}</p>
         ) : (
           <div className="noms">
-            {award.nominees.map((n, i) => (
+            {others.map((n, i) => (
               <NomineeCard key={n.option_id} award={award} nominee={n} index={i} canVote={canVote} />
             ))}
           </div>
@@ -96,7 +103,8 @@ function NomineeCard({ award, nominee, index, canVote }: { award: Award; nominee
   const photo = nomineePhoto(nominee);
   const picked = award.myPickId === nominee.option_id && model.stage !== "announced";
   const isWinner = award.winnerId === nominee.option_id;
-  const dim = award.winnerId !== null && !isWinner;
+  // The winner leads the page in its own block and the rest stay undimmed.
+  const dim = false;
   const href = `/awards/${slug}/${award.slug}/${nominee.slug}`;
   const hasFilm = !!nominee.film_url;
 
@@ -130,6 +138,49 @@ function NomineeCard({ award, nominee, index, canVote }: { award: Award; nominee
         )}
       </div>
     </motion.article>
+  );
+}
+
+/** The winner of an award, large: crown, WINNER stamp low on the photo, name, film link, share. */
+function WinnerBlock({ award, winner }: { award: Award; winner: KolNominee }) {
+  const t = useTranslations("awardsKol");
+  const { slug } = useKol();
+  const photo = nomineePhoto(winner);
+  const href = `/awards/${slug}/${award.slug}/${winner.slug}`;
+  const share = async () => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${href}`);
+      toast(t("nominee.shared"));
+    } catch {
+      toast(`${window.location.origin}${href}`);
+    }
+  };
+  return (
+    <section className="wrap wblock">
+      <Link className="wphoto" href={href} aria-label={winner.label}>
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element -- API-host media, not in the next/image allow-list
+          <img alt="" src={photo} width={250} height={312} />
+        ) : (
+          <span className="typecard"><span>{winner.label}</span></span>
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element -- decorative art in /public */}
+        <img className="wcrown" alt="" src="/kol/crown-yellow.webp" />
+        <span className="stamp">{t("award.winner")}</span>
+      </Link>
+      <div className="wb-info">
+        <p className="eyebrow">{t("award.winnerEyebrow", { award: award.question.prompt })}</p>
+        <h2 className="t1">{winner.label}</h2>
+        <p className="sub" style={{ color: "var(--body)" }}>{t("award.revealed")}</p>
+        <div className="acts">
+          <Link className="btn y" href={href}>{winnerFilm(winner) ? t("award.winnerFilm") : t("award.winnerPage")}</Link>
+          <button className="btn l" onClick={() => void share()}>
+            <KolIcon name="share" />
+            {t("award.share")}
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -153,6 +153,23 @@ export function KolTrophy({
         "",
         (gltf) => {
           if (disposed) return;
+          // Older exports carried the relief HEIGHT map of "gold africa" as its colour texture (Blender fed it
+          // through a colour ramp), which draws the Africa face silver-white on a GPU. Where a material by that
+          // name still has a colour map, drop the map and take the colour of "gold polished"; its normal and
+          // roughness maps stay. The newer models have no textures, so this does nothing for them.
+          const mats: import("three").MeshPhysicalMaterial[] = [];
+          gltf.scene.traverse((o) => {
+            const mesh = o as import("three").Mesh;
+            if (mesh.isMesh) for (const mt of ([] as import("three").Material[]).concat(mesh.material)) mats.push(mt as import("three").MeshPhysicalMaterial);
+          });
+          const polished = mats.find((m) => m.name === "gold polished");
+          for (const m of mats) {
+            if (m.name === "gold africa" && m.map && polished) {
+              m.map = null;
+              m.color.copy(polished.color);
+              m.needsUpdate = true;
+            }
+          }
           gltf.scene.traverse((o) => {
             const mesh = o as import("three").Mesh;
             if (!mesh.isMesh) return;

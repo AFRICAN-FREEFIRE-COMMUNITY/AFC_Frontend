@@ -18,7 +18,9 @@
     "voteNow": "Votar agora",
     "seeNominees": "Ver os nomeados",
     "seeAwards": "Os prémios",
-    "how": "Como funciona"
+    "how": "Como funciona",
+    "seeWinners": "Ver os vencedores",
+    "winnersLede": "Os vencedores {count, plural, one {do prémio} other {dos # prémios}}, revelados em direto no Detty Royale Showdown."
   },
   "stage": {
     "flag": {
@@ -46,19 +48,20 @@
     "goWinner": "Vencedor",
     "yourPick": "A sua escolha: {name}",
     "empty": "Os prémios desta edição ainda não foram adicionados.",
-    "facesMore": "+{count}"
+    "facesMore": "+{count}",
+    "winnerLine": "Vencedor: {name}"
   },
   "how": {
     "title": "Como <em>votar</em>",
     "subThree": "Três passos, cerca de um minuto.",
     "subTwo": "Dois passos, cerca de um minuto.",
     "signin": {
-      "title": "Entre na AFC",
-      "body": "Use a sua conta AFC, ou crie uma. Cada voto pertence a uma conta, por isso <b>cada pessoa conta uma só vez</b>."
+      "title": "Entre",
+      "body": "Use a sua conta, ou crie uma. Cada voto pertence a uma conta, por isso <b>cada pessoa conta uma só vez</b>."
     },
     "uid": {
       "title": "Associe o seu UID do Free Fire",
-      "body": "Adicione o seu UID do Free Fire uma só vez. <b>Um UID, uma conta</b>: um UID só pode ser associado a uma conta AFC."
+      "body": "Adicione o seu UID do Free Fire uma só vez. <b>Um UID, uma conta</b>: um UID só pode ser associado a uma conta."
     },
     "pick": {
       "title": "Escolha os seus criadores",
@@ -68,29 +71,70 @@
   "steps": {
     "title": "Da lista <em>ao palco</em>",
     "sub": "Cinco passos desde a primeira lista até ao troféu. A Garena valida duas vezes, e nada é público antes de a Garena ver.",
-    "s1": { "title": "Categorias e listas", "body": "{count, plural, one {Um prémio} other {# prémios}}, cada um com uma lista de criadores e todas as ligações das suas contas." },
-    "s2": { "title": "A Garena verifica", "body": "A Garena analisa as contas e aprova os nomeados: adicionar, retirar ou trocar nomes.", "sign": "Validação um" },
-    "s3": { "title": "Voto da comunidade", "body": "Você vota aqui na AFC, com sessão iniciada, uma vez por conta." },
-    "s4": { "title": "A contagem", "body": "Os números, os seus votos e um júri às cegas são combinados. A Garena confirma cada vencedor.", "sign": "Validação dois" },
-    "s5": { "title": "A noite", "body": "Os vencedores são revelados em direto no Detty Royale Showdown, com o troféu entregue no palco." }
+    "s1": {
+      "title": "Categorias e listas",
+      "body": "{count, plural, one {Um prémio} other {# prémios}}, cada um com uma lista de criadores e todas as ligações das suas contas."
+    },
+    "s2": {
+      "title": "A Garena verifica",
+      "body": "A Garena analisa as contas e aprova os nomeados: adicionar, retirar ou trocar nomes.",
+      "sign": "Validação um"
+    },
+    "s3": {
+      "title": "Voto da comunidade",
+      "body": "Você vota aqui, com sessão iniciada, uma vez por conta."
+    },
+    "s4": {
+      "title": "A contagem",
+      "body": "Os números, os seus votos e um júri às cegas são combinados. A Garena confirma cada vencedor.",
+      "sign": "Validação dois"
+    },
+    "s5": {
+      "title": "A noite",
+      "body": "Os vencedores são revelados em direto no Detty Royale Showdown, com o troféu entregue no palco."
+    }
   },
   "trophy": {
     "title": "O <em>troféu</em>",
     "sub": "O que os vencedores levantam no palco. Faça scroll para o rodar.",
-    "c1": { "title": "África em ouro", "body": "O contorno verdadeiro, decorado com oito faixas, entre dois cornos dourados." },
-    "c2": { "title": "Base de mármore preto", "body": "Sobre um pedestal dourado. Cerca de 40 cm de altura." },
-    "c3": { "title": "Placa frontal", "body": "KOL Awards, Detty Royale Showdown {year}." },
-    "c3NoYear": { "title": "Placa frontal", "body": "KOL Awards, Detty Royale Showdown." },
+    "c1": {
+      "title": "África em ouro",
+      "body": "O contorno verdadeiro, com 28 cm de altura e 2,5 cm de espessura, entre dois cornos dourados, com o emblema próprio de cada prémio em relevo."
+    },
+    "c2": {
+      "title": "Base de mármore preto",
+      "body": "Sobre um pedestal dourado. Cerca de 52 cm de altura no total."
+    },
+    "c3": {
+      "title": "Placa frontal",
+      "body": "KOL Awards, Detty Royale Showdown {year}."
+    },
+    "c3NoYear": {
+      "title": "Placa frontal",
+      "body": "KOL Awards, Detty Royale Showdown."
+    },
     "made": "{count, plural, one {# feito, um por prémio} other {# feitos, um por prémio}}",
     "everyone": "Cada nomeado recebe também uma placa e um certificado."
   },
   "decided": {
     "title": "Como um vencedor <em>é decidido</em>",
     "sub": "Três partes, depois a palavra da Garena. Em caso de empate, decide o júri, depois os números.",
-    "numbers": { "title": "Os números", "body": "O que o público faz nas publicações de cada criador, contado por visualização para que o tamanho sozinho não ganhe." },
-    "votes": { "title": "Os seus votos", "body": "O voto da comunidade nesta página." },
-    "panel": { "title": "O júri", "body": "Cinco jurados que nunca se conhecem. A Garena pode indicar lugares." },
-    "then": { "title": "Depois a Garena", "body": "Cada vencedor passa pela Garena antes da noite: confirma, ou recusa com um motivo registado. Nada é anunciado antes." }
+    "numbers": {
+      "title": "Os números",
+      "body": "O que o público faz nas publicações de cada criador, contado por visualização para que o tamanho sozinho não ganhe."
+    },
+    "votes": {
+      "title": "Os seus votos",
+      "body": "O voto da comunidade nesta página."
+    },
+    "panel": {
+      "title": "O júri",
+      "body": "Cinco jurados que nunca se conhecem. A Garena pode indicar lugares."
+    },
+    "then": {
+      "title": "Depois a Garena",
+      "body": "Cada vencedor passa pela Garena antes da noite: confirma, ou recusa com um motivo registado. Nada é anunciado antes."
+    }
   },
   "night": {
     "title": "A <em>noite</em>",
@@ -102,12 +146,30 @@
   },
   "faq": {
     "title": "Perguntas",
-    "who": { "q": "Quem pode votar?", "a": "Qualquer pessoa com uma conta AFC. Criar uma conta é grátis." },
-    "whoUid": { "q": "Quem pode votar?", "a": "Qualquer pessoa com uma conta AFC e um UID do Free Fire associado. Criar uma conta é grátis." },
-    "howMany": { "q": "Quantos votos tenho?", "a": "Uma escolha em cada prémio. Cada conta tem um boletim." },
-    "change": { "q": "Posso mudar a minha escolha?", "a": "Sim, quantas vezes quiser até a votação fechar. Só conta a sua última escolha." },
-    "winning": { "q": "Posso ver quem está a ganhar?", "a": "Não. Esta página não mostra o número de votos, para que uma vantagem inicial não decida o resto da votação." },
-    "whyUid": { "q": "Porque precisam do meu UID do Free Fire?", "a": "Para que cada jogador conte uma só vez. O seu UID nunca é mostrado na página." }
+    "who": {
+      "q": "Quem pode votar?",
+      "a": "Qualquer pessoa com uma conta. Criar uma conta é grátis."
+    },
+    "whoUid": {
+      "q": "Quem pode votar?",
+      "a": "Qualquer pessoa com uma conta e um UID do Free Fire associado. Criar uma conta é grátis."
+    },
+    "howMany": {
+      "q": "Quantos votos tenho?",
+      "a": "Uma escolha em cada prémio. Cada conta tem um boletim."
+    },
+    "change": {
+      "q": "Posso mudar a minha escolha?",
+      "a": "Sim, quantas vezes quiser até a votação fechar. Só conta a sua última escolha."
+    },
+    "winning": {
+      "q": "Posso ver quem está a ganhar?",
+      "a": "Não. Esta página não mostra o número de votos, para que uma vantagem inicial não decida o resto da votação."
+    },
+    "whyUid": {
+      "q": "Porque precisam do meu UID do Free Fire?",
+      "a": "Para que cada jogador conte uma só vez. O seu UID nunca é mostrado na página."
+    }
   },
   "cta": {
     "votingBig": "Vote nos seus <em>criadores</em>",
@@ -137,7 +199,13 @@
     "yourPick": "A sua escolha",
     "winner": "Vencedor",
     "noNominees": "Ainda não foram adicionados nomeados a este prémio.",
-    "photoAlt": "{name}"
+    "photoAlt": "{name}",
+    "winnerEyebrow": "Vencedor · {award}",
+    "revealed": "Revelado em direto no Detty Royale Showdown, confirmado pela Garena.",
+    "winnerFilm": "Ver o filme do vencedor",
+    "winnerPage": "A página do vencedor",
+    "share": "Partilhar a vitória",
+    "nomineesHeading": "Os nomeados"
   },
   "nominee": {
     "eyebrow": "Nomeado · {award}",
@@ -147,20 +215,23 @@
     "noFilmBody": "O filme do nomeado {name} ainda não foi adicionado.",
     "nominatedIn": "Nomeado em",
     "about": "Sobre",
-    "theirProfile": "O perfil AFC",
+    "theirProfile": "Perfil",
     "viewProfile": "Ver o perfil",
     "share": "Partilhar",
     "shared": "Ligação copiada: partilhe para trazer votos",
     "voteFor": "Votar em {name}",
     "yourPickIn": "A sua escolha em {award}",
     "alsoIn": "Também em {award}",
-    "closedNotice": "A votação terminou. Os vencedores são revelados na noite da gala."
+    "closedNotice": "A votação terminou. Os vencedores são revelados na noite da gala.",
+    "winnerEyebrow": "Vencedor · {award}",
+    "winnerFilmEyebrow": "Filme do vencedor",
+    "shareWin": "Partilhar a vitória"
   },
   "sheet": {
     "close": "Fechar",
     "signin": {
       "title": "Entre <em>para votar</em>",
-      "body": "Os votos pertencem a uma conta AFC, por isso cada pessoa conta uma só vez. Criar uma é grátis.",
+      "body": "Os votos pertencem a uma conta, por isso cada pessoa conta uma só vez. Criar uma é grátis.",
       "login": "Entrar",
       "join": "Criar conta"
     },
@@ -199,7 +270,7 @@
   },
   "admin": {
     "theme": "Design da página",
-    "themeDefault": "Prémios AFC",
+    "themeDefault": "Prémios do site",
     "themeDetty": "KOL Awards Detty Royale",
     "themeHelp": "O Detty Royale mostra esta edição como as páginas dos KOL Awards: página inicial, uma página por prémio, uma página por nomeado.",
     "filmLabel": "Filme do nomeado",
@@ -212,6 +283,23 @@
     "filmSaved": "Filme guardado",
     "filmRemoved": "Filme removido",
     "filmFailed": "Não foi possível guardar o filme.",
-    "filmSaveFirst": "Guarde primeiro as perguntas e depois adicione o filme."
+    "filmSaveFirst": "Guarde primeiro as perguntas e depois adicione o filme.",
+    "winnerFilmLabel": "Filme do vencedor",
+    "winnerFilmHelp": "Mostrado nas páginas dos vencedores depois de os vencedores serem publicados. Se faltar, usa-se o filme do nomeado."
+  },
+  "winners": {
+    "back": "KOL Awards",
+    "eyebrow": "KOL Awards {year} · Detty Royale Showdown",
+    "eyebrowNoYear": "KOL Awards · Detty Royale Showdown",
+    "title": "Os <em>vencedores</em>",
+    "label": "Os vencedores",
+    "sub": "{count, plural, one {Um criador} other {# criadores}}, revelados em direto na noite e confirmados pela Garena.",
+    "none": "Os vencedores ainda não foram publicados.",
+    "filmBtn": "Filme do vencedor",
+    "pageBtn": "Página do vencedor",
+    "awardBtn": "O prémio",
+    "everyone": "Todos os nomeados",
+    "thanks": "Obrigado a <em>todos os {count}</em>",
+    "thanksLabel": "Obrigado a todos os {count}"
   }
 }

@@ -100,6 +100,8 @@ export type PollOption = {
   video_url?: string;
   /** The nominee's own uploaded film (landscape, about ten seconds), "" when there is none. */
   film_url?: string;
+  /** The winner film (shown on the winner pages), "" when none; the pages fall back to `film_url`. */
+  winner_film_url?: string;
   linked_type?: "none" | "user" | "team";
   linked_id?: number | null;
   linked?: LinkedEntity | null;
@@ -341,15 +343,17 @@ export const pollsApi = {
 
   /** Set a nominee's film (MP4 or WebM, 25 MB at most). The file goes up as multipart, so this
    *  one does not use the JSON helpers. Answers the absolute film URL. */
-  adminSetOptionFilm: async (pollSlug: string, optionId: number, file: File) => {
+  adminSetOptionFilm: async (pollSlug: string, optionId: number, file: File, kind: "film" | "winner-film" = "film") => {
     const body = new FormData();
     body.append("film", file);
     return (
-      await axios.post<{ film_url: string }>(url(`admin/polls/${pollSlug}/options/${optionId}/film/`), body, {
-        headers: authHeaders(),
-      })
+      await axios.post<{ film_url?: string; winner_film_url?: string }>(
+        url(`admin/polls/${pollSlug}/options/${optionId}/${kind}/`),
+        body,
+        { headers: authHeaders() },
+      )
     ).data;
   },
-  adminRemoveOptionFilm: (pollSlug: string, optionId: number) =>
-    aDelete<{ film_url: string }>(`admin/polls/${pollSlug}/options/${optionId}/film/`),
+  adminRemoveOptionFilm: (pollSlug: string, optionId: number, kind: "film" | "winner-film" = "film") =>
+    aDelete<{ film_url?: string; winner_film_url?: string }>(`admin/polls/${pollSlug}/options/${optionId}/${kind}/`),
 };

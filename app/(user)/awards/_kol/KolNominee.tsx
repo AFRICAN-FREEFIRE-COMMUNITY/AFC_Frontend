@@ -21,7 +21,7 @@ import { useKol } from "./KolContext";
 import { KolIcon } from "./icons";
 import { Reveal, SplitTitle } from "./KolMotion";
 import { NotFound } from "./KolAward";
-import { awardsOfNominee, nomineePhoto } from "./model";
+import { awardsOfNominee, nomineePhoto, winnerFilm } from "./model";
 
 export function KolNominee({ awardSlug, nomineeSlug }: { awardSlug: string; nomineeSlug: string }) {
   const t = useTranslations("awardsKol");
@@ -33,6 +33,9 @@ export function KolNominee({ awardSlug, nomineeSlug }: { awardSlug: string; nomi
   if (!award || !nominee) return <NotFound />;
 
   const photo = nomineePhoto(nominee);
+  // The published winner of this award, once winners are public: the page says so and plays the winner film.
+  const won = model.stage === "winners" && award.winnerId === nominee.option_id;
+  const filmSrc = won ? winnerFilm(nominee) : nominee.film_url || "";
   const picked = award.myPickId === nominee.option_id;
   const canVote = model.stage === "voting" && award.accepting;
   const others = award.nominees.filter((n) => n.option_id !== nominee.option_id);
@@ -65,7 +68,7 @@ export function KolNominee({ awardSlug, nomineeSlug }: { awardSlug: string; nomi
           {award.question.prompt}
         </Link>
         <div className="np-info np-head">
-          <p className="eyebrow">{t("nominee.eyebrow", { award: award.question.prompt })}</p>
+          <p className="eyebrow">{won ? t("nominee.winnerEyebrow", { award: award.question.prompt }) : t("nominee.eyebrow", { award: award.question.prompt })}</p>
           <SplitTitle as="h1" className="t1" label={nominee.label} delay={0.15}>
             {nominee.label}
           </SplitTitle>
@@ -73,15 +76,15 @@ export function KolNominee({ awardSlug, nomineeSlug }: { awardSlug: string; nomi
 
         <div className="np-grid">
           <div>
-            <p className="eyebrow" style={{ marginBottom: 10 }}>{t("nominee.filmEyebrow")}</p>
+            <p className="eyebrow" style={{ marginBottom: 10 }}>{won ? t("nominee.winnerFilmEyebrow") : t("nominee.filmEyebrow")}</p>
             <div className={`film${playing ? " playing" : ""}`}>
-              {nominee.film_url ? (
+              {filmSrc ? (
                 <>
                   <video
                     ref={video}
                     playsInline
                     preload="metadata"
-                    src={nominee.film_url}
+                    src={filmSrc}
                     onEnded={() => {
                       setPlaying(false);
                       if (video.current) video.current.controls = false;
@@ -108,6 +111,13 @@ export function KolNominee({ awardSlug, nomineeSlug }: { awardSlug: string; nomi
                 <Reveal kind="sticker" className="np-sticker">
                   {/* eslint-disable-next-line @next/next/no-img-element -- API-host media, not in the next/image allow-list */}
                   <img alt={nominee.label} src={photo} width={200} height={250} />
+                  {won && (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element -- decorative art in /public */}
+                      <img className="wcrown" alt="" src="/kol/crown-yellow.webp" />
+                      <span className="stamp">{t("award.winner")}</span>
+                    </>
+                  )}
                 </Reveal>
               )}
               <div className="np-facts">
@@ -143,7 +153,7 @@ export function KolNominee({ awardSlug, nomineeSlug }: { awardSlug: string; nomi
               )}
               <button className="btn l" onClick={() => void share()}>
                 <KolIcon name="share" />
-                {t("nominee.share")}
+                {won ? t("nominee.shareWin") : t("nominee.share")}
               </button>
             </div>
             {model.stage === "counting" && <p className="notice">{t("nominee.closedNotice")}</p>}

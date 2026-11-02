@@ -29,12 +29,15 @@ export function OptionFilm({
   optionId,
   filmUrl,
   onChange,
+  kind = "film",
 }: {
   pollSlug: string;
   optionId?: number;
   filmUrl?: string;
   /** Called with the new film URL ("" after a removal) so the builder keeps its copy in step. */
   onChange: (url: string) => void;
+  /** "winner-film" is the film shown on the winner pages (separate from the nominee film). */
+  kind?: "film" | "winner-film";
 }) {
   const t = useTranslations("awardsKol.admin");
   const input = useRef<HTMLInputElement>(null);
@@ -46,8 +49,8 @@ export function OptionFilm({
     if (!file) return;
     setBusy(true);
     try {
-      const { film_url } = await pollsApi.adminSetOptionFilm(pollSlug, optionId, file);
-      onChange(film_url);
+      const res = await pollsApi.adminSetOptionFilm(pollSlug, optionId, file, kind);
+      onChange(res.film_url ?? res.winner_film_url ?? "");
       toast.success(t("filmSaved"));
     } catch (error: unknown) {
       const data = (error as { response?: { data?: { message?: string } } })?.response?.data;
@@ -61,7 +64,7 @@ export function OptionFilm({
   const remove = async () => {
     setBusy(true);
     try {
-      await pollsApi.adminRemoveOptionFilm(pollSlug, optionId);
+      await pollsApi.adminRemoveOptionFilm(pollSlug, optionId, kind);
       onChange("");
       toast.success(t("filmRemoved"));
     } catch {
@@ -74,7 +77,7 @@ export function OptionFilm({
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs">
       <IconMovie className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-      <span className="text-muted-foreground">{t("filmLabel")}:</span>
+      <span className="text-muted-foreground">{kind === "winner-film" ? t("winnerFilmLabel") : t("filmLabel")}:</span>
       {filmUrl ? (
         <a href={filmUrl} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">
           {t("filmCurrent")}
@@ -99,7 +102,7 @@ export function OptionFilm({
           {t("filmRemove")}
         </Button>
       )}
-      <span className="text-muted-foreground">{t("filmHelp")}</span>
+      <span className="text-muted-foreground">{kind === "winner-film" ? t("winnerFilmHelp") : t("filmHelp")}</span>
     </div>
   );
 }
