@@ -103,7 +103,7 @@ export default function AdminPollsPage() {
       />
 
       <Tabs defaultValue="polls" className="mt-6 w-full">
-        <TabsList className="h-9 bg-muted">
+        <TabsList className="h-9 max-w-full justify-start overflow-x-auto bg-muted">
           <TabsTrigger value="polls">{t("tabs.polls")}</TabsTrigger>
           {isAdmin && <TabsTrigger value="editions">{t("tabs.editions")}</TabsTrigger>}
           {isAdmin && (
