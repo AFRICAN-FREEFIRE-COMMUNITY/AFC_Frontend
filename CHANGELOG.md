@@ -19,7 +19,7 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
-## Unreleased
+## v7.10.0 - 2026-11-02
 
 ### Added
 - Game files box on the leaderboard Upload Results tab (admin and organizer pages): drop every Free Fire
