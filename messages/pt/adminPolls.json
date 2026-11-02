@@ -12,7 +12,8 @@
     "questions": "Perguntas",
     "audience": "Quem pode votar",
     "branching": "Ramificações",
-    "results": "Resultados"
+    "results": "Resultados",
+    "metrics": "Métricas"
   },
   "empty": {
     "polls": "Ainda não há enquetes. Crie a primeira.",
@@ -219,5 +220,32 @@
       "captain_override": "definido pelo capitão",
       "below_quorum": "abaixo do quórum"
     }
+  },
+  "metrics": {
+    "intro": "Os números detalhados de cada temporada dos prémios, incluindo as que já terminaram. Nada aqui depende de a votação ainda estar aberta.",
+    "seasonTab": "Boletins da temporada",
+    "originalTab": "Boletim original de 2025",
+    "pickSeason": "Temporada dos prémios",
+    "polls": "Boletins",
+    "questions": "Categorias",
+    "answers": "Respostas",
+    "noPolls": "Esta temporada ainda não tem boletins.",
+    "closed": "Encerrado",
+    "closedOn": "encerrado em",
+    "answersCount": "{count, plural, one {# resposta} other {# respostas}}",
+    "votesTotal": "{count, plural, one {# voto} other {# votos}}",
+    "publishedOnly": "Não foi registado nenhum boletim individual para esta categoria. Vencedor publicado: {winner} com {count} votos.",
+    "option": "Opção",
+    "votes": "Votos",
+    "share": "Quota",
+    "originalEmpty": "Não há votos guardados nas tabelas originais dos prémios.",
+    "originalNote": "Estes são os votos expressos no boletim original dos prémios, antes de as votações o substituírem. São mostrados exatamente como foram guardados.",
+    "totalVotes": "Total de votos",
+    "totalVoters": "Pessoas que votaram",
+    "bySection": "Votos por secção",
+    "byCategory": "Votos por categoria e nomeado",
+    "section": "Secção",
+    "timeline": "Votos por dia",
+    "day": "Dia"
   }
 }

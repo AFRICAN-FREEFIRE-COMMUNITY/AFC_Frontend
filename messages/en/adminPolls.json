@@ -12,7 +12,8 @@
     "questions": "Questions",
     "audience": "Who can vote",
     "branching": "Branching",
-    "results": "Results"
+    "results": "Results",
+    "metrics": "Metrics"
   },
   "empty": {
     "polls": "No polls yet. Create the first one.",
@@ -219,5 +220,32 @@
       "captain_override": "set by the captain",
       "below_quorum": "below quorum"
     }
+  },
+  "metrics": {
+    "intro": "Detailed numbers for every awards season, including seasons that are over. Nothing here depends on whether voting is still open.",
+    "seasonTab": "Season ballots",
+    "originalTab": "Original 2025 ballot",
+    "pickSeason": "Awards season",
+    "polls": "Ballots",
+    "questions": "Categories",
+    "answers": "Answers",
+    "noPolls": "This season has no ballots yet.",
+    "closed": "Closed",
+    "closedOn": "closed on",
+    "answersCount": "{count, plural, one {# answer} other {# answers}}",
+    "votesTotal": "{count, plural, one {# vote} other {# votes}}",
+    "publishedOnly": "No individual ballots were recorded for this category. Published winner: {winner} with {count} votes.",
+    "option": "Option",
+    "votes": "Votes",
+    "share": "Share",
+    "originalEmpty": "No votes are stored in the original awards tables.",
+    "originalNote": "These are the votes cast on the original awards ballot, before polls replaced it. They are shown exactly as stored.",
+    "totalVotes": "Total votes",
+    "totalVoters": "People who voted",
+    "bySection": "Votes per section",
+    "byCategory": "Votes per category and nominee",
+    "section": "Section",
+    "timeline": "Votes per day",
+    "day": "Day"
   }
 }

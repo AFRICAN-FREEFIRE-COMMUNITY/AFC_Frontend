@@ -56,6 +56,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { pollsApi, type AwardsEdition, type PollCard } from "@/lib/polls";
+import { AwardsMetrics } from "./_components/AwardsMetrics";
 
 export default function AdminPollsPage() {
   const t = useTranslations("adminPolls");
@@ -105,6 +106,12 @@ export default function AdminPollsPage() {
         <TabsList className="h-9 bg-muted">
           <TabsTrigger value="polls">{t("tabs.polls")}</TabsTrigger>
           {isAdmin && <TabsTrigger value="editions">{t("tabs.editions")}</TabsTrigger>}
+          {isAdmin && (
+            <TabsTrigger value="metrics" className="gap-2">
+              {t("tabs.metrics")}
+              <NewBadge since="2026-11-02" />
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="polls" className="mt-6 space-y-4">
@@ -120,6 +127,12 @@ export default function AdminPollsPage() {
               <CreateEditionDialog onCreated={load} />
             </div>
             <EditionTable editions={editions} emptyText={t("empty.editions")} onChanged={load} />
+          </TabsContent>
+        )}
+
+        {isAdmin && (
+          <TabsContent value="metrics" className="mt-6">
+            <AwardsMetrics editions={editions} />
           </TabsContent>
         )}
       </Tabs>

@@ -12,7 +12,8 @@
     "questions": "Questions",
     "audience": "Qui peut voter",
     "branching": "Branchements",
-    "results": "Résultats"
+    "results": "Résultats",
+    "metrics": "Métriques"
   },
   "empty": {
     "polls": "Aucun sondage pour l'instant. Créez le premier.",
@@ -219,5 +220,32 @@
       "captain_override": "fixé par le capitaine",
       "below_quorum": "quorum non atteint"
     }
+  },
+  "metrics": {
+    "intro": "Les chiffres détaillés de chaque saison des awards, y compris les saisons terminées. Rien ici ne dépend du fait que le vote soit encore ouvert.",
+    "seasonTab": "Bulletins de la saison",
+    "originalTab": "Bulletin d'origine 2025",
+    "pickSeason": "Saison des awards",
+    "polls": "Bulletins",
+    "questions": "Catégories",
+    "answers": "Réponses",
+    "noPolls": "Cette saison n'a pas encore de bulletin.",
+    "closed": "Clos",
+    "closedOn": "clos le",
+    "answersCount": "{count, plural, one {# réponse} other {# réponses}}",
+    "votesTotal": "{count, plural, one {# vote} other {# votes}}",
+    "publishedOnly": "Aucun bulletin individuel n''a été enregistré pour cette catégorie. Vainqueur publié : {winner} avec {count} votes.",
+    "option": "Option",
+    "votes": "Votes",
+    "share": "Part",
+    "originalEmpty": "Aucun vote n'est stocké dans les tables d'origine des awards.",
+    "originalNote": "Ce sont les votes exprimés sur le bulletin d'origine des awards, avant que les sondages ne le remplacent. Ils sont affichés tels qu'enregistrés.",
+    "totalVotes": "Total des votes",
+    "totalVoters": "Personnes ayant voté",
+    "bySection": "Votes par section",
+    "byCategory": "Votes par catégorie et nominé",
+    "section": "Section",
+    "timeline": "Votes par jour",
+    "day": "Jour"
   }
 }

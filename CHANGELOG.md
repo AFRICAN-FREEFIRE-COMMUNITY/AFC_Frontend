@@ -19,6 +19,13 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- Polls and awards, admin: a Metrics tab with the detailed numbers of every awards season, including past
+  ones (pick the season, see each ballot, category and nominee), plus the original 2025 ballot with votes per
+  section, category, nominee and day. Admins lost these numbers when polls replaced the old Votes page.
+
 ## v7.5.1 - 2026-11-01
 
 ### Fixed
