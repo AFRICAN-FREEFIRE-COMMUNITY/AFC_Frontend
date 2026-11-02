@@ -18,7 +18,7 @@
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 
 import { LocalTime } from "@/components/LocalTime";
@@ -26,7 +26,7 @@ import { NewBadge } from "@/components/NewBadge";
 
 import { useKol } from "./KolContext";
 import { KolIcon } from "./icons";
-import { Reveal, SplitTitle } from "./KolMotion";
+import { Reveal, SplitTitle, useReduceMotion } from "./KolMotion";
 import { KolTrophy } from "./KolTrophy";
 import { nomineePhoto, pad2, type KolAward, type Stage } from "./model";
 
@@ -75,7 +75,7 @@ function scrollToId(id: string, reduce: boolean | null) {
 export function KolLanding() {
   const t = useTranslations("awardsKol");
   const { model, slug } = useKol();
-  const reduce = useReducedMotion();
+  const reduce = useReduceMotion();
   // The accessible name of a title: the message with its <em> markers taken off (t.raw is unformatted).
   const plain = (key: Parameters<typeof t.raw>[0]) => String(t.raw(key)).replace(/<\/?em>/g, "");
   const { edition } = model.detail;
@@ -395,7 +395,7 @@ function AwardRow({ award, stage, editionSlug }: { award: KolAward; stage: Stage
 
 /** The 40 / 30 / 30 bar, drawn from the left once it is seen. */
 function Split() {
-  const reduce = useReducedMotion();
+  const reduce = useReduceMotion();
   const parts = [
     { cls: "a", label: "40%" },
     { cls: "b", label: "30%" },
@@ -424,7 +424,7 @@ function Split() {
 function Track({ count }: { count: number }) {
   const t = useTranslations("awardsKol");
   const plain = (key: Parameters<typeof t.raw>[0]) => String(t.raw(key)).replace(/<\/?em>/g, "");
-  const reduce = useReducedMotion();
+  const reduce = useReduceMotion();
   const wide = useMedia("(min-width: 901px)");
   const pinned = wide && !reduce;
   const section = useRef<HTMLElement>(null);

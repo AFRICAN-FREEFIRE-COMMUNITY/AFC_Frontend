@@ -10,12 +10,12 @@
  * page says the winner is revealed on the night. No vote count is drawn anywhere.
  */
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 
 import { useKol } from "./KolContext";
 import { KolIcon } from "./icons";
-import { SplitTitle } from "./KolMotion";
+import { SplitTitle, useReduceMotion } from "./KolMotion";
 import { nomineePhoto, pad2, type KolAward as Award, type KolNominee } from "./model";
 
 const rich = {
@@ -92,7 +92,7 @@ export function KolAward({ awardSlug }: { awardSlug: string }) {
 function NomineeCard({ award, nominee, index, canVote }: { award: Award; nominee: KolNominee; index: number; canVote: boolean }) {
   const t = useTranslations("awardsKol");
   const { slug, openSheet, model } = useKol();
-  const reduce = useReducedMotion();
+  const reduce = useReduceMotion();
   const photo = nomineePhoto(nominee);
   const picked = award.myPickId === nominee.option_id && model.stage !== "announced";
   const isWinner = award.winnerId === nominee.option_id;

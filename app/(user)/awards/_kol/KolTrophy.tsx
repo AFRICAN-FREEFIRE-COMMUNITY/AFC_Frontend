@@ -26,7 +26,9 @@
  * USED BY KolLanding (hero: intro + drag; trophy section: turned by scroll via the `angle` prop).
  */
 import { useEffect, useRef, useState } from "react";
-import { animate, useReducedMotion } from "framer-motion";
+import { animate } from "framer-motion";
+
+import { useReduceMotion } from "./KolMotion";
 
 const GLB_URL = "/kol/trophy.glb";
 const REST_ANGLE = 0.35;
@@ -58,7 +60,12 @@ export function KolTrophy({
   angle?: number;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useReduceMotion();
+  // The renderer is built once; whether to play the entrance is read when the model is ready, from the
+  // ref, so the switch from the server's `false` to a reduced-motion viewer's `true` after hydration
+  // does not tear the WebGL context down and build it again.
+  const reduceRef = useRef(reduce);
+  reduceRef.current = reduce;
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [ready, setReady] = useState(false);
@@ -166,7 +173,7 @@ export function KolTrophy({
           pivot.add(gltf.scene);
           isReady = true;
           size();
-          if (intro && !reduce) {
+          if (intro && !reduceRef.current) {
             st.y = -fitH * 0.5;
             st.rot = st.target = -Math.PI * 1.6;
             animate(st.y, 0, { duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.2, onUpdate: (v) => { st.y = v; kick(); } });
@@ -245,7 +252,7 @@ export function KolTrophy({
       disposed = true;
       cleanup();
     };
-  }, [intro, drag, reduce]);
+  }, [intro, drag]);
 
   // The section that turns the trophy with scroll hands its target in here.
   useEffect(() => {

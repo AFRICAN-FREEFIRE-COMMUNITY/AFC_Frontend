@@ -22,7 +22,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
@@ -36,6 +36,7 @@ import type { Verdict } from "@/lib/polls";
 
 import { useKol } from "./KolContext";
 import { KolIcon } from "./icons";
+import { useReduceMotion } from "./KolMotion";
 import { nomineePhoto } from "./model";
 
 type Step = "signin" | "uid" | "confirm" | "done" | "blocked";
@@ -47,7 +48,7 @@ export function KolVoteSheet() {
   const viewer = useViewer();
   const { user, token, refreshUser } = useAuth();
   const { openAuthModal } = useAuthModal();
-  const reduce = useReducedMotion();
+  const reduce = useReduceMotion();
 
   const [step, setStep] = useState<Step>("confirm");
   const [uid, setUid] = useState("");

@@ -10,8 +10,29 @@
  * Built on framer-motion (already in the bundle) instead of the mockup's GSAP, so the route adds no
  * animation library. Used by KolLanding, KolAward and KolNominee.
  */
-import { Children, cloneElement, isValidElement, type ReactElement, type ReactNode } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { Children, cloneElement, isValidElement, useSyncExternalStore, type ReactElement, type ReactNode } from "react";
+import { motion } from "framer-motion";
+
+const REDUCED = "(prefers-reduced-motion: reduce)";
+
+/**
+ * Whether the viewer asked for reduced motion. framer-motion's own useReducedMotion reads the media
+ * query on the first client render, which differs from the server render and makes React report a
+ * hydration mismatch (seen in the headless walk with reduced motion on). useSyncExternalStore with a
+ * server snapshot of `false` hydrates against the same markup the server sent and then switches, so a
+ * reduced-motion viewer gets the plain page right after hydration and never an error.
+ */
+export function useReduceMotion(): boolean {
+  return useSyncExternalStore(
+    (notify) => {
+      const mq = window.matchMedia(REDUCED);
+      mq.addEventListener("change", notify);
+      return () => mq.removeEventListener("change", notify);
+    },
+    () => window.matchMedia(REDUCED).matches,
+    () => false,
+  );
+}
 
 // A fixed spread instead of Math.random(): the server render and the browser must agree on every
 // style, or React reports a hydration mismatch on each letter of each title.
@@ -79,7 +100,7 @@ export function SplitTitle({
   delay?: number;
   style?: React.CSSProperties;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useReduceMotion();
   if (reduce) {
     return (
       <Tag className={className} style={style}>
@@ -131,7 +152,7 @@ export function Reveal({
   src?: string;
   alt?: string;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useReduceMotion();
   const target = { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0 };
   const Comp = (motion as unknown as Record<string, React.ElementType>)[as];
   const media = as === "img" ? { src, alt: alt ?? "" } : {};
