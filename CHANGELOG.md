@@ -19,6 +19,11 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.11.2 - 2026-11-02
+
+### Internal
+- KOL Awards preview (`/_kol_awards_preview.html`) renamed three awards at the owner's request: Next Rated is now Rising Star of the Year, Most Educative is now Educational Creator of the Year, Best Streamer is now Streamer of the Year. Same address.
+
 ## v7.11.1 - 2026-11-02
 
 ### Internal
