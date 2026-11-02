@@ -19,6 +19,11 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.11.1 - 2026-11-02
+
+### Internal
+- A hidden preview of the KOL Awards page design, for the Garena meeting: one standalone page at `/_kol_awards_preview.html` (the latest round of the mockup: winners page, hall of fame, WhatsApp check before voting, sample controls). It is not linked from any menu, carries `noindex`, opens signed out, and is replaced in place after each design round so the deck's link never changes.
+
 ## v7.11.0 - 2026-11-02
 
 ### Changed
