@@ -41,7 +41,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { countryName } from "@/lib/i18n/countryName";
 import { formatNumber } from "@/lib/i18n/number";
-import { pollsApi, type FlaggedBallot, type FlagsPage } from "@/lib/polls";
+import { pollsApi, VOTE_TRACKING_LIVE_SINCE, type FlaggedBallot, type FlagsPage } from "@/lib/polls";
 
 const STATES = ["to_review", "cleared", "removed", "all"] as const;
 type State = (typeof STATES)[number];
@@ -49,8 +49,6 @@ const PAGE_SIZE = 20;
 // Same bounds the server enforces (afc_polls/views.py REVIEW_REASON_MIN / MAX).
 const REASON_MIN = 5;
 const REASON_MAX = 1000;
-
-const TRACKING_LIVE_SINCE = "2026-11-02";
 
 export function VoteFlags({ pollSlug, summary }: { pollSlug: string; summary: any }) {
   const t = useTranslations("adminPolls");
@@ -117,7 +115,7 @@ export function VoteFlags({ pollSlug, summary }: { pollSlug: string; summary: an
     <section className="space-y-3">
       <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
         {t("flags.title")}
-        <NewBadge since={TRACKING_LIVE_SINCE} />
+        <NewBadge since={VOTE_TRACKING_LIVE_SINCE} />
       </h4>
       <p className="text-xs text-muted-foreground">{t("flags.intro")}</p>
       {summary && (

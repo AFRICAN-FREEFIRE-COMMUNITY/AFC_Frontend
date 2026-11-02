@@ -32,9 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { pollsApi } from "@/lib/polls";
-
-const TRACKING_LIVE_SINCE = "2026-11-02";
+import { pollsApi, VOTE_TRACKING_LIVE_SINCE } from "@/lib/polls";
 
 export function GarenaLiveLink({ editionSlug, initialToken }: { editionSlug: string; initialToken: string }) {
   const t = useTranslations("adminPolls");
@@ -76,7 +74,7 @@ export function GarenaLiveLink({ editionSlug, initialToken }: { editionSlug: str
       <CardContent className="space-y-3">
         <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
           {t("live.title")}
-          <NewBadge since={TRACKING_LIVE_SINCE} />
+          <NewBadge since={VOTE_TRACKING_LIVE_SINCE} />
         </h3>
         <p className="text-xs text-muted-foreground">{t("live.intro")}</p>
         {token ? (

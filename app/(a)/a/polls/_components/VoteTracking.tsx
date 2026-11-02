@@ -27,11 +27,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { TableCell } from "@/components/ui/table";
 import { countryName } from "@/lib/i18n/countryName";
 import { formatNumber } from "@/lib/i18n/number";
+import { VOTE_TRACKING_LIVE_SINCE } from "@/lib/polls";
 
 import { VoteFlags } from "./VoteFlags";
-
-/** The day the tracking went live; the NEW badges on these blocks expire five days after it. */
-export const TRACKING_LIVE_SINCE = "2026-11-02";
 
 type Bucket = { code?: string; country?: string; region?: string; votes: number };
 
@@ -76,7 +74,7 @@ export function PollTracking({ poll }: { poll: any }) {
     <div className="space-y-3">
       <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground">
         {t("tracking.title")}
-        <NewBadge since={TRACKING_LIVE_SINCE} />
+        <NewBadge since={VOTE_TRACKING_LIVE_SINCE} />
       </h4>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <TrackingTile label={t("tracking.started")} value={formatNumber(tracking.started)} />

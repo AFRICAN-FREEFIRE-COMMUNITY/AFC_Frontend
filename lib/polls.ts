@@ -284,6 +284,10 @@ export type PostedAnswer = {
   text?: string;
 };
 
+/** The day the vote tracking, the flag review and Garena's live link went live (inbox #453 #457). The NEW
+ *  badges on those blocks in /a/polls (VoteTracking, VoteFlags, GarenaLiveLink) expire five days after it. */
+export const VOTE_TRACKING_LIVE_SINCE = "2026-11-03";
+
 /** One flagged ballot as the review list draws it (afc_polls.views.admin_poll_flags). */
 export type FlaggedBallot = {
   response_id: number;
