@@ -23,6 +23,7 @@ workflow checks it again before it builds.
 
 ### Added
 - Leaderboard designs: three new columns you can place, style and save like the others, Knocks recorded, Sniper kills recorded and Head to head record. They read the kill events stored for each map, so they work with AFC Capture or with only a debugger file upload, and a team with nothing recorded shows a dash instead of a 0. Each wears a NEW pill in the field picker for 5 days.
+- Two new stream overlays for the kill data, found on each event's overlay page under "Kill data overlays": a Kill stats overlay (sniper kills recorded, team head to head, who killed and knocked whom, one board or all three in rotation) and a Player duel overlay (two players you pick: kills and knocks each way, and the latest events between them, with revived knocks marked). Both update on their own as Capture and the debugger upload send the maps, and stay blank until the event's kill stats Live overlays switch is on.
 
 ## v7.5.1 - 2026-11-01
 
