@@ -207,6 +207,10 @@ const FIELD_LABELS: Record<FieldType, string> = {
   knocked: "TIMES KNOCKED",
   grenades_used: "GRENADES THROWN",
   grenade_kills: "GRENADE KILLS",
+  // Kill-event columns (owner 2026-11-01, #421a).
+  knocks_recorded: "KNOCKS RECORDED",
+  sniper_kills: "SNIPER KILLS RECORDED",
+  h2h_record: "HEAD TO HEAD RECORD",
 };
 
 // Canonical display order for the palette chips. Rich LIVE-only stats trail the per-round stats so the
@@ -220,7 +224,15 @@ const FIELD_ORDER: FieldType[] = [
   "deaths", "knockdowns", "headshots", "most_used_weapon", "survival_time",
   "revives_received", "gloowall_used", "medkit_used",
   "knocked", "grenades_used", "grenade_kills",
+  "knocks_recorded", "sniper_kills", "h2h_record",
 ];
+
+// The three kill-event columns went live on this day; their palette chips wear a NEW pill for 5 days
+// (NewBadge removes it by itself). Owner 2026-11-01, #421a.
+const KILL_FIELD_NEW_SINCE = "2026-11-02";
+const KILL_FIELD_TYPES: ReadonlySet<FieldType> = new Set<FieldType>([
+  "knocks_recorded", "sniper_kills", "h2h_record",
+]);
 
 // Default x_pct per field type when first added to group 0 (group 1 offset by ~43).
 const DEFAULT_X: Record<FieldType, number> = {
@@ -237,6 +249,7 @@ const DEFAULT_X: Record<FieldType, number> = {
   deaths: 52.0, knockdowns: 55.0, headshots: 58.0, most_used_weapon: 62.0,
   survival_time: 66.0, revives_received: 60.0, gloowall_used: 64.0, medkit_used: 68.0,
   knocked: 56.0, grenades_used: 70.0, grenade_kills: 72.0,
+  knocks_recorded: 74.0, sniper_kills: 78.0, h2h_record: 82.0,
 };
 
 // Default text alignment when a field is first added (left for name/logo, center for numbers).
@@ -323,6 +336,10 @@ function mockCellValue(rankIndex: number, field: FieldType): string {
     case "knocked": return String(kp + 1);
     case "grenades_used": return String(1 + (rankIndex % 6));
     case "grenade_kills": return String(rankIndex % 2);
+    // Kill-event columns: representative mock values (the real ones come from the stored kill events).
+    case "knocks_recorded": return String(kp + 3);
+    case "sniper_kills": return String(rankIndex % 4);
+    case "h2h_record": return `${Math.max(0, 6 - (rankIndex % 7))}-${rankIndex % 2}-${rankIndex % 5}`;
     // Player-row columns (owner 2026-08-06). A TEAM standings row carries none of these, so the
     // leaderboard preview shows them blank - which is exactly what the live overlay does.
     case "player_name": return "";
@@ -2468,6 +2485,7 @@ export function DesignFieldsEditor({
                       }
                     >
                       <span className="font-medium">{fieldLabel(ft)}</span>
+                      {KILL_FIELD_TYPES.has(ft) && <NewBadge since={KILL_FIELD_NEW_SINCE} />}
                       {placed ? (
                         <button
                           type="button"
@@ -2952,6 +2970,7 @@ export function DesignFieldsEditor({
                                   <span className="font-medium">
                                     {fieldLabel(ft)}
                                   </span>
+                                  {KILL_FIELD_TYPES.has(ft) && <NewBadge since={KILL_FIELD_NEW_SINCE} />}
                                   {placed ? (
                                     <button
                                       type="button"
