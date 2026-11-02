@@ -94,6 +94,7 @@ export default function OrganizerEventOverlayStudioPage() {
       organizationId={organizationId}
       backHref="/organizer/overlays"
       leaderboardHref={slug ? `/organizer/events/${slug}/leaderboard` : null}
+      eventSlug={slug || null}
     />
   );
 }
