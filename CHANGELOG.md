@@ -19,6 +19,11 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.11.3 - 2026-11-02
+
+### Internal
+- KOL Awards preview (`/_kol_awards_preview.html`) carries the event day the owner set, 17 December 2026: the date line, the countdown labels after voting closes, and the closed-voting notices. Same address.
+
 ## v7.11.2 - 2026-11-02
 
 ### Internal
