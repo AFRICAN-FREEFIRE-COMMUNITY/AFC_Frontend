@@ -4553,9 +4553,9 @@ const AWARDS = [
   {slug:"best-voice-over", name:"Best Voice Over Creator", desc:"The voice carries the video: narration, character voices, dubs.", noms:["INVESTOR FF","JAY KID FF","PRESHONMIC","VIC VIX","DLSOM","NICOLEE","BAYMAX"]},
   {slug:"funniest", name:"Funniest Creator", desc:"Skits, reactions and comedy over gameplay.", noms:["VAPY","MIAOU","BAYMAX","ARMYKID","GARENASON"]},
   {slug:"best-editor", name:"Best Editor", desc:"Montages, transitions, timing to the beat: the edit is the craft.", noms:["BENDROMEO","RENTO","KOB","STEPHHATESPEOPLE","SPIKEY FF"]},
-  {slug:"next-rated", name:"Best Upcoming / Next Rated", desc:"The fastest risers of the year.", noms:["VAPY","JAYKID","JUSTDFLOW","RILEY IS VANITAS"]},
-  {slug:"most-educative", name:"Most Educative", desc:"Guides, settings and combos people save and come back to.", noms:["VIC VIX","TESTY FF"]},
-  {slug:"best-streamer", name:"Best Streamer", desc:"Live Free Fire on a steady schedule, with a chat that stays.", noms:["ARMYKID","JOKKIE","SUCCESS","NNAYIZOOM","RUDY"]}
+  {slug:"next-rated", name:"Rising Star of the Year", desc:"The fastest risers of the year.", noms:["VAPY","JAYKID","JUSTDFLOW","RILEY IS VANITAS"]},
+  {slug:"most-educative", name:"Educational Creator of the Year", desc:"Guides, settings and combos people save and come back to.", noms:["VIC VIX","TESTY FF"]},
+  {slug:"best-streamer", name:"Streamer of the Year", desc:"Live Free Fire on a steady schedule, with a chat that stays.", noms:["ARMYKID","JOKKIE","SUCCESS","NNAYIZOOM","RUDY"]}
 ];
 // sample winners (mockup only, no result exists yet): one per award, spread across the creators
 const WIN = {"best-voice-over":"VIC VIX", "funniest":"ARMYKID", "best-editor":"BENDROMEO", "next-rated":"VAPY", "most-educative":"TESTY FF", "best-streamer":"JOKKIE"};
@@ -4703,7 +4703,7 @@ function renderNom(slug, awardSlug){
       <div><p class="eyebrow" style="margin-bottom:10px">${won ? "Winner" : "Nominee"} film · 10 s</p><div class="film" id="film">
         ${film ? `<video playsinline preload="metadata" poster="${film.poster}" src="${film.src}"></video>
           <button class="play" aria-label="Play ${esc(n)}'s nominee film"><i><svg><use href="#i-play"/></svg></i></button>`
-               : `<div style="position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;background:var(--panel)"><p><b style="color:var(--fg);font-family:var(--f-sub);font-size:22px;letter-spacing:.05em;text-transform:uppercase">Film coming</b><br>Each nominee films ten seconds from our script. This sample has films for the four Best Streamer nominees with a photo on file.</p></div>`}
+               : `<div style="position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;background:var(--panel)"><p><b style="color:var(--fg);font-family:var(--f-sub);font-size:22px;letter-spacing:.05em;text-transform:uppercase">Film coming</b><br>Each nominee films ten seconds from our script. This sample has films for the four Streamer of the Year nominees with a photo on file.</p></div>`}
         </div>
         ${film ? `<p class="film-note">Sample film made from the creator's photo. In the awards, each nominee films their own ten seconds, landscape, from the official script.</p>` : ""}
       </div>
