@@ -34,7 +34,10 @@
     "medkit_used": "MEDKITS USADOS",
     "knocked": "VEZES DERRUBADO",
     "grenades_used": "GRANADAS LANÇADAS",
-    "grenade_kills": "ABATES COM GRANADA"
+    "grenade_kills": "ABATES COM GRANADA",
+    "knocks_recorded": "DERRUBADAS REGISTRADAS",
+    "sniper_kills": "ABATES DE SNIPER REGISTRADOS",
+    "h2h_record": "HISTÓRICO FRENTE A FRENTE"
   },
   "size": {
     "label": "Layout em edição:",

@@ -34,7 +34,10 @@
     "medkit_used": "MEDKIT USED",
     "knocked": "TIMES KNOCKED",
     "grenades_used": "GRENADES THROWN",
-    "grenade_kills": "GRENADE KILLS"
+    "grenade_kills": "GRENADE KILLS",
+    "knocks_recorded": "KNOCKS RECORDED",
+    "sniper_kills": "SNIPER KILLS RECORDED",
+    "h2h_record": "HEAD TO HEAD RECORD"
   },
   "size": {
     "label": "Editing layout:",
