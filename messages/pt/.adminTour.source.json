@@ -516,5 +516,7 @@
   "tour.help-center.views.title": "Guides or the full control list",
   "tour.help-center.views.description": "Guides walk a whole process end to end, such as running a tournament on the day. Every control is the dictionary: what one specific button does, who can press it, and whether it changes data.",
   "tour.help-center.guides.title": "Each guide links to the real screen",
-  "tour.help-center.guides.description": "Start here on a guide opens the screen the process begins on, and each guide has a slot ready for a video walkthrough to be added later."
+  "tour.help-center.guides.description": "Start here on a guide opens the screen the process begins on, and each guide has a slot ready for a video walkthrough to be added later.",
+  "tour.events-lb-leaderboards-edit.gameFiles.title": "Game files (Upload tab)",
+  "tour.events-lb-leaderboards-edit.gameFiles.description": "Drop every debugger file and result file of an evening at once. Each game is found, joined across client restarts, paired with its result file and matched to its map; check the suggestions, compare where the two files differ, then apply. Kills, knocks, deaths, revives and the kill feed are saved with the result."
 }
