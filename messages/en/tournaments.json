@@ -820,6 +820,7 @@
     "revealTitle": "You are in {group}",
     "revealBody": "Card {number}. Your team's group is set for this stage.",
     "revealDone": "Got it",
+    "skipReveal": "Skip the animation",
     "autoPlaced": "auto",
     "toastPickFailed": "Could not turn that card over.",
     "sealTitle": "Fair-draw seal",
