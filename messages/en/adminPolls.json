@@ -156,6 +156,7 @@
     "promptPlaceholder": "What are you asking?",
     "helpPlaceholder": "A smaller line under the question (optional)",
     "optionPlaceholder": "An option people can pick",
+    "optionImage": "Picture address (optional), shown on the awards pages",
     "locked": "Questions locked",
     "lockedHint": "People have already answered this poll, so its questions cannot change. Editing them would silently change what those people were asked."
   },

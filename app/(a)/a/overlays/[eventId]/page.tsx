@@ -65,6 +65,7 @@ export default function AdminEventOverlayStudioPage() {
       organizationId={orgId}
       backHref="/a/overlays"
       leaderboardHref={`/a/leaderboards/${eventSlug || eventId}/edit`}
+      eventSlug={eventSlug || null}
     />
   );
 }

@@ -396,6 +396,7 @@ function EditionForm({
   setForm: (next: Record<string, any>) => void;
 }) {
   const t = useTranslations("adminPolls");
+  const tk = useTranslations("awardsKol");
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
@@ -423,6 +424,20 @@ function EditionForm({
       <div className="space-y-1.5">
         <Label>{t("fields.tagline")}</Label>
         <Input value={form.tagline || ""} onChange={(e) => setForm({ ...form, tagline: e.target.value })} />
+      </div>
+      {/* How /awards/<slug> is drawn (AwardsEdition.theme). Detty Royale = the KOL Awards pages. */}
+      <div className="space-y-1.5">
+        <Label>{tk("admin.theme")}</Label>
+        <Select value={form.theme || "default"} onValueChange={(value) => setForm({ ...form, theme: value })}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">{tk("admin.themeDefault")}</SelectItem>
+            <SelectItem value="detty-royale">{tk("admin.themeDetty")}</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">{tk("admin.themeHelp")}</p>
       </div>
       {EDITION_DATES.map((field) => (
         <div key={field} className="space-y-1.5">

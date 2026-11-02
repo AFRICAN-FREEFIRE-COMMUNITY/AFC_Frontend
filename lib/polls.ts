@@ -93,9 +93,15 @@ export type PollOption = {
   order: number;
   /** A NAME, never machine-translated. "SCARLETT" in French is still "SCARLETT". */
   label: string;
+  /** The nominee's address segment: /awards/<edition>/<award>/<nominee>. */
+  slug?: string;
   description?: string;
   image_url?: string;
   video_url?: string;
+  /** The nominee's own uploaded film (landscape, about ten seconds), "" when there is none. */
+  film_url?: string;
+  /** The winner film (shown on the winner pages), "" when none; the pages fall back to `film_url`. */
+  winner_film_url?: string;
   linked_type?: "none" | "user" | "team";
   linked_id?: number | null;
   linked?: LinkedEntity | null;
@@ -241,6 +247,8 @@ export type AwardsEdition = {
   year: number | null;
   tagline: string;
   hero_image: string;
+  /** Which drawing /awards/<slug> uses: the site's own, or Garena's Detty Royale KOL Awards. */
+  theme?: "default" | "detty-royale";
   nominations_close: string | null;
   voting_opens_at: string | null;
   voting_closes_at: string | null;
@@ -259,6 +267,8 @@ export type EditionDetail = {
     results_visible: boolean;
     eligibility: Verdict;
     answered_question_ids: number[];
+    /** {question_id: [option_id]}: which nominee the caller picked in each award. {} signed out. */
+    your_answers?: Record<string, number[]>;
     questions: PollQuestion[];
   })[];
   totals: { questions: number; answered: number | null };
@@ -279,8 +289,10 @@ export const pollsApi = {
   listPolls: (params?: { kind?: string; edition?: string; state?: string; limit?: number }) =>
     aGet<{ results: PollCard[]; has_more: boolean; total_count: number }>("", params),
   getPoll: (slug: string) => aGet<PollDetail>(`${slug}/`),
-  submitResponse: (slug: string, answers: PostedAnswer[]) =>
-    aPost<{ message: string; response_id: number }>(`${slug}/responses/`, { answers }),
+  /** `merge` keeps the answers to every question NOT in `answers` (one page per award, themed
+   *  editions): a vote on one award must not erase the picks made on the others. */
+  submitResponse: (slug: string, answers: PostedAnswer[], merge = false) =>
+    aPost<{ message: string; response_id: number }>(`${slug}/responses/`, merge ? { answers, merge: true } : { answers }),
   /** The captain sets the team's answer directly. Only reachable when the poll's
    *  `captain_override_allowed` is on, which is OFF by default. */
   setTeamAnswer: (slug: string, question_id: number, option_id: number) =>
@@ -332,4 +344,20 @@ export const pollsApi = {
   adminEditionMetrics: (slug: string) => aGet<any>(`admin/editions/${slug}/metrics/`),
   /** The original 2025 ballot, read from the original awards tables (AFC admins only). */
   adminLegacyBallotMetrics: () => aGet<any>("admin/legacy-ballot-metrics/"),
+
+  /** Set a nominee's film (MP4 or WebM, 25 MB at most). The file goes up as multipart, so this
+   *  one does not use the JSON helpers. Answers the absolute film URL. */
+  adminSetOptionFilm: async (pollSlug: string, optionId: number, file: File, kind: "film" | "winner-film" = "film") => {
+    const body = new FormData();
+    body.append("film", file);
+    return (
+      await axios.post<{ film_url?: string; winner_film_url?: string }>(
+        url(`admin/polls/${pollSlug}/options/${optionId}/${kind}/`),
+        body,
+        { headers: authHeaders() },
+      )
+    ).data;
+  },
+  adminRemoveOptionFilm: (pollSlug: string, optionId: number, kind: "film" | "winner-film" = "film") =>
+    aDelete<{ film_url?: string; winner_film_url?: string }>(`admin/polls/${pollSlug}/options/${optionId}/${kind}/`),
 };

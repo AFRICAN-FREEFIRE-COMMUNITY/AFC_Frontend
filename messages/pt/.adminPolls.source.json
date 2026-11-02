@@ -197,5 +197,6 @@
   "metrics.byCategory": "Votes per category and nominee",
   "metrics.section": "Section",
   "metrics.timeline": "Votes per day",
-  "metrics.day": "Day"
+  "metrics.day": "Day",
+  "questions.optionImage": "Picture address (optional), shown on the awards pages"
 }

@@ -156,6 +156,7 @@
     "promptPlaceholder": "O que você está perguntando?",
     "helpPlaceholder": "Uma linha menor embaixo da pergunta (opcional)",
     "optionPlaceholder": "Uma opção para escolher",
+    "optionImage": "Endereço da imagem (opcional), mostrado nas páginas dos prémios",
     "locked": "Perguntas travadas",
     "lockedHint": "Já responderam esta enquete, então as perguntas não podem mudar. Editá-las mudaria em silêncio o que foi perguntado a essas pessoas."
   },
