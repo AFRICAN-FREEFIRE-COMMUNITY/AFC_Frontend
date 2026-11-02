@@ -248,5 +248,123 @@
     "section": "Section",
     "timeline": "Votes per day",
     "day": "Day"
+  },
+  "tracking": {
+    "title": "Where and how people voted",
+    "started": "Ballots started",
+    "finished": "Ballots finished",
+    "removed": "Removed after review",
+    "toReview": "Flags to review",
+    "devices": "Device",
+    "device": {
+      "phone": "Phone",
+      "tablet": "Tablet",
+      "computer": "Computer",
+      "unknown": "Unknown"
+    },
+    "accountAge": "Account age when voting",
+    "age": {
+      "0": "Under 1 day",
+      "1": "1 to 2 days",
+      "3": "3 to 6 days",
+      "7": "7 to 29 days",
+      "30": "30 to 364 days",
+      "365": "A year or more",
+      "unknown": "Unknown"
+    },
+    "awardsPerBallot": "Awards filled per ballot",
+    "awardsCount": "{count, plural, one {# award} other {# awards}}",
+    "none": "Nothing yet",
+    "unknown": "Unknown",
+    "privacy": "Places come from the voter's connection at the moment they voted. The address itself is never stored.",
+    "attribution": "Location data: DB-IP",
+    "col": {
+      "topCountry": "Top country",
+      "topRegion": "Top region",
+      "switches": "Switched away / to",
+      "viaLink": "Came via their link"
+    },
+    "viaLinkValue": "{ballots} came, {votes} voted for them",
+    "details": "Details",
+    "hideDetails": "Hide details",
+    "profileCountry": "Profile country",
+    "voteCountry": "Voted from (country)",
+    "voteRegion": "Voted from (region)",
+    "perDay": "Votes per day",
+    "perHour": "Last 48 hours, per hour"
+  },
+  "flags": {
+    "title": "Safety flags",
+    "intro": "A flag is a reason to look, not proof. Review each one: mark it fine, or remove the ballot from the count with a written reason. Every decision is kept.",
+    "state": {
+      "to_review": "To review",
+      "cleared": "Looks fine",
+      "removed": "Removed",
+      "all": "All"
+    },
+    "empty": "No ballots with this status.",
+    "name": {
+      "country_mismatch": "Profile country differs from where they voted",
+      "shared_connection": "{count} or more ballots from one connection",
+      "shared_device": "{count} or more ballots from one browser",
+      "new_account": "Account under {count, plural, one {# day} other {# days}} old",
+      "failed_checks": "Failed an eligibility or UID check"
+    },
+    "anonymous": "Anonymous ballot {id}",
+    "picks": "Picks",
+    "history": "History",
+    "detail": {
+      "from": "Voted from {place}",
+      "profile": "Profile country: {country}",
+      "connection": "{count, plural, one {# ballot} other {# ballots}} on this connection",
+      "device": "{count, plural, one {# ballot} other {# ballots}} from this browser",
+      "age": "Account {count, plural, one {# day} other {# days}} old",
+      "failed": "{count, plural, one {# failed check} other {# failed checks}}"
+    },
+    "log": {
+      "clear": "{who} marked it fine",
+      "remove": "{who} removed it: {reason}",
+      "restore": "{who} put it back in the count"
+    },
+    "looksFine": "Looks fine",
+    "remove": "Remove from count",
+    "restore": "Put back in count",
+    "removeTitle": "Remove this ballot from the count?",
+    "removeBody": "It stops counting in every award on this ballot, and this voter cannot vote again on this poll. Write why: the reason is kept with your name.",
+    "reasonLabel": "Reason",
+    "reasonPlaceholder": "For example: same browser as three other accounts made the same day",
+    "reasonTooShort": "Write at least 5 characters.",
+    "cancel": "Cancel",
+    "confirmRemove": "Remove",
+    "done": {
+      "clear": "Marked as fine.",
+      "remove": "Removed from the count.",
+      "restore": "Back in the count."
+    },
+    "failed": "That did not work. Try again.",
+    "loadMore": "Show more"
+  },
+  "live": {
+    "title": "Garena live link",
+    "intro": "A private page with the live votes per nominee, with the countries and regions they came from, and no voter names. Anyone with the link can open it without signing in, so share it only with Garena.",
+    "off": "The link is off.",
+    "create": "Create the link",
+    "copy": "Copy link",
+    "copied": "Link copied.",
+    "open": "Open",
+    "replace": "Replace the link",
+    "turnOff": "Turn off",
+    "replaceTitle": "Replace the link?",
+    "replaceBody": "The current link stops working at once. Send Garena the new one.",
+    "offTitle": "Turn the link off?",
+    "offBody": "The page stops opening for anyone who has the link.",
+    "cancel": "Cancel",
+    "confirm": "Continue",
+    "done": {
+      "create": "Link created.",
+      "replace": "Link replaced. The old one no longer works.",
+      "off": "Link turned off."
+    },
+    "failed": "That did not work. Try again."
   }
 }

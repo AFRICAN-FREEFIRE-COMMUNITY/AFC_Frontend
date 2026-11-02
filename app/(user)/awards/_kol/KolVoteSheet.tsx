@@ -32,7 +32,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { useViewer } from "@/lib/gating";
 import { uidTakenMessage } from "@/lib/uidTaken";
-import type { Verdict } from "@/lib/polls";
+import { pollsApi, type Verdict } from "@/lib/polls";
 
 import { useKol } from "./KolContext";
 import { KolIcon } from "./icons";
@@ -125,6 +125,9 @@ export function KolVoteSheet() {
     } catch (err: unknown) {
       const data = (err as { response?: { data?: { message?: string; code?: string; taken_by?: string; taken_by_page?: string } } })?.response?.data;
       setUidErr(uidTakenMessage(data, tc) || data?.message || t("sheet.uid.errSave"));
+      // A failed UID link is one of the vote safety signals (inbox #453, afc_polls.vote_tracking).
+      // It can only add a flag to this voter's own ballot, so a lost call costs nothing.
+      if (award) pollsApi.sheetOpened(award.pollSlug, "uid").catch(() => undefined);
     } finally {
       setBusy(false);
     }

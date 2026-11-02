@@ -248,5 +248,123 @@
     "section": "Section",
     "timeline": "Votes par jour",
     "day": "Jour"
+  },
+  "tracking": {
+    "title": "Où et comment les gens ont voté",
+    "started": "Bulletins commencés",
+    "finished": "Bulletins terminés",
+    "removed": "Retirés après examen",
+    "toReview": "Signalements à examiner",
+    "devices": "Appareil",
+    "device": {
+      "phone": "Téléphone",
+      "tablet": "Tablette",
+      "computer": "Ordinateur",
+      "unknown": "Inconnu"
+    },
+    "accountAge": "Âge du compte au moment du vote",
+    "age": {
+      "0": "Moins d'un jour",
+      "1": "1 à 2 jours",
+      "3": "3 à 6 jours",
+      "7": "7 à 29 jours",
+      "30": "30 à 364 jours",
+      "365": "Un an ou plus",
+      "unknown": "Inconnu"
+    },
+    "awardsPerBallot": "Prix remplis par bulletin",
+    "awardsCount": "{count, plural, one {# prix} other {# prix}}",
+    "none": "Rien pour l'instant",
+    "unknown": "Inconnu",
+    "privacy": "Les lieux viennent de la connexion du votant au moment du vote. L'adresse elle-même n'est jamais enregistrée.",
+    "attribution": "Données de localisation : DB-IP",
+    "col": {
+      "topCountry": "Premier pays",
+      "topRegion": "Première région",
+      "switches": "Changements depuis / vers",
+      "viaLink": "Venus par son lien"
+    },
+    "viaLinkValue": "{ballots} venus, {votes} ont voté pour lui",
+    "details": "Détails",
+    "hideDetails": "Masquer les détails",
+    "profileCountry": "Pays du profil",
+    "voteCountry": "Voté depuis (pays)",
+    "voteRegion": "Voté depuis (région)",
+    "perDay": "Votes par jour",
+    "perHour": "48 dernières heures, par heure"
+  },
+  "flags": {
+    "title": "Signalements de sécurité",
+    "intro": "Un signalement est une raison de regarder, pas une preuve. Examinez chacun : marquez-le comme correct, ou retirez le bulletin du décompte avec une raison écrite. Chaque décision est conservée.",
+    "state": {
+      "to_review": "À examiner",
+      "cleared": "Correct",
+      "removed": "Retirés",
+      "all": "Tous"
+    },
+    "empty": "Aucun bulletin avec ce statut.",
+    "name": {
+      "country_mismatch": "Le pays du profil diffère du lieu du vote",
+      "shared_connection": "{count} bulletins ou plus depuis une même connexion",
+      "shared_device": "{count} bulletins ou plus depuis un même navigateur",
+      "new_account": "Compte de moins de {count, plural, one {# jour} other {# jours}}",
+      "failed_checks": "A échoué à une vérification d'éligibilité ou d'UID"
+    },
+    "anonymous": "Bulletin anonyme {id}",
+    "picks": "Choix",
+    "history": "Historique",
+    "detail": {
+      "from": "A voté depuis {place}",
+      "profile": "Pays du profil : {country}",
+      "connection": "{count, plural, one {# bulletin} other {# bulletins}} sur cette connexion",
+      "device": "{count, plural, one {# bulletin} other {# bulletins}} depuis ce navigateur",
+      "age": "Compte créé il y a {count, plural, one {# jour} other {# jours}}",
+      "failed": "{count, plural, one {# vérification échouée} other {# vérifications échouées}}"
+    },
+    "log": {
+      "clear": "{who} l'a marqué comme correct",
+      "remove": "{who} l'a retiré : {reason}",
+      "restore": "{who} l'a remis dans le décompte"
+    },
+    "looksFine": "C'est correct",
+    "remove": "Retirer du décompte",
+    "restore": "Remettre dans le décompte",
+    "removeTitle": "Retirer ce bulletin du décompte ?",
+    "removeBody": "Il ne compte plus dans aucun prix de ce bulletin, et ce votant ne peut plus voter dans ce scrutin. Écrivez pourquoi : la raison est conservée avec votre nom.",
+    "reasonLabel": "Raison",
+    "reasonPlaceholder": "Par exemple : même navigateur que trois autres comptes créés le même jour",
+    "reasonTooShort": "Écrivez au moins 5 caractères.",
+    "cancel": "Annuler",
+    "confirmRemove": "Retirer",
+    "done": {
+      "clear": "Marqué comme correct.",
+      "remove": "Retiré du décompte.",
+      "restore": "De retour dans le décompte."
+    },
+    "failed": "Cela n'a pas fonctionné. Réessayez.",
+    "loadMore": "Afficher plus"
+  },
+  "live": {
+    "title": "Lien en direct pour Garena",
+    "intro": "Une page privée avec les votes en direct par nommé, les pays et régions d'où ils viennent, et aucun nom de votant. Toute personne qui a le lien peut l'ouvrir sans se connecter : partagez-le seulement avec Garena.",
+    "off": "Le lien est désactivé.",
+    "create": "Créer le lien",
+    "copy": "Copier le lien",
+    "copied": "Lien copié.",
+    "open": "Ouvrir",
+    "replace": "Remplacer le lien",
+    "turnOff": "Désactiver",
+    "replaceTitle": "Remplacer le lien ?",
+    "replaceBody": "Le lien actuel cesse de fonctionner immédiatement. Envoyez le nouveau à Garena.",
+    "offTitle": "Désactiver le lien ?",
+    "offBody": "La page ne s'ouvre plus pour personne, même avec le lien.",
+    "cancel": "Annuler",
+    "confirm": "Continuer",
+    "done": {
+      "create": "Lien créé.",
+      "replace": "Lien remplacé. L'ancien ne fonctionne plus.",
+      "off": "Lien désactivé."
+    },
+    "failed": "Cela n'a pas fonctionné. Réessayez."
   }
 }

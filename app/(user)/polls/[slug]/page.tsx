@@ -49,6 +49,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { pollsApi, type PollDetail, type PostedAnswer } from "@/lib/polls";
+import { voteDeviceKey } from "@/lib/voteDevice";
 import { visibleQuestionIds } from "@/lib/pollBranching";
 
 import { QuestionCard } from "./_components/QuestionCard";
@@ -177,7 +178,8 @@ export default function PollDetailPage() {
 
     setSubmitting(true);
     try {
-      await pollsApi.submitResponse(slug, answers);
+      // The device key feeds the vote safety flags (inbox #453, lib/voteDevice.ts).
+      await pollsApi.submitResponse(slug, answers, false, { device_key: voteDeviceKey() });
       toast.success(t("ballot.saved"));
       setEditing(false);
       await load();

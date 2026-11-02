@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-18",
+  "updated": "2026-11-02",
   "rules": {
     "R55": {
       "high": 0,
@@ -153,15 +153,15 @@
     },
     "R80": {
       "high": 0,
-      "medium": 0,
+      "medium": 1,
       "since": "2026-09-18",
-      "lastMoved": "2026-09-18"
+      "lastMoved": "2026-11-02"
     },
     "R81": {
       "high": 0,
-      "medium": 1,
+      "medium": 0,
       "since": "2026-09-18",
-      "lastMoved": "2026-09-18"
+      "lastMoved": "2026-11-02"
     },
     "R82": {
       "high": 0,
@@ -192,6 +192,18 @@
       "medium": 0,
       "since": "2026-09-18",
       "lastMoved": "2026-09-18"
+    },
+    "R87": {
+      "high": 0,
+      "medium": 0,
+      "since": "2026-11-02",
+      "lastMoved": "2026-11-02"
+    },
+    "R88": {
+      "high": 0,
+      "medium": 0,
+      "since": "2026-11-02",
+      "lastMoved": "2026-11-02"
     }
   }
 }

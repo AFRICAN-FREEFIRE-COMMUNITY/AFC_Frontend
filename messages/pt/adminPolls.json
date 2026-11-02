@@ -248,5 +248,123 @@
     "section": "Secção",
     "timeline": "Votos por dia",
     "day": "Dia"
+  },
+  "tracking": {
+    "title": "Onde e como as pessoas votaram",
+    "started": "Boletins começados",
+    "finished": "Boletins concluídos",
+    "removed": "Retirados após revisão",
+    "toReview": "Alertas por rever",
+    "devices": "Dispositivo",
+    "device": {
+      "phone": "Telemóvel",
+      "tablet": "Tablet",
+      "computer": "Computador",
+      "unknown": "Desconhecido"
+    },
+    "accountAge": "Idade da conta ao votar",
+    "age": {
+      "0": "Menos de 1 dia",
+      "1": "1 a 2 dias",
+      "3": "3 a 6 dias",
+      "7": "7 a 29 dias",
+      "30": "30 a 364 dias",
+      "365": "Um ano ou mais",
+      "unknown": "Desconhecido"
+    },
+    "awardsPerBallot": "Prémios preenchidos por boletim",
+    "awardsCount": "{count, plural, one {# prémio} other {# prémios}}",
+    "none": "Ainda nada",
+    "unknown": "Desconhecido",
+    "privacy": "Os locais vêm da ligação do votante no momento do voto. O endereço em si nunca é guardado.",
+    "attribution": "Dados de localização: DB-IP",
+    "col": {
+      "topCountry": "País principal",
+      "topRegion": "Região principal",
+      "switches": "Trocas de / para",
+      "viaLink": "Vieram pelo seu link"
+    },
+    "viaLinkValue": "{ballots} vieram, {votes} votaram nele",
+    "details": "Detalhes",
+    "hideDetails": "Esconder detalhes",
+    "profileCountry": "País do perfil",
+    "voteCountry": "Votou de (país)",
+    "voteRegion": "Votou de (região)",
+    "perDay": "Votos por dia",
+    "perHour": "Últimas 48 horas, por hora"
+  },
+  "flags": {
+    "title": "Alertas de segurança",
+    "intro": "Um alerta é um motivo para olhar, não uma prova. Reveja cada um: marque como correto, ou retire o boletim da contagem com um motivo escrito. Cada decisão fica guardada.",
+    "state": {
+      "to_review": "Por rever",
+      "cleared": "Correto",
+      "removed": "Retirados",
+      "all": "Todos"
+    },
+    "empty": "Nenhum boletim com este estado.",
+    "name": {
+      "country_mismatch": "O país do perfil é diferente do local do voto",
+      "shared_connection": "{count} ou mais boletins da mesma ligação",
+      "shared_device": "{count} ou mais boletins do mesmo navegador",
+      "new_account": "Conta com menos de {count, plural, one {# dia} other {# dias}}",
+      "failed_checks": "Falhou uma verificação de elegibilidade ou de UID"
+    },
+    "anonymous": "Boletim anónimo {id}",
+    "picks": "Escolhas",
+    "history": "Histórico",
+    "detail": {
+      "from": "Votou de {place}",
+      "profile": "País do perfil: {country}",
+      "connection": "{count, plural, one {# boletim} other {# boletins}} nesta ligação",
+      "device": "{count, plural, one {# boletim} other {# boletins}} deste navegador",
+      "age": "Conta com {count, plural, one {# dia} other {# dias}}",
+      "failed": "{count, plural, one {# verificação falhada} other {# verificações falhadas}}"
+    },
+    "log": {
+      "clear": "{who} marcou como correto",
+      "remove": "{who} retirou: {reason}",
+      "restore": "{who} voltou a contá-lo"
+    },
+    "looksFine": "Está correto",
+    "remove": "Retirar da contagem",
+    "restore": "Voltar a contar",
+    "removeTitle": "Retirar este boletim da contagem?",
+    "removeBody": "Deixa de contar em todos os prémios deste boletim, e este votante não pode votar de novo nesta votação. Escreva porquê: o motivo fica guardado com o seu nome.",
+    "reasonLabel": "Motivo",
+    "reasonPlaceholder": "Por exemplo: o mesmo navegador que outras três contas criadas no mesmo dia",
+    "reasonTooShort": "Escreva pelo menos 5 caracteres.",
+    "cancel": "Cancelar",
+    "confirmRemove": "Retirar",
+    "done": {
+      "clear": "Marcado como correto.",
+      "remove": "Retirado da contagem.",
+      "restore": "De volta à contagem."
+    },
+    "failed": "Não funcionou. Tente novamente.",
+    "loadMore": "Mostrar mais"
+  },
+  "live": {
+    "title": "Link em direto para a Garena",
+    "intro": "Uma página privada com os votos em direto por nomeado, os países e regiões de onde vêm, e nenhum nome de votante. Quem tiver o link pode abri-lo sem iniciar sessão, por isso partilhe-o só com a Garena.",
+    "off": "O link está desligado.",
+    "create": "Criar o link",
+    "copy": "Copiar link",
+    "copied": "Link copiado.",
+    "open": "Abrir",
+    "replace": "Substituir o link",
+    "turnOff": "Desligar",
+    "replaceTitle": "Substituir o link?",
+    "replaceBody": "O link atual deixa de funcionar de imediato. Envie o novo à Garena.",
+    "offTitle": "Desligar o link?",
+    "offBody": "A página deixa de abrir para quem tiver o link.",
+    "cancel": "Cancelar",
+    "confirm": "Continuar",
+    "done": {
+      "create": "Link criado.",
+      "replace": "Link substituído. O antigo já não funciona.",
+      "off": "Link desligado."
+    },
+    "failed": "Não funcionou. Tente novamente."
   }
 }

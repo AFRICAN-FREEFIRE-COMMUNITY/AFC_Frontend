@@ -284,15 +284,91 @@ export type PostedAnswer = {
   text?: string;
 };
 
+/** One flagged ballot as the review list draws it (afc_polls.views.admin_poll_flags). */
+export type FlaggedBallot = {
+  response_id: number;
+  /** Username on a named poll, null on an anonymous one. */
+  voter: string | null;
+  flags: string[];
+  details: {
+    profile_country: string;
+    ip_country: string;
+    ip_region: string;
+    connection_ballots: number;
+    device_ballots: number;
+    account_age_days: number | null;
+    failed_checks: number;
+  };
+  picks: { award: string; nominee: string }[];
+  submitted_at: string | null;
+  review_state: "" | "cleared" | "removed";
+  review_reason: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  log: { action: string; reason: string; reviewed_by: string | null; at: string }[];
+};
+
+export type FlagsPage = {
+  thresholds: { shared_connection: number; shared_device: number; new_account_days: number };
+  results: FlaggedBallot[];
+  has_more: boolean;
+  next_offset: number;
+  total_count: number;
+};
+
+/** A country or region bucket on Garena's page; `other` folds everything under five votes. */
+export type LiveBucket = { code?: string; country?: string; region?: string; votes: number; other?: boolean };
+
+/** Garena's live view (afc_polls.views.live_view). Counts only: no voter data, no flags. */
+export type LiveView = {
+  edition: { title: string; phase: string; voting_opens_at: string | null; voting_closes_at: string | null };
+  updated_at: string;
+  polls: {
+    title: string;
+    ballots: number;
+    questions: {
+      prompt: string;
+      total_votes: number;
+      options: {
+        label: string;
+        votes: number;
+        percent: number;
+        countries: LiveBucket[];
+        regions: LiveBucket[];
+        by_day: { date: string; votes: number }[];
+      }[];
+    }[];
+  }[];
+};
+
 export const pollsApi = {
   // ── public ──
   listPolls: (params?: { kind?: string; edition?: string; state?: string; limit?: number }) =>
     aGet<{ results: PollCard[]; has_more: boolean; total_count: number }>("", params),
   getPoll: (slug: string) => aGet<PollDetail>(`${slug}/`),
   /** `merge` keeps the answers to every question NOT in `answers` (one page per award, themed
-   *  editions): a vote on one award must not erase the picks made on the others. */
-  submitResponse: (slug: string, answers: PostedAnswer[], merge = false) =>
-    aPost<{ message: string; response_id: number }>(`${slug}/responses/`, merge ? { answers, merge: true } : { answers }),
+   *  editions): a vote on one award must not erase the picks made on the others. `tracking` feeds
+   *  the awards Metrics tab (inbox #453): the browser's device key (lib/voteDevice.ts) and the
+   *  nominee whose page the visit started on. The server stores neither as sent (see
+   *  afc_polls/vote_tracking.py). */
+  submitResponse: (
+    slug: string,
+    answers: PostedAnswer[],
+    merge = false,
+    tracking?: { device_key?: string; ref_option_id?: number | null },
+  ) =>
+    aPost<{ message: string; response_id: number }>(`${slug}/responses/`, {
+      answers,
+      ...(merge ? { merge: true } : {}),
+      ...(tracking?.device_key ? { device_key: tracking.device_key } : {}),
+      ...(tracking?.ref_option_id ? { ref_option_id: tracking.ref_option_id } : {}),
+    }),
+  /** A started ballot: the vote sheet opened (POST polls/<slug>/sheet-opened/, signed in only).
+   *  `failedCheck: "uid"` when linking a UID failed in the sheet. Fire and forget at the call site. */
+  sheetOpened: (slug: string, failedCheck?: "uid") =>
+    aPost<{ recorded: boolean }>(`${slug}/sheet-opened/`, failedCheck ? { failed_check: failedCheck } : {}),
+  /** Garena's live view of an edition by its private link (GET polls/live/<token>/, no sign-in). */
+  liveView: (token: string) => aGet<LiveView>(`live/${encodeURIComponent(token)}/`),
   /** The captain sets the team's answer directly. Only reachable when the poll's
    *  `captain_override_allowed` is on, which is OFF by default. */
   setTeamAnswer: (slug: string, question_id: number, option_id: number) =>
@@ -344,6 +420,16 @@ export const pollsApi = {
   adminEditionMetrics: (slug: string) => aGet<any>(`admin/editions/${slug}/metrics/`),
   /** The original 2025 ballot, read from the original awards tables (AFC admins only). */
   adminLegacyBallotMetrics: () => aGet<any>("admin/legacy-ballot-metrics/"),
+  /** Flagged ballots of one poll for review (inbox #453), paginated. */
+  adminPollFlags: (slug: string, params?: { state?: string; limit?: number; offset?: number }) =>
+    aGet<FlagsPage>(`admin/polls/${slug}/flags/`, params),
+  /** Decide on one flagged ballot: clear, remove (reason required) or restore. */
+  adminReviewResponse: (slug: string, responseId: number, body: { action: "clear" | "remove" | "restore"; reason?: string }) =>
+    aPost<{ response_id: number; review_state: string }>(`admin/polls/${slug}/responses/${responseId}/review/`, body),
+  /** Create or replace Garena's live link for an edition; the old address stops at once. */
+  adminCreateLiveLink: (slug: string) => aPost<{ live_view_token: string }>(`admin/editions/${slug}/live-link/`),
+  /** Turn Garena's live link off. */
+  adminTurnOffLiveLink: (slug: string) => aDelete<{ live_view_token: string }>(`admin/editions/${slug}/live-link/`),
 
   /** Set a nominee's film (MP4 or WebM, 25 MB at most). The file goes up as multipart, so this
    *  one does not use the JSON helpers. Answers the absolute film URL. */

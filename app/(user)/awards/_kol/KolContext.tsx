@@ -17,6 +17,14 @@
  *   eligibility, one option per award); the sheet only explains. A 403 comes back with the full
  *   eligibility verdict, which the sheet shows instead of a generic error.
  *
+ * VOTE TRACKING (inbox #453, owner 2 Nov 2026)
+ *   - castVote also sends this browser's device key (lib/voteDevice.ts) and the nominee whose page
+ *     this visit STARTED on (first touch per tab, kept in sessionStorage per edition): that is
+ *     "which nominee's link brought the voter" on the awards Metrics tab.
+ *   - opening the sheet while signed in reports a started ballot (POST polls/<poll>/sheet-opened/),
+ *     once per poll per page, so the Metrics tab can say started vs finished.
+ *   The server stores neither the device key nor the IP as sent (afc_polls/vote_tracking.py).
+ *
  * CONSUMED BY
  *   KolEdition (mounts the provider), KolLanding, KolAward, KolNominee, KolVoteSheet.
  */
@@ -24,8 +32,38 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 
 import { useViewer } from "@/lib/gating";
 import { pollsApi, type EditionDetail, type Verdict } from "@/lib/polls";
+import { voteDeviceKey } from "@/lib/voteDevice";
 
+import type { KolView } from "./KolEdition";
 import { buildModel, type KolAward, type KolModel, type KolNominee } from "./model";
+
+/** sessionStorage key of the page this tab's visit to an edition started on (first touch). */
+const entryKey = (edition: string) => `kol_entry:${edition}`;
+
+/** Remember the first KOL page of this visit; later pages never overwrite it. Storage may throw. */
+function noteEntry(edition: string, view: KolView | undefined) {
+  if (!view) return;
+  try {
+    if (window.sessionStorage.getItem(entryKey(edition)) !== null) return;
+    const value = view.kind === "nominee" ? `${view.award}/${view.nominee}` : "";
+    window.sessionStorage.setItem(entryKey(edition), value);
+  } catch {
+    // No storage: the vote simply carries no referring nominee.
+  }
+}
+
+/** The option id of the nominee this visit started on, if it is in `award`'s poll; else null. */
+function entryOptionId(edition: string, model: KolModel, award: KolAward): number | null {
+  try {
+    const value = window.sessionStorage.getItem(entryKey(edition)) || "";
+    const [awardSlug, nomineeSlug] = value.split("/");
+    const entryAward = model.awards.find((a) => a.slug === awardSlug);
+    if (!entryAward || entryAward.pollSlug !== award.pollSlug) return null;
+    return entryAward.nominees.find((n) => n.slug === nomineeSlug)?.option_id ?? null;
+  } catch {
+    return null;
+  }
+}
 
 export type SheetTarget = { award: KolAward; nominee: KolNominee } | null;
 
@@ -54,7 +92,17 @@ export function useKol(): Ctx {
   return ctx;
 }
 
-export function KolProvider({ slug, initial, children }: { slug: string; initial: EditionDetail; children: ReactNode }) {
+export function KolProvider({
+  slug,
+  initial,
+  view,
+  children,
+}: {
+  slug: string;
+  initial: EditionDetail;
+  view?: KolView;
+  children: ReactNode;
+}) {
   const viewer = useViewer();
   const [detail, setDetail] = useState<EditionDetail>(initial);
   const [live, setLive] = useState(false);
@@ -106,6 +154,12 @@ export function KolProvider({ slug, initial, children }: { slug: string; initial
 
   const model = useMemo(() => buildModel(detail), [detail]);
 
+  // First touch: the page this visit started on (see noteEntry). Runs once per mount; a later page
+  // in the same tab finds the key already set and leaves it.
+  useEffect(() => {
+    noteEntry(slug, view);
+  }, [slug, view]);
+
   const sheet = useMemo<SheetTarget>(() => {
     if (!sheetKey) return null;
     const award = model.awards.find((a) => a.slug === sheetKey.award);
@@ -116,6 +170,17 @@ export function KolProvider({ slug, initial, children }: { slug: string; initial
   const openSheet = useCallback((award: KolAward, nominee: KolNominee) => setSheetKey({ award: award.slug, nominee: nominee.slug }), []);
   const closeSheet = useCallback(() => setSheetKey(null), []);
 
+  // A started ballot, reported once per poll per page as soon as the sheet is open AND the viewer is
+  // signed in (so somebody who signs in from the sheet is counted too). Fire and forget: a lost call
+  // only makes "started" a little low, and the server counts every finished ballot as started.
+  const reported = useRef<Set<string>>(new Set());
+  const sheetPoll = sheet?.award.pollSlug;
+  useEffect(() => {
+    if (!sheetPoll || !viewer.signedIn || reported.current.has(sheetPoll)) return;
+    reported.current.add(sheetPoll);
+    pollsApi.sheetOpened(sheetPoll).catch(() => undefined);
+  }, [sheetPoll, viewer.signedIn]);
+
   const castVote = useCallback(
     async (award: KolAward, nominee: KolNominee): Promise<VoteResult> => {
       try {
@@ -123,6 +188,7 @@ export function KolProvider({ slug, initial, children }: { slug: string; initial
           award.pollSlug,
           [{ question_id: award.question.question_id, option_ids: [nominee.option_id] }],
           true,
+          { device_key: voteDeviceKey(), ref_option_id: entryOptionId(slug, model, award) },
         );
         await refresh();
         return { ok: true };
@@ -131,7 +197,7 @@ export function KolProvider({ slug, initial, children }: { slug: string; initial
         return { ok: false, code: data?.code || "vote_failed", verdict: data?.eligibility };
       }
     },
-    [refresh],
+    [refresh, slug, model],
   );
 
   const value = useMemo<Ctx>(
