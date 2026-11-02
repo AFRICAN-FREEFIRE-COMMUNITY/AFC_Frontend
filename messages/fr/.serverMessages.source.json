@@ -16,5 +16,17 @@
   "team_name_reserved": "That name belongs to a page on AFC. Please choose another name.",
   "email_invalid": "That email address does not look right. Please check it.",
   "claims_not_open_yet": "Results for this map open when its group starts playing.",
-  "claims_closed": "Results for this map are closed: the organizer's time for sending them has passed."
+  "claims_closed": "Results for this map are closed: the organizer's time for sending them has passed.",
+  "attach_game_file": "Attach a debugger or result file.",
+  "game_file_too_large": "That file is too large to send. Add it again from the box, it compresses it first.",
+  "game_file_unreadable": "That file is too large or damaged.",
+  "not_a_game_file": "That is not a debugger file or a match result file.",
+  "game_files_ids_required": "Send the ids of the files you added.",
+  "game_files_expired": "These files were read too long ago. Add them again.",
+  "game_not_in_files": "That game is not in these files.",
+  "game_files_bad_choices": "The choices for that game could not be read.",
+  "placement_missing": "Give every team its placement.",
+  "placements_not_one_each": "Each placement can be used once: 1 for the winner, then 2, 3 and so on.",
+  "no_files_for_game": "There is nothing to upload for that game.",
+  "match_not_on_event": "That match is not on this event."
 }

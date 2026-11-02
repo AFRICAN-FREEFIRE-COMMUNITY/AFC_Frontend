@@ -19,6 +19,24 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.10.0 - 2026-11-02
+
+### Added
+- Game files box on the leaderboard Upload Results tab (admin and organizer pages): drop every Free Fire
+  debugger file and result file of an evening in one go. A game split by a client restart is joined, each
+  game is paired with its result file by match id and matched to the event's matches, and the two files
+  are compared with every difference listed. Kills are credited the way the game does, so a bleed-out
+  after the knocker left for good is nobody's kill and the debugger agrees with the result file. A game
+  with no result file asks for the placements. Wears a NEW badge for 5 days. In English, French and
+  Portuguese.
+
+## v7.9.0 - 2026-11-02
+
+### Added
+- Polls and awards, admin: a Metrics tab with the detailed numbers of every awards season, including past
+  ones (pick the season, see each ballot, category and nominee), plus the original 2025 ballot with votes per
+  section, category, nominee and day. Admins lost these numbers when polls replaced the old Votes page.
+
 ## v7.8.0 - 2026-11-02
 
 ### Added

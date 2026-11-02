@@ -16,5 +16,17 @@
   "team_name_reserved": "Ce nom est celui d'une page d'AFC. Veuillez choisir un autre nom.",
   "email_invalid": "Cette adresse e-mail ne semble pas correcte. Veuillez la vérifier.",
   "claims_not_open_yet": "Les résultats de cette carte s'ouvrent quand son groupe commence à jouer.",
-  "claims_closed": "Les résultats de cette carte sont fermés : le délai fixé par l'organisateur pour les envoyer est passé."
+  "claims_closed": "Les résultats de cette carte sont fermés : le délai fixé par l'organisateur pour les envoyer est passé.",
+  "attach_game_file": "Joignez un fichier debugger ou de résultat.",
+  "game_file_too_large": "Ce fichier est trop lourd à envoyer. Ajoutez-le de nouveau depuis le cadre, qui le compresse d'abord.",
+  "game_file_unreadable": "Ce fichier est trop lourd ou endommagé.",
+  "not_a_game_file": "Ce n'est ni un fichier debugger ni un fichier de résultat de match.",
+  "game_files_ids_required": "Envoyez les identifiants des fichiers ajoutés.",
+  "game_files_expired": "Ces fichiers ont été lus il y a trop longtemps. Ajoutez-les de nouveau.",
+  "game_not_in_files": "Cette partie ne figure pas dans ces fichiers.",
+  "game_files_bad_choices": "Les choix pour cette partie sont illisibles.",
+  "placement_missing": "Indiquez la place de chaque équipe.",
+  "placements_not_one_each": "Chaque place ne sert qu'une fois : 1 pour le vainqueur, puis 2, 3 et ainsi de suite.",
+  "no_files_for_game": "Il n'y a rien à téléverser pour cette partie.",
+  "match_not_on_event": "Ce match ne fait pas partie de cet événement."
 }

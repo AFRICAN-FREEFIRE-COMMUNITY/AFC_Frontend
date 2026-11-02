@@ -788,6 +788,10 @@
       "debuggerBackfill": {
         "title": "Reprise du journal debugger (onglet Téléversement)",
         "description": "Téléversez le fichier debugger-*.log du PC observateur pour ajouter APRÈS COUP les morts, les mises à terre, les tirs à la tête, les réanimations et le temps de survie aux matchs. Associez chaque manche détectée à son match et appliquez : les joueurs sont reconnus par leur UID Free Fire, et les critères de MVP de salle 3D se débloquent automatiquement."
+      },
+      "gameFiles": {
+        "title": "Fichiers de partie (onglet Téléversement)",
+        "description": "Déposez d'un coup tous les fichiers debugger et de résultat d'une soirée. Chaque partie est retrouvée, réunie si le client a redémarré, associée à son fichier de résultat et à sa carte ; vérifiez les propositions, comparez là où les deux fichiers diffèrent, puis appliquez. Les kills, les knocks, les morts, les réanimations et le fil des kills sont enregistrés avec le résultat."
       }
     },
     "live-overlays-list": {

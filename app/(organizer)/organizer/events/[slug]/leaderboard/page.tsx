@@ -219,6 +219,8 @@ import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
 import TopKillersTab from "@/app/(a)/a/leaderboards/_components/TopKillersTab";
 import TieBreakersPanel from "@/app/(a)/a/leaderboards/_components/TieBreakersPanel";
 import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/DebuggerBackfillPanel";
+// Game files (inbox #396): every debugger + result file at once, TEAM events (replaces the two above).
+import GameFilesUpload from "@/app/(a)/a/leaderboards/_components/GameFilesUpload";
 // Scoring Config editor (owner 2026-07-04 organizer parity): the per-match kill/assist/damage +
 // placement-ladder editor + "Apply to..." fan-out, shared with the admin edit page's Scoring tab.
 // Mounted as a new tab in the "Manage leaderboard tools" section below. POSTs
@@ -397,6 +399,7 @@ export default function OrganizerEventLeaderboardPage({
   const { membership, isOwner } = useOrganizer();
   // i18n: organizer-facing page, keys under the "organizer" namespace (eventLeaderboard.*).
   const t = useTranslations("organizer");
+  const tGameFiles = useTranslations("gameFiles");
 
   // Co-organized (owner 2026-09-13): the inviting org's grant when this org does not own the
   // event (null on its own events). Every gate below is the EFFECTIVE permission: the grant AND
@@ -2662,7 +2665,8 @@ export default function OrganizerEventLeaderboardPage({
           match-log at once, assign each to a match in THIS group, review, apply. Works for team
           AND solo (participantType picks the endpoint). Hidden while editing a match/group.
           canManage follows can_upload_results. */}
-      {!editingMatch && !groupEditOpen && eventData && currentGroup && (
+      {/* Team events upload every file in the Game files tab instead (inbox #396). */}
+      {!editingMatch && !groupEditOpen && eventData && currentGroup && detailsParticipantType === "solo" && (
         <div className="mt-4 flex justify-end">
           <MultiMapLogUpload
             matches={currentGroup?.matches ?? []}
@@ -2751,7 +2755,9 @@ export default function OrganizerEventLeaderboardPage({
                     </TabsTrigger>
                     <TabsTrigger value="backfill">
                       <IconDatabaseImport size={14} className="mr-1" />
-                      {t("eventLeaderboard.tools.backfillTab")}
+                      {detailsParticipantType === "team"
+                        ? tGameFiles("title")
+                        : t("eventLeaderboard.tools.backfillTab")}
                     </TabsTrigger>
                   </>
                 )}
@@ -2998,6 +3004,17 @@ export default function OrganizerEventLeaderboardPage({
                   {/* ── Debugger backfill ── event-wide: every stage/group/match is a mapping
                       target (same flatMap the admin mount builds on its Upload tab). */}
                   <TabsContent value="backfill" className="mt-4">
+                    {/* Team events: the Game files box (inbox #396); solo events keep the debugger panel. */}
+                    {detailsParticipantType === "team" ? (
+                      <GameFilesUpload
+                        eventId={eventId}
+                        token={token ?? undefined}
+                        onChanged={() => {
+                          fetchLeaderboard();
+                          setFlagRefreshKey((k) => k + 1);
+                        }}
+                      />
+                    ) : (
                     <DebuggerBackfillPanel
                       eventId={eventId}
                       matchOptions={(eventData?.stages ?? []).flatMap(
@@ -3016,6 +3033,7 @@ export default function OrganizerEventLeaderboardPage({
                           ),
                       )}
                     />
+                    )}
                   </TabsContent>
                 </>
               )}

@@ -1,0 +1,93 @@
+{
+  "title": "Fichiers de partie",
+  "intro": "Déposez d'un coup tous les fichiers debugger et tous les fichiers de résultat de la soirée. AFC y retrouve chaque partie, réunit une partie coupée entre deux fichiers debugger, l'associe à son fichier de résultat et propose le match auquel elle correspond. Rien n'est enregistré avant d'appuyer sur Appliquer.",
+  "drop": "Déposez ici les fichiers debugger et de résultat, ou cliquez pour les choisir",
+  "dropHint": "debugger-*.log depuis Free Fire_64_Data\\Debugger, et MatchResult_*.log. Autant que vous en avez, dans n'importe quel ordre.",
+  "choose": "Choisir des fichiers",
+  "files": "Fichiers ({count})",
+  "startAgain": "Recommencer",
+  "kind": {
+    "debugger": "Debugger",
+    "result": "Résultat",
+    "unknown": "Fichier"
+  },
+  "file": {
+    "reading": "Lecture",
+    "result": "Le résultat d'une partie",
+    "debuggerGames": "{count, plural, =0 {Aucune partie jouée} one {# partie} other {# parties}}"
+  },
+  "noGames": "Aucune partie n'a été trouvée dans ces fichiers.",
+  "gamesFound": "Parties trouvées ({count})",
+  "game": "Partie {n}",
+  "whenRange": "{start} à {end}",
+  "state": {
+    "ok": "Prête",
+    "look": "À vérifier",
+    "skip": "Non utilisée"
+  },
+  "source": {
+    "debugger": "Debugger : {file}",
+    "noDebugger": "Pas de debugger",
+    "result": "Fichier de résultat",
+    "resultMissing": "Fichier de résultat manquant"
+  },
+  "match": "Match",
+  "matchN": "Match {n}",
+  "dontUse": "Ne pas utiliser",
+  "why": {
+    "onRoster": "{on} joueurs sur {total} figurent dans les effectifs de cet événement.",
+    "paired": "Associée à son fichier de résultat par l'identifiant de match de la partie.",
+    "agree": "Les deux fichiers concordent pour chaque équipe et chaque joueur."
+  },
+  "notes": {
+    "joinedTitle": "Réunie.",
+    "joined": "Réunie à partir de {count} fichiers debugger : le client observateur a été absent {seconds} secondes pendant cette partie. Les kills de cet intervalle viennent du fichier de résultat ; les knocks y manquent.",
+    "notEnded": "Le debugger s'arrête avant la fin de cette partie, elle n'a donc pas d'identifiant de match.",
+    "notUsedTitle": "Non utilisée.",
+    "beforeEvent": "Jouée avant le début de cet événement, elle est donc réglée sur « Ne pas utiliser ». Choisissez un match si elle en fait partie.",
+    "afterEvent": "Jouée après la fin de cet événement, elle est donc réglée sur « Ne pas utiliser ». Choisissez un match si elle en fait partie.",
+    "notOnRoster": "Seuls {on} joueurs sur {total} figurent dans les effectifs de cet événement, sans doute un autre salon. Elle reste sur « Ne pas utiliser » tant que vous ne choisissez pas de match.",
+    "noResultTitle": "Pas de fichier de résultat.",
+    "noResult": "Les kills, les knocks et le fil des kills viennent du debugger. Le debugger ne connaît pas le classement : indiquez la place de chaque équipe.",
+    "alreadySaved": "Cette partie est déjà enregistrée sur ce match. Appliquer de nouveau la remplace par la même partie."
+  },
+  "placement": {
+    "team": "Équipe",
+    "kills": "Kills",
+    "place": "Place",
+    "pick": "Choisir",
+    "placeFor": "Place de {team}"
+  },
+  "compare": "{count, plural, one {Comparer # différence} other {Comparer # différences}}",
+  "cmp": {
+    "partial": "Le debugger a vu {dbg} kills sur {res} : il n'a pas vu toute cette partie.",
+    "counted": "Les deux fichiers comptent ces kills différemment.",
+    "resultFile": "Fichier de résultat",
+    "debugger": "Debugger",
+    "keep": "Garder",
+    "keepWhich": "Quelle valeur garder",
+    "keepResult": "Résultat",
+    "keepDebugger": "Debugger",
+    "teamRow": "{team}, kills de l'équipe",
+    "playerRow": "{name} ({team})",
+    "followsPlayers": "Suit ses joueurs"
+  },
+  "summary": {
+    "games": "{count, plural, =0 {Aucune partie n'est associée à un match.} one {# partie va à son match.} other {# parties vont à leurs matchs.}}",
+    "debuggerOnly": "{count, plural, one {# venant du debugger seul.} other {# venant du debugger seul.}}",
+    "notUsed": "{count, plural, one {# non utilisée.} other {# non utilisées.}}",
+    "twice": "Deux parties sont réglées sur {match}."
+  },
+  "apply": "{count, plural, =0 {Appliquer} one {Appliquer # partie} other {Appliquer # parties}}",
+  "saving": "Enregistrement",
+  "done": {
+    "game": "Enregistrée : {players} joueurs crédités, {flags} signalés, {events} kills et knocks dans le fil des kills.",
+    "all": "{count, plural, one {# partie enregistrée.} other {# parties enregistrées.}}"
+  },
+  "errors": {
+    "generic": "Un problème est survenu. Réessayez.",
+    "twice": "Deux parties sont réglées sur le même match. Choisissez un autre match ou « Ne pas utiliser ».",
+    "placements": "Donnez sa place à chaque équipe de la partie {n}, chaque place une seule fois.",
+    "failed": "La partie {n} n'a pas été enregistrée : {reason}"
+  }
+}

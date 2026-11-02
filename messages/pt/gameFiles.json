@@ -1,0 +1,93 @@
+{
+  "title": "Arquivos de jogo",
+  "intro": "Solte de uma vez todos os arquivos debugger e de resultado da noite. O AFC encontra cada jogo neles, junta um jogo dividido entre dois arquivos debugger, liga cada jogo ao seu arquivo de resultado e sugere a partida a que ele pertence. Nada é salvo até você clicar em Aplicar.",
+  "drop": "Solte aqui os arquivos debugger e de resultado, ou clique para escolher",
+  "dropHint": "debugger-*.log de Free Fire_64_Data\\Debugger, e MatchResult_*.log. Quantos tiver, em qualquer ordem.",
+  "choose": "Escolher arquivos",
+  "files": "Arquivos ({count})",
+  "startAgain": "Recomeçar",
+  "kind": {
+    "debugger": "Debugger",
+    "result": "Resultado",
+    "unknown": "Arquivo"
+  },
+  "file": {
+    "reading": "Lendo",
+    "result": "O resultado de um jogo",
+    "debuggerGames": "{count, plural, =0 {Nenhum jogo jogado} one {# jogo} other {# jogos}}"
+  },
+  "noGames": "Nenhum jogo foi encontrado nesses arquivos.",
+  "gamesFound": "Jogos encontrados ({count})",
+  "game": "Jogo {n}",
+  "whenRange": "{start} até {end}",
+  "state": {
+    "ok": "Pronto",
+    "look": "Verificar",
+    "skip": "Não usado"
+  },
+  "source": {
+    "debugger": "Debugger: {file}",
+    "noDebugger": "Sem debugger",
+    "result": "Arquivo de resultado",
+    "resultMissing": "Arquivo de resultado ausente"
+  },
+  "match": "Partida",
+  "matchN": "Partida {n}",
+  "dontUse": "Não usar",
+  "why": {
+    "onRoster": "{on} de {total} jogadores estão nos elencos deste evento.",
+    "paired": "Ligado ao seu arquivo de resultado pelo próprio ID de partida do jogo.",
+    "agree": "Os dois arquivos batem em cada time e em cada jogador."
+  },
+  "notes": {
+    "joinedTitle": "Juntado.",
+    "joined": "Juntado de {count} arquivos debugger: o cliente observador ficou fora por {seconds} segundos deste jogo. Os abates nesse intervalo vêm do arquivo de resultado; as derrubadas dali estão faltando.",
+    "notEnded": "O debugger para antes do fim deste jogo, então o jogo não tem ID de partida.",
+    "notUsedTitle": "Não usado.",
+    "beforeEvent": "Jogado antes do início deste evento, por isso está em \"Não usar\". Escolha uma partida se ele for uma.",
+    "afterEvent": "Jogado depois do fim deste evento, por isso está em \"Não usar\". Escolha uma partida se ele for uma.",
+    "notOnRoster": "Só {on} de {total} jogadores estão nos elencos deste evento, provavelmente outra sala. Ele fica em \"Não usar\" até você escolher uma partida.",
+    "noResultTitle": "Sem arquivo de resultado.",
+    "noResult": "Os abates, as derrubadas e o feed de abates vêm do debugger. O debugger não sabe a colocação, então dê a colocação de cada time.",
+    "alreadySaved": "Este jogo já está salvo nessa partida. Aplicar de novo substitui pelo mesmo jogo."
+  },
+  "placement": {
+    "team": "Time",
+    "kills": "Abates",
+    "place": "Colocação",
+    "pick": "Escolher",
+    "placeFor": "Colocação de {team}"
+  },
+  "compare": "{count, plural, one {Comparar # diferença} other {Comparar # diferenças}}",
+  "cmp": {
+    "partial": "O debugger viu {dbg} de {res} abates: ele perdeu parte deste jogo.",
+    "counted": "Os dois arquivos contam esses abates de forma diferente.",
+    "resultFile": "Arquivo de resultado",
+    "debugger": "Debugger",
+    "keep": "Manter",
+    "keepWhich": "Qual valor manter",
+    "keepResult": "Resultado",
+    "keepDebugger": "Debugger",
+    "teamRow": "{team}, abates do time",
+    "playerRow": "{name} ({team})",
+    "followsPlayers": "Segue os jogadores"
+  },
+  "summary": {
+    "games": "{count, plural, =0 {Nenhum jogo está ligado a uma partida.} one {# jogo vai para a sua partida.} other {# jogos vão para as suas partidas.}}",
+    "debuggerOnly": "{count, plural, one {# só do debugger.} other {# só do debugger.}}",
+    "notUsed": "{count, plural, one {# não usado.} other {# não usados.}}",
+    "twice": "Dois jogos estão em {match}."
+  },
+  "apply": "{count, plural, =0 {Aplicar} one {Aplicar # jogo} other {Aplicar # jogos}}",
+  "saving": "Salvando",
+  "done": {
+    "game": "Salvo: {players} jogadores creditados, {flags} sinalizados, {events} abates e derrubadas no feed de abates.",
+    "all": "{count, plural, one {# jogo salvo.} other {# jogos salvos.}}"
+  },
+  "errors": {
+    "generic": "Algo deu errado. Tente de novo.",
+    "twice": "Dois jogos estão na mesma partida. Escolha outra partida ou \"Não usar\".",
+    "placements": "Dê a colocação de cada time do jogo {n}, cada colocação uma vez só.",
+    "failed": "O jogo {n} não foi salvo: {reason}"
+  }
+}

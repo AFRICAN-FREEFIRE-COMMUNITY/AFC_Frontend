@@ -35,6 +35,8 @@ import TopKillersTab from "@/app/(a)/a/leaderboards/_components/TopKillersTab";
 import { CombinedStandings } from "@/app/(user)/tournaments/[slug]/_components/CombinedStandings";
 // Debugger-log backfill (owner 2026-07-02): fills 3D-room rich stats post-hoc. See the panel file.
 import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/DebuggerBackfillPanel";
+// Game files (inbox #396): every debugger + result file at once, TEAM events (replaces the two below).
+import GameFilesUpload from "@/app/(a)/a/leaderboards/_components/GameFilesUpload";
 // Tie-breakers (owner 2026-07-02): arranged equal-points ordering, apply-to-all|stage|group.
 import TieBreakersPanel from "@/app/(a)/a/leaderboards/_components/TieBreakersPanel";
 import {
@@ -1683,8 +1685,15 @@ export default function EditLeaderboardPage({
 
         {/* ── Upload Results Tab ── */}
         <TabsContent value="upload" className="mt-4 space-y-4">
-          {/* Debugger-log rich-stat backfill (owner 2026-07-02): event-wide, so it lists EVERY
-              stage/group/match as a mapping target, not just the selected group. */}
+          {/* Game files (owner 2026-10-24, inbox #396, approved mockup mockups/game-files-upload/): for a TEAM
+              event one box takes every debugger and result file at once and replaces the Debugger log
+              card and the "Upload all maps (.log)" button. Solo events keep both (the box drives the team
+              result upload). */}
+          {participantType === "team" ? (
+            <GameFilesUpload eventId={id} token={token ?? undefined} onChanged={fetchData} />
+          ) : (
+          /* Debugger-log rich-stat backfill (owner 2026-07-02): event-wide, so it lists EVERY
+              stage/group/match as a mapping target, not just the selected group. */
           <DebuggerBackfillPanel
             eventId={id}
             matchOptions={(eventData?.stages ?? []).flatMap((st: any) =>
@@ -1696,6 +1705,7 @@ export default function EditLeaderboardPage({
               ),
             )}
           />
+          )}
           {groupMatches.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-sm text-muted-foreground">
@@ -1721,18 +1731,20 @@ export default function EditLeaderboardPage({
                   assign each file to a map, review, then apply (owner 2026-06-29 - parity with
                   the leaderboard view page). Works for team + solo (participantType picks the
                   endpoint). */}
-              <div className="flex justify-end">
-                <MultiMapLogUpload
-                  matches={groupMatches.map((m) => ({
-                    match_id: m.match_id,
-                    match_number: m.match_number,
-                    match_map: m.match_map,
-                  }))}
-                  token={token}
-                  participantType={participantType}
-                  onChanged={fetchData}
-                />
-              </div>
+              {participantType !== "team" && (
+                <div className="flex justify-end">
+                  <MultiMapLogUpload
+                    matches={groupMatches.map((m) => ({
+                      match_id: m.match_id,
+                      match_number: m.match_number,
+                      match_map: m.match_map,
+                    }))}
+                    token={token}
+                    participantType={participantType}
+                    onChanged={fetchData}
+                  />
+                </div>
+              )}
 
               {/* Or upload one map at a time (per-map drawer). */}
               <p className="text-xs font-medium text-muted-foreground pt-1">
