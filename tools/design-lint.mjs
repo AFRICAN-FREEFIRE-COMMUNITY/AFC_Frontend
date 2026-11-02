@@ -103,6 +103,18 @@ const RULES = [
     says: "ambient animation keyframes.",
   },
   {
+    // Flash, confetti and screen shake are banned by the motion rules, with ONE exception: the group
+    // draw pick animation (owner 2026-10-30, inbox #411, on being told the film's flash, confetti and
+    // shake would stay out: "it can keep them for this"). Recorded in WEBSITE/CLAUDE.md "Draw pick
+    // effects". The allowance is the file, not a line, and nothing else is exempted.
+    id: "burst-effects",
+    tier: "BLOCK",
+    where: "code",
+    test: /\bconfetti\b|\bscreen-?shake\b|\bshakeBoard\b/i,
+    allow: (_line, file) => /GroupDrawBoard\.tsx$/.test(file),
+    says: "confetti or screen shake. Only the group draw pick animation (GroupDrawBoard.tsx) may use them.",
+  },
+  {
     id: "banned-typeface",
     tier: "BLOCK",
     where: "code",
@@ -272,6 +284,8 @@ function selfTest() {
   const cases = [
     ["em-dash", 'const a = "one — two";', true],
     ["em-dash", 'const a = "one - two";', false],
+    ["burst-effects", "const confetti = 36;", true],
+    ["burst-effects", "const confetti = 36;", false, "app/(user)/tournaments/[slug]/_components/GroupDrawBoard.tsx"],
     ["pulsing-accent", 'className="bg-orange-500 animate-pulse"', true],
     ["pulsing-accent", 'className="bg-accent animate-pulse" // skeleton', false],
     ["pulsing-accent", '<Loader className="animate-pulse" /> {t("loading")}', false],
@@ -307,9 +321,9 @@ function selfTest() {
     ["emoji-in-ui-copy", '"openTitle": "Transfer window is OPEN"', false],
   ];
   let bad = 0;
-  for (const [id, line, shouldFire] of cases) {
+  for (const [id, line, shouldFire, file = "x.tsx"] of cases) {
     const rule = RULES.find((r) => r.id === id);
-    const fired = rule.test.test(line) && !(rule.allow && rule.allow(line, "x.tsx"));
+    const fired = rule.test.test(line) && !(rule.allow && rule.allow(line, file));
     if (fired !== shouldFire) {
       bad++;
       console.log(`  FAIL ${id}: expected ${shouldFire ? "a hit" : "no hit"} for ${line}`);

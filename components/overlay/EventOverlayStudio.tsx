@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 // Shared, self-expiring NEW tag (owner rule: a new option in a picker wears one for 5 days).
 import { NewBadge } from "@/components/NewBadge";
+import { LiveKillOverlaysCard } from "@/components/overlay/LiveKillOverlaysCard";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -1200,12 +1201,15 @@ export function EventOverlayStudio({
   organizationId,
   backHref,
   leaderboardHref,
+  eventSlug,
 }: {
   eventId: number;
   eventName: string;
   organizationId: number | null;
   backHref: string;
   leaderboardHref?: string | null;
+  /** The event's slug: the kill data overlays are addressed by it (no ids in links, R22). */
+  eventSlug?: string | null;
 }) {
   const t = useTranslations("organizer");
   const [loading, setLoading] = useState(true);
@@ -1472,6 +1476,9 @@ export function EventOverlayStudio({
           ))}
         </div>
       )}
+
+      {/* Kill stats + player duel overlays (inbox #398, #421b): link builder, the overlays live under /overlay. */}
+      {eventSlug ? <LiveKillOverlaysCard eventSlug={eventSlug} /> : null}
 
       {/* ── Broadcast control + media hygiene, side by side. ── */}
       <div className="grid gap-4 lg:grid-cols-2">
