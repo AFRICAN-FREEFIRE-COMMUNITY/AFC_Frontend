@@ -97,7 +97,7 @@ export function MemberSelfEditModal({ event, onSuccess }: MemberSelfEditModalPro
       try {
         // 1) Identity + profile image via edit-profile FIRST - it is the validation-prone call (UID
         //    uniqueness, identity lock, required full_name/email). Doing it first means a rejection
-        //    here leaves the (replace-only, immediately-committed) esport image untouched, avoiding a
+        //    here leaves the (immediately-committed, removable only from the profile edit page) esport image untouched, avoiding a
         //    half-applied save. full_name/email are REQUIRED by the endpoint (it 400s without them) so
         //    we resend the current values unchanged; uid is preserved by the backend when blank
         //    (UID-preserve fix). profile_pic only when required + picked.
@@ -115,7 +115,7 @@ export function MemberSelfEditModal({ event, onSuccess }: MemberSelfEditModalPro
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
-        // 2) Esport image (its own replace-only endpoint) only after the identity save succeeded.
+        // 2) Esport image (its own upload endpoint) only after the identity save succeeded.
         if (needEsportImg && esportFile) {
           const fd = new FormData();
           fd.append("esport_image", await compressImageForUpload(esportFile));

@@ -17,6 +17,8 @@ import type { ReactNode } from "react";
 import { buildEntityMetadata, jsonLd, generateBreadcrumbSchema, siteConfig } from "@/lib/seo";
 import { env } from "@/lib/env";
 
+import { kolMetadata } from "../_kol/kolMetadata";
+
 type PollInEdition = { title?: string; slug?: string };
 type EditionForSeo = {
   name?: string;
@@ -24,6 +26,8 @@ type EditionForSeo = {
   description?: string;
   slug?: string;
   year?: number | string;
+  theme?: string;
+  tagline?: string;
   polls?: PollInEdition[];
 };
 
@@ -34,7 +38,9 @@ async function fetchEdition(slug: string): Promise<EditionForSeo | null> {
       { next: { revalidate: 300 } },
     );
     if (!res.ok) return null;
-    return (await res.json()) as EditionForSeo;
+    // The endpoint answers {edition, polls, totals}; flatten it to what this file reads.
+    const json = await res.json();
+    return (json?.edition ? { ...json.edition, polls: json.polls ?? [] } : json) as EditionForSeo;
   } catch {
     return null;
   }
@@ -48,6 +54,14 @@ export async function generateMetadata({ params }: { params: Promise<{ edition: 
   const { edition } = await params;
   const data = await fetchEdition(edition);
   const name = data?.name || data?.title || "AFC Awards";
+  // A themed edition (Detty Royale KOL Awards) shares nothing that names the site (owner, 2 Nov 2026).
+  if (data?.theme === "detty-royale") {
+    return kolMetadata({
+      title: name,
+      description: (data.tagline || `${name}: vote for the creators of the year.`).slice(0, 180),
+      path: `/awards/${edition}`,
+    });
+  }
   const count = Array.isArray(data?.polls) ? data.polls.length : 0;
   const own = (data?.description || "").replace(/\s+/g, " ").trim();
   const description = (own || `${name}: ${count ? `${count} categories, ` : ""}voted by the African Free Fire community on AFC.`).slice(0, 180);

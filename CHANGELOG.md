@@ -19,6 +19,42 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.8.0 - 2026-11-02
+
+### Added
+- KOL Awards pages for the Detty Royale Showdown: a landing page with the 3D trophy, one page per award,
+  one page per nominee with the nominee film (landscape), and a vote sheet that signs you in, links your
+  Free Fire UID if the ballot asks for it, and confirms your pick. It appears when an awards edition is
+  set to the Detty Royale design in the admin; any other edition looks as before.
+- The admin poll builder can upload a nominee film and a separate winner film, and set a nominee
+  picture address, and the awards edition form has a page design choice.
+- When winners are published: a winners page (`/awards/<edition>/winners`), each award page led by its
+  winner, the winner's own page with the winner film, and the winners on the landing rows.
+- The KOL pages show the redesigned trophy (option A) and share only the KOL Awards art (no site name or
+  address on the share image or titles).
+
+## v7.7.0 - 2026-11-02
+
+### Changed
+- The profile edit page's Esport Image section has a Remove image button with a confirm step that says what happens to events the player is already in (owner, 25 Oct: "a user should be allowed to completely remove their esports image"). English, French and Portuguese; the old line saying esport images cannot be removed is gone. The event page's registration requirements already shows the refusal when an event needs an image they no longer have.
+
+## v7.6.0 - 2026-11-02
+
+### Added
+- Leaderboard designs: three new columns you can place, style and save like the others, Knocks recorded, Sniper kills recorded and Head to head record. They read the kill events stored for each map, so they work with AFC Capture or with only a debugger file upload, and a team with nothing recorded shows a dash instead of a 0. Each wears a NEW pill in the field picker for 5 days.
+- Two new stream overlays for the kill data, found on each event's overlay page under "Kill data overlays": a Kill stats overlay (sniper kills recorded, team head to head, who killed and knocked whom, one board or all three in rotation) and a Player duel overlay (two players you pick: kills and knocks each way, and the latest events between them, with revived knocks marked). Both update on their own as Capture and the debugger upload send the maps, and stay blank until the event's kill stats Live overlays switch is on.
+- AFC Capture 1.5.0 on the download page: a live dashboard opened from the tray icon (the watched folder, the
+  match in progress, every kill and knock as it lands, the upload queue with retries and the server's answers,
+  the version and the log), and Capture now counts a game exactly the way the Game files upload does, bleed-outs
+  after the knocker left included. The installer is about 14 MB smaller than 1.4.1. Copies already installed
+  update themselves the next time they start, once 1.5.0 is marked as the latest release on the server.
+
+### Changed
+- The group draw board deals its cards in, and picking a card is now a moment: the chosen card lifts
+  onto a dimmed stage, turns over to show the group, with one flash, a small shake of the board and a
+  burst of confetti, then flies home. Tap anywhere or press Escape to skip. Light on phones (no
+  3D library) and switched off for anyone who prefers reduced motion.
+
 ## v7.5.1 - 2026-11-01
 
 ### Fixed
