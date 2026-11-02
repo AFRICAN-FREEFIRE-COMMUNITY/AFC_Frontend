@@ -19,6 +19,16 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Fixed
+- AFC Capture 1.5.1 on the download page: Capture now really updates itself. Up to 1.5.0 no installed copy
+  ever did: the update helper never got past waiting for Capture to close, and once that was fixed the new
+  version would not start after installing. 1.5.1 closes, installs and starts the new version on its own (tested
+  end to end with a real installer, including a failed install, which brings the old copy back), and writes
+  each step to update-helper.log beside capture.log. A PC on 1.5.0 or older needs this one installed by hand
+  once; after that, updates arrive by themselves.
+
 ## v7.11.3 - 2026-11-02
 
 ### Internal
