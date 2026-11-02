@@ -19,6 +19,11 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.7.0 - 2026-11-02
+
+### Changed
+- The profile edit page's Esport Image section has a Remove image button with a confirm step that says what happens to events the player is already in (owner, 25 Oct: "a user should be allowed to completely remove their esports image"). English, French and Portuguese; the old line saying esport images cannot be removed is gone. The event page's registration requirements already shows the refusal when an event needs an image they no longer have.
+
 ## v7.6.0 - 2026-11-02
 
 ### Added

@@ -52,6 +52,16 @@ import { compressImageForUpload } from "@/lib/imageCompress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FullLoader, Loader } from "@/components/Loader";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { UidInput } from "@/components/UidInput";
 // Country-code phone input (owner 2026-07-09, bug #5): the WhatsApp number field now uses the
 // shared country-dial-code + flag picker instead of a plain text box, so users pick +234 etc. from
@@ -106,8 +116,14 @@ const Page = () => {
   const [avatar, setAvatar] = useState<string>();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // ── Esport Image state (its own flow: uploads immediately on file pick, replace-only). ──
+  // ── Esport Image state (its own flow: uploads immediately on file pick; Remove asks first). ──
   const [esportUploading, setEsportUploading] = useState(false);
+  // Remove flow (owner 2026-10-25, inbox #400): the confirm dialog, the request in flight, and a
+  // local "removed" flag. The flag hides AuthContext's cached user.esport_image_url straight away,
+  // without waiting for the next profile refresh; a fresh upload clears it again.
+  const [esportRemoveOpen, setEsportRemoveOpen] = useState(false);
+  const [esportRemoving, setEsportRemoving] = useState(false);
+  const [esportRemoved, setEsportRemoved] = useState(false);
   // What the picture check said about the image just uploaded, in plain words. Null when the
   // image read as a proper bust shot, or before anything has been uploaded this visit.
   const [esportNotice, setEsportNotice] = useState<string | null>(null);
@@ -155,7 +171,7 @@ const Page = () => {
 
   // Upload/replace the esport image the moment a file is picked. POST
   // /auth/upload-esport-image/ (multipart `esport_image`); on success the returned URL becomes
-  // the preview. No delete path exists by design (owner: replace-only).
+  // the preview. Removal is its own call (handleEsportImageRemove below).
   const handleEsportImagePick = async (file: File | null) => {
     if (!file) return;
     setEsportNotice(null);
@@ -169,6 +185,7 @@ const Page = () => {
         { headers: { Authorization: `Bearer ${token}` } },
       );
       setEsportPreview(res.data.esport_image_url);
+      setEsportRemoved(false);
       // The picture check could not see a clear face but the image WAS saved (owner 2026-09-13).
       // Say so, and say the ban rule out loud at the moment it matters: the notice stays on the
       // page under the preview rather than only flashing past in a toast.
@@ -203,6 +220,35 @@ const Page = () => {
       setEsportUploading(false);
     }
   };
+
+  // Remove the esport image completely (owner 2026-10-25, inbox #400; reverses the replace-only
+  // rule of 2026-06-12). POST /auth/remove-esport-image/ (no body, no id: it only ever touches the
+  // caller's own profile). Events the player is already in keep a copy and they stay registered;
+  // a NEW registration that requires an image is refused until they upload one (the event page's
+  // roster requirements modal already shows that refusal, translated).
+  const handleEsportImageRemove = async () => {
+    setEsportRemoving(true);
+    try {
+      await axios.post(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/auth/remove-esport-image/`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setEsportPreview(null);
+      setEsportNotice(null);
+      setEsportRemoved(true);
+      setEsportRemoveOpen(false);
+      toast.success(t("edit.esport.removed"));
+      // Refresh the cached user so every other screen stops showing the old picture.
+      await refreshUser();
+    } catch {
+      toast.error(t("edit.esport.removeFailed"));
+    } finally {
+      setEsportRemoving(false);
+    }
+  };
+
+  const hasEsportImage = !esportRemoved && !!(esportPreview || user?.esport_image_url);
 
   const form = useForm<EditProfileFormSchemaType>({
     resolver: zodResolver(EditProfileFormSchema),
@@ -446,7 +492,8 @@ const Page = () => {
       {/* ── Esport Image ── a SEPARATE asset from the profile picture (owner 2026-06-12).
           Organizers use it as the player's image in event graphics, and events can REQUIRE it
           before registration. Uploads hit POST /auth/upload-esport-image/ immediately (its own
-          flow, not part of the form above); replace-only - there is no way to remove it.
+          flow, not part of the form above). Removable since 2026-10-25 (owner, inbox #400): the Remove
+          button asks first, then POST /auth/remove-esport-image/.
           data-tour anchor (guided welcome tour): the esport-image card. Targeted by the
           "profile" stop's final driver step in guided-tour-stops.ts (owner 2026-06-14). */}
       <Card className="mt-4" data-tour="profile-esports">
@@ -511,7 +558,7 @@ const Page = () => {
           <div className="flex flex-wrap items-start gap-4">
             {/* Current image (or placeholder). Esport shots are portrait, so a tall preview. */}
             <div className="h-40 w-32 overflow-hidden rounded-md bg-muted/30">
-              {esportPreview || user.esport_image_url ? (
+              {hasEsportImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={esportPreview || user.esport_image_url || ""}
@@ -533,12 +580,31 @@ const Page = () => {
                 onChange={(e) => handleEsportImagePick(e.target.files?.[0] ?? null)}
               />
               <p className="text-xs text-muted-foreground">
-                {user.esport_image_url
+                {hasEsportImage
                   ? t("edit.esport.replaceNote")
                   : t("edit.esport.uploadNote")}
               </p>
+              {/* Remove (owner 2026-10-25). Filled secondary button, never an outline. The NEW
+                  badge is date-driven and goes away by itself 5 days after go-live. */}
+              {hasEsportImage && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={esportUploading || esportRemoving}
+                    onClick={() => setEsportRemoveOpen(true)}
+                  >
+                    {t("edit.esport.removeButton")}
+                  </Button>
+                  <NewBadge since="2026-11-02" />
+                </div>
+              )}
               {esportUploading && (
                 <Loader text={t("edit.esport.uploading")} />
+              )}
+              {esportRemoving && (
+                <Loader text={t("edit.esport.removing")} />
               )}
               {/* What the picture check said about the image just uploaded (owner 2026-09-13).
                   It stays on the page instead of flashing past in a toast, because it carries the
@@ -554,6 +620,32 @@ const Page = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirm step for Remove: says what happens to events they are already in. */}
+      <AlertDialog open={esportRemoveOpen} onOpenChange={setEsportRemoveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("edit.esport.removeConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("edit.esport.removeConfirmDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={esportRemoving}>
+              {t("edit.esport.removeCancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleEsportImageRemove();
+              }}
+              disabled={esportRemoving}
+            >
+              {t("edit.esport.removeConfirmAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
               <FormField
                 control={form.control}
                 name="fullName"
