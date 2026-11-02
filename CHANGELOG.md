@@ -19,7 +19,7 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
-## Unreleased
+## v7.6.0 - 2026-11-02
 
 ### Added
 - Leaderboard designs: three new columns you can place, style and save like the others, Knocks recorded, Sniper kills recorded and Head to head record. They read the kill events stored for each map, so they work with AFC Capture or with only a debugger file upload, and a team with nothing recorded shows a dash instead of a 0. Each wears a NEW pill in the field picker for 5 days.
