@@ -15,17 +15,17 @@
  * are the sheet's text field, a native form control), no glow, nothing pulses. Motion lives in the
  * components (framer-motion) and is instant under prefers-reduced-motion.
  *
- * THE TITLE FACE. Garena's titles use Graffiti City, which is licensed for PERSONAL USE ONLY and
- * must not ship on a public site. Titles use Agdasima Bold through the ONE variable --kol-title-font
- * below. When AFC buys the licence (Graffiti City is USD 60 from MyFonts), load the file with an
- * @font-face under the name "Graffiti City" and put that name first in --kol-title-font: nothing else
- * changes.
+ * THE TITLE FACE. Garena's titles use Graffiti City. Garena holds its licence (owner, 2 Nov 2026: "They
+ * have the graffiti city font licence"), so the page loads it from /kol/fonts/graffiti-city.woff2 and puts
+ * it first in the ONE variable --kol-title-font; Agdasima Bold stays behind it as the fallback while the
+ * file loads (display: swap) and for any character Graffiti City does not draw.
  */
+@font-face{font-family:"Graffiti City";src:url("/kol/fonts/graffiti-city.woff2") format("woff2");font-weight:400 900;font-style:normal;font-display:swap}
 .kol{
   --ground:#1c0a2e; --panel:#2c1049; --panel2:#3b1862; --panel3:#4a1f7a;
   --yel:#ffe046; --gold:#b18f3e; --mag:#b7235f; --purple:#5f208c;
   --fg:#f6f1fb; --body:#ddd2ea; --muted:#aa9bc2;
-  --kol-title-font:var(--font-kol-sub),"Agdasima","Arial Narrow",Impact,sans-serif;
+  --kol-title-font:"Graffiti City",var(--font-kol-sub),"Agdasima","Arial Narrow",Impact,sans-serif;
   --f-title:var(--kol-title-font); --f-sub:var(--font-kol-sub),"Agdasima","Arial Narrow",sans-serif;
   --f-body:var(--font-kol-body),"Chakra Petch",system-ui,sans-serif;
   --cut:16px;

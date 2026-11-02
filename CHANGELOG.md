@@ -19,6 +19,11 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Changed
+- The KOL Awards pages set their titles in Graffiti City, the Detty Royale title face, as in the approved design (Garena holds the font licence). Agdasima Bold stays behind it while the font loads.
+
 ## v7.10.0 - 2026-11-02
 
 ### Added
