@@ -52,6 +52,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { ANSWER_TYPES, BRANCHABLE_TYPES, pollsApi, type BranchRule } from "@/lib/polls";
+import { OptionFilm } from "./_components/OptionFilm";
 import { describeRule } from "@/lib/pollBranching";
 import { broadcastAudienceApi, type AudienceOptions } from "@/lib/broadcastAudience";
 
@@ -62,7 +63,7 @@ type BuilderQuestion = {
   answer_type: string;
   required: boolean;
   config: Record<string, any>;
-  options: { option_id?: number; label: string; description?: string }[];
+  options: { option_id?: number; label: string; description?: string; image_url?: string; film_url?: string }[];
   published_winner_option_id?: number | null;
   published_winner_votes?: number | null;
 };
@@ -207,6 +208,7 @@ export default function PollBuilderPage() {
 
         <TabsContent value="questions" className="mt-6">
           <QuestionsTab
+            pollSlug={slug}
             questions={questions}
             setQuestions={setQuestions}
             locked={poll.has_responses}
@@ -460,12 +462,14 @@ function SwitchRow({
 // ── Questions ────────────────────────────────────────────────────────────────
 
 function QuestionsTab({
+  pollSlug,
   questions,
   setQuestions,
   locked,
   saving,
   onSave,
 }: {
+  pollSlug: string;
   questions: BuilderQuestion[];
   setQuestions: (next: BuilderQuestion[]) => void;
   locked: boolean;
@@ -577,29 +581,55 @@ function QuestionsTab({
                 {["single_choice", "multiple_choice", "ranking"].includes(question.answer_type) && (
                   <div className="space-y-1.5 border-l border-border pl-3">
                     {question.options.map((option, optionIndex) => (
-                      <div key={option.option_id ?? `new-${optionIndex}`} className="flex gap-2">
+                      <div key={option.option_id ?? `new-${optionIndex}`} className="space-y-1.5">
+                        <div className="flex gap-2">
+                          <Input
+                            value={option.label}
+                            disabled={locked}
+                            placeholder={t("questions.optionPlaceholder")}
+                            onChange={(e) => {
+                              const next = [...question.options];
+                              next[optionIndex] = { ...next[optionIndex], label: e.target.value };
+                              patch(index, { options: next });
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={locked}
+                            onClick={() =>
+                              patch(index, {
+                                options: question.options.filter((_, i) => i !== optionIndex),
+                              })
+                            }
+                          >
+                            <IconTrash className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                        {/* The nominee picture (shown on the awards pages) and, for the themed KOL
+                            Awards edition, the nominee film. The picture is saved with the questions;
+                            the film uploads straight away to the saved row. */}
                         <Input
-                          value={option.label}
+                          className="text-xs"
+                          value={option.image_url || ""}
                           disabled={locked}
-                          placeholder={t("questions.optionPlaceholder")}
+                          placeholder={t("questions.optionImage")}
                           onChange={(e) => {
                             const next = [...question.options];
-                            next[optionIndex] = { ...next[optionIndex], label: e.target.value };
+                            next[optionIndex] = { ...next[optionIndex], image_url: e.target.value };
                             patch(index, { options: next });
                           }}
                         />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={locked}
-                          onClick={() =>
-                            patch(index, {
-                              options: question.options.filter((_, i) => i !== optionIndex),
-                            })
-                          }
-                        >
-                          <IconTrash className="h-3.5 w-3.5" />
-                        </Button>
+                        <OptionFilm
+                          pollSlug={pollSlug}
+                          optionId={option.option_id}
+                          filmUrl={option.film_url}
+                          onChange={(url) => {
+                            const next = [...question.options];
+                            next[optionIndex] = { ...next[optionIndex], film_url: url };
+                            patch(index, { options: next });
+                          }}
+                        />
                       </div>
                     ))}
                     <Button
