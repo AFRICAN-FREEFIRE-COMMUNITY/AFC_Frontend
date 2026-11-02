@@ -95,6 +95,13 @@ export default function AwardsPage() {
     };
   }, []);
 
+  // The forward itself is an effect (a navigation is not something to start during render).
+  const leadingTheme = editions[0]?.theme;
+  const leadingSlug = editions[0]?.slug;
+  useEffect(() => {
+    if (leadingTheme === "detty-royale" && leadingSlug) router.replace(`/awards/${leadingSlug}`);
+  }, [leadingTheme, leadingSlug, router]);
+
   if (loading) return <FullLoader />;
 
   // No season yet. This is also what a fresh deployment shows until somebody runs
@@ -115,6 +122,10 @@ export default function AwardsPage() {
   }
 
   const [leading] = editions;
+
+  // A themed season (Detty Royale KOL Awards) has its own pages under /awards/<slug>; /awards is only
+  // the front door, so it forwards there instead of drawing the site's own surface for it.
+  if (leading.theme === "detty-royale") return <FullLoader />;
 
   return (
     <div>

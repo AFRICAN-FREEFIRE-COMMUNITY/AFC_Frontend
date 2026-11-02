@@ -19,6 +19,20 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.8.0 - 2026-11-02
+
+### Added
+- KOL Awards pages for the Detty Royale Showdown: a landing page with the 3D trophy, one page per award,
+  one page per nominee with the nominee film (landscape), and a vote sheet that signs you in, links your
+  Free Fire UID if the ballot asks for it, and confirms your pick. It appears when an awards edition is
+  set to the Detty Royale design in the admin; any other edition looks as before.
+- The admin poll builder can upload a nominee film and a separate winner film, and set a nominee
+  picture address, and the awards edition form has a page design choice.
+- When winners are published: a winners page (`/awards/<edition>/winners`), each award page led by its
+  winner, the winner's own page with the winner film, and the winners on the landing rows.
+- The KOL pages show the redesigned trophy (option A) and share only the KOL Awards art (no site name or
+  address on the share image or titles).
+
 ## v7.7.0 - 2026-11-02
 
 ### Changed

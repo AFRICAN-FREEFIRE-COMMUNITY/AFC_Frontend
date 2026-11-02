@@ -155,6 +155,7 @@
     "promptPlaceholder": "Que demandez-vous ?",
     "helpPlaceholder": "Une petite ligne sous la question (facultatif)",
     "optionPlaceholder": "Une option à choisir",
+    "optionImage": "Adresse de l'image (facultatif), affichée sur les pages des awards",
     "locked": "Questions verrouillées",
     "lockedHint": "Des personnes ont déjà répondu, les questions ne peuvent plus changer. Les modifier changerait en silence ce qu'on leur a demandé."
   },
