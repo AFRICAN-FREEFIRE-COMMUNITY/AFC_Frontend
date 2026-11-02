@@ -34,7 +34,10 @@
     "medkit_used": "MEDKITS UTILISÉS",
     "knocked": "FOIS MIS À TERRE",
     "grenades_used": "GRENADES LANCÉES",
-    "grenade_kills": "ÉLIMINATIONS À LA GRENADE"
+    "grenade_kills": "ÉLIMINATIONS À LA GRENADE",
+    "knocks_recorded": "KNOCKS ENREGISTRÉS",
+    "sniper_kills": "KILLS DE SNIPER ENREGISTRÉS",
+    "h2h_record": "BILAN FACE-À-FACE"
   },
   "size": {
     "label": "Mise en page éditée :",

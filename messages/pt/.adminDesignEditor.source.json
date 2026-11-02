@@ -298,6 +298,9 @@
   "fields.knocked": "TIMES KNOCKED",
   "fields.grenades_used": "GRENADES THROWN",
   "fields.grenade_kills": "GRENADE KILLS",
+  "fields.knocks_recorded": "KNOCKS RECORDED",
+  "fields.sniper_kills": "SNIPER KILLS RECORDED",
+  "fields.h2h_record": "HEAD TO HEAD RECORD",
   "manager": {
     "createScene": "Live scene designs",
     "createSet": "Whole kit",
