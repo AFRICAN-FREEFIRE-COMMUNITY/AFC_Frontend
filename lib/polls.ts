@@ -340,6 +340,10 @@ export const pollsApi = {
   adminUpdateEdition: (slug: string, body: Record<string, any>) =>
     aPatch<{ slug: string }>(`admin/editions/${slug}/`, body),
   adminDeleteEdition: (slug: string) => aDelete(`admin/editions/${slug}/`),
+  /** Detailed per-question, per-option numbers of one season, open or past (AFC admins only). */
+  adminEditionMetrics: (slug: string) => aGet<any>(`admin/editions/${slug}/metrics/`),
+  /** The original 2025 ballot, read from the original awards tables (AFC admins only). */
+  adminLegacyBallotMetrics: () => aGet<any>("admin/legacy-ballot-metrics/"),
 
   /** Set a nominee's film (MP4 or WebM, 25 MB at most). The file goes up as multipart, so this
    *  one does not use the JSON helpers. Answers the absolute film URL. */

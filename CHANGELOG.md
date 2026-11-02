@@ -30,6 +30,13 @@ workflow checks it again before it builds.
   with no result file asks for the placements. Wears a NEW badge for 5 days. In English, French and
   Portuguese.
 
+## v7.9.0 - 2026-11-02
+
+### Added
+- Polls and awards, admin: a Metrics tab with the detailed numbers of every awards season, including past
+  ones (pick the season, see each ballot, category and nominee), plus the original 2025 ballot with votes per
+  section, category, nominee and day. Admins lost these numbers when polls replaced the old Votes page.
+
 ## v7.8.0 - 2026-11-02
 
 ### Added
