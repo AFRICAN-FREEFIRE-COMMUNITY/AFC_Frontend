@@ -820,6 +820,7 @@
     "revealTitle": "Vous êtes dans le {group}",
     "revealBody": "Carte {number}. Le groupe de votre équipe est fixé pour cette phase.",
     "revealDone": "Compris",
+    "skipReveal": "Ignorer l’animation",
     "autoPlaced": "auto",
     "toastPickFailed": "Impossible de retourner cette carte.",
     "sealTitle": "Sceau du tirage",

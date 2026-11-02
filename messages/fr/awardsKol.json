@@ -1,0 +1,305 @@
+{
+  "loading": "Chargement des awards",
+  "loadError": "Les awards n'ont pas pu être chargés. Réessayez dans un instant.",
+  "notFound": {
+    "title": "Cette page ne fait pas partie des awards",
+    "body": "Vérifiez l'adresse, ou revenez à tous les awards."
+  },
+  "back": "Tous les awards",
+  "awardOf": "Award {n} sur {total}",
+  "hero": {
+    "eyebrow": "Garena Free Fire · Detty Royale Showdown {year}",
+    "eyebrowNoYear": "Garena Free Fire · Detty Royale Showdown",
+    "lede": "Les awards des créateurs qui ont fait l'année de Free Fire. Vous aidez à choisir les gagnants.",
+    "logoAlt": "Free Fire Detty Royale Showdown",
+    "trophyAlt": "Le trophée des KOL Awards",
+    "trophyCanvas": "Le trophée des KOL Awards en 3D. Faites-le glisser pour le tourner.",
+    "drag": "Faites glisser pour tourner le trophée",
+    "voteNow": "Voter maintenant",
+    "seeNominees": "Voir les nominés",
+    "seeAwards": "Les awards",
+    "how": "Comment ça marche",
+    "seeWinners": "Voir les gagnants",
+    "winnersLede": "Les gagnants {count, plural, one {de l'award} other {des # awards}}, révélés en direct au Detty Royale Showdown."
+  },
+  "stage": {
+    "flag": {
+      "announced": "Nominés annoncés",
+      "voting": "Le vote est ouvert",
+      "counting": "Le vote est clos",
+      "winners": "Les gagnants"
+    },
+    "opensIn": "Ouverture du vote dans",
+    "closesIn": "Clôture dans",
+    "counting": "Gagnants le soir de la cérémonie",
+    "winners": "Révélés au Detty Royale",
+    "days": "j",
+    "hours": "h",
+    "minutes": "min",
+    "seconds": "s"
+  },
+  "awards": {
+    "title": "{count, plural, one {# award} other {# awards}} <em>pour {year}</em>",
+    "label": "{count, plural, one {# award} other {# awards}} pour {year}",
+    "titleNoYear": "{count, plural, one {# award} other {# awards}}",
+    "sub": "Un gagnant par award. Choisissez un créateur dans chaque award qui vous intéresse ; vous n'avez pas à tous les remplir.",
+    "nominees": "{count, plural, one {# nominé} other {# nominés}}",
+    "goNominees": "Nominés",
+    "goWinner": "Gagnant",
+    "yourPick": "Votre choix : {name}",
+    "empty": "Les awards de cette édition n'ont pas encore été ajoutés.",
+    "facesMore": "+{count}",
+    "winnerLine": "Gagnant : {name}"
+  },
+  "how": {
+    "title": "Comment <em>voter</em>",
+    "subThree": "Trois étapes, environ une minute.",
+    "subTwo": "Deux étapes, environ une minute.",
+    "signin": {
+      "title": "Connectez-vous",
+      "body": "Utilisez votre compte, ou créez-en un. Chaque vote appartient à un compte, donc <b>chaque personne compte une seule fois</b>."
+    },
+    "uid": {
+      "title": "Liez votre UID Free Fire",
+      "body": "Ajoutez votre UID Free Fire une seule fois. <b>Un UID, un compte</b> : un UID ne peut être lié qu'à un seul compte."
+    },
+    "pick": {
+      "title": "Choisissez vos créateurs",
+      "body": "Un choix par award. <b>Changez-le autant de fois que vous voulez</b> jusqu'à la clôture du vote. Partagez la page d'un nominé pour faire venir ses fans."
+    }
+  },
+  "steps": {
+    "title": "De la liste <em>à la scène</em>",
+    "sub": "Cinq étapes de la première liste au trophée. Garena valide deux fois, et rien n'est public avant que Garena l'ait vu.",
+    "s1": {
+      "title": "Catégories et listes",
+      "body": "{count, plural, one {Un award} other {# awards}}, chacun avec une liste de créateurs et tous les liens de leurs comptes."
+    },
+    "s2": {
+      "title": "Garena vérifie",
+      "body": "Garena examine les comptes et approuve les nominés : ajouter, retirer ou remplacer des noms.",
+      "sign": "Validation un"
+    },
+    "s3": {
+      "title": "Vote de la communauté",
+      "body": "Vous votez ici, connecté, une fois par compte."
+    },
+    "s4": {
+      "title": "Le décompte",
+      "body": "Les chiffres, vos votes et un jury à l'aveugle sont combinés. Garena confirme chaque gagnant.",
+      "sign": "Validation deux"
+    },
+    "s5": {
+      "title": "La soirée",
+      "body": "Les gagnants sont révélés en direct au Detty Royale Showdown, le trophée remis sur scène."
+    }
+  },
+  "trophy": {
+    "title": "Le <em>trophée</em>",
+    "sub": "Ce que les gagnants soulèvent sur scène. Faites défiler pour le tourner.",
+    "c1": {
+      "title": "Afrique en or",
+      "body": "Le vrai contour, de 28 cm de haut et 2,5 cm d'épaisseur, entre deux cornes dorées, avec l'emblème propre à chaque award en relief."
+    },
+    "c2": {
+      "title": "Socle en marbre noir",
+      "body": "Sur un piédestal doré. Environ 52 cm de haut au total."
+    },
+    "c3": {
+      "title": "Plaque de face",
+      "body": "KOL Awards, Detty Royale Showdown {year}."
+    },
+    "c3NoYear": {
+      "title": "Plaque de face",
+      "body": "KOL Awards, Detty Royale Showdown."
+    },
+    "made": "{count, plural, one {# fabriqué, un par award} other {# fabriqués, un par award}}",
+    "everyone": "Chaque nominé reçoit aussi une plaque et un certificat."
+  },
+  "decided": {
+    "title": "Comment un gagnant <em>est choisi</em>",
+    "sub": "Trois parts, puis la décision de Garena. En cas d'égalité, le jury tranche, puis les chiffres.",
+    "numbers": {
+      "title": "Les chiffres",
+      "body": "Ce que le public fait sur les publications de chaque créateur, compté par vue pour que la taille seule ne gagne pas."
+    },
+    "votes": {
+      "title": "Vos votes",
+      "body": "Le vote de la communauté sur cette page."
+    },
+    "panel": {
+      "title": "Le jury",
+      "body": "Cinq juges qui ne se connaissent pas. Garena peut nommer des sièges."
+    },
+    "then": {
+      "title": "Puis Garena",
+      "body": "Chaque gagnant passe par Garena avant la soirée : confirmation, ou rejet avec un motif consigné. Rien n'est annoncé avant."
+    }
+  },
+  "night": {
+    "title": "La <em>soirée</em>",
+    "sub": "Les gagnants sont révélés en direct au Detty Royale Showdown. Le film de chaque nominé passe sur grand écran juste avant l'annonce de son award.",
+    "dateTbc": "Date à annoncer",
+    "awardsCount": "{count, plural, one {# award} other {# awards}}",
+    "live": "En direct sur le stream",
+    "sceneAlt": "Illustration de l'équipe du Detty Royale Showdown"
+  },
+  "faq": {
+    "title": "Questions",
+    "who": {
+      "q": "Qui peut voter ?",
+      "a": "Toute personne ayant un compte. Créer un compte est gratuit."
+    },
+    "whoUid": {
+      "q": "Qui peut voter ?",
+      "a": "Toute personne ayant un compte auquel un UID Free Fire est lié. Créer un compte est gratuit."
+    },
+    "howMany": {
+      "q": "Combien de votes ai-je ?",
+      "a": "Un choix dans chaque award. Chaque compte a un seul bulletin."
+    },
+    "change": {
+      "q": "Puis-je changer mon choix ?",
+      "a": "Oui, autant de fois que vous voulez jusqu'à la clôture du vote. Seul votre dernier choix compte."
+    },
+    "winning": {
+      "q": "Puis-je voir qui est en tête ?",
+      "a": "Non. Cette page n'affiche pas les nombres de votes, pour qu'une avance précoce ne décide pas du reste du vote."
+    },
+    "whyUid": {
+      "q": "Pourquoi avez-vous besoin de mon UID Free Fire ?",
+      "a": "Pour qu'un joueur ne compte qu'une fois. Votre UID n'est jamais affiché sur la page."
+    }
+  },
+  "cta": {
+    "votingBig": "Votez pour vos <em>créateurs</em>",
+    "votingSmall": "{done} awards sur {total} choisis",
+    "votingBtn": "Voter maintenant",
+    "announcedBig": "Découvrez les <em>nominés</em>",
+    "announcedSmall": "Le vote ouvre bientôt",
+    "announcedBtn": "Les voir",
+    "countingBig": "Les votes sont <em>en cours de décompte</em>",
+    "countingSmall": "Gagnants le soir de la cérémonie",
+    "countingBtn": "Les awards",
+    "winnersBig": "Les <em>gagnants</em>",
+    "winnersBtn": "Les voir",
+    "close": "Fermer"
+  },
+  "award": {
+    "ballot": "Vous avez choisi dans {done} awards sur {total}",
+    "noticeAnnounced": "Le vote ouvre bientôt. <b>Regardez les films</b> et revenez choisir.",
+    "noticeCounting": "Le vote est clos. <b>Les gagnants sont révélés lors de la soirée.</b>",
+    "noticeWinnersPending": "Le gagnant de cet award n'est pas encore annoncé.",
+    "noticeWinner": "Le gagnant est <b>{name}</b>.",
+    "role": "Nominé · {award}",
+    "roleFilm": "Film prêt · {award}",
+    "watch": "Voir le film",
+    "profile": "Profil",
+    "vote": "Voter",
+    "yourPick": "Votre choix",
+    "winner": "Gagnant",
+    "noNominees": "Aucun nominé n'a encore été ajouté à cet award.",
+    "photoAlt": "{name}",
+    "winnerEyebrow": "Gagnant · {award}",
+    "revealed": "Révélé en direct au Detty Royale Showdown, confirmé par Garena.",
+    "winnerFilm": "Voir le film du gagnant",
+    "winnerPage": "La page du gagnant",
+    "share": "Partager la victoire",
+    "nomineesHeading": "Les nominés"
+  },
+  "nominee": {
+    "eyebrow": "Nominé · {award}",
+    "filmEyebrow": "Film du nominé",
+    "play": "Lire le film du nominé {name}",
+    "noFilmTitle": "Film à venir",
+    "noFilmBody": "Le film du nominé {name} n'a pas encore été ajouté.",
+    "nominatedIn": "Nominé dans",
+    "about": "À propos",
+    "theirProfile": "Profil",
+    "viewProfile": "Voir le profil",
+    "share": "Partager",
+    "shared": "Lien copié : partagez-le pour attirer des votes",
+    "voteFor": "Voter pour {name}",
+    "yourPickIn": "Votre choix dans {award}",
+    "alsoIn": "Aussi dans {award}",
+    "closedNotice": "Le vote est clos. Les gagnants sont révélés lors de la soirée.",
+    "winnerEyebrow": "Gagnant · {award}",
+    "winnerFilmEyebrow": "Film du gagnant",
+    "shareWin": "Partager la victoire"
+  },
+  "sheet": {
+    "close": "Fermer",
+    "signin": {
+      "title": "Connectez-vous <em>pour voter</em>",
+      "body": "Les votes appartiennent à un compte, donc chaque personne compte une seule fois. En créer un est gratuit.",
+      "login": "Se connecter",
+      "join": "S'inscrire"
+    },
+    "uid": {
+      "title": "Liez votre <em>UID Free Fire</em>",
+      "body": "Un UID, un compte. Vous ne le faites qu'une fois, et il n'est jamais affiché sur la page.",
+      "label": "UID Free Fire",
+      "placeholder": "Chiffres uniquement, comme dans le jeu",
+      "go": "Lier et continuer",
+      "saving": "Enregistrement",
+      "errDigits": "Un UID Free Fire ne contient que des chiffres. Copiez-le depuis votre profil de jeu.",
+      "errSave": "Votre UID n'a pas pu être enregistré. Réessayez."
+    },
+    "confirm": {
+      "title": "Votre choix pour <em>{award}</em>",
+      "replaces": "Cela remplace votre choix de <b>{name}</b>.",
+      "change": "Vous pouvez le changer jusqu'à la clôture du vote.",
+      "go": "Voter {name}",
+      "sending": "Envoi",
+      "notNow": "Pas maintenant"
+    },
+    "done": {
+      "stamp": "Voté",
+      "picked": "est votre choix pour {award}. Vous avez choisi dans {done} awards sur {total}.",
+      "next": "Suivant : {award}",
+      "allDone": "Terminé",
+      "share": "Partager mon choix",
+      "shared": "Lien copié"
+    },
+    "blocked": {
+      "title": "Vous ne pouvez pas encore voter dans cet award",
+      "fix": "Corriger"
+    },
+    "errClosed": "Le vote est clos.",
+    "errGeneric": "Votre vote n'a pas pu être enregistré. Réessayez."
+  },
+  "admin": {
+    "theme": "Design de la page",
+    "themeDefault": "Awards du site",
+    "themeDetty": "KOL Awards Detty Royale",
+    "themeHelp": "Detty Royale affiche cette édition comme les pages des KOL Awards : accueil, une page par award, une page par nominé.",
+    "filmLabel": "Film du nominé",
+    "filmCurrent": "Film actuel",
+    "filmNone": "Aucun film",
+    "filmUpload": "Téléverser le film",
+    "filmReplace": "Remplacer le film",
+    "filmRemove": "Retirer",
+    "filmHelp": "MP4 ou WebM, paysage 16:9, environ 10 secondes, 25 Mo au maximum.",
+    "filmSaved": "Film enregistré",
+    "filmRemoved": "Film retiré",
+    "filmFailed": "Le film n'a pas pu être enregistré.",
+    "filmSaveFirst": "Enregistrez d'abord les questions, puis ajoutez le film.",
+    "winnerFilmLabel": "Film du gagnant",
+    "winnerFilmHelp": "Affiché sur les pages des gagnants une fois les gagnants publiés. À défaut, le film du nominé est utilisé."
+  },
+  "winners": {
+    "back": "KOL Awards",
+    "eyebrow": "KOL Awards {year} · Detty Royale Showdown",
+    "eyebrowNoYear": "KOL Awards · Detty Royale Showdown",
+    "title": "Les <em>gagnants</em>",
+    "label": "Les gagnants",
+    "sub": "{count, plural, one {Un créateur} other {# créateurs}}, révélés en direct lors de la soirée et confirmés par Garena.",
+    "none": "Les gagnants n'ont pas encore été publiés.",
+    "filmBtn": "Film du gagnant",
+    "pageBtn": "Page du gagnant",
+    "awardBtn": "L'award",
+    "everyone": "Tous les nominés",
+    "thanks": "Merci à <em>tous les {count}</em>",
+    "thanksLabel": "Merci à tous les {count}"
+  }
+}

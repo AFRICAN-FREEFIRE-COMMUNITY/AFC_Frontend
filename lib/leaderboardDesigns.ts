@@ -88,7 +88,12 @@ export type FieldType =
   | "deaths" | "knockdowns" | "headshots" | "most_used_weapon" | "survival_time"
   | "revives_received" | "gloowall_used" | "medkit_used"
   // AFC Capture 1.4.0 (owner 2026-09-22): times knocked, knock assists, grenades thrown, grenade kills.
-  | "knocked" | "grenades_used" | "grenade_kills";
+  | "knocked" | "grenades_used" | "grenade_kills"
+  // Kill-event columns (owner 2026-11-01, inbox #399 / #421a): read from the kill events stored per map
+  // (AFC-B kill_stats_fields), so they work with AFC Capture or with only a debugger file upload.
+  // The cell shows "-" where nothing was recorded, never a 0. h2h_record is "wins-draws-losses" over
+  // every team the row's team met. Rendered by DesignBoard (row[field_type]) and graphic.py.
+  | "knocks_recorded" | "sniper_kills" | "h2h_record";
 
 export type TextAlign = "left" | "center" | "right";
 
@@ -287,6 +292,9 @@ export const COLUMN_HEADER_LABELS: Partial<Record<FieldType, string>> = {
   knocked: "KNOCKED",
   grenades_used: "GRENADES",
   grenade_kills: "NADE KILLS",
+  knocks_recorded: "KNOCKS",
+  sniper_kills: "SNIPER KILLS",
+  h2h_record: "H2H",
 };
 
 export const HEADER_ROW_GAP = 1.15; // row-heights above row 1 (graphic.HEADER_ROW_GAP)

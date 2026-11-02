@@ -171,5 +171,6 @@
   "team.resolution.tie_broken_by_captain": "captain decided",
   "team.resolution.no_consensus": "no consensus",
   "team.resolution.captain_override": "set by the captain",
-  "team.resolution.below_quorum": "below quorum"
+  "team.resolution.below_quorum": "below quorum",
+  "questions.optionImage": "Picture address (optional), shown on the awards pages"
 }

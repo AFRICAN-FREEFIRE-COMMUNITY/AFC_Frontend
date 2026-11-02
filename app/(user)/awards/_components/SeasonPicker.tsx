@@ -27,6 +27,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
+import { NewBadge } from "@/components/NewBadge";
 import { cn } from "@/lib/utils";
 import type { AwardsEdition } from "@/lib/polls";
 
@@ -65,6 +66,9 @@ export function SeasonPicker({
             )}
           >
             {edition.title}
+            {/* The themed KOL Awards edition is new on the site (inbox 419, 2 Nov 2026); the badge
+                expires by itself five days after that date. */}
+            {edition.theme === "detty-royale" && <NewBadge since="2026-11-02" className="ml-1.5" />}
           </Link>
         );
       })}
