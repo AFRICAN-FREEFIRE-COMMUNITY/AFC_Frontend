@@ -1,0 +1,24 @@
+{
+  "title": "Votos em direto",
+  "subtitle": "Os votos por nomeado, à medida que chegam. Esta página atualiza-se sozinha a cada minuto.",
+  "private": "Página privada. Quem tiver este link pode vê-la, por isso não o reencaminhe.",
+  "updated": "Atualizado às",
+  "closes": "A votação fecha",
+  "ballots": "{count, plural, one {# boletim} other {# boletins}}",
+  "votes": "{count, plural, one {# voto} other {# votos}}",
+  "col": {
+    "rank": "Posição",
+    "nominee": "Nomeado",
+    "votes": "Votos",
+    "share": "Parte",
+    "countries": "Principais países",
+    "regions": "Principais regiões"
+  },
+  "other": "Outros",
+  "unknown": "Desconhecido",
+  "noVotes": "Ainda não há votos.",
+  "notFound": "Este link não está ativo. Peça um novo aos organizadores.",
+  "error": "Não foi possível atualizar os votos. Nova tentativa daqui a um minuto.",
+  "placesNote": "Os países e regiões vêm da ligação de cada votante no momento do voto. Locais com menos de 5 votos são agrupados em Outros.",
+  "attribution": "Dados de localização: DB-IP"
+}

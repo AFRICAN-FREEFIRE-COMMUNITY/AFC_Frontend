@@ -67,6 +67,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { voteDeviceKey } from "@/lib/voteDevice";
 import {
   pollsApi,
   type EditionDetail,
@@ -411,7 +412,8 @@ function BallotScreen({ data, onChanged }: { data: EditionDetail; onChanged: () 
     }
     setSubmitting(pollSlug);
     try {
-      await pollsApi.submitResponse(pollSlug, answers);
+      // The device key feeds the vote safety flags (inbox #453, lib/voteDevice.ts).
+      await pollsApi.submitResponse(pollSlug, answers, false, { device_key: voteDeviceKey() });
       toast.success(t("ballotSaved"));
       onChanged();
     } catch (error: any) {

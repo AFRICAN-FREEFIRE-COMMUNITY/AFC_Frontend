@@ -15,12 +15,18 @@
  *     engine's own answers. No phase or date gate, so a closed poll shows what an open one did.
  *   - "Original ballot": the 2025 votes still stored in the original awards tables.
  *
+ * VOTE TRACKING (inbox #453 and #457, 2 Nov 2026): each poll also shows where and how people voted
+ * (VoteTracking.tsx: started vs finished, devices, account ages, awards per ballot, the safety flag
+ * review in VoteFlags.tsx) and each nominee row gains its top country and region, pick switches and
+ * the voters its link brought, with a Details row. The edition gets Garena's private live link
+ * (GarenaLiveLink.tsx).
+ *
  * TALKS TO lib/polls.ts adminEditionMetrics + adminLegacyBallotMetrics, which hit
  * afc_polls/views.py admin_edition_metrics + admin_legacy_ballot_metrics (AFC poll admins only).
  * Mounted by app/(a)/a/polls/page.tsx for admins; an organizer never sees the tab.
  */
 import Link from "next/link";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -40,6 +46,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatNumber } from "@/lib/i18n/number";
 import { pollsApi, type AwardsEdition } from "@/lib/polls";
+
+import { GarenaLiveLink } from "./GarenaLiveLink";
+import { NomineeDetails, OptionColumns, PollTracking, useDetailsToggle, useOptionColumnHeads } from "./VoteTracking";
 
 export function AwardsMetrics({ editions }: { editions: AwardsEdition[] }) {
   const t = useTranslations("adminPolls");
@@ -98,9 +107,10 @@ function SeasonBallots({ editions }: { editions: AwardsEdition[] }) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const load = useCallback(async () => {
+  // quiet: refresh the numbers in place after a ballot review, without the full-page loader.
+  const load = useCallback(async (quiet = false) => {
     if (!slug) return;
-    setLoading(true);
+    if (!quiet) setLoading(true);
     try {
       setData(await pollsApi.adminEditionMetrics(slug));
     } catch (error: any) {
@@ -143,9 +153,10 @@ function SeasonBallots({ editions }: { editions: AwardsEdition[] }) {
             <StatTile label={t("metrics.questions")} value={formatNumber(data.totals.questions)} />
             <StatTile label={t("metrics.answers")} value={formatNumber(data.totals.responses)} />
           </div>
+          <GarenaLiveLink editionSlug={slug} initialToken={data.live_view_token || ""} />
           {data.polls.length === 0 && <EmptyNote text={t("metrics.noPolls")} />}
           {data.polls.map((poll: any) => (
-            <PollMetrics key={poll.slug} poll={poll} />
+            <PollMetrics key={poll.slug} poll={poll} onReviewed={() => load(true)} />
           ))}
         </>
       )}
@@ -153,8 +164,10 @@ function SeasonBallots({ editions }: { editions: AwardsEdition[] }) {
   );
 }
 
-function PollMetrics({ poll }: { poll: any }) {
+function PollMetrics({ poll, onReviewed }: { poll: any; onReviewed?: () => void }) {
   const t = useTranslations("adminPolls");
+  const trackingHeads = useOptionColumnHeads();
+  const details = useDetailsToggle();
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -167,11 +180,12 @@ function PollMetrics({ poll }: { poll: any }) {
           {poll.closes_at && (
             <>
               {" · "}
-              {t("metrics.closedOn")} <LocalTime value={poll.closes_at} mode="date" />
+              {t(poll.is_closed ? "metrics.closedOn" : "metrics.closesOn")} <LocalTime value={poll.closes_at} mode="date" />
             </>
           )}
         </span>
       </div>
+      <PollTracking poll={poll} onReviewed={onReviewed} />
       {poll.questions.map((question: any) => (
         <Card key={question.question_id} className="bg-card rounded-md py-4 shadow-sm">
           <CardContent className="space-y-3">
@@ -196,20 +210,48 @@ function PollMetrics({ poll }: { poll: any }) {
                     <TableHead className="h-10 p-2 text-xs text-foreground">{t("metrics.option")}</TableHead>
                     <TableHead className="h-10 p-2 text-right text-xs text-foreground">{t("metrics.votes")}</TableHead>
                     <TableHead className="h-10 p-2 text-xs text-foreground">{t("metrics.share")}</TableHead>
+                    {trackingHeads.map((label, index) => (
+                      <TableHead key={label} className={`h-10 p-2 text-xs text-foreground ${index >= 2 ? "text-right" : ""}`}>
+                        {label}
+                      </TableHead>
+                    ))}
+                    <TableHead className="h-10 p-2 text-xs text-foreground">
+                      <span className="sr-only">{t("tracking.details")}</span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {question.options.map((option: any) => (
-                    <TableRow key={option.option_id}>
-                      <TableCell className="p-2 text-xs">{option.label}</TableCell>
-                      <TableCell className="p-2 text-right text-xs tabular-nums">{formatNumber(option.votes)}</TableCell>
-                      <TableCell className="p-2">
-                        <div className="flex items-center gap-2">
-                          <ShareBar percent={option.percent} />
-                          <span className="text-xs tabular-nums text-muted-foreground">{option.percent}%</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    <Fragment key={option.option_id}>
+                      <TableRow>
+                        <TableCell className="p-2 text-xs">{option.label}</TableCell>
+                        <TableCell className="p-2 text-right text-xs tabular-nums">{formatNumber(option.votes)}</TableCell>
+                        <TableCell className="p-2">
+                          <div className="flex items-center gap-2">
+                            <ShareBar percent={option.percent} />
+                            <span className="text-xs tabular-nums text-muted-foreground">{option.percent}%</span>
+                          </div>
+                        </TableCell>
+                        <OptionColumns option={option} />
+                        <TableCell className="p-2 text-right">
+                          <button
+                            type="button"
+                            className="rounded-sm bg-muted px-2 py-1 text-xs text-foreground hover:bg-muted/70"
+                            aria-expanded={details.isOpen(option.option_id)}
+                            onClick={() => details.toggle(option.option_id)}
+                          >
+                            {details.isOpen(option.option_id) ? t("tracking.hideDetails") : t("tracking.details")}
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                      {details.isOpen(option.option_id) && (
+                        <TableRow className="hover:bg-transparent">
+                          <TableCell colSpan={8} className="p-2">
+                            <NomineeDetails option={option} />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>

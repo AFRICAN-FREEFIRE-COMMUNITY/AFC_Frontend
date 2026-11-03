@@ -19,6 +19,29 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.12.0 - 2026-11-03
+
+### Added
+- Awards Metrics tab (/a/polls): for each nominee, where the votes came from (country and region, from DB-IP's
+  free database, credited on the page), votes by day and by hour, switches between nominees, which share link
+  brought each voter, the device, and the voter's account age; per ballot, how many people opened the vote sheet
+  and how many finished. Wears a NEW badge for 5 days.
+- Ballot review on the same tab: ballots flagged for a profile country unlike the vote's country, several
+  ballots from one connection or one browser, a very new account, or failed checks. Looks fine, or Remove with
+  a written reason (the ballot leaves every count), and a log of every decision.
+- Garena's private live page (/awards/live/<link>): votes per nominee with their countries and regions, no
+  sign-in, refreshed on its own, no voter details; AFC poll admins create, copy, replace or turn off the link
+  on the Metrics tab.
+- The KOL vote pages pass on which nominee's share link brought a voter and when the vote sheet was opened.
+
+### Fixed
+- The awards Metrics tab said "closed on" for a ballot whose voting is still open; it now says "closes on"
+  until the date passes.
+
+### Security
+- Award votes stay hidden from the public while voting is open, whatever the poll's results setting, and the
+  public poll pages no longer show how many ballots were cast (inbox #454).
+
 ## v7.11.4 - 2026-11-02
 
 ### Fixed

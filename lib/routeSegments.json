@@ -26,6 +26,7 @@
     "(user)/awards/[edition]": { "kind": "slug", "why": "awards edition slug" },
     "(user)/awards/[edition]/[award]": { "kind": "slug", "why": "award slug (PollQuestion.slug) inside a themed edition" },
     "(user)/awards/[edition]/[award]/[nominee]": { "kind": "slug", "why": "nominee slug (PollOption.slug), unique inside its award" },
+    "(user)/awards/live/[token]": { "kind": "token", "why": "Garena's private live link lv_<hex> (AwardsEdition.live_view_token)" },
     "(user)/news/[slug]": { "kind": "slug", "why": "News.slug" },
     "(user)/orders/[id]": { "kind": "token", "why": "order public token" },
     "(user)/organizations/[slug]": { "kind": "slug", "why": "organizer slug" },

@@ -29,7 +29,7 @@ export type KolView =
 
 export function KolEdition({ slug, initial, view }: { slug: string; initial: EditionDetail; view: KolView }) {
   return (
-    <KolProvider slug={slug} initial={initial}>
+    <KolProvider slug={slug} initial={initial} view={view}>
       <div className={`kol ${kolSub.variable} ${kolBody.variable}`}>
         <main>
           {view.kind === "landing" && <KolLanding />}

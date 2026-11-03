@@ -1,0 +1,24 @@
+{
+  "title": "Live votes",
+  "subtitle": "Votes per nominee as they come in. This page refreshes itself every minute.",
+  "private": "Private page. Anyone with this link can see it, so do not forward it.",
+  "updated": "Updated",
+  "closes": "Voting closes",
+  "ballots": "{count, plural, one {# ballot} other {# ballots}}",
+  "votes": "{count, plural, one {# vote} other {# votes}}",
+  "col": {
+    "rank": "Rank",
+    "nominee": "Nominee",
+    "votes": "Votes",
+    "share": "Share",
+    "countries": "Top countries",
+    "regions": "Top regions"
+  },
+  "other": "Other",
+  "unknown": "Unknown",
+  "noVotes": "No votes yet.",
+  "notFound": "This link is not active. Ask the organisers for a new one.",
+  "error": "The votes could not be refreshed. Trying again in a minute.",
+  "placesNote": "Countries and regions come from each voter's connection when they voted. Places with fewer than 5 votes are grouped as Other.",
+  "attribution": "Location data: DB-IP"
+}
