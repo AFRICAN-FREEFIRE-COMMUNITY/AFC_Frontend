@@ -49,7 +49,7 @@ import { CountryFlag } from "@/lib/countryFlag";
 // Live refresh (owner 2026-07-02): site-wide heartbeat; re-pulls the standings in place.
 import { useLiveTick } from "@/hooks/useLiveTick";
 import { useAuth } from "@/contexts/AuthContext";
-import { FullLoader } from "@/components/Loader";
+import { FullLoader, Loader } from "@/components/Loader";
 // The address is the event's slug (owner rule R22); every endpoint below takes the numeric id,
 // so the slug is resolved once here and an old numeric link is rewritten in place.
 import { useEventRef } from "@/lib/addressRef";
@@ -76,6 +76,12 @@ import { DownloadLeaderboardButton } from "../_components/DownloadLeaderboardBut
 // "Upload / Edit Whole Group" behaviour.
 import { GroupResultsEditor } from "../_components/GroupResultsEditor";
 import { InfoTip } from "@/components/ui/info-tip";
+// Kill stats tab (inbox #467, approved mockup mockups/kill-stats-admin/): the event page's tab in staff mode,
+// always open here; reads AFC-B events/kill-stats/ through lib/killStats.ts.
+import { KillStatsTab } from "@/components/events/KillStatsTab";
+import { NewBadge } from "@/components/NewBadge";
+import { KILL_STATS_LEADERBOARD_SINCE } from "@/lib/killStats";
+import { useTranslations } from "next-intl";
 
 type Params = { id: string };
 type MatchView = "method" | "manual" | "image_upload" | "room_file_upload";
@@ -89,11 +95,14 @@ export default function IndividualLeaderboardPage({
   const { id: ref } = resolvedParams;
   const { id, slug: eventAddress } = useEventRef(ref, (slug) => `/a/leaderboards/${slug}`);
   const { token } = useAuth();
+  const tKills = useTranslations("killStats");
   // Live refresh (owner 2026-07-02): tick advances every 30s while the tab is visible.
   const tick = useLiveTick();
 
   const [eventData, setEventData] = useState<any>(null);
   const [eventSlug, setEventSlug] = useState<string>("");
+  // the Kill stats tab's event (inbox #467): the leaderboard answer's slug, else this address's own
+  const killStatsSlug = eventSlug || eventAddress || "";
   const [selectedStageId, setSelectedStageId] = useState<string>("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [selectedMatchId, setSelectedMatchId] = useState<string>("overall");
@@ -224,7 +233,8 @@ export default function IndividualLeaderboardPage({
       ) ?? currentMatch)
     : currentMatch;
 
-  const [leaderboardTab, setLeaderboardTab] = useState<"team" | "player">(
+  // "kills": the Kill stats tab, staff view of components/events/KillStatsTab (inbox #467).
+  const [leaderboardTab, setLeaderboardTab] = useState<"team" | "player" | "kills">(
     "team",
   );
 
@@ -572,11 +582,15 @@ export default function IndividualLeaderboardPage({
               /* ── Team: two tabs ── */
               <Tabs
                 value={leaderboardTab}
-                onValueChange={(v) => setLeaderboardTab(v as "team" | "player")}
+                onValueChange={(v) => setLeaderboardTab(v as "team" | "player" | "kills")}
               >
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="team">Team Leaderboard</TabsTrigger>
                   <TabsTrigger value="player">Player Leaderboard</TabsTrigger>
+                  <TabsTrigger value="kills" className="gap-1.5">
+                    {tKills("tab")}
+                    <NewBadge since={KILL_STATS_LEADERBOARD_SINCE} />
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* ── Team Leaderboard ── */}
@@ -683,6 +697,13 @@ export default function IndividualLeaderboardPage({
                       No player data available!
                     </div>
                   )}
+                </TabsContent>
+
+                {/* ── Kill stats (inbox #467): the whole event, its own stage chips; staff mode. The slug is the
+                    leaderboard answer's, else the one this page's own address resolved to (useEventRef): the
+                    answer does not always carry it, and the events-list fallback misses unlisted events ── */}
+                <TabsContent value="kills">
+                  {killStatsSlug ? <KillStatsTab slug={killStatsSlug} exportOn={false} staff /> : <Loader />}
                 </TabsContent>
               </Tabs>
             )}

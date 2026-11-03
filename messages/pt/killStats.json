@@ -46,5 +46,39 @@
     "pick": "Jogador",
     "opponent": "Adversário",
     "team": "Equipe"
+  },
+  "csvError": "Não foi possível baixar o CSV.",
+  "staff": {
+    "always": "Sempre aberto aqui para os admins da AFC e os organizadores deste evento.",
+    "on": "A aba Estatísticas de abates da página pública do evento está ligada: os jogadores veem as mesmas tabelas (não os dois cartões abaixo).",
+    "off": "A aba Estatísticas de abates da página pública do evento está desligada: nada daqui aparece para os jogadores até ela ser ligada."
+  },
+  "weapons": {
+    "title": "Armas usadas",
+    "lead": "Abates por arma, com o nome que o jogo mostra aos jogadores, nos abates em que o jogo informou a arma. As versões de uma arma contam como essa arma.",
+    "gun": "Arma",
+    "kills": "Abates",
+    "top": "Mais abates com ela",
+    "empty": "Nenhum abate com arma conhecida ainda."
+  },
+  "missing": {
+    "title": "Ainda não registrado",
+    "lead": "O que os arquivos do jogo ainda não dão ao site. Cada item aparece aqui quando puder ser lido dos arquivos de replay do jogo, que estão sendo decifrados.",
+    "zone": {
+      "title": "Tempo fora da zona segura, por equipe",
+      "body": "Precisa da posição de cada jogador durante toda a partida. O log do observador só tem posições nos abates e nos renascimentos."
+    },
+    "damage": {
+      "title": "Dano causado e recebido",
+      "body": "O log tem isso para o jogador que o observador está assistindo, não para os outros."
+    },
+    "revive": {
+      "title": "Quem reviveu quem",
+      "body": "O log diz que um jogador voltou, não quem o trouxe de volta."
+    },
+    "grenade": {
+      "title": "Onde cada granada foi jogada",
+      "body": "O log conta as granadas usadas, sem o lugar."
+    }
   }
 }

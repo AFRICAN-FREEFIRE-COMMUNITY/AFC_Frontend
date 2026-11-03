@@ -15,11 +15,19 @@
 // Shown only when the event's kill_feed_tab switch is on (EventDetailsWrapper decides). Players left
 // drops only on a finished kill; a knock is counted as a knock (owner answer 4 of #350, #385).
 //
+// STAFF MODE (`staff`, inbox #467, approved mockup mockups/kill-stats-admin/): the same tab on the admin
+// and organizer LEADERBOARD pages (app/(a)/a/leaderboards/[id], app/(organizer)/organizer/events/[slug]/
+// leaderboard). Always open there whatever the public switch says (the server lets the event's admins and
+// organizers through), with a line saying whether players can see it, two extra cards (Weapons used, by
+// the game's own gun names; Not recorded yet: what the game's files cannot give the site today, #463 #465)
+// and the CSV downloaded with the session, so it works while the export switch is off.
+//
 // Data: lib/killStats.ts -> AFC-B GET events/kill-stats/ (views_kill_feed.py); a pair's fights are
 // fetched when it is opened. Strings: messages/{en,fr,pt}/killStats.json.
 // ─────────────────────────────────────────────────────────────────────────────
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { IconChevronRight, IconDownload } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,8 +56,12 @@ function Score({ a, b }: { a: number; b: number }) {
   );
 }
 
-export function KillStatsTab({ slug, exportOn }: { slug: string; exportOn: boolean }) {
+// The four things the game's files do not give the site yet (staff mode's Not recorded yet card).
+const MISSING = ["zone", "damage", "revive", "grenade"] as const;
+
+export function KillStatsTab({ slug, exportOn, staff = false }: { slug: string; exportOn: boolean; staff?: boolean }) {
   const t = useTranslations("killStats");
+  const [downloading, setDownloading] = useState(false);
   const [stage, setStage] = useState<number | null>(null);
   const [data, setData] = useState<KillStats | null>(null);
   const [failed, setFailed] = useState(false);
@@ -108,8 +120,25 @@ export function KillStatsTab({ slug, exportOn }: { slug: string; exportOn: boole
 
   const nothing = data.coverage.kills === 0 && data.player_pairs.length === 0;
 
+  // Staff mode: the CSV comes through the API with the session (the export switch may still be off).
+  const downloadCsv = () => {
+    setDownloading(true);
+    killStatsApi
+      .downloadCsv(slug, stage)
+      .catch(() => toast.error(t("csvError")))
+      .finally(() => setDownloading(false));
+  };
+
   return (
     <div className="mt-4 space-y-4">
+      {/* ── staff mode: always open here, and whether players can see it ── */}
+      {staff && (
+        <p className="rounded-md bg-muted/40 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+          <b className="font-semibold text-foreground">{t("staff.always")}</b>{" "}
+          {data.switches.tab ? t("staff.on") : t("staff.off")}
+        </p>
+      )}
+
       {/* ── stage chips + what share of kills carried a weapon ── */}
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" variant={stage === null ? "default" : "outline"} className="text-xs" onClick={() => setStage(null)}>
@@ -296,7 +325,66 @@ export function KillStatsTab({ slug, exportOn }: { slug: string; exportOn: boole
         </>
       )}
 
-      {exportOn && (
+      {/* ── staff mode: weapons used, and what the game's files cannot give the site yet ── */}
+      {staff && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {!nothing && (
+            <Card className="min-w-0">
+              <CardContent>
+                <h2 className="text-lg font-bold">{t("weapons.title")}</h2>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("weapons.lead")}</p>
+                {!data.weapons?.length ? (
+                  <p className="mt-4 text-sm text-muted-foreground">{t("weapons.empty")}</p>
+                ) : (
+                  <Table className="mt-3">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("weapons.gun")}</TableHead>
+                        <TableHead className="text-right">{t("weapons.kills")}</TableHead>
+                        <TableHead>{t("weapons.top")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.weapons.map((w) => (
+                        <TableRow key={w.name}>
+                          <TableCell className="font-semibold">{w.name}</TableCell>
+                          <TableCell className="text-right tabular-nums">{formatNumber(w.kills)}</TableCell>
+                          {/* Wraps, like the head to head's team names, so the table fits a phone. */}
+                          <TableCell className="whitespace-normal">
+                            {w.top.name}
+                            {w.top.team_name && <span className="text-muted-foreground"> ({w.top.team_name})</span>}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          <Card className="min-w-0">
+            <CardContent>
+              <h2 className="text-lg font-bold">{t("missing.title")}</h2>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("missing.lead")}</p>
+              <ul className="mt-3 grid gap-2.5">
+                {MISSING.map((k) => (
+                  <li key={k} className="rounded-md bg-muted/40 px-3 py-2.5 text-xs leading-relaxed">
+                    <b className="block text-sm font-semibold">{t(`missing.${k}.title`)}</b>
+                    <span className="text-muted-foreground">{t(`missing.${k}.body`)}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {staff ? (
+        <Button variant="secondary" onClick={downloadCsv} disabled={downloading}>
+          <IconDownload aria-hidden className="size-4" />
+          {t("csv")}
+        </Button>
+      ) : exportOn && (
         <Button asChild variant="secondary">
           <a href={killStatsApi.csvUrl(slug, stage)} download>
             <IconDownload aria-hidden className="size-4" />

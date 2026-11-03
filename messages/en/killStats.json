@@ -46,5 +46,39 @@
     "pick": "Player",
     "opponent": "Opponent",
     "team": "Team"
+  },
+  "csvError": "The CSV could not be downloaded.",
+  "staff": {
+    "always": "Always open here for AFC admins and this event's organizers.",
+    "on": "The Kill stats tab on the public event page is switched on, so players see the same tables (not the two cards below).",
+    "off": "The Kill stats tab on the public event page is switched off: nothing here is shown to players until it is turned on."
+  },
+  "weapons": {
+    "title": "Weapons used",
+    "lead": "Kills per gun, by the name the game shows players, for the kills where the game reported the weapon. Versions of one gun count as that gun.",
+    "gun": "Gun",
+    "kills": "Kills",
+    "top": "Most kills with it",
+    "empty": "No kill with a known weapon yet."
+  },
+  "missing": {
+    "title": "Not recorded yet",
+    "lead": "What the game's files do not give the site today. Each one appears here once it can be read from the game's replay files, which are being worked out.",
+    "zone": {
+      "title": "Time outside the safe zone, per team",
+      "body": "Needs every player's position through the match. The observer's log only has positions at kills and respawns."
+    },
+    "damage": {
+      "title": "Damage dealt and taken",
+      "body": "The log has it for the player the observer is watching, not for the others."
+    },
+    "revive": {
+      "title": "Who revived who",
+      "body": "The log says a player came back, not who brought them back."
+    },
+    "grenade": {
+      "title": "Where each grenade was thrown",
+      "body": "The log counts grenades used, without a place."
+    }
   }
 }

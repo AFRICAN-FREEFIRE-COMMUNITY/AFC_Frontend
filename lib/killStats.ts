@@ -10,15 +10,22 @@
 //                                           and the two teams' players against each other. Asked only
 //                                           when a pair is opened, so the first read stays small.
 //   killStatsApi.csvUrl(slug, stage?)       the GFX team's CSV, when the event switched it on.
+//   killStatsApi.downloadCsv(slug, stage?)  the same CSV fetched WITH the session and saved as a file: the
+//                                           leaderboard pages' staff view (inbox #467) offers it while the
+//                                           event's export switch is still off, which a plain link cannot do.
 // The reads are public once the event switched the tab on, so they send a session only if there is
 // one (optionalAuthHeaders: an organizer previewing a switched-off event is let through by the server).
-// Consumed by components/events/KillStatsTab.tsx.
+// Consumed by components/events/KillStatsTab.tsx (the event page, and the admin / organizer leaderboard
+// pages in its staff mode: app/(a)/a/leaderboards/[id], app/(organizer)/organizer/events/[slug]/leaderboard).
 // ─────────────────────────────────────────────────────────────────────────────
 import axios from "axios";
 import { env } from "@/lib/env";
 import { optionalAuthHeaders } from "@/lib/http";
 
 const URL = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/kill-stats/`;
+
+/** The day the Kill stats tab went live on the leaderboard pages (NEW badge, 5 days; inbox #467). */
+export const KILL_STATS_LEADERBOARD_SINCE = "2026-11-03";
 
 /** [uid_a, uid_b, kills a on b, kills b on a, knocks a on b, knocks b on a]; uid_a < uid_b. */
 export type Duel = [string, string, number, number, number, number];
@@ -43,6 +50,8 @@ export type KillStats = {
   teams: Record<string, string>;
   players: Record<string, { name: string; team_id: number }>;
   player_pairs: Duel[];
+  /** Kills per gun by the name the game shows players, most kills first, and who made the most with it (#467). */
+  weapons?: { name: string; kills: number; top: { uid: string; name: string; team_name: string; kills: number } }[];
 };
 
 /** [game seconds, "kill" | "knock", killer uid, victim uid, killer team, victim team]. */
@@ -85,4 +94,20 @@ export const killStatsApi = {
 
   csvUrl: (slug: string, stage?: number | null) =>
     `${URL}?${new URLSearchParams({ event: slug, ...(stage ? { stage: String(stage) } : {}), export: "csv" })}`,
+
+  downloadCsv: async (slug: string, stage?: number | null) => {
+    const res = await axios.get<Blob>(URL, {
+      params: { ...params(slug, stage), export: "csv" },
+      headers: optionalAuthHeaders(),
+      responseType: "blob",
+    });
+    const href = window.URL.createObjectURL(res.data);
+    const a = document.createElement("a");
+    a.href = href;
+    a.download = `${slug}-kill-stats.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(href);
+  },
 };
