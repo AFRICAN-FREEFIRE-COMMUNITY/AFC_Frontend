@@ -19,7 +19,7 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
-## Unreleased
+## v7.13.0 - 2026-11-03
 
 ### Added
 - Kill stats tab on the admin and organizer leaderboard pages (inbox #467, approved mockup
@@ -29,6 +29,13 @@ workflow checks it again before it builds.
   Weapons used card (kills per gun by the game's own names, and who made the most kills with each) and a Not
   recorded yet card (zone time, damage, revives, grenade places). The CSV for the graphics team downloads with the
   session, so it works while the export switch is off.
+
+### Fixed
+- AFC Capture 1.5.3 on the download page. The live dashboard names every gun the way the game shows it to
+  players (Skorp, Hawk, M82B, M590, Woodpecker ...), read from the game's own text, instead of the developer
+  names it showed before (BLT, M21A5, AR15) or "unknown gun (id 814)" for the most used gun in AFC rooms. A gun
+  the game's text does not name still reads "unknown gun (id N)".
+- The sniper award line on the Kill stats tab names the guns that count, the Hawk included (owner, 3 Nov 2026).
 
 ## v7.12.0 - 2026-11-03
 
