@@ -7,7 +7,7 @@
   "csv": "Télécharger pour l’équipe graphique (CSV)",
   "sniper": {
     "title": "Kills au sniper enregistrés",
-    "lead": "Kills au fusil à verrou (AWM, M82B, Kar98k, M24). Seuls comptent les kills dont le jeu a donné l’arme : c’est ce qui a été enregistré, pas tous les kills au sniper.",
+    "lead": "Kills avec les fusils de sniper du prix (AWM, M82B, Kar98k, M24, Hawk) et leurs versions. Seuls comptent les kills dont le jeu a donné l’arme : c’est ce qui a été enregistré, pas tous les kills au sniper.",
     "player": "Joueur",
     "team": "Équipe",
     "kills": "Kills",

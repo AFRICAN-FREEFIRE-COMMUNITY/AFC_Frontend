@@ -7,7 +7,7 @@
   "csv": "Download for the graphics team (CSV)",
   "sniper": {
     "title": "Sniper kills recorded",
-    "lead": "Kills with a bolt-action rifle (AWM, M82B, Kar98k, M24). Only kills where the game reported the weapon count, so this is what was recorded, not every sniper kill.",
+    "lead": "Kills with the award's sniper rifles (AWM, M82B, Kar98k, M24, Hawk) and their versions. Only kills where the game reported the weapon count, so this is what was recorded, not every sniper kill.",
     "player": "Player",
     "team": "Team",
     "kills": "Kills",

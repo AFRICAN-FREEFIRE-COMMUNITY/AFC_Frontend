@@ -7,7 +7,7 @@
   "csv": "Baixar para a equipe de artes (CSV)",
   "sniper": {
     "title": "Abates de sniper registrados",
-    "lead": "Abates com rifle de ferrolho (AWM, M82B, Kar98k, M24). Só contam os abates em que o jogo informou a arma: é o que foi registrado, não todos os abates de sniper.",
+    "lead": "Abates com os rifles de sniper do prêmio (AWM, M82B, Kar98k, M24, Hawk) e suas versões. Só contam os abates em que o jogo informou a arma: é o que foi registrado, não todos os abates de sniper.",
     "player": "Jogador",
     "team": "Equipe",
     "kills": "Abates",

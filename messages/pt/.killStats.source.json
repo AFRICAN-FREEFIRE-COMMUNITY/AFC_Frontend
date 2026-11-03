@@ -6,7 +6,7 @@
   "loadError": "Kill stats could not be loaded.",
   "csv": "Download for the graphics team (CSV)",
   "sniper.title": "Sniper kills recorded",
-  "sniper.lead": "Kills with a bolt-action rifle (AWM, M82B, Kar98k, M24). Only kills where the game reported the weapon count, so this is what was recorded, not every sniper kill.",
+  "sniper.lead": "Kills with the award's sniper rifles (AWM, M82B, Kar98k, M24, Hawk) and their versions. Only kills where the game reported the weapon count, so this is what was recorded, not every sniper kill.",
   "sniper.player": "Player",
   "sniper.team": "Team",
   "sniper.kills": "Kills",
