@@ -19,7 +19,7 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
-## Unreleased
+## v7.12.0 - 2026-11-03
 
 ### Added
 - Awards Metrics tab (/a/polls): for each nominee, where the votes came from (country and region, from DB-IP's
