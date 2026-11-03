@@ -7,7 +7,7 @@
   "csv": "Télécharger pour l’équipe graphique (CSV)",
   "sniper": {
     "title": "Kills au sniper enregistrés",
-    "lead": "Kills au fusil à verrou (AWM, M82B, Kar98k, M24). Seuls comptent les kills dont le jeu a donné l’arme : c’est ce qui a été enregistré, pas tous les kills au sniper.",
+    "lead": "Kills avec les fusils de sniper du prix (AWM, M82B, Kar98k, M24, Hawk) et leurs versions. Seuls comptent les kills dont le jeu a donné l’arme : c’est ce qui a été enregistré, pas tous les kills au sniper.",
     "player": "Joueur",
     "team": "Équipe",
     "kills": "Kills",
@@ -46,5 +46,39 @@
     "pick": "Joueur",
     "opponent": "Adversaire",
     "team": "Équipe"
+  },
+  "csvError": "Le CSV n’a pas pu être téléchargé.",
+  "staff": {
+    "always": "Toujours ouvert ici pour les admins AFC et les organisateurs de cet événement.",
+    "on": "L’onglet Stats de kills de la page publique de l’événement est activé : les joueurs voient les mêmes tableaux (pas les deux cartes ci-dessous).",
+    "off": "L’onglet Stats de kills de la page publique de l’événement est désactivé : rien ici n’est montré aux joueurs tant qu’il n’est pas activé."
+  },
+  "weapons": {
+    "title": "Armes utilisées",
+    "lead": "Kills par arme, sous le nom que le jeu montre aux joueurs, pour les kills dont le jeu a donné l’arme. Les versions d’une arme comptent comme cette arme.",
+    "gun": "Arme",
+    "kills": "Kills",
+    "top": "Le plus de kills avec",
+    "empty": "Aucun kill avec une arme connue pour l’instant."
+  },
+  "missing": {
+    "title": "Pas encore enregistré",
+    "lead": "Ce que les fichiers du jeu ne donnent pas encore au site. Chaque élément apparaîtra ici dès qu’il pourra être lu dans les fichiers de replay du jeu, en cours de décodage.",
+    "zone": {
+      "title": "Temps hors de la zone sûre, par équipe",
+      "body": "Il faut la position de chaque joueur pendant tout le match. Le log de l’observateur n’a des positions qu’aux kills et aux réapparitions."
+    },
+    "damage": {
+      "title": "Dégâts infligés et subis",
+      "body": "Le log les a pour le joueur que l’observateur regarde, pas pour les autres."
+    },
+    "revive": {
+      "title": "Qui a réanimé qui",
+      "body": "Le log dit qu’un joueur est revenu, pas qui l’a ramené."
+    },
+    "grenade": {
+      "title": "Où chaque grenade a été lancée",
+      "body": "Le log compte les grenades utilisées, sans l’endroit."
+    }
   }
 }

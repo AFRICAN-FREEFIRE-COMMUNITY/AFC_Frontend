@@ -145,7 +145,12 @@ import { toast } from "sonner";
 import { env } from "@/lib/env";
 import { useOrgEventMove } from "@/lib/addressRef";
 import { useAuth } from "@/contexts/AuthContext";
-import { FullLoader } from "@/components/Loader";
+import { FullLoader, Loader } from "@/components/Loader";
+// Kill stats tab (inbox #467, approved mockup mockups/kill-stats-admin/): the event page's tab in staff mode,
+// always open for this event's organizers; reads AFC-B events/kill-stats/ through lib/killStats.ts.
+import { KillStatsTab } from "@/components/events/KillStatsTab";
+import { NewBadge } from "@/components/NewBadge";
+import { KILL_STATS_LEADERBOARD_SINCE } from "@/lib/killStats";
 import { PageHeader } from "@/components/PageHeader";
 import { eventPermissions, useOrganizer, type CoOrganizerGrant } from "../../../_components/OrganizerContext";
 
@@ -400,6 +405,7 @@ export default function OrganizerEventLeaderboardPage({
   // i18n: organizer-facing page, keys under the "organizer" namespace (eventLeaderboard.*).
   const t = useTranslations("organizer");
   const tGameFiles = useTranslations("gameFiles");
+  const tKills = useTranslations("killStats");
 
   // Co-organized (owner 2026-09-13): the inviting org's grant when this org does not own the
   // event (null on its own events). Every gate below is the EFFECTIVE permission: the grant AND
@@ -438,7 +444,8 @@ export default function OrganizerEventLeaderboardPage({
   const [selectedStageId, setSelectedStageId] = useState<string>("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [selectedMatchId, setSelectedMatchId] = useState<string>("overall");
-  const [leaderboardTab, setLeaderboardTab] = useState<"team" | "player">(
+  // "kills": the Kill stats tab, staff view of components/events/KillStatsTab (inbox #467).
+  const [leaderboardTab, setLeaderboardTab] = useState<"team" | "player" | "kills">(
     "team",
   );
 
@@ -2296,14 +2303,18 @@ export default function OrganizerEventLeaderboardPage({
               /* ── Team: two tabs ── */
               <Tabs
                 value={leaderboardTab}
-                onValueChange={(v) => setLeaderboardTab(v as "team" | "player")}
+                onValueChange={(v) => setLeaderboardTab(v as "team" | "player" | "kills")}
               >
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="team">
                     {t("eventLeaderboard.teamLeaderboard")}
                   </TabsTrigger>
                   <TabsTrigger value="player">
                     {t("eventLeaderboard.playerLeaderboard")}
+                  </TabsTrigger>
+                  <TabsTrigger value="kills" className="gap-1.5">
+                    {tKills("tab")}
+                    <NewBadge since={KILL_STATS_LEADERBOARD_SINCE} />
                   </TabsTrigger>
                 </TabsList>
 
@@ -2479,6 +2490,11 @@ export default function OrganizerEventLeaderboardPage({
                       {t("eventLeaderboard.noPlayerData")}
                     </div>
                   )}
+                </TabsContent>
+
+                {/* ── Kill stats (inbox #467): the whole event, its own stage chips; staff mode ── */}
+                <TabsContent value="kills">
+                  {eventSlug ? <KillStatsTab slug={eventSlug} exportOn={false} staff /> : <Loader />}
                 </TabsContent>
               </Tabs>
             )}
