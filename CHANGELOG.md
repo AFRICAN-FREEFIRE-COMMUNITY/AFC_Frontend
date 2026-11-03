@@ -34,6 +34,14 @@ workflow checks it again before it builds.
   on the Metrics tab.
 - The KOL vote pages pass on which nominee's share link brought a voter and when the vote sheet was opened.
 
+### Changed
+- AFC Capture 1.5.2 on the download page. The live dashboard names every team (no more "Team 3" once the
+  board knows it), says plainly whether a player was knocked, killed or is out for good, marks a wiped team as
+  ELIMINATED with the order it went out, names the gun of each kill ("unknown gun (id N)" for a gun the game's
+  list does not name), and adds a table of every player's kills, knocks, headshots, grenades, gloo walls and
+  medkits. The wrong-event warning now needs more than half of the players to be off the roster, as on the
+  website, instead of two typed team names that differ. Each update also deletes its downloaded installer.
+
 ### Fixed
 - The awards Metrics tab said "closed on" for a ballot whose voting is still open; it now says "closes on"
   until the date passes.
