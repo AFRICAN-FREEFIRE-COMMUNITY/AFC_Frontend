@@ -19,6 +19,17 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- Kill stats tab on the admin and organizer leaderboard pages (inbox #467, approved mockup
+  mockups/kill-stats-admin/), beside Team Leaderboard and Player Leaderboard, with a NEW badge for 5 days. The same
+  tables as the event page's tab (sniper kills, team and player head to head), always open here for AFC admins and
+  the event's organizers whatever the public switch says, with a line saying whether players can see it, plus a
+  Weapons used card (kills per gun by the game's own names, and who made the most kills with each) and a Not
+  recorded yet card (zone time, damage, revives, grenade places). The CSV for the graphics team downloads with the
+  session, so it works while the export switch is off.
+
 ## v7.12.0 - 2026-11-03
 
 ### Added
