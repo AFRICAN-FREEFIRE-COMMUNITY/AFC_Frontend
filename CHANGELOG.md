@@ -19,6 +19,16 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Changed
+- AFC Capture 1.5.2 on the download page. The live dashboard names every team (no more "Team 3" once the
+  board knows it), says plainly whether a player was knocked, killed or is out for good, marks a wiped team as
+  ELIMINATED with the order it went out, names the gun of each kill ("unknown gun (id 814)" for skins the game's
+  list does not name), and adds a table of every player's kills, knocks, headshots, grenades, gloo walls and
+  medkits. The wrong-event warning now needs more than half of the players to be off the roster, as on the
+  website, instead of two typed team names that differ. Each update also deletes its downloaded installer.
+
 ## v7.11.4 - 2026-11-02
 
 ### Fixed
