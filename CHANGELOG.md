@@ -34,6 +34,10 @@ workflow checks it again before it builds.
   on the Metrics tab.
 - The KOL vote pages pass on which nominee's share link brought a voter and when the vote sheet was opened.
 
+### Fixed
+- The awards Metrics tab said "closed on" for a ballot whose voting is still open; it now says "closes on"
+  until the date passes.
+
 ### Security
 - Award votes stay hidden from the public while voting is open, whatever the poll's results setting, and the
   public poll pages no longer show how many ballots were cast (inbox #454).

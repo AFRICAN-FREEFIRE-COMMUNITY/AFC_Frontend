@@ -183,6 +183,7 @@
   "metrics.noPolls": "This season has no ballots yet.",
   "metrics.closed": "Closed",
   "metrics.closedOn": "closed on",
+  "metrics.closesOn": "closes on",
   "metrics.answersCount": "{count, plural, one {# answer} other {# answers}}",
   "metrics.votesTotal": "{count, plural, one {# vote} other {# votes}}",
   "metrics.publishedOnly": "No individual ballots were recorded for this category. Published winner: {winner} with {count} votes.",

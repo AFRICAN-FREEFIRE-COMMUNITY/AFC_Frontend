@@ -50,7 +50,7 @@ const PAGE_SIZE = 20;
 const REASON_MIN = 5;
 const REASON_MAX = 1000;
 
-export function VoteFlags({ pollSlug, summary }: { pollSlug: string; summary: any }) {
+export function VoteFlags({ pollSlug, summary, onReviewed }: { pollSlug: string; summary: any; onReviewed?: () => void }) {
   const t = useTranslations("adminPolls");
   const locale = useLocale();
   const [state, setState] = useState<State>("to_review");
@@ -89,6 +89,8 @@ export function VoteFlags({ pollSlug, summary }: { pollSlug: string; summary: an
       setRemoving(null);
       setReason("");
       await load(0);
+      // The season totals, flag counts and vote counts above live in the parent (AwardsMetrics).
+      onReviewed?.();
     } catch (error: any) {
       toast.error(error?.response?.data?.message || t("flags.failed"));
     } finally {

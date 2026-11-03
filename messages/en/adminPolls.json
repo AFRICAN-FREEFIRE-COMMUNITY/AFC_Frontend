@@ -233,6 +233,7 @@
     "noPolls": "This season has no ballots yet.",
     "closed": "Closed",
     "closedOn": "closed on",
+    "closesOn": "closes on",
     "answersCount": "{count, plural, one {# answer} other {# answers}}",
     "votesTotal": "{count, plural, one {# vote} other {# votes}}",
     "publishedOnly": "No individual ballots were recorded for this category. Published winner: {winner} with {count} votes.",

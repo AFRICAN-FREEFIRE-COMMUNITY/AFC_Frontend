@@ -65,7 +65,7 @@ function MiniList({ title, rows, empty }: { title: string; rows: { key: string; 
   );
 }
 
-export function PollTracking({ poll }: { poll: any }) {
+export function PollTracking({ poll, onReviewed }: { poll: any; onReviewed?: () => void }) {
   const t = useTranslations("adminPolls");
   const tracking = poll.tracking;
   if (!tracking) return null;
@@ -115,7 +115,7 @@ export function PollTracking({ poll }: { poll: any }) {
           {t("tracking.attribution")}
         </a>
       </p>
-      <VoteFlags pollSlug={poll.slug} summary={tracking.flags} />
+      <VoteFlags pollSlug={poll.slug} summary={tracking.flags} onReviewed={onReviewed} />
     </div>
   );
 }

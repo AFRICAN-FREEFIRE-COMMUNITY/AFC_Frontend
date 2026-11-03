@@ -233,6 +233,7 @@
     "noPolls": "Cette saison n'a pas encore de bulletin.",
     "closed": "Clos",
     "closedOn": "clos le",
+    "closesOn": "se clôt le",
     "answersCount": "{count, plural, one {# réponse} other {# réponses}}",
     "votesTotal": "{count, plural, one {# vote} other {# votes}}",
     "publishedOnly": "Aucun bulletin individuel n''a été enregistré pour cette catégorie. Vainqueur publié : {winner} avec {count} votes.",

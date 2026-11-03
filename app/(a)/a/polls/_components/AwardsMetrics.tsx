@@ -107,9 +107,10 @@ function SeasonBallots({ editions }: { editions: AwardsEdition[] }) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  const load = useCallback(async () => {
+  // quiet: refresh the numbers in place after a ballot review, without the full-page loader.
+  const load = useCallback(async (quiet = false) => {
     if (!slug) return;
-    setLoading(true);
+    if (!quiet) setLoading(true);
     try {
       setData(await pollsApi.adminEditionMetrics(slug));
     } catch (error: any) {
@@ -155,7 +156,7 @@ function SeasonBallots({ editions }: { editions: AwardsEdition[] }) {
           <GarenaLiveLink editionSlug={slug} initialToken={data.live_view_token || ""} />
           {data.polls.length === 0 && <EmptyNote text={t("metrics.noPolls")} />}
           {data.polls.map((poll: any) => (
-            <PollMetrics key={poll.slug} poll={poll} />
+            <PollMetrics key={poll.slug} poll={poll} onReviewed={() => load(true)} />
           ))}
         </>
       )}
@@ -163,7 +164,7 @@ function SeasonBallots({ editions }: { editions: AwardsEdition[] }) {
   );
 }
 
-function PollMetrics({ poll }: { poll: any }) {
+function PollMetrics({ poll, onReviewed }: { poll: any; onReviewed?: () => void }) {
   const t = useTranslations("adminPolls");
   const trackingHeads = useOptionColumnHeads();
   const details = useDetailsToggle();
@@ -179,12 +180,12 @@ function PollMetrics({ poll }: { poll: any }) {
           {poll.closes_at && (
             <>
               {" · "}
-              {t("metrics.closedOn")} <LocalTime value={poll.closes_at} mode="date" />
+              {t(poll.is_closed ? "metrics.closedOn" : "metrics.closesOn")} <LocalTime value={poll.closes_at} mode="date" />
             </>
           )}
         </span>
       </div>
-      <PollTracking poll={poll} />
+      <PollTracking poll={poll} onReviewed={onReviewed} />
       {poll.questions.map((question: any) => (
         <Card key={question.question_id} className="bg-card rounded-md py-4 shadow-sm">
           <CardContent className="space-y-3">

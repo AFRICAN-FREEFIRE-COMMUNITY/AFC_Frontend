@@ -233,6 +233,7 @@
     "noPolls": "Esta temporada ainda não tem boletins.",
     "closed": "Encerrado",
     "closedOn": "encerrado em",
+    "closesOn": "encerra em",
     "answersCount": "{count, plural, one {# resposta} other {# respostas}}",
     "votesTotal": "{count, plural, one {# voto} other {# votos}}",
     "publishedOnly": "Não foi registado nenhum boletim individual para esta categoria. Vencedor publicado: {winner} com {count} votos.",
