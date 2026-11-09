@@ -21,13 +21,16 @@ workflow checks it again before it builds.
 
 ## v7.14.0 - 2026-11-09
 
+### Added
+- AFC Capture 1.5.4 on the download page (owner, 6 to 9 Nov 2026, inbox #506 to #512) sends each player's damage
+  with the map, the game's own figure, so the leaderboards show damage for maps it uploads (AFC-B v7.14.0), and
+  gives every kill AND every knock the gun the game credits. Both are read from the game's replay file.
+
 ### Fixed
-- AFC Capture 1.5.4 on the download page (owner, 6 to 9 Nov 2026, inbox #506 to #512). A game client that crashes
-  and rejoins mid-map keeps its match, and an instant replay on the observer PC is never counted twice. The game's
-  result file is repaired before upload when it lost players' account ids or printed a row twice. Every kill and
-  knock carries the gun the game credits, and each player's damage goes up with the map, read from the game's
-  replay file. The live dashboard marks players who went out while the game was reconnecting, says "Match
-  finished" once, and a dashboard opened late still shows the whole map.
+- AFC Capture 1.5.4: a game client that crashes and rejoins mid-map keeps its match, and an instant replay on the
+  observer PC is never counted twice. The game's result file is repaired before upload when it lost players'
+  account ids or printed a row twice. The live dashboard marks players who went out while the game was
+  reconnecting, says "Match finished" once, and a dashboard opened late still shows the whole map.
 - The Kill stats tab's Not recorded yet card no longer lists damage dealt, which is recorded now. It names what is
   still missing: damage taken.
 
