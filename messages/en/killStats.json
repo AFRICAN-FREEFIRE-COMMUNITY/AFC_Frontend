@@ -69,8 +69,8 @@
       "body": "Needs every player's position through the match. The observer's log only has positions at kills and respawns."
     },
     "damage": {
-      "title": "Damage dealt and taken",
-      "body": "The log has it for the player the observer is watching, not for the others."
+      "title": "Damage taken",
+      "body": "Damage dealt is recorded from AFC Capture 1.5.4 on. Damage taken is in the game's replay file too, but the site does not store it yet."
     },
     "revive": {
       "title": "Who revived who",

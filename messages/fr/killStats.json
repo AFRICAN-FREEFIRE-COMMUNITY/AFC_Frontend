@@ -69,8 +69,8 @@
       "body": "Il faut la position de chaque joueur pendant tout le match. Le log de l’observateur n’a des positions qu’aux kills et aux réapparitions."
     },
     "damage": {
-      "title": "Dégâts infligés et subis",
-      "body": "Le log les a pour le joueur que l’observateur regarde, pas pour les autres."
+      "title": "Dégâts subis",
+      "body": "Les dégâts infligés sont enregistrés depuis AFC Capture 1.5.4. Les dégâts subis sont aussi dans le fichier de replay du jeu, mais le site ne les enregistre pas encore."
     },
     "revive": {
       "title": "Qui a réanimé qui",
