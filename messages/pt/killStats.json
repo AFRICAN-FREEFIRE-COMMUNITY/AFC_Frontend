@@ -69,8 +69,8 @@
       "body": "Precisa da posição de cada jogador durante toda a partida. O log do observador só tem posições nos abates e nos renascimentos."
     },
     "damage": {
-      "title": "Dano causado e recebido",
-      "body": "O log tem isso para o jogador que o observador está assistindo, não para os outros."
+      "title": "Dano recebido",
+      "body": "O dano causado é registrado a partir do AFC Capture 1.5.4. O dano recebido também está no arquivo de replay do jogo, mas o site ainda não o armazena."
     },
     "revive": {
       "title": "Quem reviveu quem",
