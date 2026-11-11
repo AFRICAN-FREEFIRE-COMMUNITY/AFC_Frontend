@@ -367,5 +367,13 @@
       "off": "Link desligado."
     },
     "failed": "Não funcionou. Tente novamente."
+  },
+  "release": {
+    "hiddenBadge": "Oculta",
+    "hidden": "Oculta até o lançamento",
+    "hiddenHelp": "Enquanto estiver ligado, só os admins de enquetes da AFC podem abrir estes prêmios (para pré-visualizar). Ninguém pode votar e eles não aparecem em nenhuma lista. Desligue para lançar.",
+    "whatsapp": "Um número de WhatsApp por cédula",
+    "whatsappHelp": "Os eleitores comprovam um número de WhatsApp antes de a cédula contar. Um número vale para uma conta só.",
+    "preview": "Prévia"
   }
 }

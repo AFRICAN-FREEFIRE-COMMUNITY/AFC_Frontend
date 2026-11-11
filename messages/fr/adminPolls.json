@@ -367,5 +367,13 @@
       "off": "Lien désactivé."
     },
     "failed": "Cela n'a pas fonctionné. Réessayez."
+  },
+  "release": {
+    "hiddenBadge": "Masquée",
+    "hidden": "Masquée jusqu'à la sortie",
+    "hiddenHelp": "Tant que c'est activé, seuls les admins des sondages AFC peuvent ouvrir ces récompenses (pour les prévisualiser). Personne ne peut voter et elles ne sont listées nulle part. Désactivez pour les publier.",
+    "whatsapp": "Un numéro WhatsApp par bulletin",
+    "whatsappHelp": "Les votants prouvent un numéro WhatsApp avant que leur bulletin compte. Un numéro ne vaut que pour un compte.",
+    "preview": "Aperçu"
   }
 }

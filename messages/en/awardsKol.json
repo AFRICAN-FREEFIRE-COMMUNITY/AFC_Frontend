@@ -205,7 +205,8 @@
     "winnerFilm": "Watch the winner film",
     "winnerPage": "The winner's page",
     "share": "Share the win",
-    "nomineesHeading": "The nominees"
+    "nomineesHeading": "The nominees",
+    "allWinners": "All the winners"
   },
   "nominee": {
     "eyebrow": "Nominee · {award}",
@@ -266,7 +267,36 @@
       "fix": "Fix it"
     },
     "errClosed": "Voting is closed.",
-    "errGeneric": "Your vote could not be saved. Try again."
+    "errGeneric": "Your vote could not be saved. Try again.",
+    "wa": {
+      "title": "Verify your <em>WhatsApp</em>",
+      "body": "<b>One WhatsApp number, one ballot.</b> Send us this code from WhatsApp: it takes ten seconds and it is free. Your number is never shown.",
+      "yourCode": "Your code",
+      "scan": "Scan with your phone",
+      "open": "Open WhatsApp",
+      "fine": "WhatsApp opens with the code already typed. Press send, then come back here.",
+      "loading": "Getting your code",
+      "sent": "I've sent it",
+      "waiting": "Waiting for your message",
+      "waitingBody": "It usually arrives in a few seconds.",
+      "notYet": "Your message has not arrived yet. Check that you pressed send, then try again.",
+      "alt": "Send me a code on WhatsApp instead",
+      "codeBody": "Type your WhatsApp number and we will send you a six-digit code.",
+      "typedBody": "We sent a code to the number ending {last4}. Type it here.",
+      "numberLabel": "WhatsApp number, with the country code",
+      "codeLabel": "Six-digit code",
+      "sendCode": "Send me the code",
+      "sending": "Sending",
+      "verify": "Verify",
+      "checking": "Checking",
+      "back": "Send AFC the code instead",
+      "verified": "WhatsApp verified",
+      "verifiedNumber": "The number ending {last4} backs this ballot.",
+      "continue": "Continue",
+      "errLoad": "The WhatsApp check could not start. Try again.",
+      "errSend": "The code could not be sent. Try again.",
+      "errVerify": "That code did not work. Try again."
+    }
   },
   "admin": {
     "theme": "Page design",
@@ -300,6 +330,31 @@
     "awardBtn": "The award",
     "everyone": "Every nominee",
     "thanks": "Thank you, <em>all {count}</em>",
-    "thanksLabel": "Thank you, all {count}"
+    "thanksLabel": "Thank you, all {count}",
+    "openEnvelopes": "Open the envelopes",
+    "hallBtn": "Hall of fame",
+    "stageLabel": "{name}, winner of {award}",
+    "stamp": "Winner",
+    "envelopeTop": "And the winner is",
+    "beat": "{count, plural, one {Chosen from # nominee.} other {Chosen from # nominees.}}",
+    "alsoNominated": "Also nominated",
+    "share": "Share"
+  },
+  "preview": {
+    "bar": "Hidden until release: only AFC poll admins can see this page.",
+    "loading": "Loading the preview",
+    "notFound": "This page is not public yet."
+  },
+  "hof": {
+    "eyebrow": "Every winner, every year",
+    "title": "Hall of <em>fame</em>",
+    "loading": "Loading the hall of fame",
+    "error": "The hall of fame could not be loaded. Reload the page to try again.",
+    "none": "No winners have been announced yet.",
+    "seasons": "Season",
+    "all": "All seasons",
+    "mostDecorated": "Most decorated",
+    "wins": "{count, plural, one {# win} other {# wins}}",
+    "awardsCount": "{count, plural, one {# award} other {# awards}}"
   }
 }

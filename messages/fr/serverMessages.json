@@ -28,5 +28,14 @@
   "placement_missing": "Indiquez la place de chaque équipe.",
   "placements_not_one_each": "Chaque place ne sert qu'une fois : 1 pour le vainqueur, puis 2, 3 et ainsi de suite.",
   "no_files_for_game": "Il n'y a rien à téléverser pour cette partie.",
-  "match_not_on_event": "Ce match ne fait pas partie de cet événement."
+  "match_not_on_event": "Ce match ne fait pas partie de cet événement.",
+  "whatsapp_check_required": "Vérifiez votre numéro WhatsApp pour voter à ces récompenses.",
+  "whatsapp_number_invalid": "Ce n'est pas un numéro WhatsApp. Ajoutez l'indicatif du pays, comme +234.",
+  "whatsapp_number_taken": "Ce numéro WhatsApp garantit déjà un autre compte.",
+  "whatsapp_code_wrong": "Ce code n'est pas celui que nous avons envoyé.",
+  "whatsapp_code_expired": "Ce code a expiré. Demandez-en un nouveau.",
+  "whatsapp_too_many_codes": "Trop de codes pour l'instant. Réessayez dans une heure.",
+  "whatsapp_code_not_sent": "Le code n'a pas pu être envoyé. Réessayez dans une minute.",
+  "whatsapp_too_many_tries": "Trop de codes erronés. Demandez-en un nouveau.",
+  "whatsapp_inbound_off": "L'envoi d'un code à AFC n'est pas disponible. Demandez plutôt un code."
 }

@@ -205,7 +205,8 @@
     "winnerFilm": "Ver o filme do vencedor",
     "winnerPage": "A página do vencedor",
     "share": "Partilhar a vitória",
-    "nomineesHeading": "Os nomeados"
+    "nomineesHeading": "Os nomeados",
+    "allWinners": "Todos os vencedores"
   },
   "nominee": {
     "eyebrow": "Nomeado · {award}",
@@ -266,7 +267,36 @@
       "fix": "Corrigir"
     },
     "errClosed": "A votação terminou.",
-    "errGeneric": "Não foi possível guardar o seu voto. Tente novamente."
+    "errGeneric": "Não foi possível guardar o seu voto. Tente novamente.",
+    "wa": {
+      "title": "Verifique seu <em>WhatsApp</em>",
+      "body": "<b>Um número de WhatsApp, uma cédula.</b> Envie este código pelo WhatsApp: leva dez segundos e é grátis. Seu número nunca aparece.",
+      "yourCode": "Seu código",
+      "scan": "Escaneie com o celular",
+      "open": "Abrir o WhatsApp",
+      "fine": "O WhatsApp abre com o código já digitado. Toque em enviar e volte aqui.",
+      "loading": "Preparando seu código",
+      "sent": "Já enviei",
+      "waiting": "Aguardando sua mensagem",
+      "waitingBody": "Costuma chegar em poucos segundos.",
+      "notYet": "Sua mensagem ainda não chegou. Confira se você tocou em enviar e tente de novo.",
+      "alt": "Prefiro receber um código no WhatsApp",
+      "codeBody": "Digite seu número de WhatsApp e enviaremos um código de seis dígitos.",
+      "typedBody": "Enviamos um código para o número terminado em {last4}. Digite aqui.",
+      "numberLabel": "Número de WhatsApp, com o código do país",
+      "codeLabel": "Código de seis dígitos",
+      "sendCode": "Enviar o código",
+      "sending": "Enviando",
+      "verify": "Verificar",
+      "checking": "Verificando",
+      "back": "Prefiro enviar o código para a AFC",
+      "verified": "WhatsApp verificado",
+      "verifiedNumber": "O número terminado em {last4} garante esta cédula.",
+      "continue": "Continuar",
+      "errLoad": "Não foi possível iniciar a verificação do WhatsApp. Tente de novo.",
+      "errSend": "Não foi possível enviar o código. Tente de novo.",
+      "errVerify": "Esse código não funcionou. Tente de novo."
+    }
   },
   "admin": {
     "theme": "Design da página",
@@ -300,6 +330,31 @@
     "awardBtn": "O prémio",
     "everyone": "Todos os nomeados",
     "thanks": "Obrigado a <em>todos os {count}</em>",
-    "thanksLabel": "Obrigado a todos os {count}"
+    "thanksLabel": "Obrigado a todos os {count}",
+    "openEnvelopes": "Abrir os envelopes",
+    "hallBtn": "Hall da fama",
+    "stageLabel": "{name}, vencedor de {award}",
+    "stamp": "Vencedor",
+    "envelopeTop": "E o vencedor é",
+    "beat": "{count, plural, one {Escolhido entre # indicado.} other {Escolhido entre # indicados.}}",
+    "alsoNominated": "Também indicados",
+    "share": "Compartilhar"
+  },
+  "preview": {
+    "bar": "Oculto até o lançamento: só os admins de enquetes da AFC veem esta página.",
+    "loading": "Carregando a prévia",
+    "notFound": "Esta página ainda não é pública."
+  },
+  "hof": {
+    "eyebrow": "Cada vencedor, cada ano",
+    "title": "Hall da <em>fama</em>",
+    "loading": "Carregando o hall da fama",
+    "error": "Não foi possível carregar o hall da fama. Recarregue a página para tentar de novo.",
+    "none": "Nenhum vencedor foi anunciado ainda.",
+    "seasons": "Temporada",
+    "all": "Todas as temporadas",
+    "mostDecorated": "Mais premiado",
+    "wins": "{count, plural, one {# vitória} other {# vitórias}}",
+    "awardsCount": "{count, plural, one {# prêmio} other {# prêmios}}"
   }
 }
