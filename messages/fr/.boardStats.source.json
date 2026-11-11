@@ -58,5 +58,8 @@
   "col.survival": "Survival",
   "col.gun": "Most used gun",
   "errors.load": "The numbers could not be loaded. Try again.",
-  "errors.download": "The download did not work. Try again."
+  "errors.download": "The download did not work. Try again.",
+  "downloadGraphic": "Download graphic (PNG)",
+  "live.mapMvp": "MVP of this map so far:",
+  "live.mvpKills": "{count, plural, one {# kill} other {# kills}}"
 }

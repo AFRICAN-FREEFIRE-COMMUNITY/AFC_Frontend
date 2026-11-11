@@ -25,7 +25,9 @@
     "out": "Out",
     "aliveOf": "{alive} of {of} alive",
     "killers": "Kill leaders with this map",
-    "unmatched": "On the map but not in this group: {names}"
+    "unmatched": "On the map but not in this group: {names}",
+    "mapMvp": "MVP of this map so far:",
+    "mvpKills": "{count, plural, one {# kill} other {# kills}}"
   },
   "tabs": {
     "teams": "Teams ({count})",
@@ -68,5 +70,6 @@
   "errors": {
     "load": "The numbers could not be loaded. Try again.",
     "download": "The download did not work. Try again."
-  }
+  },
+  "downloadGraphic": "Download graphic (PNG)"
 }

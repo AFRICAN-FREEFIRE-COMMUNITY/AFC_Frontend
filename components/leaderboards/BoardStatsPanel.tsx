@@ -58,7 +58,10 @@ type Board = {
   scope: { group_id: number; match_ids: number[]; all_maps: boolean };
   teams: TeamRow[];
   players: PlayerRow[];
-  live: null | { map_number: number; teams_alive: number; unmatched: string[]; standings: LiveRow[]; top_killers: LiveKiller[] };
+  live: null | {
+    map_number: number; teams_alive: number; unmatched: string[]; standings: LiveRow[]; top_killers: LiveKiller[];
+    map_mvp?: { name: string; team_name: string; kills: number; assists: number } | null;
+  };
 };
 
 // Survival time as m:ss (game seconds).
@@ -88,7 +91,7 @@ export default function BoardStatsPanel({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [downloading, setDownloading] = useState<"" | "teams" | "players">("");
+  const [downloading, setDownloading] = useState<"" | "teams" | "players" | "graphic">("");
 
   const api = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/board`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token ?? ""}` }), [token]);
@@ -176,6 +179,39 @@ export default function BoardStatsPanel({
     }
   };
 
+  // The leaderboard GRAPHIC for the same scope (AFC-B views_event_graphic, ?match_ids= since inbox #539): the
+  // event's own design, one map or the maps picked or the whole group, as a PNG (a ZIP when it has pages).
+  const downloadGraphic = async () => {
+    if (groupId == null || !group) return;
+    setDownloading("graphic");
+    try {
+      const p = new URLSearchParams({ group_id: String(groupId) });
+      const mapNames = scoredMaps.filter((m) => picked.includes(m.match_id)).map((m) => t("mapN", { n: m.match_number }));
+      if (picked.length) p.set("match_ids", picked.join(","));
+      // The subtitle says what the board covers: the group, and the maps when only some are picked.
+      p.set("subtitle", [group.stage_name, group.group_name, mapNames.join(", ")].filter(Boolean).join(" · "));
+      const res = await fetch(
+        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/stages/${group.stage_id}/graphic/?${p}`,
+        { headers: auth },
+      );
+      if (!res.ok) throw new Error(serverMessage(await readJson(res), t("errors.download")));
+      const blob = await res.blob();
+      const which = picked.length
+        ? scoredMaps.filter((m) => picked.includes(m.match_id)).map((m) => `map${m.match_number}`).join("-")
+        : "all-maps";
+      const ext = blob.type.includes("zip") ? "zip" : "png";
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${group.stage_name}-${group.group_name}-${which}.${ext}`.replace(/[^\w.-]+/g, "-");
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e: any) {
+      setError(e?.message || t("errors.download"));
+    } finally {
+      setDownloading("");
+    }
+  };
+
   const players = (board?.players ?? []).filter((p) => {
     const q = search.trim().toLowerCase();
     return !q || p.in_game_name.toLowerCase().includes(q) || p.team_name.toLowerCase().includes(q) || p.uid.includes(q);
@@ -252,6 +288,10 @@ export default function BoardStatsPanel({
             <Button size="sm" variant="secondary" disabled={!board || !!downloading} onClick={() => download("players")}>
               {downloading === "players" ? <IconLoader2 className="size-4 animate-spin" aria-hidden /> : <IconDownload className="size-4" aria-hidden />}
               {t("downloadPlayers")}
+            </Button>
+            <Button size="sm" variant="secondary" disabled={!board || !!downloading} onClick={downloadGraphic}>
+              {downloading === "graphic" ? <IconLoader2 className="size-4 animate-spin" aria-hidden /> : <IconDownload className="size-4" aria-hidden />}
+              {t("downloadGraphic")}
             </Button>
           </div>
         </CardContent>
@@ -337,6 +377,13 @@ export default function BoardStatsPanel({
                       ))}
                     </ol>
                   </div>
+                ) : null}
+                {live.map_mvp ? (
+                  <p className="text-xs">
+                    <span className="font-semibold">{t("live.mapMvp")}</span>{" "}
+                    {live.map_mvp.name} <span className="text-muted-foreground">{live.map_mvp.team_name}</span>{" "}
+                    <span className="tabular-nums">{t("live.mvpKills", { count: live.map_mvp.kills })}</span>
+                  </p>
                 ) : null}
                 {live.unmatched?.length ? (
                   <p className="text-muted-foreground text-xs">{t("live.unmatched", { names: live.unmatched.join(", ") })}</p>

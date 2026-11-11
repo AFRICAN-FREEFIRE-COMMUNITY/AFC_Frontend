@@ -25,7 +25,9 @@
     "out": "Éliminée",
     "aliveOf": "{alive} sur {of} en vie",
     "killers": "Meilleurs tueurs avec cette carte",
-    "unmatched": "Sur la carte mais pas dans ce groupe : {names}"
+    "unmatched": "Sur la carte mais pas dans ce groupe : {names}",
+    "mapMvp": "MVP de cette carte pour l'instant :",
+    "mvpKills": "{count, plural, one {# kill} other {# kills}}"
   },
   "tabs": {
     "teams": "Équipes ({count})",
@@ -68,5 +70,6 @@
   "errors": {
     "load": "Les chiffres n'ont pas pu être chargés. Réessayez.",
     "download": "Le téléchargement n'a pas fonctionné. Réessayez."
-  }
+  },
+  "downloadGraphic": "Télécharger le visuel (PNG)"
 }

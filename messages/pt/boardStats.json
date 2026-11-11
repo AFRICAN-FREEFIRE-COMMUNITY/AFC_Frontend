@@ -25,7 +25,9 @@
     "out": "Eliminada",
     "aliveOf": "{alive} de {of} vivos",
     "killers": "Líderes de abates com este mapa",
-    "unmatched": "No mapa, mas fora deste grupo: {names}"
+    "unmatched": "No mapa, mas fora deste grupo: {names}",
+    "mapMvp": "MVP deste mapa até agora:",
+    "mvpKills": "{count, plural, one {# abate} other {# abates}}"
   },
   "tabs": {
     "teams": "Equipes ({count})",
@@ -68,5 +70,6 @@
   "errors": {
     "load": "Não foi possível carregar os números. Tente de novo.",
     "download": "O download não funcionou. Tente de novo."
-  }
+  },
+  "downloadGraphic": "Baixar a arte (PNG)"
 }
