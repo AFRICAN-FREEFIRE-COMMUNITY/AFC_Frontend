@@ -34,6 +34,8 @@ workflow checks it again before it builds.
 - A debugger log or replay dropped on a map's result upload failed with "No team data parsed."; it is now handed to
   Game files, which reads it the way AFC Capture does (inbox #541).
 - Top Killers listed only roster players; players who played without being on the roster are listed and marked.
+- The live leaderboard overlay crashed into the error page for an event with no leaderboard design; it shows a plain
+  built-in board instead.
 
 ## v7.14.0 - 2026-11-09
 
