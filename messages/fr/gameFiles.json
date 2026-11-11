@@ -1,20 +1,22 @@
 {
   "title": "Fichiers de partie",
-  "intro": "Déposez d'un coup tous les fichiers debugger et tous les fichiers de résultat de la soirée. AFC y retrouve chaque partie, réunit une partie coupée entre deux fichiers debugger, l'associe à son fichier de résultat et propose le match auquel elle correspond. Rien n'est enregistré avant d'appuyer sur Appliquer.",
-  "drop": "Déposez ici les fichiers debugger et de résultat, ou cliquez pour les choisir",
-  "dropHint": "debugger-*.log depuis Free Fire_64_Data\\Debugger, et MatchResult_*.log. Autant que vous en avez, dans n'importe quel ordre.",
+  "intro": "Déposez d'un coup tous les fichiers debugger, de résultat et de replay de la soirée. AFC y retrouve chaque partie, réunit une partie coupée entre deux fichiers debugger, l'associe à ses fichiers de résultat et de replay et propose le match auquel elle appartient. Rien n'est enregistré avant que vous appuyiez sur Appliquer.",
+  "drop": "Déposez ici les fichiers debugger, de résultat et de replay, ou cliquez pour les choisir",
+  "dropHint": "Depuis Free Fire_64_Data : Debugger\\debugger-*.log, MatchResult_*.log, et Replays\\ReplayInfo_*.bin pour les dégâts et les armes. Autant que vous en avez, dans n'importe quel ordre.",
   "choose": "Choisir des fichiers",
   "files": "Fichiers ({count})",
   "startAgain": "Recommencer",
   "kind": {
     "debugger": "Debugger",
     "result": "Résultat",
-    "unknown": "Fichier"
+    "unknown": "Fichier",
+    "replay": "Replay"
   },
   "file": {
     "reading": "Lecture",
     "result": "Le résultat d'une partie",
-    "debuggerGames": "{count, plural, =0 {Aucune partie jouée} one {# partie} other {# parties}}"
+    "debuggerGames": "{count, plural, =0 {Aucune partie jouée} one {# partie} other {# parties}}",
+    "replay": "Dégâts et armes d'une partie"
   },
   "noGames": "Aucune partie n'a été trouvée dans ces fichiers.",
   "gamesFound": "Parties trouvées ({count})",
@@ -29,7 +31,9 @@
     "debugger": "Debugger : {file}",
     "noDebugger": "Pas de debugger",
     "result": "Fichier de résultat",
-    "resultMissing": "Fichier de résultat manquant"
+    "resultMissing": "Fichier de résultat manquant",
+    "replay": "Fichier de replay",
+    "replayMissing": "Fichier de replay manquant"
   },
   "match": "Match",
   "matchN": "Match {n}",
@@ -49,7 +53,9 @@
     "notOnRoster": "Seuls {on} joueurs sur {total} figurent dans les effectifs de cet événement, sans doute un autre salon. Elle reste sur « Ne pas utiliser » tant que vous ne choisissez pas de match.",
     "noResultTitle": "Pas de fichier de résultat.",
     "noResult": "Les kills, les knocks et le fil des kills viennent du debugger. Le debugger ne connaît pas le classement : indiquez la place de chaque équipe.",
-    "alreadySaved": "Cette partie est déjà enregistrée sur ce match. Appliquer de nouveau la remplace par la même partie."
+    "alreadySaved": "Cette partie est déjà enregistrée sur ce match. Appliquer de nouveau la remplace par la même partie.",
+    "captureReader": "Lu avec le lecteur d'AFC Capture : chaque statistique qu'envoie Capture est enregistrée pour cette partie.",
+    "placementsFromLog": "Les places ci-dessous viennent de l'ordre d'élimination des équipes dans le journal. Vérifiez-les, corrigez celles qui sont fausses, ou ajoutez le fichier de résultat."
   },
   "placement": {
     "team": "Équipe",
@@ -82,12 +88,24 @@
   "saving": "Enregistrement",
   "done": {
     "game": "Enregistrée : {players} joueurs crédités, {flags} signalés, {events} kills et knocks dans le fil des kills.",
-    "all": "{count, plural, one {# partie enregistrée.} other {# parties enregistrées.}}"
+    "all": "{count, plural, one {# partie enregistrée.} other {# parties enregistrées.}}",
+    "damage": "{count, plural, one {Dégâts pour # joueur.} other {Dégâts pour # joueurs.}}"
   },
   "errors": {
     "generic": "Un problème est survenu. Réessayez.",
     "twice": "Deux parties sont réglées sur le même match. Choisissez un autre match ou « Ne pas utiliser ».",
     "placements": "Donnez sa place à chaque équipe de la partie {n}, chaque place une seule fois.",
     "failed": "La partie {n} n'a pas été enregistrée : {reason}"
+  },
+  "missing": {
+    "title": "Il manque encore pour cette partie :",
+    "debugger": "mises à terre, réanimations, grenades, murs de gel, kits de soin et le fil des kills",
+    "result": "les classements et kills officiels de la partie",
+    "replay": "les dégâts de chaque joueur et l'arme de chaque kill et mise à terre"
+  },
+  "handOver": {
+    "moved": "C'est un journal de partie, pas un fichier de résultat. Il a été ajouté à Fichiers de jeu ci-dessus, qui le lit comme AFC Capture.",
+    "openBox": "C'est un journal de partie, pas un fichier de résultat. Ouvrez Fichiers de jeu : il vous y attend.",
+    "hint": "Le fichier MatchResult de la partie (.log ou .txt). Un journal debugger ou un replay va dans Fichiers de jeu."
   }
 }

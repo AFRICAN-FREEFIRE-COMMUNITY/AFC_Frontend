@@ -28,6 +28,8 @@ import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
 // Top Killers tab (owner 2026-07-05, complaint H): players ranked by summed kills. Sibling of MvpTab;
 // shares the scope/combine + through-a-design Download bar. See _components/TopKillersTab.tsx.
 import TopKillersTab from "@/app/(a)/a/leaderboards/_components/TopKillersTab";
+// Stats tab: teams + players over any maps, the live map, CSV (inbox #538 #539 #540).
+import BoardStatsPanel from "@/components/leaderboards/BoardStatsPanel";
 // Combined standings (owner 2026-07-06): the SAME self-contained combine-across-stages/groups view
 // used on the public tournament page, mounted here as a team-only "Combined" tab so admins/organizers
 // can merge results from any stages/groups and see one aggregate team leaderboard. It fetches
@@ -62,6 +64,7 @@ import {
   IconFlag,
   IconBroadcast,
   IconLayersSubtract,
+  IconChartBar,
 } from "@tabler/icons-react";
 // Redo map, per-team player expand/collapse, and the roster "Add player" control now live inside
 // the shared <MatchResultsGrid> (components/leaderboards/MatchResultsGrid.tsx), so the AlertDialog
@@ -1435,7 +1438,7 @@ export default function EditLeaderboardPage({
             past the whole standings to reach the flagged-kills / unmatched-team controls. */}
         <TabsList
           data-tour="leaderboard-edit-match"
-          className={`grid w-full ${participantType === "solo" ? "grid-cols-6" : "grid-cols-8"}`}
+          className={`grid w-full ${participantType === "solo" ? "grid-cols-6" : "grid-cols-9"}`}
         >
           <TabsTrigger value="matches">
             <IconMap size={14} className="mr-1" />
@@ -1477,7 +1480,26 @@ export default function EditLeaderboardPage({
             <IconTrophy size={14} className="mr-1" />
             Top Killers
           </TabsTrigger>
+          {/* Stats (owner 2026-11-11, inbox #538 #539 #540): every team and player number over a group, one
+              map or picked maps, the map in progress, and the CSV of the same. Team events (the board reads
+              team match stats). See components/leaderboards/BoardStatsPanel.tsx. */}
+          {participantType !== "solo" && (
+            <TabsTrigger value="stats">
+              <IconChartBar size={14} className="mr-1" />
+              Stats
+            </TabsTrigger>
+          )}
         </TabsList>
+
+        {participantType !== "solo" && (
+          <TabsContent value="stats" className="mt-4">
+            <BoardStatsPanel
+              eventId={id}
+              token={token ?? undefined}
+              initialGroupId={selectedGroupId ? Number(selectedGroupId) : null}
+            />
+          </TabsContent>
+        )}
 
         {/* ── Combined Tab (team-only): merge team standings across chosen stages/groups (or the
             whole event) into one aggregate board. Self-contained (own picker + fetch), reused

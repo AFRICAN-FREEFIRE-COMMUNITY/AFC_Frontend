@@ -28,5 +28,12 @@
   "placement_missing": "Give every team its placement.",
   "placements_not_one_each": "Each placement can be used once: 1 for the winner, then 2, 3 and so on.",
   "no_files_for_game": "There is nothing to upload for that game.",
-  "match_not_on_event": "That match is not on this event."
+  "match_not_on_event": "That match is not on this event.",
+  "game_log_not_result": "This is a game log, not a match result file. Add it in Game files: it reads the whole game the way AFC Capture does and asks for any file it still needs.",
+  "replay_file_unreadable": "That replay file is too large or damaged.",
+  "replay_name_needed": "Keep the replay file's own name (ReplayInfo_<match>_<date>.bin) so it can be paired with its map.",
+  "board_group_required": "Choose a group.",
+  "board_group_not_found": "That group is not part of this event.",
+  "board_maps_invalid": "Maps must be chosen from this group.",
+  "board_export_kind": "Choose teams or players."
 }

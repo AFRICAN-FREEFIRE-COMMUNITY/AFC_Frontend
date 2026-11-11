@@ -1,20 +1,22 @@
 {
   "title": "Arquivos de jogo",
-  "intro": "Solte de uma vez todos os arquivos debugger e de resultado da noite. O AFC encontra cada jogo neles, junta um jogo dividido entre dois arquivos debugger, liga cada jogo ao seu arquivo de resultado e sugere a partida a que ele pertence. Nada é salvo até você clicar em Aplicar.",
-  "drop": "Solte aqui os arquivos debugger e de resultado, ou clique para escolher",
-  "dropHint": "debugger-*.log de Free Fire_64_Data\\Debugger, e MatchResult_*.log. Quantos tiver, em qualquer ordem.",
+  "intro": "Solte de uma vez todos os arquivos debugger, de resultado e de replay da noite. O AFC encontra cada jogo neles, junta um jogo dividido entre dois arquivos debugger, liga com os arquivos de resultado e de replay e sugere a partida a que ele pertence. Nada é salvo até você apertar Aplicar.",
+  "drop": "Solte aqui os arquivos debugger, de resultado e de replay, ou clique para escolher",
+  "dropHint": "De Free Fire_64_Data: Debugger\\debugger-*.log, MatchResult_*.log e Replays\\ReplayInfo_*.bin para dano e armas. Quantos tiver, em qualquer ordem.",
   "choose": "Escolher arquivos",
   "files": "Arquivos ({count})",
   "startAgain": "Recomeçar",
   "kind": {
     "debugger": "Debugger",
     "result": "Resultado",
-    "unknown": "Arquivo"
+    "unknown": "Arquivo",
+    "replay": "Replay"
   },
   "file": {
     "reading": "Lendo",
     "result": "O resultado de um jogo",
-    "debuggerGames": "{count, plural, =0 {Nenhum jogo jogado} one {# jogo} other {# jogos}}"
+    "debuggerGames": "{count, plural, =0 {Nenhum jogo jogado} one {# jogo} other {# jogos}}",
+    "replay": "Dano e armas de um jogo"
   },
   "noGames": "Nenhum jogo foi encontrado nesses arquivos.",
   "gamesFound": "Jogos encontrados ({count})",
@@ -29,7 +31,9 @@
     "debugger": "Debugger: {file}",
     "noDebugger": "Sem debugger",
     "result": "Arquivo de resultado",
-    "resultMissing": "Arquivo de resultado ausente"
+    "resultMissing": "Arquivo de resultado ausente",
+    "replay": "Arquivo de replay",
+    "replayMissing": "Arquivo de replay faltando"
   },
   "match": "Partida",
   "matchN": "Partida {n}",
@@ -49,7 +53,9 @@
     "notOnRoster": "Só {on} de {total} jogadores estão nos elencos deste evento, provavelmente outra sala. Ele fica em \"Não usar\" até você escolher uma partida.",
     "noResultTitle": "Sem arquivo de resultado.",
     "noResult": "Os abates, as derrubadas e o feed de abates vêm do debugger. O debugger não sabe a colocação, então dê a colocação de cada time.",
-    "alreadySaved": "Este jogo já está salvo nessa partida. Aplicar de novo substitui pelo mesmo jogo."
+    "alreadySaved": "Este jogo já está salvo nessa partida. Aplicar de novo substitui pelo mesmo jogo.",
+    "captureReader": "Lido com o próprio leitor do AFC Capture: cada estatística que o Capture envia é salva para este jogo.",
+    "placementsFromLog": "As colocações abaixo vêm da ordem em que as equipes foram eliminadas no registro. Confira, corrija as erradas ou adicione o arquivo de resultado."
   },
   "placement": {
     "team": "Time",
@@ -82,12 +88,24 @@
   "saving": "Salvando",
   "done": {
     "game": "Salvo: {players} jogadores creditados, {flags} sinalizados, {events} abates e derrubadas no feed de abates.",
-    "all": "{count, plural, one {# jogo salvo.} other {# jogos salvos.}}"
+    "all": "{count, plural, one {# jogo salvo.} other {# jogos salvos.}}",
+    "damage": "{count, plural, one {Dano de # jogador.} other {Dano de # jogadores.}}"
   },
   "errors": {
     "generic": "Algo deu errado. Tente de novo.",
     "twice": "Dois jogos estão na mesma partida. Escolha outra partida ou \"Não usar\".",
     "placements": "Dê a colocação de cada time do jogo {n}, cada colocação uma vez só.",
     "failed": "O jogo {n} não foi salvo: {reason}"
+  },
+  "missing": {
+    "title": "Ainda falta para este jogo:",
+    "debugger": "derrubadas, reanimações, granadas, paredes de gel, kits médicos e o feed de abates",
+    "result": "as colocações e abates oficiais do jogo",
+    "replay": "o dano de cada jogador e a arma de cada abate e derrubada"
+  },
+  "handOver": {
+    "moved": "Isso é um registro do jogo, não um arquivo de resultado. Ele foi adicionado em Arquivos de jogo acima, que o lê como o AFC Capture.",
+    "openBox": "Isso é um registro do jogo, não um arquivo de resultado. Abra Arquivos de jogo: ele está esperando lá.",
+    "hint": "O arquivo MatchResult do jogo (.log ou .txt). Um registro debugger ou replay vai em Arquivos de jogo."
   }
 }

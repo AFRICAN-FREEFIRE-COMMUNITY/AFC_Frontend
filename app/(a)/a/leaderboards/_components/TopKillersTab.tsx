@@ -168,11 +168,19 @@ export default function TopKillersTab({
             </TableHeader>
             <TableBody>
               {players.map((p, i) => (
-                <TableRow key={p.user_id} className="text-xs">
+                <TableRow key={p.user_id ?? `uid-${p.uid}`} className="text-xs">
                   <TableCell className={`p-2 font-bold ${i === 0 ? "text-gold" : ""}`}>
                     #{i + 1}
                   </TableCell>
-                  <TableCell className="p-2">{p.in_game_name}</TableCell>
+                  <TableCell className="p-2">
+                    {p.in_game_name}
+                    {/* Not on the event's roster (inbox #538): counted for the team, listed by game UID. */}
+                    {p.registered === false ? (
+                      <Badge variant="outline" className="ml-2 rounded-full px-2 py-0.5 text-xs text-gold" title={`UID ${p.uid}`}>
+                        Not on roster
+                      </Badge>
+                    ) : null}
+                  </TableCell>
                   <TableCell className="p-2">{p.team_name || "-"}</TableCell>
                   <TableCell className={`p-2 text-center font-bold ${i === 0 ? "text-gold" : ""}`}>
                     {p.kills}
