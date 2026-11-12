@@ -131,7 +131,6 @@ export type AdminTourPageKey =
   | "events-lb-edit"
   | "events-lb-ocr"
   | "events-lb-sponsors"
-  | "events-lb-leaderboards-create"
   | "events-lb-leaderboards-view"
   | "events-lb-leaderboards-edit"
   // ── Organizations / sponsors / partners / news (orgs-misc area) ───────────
@@ -1348,41 +1347,6 @@ export const ADMIN_TOUR_STEPS: Record<AdminTourPageKey, AdminTourStep[]> = {
     },
   ],
 
-  // Leaderboard creation wizard (app/(a)/a/leaderboards/create/page.tsx)
-  "events-lb-leaderboards-create": [
-    SIDEBAR_STEP,
-    {
-      id: "title",
-      element: '[data-tour="leaderboard-create-title"]',
-      side: "bottom",
-      align: "start",
-    },
-    {
-      id: "basic",
-      element: '[data-tour="leaderboard-create-basic"]',
-      side: "bottom",
-      align: "start",
-    },
-    {
-      id: "scoring",
-      element: '[data-tour="leaderboard-create-scoring"]',
-      side: "bottom",
-      align: "start",
-    },
-    {
-      id: "matches",
-      element: '[data-tour="leaderboard-create-matches"]',
-      side: "bottom",
-      align: "start",
-    },
-    {
-      id: "review",
-      element: '[data-tour="leaderboard-create-review"]',
-      side: "top",
-      align: "center",
-    },
-  ],
-
   // Leaderboard standings view (app/(a)/a/leaderboards/[id]/page.tsx)
   "events-lb-leaderboards-view": [
     SIDEBAR_STEP,
@@ -2105,11 +2069,9 @@ export function resolveAdminTourPageKey(
   if (path.startsWith("/a/events")) return "events";
 
   // ── Leaderboards (sibling of events, same area): edit child before the [id]
-  //    detail, create before [id], then the dynamic view.
+  //    detail, then the dynamic view (/a/leaderboards/create is a redirect now, inbox #371).
   if (/^\/a\/leaderboards\/[^/]+\/edit$/.test(path))
     return "events-lb-leaderboards-edit";
-  if (path === "/a/leaderboards/create")
-    return "events-lb-leaderboards-create";
   if (/^\/a\/leaderboards\/[^/]+$/.test(path))
     return "events-lb-leaderboards-view";
 

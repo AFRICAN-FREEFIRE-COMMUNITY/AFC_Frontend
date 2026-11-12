@@ -42,6 +42,11 @@ workflow checks it again before it builds.
   each game still needs by their real names, and fills in the placements the log itself shows (inbox #541).
 
 ### Fixed
+- The old admin "create leaderboard" address no longer opens a wizard that failed at step 2: leaderboards are made
+  automatically for every group, so it now opens that event's leaderboard editor (or the Leaderboards list). The help
+  centre says so.
+- A picture that is not really a picture (profile photo, esports photo) and a failed event creation now explain
+  themselves in French and Portuguese too, instead of the server's English sentence.
 - A debugger log or replay dropped on a map's result upload failed with "No team data parsed."; it is now handed to
   Game files, which reads it the way AFC Capture does (inbox #541).
 - Top Killers listed only roster players; players who played without being on the roster are listed and marked.

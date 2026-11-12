@@ -26,7 +26,6 @@ import {
   IconClock,
   IconEye,
   IconPencil,
-  IconPlus,
   IconSearch,
   IconTrendingUp,
   IconTrophy,
@@ -371,20 +370,6 @@ export const LeaderboardsAdminContent = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 justify-center flex-wrap">
-                        {/* Pass event_id as a query param so BasicInfoStep can auto-select it */}
-                        <Button
-                          className="hidden"
-                          asChild
-                          variant={"outline"}
-                          size="sm"
-                        >
-                          <Link
-                            href={`/a/leaderboards/create?event=${event.slug || event.event_id}`}
-                          >
-                            <IconPlus />
-                            Create
-                          </Link>
-                        </Button>
                         <Button asChild variant={"outline"} size="sm">
                           <Link href={`/a/leaderboards/${event.slug || event.event_id}`}>
                             <IconEye />

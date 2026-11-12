@@ -45,6 +45,7 @@ import {
 // Upload size gate + honest failure messages (owner-reported 2026-08-05).
 import { checkUploadSize, describeSubmitFailure } from "@/lib/upload-limits";
 import { appendRemainingEventFields } from "@/lib/eventFields";
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 // ── Sponsor-system P2: post-create sponsor attach loop. ──
 // StepSponsorRequirement's builder holds SponsorshipDraft rows in the `sponsorships`
 // form field; after create-event returns the new event_id, onSubmit below attaches +
@@ -85,6 +86,8 @@ export default function CreateEventPage() {
   // submit toast authored here. The reused wizard step components own their own strings via their
   // own namespaces; this translator only covers strings authored in THIS file.
   const t = useTranslations("evCreatePage");
+  // A refusal by code in the reader's language (create_event_failed and friends, lib/i18n/serverMessage).
+  const serverMessage = useServerMessage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const duplicateSlug = searchParams.get("duplicate");
@@ -1295,7 +1298,7 @@ export default function CreateEventPage() {
           router.push("/a/events");
         } else {
           toast.error(
-            res.message || res.detail || t("toast.createFailed"),
+            serverMessage(res, res.detail || t("toast.createFailed")),
           );
         }
       } catch {
