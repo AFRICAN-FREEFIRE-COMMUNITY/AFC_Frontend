@@ -19,6 +19,13 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- AFC Capture 1.6.0 on the download page: started late, it picks up the match already in progress; a map that
+  ended while it was closed is sent once when it starts; the live board waits 10 s on a slow connection; its
+  dashboard says when the organizer marked the games over for now on the website (AFC inbox #501, #545).
+
 ## v7.14.0 - 2026-11-09
 
 ### Added
