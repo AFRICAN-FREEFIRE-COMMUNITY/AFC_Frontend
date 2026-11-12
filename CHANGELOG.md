@@ -19,6 +19,12 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Fixed
+- A picture that is not really a picture (profile photo, esports photo) and a failed event creation now explain
+  themselves in French and Portuguese too, instead of the server's English sentence.
+
 ## v7.14.0 - 2026-11-09
 
 ### Added

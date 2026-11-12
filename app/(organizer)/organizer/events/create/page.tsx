@@ -123,6 +123,7 @@ import {
 import { PaidEventTermsModal } from "@/app/(a)/a/events/_components/PaidEventTermsModal";
 // Upload size gate + honest failure messages (owner-reported 2026-08-05).
 import { checkUploadSize, describeSubmitFailure } from "@/lib/upload-limits";
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 
 // Fresh stage-modal seed (mirrors the admin page's DEFAULT_STAGE_MODAL_DATA). Discord
 // role ids start empty and stay empty - the organizer UI never exposes them, but they
@@ -157,6 +158,8 @@ export default function OrganizerCreateEventPage() {
   // The reused wizard step components (Step1EventDetails, StageModal, ...) own their
   // own strings via their own namespaces; this only covers strings authored here.
   const t = useTranslations("evCreatePage");
+  // A refusal by code in the reader's language (create_event_failed and friends, lib/i18n/serverMessage).
+  const serverMessage = useServerMessage();
   const router = useRouter();
   const { membership, isOwner } = useOrganizer();
   const { token } = useAuth();
@@ -1103,10 +1106,7 @@ export default function OrganizerCreateEventPage() {
           setShowPaidTermsModal(true);
         } else {
           toast.error(
-            res.message ||
-              res.detail ||
-              res.error ||
-              t("toast.createFailed"),
+            serverMessage(res, res.detail || res.error || t("toast.createFailed")),
           );
         }
       } catch {

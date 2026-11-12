@@ -28,5 +28,8 @@
   "placement_missing": "Give every team its placement.",
   "placements_not_one_each": "Each placement can be used once: 1 for the winner, then 2, 3 and so on.",
   "no_files_for_game": "There is nothing to upload for that game.",
-  "match_not_on_event": "That match is not on this event."
+  "match_not_on_event": "That match is not on this event.",
+  "not_an_image": "That file is not a picture. Use a JPEG, PNG, WEBP or GIF.",
+  "image_too_large": "That picture is larger than 10 MB.",
+  "create_event_failed": "The event could not be created. Nothing was saved; please try again, and tell AFC support if it keeps happening."
 }
