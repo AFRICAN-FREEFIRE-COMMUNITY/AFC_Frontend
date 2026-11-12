@@ -29,7 +29,7 @@
   "placements_not_one_each": "Cada classificação só pode ser usada uma vez: 1 para o vencedor, depois 2, 3 e assim por diante.",
   "no_files_for_game": "Não há nada para carregar nesse jogo.",
   "match_not_on_event": "Esse jogo não pertence a este evento.",
-  "not_an_image": "Esse arquivo não é uma imagem. Use JPEG, PNG, WEBP ou GIF.",
+  "not_an_image": "Esse ficheiro não é uma imagem. Use JPEG, PNG, WEBP ou GIF.",
   "image_too_large": "Essa imagem tem mais de 10 MB.",
-  "create_event_failed": "Não foi possível criar o evento. Nada foi salvo; tente de novo e avise o suporte da AFC se continuar acontecendo."
+  "create_event_failed": "Não foi possível criar o evento. Nada foi guardado; tente novamente e avise o suporte da AFC se continuar a acontecer."
 }
