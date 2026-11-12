@@ -19,7 +19,7 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
-## Unreleased
+## v7.17.0 - 2026-11-12
 
 ### Added
 - AFC Capture 1.6.0 on the download page: started late, it picks up the match already in progress; a map that
