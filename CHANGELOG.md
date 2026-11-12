@@ -19,6 +19,20 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- KOL Awards winners page in its own look (owner, approved mockups 11 Nov 2026, inbox #537): gold on black, one
+  sealed envelope per award that opens as it comes into view, the other nominees named, and a hall of fame of every
+  season below it (season filter, the most decorated creator on top). An award page names its winner in the same
+  look, with a link to all the winners.
+- One WhatsApp number, one ballot (inbox #449): an edition can require a WhatsApp check before a vote counts. The
+  voter sends AFC a short code from WhatsApp (a QR on a computer, one tap on a phone), or asks AFC to send them a
+  six-digit code instead. Only the last four digits are ever shown.
+- Awards editions can be hidden until release (inbox #543): a hidden edition is a not-found page for everybody but
+  AFC poll admins, who see it as the public will, under a bar saying it is hidden. Two new switches on the admin
+  edition form: Hidden until release, WhatsApp check required.
+
 ## v7.14.0 - 2026-11-09
 
 ### Added
