@@ -239,7 +239,7 @@ function TeamsAndPlayersPage() {
         {/* data-tour anchor (guided welcome tour): Create Team button. Targeted by
             guided-tour-stops.ts -> teams stop -> "teams-create". */}
         <Button className="w-full md:w-auto" asChild data-tour="teams-create">
-          <Link href="/teams/create">{t("teamsList.createTeam")}</Link>
+          <Link href="/teams/create" data-howto="teams-create">{t("teamsList.createTeam")}</Link>
         </Button>
       </div>
 

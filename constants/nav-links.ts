@@ -25,6 +25,7 @@ import {
   IconVocabulary,
 } from "@tabler/icons-react";
 import { Award } from "lucide-react";
+import { HELP_PAGE_LIVE_SINCE } from "@/lib/howto-guides";
 
 // `label` is the English fallback; `navKey` points at the shared i18n key under
 // common.json -> "nav.<navKey>", which Header/MobileNavbar resolve at render time via
@@ -165,6 +166,9 @@ export const homeNavLinksMobile: NavLinks[] = [
   // tickets. /contact redirects to /support. MobileNavbar adds the count of tickets waiting on the
   // player beside this row (hooks/useSupportWaiting.ts).
   { slug: "/support", label: "Support", navKey: "support", icon: IconHeadset, newLink: true, addedAt: "2026-09-28" },
+  // The player Help Center, the how-to clips (inbox #255, 2026-10-16), beside Support: the two places
+  // to go when stuck. NEW from the day it goes live (lib/howto-guides.ts HELP_PAGE_LIVE_SINCE).
+  { slug: "/help", label: "Help Center", navKey: "helpCenter", icon: IconHelpCircle, newLink: true, addedAt: HELP_PAGE_LIVE_SINCE },
   // Glossary sits under Support in the hamburger menu (owner request 2026-06-10).
   { slug: "/glossary", label: "Glossary", navKey: "glossary", icon: IconVocabulary },
 ];

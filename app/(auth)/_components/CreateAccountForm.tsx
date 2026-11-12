@@ -372,6 +372,9 @@ export function CreateAccountForm() {
                 <Input
                   placeholder={t("register.fullNamePlaceholder")}
                   onPaste={preventPaste}
+                  // data-howto: pressed by the how-to clip "sign up + connect Discord"
+                  // (howto/clips/signup-discord.mjs); scripts/check-howto-clips.mjs fails if it goes.
+                  data-howto="signup-full-name"
                   {...field}
                 />
               </FormControl>
@@ -389,6 +392,7 @@ export function CreateAccountForm() {
                 <Input
                   placeholder={t("register.ingameNamePlaceholder")}
                   onPaste={preventPaste}
+                  data-howto="signup-ingame-name"
                   {...field}
                 />
               </FormControl>
@@ -423,6 +427,7 @@ export function CreateAccountForm() {
                 <Input
                   type="email"
                   placeholder={t("register.emailPlaceholder")}
+                  data-howto="signup-email"
                   {...field}
                 />
               </FormControl>
@@ -459,6 +464,7 @@ export function CreateAccountForm() {
                   <Input
                     type={isVisible ? "text" : "password"}
                     placeholder={t("register.passwordPlaceholder")}
+                    data-howto="signup-password"
                     {...field}
                   />
                   <Button
@@ -550,6 +556,7 @@ export function CreateAccountForm() {
                   <Input
                     type={isConfirmVisible ? "text" : "password"}
                     placeholder={t("register.passwordPlaceholder")}
+                    data-howto="signup-confirm-password"
                     {...field}
                   />
                   <Button
@@ -666,6 +673,7 @@ export function CreateAccountForm() {
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  data-howto="signup-terms"
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
@@ -698,6 +706,7 @@ export function CreateAccountForm() {
         <Button
           className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
           type="submit"
+          data-howto="signup-submit"
           // The button is disabled if the registration process is pending OR if the terms are NOT accepted.
           disabled={pending || !acceptTerms}
         >

@@ -19,6 +19,17 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- A Help page (/help, in the menu and the footer) with short how-to clips of four tasks, recorded from the real site
+  in English, French and Portuguese, desktop and phone: sign up with Discord, register for a tournament, invite a
+  player to a team, upload an organizer's results. A "Watch how" link beside those features opens the clip.
+
+### Internal
+- The how-to clips recorder (howto/), and the rule that a change to a screen a clip shows re-renders that clip,
+  held by scripts/check-howto-clips.mjs in check-all (owner, 12 Oct 2026, inbox #237).
+
 ## v7.17.0 - 2026-11-12
 
 ### Added

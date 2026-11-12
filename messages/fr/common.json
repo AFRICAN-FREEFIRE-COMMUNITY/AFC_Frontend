@@ -44,6 +44,7 @@
     "contact": "Contact",
     "fantasy": "Fantasy",
     "support": "Assistance",
+    "helpCenter": "Centre d'aide",
     "teamsPlayers": "Équipes et joueurs"
   },
   "states": {
@@ -96,6 +97,7 @@
     "contact": "Contact",
     "news": "Actualités",
     "support": "Assistance",
+    "helpCenter": "Centre d'aide",
     "termsOfService": "Conditions d'utilisation",
     "privacyPolicy": "Politique de confidentialité",
     "rules": "Règles",

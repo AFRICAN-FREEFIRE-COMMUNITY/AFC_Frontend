@@ -9,6 +9,7 @@ import React from "react";
 import { useTranslations } from "next-intl";
 import { FeedbackLauncher } from "@/components/feedback/FeedbackLauncher";
 import { NewBadge } from "@/components/NewBadge";
+import { HELP_PAGE_LIVE_SINCE } from "@/lib/howto-guides";
 
 export const Footer = () => {
   const t = useTranslations("common");
@@ -136,6 +137,16 @@ export const Footer = () => {
               {t("footer.support")}
             </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
+              {/* The player Help Center, the how-to clips (inbox #255, 2026-10-16), first in Support. */}
+              <li>
+                <Link
+                  href="/help"
+                  className="inline-flex items-center gap-2 hover:text-primary transition-colors"
+                >
+                  {t("footer.helpCenter")}
+                  <NewBadge since={HELP_PAGE_LIVE_SINCE} />
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/terms-of-service"

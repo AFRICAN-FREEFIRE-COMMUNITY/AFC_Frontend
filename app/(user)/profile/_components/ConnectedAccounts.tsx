@@ -252,7 +252,8 @@ export function ConnectedAccounts() {
           // border-0 is deliberate and must stay: shadcn's Card ships a 1px border, and the house
           // rule bans building structure out of hairlines. The row is separated from the page by a
           // FILLED surface one step off the background plus spacing, never by a stroke.
-          <Card key={row.provider} className="bg-card rounded-md shadow-sm">
+          // data-howto: the row the how-to clip "sign up + connect Discord" points at once linked.
+          <Card key={row.provider} className="bg-card rounded-md shadow-sm" data-howto="connection-row" data-provider={row.provider}>
             <CardContent className="flex flex-wrap items-center gap-4 p-4">
               {/* Three cases, most specific first:
                     1. the player is connected and has an avatar THERE  -> show the person
@@ -332,6 +333,10 @@ export function ConnectedAccounts() {
                   size="sm"
                   disabled={busy === row.provider}
                   onClick={() => void onConnect(row)}
+                  // data-howto: pressed by the how-to clip "sign up + connect Discord"
+                  // (howto/clips/signup-discord.mjs), which picks the row by data-provider.
+                  data-howto="connect-account"
+                  data-provider={row.provider}
                 >
                   {t("connect")}
                 </Button>

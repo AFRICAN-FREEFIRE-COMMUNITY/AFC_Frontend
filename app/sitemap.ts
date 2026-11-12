@@ -93,6 +93,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/about", changeFrequency: "monthly", priority: 0.6 },
     { path: "/support", changeFrequency: "monthly", priority: 0.5 },
     { path: "/glossary", changeFrequency: "monthly", priority: 0.5 },
+    // the player Help Center, the how-to clips (inbox #255, 2026-10-16)
+    { path: "/help", changeFrequency: "monthly", priority: 0.5 },
     { path: "/polls", changeFrequency: "weekly", priority: 0.5 },
     { path: "/fantasy", changeFrequency: "monthly", priority: 0.4 },
     { path: "/brand", changeFrequency: "yearly", priority: 0.3 },

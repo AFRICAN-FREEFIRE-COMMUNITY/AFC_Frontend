@@ -48,6 +48,8 @@
 // dashes in these comments never render to a user).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type { HowtoClipId } from "@/lib/howto-guides";
+
 /** Which portal a thing shows up in. The same page component serves both. */
 export type HelpPortal = "admin" | "organizer";
 
@@ -127,6 +129,10 @@ export interface HelpWalkthrough {
    *  a quiet "not recorded yet" note rather than an empty player. Set it to an
    *  embeddable URL later and that guide grows a video without any other change. */
   videoUrl?: string;
+  /** A how-to clip recorded from the site itself (howto/clips/<id>.mjs), per portal, played in
+   *  the video slot ahead of videoUrl (inbox #255, 2026-10-16). Per portal because a clip shows
+   *  ONE portal's screens: clip 4 records the organizer portal, so the admin guide keeps its note. */
+  clip?: Partial<Record<HelpPortal, HowtoClipId>>;
 }
 
 // ── Areas, in the order the page renders them ────────────────────────────────
@@ -529,6 +535,8 @@ export const HELP_WALKTHROUGHS: HelpWalkthrough[] = [
     roles: ["event_admin", "can_upload_results"],
     routes: { admin: "/a/events?tab=leaderboards", organizer: "/organizer/leaderboards" },
     steps: ["find", "pick", "method", "log", "ocr", "scoring", "flags", "publish"],
+    // clip 4, "Enter a map's results", recorded in the organizer portal (howto/clips/organizer-results.mjs)
+    clip: { organizer: "organizer-results" },
   },
   {
     id: "fixResult",

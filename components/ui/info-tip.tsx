@@ -28,6 +28,11 @@ export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
     text ??
     (id ? (USER_HELP_IDS.has(id) ? t(id) : HELP[id]) : "");
   const [open, setOpen] = React.useState(false);
+  // Hover is for a MOUSE only (fixed 2026-10-16, found on the inbox #255 phone walk). A phone tap
+  // fires an emulated mouseenter just before its click, so with onMouseEnter the tap opened the tip
+  // and its own click toggled it shut again: every (i) on a phone needed two taps. Pointer events
+  // carry the device; a click on a tip the mouse has just opened keeps it open.
+  const hoveredOpen = React.useRef(false);
   if (!content) return null;
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -35,15 +40,28 @@ export function InfoTip({ id, text, side = "top", className }: InfoTipProps) {
         <button
           type="button"
           aria-label={tCommon("actions.moreInfo")}
-          onMouseEnter={() => setOpen(true)}
-          onMouseLeave={() => setOpen(false)}
+          onPointerEnter={(e) => {
+            if (e.pointerType !== "mouse") return;
+            hoveredOpen.current = true;
+            setOpen(true);
+          }}
+          onPointerLeave={(e) => {
+            if (e.pointerType !== "mouse") return;
+            hoveredOpen.current = false;
+            setOpen(false);
+          }}
           onClick={(e) => {
             // When the ⓘ is nested inside a <label>/<FormLabel>, a bare click would
             // bubble to the label and focus/toggle its associated field. Stop it so
             // tapping the icon only opens the tip - never touches the input.
             e.stopPropagation();
             e.preventDefault();
-            setOpen((o) => !o);
+            if (hoveredOpen.current) {
+              hoveredOpen.current = false;
+              setOpen(true);
+            } else {
+              setOpen((o) => !o);
+            }
           }}
           className={cn(
             "hit-44 inline-flex align-middle text-muted-foreground hover:text-primary focus:text-primary focus:outline-none",

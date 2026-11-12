@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "Centro de ajuda",
+    "description": "Vídeos curtos do que as pessoas mais fazem na AFC, gravados no site real, com cada passo escrito. Pesquise ou escolha um tema."
+  },
+  "search": {
+    "placeholder": "Pesquise uma tarefa, um botão ou um ecrã...",
+    "ariaLabel": "Pesquisar no centro de ajuda"
+  },
+  "topics": {
+    "all": "Tudo",
+    "start": "Primeiros passos",
+    "teams": "Equipas",
+    "tournaments": "Torneios",
+    "organizers": "Para organizadores"
+  },
+  "who": {
+    "everyone": "Todos",
+    "players": "Jogadores",
+    "captains": "Capitães de equipa",
+    "organizers": "Organizadores"
+  },
+  "card": {
+    "steps": "{count, plural, one {# passo} other {# passos}}",
+    "seconds": "{seconds} s",
+    "open": "Abrir este ecrã"
+  },
+  "empty": "Ainda nenhum guia corresponde. Experimente outra palavra ou pergunte ao bot de ajuda no canto.",
+  "stuck": {
+    "body": "Continua com dúvidas? O bot de ajuda responde no canto de cada página e o Apoio lê todas as mensagens.",
+    "button": "Contactar o Apoio"
+  },
+  "video": {
+    "label": "{title}, um vídeo de {seconds} segundos",
+    "play": "Reproduzir",
+    "pause": "Pausa"
+  },
+  "tip": {
+    "more": "Mais informações",
+    "register": "O dono, o capitão, o vice-capitão, o manager ou o treinador da equipa pode inscrevê-la. Escolhe quem joga, confirma o resumo e aceita as regras.",
+    "watch": "Ver como, {seconds} s",
+    "watchNoTime": "Ver como"
+  },
+  "dialog": {
+    "all": "Ver todos os guias no centro de ajuda"
+  }
+}
