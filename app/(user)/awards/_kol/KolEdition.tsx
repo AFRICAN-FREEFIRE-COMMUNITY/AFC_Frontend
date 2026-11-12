@@ -10,6 +10,8 @@
  * Related: KolContext.tsx (data + vote), KolLanding / KolAward / KolNominee (the pages),
  * KolVoteSheet.tsx, kol.css.
  */
+import { useTranslations } from "next-intl";
+
 import type { EditionDetail } from "@/lib/polls";
 
 import "./kol.css";
@@ -28,9 +30,13 @@ export type KolView =
   | { kind: "nominee"; award: string; nominee: string };
 
 export function KolEdition({ slug, initial, view }: { slug: string; initial: EditionDetail; view: KolView }) {
+  const t = useTranslations("awardsKol");
   return (
     <KolProvider slug={slug} initial={initial} view={view}>
       <div className={`kol ${kolSub.variable} ${kolBody.variable}`}>
+        {/* Hidden until release (#543): only an AFC poll admin can ever receive a hidden edition, so this bar is
+            what tells them the page is not public yet. */}
+        {initial.edition.hidden ? <div className="kol-preview-bar">{t("preview.bar")}</div> : null}
         <main>
           {view.kind === "landing" && <KolLanding />}
           {view.kind === "winners" && <KolWinners />}

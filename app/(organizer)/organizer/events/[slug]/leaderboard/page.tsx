@@ -124,6 +124,7 @@ import {
 } from "@/components/ui/table";
 import {
   IconDatabaseImport,
+  IconChartBar,
   IconDeviceFloppy,
   IconDownload,
   IconEdit,
@@ -222,6 +223,8 @@ import MvpTab from "@/app/(a)/a/leaderboards/_components/MvpTab";
 // Reused admin component (English inside, like MvpTab); only its tab LABEL is i18n'd on this organizer
 // surface (eventLeaderboard.tools.topKillersTab). GET events/<id>/top-killers/ (same _broadcast_gate).
 import TopKillersTab from "@/app/(a)/a/leaderboards/_components/TopKillersTab";
+// Stats tab: teams + players over any maps, the live map, CSV (inbox #538 #539 #540).
+import BoardStatsPanel from "@/components/leaderboards/BoardStatsPanel";
 import TieBreakersPanel from "@/app/(a)/a/leaderboards/_components/TieBreakersPanel";
 import DebuggerBackfillPanel from "@/app/(a)/a/leaderboards/_components/DebuggerBackfillPanel";
 // Game files (inbox #396): every debugger + result file at once, TEAM events (replaces the two above).
@@ -405,6 +408,7 @@ export default function OrganizerEventLeaderboardPage({
   // i18n: organizer-facing page, keys under the "organizer" namespace (eventLeaderboard.*).
   const t = useTranslations("organizer");
   const tGameFiles = useTranslations("gameFiles");
+  const tBoardStats = useTranslations("boardStats");
   const tKills = useTranslations("killStats");
 
   // Co-organized (owner 2026-09-13): the inviting org's grant when this org does not own the
@@ -2734,7 +2738,7 @@ export default function OrganizerEventLeaderboardPage({
                 baseline; Tie-breakers / MVPs / Debugger backfill need can_edit_events. */}
             <Tabs defaultValue="matches">
               <TabsList
-                className={`grid w-full h-auto ${canEditEvents ? "grid-cols-3 md:grid-cols-7" : "grid-cols-3"}`}
+                className={`grid w-full h-auto ${canEditEvents ? "grid-cols-3 md:grid-cols-8" : "grid-cols-3"}`}
               >
                 {/* Match Results (owner 2026-07-04 organizer parity): the SAME always-editable per-map
                     grid the admin editor has. Saves via edit-match-result / edit-solo-match-result,
@@ -2775,9 +2779,27 @@ export default function OrganizerEventLeaderboardPage({
                         ? tGameFiles("title")
                         : t("eventLeaderboard.tools.backfillTab")}
                     </TabsTrigger>
+                    {/* Stats (owner 2026-11-11, inbox #538 #539 #540): teams + players over any maps, the
+                        map in progress, CSV. Same gate as the board endpoint (_broadcast_gate). */}
+                    {detailsParticipantType === "team" && (
+                      <TabsTrigger value="stats">
+                        <IconChartBar size={14} className="mr-1" />
+                        {tBoardStats("title")}
+                      </TabsTrigger>
+                    )}
                   </>
                 )}
               </TabsList>
+
+              {canEditEvents && detailsParticipantType === "team" && (
+                <TabsContent value="stats" className="mt-4">
+                  <BoardStatsPanel
+                    eventId={eventId}
+                    token={token ?? undefined}
+                    initialGroupId={selectedGroupId ? Number(selectedGroupId) : null}
+                  />
+                </TabsContent>
+              )}
 
               {/* ── Match Results grid ── the SAME always-editable per-map grid the admin editor
                   has, wired to this page's group-scoped grid state (gridEditRows / gridPlayerGroups

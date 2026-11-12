@@ -158,6 +158,13 @@ function OverlayLeaderboardInner() {
     ? colsParam.split(",").map((c) => c.trim()).filter(Boolean)
     : undefined;
 
+  // No design in the event's library: the feed answers design null (AFC-B overlay_feed). DesignBoard needs a
+  // design, so this used to crash the whole overlay into the site's error page (found 11 Nov 2026 on a walk
+  // copy of event 373). A plain built-in board shows the same standings instead.
+  if (!feed.design) {
+    return <PlainBoard standings={feed.standings ?? []} title={feed.board?.title} subtitle={feed.board?.subtitle} live={!!feed.live} />;
+  }
+
   return (
     <DesignBoard
       bgBehaviorOverride={bgBehavior}
@@ -173,6 +180,49 @@ function OverlayLeaderboardInner() {
       // subtle "LIVE" badge in DesignBoard. (The 2s poll cadence is already handled above via `live`.)
       live={feed.live}
     />
+  );
+}
+
+// The built-in board for an event with no leaderboard design: rank, team, kills, points, and the map in
+// progress (live_points) when the feed folds one in. Plain readable type on a dark panel, nothing animated.
+function PlainBoard({
+  standings,
+  title,
+  subtitle,
+  live,
+}: {
+  standings: Array<Record<string, any>>;
+  title?: string;
+  subtitle?: string;
+  live: boolean;
+}) {
+  return (
+    <div className="flex min-h-screen items-start justify-center p-6">
+      <div className="w-full max-w-2xl rounded-xl bg-black/80 p-5 text-white">
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <div>
+            <p className="text-2xl font-bold">{title}</p>
+            {subtitle ? <p className="text-sm text-white/70">{subtitle}</p> : null}
+          </div>
+          {live ? <span className="rounded bg-red-600 px-2 py-0.5 text-xs font-bold">LIVE</span> : null}
+        </div>
+        <table className="w-full text-lg">
+          <tbody>
+            {standings.map((r, i) => (
+              <tr key={`${r.pos}-${r.team_name}`} className={i % 2 ? "bg-white/5" : ""}>
+                <td className="w-12 p-2 font-bold">#{r.pos}</td>
+                <td className="p-2">{r.team_name}</td>
+                <td className="p-2 text-right tabular-nums">{r.kills}</td>
+                <td className="p-2 text-right font-bold tabular-nums">
+                  {r.total_points}
+                  {r.in_live_map && r.live_points ? <span className="ml-1 text-sm text-green-400">+{r.live_points}</span> : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 

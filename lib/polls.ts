@@ -241,6 +241,18 @@ export type PollDetail = {
   response_count: number;
 };
 
+/** GET polls/hall-of-fame/ (AFC-B afc_polls/views_hof.py, inbox #445). */
+export type HallOfFame = {
+  seasons: {
+    slug: string;
+    title: string;
+    year: number | null;
+    theme: string;
+    winners: { award: string; award_slug: string; winner: string; winner_slug: string; image: string }[];
+  }[];
+  most_decorated: { name: string; wins: number; seasons: number[]; image: string }[];
+};
+
 export type AwardsEdition = {
   slug: string;
   title: string;
@@ -258,6 +270,10 @@ export type AwardsEdition = {
   phase: "announced" | "voting" | "counting" | "winners" | "archived";
   winners_are_public: boolean;
   poll_count: number;
+  /** Hidden until release (owner 11 Nov 2026, #543): only AFC poll admins ever receive an edition with this true. */
+  hidden?: boolean;
+  /** One WhatsApp number, one ballot (#449): the vote sheet asks the voter to prove a number first. */
+  whatsapp_required?: boolean;
 };
 
 export type EditionDetail = {
@@ -371,6 +387,18 @@ export const pollsApi = {
    *  `failedCheck: "uid"` when linking a UID failed in the sheet. Fire and forget at the call site. */
   sheetOpened: (slug: string, failedCheck?: "uid") =>
     aPost<{ recorded: boolean }>(`${slug}/sheet-opened/`, failedCheck ? { failed_check: failedCheck } : {}),
+  // ── One WhatsApp number, one ballot (owner 2 Nov 2026, #447 #449; AFC-B afc_polls/whatsapp_votes.py) ──
+  /** GET polls/whatsapp/: whether this account has proved a number (last four digits), and whether the
+   *  "send AFC the code" way is available (the AFC number is configured). */
+  whatsappStatus: () => aGet<{ verified: boolean; last4: string; method: string; inbound: boolean }>("whatsapp/"),
+  /** POST polls/whatsapp/start/: a code for the voter to SEND to AFC, and the wa.me link that types it in. */
+  whatsappStart: () => aPost<{ code: string; text: string; wa_link: string; expires_in: number }>("whatsapp/start/"),
+  /** POST polls/whatsapp/send-code/: AFC sends a six-digit code to this number (three an hour). */
+  whatsappSendCode: (number: string) => aPost<{ sent: boolean; last4: string }>("whatsapp/send-code/", { number }),
+  /** POST polls/whatsapp/verify/: the six digits AFC sent prove the number. */
+  whatsappVerify: (code: string) => aPost<{ verified: boolean; last4: string }>("whatsapp/verify/", { code }),
+  /** The awards hall of fame: every published winner of every released edition (GET polls/hall-of-fame/). */
+  hallOfFame: () => aGet<HallOfFame>("hall-of-fame/"),
   /** Garena's live view of an edition by its private link (GET polls/live/<token>/, no sign-in). */
   liveView: (token: string) => aGet<LiveView>(`live/${encodeURIComponent(token)}/`),
   /** The captain sets the team's answer directly. Only reachable when the poll's
@@ -450,4 +478,16 @@ export const pollsApi = {
   },
   adminRemoveOptionFilm: (pollSlug: string, optionId: number, kind: "film" | "winner-film" = "film") =>
     aDelete<{ film_url?: string; winner_film_url?: string }>(`admin/polls/${pollSlug}/options/${optionId}/${kind}/`),
+  // A nominee's picture as an upload (AFC-B afc_polls.views.admin_option_image); answers the stored image_url.
+  adminSetOptionImage: async (pollSlug: string, optionId: number, file: File) => {
+    const body = new FormData();
+    body.append("image", file);
+    return (
+      await axios.post<{ image_url: string }>(url(`admin/polls/${pollSlug}/options/${optionId}/image/`), body, {
+        headers: authHeaders(),
+      })
+    ).data;
+  },
+  adminRemoveOptionImage: (pollSlug: string, optionId: number) =>
+    aDelete<{ image_url: string }>(`admin/polls/${pollSlug}/options/${optionId}/image/`),
 };

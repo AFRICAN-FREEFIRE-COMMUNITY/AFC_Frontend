@@ -141,7 +141,9 @@ function NomineeCard({ award, nominee, index, canVote }: { award: Award; nominee
   );
 }
 
-/** The winner of an award, large: crown, WINNER stamp low on the photo, name, film link, share. */
+/** The winner of an award, large: crown, WINNER stamp low on the photo, name, film link, every winner, share. Round 5
+ *  of mockups/kol-awards (approved 11 Nov 2026, #537): the band wears the winners look, gold on black (.wband in
+ *  kol.css), the same world as /awards/<edition>/winners. */
 function WinnerBlock({ award, winner }: { award: Award; winner: KolNominee }) {
   const t = useTranslations("awardsKol");
   const { slug } = useKol();
@@ -156,28 +158,31 @@ function WinnerBlock({ award, winner }: { award: Award; winner: KolNominee }) {
     }
   };
   return (
-    <section className="wrap wblock">
-      <Link className="wphoto" href={href} aria-label={winner.label}>
-        {photo ? (
-          // eslint-disable-next-line @next/next/no-img-element -- API-host media, not in the next/image allow-list
-          <img alt="" src={photo} width={250} height={312} />
-        ) : (
-          <span className="typecard"><span>{winner.label}</span></span>
-        )}
-        {/* eslint-disable-next-line @next/next/no-img-element -- decorative art in /public */}
-        <img className="wcrown" alt="" src="/kol/crown-yellow.webp" />
-        <span className="stamp">{t("award.winner")}</span>
-      </Link>
-      <div className="wb-info">
-        <p className="eyebrow">{t("award.winnerEyebrow", { award: award.question.prompt })}</p>
-        <h2 className="t1">{winner.label}</h2>
-        <p className="sub" style={{ color: "var(--body)" }}>{t("award.revealed")}</p>
-        <div className="acts">
-          <Link className="btn y" href={href}>{winnerFilm(winner) ? t("award.winnerFilm") : t("award.winnerPage")}</Link>
-          <button className="btn l" onClick={() => void share()}>
-            <KolIcon name="share" />
-            {t("award.share")}
-          </button>
+    <section className="wband wband-cat">
+      <div className="wrap wblock">
+        <Link className="wphoto" href={href} aria-label={winner.label}>
+          {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element -- API-host media, not in the next/image allow-list
+            <img alt="" src={photo} width={250} height={312} />
+          ) : (
+            <span className="wtc"><span>{winner.label}</span></span>
+          )}
+          {/* eslint-disable-next-line @next/next/no-img-element -- decorative art in /public */}
+          <img className="wcrown" alt="" src="/kol/crown-gold.webp" />
+          <span className="stamp gold">{t("award.winner")}</span>
+        </Link>
+        <div className="wb-info">
+          <p className="eyebrow">{t("award.winnerEyebrow", { award: award.question.prompt })}</p>
+          <h2 className="t1">{winner.label}</h2>
+          <p className="sub">{t("award.revealed")}</p>
+          <div className="acts">
+            <Link className="btn g" href={href}>{winnerFilm(winner) ? t("award.winnerFilm") : t("award.winnerPage")}</Link>
+            <Link className="btn k" href={`/awards/${slug}/winners`}>{t("award.allWinners")}</Link>
+            <button className="btn k" onClick={() => void share()}>
+              <KolIcon name="share" />
+              {t("award.share")}
+            </button>
+          </div>
         </div>
       </div>
     </section>

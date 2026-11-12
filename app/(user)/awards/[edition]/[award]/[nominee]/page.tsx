@@ -9,10 +9,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { fetchEditionDetail, isKolTheme } from "@/lib/awardsEdition";
+import { fetchEditionDetail, isKolTheme, previewSlug } from "@/lib/awardsEdition";
 import { generateBreadcrumbSchema, jsonLd, siteConfig } from "@/lib/seo";
 
 import { KolEdition } from "../../../_kol/KolEdition";
+import { KolPreviewGate } from "../../../_kol/KolPreviewGate";
 import { kolMetadata } from "../../../_kol/kolMetadata";
 import { buildModel, nomineePhoto } from "../../../_kol/model";
 
@@ -43,7 +44,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function NomineePage({ params }: Params) {
   const p = await params;
   const hit = await resolve(p);
-  if (!hit) notFound();
+  if (!hit) {
+    // A hidden edition (#543): an admin previewing it reads it in the browser; everybody else gets the 404.
+    if ((await previewSlug()) === p.edition)
+      return <KolPreviewGate slug={p.edition} view={{ kind: "nominee", award: p.award, nominee: p.nominee }} />;
+    notFound();
+  }
   const { detail, award, nominee } = hit;
   const path = `/awards/${p.edition}/${p.award}/${p.nominee}`;
 

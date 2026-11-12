@@ -22,7 +22,7 @@
 // Server: AFC-B afc_tournament_and_scrims/views_game_files.py + game_files.py.
 // Mounted by app/(a)/a/leaderboards/[id]/edit/page.tsx and app/(organizer)/organizer/events/[slug]/leaderboard.
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { IconFileUpload, IconLoader2, IconCircleCheck, IconAlertTriangle } from "@tabler/icons-react";
@@ -40,7 +40,7 @@ type FileRow = {
   localId: string;
   name: string;
   status: "reading" | "read" | "error";
-  kind?: "debugger" | "result";
+  kind?: "debugger" | "result" | "replay";
   fileId?: string;
   games?: number;
   error?: string;
@@ -48,7 +48,16 @@ type FileRow = {
 
 type Diff = { scope: "team" | "player"; name: string; uid: string | null; team?: string; result: number; debugger: number };
 type GameTeam = { team: string; name: string; registered: boolean; kills: number; players: string[] };
+type Missing = { kind: "debugger" | "result" | "replay"; hint: string };
 type Game = {
+  /** which of the map's three files are in (owner 2026-11-11, inbox #541) */
+  files?: { debugger: boolean; result: boolean; replay: boolean };
+  /** the files still to add, by the game's own names (AFC-B views_game_files) */
+  missing?: Missing[];
+  /** the logs reached the server whole: the map is read with AFC Capture's own reader */
+  capture_ready?: boolean;
+  /** no result file: each team's place from the order teams were wiped in the log (team key -> place) */
+  placements_from_log?: Record<string, number>;
   key: string;
   when: string | null;
   last: string | null;
@@ -153,13 +162,38 @@ export default function GameFilesUpload({
       setSaved({});
       const next: Record<string, Choice> = {};
       for (const g of (data.games ?? []) as Game[]) {
-        next[g.key] = { match: g.match_id ? String(g.match_id) : NONE, keep: [], placements: {} };
+        // No result file: the places the log itself shows are filled in (AFC Capture's reader placed 70 of 70
+        // teams right on the 10 Nov maps); the organizer can still change any of them before Apply.
+        const fromLog = Object.fromEntries(
+          Object.entries(g.placements_from_log ?? {}).map(([team, place]) => [team, String(place)]),
+        );
+        next[g.key] = { match: g.match_id ? String(g.match_id) : NONE, keep: [], placements: g.has_result ? {} : fromLog };
       }
       setChoices(next);
     } catch (e: any) {
       toast.error(e.message);
     }
   };
+
+  // Files handed over from a map's result upload (FileUploadStep): a debugger log or a replay dropped there
+  // is read here instead (owner 2026-11-11, inbox #541). The event carries the File objects.
+  const addFilesRef = useRef(addFiles);
+  addFilesRef.current = addFiles;
+  useEffect(() => {
+    const onHandOver = (e: Event) => {
+      const list = (e as CustomEvent<{ files: File[] }>).detail?.files;
+      (window as any).__afcGameFiles = undefined;
+      if (list?.length) addFilesRef.current(list);
+    };
+    window.addEventListener("afc:game-files", onHandOver);
+    // Handed over while this box was not on screen (another tab): read them now, once.
+    const waiting = (window as any).__afcGameFiles as File[] | undefined;
+    if (waiting?.length) {
+      (window as any).__afcGameFiles = undefined;
+      addFilesRef.current(waiting);
+    }
+    return () => window.removeEventListener("afc:game-files", onHandOver);
+  }, []);
 
   const fileIds = () => files.filter((f) => f.fileId).map((f) => f.fileId as string);
   const setChoice = (key: string, patch: Partial<Choice>) =>
@@ -203,11 +237,14 @@ export default function GameFilesUpload({
         const up = await readJson(res);
         if (!res.ok) throw new Error(serverMessage(up, t("errors.generic")));
         const dbg = await postJson("debugger", { file_ids: fileIds(), key: g.key, match_id: Number(c.match) });
-        setSaved((prev) => ({ ...prev, [g.key]: { status: "done", text: t("done.game", {
-          players: up.saved_players ?? 0,
-          flags: Array.isArray(up.unknown_uids) ? up.unknown_uids.length : 0,
-          events: dbg.kill_events ?? 0,
-        }) } }));
+        setSaved((prev) => ({ ...prev, [g.key]: { status: "done", text: [
+          t("done.game", {
+            players: up.saved_players ?? 0,
+            flags: Array.isArray(up.unknown_uids) ? up.unknown_uids.length : 0,
+            events: dbg.kill_events ?? 0,
+          }),
+          dbg.with_damage ? t("done.damage", { count: dbg.with_damage }) : "",
+        ].filter(Boolean).join(" ") } }));
         ok++;
       } catch (e: any) {
         setSaved((prev) => ({ ...prev, [g.key]: { status: "error", text: t("errors.failed", { n, reason: e.message }) } }));
@@ -274,7 +311,7 @@ export default function GameFilesUpload({
             ref={inputRef}
             type="file"
             multiple
-            accept=".log,.txt"
+            accept=".log,.txt,.bin"
             className="hidden"
             onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
           />
@@ -289,14 +326,14 @@ export default function GameFilesUpload({
             <ul className="space-y-1">
               {files.map((f) => (
                 <li key={f.localId} className="flex flex-wrap items-center gap-2 rounded-md bg-muted/40 px-3 py-2 text-xs">
-                  <Badge variant="outline" className={f.kind === "result" ? "text-gold" : "text-primary"}>
+                  <Badge variant="outline" className={f.kind === "result" ? "text-gold" : f.kind === "replay" ? "text-blue-400" : "text-primary"}>
                     {f.kind ? t(`kind.${f.kind}`) : t("kind.unknown")}
                   </Badge>
                   <span className="min-w-0 flex-1 truncate" title={f.name}>{f.name}</span>
                   <span className="text-muted-foreground">
                     {f.status === "reading" && t("file.reading")}
                     {f.status === "error" && <span className="text-destructive">{f.error}</span>}
-                    {f.status === "read" && (f.kind === "result" ? t("file.result") : t("file.debuggerGames", { count: f.games ?? 0 }))}
+                    {f.status === "read" && (f.kind === "result" ? t("file.result") : f.kind === "replay" ? t("file.replay") : t("file.debuggerGames", { count: f.games ?? 0 }))}
                   </span>
                 </li>
               ))}
@@ -335,7 +372,28 @@ export default function GameFilesUpload({
                     {g.has_result
                       ? <span className="rounded bg-background/60 px-1.5 py-0.5">{t("source.result")}</span>
                       : <span className="rounded bg-background/60 px-1.5 py-0.5 text-gold">{t("source.resultMissing")}</span>}
+                    {g.files?.replay
+                      ? <span className="rounded bg-background/60 px-1.5 py-0.5">{t("source.replay")}</span>
+                      : <span className="rounded bg-background/60 px-1.5 py-0.5 text-gold">{t("source.replayMissing")}</span>}
                   </div>
+                  {/* What is still missing, by the game's own file names (owner 2026-11-11, inbox #541: "the site
+                      should request for all files it needs"). Add them to the box and the game updates. */}
+                  {(g.missing?.length ?? 0) > 0 && (
+                    <div className="rounded-md bg-background/60 p-2 text-xs">
+                      <p className="font-medium">{t("missing.title")}</p>
+                      <ul className="mt-1 space-y-1">
+                        {g.missing!.map((m) => (
+                          <li key={m.kind}>
+                            <code className="rounded bg-muted px-1 py-0.5 text-[11px]">{m.hint}</code>{" "}
+                            <span className="text-muted-foreground">{t(`missing.${m.kind}`)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {g.capture_ready && (
+                    <p className="text-xs text-muted-foreground">{t("notes.captureReader")}</p>
+                  )}
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
                     <label htmlFor={`gf-match-${g.key}`} className="text-xs font-medium">{t("match")}</label>
                     <select
@@ -371,7 +429,10 @@ export default function GameFilesUpload({
                       cannot be read from the debugger: 41 of 221 teams right in our tests, see game_files.py) */}
                   {!g.has_result && c.match !== NONE && g.teams.length > 0 && (
                     <div className="space-y-2 rounded-md bg-background/60 p-2">
-                      <p className="text-xs"><b>{t("notes.noResultTitle")}</b> {t("notes.noResult")}</p>
+                      <p className="text-xs">
+                        <b>{t("notes.noResultTitle")}</b>{" "}
+                        {Object.keys(g.placements_from_log ?? {}).length ? t("notes.placementsFromLog") : t("notes.noResult")}
+                      </p>
                       <div className="overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
