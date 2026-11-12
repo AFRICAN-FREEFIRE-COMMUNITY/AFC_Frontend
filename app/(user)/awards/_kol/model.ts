@@ -71,7 +71,11 @@ export function buildModel(detail: EditionDetail): KolModel {
         verdict: poll.eligibility,
         nominees: question.options.map((o) => ({ ...o, slug: o.slug || String(o.option_id) })),
         myPickId: mine,
-        winnerId: poll.results_visible ? question.published_winner_option_id ?? null : null,
+        // The PUBLISHED winner is named once the edition's winners are announced, whatever the ballot's results
+        // setting: an award ballot keeps its vote numbers admins-only by default, and the server sends the winner
+        // claim on its own (AFC-B afc_polls.views _winners_are_out). results_visible still covers older ballots.
+        winnerId:
+          poll.results_visible || detail.edition.winners_are_public ? question.published_winner_option_id ?? null : null,
       });
     }
   }

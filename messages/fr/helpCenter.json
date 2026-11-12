@@ -113,7 +113,7 @@
     "eventSponsorsPg": "Page de l'événement, Vérification sponsor",
     "drafts": "Brouillons",
     "lbList": "Événements et classements, onglet Classements",
-    "lbCreate": "Assistant de création de classement",
+    "lbCreate": "Comment les classements sont créés",
     "lbView": "Vue du classement (ouvrez un classement)",
     "lbEdit": "Éditeur de classement",
     "lbOcr": "Page de l'événement, Résultats OCR",
@@ -470,8 +470,8 @@
       "does": "Ouvre l'éditeur de classement, où les résultats sont saisis, corrigés et recalculés."
     },
     "lb-create": {
-      "label": "L'assistant de création de classement",
-      "does": "Quatre étapes : choisir l'événement et la phase, choisir comment les résultats arrivent, les saisir ou les importer, puis relire et publier. À l'étape de relecture, vous pouvez enregistrer en brouillon au lieu de publier."
+      "label": "Les classements sont créés pour vous",
+      "does": "Chaque groupe d'un événement reçoit son classement automatiquement dès que les phases et les groupes de l'événement sont en place. Ouvrez Classements, puis Modifier sur l'événement, pour saisir, importer ou lire les résultats de chaque carte."
     },
     "lb-method": {
       "label": "Comment les résultats d'un match arrivent",

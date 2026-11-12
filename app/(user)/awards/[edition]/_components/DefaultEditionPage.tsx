@@ -33,6 +33,7 @@ import { IconChevronLeft } from "@tabler/icons-react";
 
 import { pollsApi, type AwardsEdition } from "@/lib/polls";
 
+import { KolPreviewGate } from "../../_kol/KolPreviewGate";
 import { AwardsExperience } from "../../_components/AwardsExperience";
 import { SeasonPicker } from "../../_components/SeasonPicker";
 
@@ -61,6 +62,13 @@ export function DefaultEditionPage() {
       cancelled = true;
     };
   }, []);
+
+  // A KOL edition only reaches this page when the signed-out server read could not see it, i.e. it is hidden until
+  // release (#543) and the season list (read with the viewer's session) still has it: the viewer is a poll admin.
+  // Draw it the way the public will see it once released, under the hidden bar.
+  if (editions.some((e) => e.slug === slug && e.theme === "detty-royale")) {
+    return <KolPreviewGate slug={slug} view={{ kind: "landing" }} />;
+  }
 
   return (
     <div>

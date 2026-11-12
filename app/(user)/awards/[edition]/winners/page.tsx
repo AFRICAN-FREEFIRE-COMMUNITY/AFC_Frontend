@@ -8,10 +8,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { fetchEditionDetail, isKolTheme } from "@/lib/awardsEdition";
+import { fetchEditionDetail, isKolTheme, previewSlug } from "@/lib/awardsEdition";
 import { generateBreadcrumbSchema, jsonLd } from "@/lib/seo";
 
 import { KolEdition } from "../../_kol/KolEdition";
+import { KolPreviewGate } from "../../_kol/KolPreviewGate";
 import { kolMetadata } from "../../_kol/kolMetadata";
 
 type Params = { params: Promise<{ edition: string }> };
@@ -31,7 +32,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function WinnersPage({ params }: Params) {
   const { edition } = await params;
   const detail = await fetchEditionDetail(edition);
-  if (!isKolTheme(detail)) notFound();
+  if (!isKolTheme(detail)) {
+    // A hidden edition (#543): an admin previewing it reads it in the browser; everybody else gets the 404.
+    if (!detail && (await previewSlug()) === edition) return <KolPreviewGate slug={edition} view={{ kind: "winners" }} />;
+    notFound();
+  }
   const crumbs = generateBreadcrumbSchema([
     { name: "Home", path: "/" },
     { name: "Awards", path: "/awards" },

@@ -205,7 +205,8 @@
     "winnerFilm": "Voir le film du gagnant",
     "winnerPage": "La page du gagnant",
     "share": "Partager la victoire",
-    "nomineesHeading": "Les nominés"
+    "nomineesHeading": "Les nominés",
+    "allWinners": "Tous les lauréats"
   },
   "nominee": {
     "eyebrow": "Nominé · {award}",
@@ -266,7 +267,36 @@
       "fix": "Corriger"
     },
     "errClosed": "Le vote est clos.",
-    "errGeneric": "Votre vote n'a pas pu être enregistré. Réessayez."
+    "errGeneric": "Votre vote n'a pas pu être enregistré. Réessayez.",
+    "wa": {
+      "title": "Vérifiez votre <em>WhatsApp</em>",
+      "body": "<b>Un numéro WhatsApp, un bulletin.</b> Envoyez-nous ce code depuis WhatsApp : dix secondes, et c'est gratuit. Votre numéro n'est jamais affiché.",
+      "yourCode": "Votre code",
+      "scan": "Scannez avec votre téléphone",
+      "open": "Ouvrir WhatsApp",
+      "fine": "WhatsApp s'ouvre avec le code déjà saisi. Appuyez sur envoyer, puis revenez ici.",
+      "loading": "Préparation de votre code",
+      "sent": "Je l'ai envoyé",
+      "waiting": "En attente de votre message",
+      "waitingBody": "Il arrive en général en quelques secondes.",
+      "notYet": "Votre message n'est pas encore arrivé. Vérifiez que vous avez bien appuyé sur envoyer, puis réessayez.",
+      "alt": "M'envoyer plutôt un code sur WhatsApp",
+      "codeBody": "Saisissez votre numéro WhatsApp et nous vous enverrons un code à six chiffres.",
+      "typedBody": "Nous avons envoyé un code au numéro finissant par {last4}. Saisissez-le ici.",
+      "numberLabel": "Numéro WhatsApp, avec l'indicatif du pays",
+      "codeLabel": "Code à six chiffres",
+      "sendCode": "M'envoyer le code",
+      "sending": "Envoi",
+      "verify": "Vérifier",
+      "checking": "Vérification",
+      "back": "Envoyer plutôt le code à AFC",
+      "verified": "WhatsApp vérifié",
+      "verifiedNumber": "Le numéro finissant par {last4} garantit ce bulletin.",
+      "continue": "Continuer",
+      "errLoad": "La vérification WhatsApp n'a pas pu démarrer. Réessayez.",
+      "errSend": "Le code n'a pas pu être envoyé. Réessayez.",
+      "errVerify": "Ce code n'a pas fonctionné. Réessayez."
+    }
   },
   "admin": {
     "theme": "Design de la page",
@@ -285,7 +315,17 @@
     "filmFailed": "Le film n'a pas pu être enregistré.",
     "filmSaveFirst": "Enregistrez d'abord les questions, puis ajoutez le film.",
     "winnerFilmLabel": "Film du gagnant",
-    "winnerFilmHelp": "Affiché sur les pages des gagnants une fois les gagnants publiés. À défaut, le film du nominé est utilisé."
+    "winnerFilmHelp": "Affiché sur les pages des gagnants une fois les gagnants publiés. À défaut, le film du nominé est utilisé.",
+    "imageLabel": "Photo",
+    "imageNone": "Aucune photo",
+    "imageUpload": "Téléverser une photo",
+    "imageReplace": "Remplacer la photo",
+    "imageRemove": "Retirer",
+    "imageHelp": "JPEG, PNG, WEBP ou GIF, de préférence en portrait, 10 Mo au plus.",
+    "imageSaved": "Photo enregistrée",
+    "imageRemoved": "Photo retirée",
+    "imageFailed": "La photo n'a pas pu être enregistrée.",
+    "imageSaveFirst": "Enregistrez d'abord les questions, puis ajoutez la photo."
   },
   "winners": {
     "back": "KOL Awards",
@@ -300,6 +340,31 @@
     "awardBtn": "L'award",
     "everyone": "Tous les nominés",
     "thanks": "Merci à <em>tous les {count}</em>",
-    "thanksLabel": "Merci à tous les {count}"
+    "thanksLabel": "Merci à tous les {count}",
+    "openEnvelopes": "Ouvrir les enveloppes",
+    "hallBtn": "Panthéon",
+    "stageLabel": "{name}, lauréat de {award}",
+    "stamp": "Lauréat",
+    "envelopeTop": "Et le lauréat est",
+    "beat": "{count, plural, one {Choisi parmi # nommé.} other {Choisi parmi # nommés.}}",
+    "alsoNominated": "Aussi nommés",
+    "share": "Partager"
+  },
+  "preview": {
+    "bar": "Masqué jusqu'à la sortie : seuls les admins des sondages AFC voient cette page.",
+    "loading": "Chargement de l'aperçu",
+    "notFound": "Cette page n'est pas encore publique."
+  },
+  "hof": {
+    "eyebrow": "Chaque lauréat, chaque année",
+    "title": "Le <em>panthéon</em>",
+    "loading": "Chargement du panthéon",
+    "error": "Le panthéon n'a pas pu être chargé. Rechargez la page pour réessayer.",
+    "none": "Aucun lauréat n'a encore été annoncé.",
+    "seasons": "Saison",
+    "all": "Toutes les saisons",
+    "mostDecorated": "Le plus titré",
+    "wins": "{count, plural, one {# titre} other {# titres}}",
+    "awardsCount": "{count, plural, one {# récompense} other {# récompenses}}"
   }
 }

@@ -113,7 +113,7 @@
     "eventSponsorsPg": "Event page, Sponsor Review",
     "drafts": "Drafts",
     "lbList": "Events and Leaderboards, Leaderboards tab",
-    "lbCreate": "Create leaderboard wizard",
+    "lbCreate": "How leaderboards are made",
     "lbView": "Leaderboard view (open a leaderboard)",
     "lbEdit": "Leaderboard editor",
     "lbOcr": "Event page, OCR Results",
@@ -470,8 +470,8 @@
       "does": "Opens the leaderboard editor, where results are entered, corrected and rescored."
     },
     "lb-create": {
-      "label": "The create leaderboard wizard",
-      "does": "Four steps: pick the event and stage, choose how results arrive, enter or upload them, then review and publish. You can save to drafts at the review step instead of publishing."
+      "label": "Leaderboards are made for you",
+      "does": "Every group of an event gets its leaderboard automatically as soon as the event's stages and groups are set up. Open Leaderboards, then Edit on the event, to type, upload or read each map's results."
     },
     "lb-method": {
       "label": "How results arrive for a match",
