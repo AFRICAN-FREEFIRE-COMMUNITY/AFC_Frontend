@@ -42,6 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InfoTip } from "@/components/ui/info-tip";
+import { centerInStrip } from "@/lib/center-in-strip";
 import { cn } from "@/lib/utils";
 
 /** One section of the edit page. `dot` drives the little status marker (red = has a validation
@@ -130,11 +131,13 @@ export function EventEditSectionNav({
     const el = wrapRef.current?.querySelector<HTMLElement>(
       `[data-nav-value="${value}"]`
     );
-    el?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+    // Only the strip moves, never the page (lib/center-in-strip.ts, 12 Nov 2026).
+    const list = getList();
+    if (el && list) centerInStrip(list, el, "smooth");
     // edges shift after the programmatic scroll settles
     const t = window.setTimeout(recomputeEdges, 250);
     return () => window.clearTimeout(t);
-  }, [value, recomputeEdges]);
+  }, [value, getList, recomputeEdges]);
 
   const current = sections.find((s) => s.value === value);
 

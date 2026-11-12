@@ -19,6 +19,13 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Fixed
+- A page with a row of tabs further down (a tournament's results and qualifier tabs) no longer scrolls
+  down by itself while it loads, and the footer no longer jumps on and off a phone screen; the active tab
+  still slides into the middle of its row (AFC inbox #554, the SEO live check red since 20 Oct).
+
 ## v7.18.0 - 2026-11-12
 
 ### Added
