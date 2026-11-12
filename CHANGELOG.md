@@ -22,6 +22,9 @@ workflow checks it again before it builds.
 ## Unreleased
 
 ### Added
+- AFC Capture 1.6.0 on the download page: started late, it picks up the match already in progress; a map that
+  ended while it was closed is sent once when it starts; the live board waits 10 s on a slow connection; its
+  dashboard says when the organizer marked the games over for now on the website (AFC inbox #501, #545).
 - Stats screen: says where the group's day stands (maps played, a map in progress, done for now, finished) and holds
   "That was the last map for now", which AFC Capture and AFC LIVE read (inbox #501).
 - Stats tab on the event leaderboard pages (admin and organizer): every team and player number for a group, for all
