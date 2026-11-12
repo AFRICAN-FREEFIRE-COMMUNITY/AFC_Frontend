@@ -53,6 +53,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { ANSWER_TYPES, BRANCHABLE_TYPES, pollsApi, type BranchRule } from "@/lib/polls";
 import { OptionFilm } from "./_components/OptionFilm";
+import { OptionImage } from "./_components/OptionImage";
 import { describeRule } from "@/lib/pollBranching";
 import { broadcastAudienceApi, type AudienceOptions } from "@/lib/broadcastAudience";
 
@@ -617,6 +618,17 @@ function QuestionsTab({
                           onChange={(e) => {
                             const next = [...question.options];
                             next[optionIndex] = { ...next[optionIndex], image_url: e.target.value };
+                            patch(index, { options: next });
+                          }}
+                        />
+                        {/* Or upload the picture itself (stored by the server, written back into this row). */}
+                        <OptionImage
+                          pollSlug={pollSlug}
+                          optionId={option.option_id}
+                          imageUrl={option.image_url}
+                          onChange={(url) => {
+                            const next = [...question.options];
+                            next[optionIndex] = { ...next[optionIndex], image_url: url };
                             patch(index, { options: next });
                           }}
                         />

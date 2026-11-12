@@ -22,6 +22,7 @@ workflow checks it again before it builds.
 ## Unreleased
 
 ### Added
+- Ballot builder: upload, replace or remove a nominee's picture (the link field stays for a picture already online).
 - KOL Awards winners page in its own look (owner, approved mockups 11 Nov 2026, inbox #537): gold on black, one
   sealed envelope per award that opens as it comes into view, the other nominees named, and a hall of fame of every
   season below it (season filter, the most decorated creator on top). An award page names its winner in the same

@@ -478,4 +478,16 @@ export const pollsApi = {
   },
   adminRemoveOptionFilm: (pollSlug: string, optionId: number, kind: "film" | "winner-film" = "film") =>
     aDelete<{ film_url?: string; winner_film_url?: string }>(`admin/polls/${pollSlug}/options/${optionId}/${kind}/`),
+  // A nominee's picture as an upload (AFC-B afc_polls.views.admin_option_image); answers the stored image_url.
+  adminSetOptionImage: async (pollSlug: string, optionId: number, file: File) => {
+    const body = new FormData();
+    body.append("image", file);
+    return (
+      await axios.post<{ image_url: string }>(url(`admin/polls/${pollSlug}/options/${optionId}/image/`), body, {
+        headers: authHeaders(),
+      })
+    ).data;
+  },
+  adminRemoveOptionImage: (pollSlug: string, optionId: number) =>
+    aDelete<{ image_url: string }>(`admin/polls/${pollSlug}/options/${optionId}/image/`),
 };

@@ -37,5 +37,9 @@
   "whatsapp_too_many_codes": "Muitos códigos por agora. Tente de novo em uma hora.",
   "whatsapp_code_not_sent": "Não foi possível enviar o código. Tente de novo em um minuto.",
   "whatsapp_too_many_tries": "Códigos errados demais. Peça um novo.",
-  "whatsapp_inbound_off": "Enviar um código para a AFC não está disponível. Peça um código."
+  "whatsapp_inbound_off": "Enviar um código para a AFC não está disponível. Peça um código.",
+  "not_an_image": "Esse arquivo não é uma imagem. Use JPEG, PNG, WEBP ou GIF.",
+  "image_too_large": "Essa imagem tem mais de 10 MB.",
+  "image_required": "Escolha uma imagem primeiro.",
+  "option_not_found": "Esse indicado não está nesta cédula."
 }

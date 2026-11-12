@@ -37,5 +37,9 @@
   "whatsapp_too_many_codes": "Too many codes for now. Try again in an hour.",
   "whatsapp_code_not_sent": "The code could not be sent. Try again in a minute.",
   "whatsapp_too_many_tries": "Too many wrong codes. Ask for a new one.",
-  "whatsapp_inbound_off": "Sending a code to AFC is not available. Ask for a code instead."
+  "whatsapp_inbound_off": "Sending a code to AFC is not available. Ask for a code instead.",
+  "not_an_image": "That file is not a picture. Use a JPEG, PNG, WEBP or GIF.",
+  "image_too_large": "That picture is larger than 10 MB.",
+  "image_required": "Choose a picture first.",
+  "option_not_found": "That nominee is not on this ballot."
 }

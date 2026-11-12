@@ -315,7 +315,17 @@
     "filmFailed": "The film could not be saved.",
     "filmSaveFirst": "Save the questions first, then add the film.",
     "winnerFilmLabel": "Winner film",
-    "winnerFilmHelp": "Shown on the winner pages once winners are published. Falls back to the nominee film."
+    "winnerFilmHelp": "Shown on the winner pages once winners are published. Falls back to the nominee film.",
+    "imageLabel": "Picture",
+    "imageNone": "No picture",
+    "imageUpload": "Upload picture",
+    "imageReplace": "Replace picture",
+    "imageRemove": "Remove",
+    "imageHelp": "JPEG, PNG, WEBP or GIF, portrait works best, at most 10 MB.",
+    "imageSaved": "Picture saved",
+    "imageRemoved": "Picture removed",
+    "imageFailed": "The picture could not be saved.",
+    "imageSaveFirst": "Save the questions first, then add the picture."
   },
   "winners": {
     "back": "KOL Awards",

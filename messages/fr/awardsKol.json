@@ -315,7 +315,17 @@
     "filmFailed": "Le film n'a pas pu être enregistré.",
     "filmSaveFirst": "Enregistrez d'abord les questions, puis ajoutez le film.",
     "winnerFilmLabel": "Film du gagnant",
-    "winnerFilmHelp": "Affiché sur les pages des gagnants une fois les gagnants publiés. À défaut, le film du nominé est utilisé."
+    "winnerFilmHelp": "Affiché sur les pages des gagnants une fois les gagnants publiés. À défaut, le film du nominé est utilisé.",
+    "imageLabel": "Photo",
+    "imageNone": "Aucune photo",
+    "imageUpload": "Téléverser une photo",
+    "imageReplace": "Remplacer la photo",
+    "imageRemove": "Retirer",
+    "imageHelp": "JPEG, PNG, WEBP ou GIF, de préférence en portrait, 10 Mo au plus.",
+    "imageSaved": "Photo enregistrée",
+    "imageRemoved": "Photo retirée",
+    "imageFailed": "La photo n'a pas pu être enregistrée.",
+    "imageSaveFirst": "Enregistrez d'abord les questions, puis ajoutez la photo."
   },
   "winners": {
     "back": "KOL Awards",

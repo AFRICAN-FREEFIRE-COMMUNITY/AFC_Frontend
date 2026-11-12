@@ -37,5 +37,9 @@
   "whatsapp_too_many_codes": "Trop de codes pour l'instant. Réessayez dans une heure.",
   "whatsapp_code_not_sent": "Le code n'a pas pu être envoyé. Réessayez dans une minute.",
   "whatsapp_too_many_tries": "Trop de codes erronés. Demandez-en un nouveau.",
-  "whatsapp_inbound_off": "L'envoi d'un code à AFC n'est pas disponible. Demandez plutôt un code."
+  "whatsapp_inbound_off": "L'envoi d'un code à AFC n'est pas disponible. Demandez plutôt un code.",
+  "not_an_image": "Ce fichier n'est pas une image. Utilisez un JPEG, PNG, WEBP ou GIF.",
+  "image_too_large": "Cette image dépasse 10 Mo.",
+  "image_required": "Choisissez d'abord une image.",
+  "option_not_found": "Ce nommé ne fait pas partie de ce bulletin."
 }

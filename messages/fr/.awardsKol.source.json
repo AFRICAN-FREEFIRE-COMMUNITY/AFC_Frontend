@@ -262,5 +262,15 @@
   "sheet.wa.errLoad": "The WhatsApp check could not start. Try again.",
   "sheet.wa.errSend": "The code could not be sent. Try again.",
   "sheet.wa.errVerify": "That code did not work. Try again.",
-  "award.allWinners": "All the winners"
+  "award.allWinners": "All the winners",
+  "admin.imageLabel": "Picture",
+  "admin.imageNone": "No picture",
+  "admin.imageUpload": "Upload picture",
+  "admin.imageReplace": "Replace picture",
+  "admin.imageRemove": "Remove",
+  "admin.imageHelp": "JPEG, PNG, WEBP or GIF, portrait works best, at most 10 MB.",
+  "admin.imageSaved": "Picture saved",
+  "admin.imageRemoved": "Picture removed",
+  "admin.imageFailed": "The picture could not be saved.",
+  "admin.imageSaveFirst": "Save the questions first, then add the picture."
 }
