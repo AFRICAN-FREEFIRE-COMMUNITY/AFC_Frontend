@@ -41,5 +41,12 @@
   "not_an_image": "Ce fichier n'est pas une image. Utilisez un JPEG, PNG, WEBP ou GIF.",
   "image_too_large": "Cette image dépasse 10 Mo.",
   "image_required": "Choisissez d'abord une image.",
-  "option_not_found": "Ce nommé ne fait pas partie de ce bulletin."
+  "option_not_found": "Ce nommé ne fait pas partie de ce bulletin.",
+  "game_log_not_result": "C'est un journal de partie, pas un fichier de résultat. Ajoutez-le dans Fichiers de jeu : il lit toute la partie comme AFC Capture et demande les fichiers qui manquent encore.",
+  "replay_file_unreadable": "Ce fichier de replay est trop gros ou abîmé.",
+  "replay_name_needed": "Gardez le nom d'origine du fichier de replay (ReplayInfo_<match>_<date>.bin) pour qu'il soit associé à sa carte.",
+  "board_group_required": "Choisissez un groupe.",
+  "board_group_not_found": "Ce groupe ne fait pas partie de cet événement.",
+  "board_maps_invalid": "Les cartes doivent être choisies dans ce groupe.",
+  "board_export_kind": "Choisissez les équipes ou les joueurs."
 }

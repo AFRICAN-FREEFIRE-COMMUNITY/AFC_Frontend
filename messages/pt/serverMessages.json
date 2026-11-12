@@ -41,5 +41,12 @@
   "not_an_image": "Esse ficheiro não é uma imagem. Use JPEG, PNG, WEBP ou GIF.",
   "image_too_large": "Essa imagem tem mais de 10 MB.",
   "image_required": "Escolha uma imagem primeiro.",
-  "option_not_found": "Esse nomeado não está neste boletim."
+  "option_not_found": "Esse nomeado não está neste boletim.",
+  "game_log_not_result": "Isto é um registo do jogo, não um ficheiro de resultado. Adicione-o em Arquivos de jogo: lê o jogo inteiro como o AFC Capture e pede os ficheiros que ainda faltam.",
+  "replay_file_unreadable": "Esse ficheiro de repetição é demasiado grande ou está danificado.",
+  "replay_name_needed": "Mantenha o nome original do ficheiro de repetição (ReplayInfo_<match>_<date>.bin) para que seja ligado ao mapa certo.",
+  "board_group_required": "Escolha um grupo.",
+  "board_group_not_found": "Esse grupo não faz parte deste evento.",
+  "board_maps_invalid": "Os mapas têm de ser escolhidos deste grupo.",
+  "board_export_kind": "Escolha equipas ou jogadores."
 }
