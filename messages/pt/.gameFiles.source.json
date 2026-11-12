@@ -1,8 +1,8 @@
 {
   "title": "Game files",
-  "intro": "Drop every debugger file and result file from the evening at once. AFC finds each game in them, joins a game that is split across two debugger files, pairs it with its result file and suggests the match it belongs to. Nothing is saved until you press Apply.",
-  "drop": "Drop debugger and result files here, or click to choose",
-  "dropHint": "debugger-*.log from Free Fire_64_Data\\Debugger, and MatchResult_*.log. As many as you have, in any order.",
+  "intro": "Drop every debugger, result and replay file from the evening at once. AFC finds each game in them, joins a game that is split across two debugger files, pairs it with its result and replay files and suggests the match it belongs to. Nothing is saved until you press Apply.",
+  "drop": "Drop debugger, result and replay files here, or click to choose",
+  "dropHint": "From Free Fire_64_Data: Debugger\\debugger-*.log, MatchResult_*.log, and Replays\\ReplayInfo_*.bin for damage and guns. As many as you have, in any order.",
   "choose": "Choose files",
   "files": "Files ({count})",
   "startAgain": "Start again",
@@ -67,5 +67,19 @@
   "errors.twice": "Two games are set to the same match. Pick another match or \"Don't use\".",
   "errors.placements": "Give every team in game {n} its placement, each place once.",
   "errors.failed": "Game {n} was not saved: {reason}",
-  "notes.alreadySaved": "This game is already saved on that match. Applying again replaces it with the same game."
+  "notes.alreadySaved": "This game is already saved on that match. Applying again replaces it with the same game.",
+  "kind.replay": "Replay",
+  "file.replay": "Damage and guns of one game",
+  "source.replay": "Replay file",
+  "source.replayMissing": "Replay file missing",
+  "missing.title": "Still needed for this game:",
+  "missing.debugger": "knocks, revives, grenades, gloo walls, medkits and the kill feed",
+  "missing.result": "the game's official placements and kills",
+  "missing.replay": "every player's damage and the gun of every kill and knock",
+  "notes.captureReader": "Read with AFC Capture's own reader: every stat Capture sends is saved for this game.",
+  "notes.placementsFromLog": "The places below come from the order teams were wiped in the log. Check them, change any that are wrong, or add the result file.",
+  "done.damage": "{count, plural, one {Damage for # player.} other {Damage for # players.}}",
+  "handOver.moved": "That is a game log, not a result file. It was added to Game files above, which reads it like AFC Capture.",
+  "handOver.openBox": "That is a game log, not a result file. Open Game files: it is waiting there.",
+  "handOver.hint": "The game's MatchResult file (.log or .txt). A debugger log or replay goes to Game files."
 }

@@ -28,5 +28,12 @@
   "placement_missing": "Indique a classificação de cada equipa.",
   "placements_not_one_each": "Cada classificação só pode ser usada uma vez: 1 para o vencedor, depois 2, 3 e assim por diante.",
   "no_files_for_game": "Não há nada para carregar nesse jogo.",
-  "match_not_on_event": "Esse jogo não pertence a este evento."
+  "match_not_on_event": "Esse jogo não pertence a este evento.",
+  "game_log_not_result": "Isto é um registo do jogo, não um ficheiro de resultado. Adicione-o em Arquivos de jogo: lê o jogo inteiro como o AFC Capture e pede os ficheiros que ainda faltam.",
+  "replay_file_unreadable": "Esse ficheiro de repetição é demasiado grande ou está danificado.",
+  "replay_name_needed": "Mantenha o nome original do ficheiro de repetição (ReplayInfo_<match>_<date>.bin) para que seja ligado ao mapa certo.",
+  "board_group_required": "Escolha um grupo.",
+  "board_group_not_found": "Esse grupo não faz parte deste evento.",
+  "board_maps_invalid": "Os mapas têm de ser escolhidos deste grupo.",
+  "board_export_kind": "Escolha equipas ou jogadores."
 }

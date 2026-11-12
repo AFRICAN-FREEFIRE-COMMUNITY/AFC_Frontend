@@ -162,6 +162,20 @@ const APPROVABLE_REASONS = new Set<string>([
   "belongs_to_other_team",
 ]);
 
+// Is this file a game LOG (a debugger log or a replay) rather than a map's result file? By name first
+// (debugger-*.log, ReplayInfo_*.bin, any .bin), then by its first bytes: a result file holds "TeamName:".
+async function isGameLog(file: File): Promise<boolean> {
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".bin") || name.startsWith("debugger") || name.startsWith("replayinfo_")) return true;
+  if (name.startsWith("matchresult_")) return false;
+  try {
+    const head = await file.slice(0, 200_000).text();
+    return !head.includes("TeamName:") && /^\uFEFF?\[\d{4}-\d{2}-\d{2} /.test(head);
+  } catch {
+    return false;
+  }
+}
+
 export function FileUploadStep({
   match,
   formData,
@@ -176,6 +190,7 @@ export function FileUploadStep({
   const { token } = useAuth();
   // Translations for the booyah "map winner missing" banner (flaggedKills namespace).
   const t = useTranslations("flaggedKills");
+  const tGf = useTranslations("gameFiles");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fileType, setFileType] = useState("match_result_file");
@@ -308,6 +323,21 @@ export function FileUploadStep({
     if (file) setSelectedFile(file);
   };
 
+  // Hand files to the Game files box (GameFilesUpload listens for "afc:game-files" and, when it mounts later,
+  // reads window.__afcGameFiles), then bring it into view or say where it is.
+  const handOverToGameFiles = (list: File[]) => {
+    (window as any).__afcGameFiles = list;
+    window.dispatchEvent(new CustomEvent("afc:game-files", { detail: { files: list } }));
+    const box = document.querySelector('[data-tour="leaderboard-game-files"]');
+    if (box) {
+      box.scrollIntoView({ behavior: "smooth", block: "start" });
+      toast.success(tGf("handOver.moved"));
+    } else {
+      toast.info(tGf("handOver.openBox"));
+    }
+    handleRemoveFile();
+  };
+
   const handleRemoveFile = () => {
     setSelectedFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -319,6 +349,14 @@ export function FileUploadStep({
       return;
     }
     if (!participantType) return;
+
+    // A debugger log or a replay is not a map's result file (owner 2026-11-11, inbox #541: on 10 Nov one was
+    // sent here twice and refused with "No team data parsed."). Team events hand it to the Game files box,
+    // which reads it the way AFC Capture does and asks for any file it still needs. See handOverToGameFiles.
+    if (participantType !== "solo" && (await isGameLog(selectedFile))) {
+      handOverToGameFiles([selectedFile]);
+      return;
+    }
 
     const endpoint =
       participantType === "solo"
@@ -937,7 +975,7 @@ export function FileUploadStep({
               <span className="text-sm font-medium">
                 Drag &amp; drop a file here, or click to browse
               </span>
-              <span className="text-xs">.txt or debugger files</span>
+              <span className="text-xs">{tGf("handOver.hint")}</span>
             </div>
           )}
           <input

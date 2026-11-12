@@ -28,5 +28,12 @@
   "placement_missing": "Indiquez la place de chaque équipe.",
   "placements_not_one_each": "Chaque place ne sert qu'une fois : 1 pour le vainqueur, puis 2, 3 et ainsi de suite.",
   "no_files_for_game": "Il n'y a rien à téléverser pour cette partie.",
-  "match_not_on_event": "Ce match ne fait pas partie de cet événement."
+  "match_not_on_event": "Ce match ne fait pas partie de cet événement.",
+  "game_log_not_result": "C'est un journal de partie, pas un fichier de résultat. Ajoutez-le dans Fichiers de jeu : il lit toute la partie comme AFC Capture et demande les fichiers qui manquent encore.",
+  "replay_file_unreadable": "Ce fichier de replay est trop gros ou abîmé.",
+  "replay_name_needed": "Gardez le nom d'origine du fichier de replay (ReplayInfo_<match>_<date>.bin) pour qu'il soit associé à sa carte.",
+  "board_group_required": "Choisissez un groupe.",
+  "board_group_not_found": "Ce groupe ne fait pas partie de cet événement.",
+  "board_maps_invalid": "Les cartes doivent être choisies dans ce groupe.",
+  "board_export_kind": "Choisissez les équipes ou les joueurs."
 }
