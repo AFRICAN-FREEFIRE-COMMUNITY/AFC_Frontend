@@ -35,5 +35,7 @@
   "board_group_required": "Choisissez un groupe.",
   "board_group_not_found": "Ce groupe ne fait pas partie de cet événement.",
   "board_maps_invalid": "Les cartes doivent être choisies dans ce groupe.",
-  "board_export_kind": "Choisissez les équipes ou les joueurs."
+  "board_export_kind": "Choisissez les équipes ou les joueurs.",
+  "session_map_in_progress": "Une carte est en cours. Indiquez-le une fois qu'elle est terminée.",
+  "session_done_required": "Indiquez si la dernière carte a été jouée."
 }

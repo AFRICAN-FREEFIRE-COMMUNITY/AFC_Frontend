@@ -22,6 +22,8 @@ workflow checks it again before it builds.
 ## Unreleased
 
 ### Added
+- Stats screen: says where the group's day stands (maps played, a map in progress, done for now, finished) and holds
+  "That was the last map for now", which AFC Capture and AFC LIVE read (inbox #501).
 - Stats tab on the event leaderboard pages (admin and organizer): every team and player number for a group, for all
   maps, one map or the maps you pick (kills, damage, assists, knocks, knocked, headshots, deaths, revives, grenades,
   gloo walls, medkits, survival, most used gun), players missing from the roster included and marked, the map being
