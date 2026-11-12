@@ -62,6 +62,9 @@ type Board = {
     map_number: number; teams_alive: number; unmatched: string[]; standings: LiveRow[]; top_killers: LiveKiller[];
     map_mvp?: { name: string; team_name: string; kills: number; assists: number } | null;
   };
+  // Where the group's day stands (AFC-B board.session_status, inbox #501); AFC Capture and AFC LIVE read the same.
+  session?: { status: "playing" | "done_for_now" | "finished" | "waiting"; maps_played: number; maps_total: number;
+    done_at: string | null };
 };
 
 // Survival time as m:ss (game seconds).
@@ -92,6 +95,7 @@ export default function BoardStatsPanel({
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [downloading, setDownloading] = useState<"" | "teams" | "players" | "graphic">("");
+  const [marking, setMarking] = useState(false);
 
   const api = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/board`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token ?? ""}` }), [token]);
@@ -143,6 +147,27 @@ export default function BoardStatsPanel({
   }, [load]);
 
   // Refresh: every 5 s while a map is live, every 20 s otherwise; only while the page is visible.
+  // "That was the last map for now" and its undo (inbox #501); the answer is the group's new session, then a reload.
+  const markSession = async (done: boolean) => {
+    if (groupId == null) return;
+    setMarking(true);
+    try {
+      const res = await fetch(`${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/groups/${groupId}/session/`, {
+        method: "POST",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify({ done }),
+      });
+      const data = await readJson(res);
+      if (!res.ok) throw new Error(serverMessage(data, t("session.failed")));
+      setError("");
+      await load(true);
+    } catch (e: any) {
+      setError(e?.message || t("session.failed"));
+    } finally {
+      setMarking(false);
+    }
+  };
+
   const live = board?.live ?? null;
   useEffect(() => {
     const every = live ? 5000 : 20000;
@@ -318,6 +343,42 @@ export default function BoardStatsPanel({
         </div>
       ) : board ? (
         <>
+          {/* ── where the day stands, and "that was the last map for now" (inbox #501). POST
+               events/<id>/groups/<gid>/session/ (AFC-B views_board.group_session); AFC Capture and AFC LIVE read the
+               mark through capture/context `session`, and it lapses by itself when a later map is played. ── */}
+          {board.session ? (
+            <Card>
+              <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
+                <div className="space-y-1">
+                  <p className="flex flex-wrap items-center gap-2 font-medium">
+                    {board.session.status === "playing"
+                      ? t("session.playing", { n: board.session.maps_played + 1 })
+                      : board.session.status === "finished"
+                        ? t("session.finished", { total: board.session.maps_total })
+                        : board.session.status === "done_for_now"
+                          ? t("session.doneForNow", { n: board.session.maps_played })
+                          : t("session.waiting", { played: board.session.maps_played, total: board.session.maps_total })}
+                    <NewBadge since="2026-11-12" />
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    {board.session.status === "done_for_now" ? t("session.doneHelp") : t("session.help")}
+                  </p>
+                </div>
+                {board.session.status === "waiting" || board.session.status === "done_for_now" ? (
+                  <Button
+                    size="sm"
+                    variant={board.session.status === "done_for_now" ? "secondary" : "default"}
+                    disabled={marking || board.session.maps_played === 0}
+                    onClick={() => void markSession(board.session?.status !== "done_for_now")}
+                  >
+                    {marking ? <IconLoader2 className="mr-1 size-4 animate-spin" /> : null}
+                    {board.session.status === "done_for_now" ? t("session.undo") : t("session.markDone")}
+                  </Button>
+                ) : null}
+              </CardContent>
+            </Card>
+          ) : null}
+
           {/* ── the map being played right now: the same table the live overlay and AFC LIVE show ── */}
           {live ? (
             <Card>

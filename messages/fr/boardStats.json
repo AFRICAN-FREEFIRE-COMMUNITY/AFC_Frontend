@@ -71,5 +71,16 @@
     "load": "Les chiffres n'ont pas pu être chargés. Réessayez.",
     "download": "Le téléchargement n'a pas fonctionné. Réessayez."
   },
-  "downloadGraphic": "Télécharger le visuel (PNG)"
+  "downloadGraphic": "Télécharger le visuel (PNG)",
+  "session": {
+    "waiting": "{played} cartes jouées sur {total}.",
+    "playing": "La carte {n} est en cours.",
+    "doneForNow": "Terminé pour l'instant, après la carte {n}.",
+    "finished": "Les {total} cartes ont été jouées.",
+    "help": "Quand la dernière carte de la journée a été jouée, indiquez-le pour qu'AFC Capture et AFC LIVE sachent que les parties sont finies pour l'instant.",
+    "doneHelp": "AFC Capture et AFC LIVE indiquent que les parties sont finies pour l'instant. L'indication disparaît d'elle-même dès que la carte suivante est jouée.",
+    "markDone": "C'était la dernière carte pour l'instant",
+    "undo": "Annuler",
+    "failed": "L'indication n'a pas pu être enregistrée. Réessayez."
+  }
 }

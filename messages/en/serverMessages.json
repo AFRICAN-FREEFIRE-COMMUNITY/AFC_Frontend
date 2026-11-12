@@ -49,5 +49,7 @@
   "board_group_required": "Choose a group.",
   "board_group_not_found": "That group is not part of this event.",
   "board_maps_invalid": "Maps must be chosen from this group.",
-  "board_export_kind": "Choose teams or players."
+  "board_export_kind": "Choose teams or players.",
+  "session_map_in_progress": "A map is being played right now. Mark it once it has ended.",
+  "session_done_required": "Say whether the last map has been played."
 }

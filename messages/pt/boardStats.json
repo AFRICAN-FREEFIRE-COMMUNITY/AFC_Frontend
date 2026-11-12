@@ -71,5 +71,16 @@
     "load": "Não foi possível carregar os números. Tente de novo.",
     "download": "O download não funcionou. Tente de novo."
   },
-  "downloadGraphic": "Baixar a arte (PNG)"
+  "downloadGraphic": "Baixar a arte (PNG)",
+  "session": {
+    "waiting": "{played} de {total} mapas jogados.",
+    "playing": "O mapa {n} está sendo jogado.",
+    "doneForNow": "Encerrado por enquanto, depois do mapa {n}.",
+    "finished": "Os {total} mapas foram jogados.",
+    "help": "Quando o último mapa do dia for jogado, marque aqui para que o AFC Capture e o AFC LIVE saibam que os jogos acabaram por enquanto.",
+    "doneHelp": "O AFC Capture e o AFC LIVE mostram que os jogos acabaram por enquanto. A marca some sozinha quando o próximo mapa for jogado.",
+    "markDone": "Esse foi o último mapa por enquanto",
+    "undo": "Desfazer",
+    "failed": "Não foi possível salvar a marca. Tente de novo."
+  }
 }

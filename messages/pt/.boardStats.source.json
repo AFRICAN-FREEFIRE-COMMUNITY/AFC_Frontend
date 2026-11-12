@@ -61,5 +61,14 @@
   "errors.download": "The download did not work. Try again.",
   "downloadGraphic": "Download graphic (PNG)",
   "live.mapMvp": "MVP of this map so far:",
-  "live.mvpKills": "{count, plural, one {# kill} other {# kills}}"
+  "live.mvpKills": "{count, plural, one {# kill} other {# kills}}",
+  "session.waiting": "{played} of {total} maps played.",
+  "session.playing": "Map {n} is being played.",
+  "session.doneForNow": "Done for now, after map {n}.",
+  "session.finished": "All {total} maps played.",
+  "session.help": "When the last map of the day has been played, mark it so AFC Capture and AFC LIVE know the games are over for now.",
+  "session.doneHelp": "AFC Capture and AFC LIVE show that the games are over for now. The mark goes by itself when the next map is played.",
+  "session.markDone": "That was the last map for now",
+  "session.undo": "Undo",
+  "session.failed": "The mark could not be saved. Try again."
 }

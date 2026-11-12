@@ -71,5 +71,16 @@
     "load": "The numbers could not be loaded. Try again.",
     "download": "The download did not work. Try again."
   },
-  "downloadGraphic": "Download graphic (PNG)"
+  "downloadGraphic": "Download graphic (PNG)",
+  "session": {
+    "waiting": "{played} of {total} maps played.",
+    "playing": "Map {n} is being played.",
+    "doneForNow": "Done for now, after map {n}.",
+    "finished": "All {total} maps played.",
+    "help": "When the last map of the day has been played, mark it so AFC Capture and AFC LIVE know the games are over for now.",
+    "doneHelp": "AFC Capture and AFC LIVE show that the games are over for now. The mark goes by itself when the next map is played.",
+    "markDone": "That was the last map for now",
+    "undo": "Undo",
+    "failed": "The mark could not be saved. Try again."
+  }
 }

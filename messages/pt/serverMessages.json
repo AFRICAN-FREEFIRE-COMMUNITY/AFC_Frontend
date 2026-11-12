@@ -49,5 +49,7 @@
   "board_group_required": "Escolha um grupo.",
   "board_group_not_found": "Esse grupo não faz parte deste evento.",
   "board_maps_invalid": "Os mapas têm de ser escolhidos deste grupo.",
-  "board_export_kind": "Escolha equipas ou jogadores."
+  "board_export_kind": "Escolha equipas ou jogadores.",
+  "session_map_in_progress": "Está a ser jogado um mapa neste momento. Marque-o quando terminar.",
+  "session_done_required": "Indique se o último mapa já foi jogado."
 }
