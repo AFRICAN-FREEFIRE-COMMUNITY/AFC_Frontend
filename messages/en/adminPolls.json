@@ -367,5 +367,13 @@
       "off": "Link turned off."
     },
     "failed": "That did not work. Try again."
+  },
+  "release": {
+    "hiddenBadge": "Hidden",
+    "hidden": "Hidden until release",
+    "hiddenHelp": "While on, only AFC poll admins can open these awards (to preview them). Nobody can vote, and they are not listed anywhere. Switch it off to release them.",
+    "whatsapp": "One WhatsApp number per ballot",
+    "whatsappHelp": "Voters prove a WhatsApp number before their ballot counts. One number backs one account.",
+    "preview": "Preview"
   }
 }

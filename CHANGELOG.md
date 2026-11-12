@@ -22,6 +22,17 @@ workflow checks it again before it builds.
 ## Unreleased
 
 ### Added
+- Ballot builder: upload, replace or remove a nominee's picture (the link field stays for a picture already online).
+- KOL Awards winners page in its own look (owner, approved mockups 11 Nov 2026, inbox #537): gold on black, one
+  sealed envelope per award that opens as it comes into view, the other nominees named, and a hall of fame of every
+  season below it (season filter, the most decorated creator on top). An award page names its winner in the same
+  look, with a link to all the winners.
+- One WhatsApp number, one ballot (inbox #449): an edition can require a WhatsApp check before a vote counts. The
+  voter sends AFC a short code from WhatsApp (a QR on a computer, one tap on a phone), or asks AFC to send them a
+  six-digit code instead. Only the last four digits are ever shown.
+- Awards editions can be hidden until release (inbox #543): a hidden edition is a not-found page for everybody but
+  AFC poll admins, who see it as the public will, under a bar saying it is hidden. Two new switches on the admin
+  edition form: Hidden until release, WhatsApp check required.
 - Stats tab on the event leaderboard pages (admin and organizer): every team and player number for a group, for all
   maps, one map or the maps you pick (kills, damage, assists, knocks, knocked, headshots, deaths, revives, grenades,
   gloo walls, medkits, survival, most used gun), players missing from the roster included and marked, the map being
