@@ -37,7 +37,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { clipSources } from "../howto/lib/sources.mjs";
+import { bestPage, clipSources } from "../howto/lib/sources.mjs";
 import { PUBLIC_EXTS, PUBLIC_SIZES, SECONDS_FILE } from "../howto/lib/publish.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -227,6 +227,14 @@ async function selfTest() {
     put(SECONDS_FILE, JSON.stringify({ demo: { en: { desktop: 10, phone: 9 } } }));
     hits = await checkClips(dir);
     results.push(["every locked take published is not HOWTO-PUBLIC", !hits.some((h) => h.rule === "HOWTO-PUBLIC"), hits]);
+
+    // a fixed segment beats a [param] whatever order the disk lists them in (CI on Linux, 12 Nov 2026)
+    const create = "app/(user)/teams/create/page.tsx";
+    const param = "app/(user)/teams/[id]/page.tsx";
+    results.push(["/teams/create is the create page in either listing order, /teams/x the [id] page",
+      bestPage([param, create], "/teams/create") === create && bestPage([create, param], "/teams/create") === create
+        && bestPage([create, param], "/teams/accra-hawks") === param,
+      [bestPage([param, create], "/teams/create"), bestPage([create, param], "/teams/create")]]);
 
     rmSync(join(dir, "howto/clips.lock.json"));
     hits = await checkClips(dir);

@@ -41,16 +41,35 @@ const posix = (p) => p.replace(/\\/g, "/");
 
 // "/create-account" -> "app/(auth)/create-account/page.tsx". A [slug] segment matches anything.
 export function pageFor(repo, route) {
+  const pages = walk(join(repo, "app"))
+    .filter((f) => /[\\/]page\.(tsx|ts|jsx|js)$/.test(f))
+    .map((f) => posix(relative(repo, f)));
+  return bestPage(pages, route);
+}
+
+// Of the page files ("app/..." paths) that could serve `route`, the one Next serves: a fixed segment
+// beats a [param], decided at the first position where two candidates differ, so /teams/create is
+// teams/create/page.tsx and never teams/[id]/page.tsx. Decided by specificity, NEVER by the order the
+// disk lists folders in: Windows lists "create" before "[id]" and the Linux CI runner did not, so the
+// first match differed between the two and team-invite read as HOWTO-STALE on CI only (12 Nov 2026,
+// AFC_Frontend PR #156). Exported for the self-test, which hands it the candidates in both orders.
+export function bestPage(pages, route) {
   const want = route.split("?")[0].replace(/\/+$/, "").split("/").filter(Boolean);
-  const pages = walk(join(repo, "app")).filter((f) => /[\\/]page\.(tsx|ts|jsx|js)$/.test(f));
-  for (const file of pages) {
-    const segs = posix(relative(join(repo, "app"), dirname(file)))
-      .split("/")
-      .filter((s) => s && s !== "." && !/^\(.*\)$/.test(s));
+  const isParam = (s) => /^\[.+\]$/.test(s);
+  let best = null;
+  let bestRank = null;
+  for (const file of [...pages].sort()) {
+    // "app/(user)/teams/create/page.tsx" -> ["teams", "create"]: drop "app", the file and route groups
+    const segs = file.split("/").slice(1, -1).filter((s) => s && s !== "." && !/^\(.*\)$/.test(s));
     if (segs.length !== want.length) continue;
-    if (segs.every((s, i) => s === want[i] || /^\[.+\]$/.test(s))) return posix(relative(repo, file));
+    if (!segs.every((s, i) => s === want[i] || isParam(s))) continue;
+    const rank = segs.map((s) => (isParam(s) ? "1" : "0")).join(""); // lower = more specific
+    if (bestRank === null || rank < bestRank) {
+      best = file;
+      bestRank = rank;
+    }
   }
-  return null;
+  return best;
 }
 
 function resolveImport(repo, fromFile, spec) {
