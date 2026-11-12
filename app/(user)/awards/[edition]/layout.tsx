@@ -53,6 +53,9 @@ async function fetchEdition(slug: string): Promise<EditionForSeo | null> {
 export async function generateMetadata({ params }: { params: Promise<{ edition: string }> }): Promise<Metadata> {
   const { edition } = await params;
   const data = await fetchEdition(edition);
+  // No edition for a signed-out read: unknown, or hidden until release (#543). Nothing to index either way, and a
+  // hidden edition must not be announced to search engines before the owner releases it. Same as the winners route.
+  if (!data) return kolMetadata({ title: "Awards", description: "Awards.", path: `/awards/${edition}`, noIndex: true });
   const name = data?.name || data?.title || "AFC Awards";
   // A themed edition (Detty Royale KOL Awards) shares nothing that names the site (owner, 2 Nov 2026).
   if (data?.theme === "detty-royale") {
