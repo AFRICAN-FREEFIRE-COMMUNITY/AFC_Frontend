@@ -55,3 +55,7 @@ _be_ghost.log
 *.p12
 *service-account*.json
 credentials.json
+
+# How-to clips: renders, the outbox and failure screenshots stay local (howto/README.md)
+howto/out/
+howto/**/__pycache__/

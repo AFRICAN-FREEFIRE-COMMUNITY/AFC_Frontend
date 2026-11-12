@@ -371,6 +371,25 @@
           "why": "admin standalone leaderboard editor only. Read 2026-10-19"
         }
       ]
+    },
+    {
+      "id": "fe-hover-open-tap-toggle",
+      "title": "A tip that opens on mouseenter and toggles on click never opens on one phone tap",
+      "why": "A phone tap fires an emulated mouseenter just before its click. With onMouseEnter={() => setOpen(true)} plus an onClick that toggles, the tap opens the tip and its own click shuts it, so every (i) on a phone needed two taps. Most AFC players are on phones.",
+      "seen": [
+        "2026-10-16 components/ui/info-tip.tsx, the site-wide (i): /rankings at 390 px, one tap left it closed, two taps opened it (headless tap test, howto/out/tap-infotip.mjs); fixed with pointer events, mouse only",
+        "2026-10-16 components/howto/WatchHowTip.tsx (new, inbox #255): the same shape, caught on the 390 px walk before it shipped"
+      ],
+      "fix": "hover with onPointerEnter / onPointerLeave and act only when e.pointerType === \"mouse\"; a click on a tip the mouse has just opened keeps it open, otherwise it toggles",
+      "fixture": "onMouseEnter={() => setOpen(true)}",
+      "fixtureOk": "onPointerEnter={(e) => e.pointerType === \"mouse\" && setOpen(true)}",
+      "kind": "regex",
+      "pattern": "onMouseEnter=\\{[^}]*\\bsetOpen\\(",
+      "globs": [
+        "app/**/*.tsx",
+        "components/**/*.tsx"
+      ],
+      "ignoreLineRegex": "^\\s*//"
     }
   ]
 }

@@ -610,6 +610,9 @@ export function ManualMatchResultStep({
                 type="button"
                 onClick={() => setTeamView(value)}
                 aria-pressed={teamView === value}
+                // data-howto: the how-to clip "organizer enters results" picks one team at a time.
+                data-howto="result-view"
+                data-view={value}
                 className={cn(
                   "h-9 flex-1 rounded-sm text-sm font-medium transition-colors",
                   "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
@@ -677,6 +680,8 @@ export function ManualMatchResultStep({
                   onClick={() =>
                     setCurrentTeam((i) => Math.min(teamResults.length - 1, i + 1))
                   }
+                  // data-howto: the how-to clip "organizer enters results" (howto/clips/organizer-results.mjs) moves to the next team here.
+                  data-howto="result-next-team"
                 >
                   {t("manual.nextTeam")}
                 </Button>
@@ -969,7 +974,7 @@ export function ManualMatchResultStep({
           <Button variant="outline" onClick={onBack} disabled={submitting}>
             {t("manual.back")}
           </Button>
-          <Button onClick={handleSubmit} disabled={submitting}>
+          <Button onClick={handleSubmit} disabled={submitting} data-howto="result-save">
             {submitting ? (
               <Loader text={isEditing ? t("manual.updating") : t("manual.submitting")} />
             ) : isEditing ? (

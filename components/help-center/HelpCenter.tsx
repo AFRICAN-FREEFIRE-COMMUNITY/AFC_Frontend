@@ -51,6 +51,7 @@ import { motion } from "framer-motion";
 import { PageHeader } from "@/components/PageHeader";
 // Shared, self-expiring NEW tag (owner rule: any new page wears one for 5 days).
 import { NewBadge } from "@/components/NewBadge";
+import { HowtoVideo } from "@/components/howto/HowtoVideo";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -307,6 +308,8 @@ function WalkthroughCard({
   // The route this process starts at, for this portal. Some guides only exist for
   // one portal, so this can legitimately be undefined and the link is dropped.
   const route = walkthrough.routes[portal];
+  // A how-to clip recorded from this portal's own screens, if one exists (inbox #255).
+  const clip = walkthrough.clip?.[portal];
 
   return (
     <motion.div
@@ -381,7 +384,15 @@ function WalkthroughCard({
                 {t("labels.videoTitle")}
               </span>
             </div>
-            {walkthrough.videoUrl ? (
+            {clip ? (
+              // The how-to clip (components/howto/HowtoVideo.tsx): the viewer's language, the
+              // phone take on a phone, still + Play under reduced motion.
+              <HowtoVideo
+                clip={clip}
+                title={t(`walkthroughs.${walkthrough.id}.title`)}
+                className="mt-2"
+              />
+            ) : walkthrough.videoUrl ? (
               <div className="mt-2 aspect-video w-full overflow-hidden rounded-md">
                 <iframe
                   src={walkthrough.videoUrl}

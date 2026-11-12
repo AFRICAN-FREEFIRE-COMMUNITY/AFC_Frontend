@@ -1,0 +1,60 @@
+{
+  "clips": {
+    "signupDiscord": {
+      "title": "S'inscrire et connecter Discord",
+      "summary": "Créez votre compte AFC, confirmez votre e-mail et liez Discord, pour qu'AFC puisse vous y joindre.",
+      "steps": {
+        "details": "Remplissez vos infos et un mot de passe",
+        "register": "Cochez les conditions, puis S'inscrire",
+        "code": "Saisissez le code reçu, puis Confirmer l'e-mail",
+        "login": "Connectez-vous avec votre nouveau compte",
+        "skip": "Appuyez sur Passer pour l'instant",
+        "profile": "Ouvrez le menu, puis Mon profil",
+        "connections": "Appuyez sur Gérer les connexions",
+        "connect": "Appuyez sur Connecter à côté de Discord",
+        "discord": "Sur Discord, vérifiez le compte, puis Autoriser",
+        "done": "C'est fait : Discord est lié à AFC"
+      }
+    },
+    "teamInvite": {
+      "title": "Créer une équipe et inviter un coéquipier",
+      "summary": "Créez votre équipe sur AFC, invitez un coéquipier par son nom, il rejoint depuis l'invitation.",
+      "steps": {
+        "create": "Ouvrez Équipes, puis Créer une équipe",
+        "details": "Remplissez le nom, le tag et la bio",
+        "join": "Choisissez qui peut demander à rejoindre",
+        "invite": "Cherchez votre coéquipier et choisissez-le",
+        "submit": "Appuyez sur Créer l'équipe",
+        "teammate": "Votre coéquipier reçoit une alerte sur AFC",
+        "accept": "Il l'ouvre, touche Voir, puis Accepter",
+        "done": "C'est fait : vous êtes coéquipiers"
+      }
+    },
+    "registerTournament": {
+      "title": "Inscrire votre équipe à un tournoi",
+      "summary": "En tant que capitaine, choisissez un tournoi et les joueurs, acceptez le règlement, et c'est fait.",
+      "steps": {
+        "find": "Ouvrez Tournois et choisissez l'événement",
+        "register": "Appuyez sur S'inscrire au tournoi",
+        "type": "Choisissez Inscription d'équipe",
+        "members": "Cochez les joueurs qui vont jouer",
+        "info": "Vérifiez votre équipe, puis continuez",
+        "rules": "Acceptez le règlement, puis continuez",
+        "done": "C'est fait : votre équipe est inscrite"
+      }
+    },
+    "organizerResults": {
+      "title": "Saisir les résultats d'une carte",
+      "summary": "En tant qu'organisateur, saisissez la place et les éliminations de chaque équipe, et le classement se met à jour.",
+      "steps": {
+        "open": "Appuyez sur Résultats et classement",
+        "edit": "Appuyez sur Modifier les résultats du match",
+        "map": "Choisissez la carte, puis Continuer",
+        "manual": "Choisissez Manual Input",
+        "enter": "Place et éliminations, puis Next team",
+        "save": "Appuyez sur Submit Results à la fin",
+        "done": "C'est fait : le classement est à jour"
+      }
+    }
+  }
+}

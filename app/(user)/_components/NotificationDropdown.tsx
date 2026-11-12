@@ -180,12 +180,15 @@ export function NotificationDropdown({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
+      {/* data-howto (notif-bell, notif-link): the how-to clip "create a team + invite"
+          (howto/clips/team-invite.mjs) opens the bell and the invite from here. */}
       <SheetTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
           className="relative hover:bg-transparent"
           aria-label={t("notifications.title")}
+          data-howto="notif-bell"
         >
           <IconBell />
           {unreadCount > 0 && (
@@ -297,6 +300,8 @@ export function NotificationDropdown({
                                 size="sm"
                                 variant="outline"
                                 className="h-7 rounded-full px-3 text-xs"
+                                data-howto="notif-link"
+                                data-link={l.link}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openLink(notification, l.link);

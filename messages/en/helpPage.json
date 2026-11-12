@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "Help Center",
+    "description": "Short videos of the things people do most on AFC, recorded on the real site, with every step written out. Search, or pick a topic."
+  },
+  "search": {
+    "placeholder": "Search for a task, a button or a screen...",
+    "ariaLabel": "Search the help center"
+  },
+  "topics": {
+    "all": "All",
+    "start": "Getting started",
+    "teams": "Teams",
+    "tournaments": "Tournaments",
+    "organizers": "For organizers"
+  },
+  "who": {
+    "everyone": "Everyone",
+    "players": "Players",
+    "captains": "Team captains",
+    "organizers": "Organizers"
+  },
+  "card": {
+    "steps": "{count, plural, one {# step} other {# steps}}",
+    "seconds": "{seconds} s",
+    "open": "Open this screen"
+  },
+  "empty": "No guide matches that yet. Try another word, or ask the Help bot in the corner.",
+  "stuck": {
+    "body": "Still stuck? The Help bot answers in the corner of every page, and Support reads every message.",
+    "button": "Contact Support"
+  },
+  "video": {
+    "label": "{title}, a {seconds} second video",
+    "play": "Play",
+    "pause": "Pause"
+  },
+  "tip": {
+    "more": "More info",
+    "register": "The team's owner, captain, vice captain, manager or coach can register it. You pick who plays, check the summary and accept the rules.",
+    "watch": "Watch how, {seconds} s",
+    "watchNoTime": "Watch how"
+  },
+  "dialog": {
+    "all": "See every guide in the Help Center"
+  }
+}

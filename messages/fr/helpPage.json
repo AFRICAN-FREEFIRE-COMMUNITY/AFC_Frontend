@@ -1,0 +1,47 @@
+{
+  "page": {
+    "title": "Centre d'aide",
+    "description": "De courtes vidéos des actions les plus courantes sur AFC, enregistrées sur le vrai site, avec chaque étape écrite. Cherchez, ou choisissez un sujet."
+  },
+  "search": {
+    "placeholder": "Cherchez une tâche, un bouton ou un écran...",
+    "ariaLabel": "Rechercher dans le centre d'aide"
+  },
+  "topics": {
+    "all": "Tout",
+    "start": "Premiers pas",
+    "teams": "Équipes",
+    "tournaments": "Tournois",
+    "organizers": "Pour les organisateurs"
+  },
+  "who": {
+    "everyone": "Tout le monde",
+    "players": "Joueurs",
+    "captains": "Capitaines d'équipe",
+    "organizers": "Organisateurs"
+  },
+  "card": {
+    "steps": "{count, plural, one {# étape} other {# étapes}}",
+    "seconds": "{seconds} s",
+    "open": "Ouvrir cet écran"
+  },
+  "empty": "Aucun guide ne correspond pour l'instant. Essayez un autre mot, ou demandez au bot d'aide dans le coin.",
+  "stuck": {
+    "body": "Toujours bloqué ? Le bot d'aide répond dans le coin de chaque page, et l'assistance lit chaque message.",
+    "button": "Contacter l'assistance"
+  },
+  "video": {
+    "label": "{title}, une vidéo de {seconds} secondes",
+    "play": "Lire",
+    "pause": "Pause"
+  },
+  "tip": {
+    "more": "Plus d'infos",
+    "register": "Le propriétaire, le capitaine, le vice-capitaine, le manager ou le coach de l'équipe peut l'inscrire. Vous choisissez qui joue, vérifiez le récapitulatif et acceptez le règlement.",
+    "watch": "Voir comment, {seconds} s",
+    "watchNoTime": "Voir comment"
+  },
+  "dialog": {
+    "all": "Voir tous les guides du centre d'aide"
+  }
+}
