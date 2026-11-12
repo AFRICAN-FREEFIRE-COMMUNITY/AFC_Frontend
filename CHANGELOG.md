@@ -22,6 +22,9 @@ workflow checks it again before it builds.
 ## Unreleased
 
 ### Fixed
+- The old admin "create leaderboard" address no longer opens a wizard that failed at step 2: leaderboards are made
+  automatically for every group, so it now opens that event's leaderboard editor (or the Leaderboards list). The help
+  centre says so.
 - A picture that is not really a picture (profile photo, esports photo) and a failed event creation now explain
   themselves in French and Portuguese too, instead of the server's English sentence.
 
