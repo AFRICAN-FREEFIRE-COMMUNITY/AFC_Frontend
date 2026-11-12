@@ -11,6 +11,8 @@
  *            verdict, afc_polls.eligibility) and this account has none. It is the site's existing UID
  *            linking, not a second one: UidInput for the box, auth/edit-profile/ for the write,
  *            exactly like the tournament registration prompt (EventDetailsWrapper handleSaveUid).
+ *   whatsapp only when the edition asks for one WhatsApp number per ballot (edition.whatsapp_required, inbox #449)
+ *            and this account has not proved one: KolWhatsAppStep (send AFC the code, or have AFC send one).
  *   confirm  "Your pick for <award>", with what it replaces when this is a re-vote.
  *   done     the VOTED stamp, then on to the next award with no pick.
  *
@@ -35,11 +37,12 @@ import { uidTakenMessage } from "@/lib/uidTaken";
 import { pollsApi, type Verdict } from "@/lib/polls";
 
 import { useKol } from "./KolContext";
+import { KolWhatsAppStep } from "./KolWhatsAppStep";
 import { KolIcon } from "./icons";
 import { useReduceMotion } from "./KolMotion";
 import { nomineePhoto } from "./model";
 
-type Step = "signin" | "uid" | "confirm" | "done" | "blocked";
+type Step = "signin" | "uid" | "whatsapp" | "confirm" | "done" | "blocked";
 
 export function KolVoteSheet() {
   const t = useTranslations("awardsKol");
@@ -66,18 +69,30 @@ export function KolVoteSheet() {
   // UID gets linked), so the flow moves on by itself.
   const needsUid = !!award?.verdict?.requirements?.some((r) => r.key === "profile_uid");
   const hasUid = !!user?.uid;
+  // One WhatsApp number per ballot (#449): asked once per account; the server is still the gate (submit_response
+  // answers whatsapp_check_required), the step only spares a refused vote.
+  const needsWa = !!model.detail.edition.whatsapp_required;
+  const [waOk, setWaOk] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!needsWa || !viewer.signedIn) return;
+    pollsApi.whatsappStatus().then((st) => setWaOk(st.verified)).catch(() => setWaOk(false));
+  }, [needsWa, viewer.signedIn]);
+  const afterUid = (): Step => (needsWa && waOk !== true ? "whatsapp" : "confirm");
   const key = sheet ? `${sheet.award.slug}/${sheet.nominee.slug}` : "";
   useEffect(() => {
     if (!key || viewer.loading) return;
     setError("");
     setVerdict(null);
-    setStep(!viewer.signedIn ? "signin" : needsUid && !hasUid ? "uid" : "confirm");
+    setStep(!viewer.signedIn ? "signin" : needsUid && !hasUid ? "uid" : afterUid());
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the sheet opens for another nominee
   }, [key, viewer.loading]);
   useEffect(() => {
-    if (step === "signin" && viewer.signedIn) setStep(needsUid && !hasUid ? "uid" : "confirm");
-    if (step === "uid" && hasUid) setStep("confirm");
-  }, [step, viewer.signedIn, needsUid, hasUid]);
+    if (step === "signin" && viewer.signedIn) setStep(needsUid && !hasUid ? "uid" : afterUid());
+    if (step === "uid" && hasUid) setStep(afterUid());
+    if (step === "whatsapp" && waOk === true) setStep("confirm");
+    if (step === "confirm" && needsWa && waOk === false) setStep("whatsapp");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- afterUid reads needsWa / waOk listed here
+  }, [step, viewer.signedIn, needsUid, hasUid, needsWa, waOk]);
 
   // Escape closes, and focus moves into the sheet so a keyboard user is not left behind it.
   useEffect(() => {
@@ -121,7 +136,7 @@ export function KolVoteSheet() {
         headers: { Authorization: `Bearer ${token}` },
       });
       await refreshUser();
-      setStep("confirm");
+      setStep(afterUid());
     } catch (err: unknown) {
       const data = (err as { response?: { data?: { message?: string; code?: string; taken_by?: string; taken_by_page?: string } } })?.response?.data;
       setUidErr(uidTakenMessage(data, tc) || data?.message || t("sheet.uid.errSave"));
@@ -141,6 +156,11 @@ export function KolVoteSheet() {
     setBusy(false);
     if (result.ok) {
       setStep("done");
+      return;
+    }
+    if (result.code === "whatsapp_check_required") {
+      setWaOk(false);
+      setStep("whatsapp");
       return;
     }
     if (result.verdict && !result.verdict.eligible) {
@@ -180,7 +200,8 @@ export function KolVoteSheet() {
     </div>
   );
 
-  const stepOrder: Step[] = needsUid ? ["signin", "uid", "confirm"] : ["signin", "confirm"];
+  const stepOrder: Step[] = ["signin", ...(needsUid ? (["uid"] as Step[]) : []),
+    ...(needsWa ? (["whatsapp"] as Step[]) : []), "confirm"];
   const at = Math.max(0, stepOrder.indexOf(step));
 
   return (
@@ -241,6 +262,10 @@ export function KolVoteSheet() {
                   </button>
                 </div>
               </>
+            )}
+
+            {step === "whatsapp" && (
+              <KolWhatsAppStep onVerified={() => { setWaOk(true); setStep("confirm"); }} />
             )}
 
             {step === "confirm" && (

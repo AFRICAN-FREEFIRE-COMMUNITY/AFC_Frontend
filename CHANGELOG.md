@@ -25,6 +25,50 @@ workflow checks it again before it builds.
 - AFC Capture 1.6.0 on the download page: started late, it picks up the match already in progress; a map that
   ended while it was closed is sent once when it starts; the live board waits 10 s on a slow connection; its
   dashboard says when the organizer marked the games over for now on the website (AFC inbox #501, #545).
+- Stats screen: says where the group's day stands (maps played, a map in progress, done for now, finished) and holds
+  "That was the last map for now", which AFC Capture and AFC LIVE read (inbox #501).
+- Stats tab on the event leaderboard pages (admin and organizer): every team and player number for a group, for all
+  maps, one map or the maps you pick (kills, damage, assists, knocks, knocked, headshots, deaths, revives, grenades,
+  gloo walls, medkits, survival, most used gun), players missing from the roster included and marked, the map being
+  played right now added to the table (the same table the live overlays and AFC LIVE show), and the same numbers as a
+  spreadsheet for teams or players (owner, 11 Nov 2026, inbox #538 #539 #540).
+- Game files takes the map's replay file (Replays/ReplayInfo_<match>_<date>.bin) for damage and guns, says which files
+  each game still needs by their real names, and fills in the placements the log itself shows (inbox #541).
+- Ballot builder: upload, replace or remove a nominee's picture (the link field stays for a picture already online).
+- KOL Awards winners page in its own look (owner, approved mockups 11 Nov 2026, inbox #537): gold on black, one
+  sealed envelope per award that opens as it comes into view, the other nominees named, and a hall of fame of every
+  season below it (season filter, the most decorated creator on top). An award page names its winner in the same
+  look, with a link to all the winners.
+- One WhatsApp number, one ballot (inbox #449): an edition can require a WhatsApp check before a vote counts. The
+  voter sends AFC a short code from WhatsApp (a QR on a computer, one tap on a phone), or asks AFC to send them a
+  six-digit code instead. Only the last four digits are ever shown.
+- Awards editions can be hidden until release (inbox #543): a hidden edition is a not-found page for everybody but
+  AFC poll admins, who see it as the public will, under a bar saying it is hidden. Two new switches on the admin
+  edition form: Hidden until release, WhatsApp check required.
+- Stats tab on the event leaderboard pages (admin and organizer): every team and player number for a group, for all
+  maps, one map or the maps you pick (kills, damage, assists, knocks, knocked, headshots, deaths, revives, grenades,
+  gloo walls, medkits, survival, most used gun), players missing from the roster included and marked, the map being
+  played right now added to the table (the same table the live overlays and AFC LIVE show), and the same numbers as a
+  spreadsheet for teams or players (owner, 11 Nov 2026, inbox #538 #539 #540).
+- Game files takes the map's replay file (Replays/ReplayInfo_<match>_<date>.bin) for damage and guns, says which files
+  each game still needs by their real names, and fills in the placements the log itself shows (inbox #541).
+
+### Fixed
+- A debugger log or replay dropped on a map's result upload failed with "No team data parsed."; it is now handed to
+  Game files, which reads it the way AFC Capture does (inbox #541).
+- Top Killers listed only roster players; players who played without being on the roster are listed and marked.
+- The live leaderboard overlay crashed into the error page for an event with no leaderboard design; it shows a plain
+  built-in board instead.
+- The old admin "create leaderboard" address no longer opens a wizard that failed at step 2: leaderboards are made
+  automatically for every group, so it now opens that event's leaderboard editor (or the Leaderboards list). The help
+  centre says so.
+- A picture that is not really a picture (profile photo, esports photo) and a failed event creation now explain
+  themselves in French and Portuguese too, instead of the server's English sentence.
+- A debugger log or replay dropped on a map's result upload failed with "No team data parsed."; it is now handed to
+  Game files, which reads it the way AFC Capture does (inbox #541).
+- Top Killers listed only roster players; players who played without being on the roster are listed and marked.
+- The live leaderboard overlay crashed into the error page for an event with no leaderboard design; it shows a plain
+  built-in board instead.
 
 ## v7.14.0 - 2026-11-09
 

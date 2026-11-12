@@ -28,3 +28,12 @@ export async function fetchEditionDetail(slug: string): Promise<EditionDetail | 
 export function isKolTheme(detail: EditionDetail | null): detail is EditionDetail {
   return !!detail && detail.edition.theme === "detty-royale";
 }
+
+/** HIDDEN UNTIL RELEASE (owner 11 Nov 2026, #543): the edition slug an AFC poll admin is previewing, from the
+ *  afc_kol_preview cookie the admin awards table sets (app/(a)/a/polls "Preview"). A hidden edition answers 404 to
+ *  this signed-out server read, so with the cookie the KOL routes render KolPreviewGate (a signed-in read in the
+ *  browser) instead of a 404; the API still refuses everybody but a poll admin. "" without the cookie. */
+export async function previewSlug(): Promise<string> {
+  const { cookies } = await import("next/headers");
+  return (await cookies()).get("afc_kol_preview")?.value ?? "";
+}

@@ -621,7 +621,11 @@ export const overlayConfigApi = async (
 // One player row as the MVP / top-killers ENDPOINTS return it (richer than the design-row PlayerBoardRow
 // the overlay ships: keyed by user_id/in_game_name for the editor tables). Extra stat keys tolerated.
 export interface PlayerRankingRow {
-  user_id: number;
+  /** null for a player who is not on the event's roster (a flagged UID, inbox #538); see `uid`. */
+  user_id: number | null;
+  /** the game UID; set for a player not on the roster (registered false), absent for roster players */
+  uid?: string;
+  registered?: boolean;
   username: string;
   in_game_name: string;
   team_name: string | null;

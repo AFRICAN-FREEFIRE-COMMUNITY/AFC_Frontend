@@ -293,5 +293,11 @@
   "live.done.create": "Link created.",
   "live.done.replace": "Link replaced. The old one no longer works.",
   "live.done.off": "Link turned off.",
-  "live.failed": "That did not work. Try again."
+  "live.failed": "That did not work. Try again.",
+  "release.hiddenBadge": "Hidden",
+  "release.hidden": "Hidden until release",
+  "release.hiddenHelp": "While on, only AFC poll admins can open these awards (to preview them). Nobody can vote, and they are not listed anywhere. Switch it off to release them.",
+  "release.whatsapp": "One WhatsApp number per ballot",
+  "release.whatsappHelp": "Voters prove a WhatsApp number before their ballot counts. One number backs one account.",
+  "release.preview": "Preview"
 }

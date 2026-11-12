@@ -41,6 +41,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { toastUidTaken } from "@/lib/uidTaken";
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   EditProfileFormSchema,
@@ -106,6 +107,8 @@ const LOCALE_COOKIE_OPTIONS = {
 const Page = () => {
   const t = useTranslations("profile");
   const tc = useTranslations("common");
+  // Server refusals by code in the reader's language (lib/i18n/serverMessage, messages/*/serverMessages.json).
+  const serverMessage = useServerMessage();
   // Active locale, used to join several locking event names the way the language does it (see the
   // identity lock note below).
   const locale = useLocale();
@@ -214,7 +217,7 @@ const Page = () => {
           ? t("edit.esport.tooLarge")
           : data?.code === "not_a_person"
             ? t("edit.esport.check.not_a_person")
-            : data?.message || t("edit.esport.uploadFailed"),
+            : serverMessage(data, t("edit.esport.uploadFailed")),
       );
     } finally {
       setEsportUploading(false);
@@ -379,7 +382,7 @@ const Page = () => {
         toast.error(
           error?.response?.data?.code === "whatsapp_taken"
             ? t("edit.whatsappTaken")
-            : error?.response?.data?.message || t("edit.internalError"),
+            : serverMessage(error?.response?.data, t("edit.internalError")),
         );
         return;
       }

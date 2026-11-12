@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -351,6 +352,28 @@ function EditionTable({
                 <Link href={`/awards/${edition.slug}`} className="font-medium text-primary hover:underline">
                   {edition.title}
                 </Link>
+                {/* Hidden until release (#543): nobody but poll admins can open or vote in it yet. */}
+                {edition.hidden ? (
+                  <>
+                    <Badge variant="outline" className="ml-2 rounded-full px-2 py-0.5 text-xs text-gold">
+                      {t("release.hiddenBadge")}
+                    </Badge>
+                    {/* The server render reads editions signed out, so a hidden one is a 404 there. This cookie tells
+                        the KOL routes to read it in the browser with this admin's session instead (KolPreviewGate,
+                        lib/awardsEdition previewSlug); the API still answers a hidden edition to poll admins only. */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-1 h-7 px-2 text-xs"
+                      onClick={() => {
+                        document.cookie = `afc_kol_preview=${encodeURIComponent(edition.slug)}; path=/awards; max-age=7200; SameSite=Lax`;
+                        window.open(`/awards/${edition.slug}`, "_blank", "noopener");
+                      }}
+                    >
+                      {t("release.preview")}
+                    </Button>
+                  </>
+                ) : null}
               </TableCell>
               <TableCell className="p-2 text-xs">
                 {/* Derived from the dates on every read, never stored, so it can never disagree
@@ -438,6 +461,36 @@ function EditionForm({
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">{tk("admin.themeHelp")}</p>
+      </div>
+      {/* Release (owner 11 Nov 2026, #543): a themed edition starts hidden; switching this off publishes it. */}
+      <div className="flex items-start justify-between gap-4 rounded-md bg-muted/40 p-3">
+        <div className="space-y-1">
+          <Label htmlFor="edition-hidden">
+            {t("release.hidden")}
+            <NewBadge since="2026-11-12" />
+          </Label>
+          <p className="text-xs text-muted-foreground">{t("release.hiddenHelp")}</p>
+        </div>
+        <Switch
+          id="edition-hidden"
+          checked={form.hidden ?? form.theme === "detty-royale"}
+          onCheckedChange={(on) => setForm({ ...form, hidden: on })}
+        />
+      </div>
+      {/* One WhatsApp number, one ballot (#449). */}
+      <div className="flex items-start justify-between gap-4 rounded-md bg-muted/40 p-3">
+        <div className="space-y-1">
+          <Label htmlFor="edition-wa">
+            {t("release.whatsapp")}
+            <NewBadge since="2026-11-12" />
+          </Label>
+          <p className="text-xs text-muted-foreground">{t("release.whatsappHelp")}</p>
+        </div>
+        <Switch
+          id="edition-wa"
+          checked={!!form.whatsapp_required}
+          onCheckedChange={(on) => setForm({ ...form, whatsapp_required: on })}
+        />
       </div>
       {EDITION_DATES.map((field) => (
         <div key={field} className="space-y-1.5">

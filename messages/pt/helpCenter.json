@@ -113,7 +113,7 @@
     "eventSponsorsPg": "Página do evento, Análise do patrocinador",
     "drafts": "Rascunhos",
     "lbList": "Eventos e Classificações, separador Classificações",
-    "lbCreate": "Assistente de criação de classificação",
+    "lbCreate": "Como são criadas as classificações",
     "lbView": "Vista da classificação (abra uma classificação)",
     "lbEdit": "Editor de classificações",
     "lbOcr": "Página do evento, Resultados OCR",
@@ -470,8 +470,8 @@
       "does": "Abre o editor de classificações, onde os resultados são introduzidos, corrigidos e recalculados."
     },
     "lb-create": {
-      "label": "O assistente de criação de classificação",
-      "does": "Quatro passos: escolher o evento e a fase, escolher como chegam os resultados, introduzi-los ou carregá-los, e depois rever e publicar. No passo de revisão pode guardar em rascunhos em vez de publicar."
+      "label": "As classificações são criadas por si",
+      "does": "Cada grupo de um evento recebe a sua classificação automaticamente assim que as fases e os grupos do evento estão definidos. Abra Classificações e depois Editar no evento para introduzir, carregar ou ler os resultados de cada mapa."
     },
     "lb-method": {
       "label": "Como chegam os resultados de uma partida",
