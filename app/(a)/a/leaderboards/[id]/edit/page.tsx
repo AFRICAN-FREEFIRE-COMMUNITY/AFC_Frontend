@@ -1438,7 +1438,9 @@ export default function EditLeaderboardPage({
             past the whole standings to reach the flagged-kills / unmatched-team controls. */}
         <TabsList
           data-tour="leaderboard-edit-match"
-          className={`grid w-full ${participantType === "solo" ? "grid-cols-6" : "grid-cols-9"}`}
+          // Nine tabs do not fit a phone: below md the row scrolls sideways (each label keeps its width), from md up
+          // it is the even grid it always was (390 px walk, 12 Nov 2026: the labels were drawn over each other).
+          className={`flex w-full justify-start overflow-x-auto md:grid ${participantType === "solo" ? "md:grid-cols-6" : "md:grid-cols-9"}`}
         >
           <TabsTrigger value="matches">
             <IconMap size={14} className="mr-1" />
