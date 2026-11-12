@@ -390,6 +390,29 @@
         "components/**/*.tsx"
       ],
       "ignoreLineRegex": "^\\s*//"
+    },
+    {
+      "id": "fe-scrollintoview-tab-strip",
+      "title": "A tab strip centred its active tab with scrollIntoView, which also scrolls the PAGE",
+      "why": "scrollIntoView scrolls every scrolling ancestor, the window included. A strip that mounts below the fold (the tournament page's results and qualifier tabs) dragged the whole page down 352 px while it was loading, the footer came on screen and the arriving content shoved it off: the footer jump that Search Console and the daily SEO live check count as layout shift.",
+      "seen": [
+        "2026-10-16 footer jump on loading pages, CLS 0.37 on a tournament page (cause then: 60vh page body, fixed with min-h-dvh in app/(user)/layout.tsx)",
+        "2026-11-12 the same footer jump back at CLS 0.196, red every day from 20 Oct: ScrollableTabsList's scrollIntoView({ inline: \"center\" }) on mount; EventEditSectionNav had the same call"
+      ],
+      "fix": "centre with lib/center-in-strip.ts centerInStrip(strip, item): it moves only the strip's scrollLeft, never the page",
+      "fixture": "active?.scrollIntoView({ inline: \"center\", block: \"nearest\", behavior });",
+      "fixtureOk": "if (active) centerInStrip(list, active, behavior);",
+      "kind": "regex",
+      "pattern": "scrollIntoView\\(\\s*\\{[^}]*\\binline\\s*:",
+      "globs": [
+        "app/**/*.tsx",
+        "components/**/*.tsx",
+        "lib/**/*.ts",
+        "lib/**/*.tsx",
+        "hooks/**/*.ts",
+        "hooks/**/*.tsx"
+      ],
+      "ignoreLineRegex": "^\\s*//"
     }
   ]
 }

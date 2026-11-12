@@ -36,6 +36,7 @@
 import * as React from "react";
 
 import { TabsList } from "@/components/ui/tabs";
+import { centerInStrip } from "@/lib/center-in-strip";
 import { cn } from "@/lib/utils";
 
 export function ScrollableTabsList({
@@ -85,7 +86,9 @@ export function ScrollableTabsList({
     // (no value prop needed) and decoupled from the call site.
     const centerActive = (behavior: ScrollBehavior) => {
       const active = list.querySelector<HTMLElement>('[data-state="active"]');
-      active?.scrollIntoView({ inline: "center", block: "nearest", behavior });
+      // Only the strip moves, never the page (lib/center-in-strip.ts says why: scrollIntoView here
+      // dragged a below-the-fold page down on load, a 0.196 layout shift, 12 Nov 2026).
+      if (active) centerInStrip(list, active, behavior);
       // edges shift after the programmatic scroll settles
       window.setTimeout(recomputeEdges, 250);
     };
