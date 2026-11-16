@@ -19,6 +19,21 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.19.0 - 2026-11-16
+
+### Added
+- Registered Teams: letters can now be set per stage and per lobby. "Letters for" picks a stage
+  (and a lobby of it), the list narrows to those teams, and each row shows the team's letter in that
+  stage, whether it holds for this stage or all stages, and a red note when a lobby mate has the same
+  letter. Two teams that never share a lobby may hold the same letter (AFC inbox #602).
+- Assigning a letter asks what it applies to: all stages (the team keeps it) or only the stages you
+  tick.
+- "Suggest letters" proposes a letter for every team in the picked stage or lobby, using only letters
+  each team owns, keeping letters that already work and never repeating a letter inside a lobby.
+  Teams that cannot get one are named with the reason. "Apply" saves them in one go.
+- The Broadcast Kit can be built for one stage and one lobby, with that stage's letters, so lobbies
+  that share letters never overwrite each other's flag files.
+
 ## v7.18.3 - 2026-11-12
 
 ### Fixed

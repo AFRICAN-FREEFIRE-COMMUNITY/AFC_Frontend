@@ -8,6 +8,12 @@
 // - afc_tournament_and_scrims/views_broadcast_kit.py, gated by _broadcast_gate (admin OR organizer
 // with can_edit_events). Team letters are assigned on the Registered Teams tab (assigned_letter).
 // Mounted by EventOverlayStudio (admin + organizer overlay studio).
+//
+// STAGE + LOBBY PICKERS (AFC inbox #602, owner 2026-11-16): letters are now distinct per LOBBY, so
+// two lobbies of one stage may share a letter, and each team's flag file is NAMED after its letter.
+// A stage-wide zip could then hold two logos under one name. Picking a stage sends stage_id (the zip
+// uses that stage's letters); picking a lobby sends group_id too (only that lobby's teams), which is
+// the zip an observer loads for one room. The summary's `stages` list feeds both pickers.
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -22,6 +28,16 @@ import { Input } from "@/components/ui/input";
 import { UidInput } from "@/components/UidInput";
 import { Label } from "@/components/ui/label";
 import { IconDownload, IconLoader2, IconBroadcast } from "@tabler/icons-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { NewBadge } from "@/components/NewBadge";
+
+type KitStage = { stage_id: number; stage_name: string; groups: { group_id: number; group_name: string }[] };
 
 type TeamRow = {
   tournament_team_id: number;
@@ -36,6 +52,8 @@ type TeamRow = {
 
 export function BroadcastKitCard({ eventId }: { eventId: number }) {
   const t = useTranslations("organizer");
+  // The stage + lobby picker copy lives with the rest of the letters copy (evEditTabs, inbox #602).
+  const lt = useTranslations("evEditTabs");
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -43,6 +61,9 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
   const [casterUid, setCasterUid] = useState("");
   const [billboard, setBillboard] = useState<File | null>(null);
   const [skybox, setSkybox] = useState<File | null>(null);
+  const [stages, setStages] = useState<KitStage[]>([]);
+  const [stageId, setStageId] = useState<number | null>(null);
+  const [groupId, setGroupId] = useState<number | null>(null);
 
   const base = `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/${eventId}/broadcast-kit`;
   const authHeaders = () => ({ Authorization: `Bearer ${Cookies.get("auth_token")}` });
@@ -50,15 +71,19 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${base}/`, { headers: authHeaders() });
+      const res = await axios.get(`${base}/`, {
+        headers: authHeaders(),
+        params: { stage_id: stageId ?? undefined, group_id: groupId ?? undefined },
+      });
       setTeams(res.data?.teams ?? []);
+      setStages(res.data?.stages ?? []);
     } catch {
       /* best-effort: the card just shows no rows if the summary can't load */
     } finally {
       setLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId]);
+  }, [eventId, stageId, groupId]);
 
   useEffect(() => {
     load();
@@ -72,6 +97,8 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
       if (casterUid.trim()) fd.append("caster_uid", casterUid.trim());
       if (billboard) fd.append("billboard", billboard);
       if (skybox) fd.append("skybox", skybox);
+      if (stageId != null) fd.append("stage_id", String(stageId));
+      if (stageId != null && groupId != null) fd.append("group_id", String(groupId));
       const res = await axios.post(`${base}/download/`, fd, {
         headers: authHeaders(),
         responseType: "blob",
@@ -106,6 +133,55 @@ export function BroadcastKitCard({ eventId }: { eventId: number }) {
         </span>
       </div>
       <p className="text-muted-foreground mb-3 text-xs">{t("broadcastKit.description")}</p>
+
+      {/* Which stage and lobby the zip is for (inbox #602). */}
+      {stages.length > 0 && (
+        <div className="mb-3 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={stageId == null ? "__all__" : String(stageId)}
+              onValueChange={(v) => {
+                setStageId(v === "__all__" ? null : Number(v));
+                setGroupId(null);
+              }}
+            >
+              <SelectTrigger className="h-8 w-40 text-xs" aria-label={lt("registeredTeams.kitStageLabel")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">{lt("registeredTeams.kitStageAll")}</SelectItem>
+                {stages.map((s) => (
+                  <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                    {s.stage_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(stages.find((s) => s.stage_id === stageId)?.groups.length ?? 0) > 0 && (
+              <Select
+                value={groupId == null ? "__all__" : String(groupId)}
+                onValueChange={(v) => setGroupId(v === "__all__" ? null : Number(v))}
+              >
+                <SelectTrigger className="h-8 w-40 text-xs" aria-label={lt("registeredTeams.kitGroupLabel")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">{lt("registeredTeams.kitGroupAll")}</SelectItem>
+                  {stages
+                    .find((s) => s.stage_id === stageId)!
+                    .groups.map((g) => (
+                      <SelectItem key={g.group_id} value={String(g.group_id)}>
+                        {g.group_name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            )}
+            <NewBadge since="2026-11-16" />
+          </div>
+          <p className="text-muted-foreground text-[0.7rem]">{lt("registeredTeams.kitGroupHint")}</p>
+        </div>
+      )}
 
       {/* Warnings the operator should fix (letters are set on the Registered Teams tab). */}
       {(missingLetter > 0 || missingLogo > 0) && (
