@@ -73,6 +73,22 @@ import { WaiverDialog } from "@/components/events/WaiverDialog";
 import { LocalTime } from "@/components/LocalTime";
 import { listWaivers, revokeWaiver, type Waiver } from "@/lib/waivers";
 import { EditRosterModal } from "../../../_components/EditRosterModal";
+// Letters per lobby (AFC inbox #602, owner 2026-11-16): the stage / group scope, the "taken" and
+// clash maths (lib/letterScope.ts mirrors the server's letter_rooms.py), the Suggest letters panel
+// and the "Applies to" stage picker shared by the confirm dialog and the panel.
+import {
+  clashes,
+  letterIn,
+  letterSource,
+  takenFor,
+  teamsInScope,
+  type LetterStage,
+  type LetterTeam,
+  type ScopeStage,
+} from "@/lib/letterScope";
+import { LetterSuggestPanel, LETTER_SCOPE_SINCE } from "./LetterSuggestPanel";
+import { LetterAppliesTo } from "./LetterAppliesTo";
+import { NewBadge } from "@/components/NewBadge";
 
 // The 26 letter-avatar options (A-Z) for the per-team Assign Select (feature #7). Built once at
 // module scope so each render reuses the same array.
@@ -357,19 +373,27 @@ export default function RegisteredTeamsTab({
   // (backend assign_team_letter) sets/changes/clears a team's letter (admins/orgs anytime) and notifies
   // the team's members; the header "Broadcast assignments" button (SendNotificationModal) announces
   // them all at once via /auth/broadcast-letter-assignments/.
-  type LetterRow = {
-    team_id: number;
-    available_letters: string[];
-    assigned_letter: string | null;
-    member_count: number;
-  };
-  const [letterRows, setLetterRows] = useState<Record<number, LetterRow>>({});
+  //
+  // LETTERS PER LOBBY (inbox #602, owner 2026-11-16) supersedes the unique-per-event rule above: a
+  // letter only has to differ between teams that share a lobby in a stage, and the admin / organizer
+  // picks whether it applies to ALL stages or only chosen ones. The list endpoint now also returns
+  // every stage's lobbies (`stages`) and each team's per-stage letters (`stage_letters`); the
+  // "Letters for" + "Group" pickers below filter the table to one stage or one lobby, and every
+  // letter shown is the team's letter in THAT stage.
+  const [letterRows, setLetterRows] = useState<Record<number, LetterTeam>>({}); // keyed by team_id
+  const [lettersByTt, setLettersByTt] = useState<Record<number, LetterTeam>>({}); // by tournament_team_id
+  const [letterStages, setLetterStages] = useState<LetterStage[]>([]);
+  const [scopeStage, setScopeStage] = useState<ScopeStage>(null);
+  const [scopeGroup, setScopeGroup] = useState<number | null>(null);
   const [assignBusy, setAssignBusy] = useState<number | null>(null);
   // Pending assignment awaiting confirmation (it notifies the whole team, so we confirm first).
+  // appliesTo: null = all stages, [ids] = only those stages (LetterAppliesTo).
   const [assignTarget, setAssignTarget] = useState<{
     teamId: number;
+    ttId: number;
     teamName: string;
     letter: string; // "" => unassign
+    appliesTo: number[] | null;
   } | null>(null);
 
   // Show the letter UI for EVERY team (duo/squad) event (owner 2026-06-29): organizers may assign
@@ -383,23 +407,44 @@ export default function RegisteredTeamsTab({
   const fetchLetters = useCallback(async () => {
     if (!token || !showLetters) return;
     try {
-      const res = await axios.get(
-        `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/event-team-letters/`,
-        {
-          params: { event_id: eventDetails.event_id, limit: 200 },
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      const map: Record<number, LetterRow> = {};
-      for (const row of res.data?.teams ?? []) {
-        map[row.team_id] = {
-          team_id: row.team_id,
-          available_letters: row.available_letters ?? [],
-          assigned_letter: row.assigned_letter ?? null,
-          member_count: row.member_count ?? 0,
-        };
+      // Page through every team (limit 200, follow has_more): an event can hold more than one page,
+      // and a team missing from the map would show no letters and escape the clash check.
+      const byTeam: Record<number, LetterTeam> = {};
+      const byTt: Record<number, LetterTeam> = {};
+      let stages: LetterStage[] = [];
+      let offset: number | null = 0;
+      while (offset !== null) {
+        const res = await axios.get<{
+          stages?: LetterStage[];
+          teams?: Array<Partial<LetterTeam> & { tournament_team_id: number }>;
+          has_more?: boolean;
+          next_offset?: number | null;
+        }>(
+          `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/event-team-letters/`,
+          {
+            params: { event_id: eventDetails.event_id, limit: 200, offset },
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        stages = res.data?.stages ?? stages;
+        for (const row of res.data?.teams ?? []) {
+          const rec: LetterTeam = {
+            tournament_team_id: row.tournament_team_id,
+            team_id: row.team_id ?? null,
+            team_name: row.team_name ?? "",
+            available_letters: row.available_letters ?? [],
+            assigned_letter: row.assigned_letter ?? null,
+            stage_letters: row.stage_letters ?? {},
+            member_count: row.member_count ?? 0,
+          };
+          byTt[rec.tournament_team_id] = rec;
+          if (rec.team_id != null) byTeam[rec.team_id] = rec;
+        }
+        offset = res.data?.has_more ? (res.data.next_offset ?? null) : null;
       }
-      setLetterRows(map);
+      setLetterRows(byTeam);
+      setLettersByTt(byTt);
+      setLetterStages(stages);
     } catch {
       /* the letter column is best-effort; ignore */
     }
@@ -409,41 +454,70 @@ export default function RegisteredTeamsTab({
     fetchLetters();
   }, [fetchLetters]);
 
-  // The assigned letter for a team: once the fresh fetch has loaded a row for this team, that row is
-  // authoritative (even when its assigned_letter is null after a clear); only fall back to the
-  // get_event_details echo when no row has been fetched yet. Distinguishing "row absent" from "row
-  // present with null" stops a stale prop echo from re-surfacing a letter the admin just cleared.
+  // The team's letter IN THE SCOPE being viewed (its stage letter, else its all-stages letter; the
+  // all-stages letter on "Whole event"). Once the fresh fetch has loaded a row for this team, that
+  // row is authoritative (even when null after a clear); only fall back to the get_event_details
+  // echo when no row has been fetched yet, so a stale prop never re-surfaces a cleared letter.
   const assignedLetterFor = useCallback(
     (team: any): string | null => {
-      const row = letterRows[team.team_id];
-      if (row) return row.assigned_letter ?? null;
+      const row = lettersByTt[team.tournament_team_id];
+      if (row) return letterIn(row, scopeStage);
       return team.assigned_letter ?? null;
     },
-    [letterRows],
+    [lettersByTt, scopeStage],
   );
 
-  // letter -> team_id holding it, across the whole event. Drives greying a letter already taken by
-  // ANOTHER team in the per-row Select (a team's own current letter stays selectable).
-  const takenByTeam = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const team of eventDetails.tournament_teams ?? []) {
-      const L = assignedLetterFor(team);
-      if (L) m.set(L, team.team_id);
-    }
-    return m;
-  }, [eventDetails.tournament_teams, assignedLetterFor]);
+  // Registered, non-waitlisted teams (by tournament_team_id): the only ones that get letters.
+  const eligibleTtIds = useMemo(
+    () =>
+      (eventDetails.tournament_teams ?? [])
+        .filter((t) => !t.is_waitlisted && t.tournament_team_id)
+        .map((t) => t.tournament_team_id as number),
+    [eventDetails.tournament_teams],
+  );
 
-  // Teams that currently hold a letter, shaped for the SendNotificationModal broadcast payload.
+  // The teams in the picked scope (Whole event, a stage, or one lobby of it).
+  const scopeTtIds = useMemo(() => {
+    const inScope = teamsInScope(letterStages, scopeStage, scopeGroup, eligibleTtIds);
+    return eligibleTtIds.filter((id) => inScope.has(id));
+  }, [letterStages, scopeStage, scopeGroup, eligibleTtIds]);
+  const scopeSet = useMemo(() => new Set(scopeTtIds), [scopeTtIds]);
+
+  // Teams sharing their letter with a lobby mate in the scope's stage -> that mate (red text).
+  const clashMap = useMemo(
+    () => clashes(lettersByTt, letterStages, scopeStage),
+    [lettersByTt, letterStages, scopeStage],
+  );
+
+  // Letters a team may not pick in the per-row Select: those its LOBBY MATES hold, in the stage
+  // being viewed (or in every stage on "Whole event", since that writes the all-stages letter).
+  const takenForTeam = useCallback(
+    (ttId: number) => takenFor(ttId, lettersByTt, letterStages, scopeStage == null ? null : [scopeStage]),
+    [lettersByTt, letterStages, scopeStage],
+  );
+
+  // Label for the scope, used in the Suggest panel title.
+  const stageObj = letterStages.find((s) => s.stage_id === scopeStage);
+  const groupObj = stageObj?.rooms.find((r) => r.group_id === scopeGroup);
+  const scopeLabel = stageObj
+    ? groupObj
+      ? `${stageObj.stage_name}, ${groupObj.group_name}`
+      : stageObj.stage_name
+    : etT("registeredTeams.scopeWholeEvent");
+
+  // Teams in the scope that hold a letter there, shaped for the SendNotificationModal broadcast
+  // payload ("Broadcast assignments" announces what is on screen).
   const letterAssignments = useMemo(
     () =>
       (eventDetails.tournament_teams ?? [])
+        .filter((team) => scopeSet.has(team.tournament_team_id))
         .map((team: any) => ({
           team_id: team.team_id,
           team_name: team.team_name,
           letter: assignedLetterFor(team) || "",
         }))
         .filter((a: { letter: string }) => !!a.letter),
-    [eventDetails.tournament_teams, assignedLetterFor],
+    [eventDetails.tournament_teams, assignedLetterFor, scopeSet],
   );
 
   // POST the pending assignment (or clear). On success the team's members are notified server-side;
@@ -458,6 +532,8 @@ export default function RegisteredTeamsTab({
           event_id: eventDetails.event_id,
           team_id: assignTarget.teamId,
           letter: assignTarget.letter, // "" clears the assignment
+          // [] = all stages (the team keeps it); ids = only those stages (inbox #602).
+          stage_ids: assignTarget.appliesTo ?? [],
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -635,6 +711,83 @@ export default function RegisteredTeamsTab({
             className="pl-9"
           />
         </div>
+        {/* Letters per lobby (inbox #602): pick the stage (and lobby) the letters are for. The table
+            narrows to those teams, every letter shown is the team's letter in that stage, and
+            Suggest letters works on exactly this scope. Hidden until the event has stages. */}
+        {showLetters && letterStages.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              {etT("registeredTeams.scopeLabel")}
+              <NewBadge since={LETTER_SCOPE_SINCE} />
+            </span>
+            <Select
+              value={scopeStage == null ? "__all__" : String(scopeStage)}
+              onValueChange={(v) => {
+                setScopeStage(v === "__all__" ? null : Number(v));
+                setScopeGroup(null);
+              }}
+            >
+              <SelectTrigger className="h-9 w-44 text-xs" aria-label={etT("registeredTeams.scopeLabel")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">{etT("registeredTeams.scopeWholeEvent")}</SelectItem>
+                {letterStages.map((s) => (
+                  <SelectItem key={s.stage_id} value={String(s.stage_id)}>
+                    {s.stage_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {stageObj && stageObj.rooms.some((r) => r.group_id != null) && (
+              <Select
+                value={scopeGroup == null ? "__all__" : String(scopeGroup)}
+                onValueChange={(v) => setScopeGroup(v === "__all__" ? null : Number(v))}
+              >
+                <SelectTrigger className="h-9 w-40 text-xs" aria-label={etT("registeredTeams.groupLabel")}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">{etT("registeredTeams.groupAll")}</SelectItem>
+                  {stageObj.rooms
+                    .filter((r) => r.group_id != null)
+                    .map((r) => (
+                      <SelectItem key={r.group_id!} value={String(r.group_id)}>
+                        {r.group_name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            )}
+            <LetterSuggestPanel
+              eventId={eventDetails.event_id}
+              token={token ?? undefined}
+              teams={lettersByTt}
+              stages={letterStages}
+              scopeStage={scopeStage}
+              scopeTeamIds={scopeTtIds}
+              scopeLabel={scopeLabel}
+              eligibleIds={eligibleTtIds}
+              onApplied={() => fetchLetters()}
+            />
+          </div>
+        )}
+        {/* No stages yet: suggest for the whole event (one letter per team, the old rule). */}
+        {showLetters && letterStages.length === 0 && eligibleTtIds.length > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <LetterSuggestPanel
+              eventId={eventDetails.event_id}
+              token={token ?? undefined}
+              teams={lettersByTt}
+              stages={letterStages}
+              scopeStage={null}
+              scopeTeamIds={scopeTtIds}
+              scopeLabel={scopeLabel}
+              eligibleIds={eligibleTtIds}
+              onApplied={() => fetchLetters()}
+            />
+          </div>
+        )}
         <div className="overflow-x-auto rounded-md max-h-96 overflow-y-auto bg-muted/30">
           <Table>
             <TableHeader>
@@ -781,7 +934,13 @@ export default function RegisteredTeamsTab({
                   is on each registered team without leaving this tab. */}
               {isTeamEvent &&
                 eventDetails?.tournament_teams
-                  ?.filter((t: any) => !t.is_waitlisted && matchesQuery(t.team_name))
+                  ?.filter(
+                    (t: any) =>
+                      !t.is_waitlisted &&
+                      matchesQuery(t.team_name) &&
+                      // Letters per lobby (inbox #602): only the teams of the picked stage / lobby.
+                      (scopeStage == null || scopeSet.has(t.tournament_team_id)),
+                  )
                   .map((team) => {
                   const key = team.tournament_team_id || team.team_id || team.player_id;
                   const members: TeamMember[] = team.members || [];
@@ -864,46 +1023,74 @@ export default function RegisteredTeamsTab({
                               </span>
                             )}
                           </div>
-                          {/* Assigned letter Badge + the A-Z Assign Select. */}
-                          <div className="flex items-center gap-1.5">
-                            {assignedLetterFor(team) && (
-                              <Badge className="rounded-full px-2 py-0.5 text-[10px] bg-primary text-primary-foreground">
-                                {assignedLetterFor(team)}
-                              </Badge>
-                            )}
-                            <Select
-                              value={assignedLetterFor(team) ?? ""}
-                              disabled={assignBusy === team.team_id}
-                              onValueChange={(val) => {
-                                const next = val === "__none__" ? "" : val;
-                                // No-op if they re-picked the team's current letter.
-                                if ((assignedLetterFor(team) ?? "") === next) return;
-                                setAssignTarget({
-                                  teamId: team.team_id,
-                                  teamName: team.team_name,
-                                  letter: next,
-                                });
-                              }}
-                            >
-                              <SelectTrigger className="h-9 w-24 text-xs">
-                                <SelectValue placeholder={etT("registeredTeams.assign")} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="__none__">{etT("registeredTeams.unassign")}</SelectItem>
-                                {LETTERS_A_Z.map((L) => {
-                                  const holder = takenByTeam.get(L);
-                                  const takenByOther =
-                                    holder != null && holder !== team.team_id;
-                                  return (
-                                    <SelectItem key={L} value={L} disabled={takenByOther}>
-                                      {L}
-                                      {takenByOther ? etT("registeredTeams.taken") : ""}
-                                    </SelectItem>
-                                  );
-                                })}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          {/* Letter in the scope being viewed + where it comes from + the A-Z Assign
+                              Select. Letters a LOBBY MATE holds are greyed (inbox #602); a team in
+                              another lobby may share the letter. */}
+                          {(() => {
+                            const ttId: number = team.tournament_team_id;
+                            const current = assignedLetterFor(team);
+                            const source = scopeStage == null ? null : letterSource(lettersByTt[ttId], scopeStage);
+                            const taken = takenForTeam(ttId);
+                            const clashWith = clashMap.get(ttId);
+                            return (
+                              <>
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {current && (
+                                    <Badge className="rounded-full px-2 py-0.5 text-[10px] bg-primary text-primary-foreground">
+                                      {current}
+                                    </Badge>
+                                  )}
+                                  <Select
+                                    value={current ?? ""}
+                                    disabled={assignBusy === team.team_id}
+                                    onValueChange={(val) => {
+                                      const next = val === "__none__" ? "" : val;
+                                      // No-op if they re-picked the team's current letter.
+                                      if ((current ?? "") === next) return;
+                                      setAssignTarget({
+                                        teamId: team.team_id,
+                                        ttId,
+                                        teamName: team.team_name,
+                                        letter: next,
+                                        // Default: the stage being viewed, or all stages on "Whole event".
+                                        appliesTo: scopeStage == null ? null : [scopeStage],
+                                      });
+                                    }}
+                                  >
+                                    <SelectTrigger className="h-9 w-24 text-xs">
+                                      <SelectValue placeholder={etT("registeredTeams.assign")} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="__none__">{etT("registeredTeams.unassign")}</SelectItem>
+                                      {LETTERS_A_Z.map((L) => {
+                                        const takenByOther = taken.has(L) && L !== current;
+                                        return (
+                                          <SelectItem key={L} value={L} disabled={takenByOther}>
+                                            {L}
+                                            {takenByOther ? etT("registeredTeams.taken") : ""}
+                                          </SelectItem>
+                                        );
+                                      })}
+                                    </SelectContent>
+                                  </Select>
+                                  {current && source && (
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {source === "stage"
+                                        ? etT("registeredTeams.sourceStage")
+                                        : etT("registeredTeams.sourceAll")}
+                                    </span>
+                                  )}
+                                </div>
+                                {clashWith != null && (
+                                  <span className="text-[10px] font-medium text-destructive">
+                                    {etT("registeredTeams.clashWith", {
+                                      team: lettersByTt[clashWith]?.team_name ?? "",
+                                    })}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </TableCell>
                     )}
@@ -1200,6 +1387,14 @@ export default function RegisteredTeamsTab({
                 : etT("registeredTeams.confirmClearDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {/* Letters per lobby (inbox #602): all stages, or only the ticked stages. */}
+          {assignTarget && (
+            <LetterAppliesTo
+              stages={letterStages}
+              value={assignTarget.appliesTo}
+              onChange={(next) => setAssignTarget({ ...assignTarget, appliesTo: next })}
+            />
+          )}
           <AlertDialogFooter>
             <AlertDialogCancel disabled={assignBusy !== null}>
               {etT("registeredTeams.cancel")}
@@ -1209,7 +1404,11 @@ export default function RegisteredTeamsTab({
                 e.preventDefault();
                 assignLetter();
               }}
-              disabled={assignBusy !== null}
+              // "Only these stages" with nothing ticked would write nowhere.
+              disabled={
+                assignBusy !== null ||
+                (assignTarget?.appliesTo != null && assignTarget.appliesTo.length === 0)
+              }
             >
               {assignBusy !== null && (
                 <IconLoader2 className="size-4 animate-spin mr-1" />
