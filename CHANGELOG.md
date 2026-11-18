@@ -19,6 +19,21 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.20.4 - 2026-11-19
+
+### Fixed
+- Registering for a free event, leaving an event and saving a roster now say so in French and Portuguese too. The
+  free registration printed the server's English sentence ("Team successfully registered (squad). Discord roles
+  queued."); it now reads the answer's code like the paid paths, and leaving and roster saves use the site's own
+  sentence.
+- How-to clip register-tournament re-rendered (Revision 7): its French and Portuguese takes now end on the toast in
+  their own language.
+
+### Security
+- Next.js 16.4.1 -> 16.4.5: fixes two moderate advisories where a cached server function could leak data
+  across root params (GHSA-mfr8-8qww-v76h, GHSA-vc7v-qv4w-wrv8). pnpm audit: 4 moderate -> 2 (minimatch, not
+  changed here).
+
 ## v7.20.3 - 2026-11-18
 
 ### Fixed

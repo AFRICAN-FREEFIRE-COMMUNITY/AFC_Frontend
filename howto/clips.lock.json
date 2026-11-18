@@ -374,7 +374,7 @@
       "app/(auth)/_components/TwoFactorStep.tsx": "b92fd3685adce2c3",
       "app/(user)/tournaments/[slug]/_components/CheckinCard.tsx": "efc636d8f84fa116",
       "app/(user)/tournaments/[slug]/_components/CombinedStandings.tsx": "bbee010241f821f2",
-      "app/(user)/tournaments/[slug]/_components/EventDetailsWrapper.tsx": "bf53f7d0d7006038",
+      "app/(user)/tournaments/[slug]/_components/EventDetailsWrapper.tsx": "7cd7cc6ad322e9af",
       "app/(user)/tournaments/[slug]/_components/EventRequirementsCard.tsx": "4578a6995d5cba30",
       "app/(user)/tournaments/[slug]/_components/EventReviewCard.tsx": "039f6f5121e99b32",
       "app/(user)/tournaments/[slug]/_components/GroupDrawBoard.tsx": "58a9579e6baede48",
