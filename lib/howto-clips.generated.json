@@ -15,11 +15,11 @@
   },
   "register-tournament": {
     "en": {
-      "desktop": 10.3,
-      "phone": 8.2
+      "desktop": 10.4,
+      "phone": 8.1
     },
     "fr": {
-      "desktop": 10.4,
+      "desktop": 10.3,
       "phone": 8.1
     },
     "pt": {

@@ -881,7 +881,10 @@ const LeaveEventModal: React.FC<LeaveEventModalProps> = ({
             },
           },
         );
-        toast.success(res.data.message || t("leaveModal.successFallback"));
+        // Our own en/fr/pt sentence: leave-event/ answers an English sentence with no code ("You
+        // have successfully left the event." / "Team has been successfully removed..."), which the
+        // fr/pt site printed as is. Nothing in it is specific to the reader (open list, 18 Nov 2026).
+        toast.success(t("leaveModal.successFallback"));
         setOpen(false);
         onSuccess();
       } catch (e: any) {
@@ -1097,7 +1100,9 @@ const EditRosterModal: React.FC<EditRosterModalProps> = ({
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
-      toast.success(res.data.message || t("editRoster.updateSuccess"));
+      // Our own en/fr/pt sentence: edit-roster/ answers "Roster updated successfully." with no
+      // code, which the fr/pt site printed in English (open list, 18 Nov 2026).
+      toast.success(t("editRoster.updateSuccess"));
       setOpen(false);
       onSuccess();
     } catch (err: any) {
@@ -5352,7 +5357,12 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
           payload,
           { headers: { Authorization: `Bearer ${token}` } },
         );
-        toast.success(res.data.message);
+        // In the reader's language from the answer's code (registration_ok, registration_ok_team,
+        // registration_waitlisted[_team], registration_pending_sponsor; lib/i18n/serverMessage.ts),
+        // like the two paid paths above. The free path toasted the server's English sentence as is,
+        // so the fr/pt site (and the register-tournament how-to clip) said "Team successfully
+        // registered (squad). Discord roles queued." (open list, 18 Nov 2026).
+        toast.success(serverMessage(res.data, t("register.toast.registeredFallback")));
         // M: backend returns waitlisted:true when the active cap was full and the
         // entry was routed to the waitlist instead of a confirmed slot.
         setWasWaitlisted(!!res.data.waitlisted);
@@ -5382,6 +5392,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
     fetchEventDetails,
     startJoinedTransition,
     handleRegistrationGateError,
+    t,
   ]);
 
   // Keep ref in sync so handleRulesContinue can call it without a circular dep

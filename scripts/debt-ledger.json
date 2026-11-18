@@ -38,10 +38,10 @@
       "movedAt": "2026-09-26"
     },
     "toasts.raw_server_message": {
-      "count": 80,
-      "ceiling": 80,
+      "count": 77,
+      "ceiling": 77,
       "since": "2026-10-16",
-      "movedAt": "2026-10-16"
+      "movedAt": "2026-11-18"
     }
   }
 }
