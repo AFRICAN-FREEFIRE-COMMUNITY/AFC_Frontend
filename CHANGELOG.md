@@ -19,6 +19,28 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- The Broadcast Kit card on the overlay studio has new sections for the game client's folder (AFC inbox
+  #618): team flags in the map from an empty banner (logo size and height, a preview of every flag),
+  team billboards on your own art with each team's room slot and the "Room seating.txt" sheet, the title
+  in the sky (wide title or logo), panel backgrounds and map skins by the game's own file names (the card
+  shows which files the game reads and names the right one for a known misspelling), and what shows
+  under each player's name: the team name, the team's country (the game's flag icon) or the player's
+  role (the game's role icon). A "What the zip holds" list follows every choice. Each new section wears
+  the NEW tag. English, French and Portuguese.
+- The readiness table shows each team's slot, flag and name tag.
+
+### Changed
+- The card's "Skybox image" and "Billboard image" fields became "Title in the sky" and a map skin
+  (BillBoard.png). The Portuguese card's wrong words are fixed (Letra, comentador, the two warnings).
+
+### Internal
+- picomatch advisory GHSA-fc5q-39xc-vjpf accepted by the owner until a fix is published (lint and
+  build tools only), review 18 Dec 2026. The "Enter a map's results" how-to clip re-rendered (its
+  message file changed), Revision 5.
+
 ## v7.19.0 - 2026-11-16
 
 ### Added
