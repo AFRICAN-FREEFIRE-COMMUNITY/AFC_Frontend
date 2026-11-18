@@ -85,7 +85,12 @@ export const pendingCapturesApi = {
       headers: authHeaders(token, true),
       body: JSON.stringify(body),
     });
-    if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.message || "Failed to resolve capture.");
+    if (!r.ok) {
+      // The answer rides on the error so the panel can print it in the reader's language (inbox #623: a parked
+      // copy of a game this event already holds is refused with code capture_duplicate_game).
+      const data = await r.json().catch(() => ({}));
+      throw Object.assign(new Error(data?.message || "Failed to resolve capture."), { data });
+    }
     return r.json();
   },
 

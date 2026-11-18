@@ -13,20 +13,34 @@
  * A code we have no text for, or an answer with no code, falls back to the server's own sentence
  * and then to `fallback`, so nothing ever goes blank while the two halves ship.
  *
- * Callers: CreateAccountForm, LoginForm (password + two-step), ConfirmationForm (verify + resend),
+ * Callers: the result upload screens (FileUploadStep, MultiMapLogUpload, GameFilesUpload, PendingCapturesPanel)
+ * for capture_duplicate_game, the game the event already holds (inbox #623, AFC-B duplicate_game.py);
+ * CreateAccountForm, LoginForm (password + two-step), ConfirmationForm (verify + resend),
  * tournaments/[slug]/register/success, EventDetailsWrapper (both registration paths), and the
  * create-team and edit-team forms for the team-name refusals (inbox #276: team_name_needs_letter,
  * team_name_reserved from AFC-B afc_team/names.py).
  */
 import { useTranslations } from "next-intl";
 
-export type ServerAnswer = { code?: string | null; message?: string | null } | null | undefined;
+export type ServerAnswer =
+  | {
+      code?: string | null;
+      message?: string | null;
+      // Values the sentence needs, sent by the server beside the code (inbox #623: capture_duplicate_game
+      // names the map that already holds the game: {match_number, map, group}).
+      params?: Record<string, string | number> | null;
+    }
+  | null
+  | undefined;
 
 export function useServerMessage() {
   const t = useTranslations("serverMessages");
   return (data: ServerAnswer, fallback = ""): string => {
     const code = data?.code;
-    if (code && t.has(code)) return t(code);
+    if (code && t.has(code)) {
+      const params = data?.params && typeof data.params === "object" ? data.params : undefined;
+      return params ? t(code, params) : t(code);
+    }
     return data?.message || fallback;
   };
 }

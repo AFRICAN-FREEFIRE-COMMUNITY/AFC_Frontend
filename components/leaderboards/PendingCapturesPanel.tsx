@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { IconInbox, IconAlertTriangle } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { useServerMessage, type ServerAnswer } from "@/lib/i18n/serverMessage";
 import {
   pendingCapturesApi,
   PendingCapture,
@@ -43,6 +44,8 @@ type Props = {
 type Draft = { groupId: string; mode: "new" | "replace"; matchId: string };
 
 export function PendingCapturesPanel({ eventId, token, canManage = true, onChanged }: Props) {
+  // A refused resolve in the reader's language (inbox #623, capture_duplicate_game).
+  const serverMessage = useServerMessage();
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<PendingCapture[]>([]);
   const [stages, setStages] = useState<PendingStage[]>([]);
@@ -114,7 +117,8 @@ export function PendingCapturesPanel({ eventId, token, canManage = true, onChang
       await load();
       onChanged?.();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to resolve capture.");
+      const answer = (e as { data?: ServerAnswer })?.data;
+      toast.error(e instanceof Error ? serverMessage(answer, e.message) : "Failed to resolve capture.");
     } finally {
       setBusy(false);
     }
