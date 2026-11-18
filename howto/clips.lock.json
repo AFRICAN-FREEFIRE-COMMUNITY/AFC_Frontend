@@ -550,7 +550,7 @@
     }
   },
   "organizer-results": {
-    "rendered": "2026-11-12",
+    "rendered": "2026-11-18",
     "langs": [
       "en",
       "fr",
@@ -668,7 +668,7 @@
       "messages/en/media.json": "5ec31f5a200017f7",
       "messages/en/newBadge.json": "c1ecf776ba3abc3a",
       "messages/en/ocr.json": "1840acbc021b4994",
-      "messages/en/organizer.json": "2f691654e1644035",
+      "messages/en/organizer.json": "0e4b17aae209902e",
       "messages/en/resultEntry.json": "73633ad00c1057fe",
       "messages/en/serverMessages.json": "e88f047816215ee2",
       "messages/en/userSearch.json": "4a3a4af8e86f4c94",
@@ -684,7 +684,7 @@
       "messages/fr/media.json": "4056e439373a5085",
       "messages/fr/newBadge.json": "ecc6adf4b2efed7c",
       "messages/fr/ocr.json": "e059c7ef2d79cce1",
-      "messages/fr/organizer.json": "7602badcd95de544",
+      "messages/fr/organizer.json": "d04623a4750ffce4",
       "messages/fr/resultEntry.json": "cf4b8e46b83a0405",
       "messages/fr/serverMessages.json": "6369d44b6bf8ecc2",
       "messages/fr/userSearch.json": "1e60da3f19cdca0c",
@@ -700,7 +700,7 @@
       "messages/pt/media.json": "7cd6c9f7ca5136a9",
       "messages/pt/newBadge.json": "bd79565ec25de24b",
       "messages/pt/ocr.json": "4749c756447f695a",
-      "messages/pt/organizer.json": "3a144d1ab330999d",
+      "messages/pt/organizer.json": "93b658ba0ce65262",
       "messages/pt/resultEntry.json": "173e5119d86f3f1a",
       "messages/pt/serverMessages.json": "a04da5facebef909",
       "messages/pt/userSearch.json": "6a465b4ca2f6e1e5"

@@ -1,16 +1,16 @@
 {
   "organizer-results": {
     "en": {
-      "desktop": 16.9,
-      "phone": 12.5
+      "desktop": 16.7,
+      "phone": 12.4
     },
     "fr": {
-      "desktop": 16.9,
-      "phone": 12.9
+      "desktop": 16.8,
+      "phone": 13.2
     },
     "pt": {
-      "desktop": 16.4,
-      "phone": 13
+      "desktop": 16.6,
+      "phone": 12.9
     }
   },
   "register-tournament": {
