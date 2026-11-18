@@ -19,6 +19,14 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.20.3 - 2026-11-18
+
+### Fixed
+- When the website refuses a result file because that game is already one of the event's maps (AFC inbox #623), the
+  results upload screens and the pending captures panel say so in English, French and Portuguese, naming the map that
+  holds it (server code capture_duplicate_game, AFC-B v7.20.2).
+- How-to clips 1 to 4 re-rendered (Revision 6): files their screens read changed; what they show did not.
+
 ## v7.20.1 - 2026-11-18
 
 ### Fixed

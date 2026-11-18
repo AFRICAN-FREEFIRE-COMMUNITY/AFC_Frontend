@@ -51,5 +51,6 @@
   "board_maps_invalid": "Les cartes doivent être choisies dans ce groupe.",
   "board_export_kind": "Choisissez les équipes ou les joueurs.",
   "session_map_in_progress": "Une carte est en cours. Indiquez-le une fois qu'elle est terminée.",
-  "session_done_required": "Indiquez si la dernière carte a été jouée."
+  "session_done_required": "Indiquez si la dernière carte a été jouée.",
+  "capture_duplicate_game": "Cette partie est déjà sur le site : MATCH {match_number} ({map}) dans {group}. Elle n'a pas été comptée une seconde fois."
 }

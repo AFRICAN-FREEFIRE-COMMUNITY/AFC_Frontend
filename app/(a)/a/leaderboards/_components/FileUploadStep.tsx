@@ -29,6 +29,7 @@ import { toast } from "sonner";
 // so the new booyah "map winner missing" banner below is internationalized. Keys live in the
 // flaggedKills namespace, the same one the sibling FlaggedKillsPanel uses (same feature area).
 import { useTranslations } from "next-intl";
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 // "All maps at once" mode (owner 2026-06-25): the 3D Room File picker can upload a single map OR
 // every map in the group at once. The multi-map panel is the same one the standalone "Upload all
 // maps (.log)" button uses - reused here so the all-maps option lives INSIDE the 3D Room File flow.
@@ -191,6 +192,8 @@ export function FileUploadStep({
   // Translations for the booyah "map winner missing" banner (flaggedKills namespace).
   const t = useTranslations("flaggedKills");
   const tGf = useTranslations("gameFiles");
+  // A refusal in the reader's language, e.g. "already on the website as MATCH 2" (inbox #623).
+  const serverMessage = useServerMessage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fileType, setFileType] = useState("match_result_file");
@@ -381,7 +384,7 @@ export function FileUploadStep({
 
       const data = await readJson(res);
       if (!res.ok) {
-        throw new Error(data.message || data.detail || "Upload failed");
+        throw new Error(serverMessage(data, data.detail || "Upload failed"));
       }
 
       // Team uploads return the UID-attribution contract; solo does not. If anything was

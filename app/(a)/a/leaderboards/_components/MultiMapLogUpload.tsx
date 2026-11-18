@@ -27,6 +27,7 @@
 //     (app/(organizer)/.../leaderboard), fed the current group's matches.
 import React, { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useServerMessage } from "@/lib/i18n/serverMessage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -114,6 +115,9 @@ export function MultiMapLogPanel({
   onClose?: () => void;
 }) {
   const t = useTranslations("ocr");
+  // A refusal in the reader's language: the dry-run preview already says when a file's game is a map of
+  // this event (inbox #623, capture_duplicate_game).
+  const serverMessage = useServerMessage();
   const [rows, setRows] = useState<FileRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -207,7 +211,7 @@ export function MultiMapLogPanel({
     const data = await readJson(res);
     if (!res.ok)
       throw new Error(
-        data.message || data.detail || t("uploadSteps.logUpload.uploadFailed"),
+        serverMessage(data, data.detail || t("uploadSteps.logUpload.uploadFailed")),
       );
     return data;
   };

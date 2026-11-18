@@ -51,5 +51,6 @@
   "board_maps_invalid": "Os mapas têm de ser escolhidos deste grupo.",
   "board_export_kind": "Escolha equipas ou jogadores.",
   "session_map_in_progress": "Está a ser jogado um mapa neste momento. Marque-o quando terminar.",
-  "session_done_required": "Indique se o último mapa já foi jogado."
+  "session_done_required": "Indique se o último mapa já foi jogado.",
+  "capture_duplicate_game": "Este jogo já está no site como MATCH {match_number} ({map}) em {group}. Não foi contado outra vez."
 }

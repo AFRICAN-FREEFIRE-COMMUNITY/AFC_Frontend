@@ -51,5 +51,6 @@
   "board_maps_invalid": "Maps must be chosen from this group.",
   "board_export_kind": "Choose teams or players.",
   "session_map_in_progress": "A map is being played right now. Mark it once it has ended.",
-  "session_done_required": "Say whether the last map has been played."
+  "session_done_required": "Say whether the last map has been played.",
+  "capture_duplicate_game": "This game is already on the website as MATCH {match_number} ({map}) in {group}. It was not counted again."
 }
