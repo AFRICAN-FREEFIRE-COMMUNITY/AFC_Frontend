@@ -29,6 +29,11 @@ workflow checks it again before it builds.
 - How-to clip register-tournament re-rendered (Revision 7): its French and Portuguese takes now end on the toast in
   their own language.
 
+### Security
+- Next.js 16.4.1 -> 16.4.5: fixes two moderate advisories where a cached server function could leak data
+  across root params (GHSA-mfr8-8qww-v76h, GHSA-vc7v-qv4w-wrv8). pnpm audit: 4 moderate -> 2 (minimatch, not
+  changed here).
+
 ## v7.20.3 - 2026-11-18
 
 ### Fixed
