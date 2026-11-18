@@ -19,6 +19,14 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.20.1 - 2026-11-18
+
+### Fixed
+- AFC Capture 1.6.1 is the download. A game the website already has is shown as "already on the website" and is
+  never counted twice; the result upload waits up to two minutes on a slow connection instead of 30 seconds (on
+  18 Nov 2026 a retry after a 30 second wait counted Day 3's first game as two maps, AFC inbox #623). Only one AFC
+  Capture runs at a time: opening it again shows the running one (two copies broke the dashboard, inbox #620).
+
 ## v7.20.0 - 2026-11-18
 
 ### Added
