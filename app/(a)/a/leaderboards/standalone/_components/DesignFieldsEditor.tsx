@@ -151,6 +151,23 @@ type EditSize = "instagram" | "youtube";
 const MAX_CANVAS_H = 720;
 const MAX_CANVAS_VH = 0.45;
 
+// ── Slider ranges for the group and style controls (owner 2026-11-20, inbox #628) ──
+// Every value below is a percent of the canvas. The ranges used to stop short (First row Y at
+// 15 to 60, Row height at 3 to 12, column text at 6, free text at 12), so a template whose rows sit
+// low on the art (the NPL overall board's rows 13 to 18 start near 66%) could not be lined up, and
+// the server's own built-in scene designs (views_leaderboard_design.py, a 16% row) could not even
+// be shown by the slider. Nothing downstream caps these values: the server stores column_groups as
+// sent and font_size_pct as any float, and the PNG renderer (afc_leaderboard/graphic.py) and the
+// live overlay (DesignBoard.tsx) draw whatever they are given, so a wider slider exports exactly
+// what the editor shows. First row Y spans the whole canvas, edge to edge. The other maxima are
+// generous rather than unlimited because a range input's precision is its span over the track
+// width: a row height of 0.5 to 25 still moves about 0.03% per pixel, and the arrow keys step
+// finer still.
+const ROW_START_RANGE = { min: 0, max: 100, step: 0.1 };
+const ROW_HEIGHT_RANGE = { min: 0.5, max: 25, step: 0.05 };
+const FIELD_FONT_RANGE = { min: 0.5, max: 15, step: 0.1 };
+const TEXT_FONT_RANGE = { min: 0.5, max: 25, step: 0.1 };
+
 // All available connected field types with friendly display labels (mirrors backend FIELD_CHOICES).
 //
 // i18n: these English values are now the FALLBACK only. The label actually rendered comes from
@@ -3050,9 +3067,9 @@ export function DesignFieldsEditor({
                           </div>
                           <input
                             type="range"
-                            min={15}
-                            max={60}
-                            step={0.1}
+                            min={ROW_START_RANGE.min}
+                            max={ROW_START_RANGE.max}
+                            step={ROW_START_RANGE.step}
                             value={grp.row_start_pct}
                             disabled={!canManage}
                             onChange={(e) =>
@@ -3071,9 +3088,9 @@ export function DesignFieldsEditor({
                           </div>
                           <input
                             type="range"
-                            min={3}
-                            max={12}
-                            step={0.05}
+                            min={ROW_HEIGHT_RANGE.min}
+                            max={ROW_HEIGHT_RANGE.max}
+                            step={ROW_HEIGHT_RANGE.step}
                             value={grp.row_height_pct}
                             disabled={!canManage}
                             onChange={(e) =>
@@ -3206,9 +3223,9 @@ export function DesignFieldsEditor({
                     </div>
                     <input
                       type="range"
-                      min={0.5}
-                      max={6}
-                      step={0.1}
+                      min={FIELD_FONT_RANGE.min}
+                      max={FIELD_FONT_RANGE.max}
+                      step={FIELD_FONT_RANGE.step}
                       value={selectedField.font_size_pct ?? 2.1}
                       disabled={!canManage}
                       onChange={(e) =>
@@ -3419,9 +3436,9 @@ export function DesignFieldsEditor({
                     </div>
                     <input
                       type="range"
-                      min={1}
-                      max={12}
-                      step={0.1}
+                      min={TEXT_FONT_RANGE.min}
+                      max={TEXT_FONT_RANGE.max}
+                      step={TEXT_FONT_RANGE.step}
                       value={selectedText.font_size_pct ?? 5}
                       disabled={!canManage}
                       onChange={(e) =>
