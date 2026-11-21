@@ -129,6 +129,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { EventReviewCard } from "./EventReviewCard";
 // ⓘ help tips for the non-obvious registration steps (copy in lib/help-content.ts).
 import { InfoTip } from "@/components/ui/info-tip";
+import { OrgBadge } from "@/components/OrgBadge";
+import type { OrgBadgeKind } from "@/lib/organizers";
 import { WatchHowTip } from "@/components/howto/WatchHowTip";
 import { RosterRequirementsList } from "@/components/events/RosterRequirementsList";
 import { EventInvitationBanner } from "@/components/events/EventInvitationBanner";
@@ -611,6 +613,11 @@ interface EventDetails {
   organization_name?: string | null;
   organization_slug?: string | null;
   organization_logo?: string | null;
+  // Open organizations (AFC-B event_contract.py, 21 Nov 2026): the organizer's badge (null for AFC's own events)
+  // and whether AFC emails players about this event (only AFC's own and AFC Partner events; otherwise the
+  // registration step says updates come as notifications). AFC-B afc_organizers/badges.py.
+  organization_badge?: OrgBadgeKind | null;
+  sends_email?: boolean;
   // F6 co-ownership (owner 2026-06-19): accepted co-organizing orgs → "Organized by A & B".
   co_organizers?: Array<{
     name: string;
@@ -3607,6 +3614,8 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
   const tTeamResults = useTranslations("teamResults");
   // The info tip beside Register and its "Watch how" clip (inbox #255, components/howto/WatchHowTip.tsx).
   const tHelpPage = useTranslations("helpPage");
+  // The "no email" notice under Register (open organizations, inbox #601).
+  const tOrgStart = useTranslations("orgStart");
   // Which map the team is filing a result for. A submission is filed against ONE match, so this is
   // a single id rather than a set. Seeded from the first map once the structure loads.
   const [teamResultMatchId, setTeamResultMatchId] = useState<number | null>(null);
@@ -5754,6 +5763,7 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               <span className="text-sm text-muted-foreground">
                 {t("detail.organizedBy", { name: orgName })}
               </span>
+              <OrgBadge badge={eventDetails.organization_badge} />
             </>
           );
           const primary = orgSlug ? (
@@ -6469,6 +6479,11 @@ export const EventDetailsWrapper = ({ slug }: { slug: string }) => {
               <WatchHowTip clip="register-tournament" text={tHelpPage("tip.register")} />
             )}
             </div>
+            {/* Open organizations (owner 16 Nov 2026, inbox #601): AFC emails players only about its own and AFC
+                Partner events, so everyone else is told where updates will come before they register. */}
+            {eventDetails.sends_email === false && (
+              <p className="mt-2 text-xs text-muted-foreground">{tOrgStart("emailNotice")}</p>
+            )}
             </>
           )}
         </div>

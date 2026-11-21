@@ -1,4 +1,8 @@
 "use client";
+import { NewBadge } from "@/components/NewBadge";
+import { OrgBadge } from "@/components/OrgBadge";
+import type { OrgBadgeKind } from "@/lib/organizers";
+import { ORG_START_SINCE } from "@/app/(user)/organizations/start/_components/StartOrganization";
 import { FullLoader, Loader } from "@/components/Loader";
 import { formatNumber } from "@/lib/i18n/number";
 import { PageHeader } from "@/components/PageHeader";
@@ -106,6 +110,8 @@ interface OrganizerDirectoryItem {
   description: string | null;
   event_count: number;
   verified: boolean;
+  // Open organizations (AFC-B views_public, 21 Nov 2026): Community / Verified / AFC Partner; null for AFC's card.
+  badge?: OrgBadgeKind | null;
   tier: string | null; // "Tier 1" | "Tier 2" | "Tier 3" | null
 }
 
@@ -476,8 +482,10 @@ const OrganizerCard: React.FC<{
               {org.tier}
             </Badge>
           )}
-          {/* AFC Official marks the platform's own org (slug === null). The per-org
-              verified/unverified tag was removed (owner 2026-06-23): no need on the user side. */}
+          {/* The organization's badge (open organizations, approved mockup of 16 Nov 2026: "A green tick on your
+              page and events", which supersedes the 23 Jun removal of the old per-org verified tag). */}
+          <OrgBadge badge={org.badge} />
+          {/* AFC Official marks the platform's own org (slug === null). */}
           {org.slug === null && (
             <Badge
               variant="outline"
@@ -845,6 +853,8 @@ const EVENT_TABS = ["tournaments", "scrims", "organizers"] as const;
 
 const EventsPage = () => {
   const t = useTranslations("tournaments");
+  // "Host a tournament" (open organizations, 21 Nov 2026): the entry to /organizations/start.
+  const tOrgStart = useTranslations("orgStart");
   const [tab, setTab] = useAddressTab("tab", EVENT_TABS, "tournaments");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -1081,7 +1091,19 @@ const EventsPage = () => {
 
   return (
     <div>
-      <PageHeader title={t("list.pageTitle")} />
+      <PageHeader
+        title={t("list.pageTitle")}
+        actionInline
+        action={
+          // Open organizations (owner 16 Nov 2026): anyone can host on AFC. The mockup's entry point.
+          <Button asChild variant="secondary" size="sm">
+            <Link href="/organizations/start" className="inline-flex items-center gap-1.5">
+              {tOrgStart("hostButton")}
+              <NewBadge since={ORG_START_SINCE} />
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Search. On a phone it shares its row with one Filter button (Apple fix 5, owner approved the
           mockup 24 Oct 2026, inbox #381): the three pickers and the status chips filled the whole first
