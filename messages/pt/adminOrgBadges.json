@@ -1,0 +1,70 @@
+{
+  "tabs": {
+    "waiting": "À espera de um selo",
+    "all": "Todas",
+    "verified": "Verificadas",
+    "partner": "Parceiras AFC",
+    "community": "Comunidade",
+    "suspended": "Suspensas"
+  },
+  "colBadge": "Selo",
+  "colRules": "Regras de Verificada",
+  "rulesMet": "{n} de 6",
+  "eligible": "Elegível",
+  "startedByOwner": "Criada pelo seu dono",
+  "panel": {
+    "title": "Selo e parceria",
+    "lead": "Dê o visto de Verificada quando todas as regras forem cumpridas, torne uma organização Verificada Parceira AFC e ative as suas vantagens. É o selo Verificada que faz os resultados de uma organização contarem para os rankings; os resultados Comunidade nunca contam.",
+    "rules": "Regras de Verificada",
+    "rule": {
+      "events": "Eventos terminados",
+      "trophies": "Troféus confirmados pelos vencedores",
+      "rating": "Avaliação média",
+      "reports": "Denúncias confirmadas, últimos 90 dias",
+      "profile": "Perfil completo",
+      "community": "Um responsável da AFC na comunidade deles"
+    },
+    "value": {
+      "events": "{n} de 20",
+      "rating": "{n} (4 ou mais)",
+      "noRating": "Ainda sem avaliações",
+      "reports": "{n}",
+      "profileYes": "Logótipo, descrição e uma rede social",
+      "profileNo": "Falta o logótipo, a descrição ou uma rede social",
+      "ticked": "Verificado pela AFC",
+      "notTicked": "Ainda não verificado"
+    },
+    "tick": "Marcar como verificado",
+    "untick": "Limpar",
+    "noteLabel": "Nota para a organização (enviada com a sua decisão)",
+    "notePlaceholder": "Opcional",
+    "giveVerified": "Dar o visto de Verificada",
+    "makePartner": "Tornar Parceira AFC",
+    "removeTick": "Retirar o visto",
+    "endPartnership": "Terminar a parceria",
+    "notEligible": "Ainda não é elegível: todas as regras acima têm de ser cumpridas primeiro.",
+    "perks": "Vantagens de parceiro",
+    "perk": {
+      "featured": "Destaque nas páginas inicial e de torneios da AFC",
+      "promo": "E-mails e notificações da AFC aos jogadores sobre os seus eventos",
+      "stream": "Ajuda nos dias de transmissão da equipa AFC LIVE",
+      "qualifiers": "Pode organizar qualificações para eventos da AFC",
+      "support": "Uma linha direta com a equipa da AFC",
+      "early": "Ferramentas novas antes de todos",
+      "fast_reader": "Leitura mais rápida das capturas de ecrã"
+    },
+    "history": "Histórico",
+    "noHistory": "Nada por agora.",
+    "action": {
+      "badge": "{from} para {to}",
+      "perk_on": "Vantagem ativada: {perk}",
+      "perk_off": "Vantagem desativada: {perk}",
+      "tick_on": "Verificado: {rule}",
+      "tick_off": "Limpo: {rule}",
+      "started": "Criada pelo seu dono"
+    },
+    "by": "por {name}",
+    "saved": "Guardado."
+  },
+  "tabLabel": "Selo"
+}

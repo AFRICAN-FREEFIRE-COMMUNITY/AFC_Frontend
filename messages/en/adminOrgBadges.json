@@ -1,0 +1,70 @@
+{
+  "tabs": {
+    "waiting": "Waiting for a badge",
+    "all": "All",
+    "verified": "Verified",
+    "partner": "AFC Partners",
+    "community": "Community",
+    "suspended": "Suspended"
+  },
+  "colBadge": "Badge",
+  "colRules": "Verified rules",
+  "rulesMet": "{n} of 6",
+  "eligible": "Eligible",
+  "startedByOwner": "Started by its owner",
+  "panel": {
+    "title": "Badge and partnership",
+    "lead": "Give the Verified tick when every rule is met, make a Verified organization an AFC Partner, and switch its perks. A Verified badge is what makes an organization's results count for the rankings; Community results never count.",
+    "rules": "Verified rules",
+    "rule": {
+      "events": "Finished events",
+      "trophies": "Trophies confirmed by winners",
+      "rating": "Average rating",
+      "reports": "Upheld reports, last 90 days",
+      "profile": "Profile complete",
+      "community": "An AFC official in their community"
+    },
+    "value": {
+      "events": "{n} of 20",
+      "rating": "{n} (4 or more)",
+      "noRating": "No ratings yet",
+      "reports": "{n}",
+      "profileYes": "Logo, about and a social link",
+      "profileNo": "Logo, about or a social link missing",
+      "ticked": "Checked by AFC",
+      "notTicked": "Not checked yet"
+    },
+    "tick": "Mark as checked",
+    "untick": "Clear",
+    "noteLabel": "Note to the organization (sent with your decision)",
+    "notePlaceholder": "Optional",
+    "giveVerified": "Give the Verified tick",
+    "makePartner": "Make AFC Partner",
+    "removeTick": "Remove the tick",
+    "endPartnership": "End the partnership",
+    "notEligible": "Not eligible yet: every rule above must be met first.",
+    "perks": "Partner perks",
+    "perk": {
+      "featured": "Featured on the AFC home and tournaments pages",
+      "promo": "AFC emails and notifications to players about their events",
+      "stream": "Help on stream days from the AFC LIVE team",
+      "qualifiers": "Can host qualifiers for AFC events",
+      "support": "A direct line to the AFC team",
+      "early": "New tools before anyone else",
+      "fast_reader": "Faster screenshot reading"
+    },
+    "history": "History",
+    "noHistory": "Nothing yet.",
+    "action": {
+      "badge": "{from} to {to}",
+      "perk_on": "Perk on: {perk}",
+      "perk_off": "Perk off: {perk}",
+      "tick_on": "Checked: {rule}",
+      "tick_off": "Cleared: {rule}",
+      "started": "Started by its owner"
+    },
+    "by": "by {name}",
+    "saved": "Saved."
+  },
+  "tabLabel": "Badge"
+}

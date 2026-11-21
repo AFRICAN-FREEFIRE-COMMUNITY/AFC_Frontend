@@ -58,6 +58,17 @@ import { IconPlus, IconSearch, IconX } from "@tabler/icons-react";
 import { organizersApi } from "@/lib/organizers";
 import { InfoTip } from "@/components/ui/info-tip";
 import { OrgSubNav } from "./_components/OrgSubNav";
+import { useTranslations } from "next-intl";
+import { NewBadge } from "@/components/NewBadge";
+import { OrgBadge } from "@/components/OrgBadge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { OrgBadgeKind } from "@/lib/organizers";
+import { ORG_BADGES_SINCE } from "./_components/OrgBadgePanel";
+
+// Badge tabs of the approved mockup (open organizations, 21 Nov 2026, inbox #590), in its order. "all" is the
+// default so the page still opens on every organization; "waiting" carries its own count.
+const BADGE_TABS = ["waiting", "all", "verified", "partner", "suspended"] as const;
+type BadgeTab = (typeof BADGE_TABS)[number];
 
 // Row shape returned by adminListOrganizations (afc_organizers admin serializer).
 interface OrgRow {
@@ -69,6 +80,10 @@ interface OrgRow {
   member_count: number;
   event_count: number;
   created_at: string;
+  // Open organizations (AFC-B _serialize_org + admin_list_organizations, 21 Nov 2026).
+  badge?: OrgBadgeKind;
+  self_started?: boolean;
+  rules_met?: number;
 }
 
 // Shared status pill - outline badge whose border/text colour tracks the org
@@ -107,6 +122,10 @@ export default function OrganizationsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  // Badge tab (open organizations) and how many organizations wait for a badge.
+  const tBadges = useTranslations("adminOrgBadges");
+  const [badgeTab, setBadgeTab] = useState<BadgeTab>("all");
+  const [waitingCount, setWaitingCount] = useState<number | null>(null);
 
   // ── Create-organization dialog state ──────────────────────────────────────
   const [createOpen, setCreateOpen] = useState(false);
@@ -171,13 +190,18 @@ export default function OrganizationsAdminPage() {
   const fetchOrgs = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await organizersApi.adminListOrganizations({
-        search: search.trim() || undefined,
-        limit: ITEMS_PER_PAGE,
-        offset: (page - 1) * ITEMS_PER_PAGE,
-      });
+      const [res, waiting] = await Promise.all([
+        organizersApi.adminListOrganizations({
+          search: search.trim() || undefined,
+          badge: badgeTab === "all" ? undefined : badgeTab,
+          limit: ITEMS_PER_PAGE,
+          offset: (page - 1) * ITEMS_PER_PAGE,
+        }),
+        organizersApi.adminListOrganizations({ badge: "waiting", limit: 1 }),
+      ]);
       setOrgs(res?.results ?? []);
       setTotalCount(res?.total_count ?? 0);
+      setWaitingCount(waiting?.total_count ?? 0);
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message || "Failed to load organizations.",
@@ -185,7 +209,7 @@ export default function OrganizationsAdminPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, page]);
+  }, [search, page, badgeTab]);
 
   useEffect(() => {
     fetchOrgs();
@@ -195,7 +219,7 @@ export default function OrganizationsAdminPage() {
   // out-of-range offset (e.g. searching while on page 5 of the unfiltered list).
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, badgeTab]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
@@ -302,6 +326,22 @@ export default function OrganizationsAdminPage() {
         )}
       </div>
 
+      {/* Badge tabs (open organizations, 21 Nov 2026): the mockup's tabs; "Waiting for a badge" lists Community
+          organizations that meet every rule AFC does not tick by hand. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Tabs value={badgeTab} onValueChange={(v) => setBadgeTab(v as BadgeTab)}>
+          <TabsList className="h-auto flex-wrap">
+            {BADGE_TABS.map((k) => (
+              <TabsTrigger key={k} value={k}>
+                {tBadges(`tabs.${k}`)}
+                {k === "waiting" && waitingCount !== null ? ` (${waitingCount})` : ""}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+        <NewBadge since={ORG_BADGES_SINCE} />
+      </div>
+
       {orgs.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center text-muted-foreground">
@@ -321,6 +361,8 @@ export default function OrganizationsAdminPage() {
                     <TableHead>Name</TableHead>
                     <TableHead>Slug</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>{tBadges("colBadge")}</TableHead>
+                    <TableHead>{tBadges("colRules")}</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Members</TableHead>
                     <TableHead>Events</TableHead>
@@ -347,6 +389,12 @@ export default function OrganizationsAdminPage() {
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={org.status} />
+                      </TableCell>
+                      <TableCell>
+                        <OrgBadge badge={org.badge} />
+                      </TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">
+                        {org.rules_met != null ? tBadges("rulesMet", { n: org.rules_met }) : "-"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {org.email || "-"}
