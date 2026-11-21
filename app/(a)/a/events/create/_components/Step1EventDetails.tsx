@@ -69,6 +69,11 @@ interface Step1Props {
   // concern, so the organizer create flow passes this. Defaults false (AFC admin
   // create still shows + collects it as before).
   hideRegistrationLink?: boolean;
+  // When true, the Free / Paid registration choice is not shown: organizers cannot charge an entry fee on AFC
+  // for now, only AFC's own events take payment (owner 16 Nov 2026, inbox #594; AFC-B refuses it too with
+  // org_paid_entry_off). The organizer create flow always passes it; the organizer edit flow passes it unless the
+  // event was already paid before the rule. registration_type stays "free".
+  hidePaidRegistration?: boolean;
 }
 
 export function Step1EventDetails({
@@ -78,6 +83,7 @@ export function Step1EventDetails({
   previewUrl,
   setPreviewUrl,
   hideEventType = false,
+  hidePaidRegistration = false,
   hideRegistrationLink = false,
 }: Step1Props) {
   // next-intl translator for this step's namespace (keys live in messages/*/evStep1.json).
@@ -367,6 +373,7 @@ export function Step1EventDetails({
             existing flow is unchanged. These three fields (registration_type /
             registration_fee / registration_fee_currency) map 1:1 onto the backend
             create-event + edit-event contract. The actual charge is a later phase. */}
+        {!hidePaidRegistration && (
         <div className="space-y-4">
           <FormField
             // @ts-ignore
@@ -485,6 +492,7 @@ export function Step1EventDetails({
             />
           )}
         </div>
+        )}
 
         {/* Event Dates & Times */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

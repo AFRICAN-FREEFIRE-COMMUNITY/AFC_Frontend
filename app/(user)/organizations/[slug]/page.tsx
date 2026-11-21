@@ -17,6 +17,8 @@
 // cards) carried through the shared components.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { OrgBadge } from "@/components/OrgBadge";
+import type { OrgBadgeKind } from "@/lib/organizers";
 import React, { use, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -95,6 +97,8 @@ interface PublicOrganization {
   socials: Record<string, string> | null;
   events: PublicOrgEvent[];
   rating: number | null;
+  // Open organizations (AFC-B views_public, 21 Nov 2026): Community / Verified / AFC Partner.
+  badge?: OrgBadgeKind | null;
 }
 
 // ── Event card ──
@@ -488,8 +492,9 @@ const Page = ({ params }: { params: Params }) => {
           </Avatar>
 
           <div className="md:pb-1">
-            <h1 className="text-3xl md:text-4xl font-bold text-primary">
+            <h1 className="text-3xl md:text-4xl font-bold text-primary flex flex-wrap items-center gap-2">
               {org.name}
+              <OrgBadge badge={org.badge} className="text-sm" />
             </h1>
             {/* Rating is null until Phase 4 adds the aggregate - subtle placeholder. */}
             <p className="mt-1 text-sm text-muted-foreground">

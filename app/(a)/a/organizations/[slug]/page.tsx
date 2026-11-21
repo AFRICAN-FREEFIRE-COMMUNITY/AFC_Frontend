@@ -48,6 +48,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslations } from "next-intl";
+import { OrgBadge } from "@/components/OrgBadge";
+import type { OrgBadgeKind, OrgRule } from "@/lib/organizers";
+import { OrgBadgePanel, type BadgeHistoryRow } from "../_components/OrgBadgePanel";
 import {
   Table,
   TableBody,
@@ -158,10 +162,14 @@ interface OrgEvent {
 }
 
 interface OrgDetail {
-  organization: OrgFull;
+  // badge / perks (open organizations, 21 Nov 2026): AFC-B _serialize_org.
+  organization: OrgFull & { badge?: OrgBadgeKind; perks?: Record<string, boolean>; self_started?: boolean };
   members: OrgMember[];
   events: OrgEvent[];
   reports: any[];
+  // The six Verified rules and the badge history (AFC-B admin_get_organization, open organizations).
+  verified_rules?: OrgRule[];
+  badge_history?: BadgeHistoryRow[];
 }
 
 // a fresh all-false permission map - seeds the add-member form.
@@ -185,6 +193,8 @@ export default function OrganizationDetailPage({
   const router = useRouter();
 
   const [detail, setDetail] = useState<OrgDetail | null>(null);
+  // Strings of the Badge tab (open organizations, 21 Nov 2026).
+  const tBadges = useTranslations("adminOrgBadges");
   const [loading, setLoading] = useState(true);
 
   // ── Profile form state (seeded from the fetched org) ──────────────────────
@@ -459,8 +469,9 @@ export default function OrganizationDetailPage({
         back
         // Wrap the title so the page-level ⓘ sits right after the org name (PageHeader takes a ReactNode).
         title={
-          <span className="inline-flex flex-wrap items-center">
+          <span className="inline-flex flex-wrap items-center gap-x-2">
             {organization.name}
+            <OrgBadge badge={organization.badge} />
             <InfoTip id="organizations.detail._page" className="ml-1.5" />
           </span>
         }
@@ -480,6 +491,10 @@ export default function OrganizationDetailPage({
               Profile
             </TabsTrigger>
             <InfoTip id="organizations.profile._section" className="ml-1" />
+          </span>
+          {/* Badge and partnership (open organizations, 21 Nov 2026): OrgBadgePanel below. */}
+          <span className="inline-flex flex-1 items-center justify-center">
+            <TabsTrigger value="badge" className="w-full">{tBadges("tabLabel")}</TabsTrigger>
           </span>
           <span className="inline-flex flex-1 items-center justify-center">
             {/* data-tour="orgs-misc-org-detail-members-tab": admin-tour anchor (orgs-misc area). */}
@@ -508,6 +523,18 @@ export default function OrganizationDetailPage({
             <InfoTip id="organizations.reports._section" className="ml-1" />
           </span>
         </TabsList>
+
+        {/* ── Badge tab - the Verified rules, badge actions, partner perks, history (open organizations) ── */}
+        <TabsContent value="badge" className="mt-4 space-y-4">
+          <OrgBadgePanel
+            slug={organization.slug}
+            badge={(organization.badge ?? "verified") as OrgBadgeKind}
+            perks={organization.perks ?? {}}
+            rules={detail?.verified_rules ?? []}
+            history={detail?.badge_history ?? []}
+            onChanged={() => fetchDetail(true)}
+          />
+        </TabsContent>
 
         {/* ── Profile tab - editable form + suspend / delete ── */}
         <TabsContent value="profile" className="mt-4 space-y-4">

@@ -1,0 +1,88 @@
+{
+  "metaTitle": "Start an organization",
+  "metaDescription": "Host your own Free Fire tournaments and scrims on AFC. Start an organization in two minutes; every tool is free.",
+  "hero": {
+    "title": "Host your own tournaments on AFC",
+    "intro": "Start an organization in two minutes and run scrims and tournaments for the whole community. Every tool is free, for everyone.",
+    "start": "Start an organization",
+    "action": "start an organization"
+  },
+  "features": {
+    "signups": {
+      "title": "Sign-ups, groups and matches",
+      "body": "Teams register on your event page. You approve them and AFC builds the groups."
+    },
+    "screenshots": {
+      "title": "Results from screenshots",
+      "body": "Upload the end-of-match screen. We fill in the leaderboard. You check it."
+    },
+    "stream": {
+      "title": "Live leaderboards for your stream",
+      "body": "Overlays for OBS that update by themselves."
+    },
+    "helpers": {
+      "title": "Your helpers",
+      "body": "Invite people and give each one only the jobs they do."
+    },
+    "badge": {
+      "title": "A badge players trust",
+      "body": "Run good events to earn the Verified tick, and maybe become an AFC Partner."
+    }
+  },
+  "steps": {
+    "name": "Name and logo",
+    "about": "About you",
+    "done": "Done"
+  },
+  "step1": {
+    "title": "Name your organization",
+    "lead": "This is how players will know you. You can change it later.",
+    "nameLabel": "Organization name",
+    "namePlaceholder": "For example: Kopa Esports",
+    "checking": "Checking the name",
+    "free": "That name is free.",
+    "pageWillBe": "Your page will be: africanfreefirecommunity.com/organizations/{slug}",
+    "logoLabel": "Logo (optional)",
+    "logoButton": "Add a logo",
+    "logoChange": "Change the logo",
+    "logoHint": "Square, at least 400 pixels",
+    "countryLabel": "Main country",
+    "countryPlaceholder": "Pick a country",
+    "countryHint": "Helps players near you find your events."
+  },
+  "step2": {
+    "title": "Tell players about you",
+    "lead": "A few words and a way to reach you.",
+    "aboutLabel": "About (optional)",
+    "aboutPlaceholder": "What events do you run, and for whom?",
+    "emailLabel": "Contact email (optional)",
+    "emailPlaceholder": "Shown on your page",
+    "instagramLabel": "Instagram (optional)",
+    "discordLabel": "Discord (optional)",
+    "linkPlaceholder": "https://",
+    "agree": "I will follow the organizer rules: fair rules on every event, trophies handed over as promised, and no pretending to be someone else."
+  },
+  "back": "Back",
+  "next": "Next",
+  "create": "Create organization",
+  "creating": "Creating",
+  "done": {
+    "title": "{name} is ready",
+    "body": "Your page is live at africanfreefirecommunity.com/organizations/{slug}. Every tool is yours, free.",
+    "firstEvent": "Create your first event",
+    "helpers": "Invite your helpers",
+    "screenshots": "Try reading results from a screenshot",
+    "dashboard": "Go to your dashboard"
+  },
+  "failed": "Something went wrong. Try again.",
+  "hostButton": "Host a tournament",
+  "badge": {
+    "community": "Community",
+    "verified": "Verified",
+    "partner": "AFC Partner",
+    "communityHint": "A Community organizer. Every tool works the same; its results do not count for the AFC rankings.",
+    "verifiedHint": "Verified by AFC: this organizer's results count for the AFC rankings.",
+    "partnerHint": "An AFC Partner: an organizer AFC works with directly."
+  },
+  "emailNotice": "Updates for this event come as notifications on AFC, not by email."
+}

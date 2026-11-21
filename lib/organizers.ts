@@ -42,6 +42,14 @@ export interface CoOrganizerInvite {
 
 const url = (path: string) => `${BASE}/organizers/${path}`;
 
+// Open organizations: an organization's badge (AFC-B afc_organizers/badges.py). Trust and reach only, never a tool gate.
+export type OrgBadgeKind = "community" | "verified" | "partner";
+// The partner perks, in the admin page's order (badges.PERKS).
+export const ORG_PERKS = ["featured", "promo", "stream", "qualifiers", "support", "early", "fast_reader"] as const;
+// The six Verified rules, in order (badges.RULES); the last two are ticked by an AFC admin.
+export const ORG_RULES = ["events", "trophies", "rating", "reports", "profile", "community"] as const;
+export type OrgRule = { key: (typeof ORG_RULES)[number]; met: boolean; value: number | string | boolean | null };
+
 async function aGet<T = any>(path: string, params?: Record<string, any>): Promise<T> {
   return (await axios.get(url(path), { params, headers: authHeaders() })).data;
 }
@@ -77,6 +85,21 @@ export const organizersApi = {
   // F5 (owner 2026-06-19): admin restores a soft-deleted org (clean delete kept everything intact).
   adminRestoreOrganization: (slug: string) => aPost(`admin/restore-organization/${slug}/`),
   adminManageMember: (slug: string, body: any) => aPost(`admin/manage-organization-member/${slug}/`, body),
+  // Open organizations (owner 16 Nov 2026, AFC inbox #582 to #601): badge, perk and Verified-rule ticks on the admin
+  // Organizations page (OrgBadgePanel.tsx). AFC-B afc_organizers/views_admin.py admin_set_badge / _perk / _rule_tick.
+  adminSetBadge: (slug: string, body: { badge: OrgBadgeKind; note?: string }) =>
+    aPost(`admin/organization/${slug}/badge/`, body),
+  adminSetPerk: (slug: string, body: { perk: string; on: boolean }) => aPost(`admin/organization/${slug}/perk/`, body),
+  adminSetRuleTick: (slug: string, body: { rule: "trophies" | "community"; on: boolean; note?: string }) =>
+    aPost(`admin/organization/${slug}/rule-tick/`, body),
+
+  // ── ANYONE SIGNED IN - start an organization (AFC-B views_start.py) ───────
+  // The /organizations/start page (StartOrganization.tsx): the name check as the person types, then the start
+  // itself (multipart: name, country, description, email, instagram, discord, logo, rules_accepted, the bot token).
+  startCheckName: (name: string) =>
+    aPost<{ ok: boolean; slug?: string; code?: string; message?: string }>("start/check-name/", { name }),
+  startOrganization: (body: FormData) =>
+    aPostForm<{ organization: { slug: string; name: string; badge: OrgBadgeKind } }>("start/", body),
 
   // (The "request a design" API was removed 2026-06-13 in favour of the self-serve design library,
   // lib/leaderboardDesigns.ts.)

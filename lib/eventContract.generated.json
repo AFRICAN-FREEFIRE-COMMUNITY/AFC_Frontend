@@ -247,6 +247,20 @@
       "computed": true
     },
     {
+      "name": "organization_badge",
+      "source": "organization_badge",
+      "read": "public",
+      "write": "nobody",
+      "computed": true
+    },
+    {
+      "name": "sends_email",
+      "source": "sends_email",
+      "read": "public",
+      "write": "nobody",
+      "computed": true
+    },
+    {
       "name": "uploaded_rules_url",
       "source": "uploaded_rules_url",
       "read": "public",

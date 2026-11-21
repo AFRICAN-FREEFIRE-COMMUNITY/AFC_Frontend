@@ -1,0 +1,88 @@
+{
+  "metaTitle": "Créer une organisation",
+  "metaDescription": "Organisez vos propres tournois et scrims Free Fire sur AFC. Créez une organisation en deux minutes ; tous les outils sont gratuits.",
+  "hero": {
+    "title": "Organisez vos propres tournois sur AFC",
+    "intro": "Créez une organisation en deux minutes et lancez des scrims et des tournois pour toute la communauté. Tous les outils sont gratuits, pour tout le monde.",
+    "start": "Créer une organisation",
+    "action": "créer une organisation"
+  },
+  "features": {
+    "signups": {
+      "title": "Inscriptions, groupes et matchs",
+      "body": "Les équipes s'inscrivent sur la page de votre événement. Vous les validez et AFC crée les groupes."
+    },
+    "screenshots": {
+      "title": "Résultats à partir de captures d'écran",
+      "body": "Envoyez l'écran de fin de match. Nous remplissons le classement. Vous vérifiez."
+    },
+    "stream": {
+      "title": "Classements en direct pour votre stream",
+      "body": "Des overlays pour OBS qui se mettent à jour tout seuls."
+    },
+    "helpers": {
+      "title": "Vos assistants",
+      "body": "Invitez des personnes et donnez à chacune seulement les tâches qu'elle fait."
+    },
+    "badge": {
+      "title": "Un badge auquel les joueurs font confiance",
+      "body": "Organisez de bons événements pour obtenir la coche Vérifiée, et peut-être devenir Partenaire AFC."
+    }
+  },
+  "steps": {
+    "name": "Nom et logo",
+    "about": "À propos de vous",
+    "done": "Terminé"
+  },
+  "step1": {
+    "title": "Nommez votre organisation",
+    "lead": "C'est ainsi que les joueurs vous connaîtront. Vous pourrez le changer plus tard.",
+    "nameLabel": "Nom de l'organisation",
+    "namePlaceholder": "Par exemple : Kopa Esports",
+    "checking": "Vérification du nom",
+    "free": "Ce nom est libre.",
+    "pageWillBe": "Votre page sera : africanfreefirecommunity.com/organizations/{slug}",
+    "logoLabel": "Logo (facultatif)",
+    "logoButton": "Ajouter un logo",
+    "logoChange": "Changer le logo",
+    "logoHint": "Carré, au moins 400 pixels",
+    "countryLabel": "Pays principal",
+    "countryPlaceholder": "Choisissez un pays",
+    "countryHint": "Aide les joueurs près de chez vous à trouver vos événements."
+  },
+  "step2": {
+    "title": "Présentez-vous aux joueurs",
+    "lead": "Quelques mots et un moyen de vous joindre.",
+    "aboutLabel": "À propos (facultatif)",
+    "aboutPlaceholder": "Quels événements organisez-vous, et pour qui ?",
+    "emailLabel": "E-mail de contact (facultatif)",
+    "emailPlaceholder": "Affiché sur votre page",
+    "instagramLabel": "Instagram (facultatif)",
+    "discordLabel": "Discord (facultatif)",
+    "linkPlaceholder": "https://",
+    "agree": "Je respecterai les règles des organisateurs : des règles justes à chaque événement, des trophées remis comme promis, et ne jamais me faire passer pour quelqu'un d'autre."
+  },
+  "back": "Retour",
+  "next": "Suivant",
+  "create": "Créer l'organisation",
+  "creating": "Création",
+  "done": {
+    "title": "{name} est prête",
+    "body": "Votre page est en ligne sur africanfreefirecommunity.com/organizations/{slug}. Tous les outils sont à vous, gratuitement.",
+    "firstEvent": "Créer votre premier événement",
+    "helpers": "Inviter vos assistants",
+    "screenshots": "Essayer de lire des résultats à partir d'une capture d'écran",
+    "dashboard": "Aller à votre tableau de bord"
+  },
+  "failed": "Une erreur est survenue. Réessayez.",
+  "hostButton": "Organiser un tournoi",
+  "badge": {
+    "community": "Communauté",
+    "verified": "Vérifiée",
+    "partner": "Partenaire AFC",
+    "communityHint": "Un organisateur Communauté. Tous les outils fonctionnent de la même façon ; ses résultats ne comptent pas pour les classements AFC.",
+    "verifiedHint": "Vérifiée par AFC : les résultats de cet organisateur comptent pour les classements AFC.",
+    "partnerHint": "Un Partenaire AFC : un organisateur avec qui AFC travaille directement."
+  },
+  "emailNotice": "Les nouvelles de cet événement arrivent en notifications sur AFC, pas par e-mail."
+}

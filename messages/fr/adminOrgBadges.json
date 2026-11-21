@@ -1,0 +1,70 @@
+{
+  "tabs": {
+    "waiting": "En attente d'un badge",
+    "all": "Toutes",
+    "verified": "Vérifiées",
+    "partner": "Partenaires AFC",
+    "community": "Communauté",
+    "suspended": "Suspendues"
+  },
+  "colBadge": "Badge",
+  "colRules": "Règles Vérifiée",
+  "rulesMet": "{n} sur 6",
+  "eligible": "Éligible",
+  "startedByOwner": "Créée par son propriétaire",
+  "panel": {
+    "title": "Badge et partenariat",
+    "lead": "Donnez la coche Vérifiée quand toutes les règles sont respectées, faites d'une organisation Vérifiée une Partenaire AFC et activez ses avantages. C'est le badge Vérifiée qui fait compter les résultats d'une organisation pour les classements ; les résultats Communauté ne comptent jamais.",
+    "rules": "Règles Vérifiée",
+    "rule": {
+      "events": "Événements terminés",
+      "trophies": "Trophées confirmés par les gagnants",
+      "rating": "Note moyenne",
+      "reports": "Signalements retenus, 90 derniers jours",
+      "profile": "Profil complet",
+      "community": "Un responsable AFC dans leur communauté"
+    },
+    "value": {
+      "events": "{n} sur 20",
+      "rating": "{n} (4 ou plus)",
+      "noRating": "Pas encore de note",
+      "reports": "{n}",
+      "profileYes": "Logo, présentation et un lien social",
+      "profileNo": "Logo, présentation ou lien social manquant",
+      "ticked": "Vérifié par AFC",
+      "notTicked": "Pas encore vérifié"
+    },
+    "tick": "Marquer comme vérifié",
+    "untick": "Effacer",
+    "noteLabel": "Note à l'organisation (envoyée avec votre décision)",
+    "notePlaceholder": "Facultatif",
+    "giveVerified": "Donner la coche Vérifiée",
+    "makePartner": "Faire Partenaire AFC",
+    "removeTick": "Retirer la coche",
+    "endPartnership": "Mettre fin au partenariat",
+    "notEligible": "Pas encore éligible : toutes les règles ci-dessus doivent d'abord être respectées.",
+    "perks": "Avantages partenaire",
+    "perk": {
+      "featured": "Mise en avant sur les pages d'accueil et des tournois d'AFC",
+      "promo": "E-mails et notifications d'AFC aux joueurs sur leurs événements",
+      "stream": "Aide les jours de stream par l'équipe AFC LIVE",
+      "qualifiers": "Peut organiser des qualifications pour les événements AFC",
+      "support": "Une ligne directe avec l'équipe AFC",
+      "early": "Les nouveaux outils avant tout le monde",
+      "fast_reader": "Lecture des captures d'écran plus rapide"
+    },
+    "history": "Historique",
+    "noHistory": "Rien pour l'instant.",
+    "action": {
+      "badge": "{from} vers {to}",
+      "perk_on": "Avantage activé : {perk}",
+      "perk_off": "Avantage désactivé : {perk}",
+      "tick_on": "Vérifié : {rule}",
+      "tick_off": "Effacé : {rule}",
+      "started": "Créée par son propriétaire"
+    },
+    "by": "par {name}",
+    "saved": "Enregistré."
+  },
+  "tabLabel": "Badge"
+}
