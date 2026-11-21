@@ -2245,6 +2245,8 @@ export default function OrganizerEditEventPage({
                 // Registration link is an AFC-only concern; NOT applied to organizer events at all
                 // (owner reverted 2026-06-20: organizers do not get the external registration link).
                 hideRegistrationLink
+                // No entry fees for organizers (inbox #594); an event that was already paid keeps its block.
+                hidePaidRegistration={eventDetails?.registration_type !== "paid"}
               />
             </TabsContent>
 

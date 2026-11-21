@@ -1322,6 +1322,8 @@ export default function OrganizerCreateEventPage() {
               // Registration link is an AFC-only concern; NOT applied to organizer events at all
               // (owner reverted 2026-06-20: organizers do not get the external registration link).
               hideRegistrationLink
+              // No entry fees for organizers (owner 16 Nov 2026, inbox #594): every organizer event is free.
+              hidePaidRegistration
             />
           )}
           {/* @ts-ignore */}
