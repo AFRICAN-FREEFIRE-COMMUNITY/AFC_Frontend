@@ -19,6 +19,15 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Internal
+- The daily SEO live check counts thin and heavy pages per page TEMPLATE (an app route such as /teams/[id])
+  instead of per address. The per-address count rose with every new team and event (363 to 372, red every day from
+  17 Nov) with no code change; a new thin or heavy template is what counts as new debt now. The run lists every
+  template with its page count: thin /teams/[id] (176), /tournaments/[slug] (166), /organizations/[slug] (13),
+  /shop/[id] (9) and seven list pages; heavy /glossary, /partners/api, /rules and one news article.
+
 ## v7.21.2 - 2026-11-20
 
 ### Fixed
