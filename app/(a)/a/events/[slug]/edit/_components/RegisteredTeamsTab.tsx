@@ -524,13 +524,17 @@ export default function RegisteredTeamsTab({
   // we re-pull the letters so every row's Select + the taken-letter greying reflect the change.
   const assignLetter = async () => {
     if (!token || !assignTarget) return;
-    setAssignBusy(assignTarget.teamId);
+    // Busy is keyed on the REGISTRATION (tournament_team_id): a guest registration has no team_id, and
+    // null === null kept its picker disabled for good (21 Nov 2026).
+    setAssignBusy(assignTarget.ttId);
     try {
       await axios.post(
         `${env.NEXT_PUBLIC_BACKEND_API_URL}/events/assign-team-letter/`,
         {
           event_id: eventDetails.event_id,
           team_id: assignTarget.teamId,
+          // The registration itself, so a guest (ghost) registration with no AFC team can take a letter too.
+          tournament_team_id: assignTarget.ttId,
           letter: assignTarget.letter, // "" clears the assignment
           // [] = all stages (the team keeps it); ids = only those stages (inbox #602).
           stage_ids: assignTarget.appliesTo ?? [],
@@ -1042,7 +1046,7 @@ export default function RegisteredTeamsTab({
                                   )}
                                   <Select
                                     value={current ?? ""}
-                                    disabled={assignBusy === team.team_id}
+                                    disabled={assignBusy === ttId}
                                     onValueChange={(val) => {
                                       const next = val === "__none__" ? "" : val;
                                       // No-op if they re-picked the team's current letter.
