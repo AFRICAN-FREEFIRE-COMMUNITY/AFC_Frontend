@@ -19,6 +19,29 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- Anyone signed in can start an organization and host events on AFC: /organizations/start (a "Host a tournament"
+  button on the Tournaments page) explains what hosting gives you, then two steps (name with a live check of
+  reserved and taken names, logo, country; about, contact email, Instagram and Discord, the organizer rules) and a
+  done screen with the first moves and the way to the dashboard. Every tool is free for every organization. NEW for
+  5 days. AFC inbox #582, #583.
+- Organization badges on the site: a Community, Verified or AFC Partner chip beside the organizer on its page, on
+  event pages and on the organizer cards of the Tournaments page. AFC inbox #587, #590.
+- The admin Organizations page: badge tabs (Waiting for a badge, All, Verified, AFC Partners, Suspended), a badge
+  column and "n of 6" Verified rules on the list, and a Badge tab on each organization with the six rules and their
+  values, the two rules AFC ticks by hand, a note, Give the Verified tick, Make AFC Partner, the seven partner perk
+  switches, and the history. AFC inbox #590, #593, #597.
+
+### Changed
+- A Community or Verified organizer's event says, under Register, that updates come as notifications on AFC, not by
+  email (AFC emails players only about its own and AFC Partner events). AFC inbox #599 to #601.
+- The organizer create and edit forms no longer offer a paid entry; an event that was already paid keeps its fee.
+  AFC inbox #594.
+- How-to clips register-tournament, organizer-results, signup-discord and team-invite re-rendered for the changed
+  screens.
+
 ## v7.21.2 - 2026-11-20
 
 ### Fixed
