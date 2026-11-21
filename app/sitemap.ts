@@ -100,6 +100,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/brand", changeFrequency: "yearly", priority: 0.3 },
     { path: "/partners/api", changeFrequency: "monthly", priority: 0.4 },
     { path: "/partners/apply", changeFrequency: "monthly", priority: 0.4 },
+    // Anyone starts an organization (open organizations, 21 Nov 2026).
+    { path: "/organizations/start", changeFrequency: "monthly", priority: 0.5 },
     { path: "/rules", changeFrequency: "monthly", priority: 0.5 },
     { path: "/privacy-policy", changeFrequency: "yearly", priority: 0.3 },
     { path: "/terms-of-service", changeFrequency: "yearly", priority: 0.3 },
