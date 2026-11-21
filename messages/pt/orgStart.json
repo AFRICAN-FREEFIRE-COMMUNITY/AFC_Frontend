@@ -1,0 +1,88 @@
+{
+  "metaTitle": "Criar uma organização",
+  "metaDescription": "Organize os seus próprios torneios e scrims de Free Fire na AFC. Crie uma organização em dois minutos; todas as ferramentas são gratuitas.",
+  "hero": {
+    "title": "Organize os seus próprios torneios na AFC",
+    "intro": "Crie uma organização em dois minutos e organize scrims e torneios para toda a comunidade. Todas as ferramentas são gratuitas, para todos.",
+    "start": "Criar uma organização",
+    "action": "criar uma organização"
+  },
+  "features": {
+    "signups": {
+      "title": "Inscrições, grupos e partidas",
+      "body": "As equipas inscrevem-se na página do seu evento. Aprova-as e a AFC cria os grupos."
+    },
+    "screenshots": {
+      "title": "Resultados a partir de capturas de ecrã",
+      "body": "Envie o ecrã de fim de partida. Nós preenchemos a classificação. Você confere."
+    },
+    "stream": {
+      "title": "Classificações ao vivo para a sua transmissão",
+      "body": "Overlays para o OBS que se atualizam sozinhos."
+    },
+    "helpers": {
+      "title": "Os seus ajudantes",
+      "body": "Convide pessoas e dê a cada uma apenas as tarefas que faz."
+    },
+    "badge": {
+      "title": "Um selo em que os jogadores confiam",
+      "body": "Organize bons eventos para ganhar o visto de Verificada e, talvez, tornar-se Parceira AFC."
+    }
+  },
+  "steps": {
+    "name": "Nome e logótipo",
+    "about": "Sobre si",
+    "done": "Concluído"
+  },
+  "step1": {
+    "title": "Dê um nome à sua organização",
+    "lead": "É assim que os jogadores a vão conhecer. Pode mudá-lo mais tarde.",
+    "nameLabel": "Nome da organização",
+    "namePlaceholder": "Por exemplo: Kopa Esports",
+    "checking": "A verificar o nome",
+    "free": "Esse nome está livre.",
+    "pageWillBe": "A sua página será: africanfreefirecommunity.com/organizations/{slug}",
+    "logoLabel": "Logótipo (opcional)",
+    "logoButton": "Adicionar um logótipo",
+    "logoChange": "Mudar o logótipo",
+    "logoHint": "Quadrado, com pelo menos 400 píxeis",
+    "countryLabel": "País principal",
+    "countryPlaceholder": "Escolha um país",
+    "countryHint": "Ajuda os jogadores perto de si a encontrar os seus eventos."
+  },
+  "step2": {
+    "title": "Apresente-se aos jogadores",
+    "lead": "Algumas palavras e uma forma de o contactar.",
+    "aboutLabel": "Sobre (opcional)",
+    "aboutPlaceholder": "Que eventos organiza, e para quem?",
+    "emailLabel": "E-mail de contacto (opcional)",
+    "emailPlaceholder": "Mostrado na sua página",
+    "instagramLabel": "Instagram (opcional)",
+    "discordLabel": "Discord (opcional)",
+    "linkPlaceholder": "https://",
+    "agree": "Vou cumprir as regras dos organizadores: regras justas em cada evento, troféus entregues como prometido, e nunca fingir ser outra pessoa."
+  },
+  "back": "Voltar",
+  "next": "Seguinte",
+  "create": "Criar organização",
+  "creating": "A criar",
+  "done": {
+    "title": "{name} está pronta",
+    "body": "A sua página já está em africanfreefirecommunity.com/organizations/{slug}. Todas as ferramentas são suas, gratuitamente.",
+    "firstEvent": "Criar o seu primeiro evento",
+    "helpers": "Convidar os seus ajudantes",
+    "screenshots": "Experimentar ler resultados a partir de uma captura de ecrã",
+    "dashboard": "Ir para o seu painel"
+  },
+  "failed": "Algo correu mal. Tente novamente.",
+  "hostButton": "Organizar um torneio",
+  "badge": {
+    "community": "Comunidade",
+    "verified": "Verificada",
+    "partner": "Parceira AFC",
+    "communityHint": "Um organizador Comunidade. Todas as ferramentas funcionam da mesma forma; os seus resultados não contam para os rankings AFC.",
+    "verifiedHint": "Verificada pela AFC: os resultados deste organizador contam para os rankings AFC.",
+    "partnerHint": "Uma Parceira AFC: um organizador com quem a AFC trabalha diretamente."
+  },
+  "emailNotice": "As novidades deste evento chegam como notificações na AFC, não por e-mail."
+}
