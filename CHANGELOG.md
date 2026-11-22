@@ -19,6 +19,11 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.21.4 - 2026-11-22
+
+### Internal
+- KOL Awards preview (`/_kol_awards_preview.html`) takes the award names the owner set on 19 November (Creator of the Year, Breakthrough Creator of the Year, Educational Creator of the Year, Streamer of the Year, Best Voice Over Creator of the Year, Funniest Creator of the Year) and the pieces of the design slicing made for Garena: the award cards with the gold Africa icons, the nominee cards and vote buttons, the confirm and vote recorded popups, and the textured sheet between pages. The old award addresses (`#/c/best-editor` and the rest) still open their award. Same address.
+
 ## v7.21.2 - 2026-11-20
 
 ### Fixed
