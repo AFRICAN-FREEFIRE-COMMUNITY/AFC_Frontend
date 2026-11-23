@@ -28,6 +28,11 @@ workflow checks it again before it builds.
   template with its page count: thin /teams/[id] (176), /tournaments/[slug] (166), /organizations/[slug] (13),
   /shop/[id] (9) and seven list pages; heavy /glossary, /partners/api, /rules and one news article.
 
+## v7.21.4 - 2026-11-22
+
+### Internal
+- KOL Awards preview (`/_kol_awards_preview.html`) takes the award names the owner set on 19 November (Creator of the Year, Breakthrough Creator of the Year, Educational Creator of the Year, Streamer of the Year, Best Voice Over Creator of the Year, Funniest Creator of the Year) and the pieces of the design slicing made for Garena: the award cards with the gold Africa icons, the nominee cards and vote buttons, the confirm and vote recorded popups, and the textured sheet between pages. The old award addresses (`#/c/best-editor` and the rest) still open their award. Same address.
+
 ## v7.21.2 - 2026-11-20
 
 ### Fixed
