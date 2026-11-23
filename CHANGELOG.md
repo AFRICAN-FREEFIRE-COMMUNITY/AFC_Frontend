@@ -19,7 +19,19 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
-## Unreleased
+## v7.22.0 - 2026-11-23
+
+### Added
+- AFC Capture 1.7.0 is the download on the site. It sends every game file of each map to the event's archive on
+  the website after the map's result (the replay, the safe zone log, the heat map, the markers custom rooms write,
+  and the debugger log every 30 minutes), and its dashboard has an Archive card with "Send old files" to send the
+  older files of the folder once. Only those files leave the PC; the account file and the name file never do.
+  Every Capture on 1.5.1 or newer updates itself on its next start. AFC inbox #603.
+
+### Fixed
+- A guest registration (a team with no AFC account, added from imported results) can be given a letter from its
+  row on Registered Teams. Its letter picker was always greyed out, and the server only looked a team up by its
+  AFC team. From the 18 Nov 2026 open list.
 
 ### Internal
 - The daily SEO live check counts thin and heavy pages per page TEMPLATE (an app route such as /teams/[id])
@@ -27,11 +39,6 @@ workflow checks it again before it builds.
   17 Nov) with no code change; a new thin or heavy template is what counts as new debt now. The run lists every
   template with its page count: thin /teams/[id] (176), /tournaments/[slug] (166), /organizations/[slug] (13),
   /shop/[id] (9) and seven list pages; heavy /glossary, /partners/api, /rules and one news article.
-
-### Fixed
-- A guest registration (a team with no AFC account, added from imported results) can be given a letter from its
-  row on Registered Teams. Its letter picker was always greyed out, and the server only looked a team up by its
-  AFC team. From the 18 Nov 2026 open list.
 
 ## v7.21.4 - 2026-11-22
 
