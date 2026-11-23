@@ -28,6 +28,11 @@ workflow checks it again before it builds.
   template with its page count: thin /teams/[id] (176), /tournaments/[slug] (166), /organizations/[slug] (13),
   /shop/[id] (9) and seven list pages; heavy /glossary, /partners/api, /rules and one news article.
 
+### Fixed
+- A guest registration (a team with no AFC account, added from imported results) can be given a letter from its
+  row on Registered Teams. Its letter picker was always greyed out, and the server only looked a team up by its
+  AFC team. From the 18 Nov 2026 open list.
+
 ## v7.21.4 - 2026-11-22
 
 ### Internal
