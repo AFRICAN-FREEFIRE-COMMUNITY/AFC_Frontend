@@ -1,6 +1,6 @@
 {
-  "_comment": "Ledgered counts of scripts/check-seo.mjs --live (R32): a count that RISES fails the run; --update-ledger writes a count that fell. Seeded 2026-10-16 from production before the Search Console fixes shipped.",
-  "HEAVY-HTML": 3,
-  "THIN-HTML": 363,
-  "updated": "2026-10-16"
+  "_comment": "Ledgered counts of scripts/check-seo.mjs --live (R32): a count that RISES fails the run; --update-ledger writes a count that fell. Seeded 2026-10-16 from production per ADDRESS (HEAVY-HTML 3, THIN-HTML 363); re-seeded 2026-11-21 per TEMPLATE, because the per-address count rose with every new team and event (363 to 372 thin, red daily from 17 Nov) with no code change. Templates on 2026-11-21: heavy /glossary, /partners/api, /rules, /news/[slug]; thin /teams/[id] (176 pages), /tournaments/[slug] (166), /organizations/[slug] (13), /shop/[id] (9), /home, /tournaments, /news, /awards, /shop, /leaderboards, /polls. That debt is real: those pages send almost no text until the browser runs; the fix is server-rendering their content.",
+  "HEAVY-HTML-TEMPLATES": 4,
+  "THIN-HTML-TEMPLATES": 11,
+  "updated": "2026-11-21"
 }

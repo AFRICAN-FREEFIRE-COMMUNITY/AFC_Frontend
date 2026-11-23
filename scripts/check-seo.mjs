@@ -299,6 +299,10 @@ export function staticRules(ROOT) {
 //   BROKEN-LINK         a same-site link in the served HTML answers 404
 //   LINK-REDIRECT       a same-site link in the served HTML answers a redirect ("Page with redirect")
 //   LEDGERED (scripts/seo-live-ledger.json: fail only when the count RISES, R32)
+//   (21 Nov 2026) both counted per page TEMPLATE (app route, e.g. /teams/[slug]), not per address:
+//   the per-address count rose every day the site grew (363 to 372 thin pages, red from 17 Nov) with no
+//   code change, so the alarm said nothing. A NEW thin or heavy template is new debt; one more team on an
+//   already-thin template is not. The page counts are still printed, and every template is listed.
 //   HEAVY-HTML          a page's HTML over HTML_BUDGET bytes (Core Web Vitals: LCP)
 //   THIN-HTML           a page whose served HTML holds under THIN_CHARS characters of its own text
 //                       ("Crawled / Discovered, currently not indexed", "Soft 404"): the entity
@@ -403,6 +407,30 @@ async function pool(items, size, fn) {
   return out;
 }
 
+// The app route an address belongs to: an exact static route first, else the route whose static segments match
+// and whose [param] segments take anything ("/teams/kopa-esports" -> "/teams/[slug]"). An address no route
+// matches is its own template.
+function templateOf(path, routes) {
+  const clean = path.replace(/\/+$/, "") || "/";
+  if (routes.includes(clean)) return clean;
+  const segs = clean.split("/").filter(Boolean);
+  let best = null, bestStatic = -1;
+  for (const r of routes) {
+    const rs = r.split("/").filter(Boolean);
+    const catchAll = rs.length && /^\[\.\.\./.test(rs[rs.length - 1]);
+    if (!catchAll && rs.length !== segs.length) continue;
+    if (catchAll && segs.length < rs.length - 1) continue;
+    let ok = true, statics = 0;
+    for (let i = 0; i < rs.length; i++) {
+      if (/^\[/.test(rs[i])) continue;
+      if (rs[i] !== segs[i]) { ok = false; break; }
+      statics++;
+    }
+    if (ok && statics > bestStatic) { best = r; bestStatic = statics; }
+  }
+  return best || clean;
+}
+
 async function live(origin, { updateLedger = false } = {}) {
   const apex = new URL(origin).host;
   const blocking = [];
@@ -448,6 +476,9 @@ async function live(origin, { updateLedger = false } = {}) {
   const links = new Map(); // path -> first page that links it
   let heavy = 0, thin = 0;
   const heavyEx = [], thinEx = [];
+  // Which app route each address belongs to (scan() reads them from app/), so the ledger counts templates.
+  const routeList = scan(process.cwd()).rows.map((r) => r.route);
+  const heavyT = new Map(), thinT = new Map();
   for (const { loc, res } of pages) {
     const u = new URL(loc);
     const decodedPath = (() => { try { return decodeURIComponent(u.pathname); } catch { return u.pathname; } })();
@@ -462,8 +493,9 @@ async function live(origin, { updateLedger = false } = {}) {
     // The site's own not-found page, not a team that happens to be called "SKILL NOT FOUND".
     if (/^404\b|page not found|could not be found/i.test(p.title) || /^(404|page not found)$/i.test(p.h1)) add("SOFT-404", `${loc} (title "${p.title}")`);
     if (p.title) titles.set(p.title, [...(titles.get(p.title) || []), loc]);
-    if (res.html.length > HTML_BUDGET) { heavy++; if (heavyEx.length < 3) heavyEx.push(`${loc} ${Math.round(res.html.length / 1024)} KB`); }
-    if (p.textChars < THIN_CHARS) { thin++; if (thinEx.length < 3) thinEx.push(`${loc} ${p.textChars} chars`); }
+    const tpl = templateOf(decodedPath, routeList);
+    if (res.html.length > HTML_BUDGET) { heavy++; heavyT.set(tpl, (heavyT.get(tpl) || 0) + 1); if (heavyEx.length < 3) heavyEx.push(`${loc} ${Math.round(res.html.length / 1024)} KB`); }
+    if (p.textChars < THIN_CHARS) { thin++; thinT.set(tpl, (thinT.get(tpl) || 0) + 1); if (thinEx.length < 3) thinEx.push(`${loc} ${p.textChars} chars`); }
     for (const img of [p.ogImage, ...p.ld.flatMap((n) => imagesIn(n))].filter(Boolean)) assets.add(img);
     for (const node of p.ld.flat()) {
       if (node && node["@type"] === "Product") {
@@ -497,7 +529,7 @@ async function live(origin, { updateLedger = false } = {}) {
   // ── ledger (R32): these two fail only when they rise ──
   const ledgerPath = join(process.cwd(), LEDGER);
   const ledger = existsSync(ledgerPath) ? JSON.parse(readFileSync(ledgerPath, "utf8")) : {};
-  const counts = { "HEAVY-HTML": heavy, "THIN-HTML": thin };
+  const counts = { "HEAVY-HTML-TEMPLATES": heavyT.size, "THIN-HTML-TEMPLATES": thinT.size };
   const rose = [];
   for (const [k, v] of Object.entries(counts)) {
     if (ledger[k] !== undefined && v > ledger[k]) rose.push(`${k} rose from ${ledger[k]} to ${v}`);
@@ -517,8 +549,9 @@ async function live(origin, { updateLedger = false } = {}) {
     for (const line of list.slice(0, 12)) console.log(`    ${line.slice(rule.length + 1)}`);
     if (list.length > 12) console.log(`    ... and ${list.length - 12} more`);
   }
-  console.log(`  ledger HEAVY-HTML ${heavy} (over ${HTML_BUDGET / 1024} KB)${heavyEx.length ? ": " + heavyEx.join(", ") : ""}`);
-  console.log(`  ledger THIN-HTML ${thin} (under ${THIN_CHARS} characters of their own in the served HTML)${thinEx.length ? ": " + thinEx.join(", ") : ""}`);
+  const listT = (m) => [...m].sort((a, b) => b[1] - a[1]).map(([t, n]) => `${t} (${n})`).join(", ");
+  console.log(`  ledger HEAVY-HTML-TEMPLATES ${heavyT.size} templates, ${heavy} pages (over ${HTML_BUDGET / 1024} KB)${heavyT.size ? ": " + listT(heavyT) : ""}${heavyEx.length ? "; e.g. " + heavyEx.join(", ") : ""}`);
+  console.log(`  ledger THIN-HTML-TEMPLATES ${thinT.size} templates, ${thin} pages (under ${THIN_CHARS} characters of their own in the served HTML)${thinT.size ? ": " + listT(thinT) : ""}${thinEx.length ? "; e.g. " + thinEx.join(", ") : ""}`);
   for (const r of rose) console.log(`  LEDGER-ROSE ${r}`);
   const failed = blocking.length + rose.length;
   console.log(failed ? `${blocking.length} blocking finding(s), ${rose.length} ledger rise(s)` : "Search Console mirror: clean");
@@ -561,6 +594,14 @@ async function lighthouse(origin) {
 }
 
 // ── the rules against a fixture tree: each must fire on its offender and stay quiet otherwise ──
+function templateSelfTest() {
+  const routes = ["/", "/teams/[slug]", "/teams/create", "/tournaments", "/tournaments/[slug]", "/players/[name]/stats"];
+  const cases = [["/teams/kopa-esports", "/teams/[slug]"], ["/teams/create", "/teams/create"], ["/", "/"],
+    ["/tournaments/", "/tournaments"], ["/players/ade/stats", "/players/[name]/stats"], ["/nowhere/x", "/nowhere/x"]];
+  const bad = cases.filter(([p, want]) => templateOf(p, routes) !== want).map(([p, want]) => `${p} -> ${templateOf(p, routes)} (want ${want})`);
+  return bad;
+}
+
 function selfTest() {
   const root = mkdtempSync(join(tmpdir(), "afc-check-seo-"));
   const put = (rel, text) => { mkdirSync(dirname(join(root, rel)), { recursive: true }); writeFileSync(join(root, rel), text); };
@@ -603,7 +644,11 @@ function selfTest() {
     "SITEMAP-RAW-NAME", "ROBOTS-BLOCKS-ASSET", "SEARCH-ACTION",
   ];
   const fired = want.map((w) => r.blocking.some((b) => b.startsWith(w)));
-  const ok = robotsOk && fired.every(Boolean) && r.blocking.length === want.length && r.noJsonLd.length === 1 && r.noJsonLd[0] === "/bare/[id]";
+  // The live ledger's address -> template mapping (21 Nov 2026), both ways: a dynamic address joins its route,
+  // a static one keeps its own, an unknown one is its own template.
+  const templateBad = templateSelfTest();
+  for (const b of templateBad) console.log("  TEMPLATE " + b);
+  const ok = robotsOk && fired.every(Boolean) && r.blocking.length === want.length && r.noJsonLd.length === 1 && r.noJsonLd[0] === "/bare/[id]" && templateBad.length === 0;
   console.log(`self-test: ${ok ? "OK" : "FAILED"} (${r.blocking.length} blocking of ${want.length} expected, ${r.noJsonLd.length} entity without JSON-LD of 1 expected)`);
   if (!ok) {
     want.forEach((w, i) => { if (!fired[i]) console.log("  DID NOT FIRE: " + w); });
