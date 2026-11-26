@@ -1,6 +1,6 @@
 {
   "signup-discord": {
-    "rendered": "2026-11-18",
+    "rendered": "2026-11-26",
     "langs": [
       "en",
       "fr",
@@ -15,7 +15,7 @@
       "app/(onboarding)/email-confirmation/_components/ConfirmationForm.tsx": "50343aaea550e0fd",
       "app/(onboarding)/email-confirmation/page.tsx": "5a681ba8dc7168cb",
       "app/(onboarding)/onboarding/page.tsx": "6a174c178c1f570e",
-      "app/(user)/_components/ProtectedRoute.tsx": "a327e1c491657806",
+      "app/(user)/_components/ProtectedRoute.tsx": "6532a990bb8d358c",
       "app/(user)/profile/_components/ConnectedAccounts.tsx": "1fed385eabec6a15",
       "app/(user)/profile/_components/ConnectedApps.tsx": "e725f36a881d8686",
       "app/(user)/profile/_components/MyPlayerReports.tsx": "94ca80c8bad1c69d",
@@ -39,7 +39,7 @@
       "components/auth/DiscordSignInButton.tsx": "1c55586021ce1f6b",
       "components/auth/GoogleSignInButton.tsx": "f94d3a527ed44682",
       "components/auth/VentSignInButton.tsx": "799613a9d97d2cfd",
-      "components/nav-main.tsx": "9adb41b151202b8e",
+      "components/nav-main.tsx": "4389f310318b60d9",
       "components/qr/qrDownload.ts": "e76653385dcd33be",
       "components/referrals/PrizeLabel.tsx": "fd0c84672a9fb0bd",
       "components/referrals/ReferralsTab.tsx": "15e7699c9d30ec5d",
@@ -67,7 +67,7 @@
       "components/ui/tabs.tsx": "b51edb2cd0659d54",
       "components/ui/tooltip.tsx": "cbc12f4086448f8a",
       "constants/index.ts": "4ad824fb21890ba5",
-      "constants/nav-links.ts": "8a70cd053c98ff2c",
+      "constants/nav-links.ts": "8ef2aaaf112b5289",
       "contexts/AuthContext.tsx": "43c5c11fa5666406",
       "contexts/CurrencyContext.tsx": "845c07386574c81a",
       "hooks/use-mobile.ts": "ad0936f84f1df79d",
@@ -75,7 +75,7 @@
       "howto/clips/signup-discord.mjs": "eb6e801ad2781099",
       "howto/lib/overlay.mjs": "0e2ef17b4c1500b3",
       "howto/render.mjs": "5315bd9136d3f266",
-      "lib/adminRoles.ts": "110e37c81cf0c47e",
+      "lib/adminRoles.ts": "6adb56e6ca06ed6d",
       "lib/api/support.ts": "cc0dbbfaa9133921",
       "lib/authToken.ts": "8e0f82c5590da14f",
       "lib/center-in-strip.ts": "05476f1af70f2f1e",
@@ -161,7 +161,7 @@
     }
   },
   "team-invite": {
-    "rendered": "2026-11-18",
+    "rendered": "2026-11-26",
     "langs": [
       "en",
       "fr",
@@ -176,7 +176,7 @@
       "app/(user)/_components/Header.tsx": "5f1018670c370660",
       "app/(user)/_components/MobileNavbar.tsx": "a52b69e3c9d97882",
       "app/(user)/_components/NotificationDropdown.tsx": "51137385d4a8e491",
-      "app/(user)/_components/ProtectedRoute.tsx": "a327e1c491657806",
+      "app/(user)/_components/ProtectedRoute.tsx": "6532a990bb8d358c",
       "app/(user)/_components/ReviewApplicationDialog.tsx": "4aff1fcc5155724c",
       "app/(user)/_components/WelcomeTour.tsx": "a0f4afa6de9909b4",
       "app/(user)/_components/guided-tour-stops.ts": "333507b973d2220b",
@@ -209,7 +209,7 @@
       "components/auth/GoogleSignInButton.tsx": "f94d3a527ed44682",
       "components/feedback/FeedbackDialog.tsx": "18264403ee548a10",
       "components/feedback/FeedbackLauncher.tsx": "7205d33786390ea9",
-      "components/nav-main.tsx": "9adb41b151202b8e",
+      "components/nav-main.tsx": "4389f310318b60d9",
       "components/player/ReportDialog.tsx": "b0e10a1f008039b1",
       "components/profile/FanHater.tsx": "c0437da135852bb2",
       "components/qr/QrShareButton.tsx": "333d73b7e0618721",
@@ -250,7 +250,7 @@
       "components/ui/tooltip.tsx": "cbc12f4086448f8a",
       "components/ui/user-search-select.tsx": "d57871c634b14097",
       "constants/index.ts": "4ad824fb21890ba5",
-      "constants/nav-links.ts": "8a70cd053c98ff2c",
+      "constants/nav-links.ts": "8ef2aaaf112b5289",
       "contexts/AuthContext.tsx": "43c5c11fa5666406",
       "contexts/CartContext.tsx": "54d6133734255dff",
       "contexts/CurrencyContext.tsx": "845c07386574c81a",
@@ -262,7 +262,7 @@
       "howto/clips/team-invite.mjs": "a174bde7b5d6ae10",
       "howto/lib/overlay.mjs": "0e2ef17b4c1500b3",
       "howto/render.mjs": "5315bd9136d3f266",
-      "lib/adminRoles.ts": "110e37c81cf0c47e",
+      "lib/adminRoles.ts": "6adb56e6ca06ed6d",
       "lib/api/support.ts": "cc0dbbfaa9133921",
       "lib/authToken.ts": "8e0f82c5590da14f",
       "lib/center-in-strip.ts": "05476f1af70f2f1e",
@@ -364,7 +364,7 @@
     }
   },
   "register-tournament": {
-    "rendered": "2026-11-18",
+    "rendered": "2026-11-26",
     "langs": [
       "en",
       "fr",
@@ -448,7 +448,7 @@
       "howto/clips/register-tournament.mjs": "5ae648edeb8fce37",
       "howto/lib/overlay.mjs": "0e2ef17b4c1500b3",
       "howto/render.mjs": "5315bd9136d3f266",
-      "lib/adminRoles.ts": "110e37c81cf0c47e",
+      "lib/adminRoles.ts": "6adb56e6ca06ed6d",
       "lib/api/eventPayments.ts": "475571ef93eac08d",
       "lib/api/support.ts": "cc0dbbfaa9133921",
       "lib/authToken.ts": "8e0f82c5590da14f",
@@ -550,7 +550,7 @@
     }
   },
   "organizer-results": {
-    "rendered": "2026-11-18",
+    "rendered": "2026-11-26",
     "langs": [
       "en",
       "fr",
@@ -630,7 +630,7 @@
       "howto/lib/overlay.mjs": "0e2ef17b4c1500b3",
       "howto/render.mjs": "5315bd9136d3f266",
       "lib/addressRef.ts": "f399a0ccc6e53c2e",
-      "lib/adminRoles.ts": "110e37c81cf0c47e",
+      "lib/adminRoles.ts": "6adb56e6ca06ed6d",
       "lib/api/events.ts": "92556b9e46a28b1e",
       "lib/api/ocr.ts": "d1aa8143a5976bef",
       "lib/api/ocrKeyGate.ts": "72954ff49e30baf8",

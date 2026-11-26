@@ -13,6 +13,9 @@
  * No AFC branding inside the content (owner, 1 Nov 2026: the KOL Awards are Garena's); the site's
  * own header and footer stay. Country names come from the browser in the viewer's language
  * (lib/i18n/countryName.ts); times through LocalTime.
+ *
+ * The KOL creators' nomination round (#641) comes first when the edition has one (NominationsLive.tsx): the
+ * same response carries it as `nominations`, so the same minute refresh keeps it current.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
@@ -24,6 +27,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { countryName } from "@/lib/i18n/countryName";
 import { formatNumber } from "@/lib/i18n/number";
 import { pollsApi, type LiveBucket, type LiveView as LiveViewData } from "@/lib/polls";
+
+import { NominationsLive } from "./NominationsLive";
 
 const REFRESH_MS = 60_000;
 const TOP_PLACES = 3;
@@ -98,6 +103,8 @@ export function LiveView({ token }: { token: string }) {
         {state === "error" && <p className="text-xs text-destructive">{t("error")}</p>}
       </header>
 
+      {data?.nominations && <NominationsLive data={data.nominations} />}
+
       {data?.polls.map((poll) => (
         <section key={poll.title} className="space-y-3">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -157,12 +164,15 @@ export function LiveView({ token }: { token: string }) {
         </section>
       ))}
 
-      <p className="text-xs text-muted-foreground">
-        {t("placesNote")}{" "}
-        <a href="https://db-ip.com" target="_blank" rel="noopener noreferrer" className="underline">
-          {t("attribution")}
-        </a>
-      </p>
+      {/* About the public vote's places only, so not shown while the page holds just the nominations */}
+      {!!data?.polls.length && (
+        <p className="text-xs text-muted-foreground">
+          {t("placesNote")}{" "}
+          <a href="https://db-ip.com" target="_blank" rel="noopener noreferrer" className="underline">
+            {t("attribution")}
+          </a>
+        </p>
+      )}
     </div>
   );
 }

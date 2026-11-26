@@ -393,7 +393,7 @@
     "saveDates": "Enregistrer les dates",
     "roundSaved": "Sélection enregistrée",
     "makeCodes": "Créer les codes manquants",
-    "codesNote": "Les codes n'apparaissent que dans le fichier téléchargé : le site n'en garde aucune copie lisible. Gardez le fichier privé et envoyez à chaque créateur sa propre ligne.",
+    "codesNote": "Le fichier téléchargé contient chaque nouveau code avec son message prêt à envoyer. Gardez-le privé et envoyez à chaque créateur sa propre ligne. Un code peut aussi être recopié plus bas (Copier le code, Copier le message).",
     "codesMade": "{n, plural, one {# code se trouve dans le fichier téléchargé.} other {# codes se trouvent dans le fichier téléchargé.}}",
     "noneToMake": "Chaque créateur a déjà un code.",
     "statCreators": "Créateurs dans la sélection",
@@ -423,7 +423,7 @@
     "picks": "{n, plural, one {# choix} other {# choix}}",
     "failed": "Cela n'a pas fonctionné. Réessayez.",
     "errors": {
-      "kol_admin_only": "Seuls les administrateurs des sondages AFC peuvent gérer les nominations.",
+      "kol_admin_only": "Seuls les administrateurs des sondages AFC et les administrateurs KOL peuvent gérer les nominations.",
       "kol_bad_dates": "Vérifiez les dates : les nominations doivent se fermer après leur ouverture.",
       "kol_round_missing": "Configurez d'abord la sélection.",
       "kol_creator_not_found": "Ce créateur ne fait pas partie de cette édition.",
@@ -466,6 +466,9 @@
     "spareUnused": "Pas encore utilisé",
     "revoke": "Révoquer",
     "confirmRevoke": "Appuyez encore : le code s'arrête",
-    "revoked": "Code révoqué"
+    "revoked": "Code révoqué",
+    "pageTitle": "Nominations des KOL Awards",
+    "pageSubtitle": "La sélection des créateurs KOL : codes, codes de réserve, choix à ce jour et lien en direct de Garena.",
+    "liveIntro": "Une page privée avec les choix à ce jour dans chaque prix (et plus tard le vote du public), sans aucun nom de votant. Toute personne qui a le lien peut l'ouvrir sans se connecter : partagez-le seulement avec l'équipe de Garena."
   }
 }

@@ -19,7 +19,12 @@
 // shadcn Table, a create Dialog, tabs as pill segments. Route protection comes from
 // app/(a)/a/layout.tsx, which wraps every admin route in <ProtectedRoute adminOnly>.
 //
-// TALKS TO lib/polls.ts -> backend afc_polls/views.py (admin_polls, admin_editions).
+// KOL ADMINS (#641, owner 26 Nov 2026): Garena's KOL staff hold the partner role kol_admin and nothing else. They see
+// the KOL nominations alone (no Polls, Editions or Metrics tab, whose addresses refuse them), with the editions that
+// have a round (GET polls/admin/kol-nominations/) instead of the full editions list.
+//
+// TALKS TO lib/polls.ts -> backend afc_polls/views.py (admin_polls, admin_editions), and lib/kolNominations.ts
+// (kolNominationsAdminApi.editions) for a KOL admin.
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -57,19 +62,34 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { pollsApi, type AwardsEdition, type PollCard } from "@/lib/polls";
+import { isPartnerOnlyUser } from "@/lib/adminRoles";
+import { GARENA_ACCESS_SINCE, kolNominationsAdminApi, type NominationEdition } from "@/lib/kolNominations";
 import { AwardsMetrics } from "./_components/AwardsMetrics";
 import { KolNominationsAdmin } from "./_components/KolNominationsAdmin";
 
 export default function AdminPollsPage() {
   const t = useTranslations("adminPolls");
   const router = useRouter();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  // Garena's KOL staff (#641): the nominations alone
+  const kolOnly = isPartnerOnlyUser(user);
 
   const [polls, setPolls] = useState<PollCard[]>([]);
   const [editions, setEditions] = useState<AwardsEdition[]>([]);
+  const [kolEditions, setKolEditions] = useState<NominationEdition[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    if (kolOnly) {
+      try {
+        setKolEditions((await kolNominationsAdminApi.editions()).results || []);
+      } catch (error: any) {
+        toast.error(error?.response?.data?.message || t("loadFailed"));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     try {
       const [pollData, editionData] = await Promise.all([
         pollsApi.adminList({ limit: 100 }),
@@ -84,13 +104,32 @@ export default function AdminPollsPage() {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, kolOnly]);
 
   useEffect(() => {
     load();
   }, [load]);
 
   if (loading) return <FullLoader />;
+
+  if (kolOnly) {
+    return (
+      <div className="py-8">
+        <PageHeader
+          title={
+            <span className="flex items-center gap-2">
+              {t("kolNom.pageTitle")}
+              <NewBadge since={GARENA_ACCESS_SINCE} />
+            </span>
+          }
+          description={t("kolNom.pageSubtitle")}
+        />
+        <div className="mt-6">
+          <KolNominationsAdmin editions={kolEditions} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-8">

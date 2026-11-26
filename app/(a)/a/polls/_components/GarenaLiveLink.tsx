@@ -13,7 +13,10 @@
  *
  * TALKS TO lib/polls.ts adminCreateLiveLink + adminTurnOffLiveLink, which hit afc_polls/views.py
  * admin_edition_live_link. The current token arrives with the edition's metrics
- * (admin_edition_metrics `live_view_token`). Mounted by AwardsMetrics.tsx SeasonBallots.
+ * (admin_edition_metrics `live_view_token`). Mounted by AwardsMetrics.tsx SeasonBallots, and by
+ * KolNominationsAdmin.tsx (#641: the same link, whose page now also shows the creators' nomination round; the
+ * token arrives with the round, NominationAdmin.edition.live_view_token). `intro` and `newSince` let that mount
+ * say what the page shows there and carry its own NEW date.
  */
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -34,7 +37,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { pollsApi, VOTE_TRACKING_LIVE_SINCE } from "@/lib/polls";
 
-export function GarenaLiveLink({ editionSlug, initialToken }: { editionSlug: string; initialToken: string }) {
+export function GarenaLiveLink({
+  editionSlug,
+  initialToken,
+  intro,
+  newSince = VOTE_TRACKING_LIVE_SINCE,
+}: {
+  editionSlug: string;
+  initialToken: string;
+  intro?: string;
+  newSince?: string;
+}) {
   const t = useTranslations("adminPolls");
   const [token, setToken] = useState(initialToken || "");
   const [busy, setBusy] = useState(false);
@@ -74,9 +87,9 @@ export function GarenaLiveLink({ editionSlug, initialToken }: { editionSlug: str
       <CardContent className="space-y-3">
         <h3 className="flex items-center gap-2 text-base font-semibold text-foreground">
           {t("live.title")}
-          <NewBadge since={VOTE_TRACKING_LIVE_SINCE} />
+          <NewBadge since={newSince} />
         </h3>
-        <p className="text-xs text-muted-foreground">{t("live.intro")}</p>
+        <p className="text-xs text-muted-foreground">{intro ?? t("live.intro")}</p>
         {token ? (
           <>
             <p className="break-all rounded-md bg-muted/40 p-3 font-mono text-xs text-foreground">{address}</p>

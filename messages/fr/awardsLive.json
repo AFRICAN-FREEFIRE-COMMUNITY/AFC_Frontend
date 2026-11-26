@@ -20,5 +20,26 @@
   "notFound": "Ce lien n'est pas actif. Demandez-en un nouveau aux organisateurs.",
   "error": "Les votes n'ont pas pu être mis à jour. Nouvel essai dans une minute.",
   "placesNote": "Les pays et régions viennent de la connexion de chaque votant au moment du vote. Les lieux de moins de 5 votes sont regroupés dans Autres.",
-  "attribution": "Données de localisation : DB-IP"
+  "attribution": "Données de localisation : DB-IP",
+  "nom": {
+    "title": "Nominations des créateurs",
+    "note": "Choix par créateur dans chaque prix. Chaque créateur de la liste KOL choisit jusqu'à 6 personnes par prix ; qui a choisi qui n'est jamais affiché.",
+    "ballots": "{count, plural, one {# créateur sur {voters} a nominé} other {# créateurs sur {voters} ont nominé}}",
+    "picks": "{count, plural, one {# choix} other {# choix}}",
+    "state": {
+      "not_open": "Pas encore ouverte",
+      "open": "Ouverte",
+      "closed": "Close"
+    },
+    "opens": "Ouverture :",
+    "closes": "Clôture :",
+    "closed": "Close le",
+    "col": {
+      "rank": "Rang",
+      "creator": "Créateur",
+      "picks": "Choix"
+    },
+    "writeIn": "Ajouté par un créateur",
+    "noPicks": "Aucun choix pour l'instant."
+  }
 }

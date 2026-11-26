@@ -19,6 +19,13 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.25.0 - 2026-11-26
+
+### Added
+- Admin, KOL nominations: Garena's KOL staff can now have their own access. Give them the new KOL Admin role in Settings (it wears a NEW tag there); they open the admin panel straight on the KOL nominations (codes, spare codes, copying, picks so far, the live link) and see nothing else of the panel.
+- Admin, Nominations tab: Garena's private live link (create, copy, open, replace, turn off), the same link as on the Metrics tab.
+- Garena's private live page now shows the creators' nomination round: picks per creator in every award (with each award's explanation), how many creators have nominated, the round's dates. Counts only, no voter names.
+
 ## v7.24.0 - 2026-11-26
 
 ### Added

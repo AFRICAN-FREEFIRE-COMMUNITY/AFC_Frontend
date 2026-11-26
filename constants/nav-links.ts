@@ -314,7 +314,8 @@ export const adminNavSections: AdminNavSection[] = [
         ],
       },
       // Polls replaced Votes (/a/votes redirects here); award ballots are a preset of a poll.
-      { label: "Polls", navKey: "polls", slug: "/a/polls", icon: Award, allowedRoles: ["head_admin"] },
+      // kol_admin (#641): Garena's KOL staff, who see only the KOL nominations on this page (app/(a)/a/polls/page.tsx).
+      { label: "Polls", navKey: "polls", slug: "/a/polls", icon: Award, allowedRoles: ["head_admin", "kol_admin"] },
       // Every broadcast organizers and admins send (is_broadcast_admin on the backend).
       {
         label: "Broadcasts",

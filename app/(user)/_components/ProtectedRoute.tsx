@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { FullLoader } from "@/components/Loader";
 import { adminNavLinks } from "@/constants/nav-links";
 import { useAdminHome } from "@/components/nav-main";
+import { isPartnerOnlyUser, partnerMayOpen } from "@/lib/adminRoles";
 
 // "The admin dashboard" addresses: refused ones send the person to the first page their menu
 // offers (useAdminHome) instead of /unauthorized (inbox #58).
@@ -59,6 +60,10 @@ export function ProtectedRoute({
     const currentConfig = adminNavLinks
       .filter((link) => pathname === link.slug || pathname.startsWith(`${link.slug}/`))
       .sort((a, b) => b.slug.length - a.slug.length)[0];
+
+    // A partner's staff (Garena's kol_admin, #641) open only the pages that name their role. Never the default
+    // "true" below: an admin page with no roles is open to AFC admins, and a partner is not one.
+    if (isPartnerOnlyUser(user)) return partnerMayOpen(user, currentConfig?.allowedRoles);
 
     // If we found a config for this route and it has restricted roles
     if (currentConfig?.allowedRoles) {

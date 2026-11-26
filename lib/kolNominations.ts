@@ -1,6 +1,7 @@
 import axios from "axios";
 import { env } from "@/lib/env";
 import { authHeaders } from "@/lib/http";
+import type { AwardsEdition } from "@/lib/polls";
 
 /**
  * lib/kolNominations.ts - the KOL creators' nomination round (AFC inbox #633 / #634).
@@ -143,8 +144,16 @@ export type NominationAdminCreator = {
   last_used_at: string | null;
 };
 
+// The day Garena's access went live (#641): the KOL Admin role and the round on Garena's live page. Drives the NEW
+// badges on the KOL-only /a/polls, the Nominations tab's live link card, the role in Settings and the live page.
+export const GARENA_ACCESS_SINCE = "2026-11-26";
+
+/** One edition that has a nomination round (GET polls/admin/kol-nominations/, #641). */
+export type NominationEdition = Pick<AwardsEdition, "slug" | "title" | "theme"> & { hidden: boolean };
+
 export type NominationAdmin = {
-  edition: { slug: string; title: string; hidden: boolean };
+  // live_view_token: Garena's private live link of this edition, "" when off (#641)
+  edition: { slug: string; title: string; hidden: boolean; live_view_token: string };
   round: {
     state: NominationState;
     opens_at: string | null;
@@ -168,6 +177,10 @@ export type NominationCodeCopy = { code: string; link: string; message: string; 
 const admin = (edition: string, rest = "") => `${BASE}/admin/kol-nominations/${encodeURIComponent(edition)}/${rest}`;
 
 export const kolNominationsAdminApi = {
+  // GET polls/admin/kol-nominations/: the editions that have a round, the edition picker of a KOL admin (#641),
+  // who is refused the full editions list. AFC-B afc_polls/kol_nominations.py admin_editions.
+  editions: async () =>
+    (await axios.get<{ results: NominationEdition[] }>(`${BASE}/admin/kol-nominations/`, { headers: authHeaders() })).data,
   // GET polls/admin/kol-nominations/<edition>/
   get: async (edition: string) => (await axios.get<NominationAdmin>(admin(edition), { headers: authHeaders() })).data,
   // POST polls/admin/kol-nominations/<edition>/ {opens_at, closes_at}: set the round up (idempotent).

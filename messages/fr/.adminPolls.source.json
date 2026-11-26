@@ -314,7 +314,7 @@
   "kolNom.saveDates": "Save the dates",
   "kolNom.roundSaved": "Round saved",
   "kolNom.makeCodes": "Make codes for everyone without one",
-  "kolNom.codesNote": "Codes appear only in the downloaded file: the site keeps no readable copy. Keep the file private and send each creator their own line.",
+  "kolNom.codesNote": "The downloaded file holds every new code with its ready message. Keep it private and send each creator their own line. A code can also be copied again below (Copy code, Copy message).",
   "kolNom.codesMade": "{n, plural, one {# code is in the downloaded file.} other {# codes are in the downloaded file.}}",
   "kolNom.noneToMake": "Every creator already has a code.",
   "kolNom.statCreators": "Creators in the round",
@@ -343,7 +343,7 @@
   "kolNom.noPicks": "No picks yet.",
   "kolNom.picks": "{n, plural, one {# pick} other {# picks}}",
   "kolNom.failed": "That did not work. Try again.",
-  "kolNom.errors.kol_admin_only": "Only AFC poll admins can run the nominations.",
+  "kolNom.errors.kol_admin_only": "Only AFC poll admins and KOL admins can run the nominations.",
   "kolNom.errors.kol_bad_dates": "Check the dates: nominations must close after they open.",
   "kolNom.errors.kol_round_missing": "Set the round up first.",
   "kolNom.errors.kol_creator_not_found": "That creator is not in this edition.",
@@ -385,5 +385,8 @@
   "kolNom.revoked": "Code revoked",
   "kolNom.errors.kol_bad_spare_count": "Make between 1 and 50 spare codes at a time.",
   "kolNom.errors.kol_code_not_found": "That code no longer exists.",
-  "kolNom.errors.kol_code_unreadable": "This code was made before codes could be copied. Give the creator a new code to copy it."
+  "kolNom.errors.kol_code_unreadable": "This code was made before codes could be copied. Give the creator a new code to copy it.",
+  "kolNom.pageTitle": "KOL Awards nominations",
+  "kolNom.pageSubtitle": "The KOL creators' nomination round: codes, spare codes, the picks so far and Garena's live link.",
+  "kolNom.liveIntro": "A private page with the picks so far in every award (and later the public vote), with no voter names. Anyone with the link can open it without signing in, so share it only with Garena's team."
 }

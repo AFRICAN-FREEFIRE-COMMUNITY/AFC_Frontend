@@ -340,9 +340,27 @@ export type FlagsPage = {
 export type LiveBucket = { code?: string; country?: string; region?: string; votes: number; other?: boolean };
 
 /** Garena's live view (afc_polls.views.live_view). Counts only: no voter data, no flags. */
+// The KOL creators' nomination round on Garena's live page (#641, AFC-B afc_polls/kol_nominations.py live_block):
+// picks per candidate per award, counts only. Drawn by app/(user)/awards/live/[token]/LiveView.tsx.
+export type LiveNominations = {
+  state: "not_open" | "open" | "closed";
+  opens_at: string | null;
+  closes_at: string | null;
+  ballots: number;
+  voters: number;
+  awards: {
+    key: string;
+    name: string;
+    total_picks: number;
+    candidates: { name: string; handle: string; country: string; write_in: boolean; picks: number }[];
+  }[];
+};
+
 export type LiveView = {
   edition: { title: string; phase: string; voting_opens_at: string | null; voting_closes_at: string | null };
   updated_at: string;
+  // null when the edition has no nomination round
+  nominations: LiveNominations | null;
   polls: {
     title: string;
     ballots: number;
