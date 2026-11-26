@@ -431,7 +431,10 @@
       "kol_bad_creator_ids": "Ces créateurs n'ont pas pu être lus.",
       "awards_edition_not_found": "Cette édition n'existe plus.",
       "kol_merge_not_write_in": "Seule une personne ajoutée par un créateur peut être fusionnée.",
-      "kol_bad_merge": "Choisissez une autre personne de la sélection avec qui fusionner."
+      "kol_bad_merge": "Choisissez une autre personne de la sélection avec qui fusionner.",
+      "kol_bad_spare_count": "Créez entre 1 et 50 codes de réserve à la fois.",
+      "kol_code_not_found": "Ce code n'existe plus.",
+      "kol_code_unreadable": "Ce code a été créé avant que la copie soit possible. Donnez un nouveau code au créateur pour le copier."
     },
     "statWriteIns": "Ajoutés par les créateurs",
     "writeIn": "Ajouté par un créateur",
@@ -442,6 +445,27 @@
     "mergeLabel": "Fusionner {name} avec une autre personne",
     "merge": "Fusionner",
     "confirmMerge": "Appuyez encore : ses choix sont déplacés",
-    "merged": "{name} fusionné avec {target} ; ses choix ont été déplacés"
+    "merged": "{name} fusionné avec {target} ; ses choix ont été déplacés",
+    "copyCode": "Copier le code",
+    "copyMessage": "Copier le message",
+    "copied": "Copié",
+    "copyFailed": "Copie impossible. Réessayez.",
+    "spareTitle": "Codes de réserve",
+    "spareNote": "Des codes liés à personne, pour les créateurs trouvés après la liste. La première personne qui en ouvre un donne son nom et son @pseudo TikTok et devient un créateur de la sélection. Envoyez chaque code à une seule personne.",
+    "spareCount": "Combien",
+    "makeSpare": "Créer des codes de réserve",
+    "spareLang": "Langue du message",
+    "langEn": "Anglais",
+    "langFr": "Français",
+    "langPt": "Portugais",
+    "spareNone": "Aucun code de réserve pour l'instant.",
+    "colSpare": "Code de réserve",
+    "colMade": "Créé",
+    "colUsedBy": "Utilisé par",
+    "spareNumber": "Réserve {n}",
+    "spareUnused": "Pas encore utilisé",
+    "revoke": "Révoquer",
+    "confirmRevoke": "Appuyez encore : le code s'arrête",
+    "revoked": "Code révoqué"
   }
 }

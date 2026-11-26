@@ -431,7 +431,10 @@
       "kol_bad_creator_ids": "Não foi possível ler esses criadores.",
       "awards_edition_not_found": "Essa edição já não existe.",
       "kol_merge_not_write_in": "Só uma pessoa acrescentada por um criador pode ser fundida.",
-      "kol_bad_merge": "Escolha outra pessoa da ronda com quem fundir."
+      "kol_bad_merge": "Escolha outra pessoa da ronda com quem fundir.",
+      "kol_bad_spare_count": "Crie entre 1 e 50 códigos de reserva de cada vez.",
+      "kol_code_not_found": "Esse código já não existe.",
+      "kol_code_unreadable": "Este código foi criado antes de ser possível copiar. Dê um código novo ao criador para o copiar."
     },
     "statWriteIns": "Acrescentados pelos criadores",
     "writeIn": "Acrescentado por um criador",
@@ -442,6 +445,27 @@
     "mergeLabel": "Fundir {name} com outra pessoa",
     "merge": "Fundir",
     "confirmMerge": "Carregue de novo: as escolhas passam para lá",
-    "merged": "{name} fundido com {target}; as escolhas foram transferidas"
+    "merged": "{name} fundido com {target}; as escolhas foram transferidas",
+    "copyCode": "Copiar código",
+    "copyMessage": "Copiar mensagem",
+    "copied": "Copiado",
+    "copyFailed": "Não foi possível copiar. Tente de novo.",
+    "spareTitle": "Códigos de reserva",
+    "spareNote": "Códigos sem ninguém associado, para criadores encontrados depois da lista. A primeira pessoa que abrir um dá o nome e o @utilizador do TikTok e passa a ser um criador da ronda. Envie cada código a uma só pessoa.",
+    "spareCount": "Quantos",
+    "makeSpare": "Criar códigos de reserva",
+    "spareLang": "Língua da mensagem",
+    "langEn": "Inglês",
+    "langFr": "Francês",
+    "langPt": "Português",
+    "spareNone": "Ainda não há códigos de reserva.",
+    "colSpare": "Código de reserva",
+    "colMade": "Criado",
+    "colUsedBy": "Usado por",
+    "spareNumber": "Reserva {n}",
+    "spareUnused": "Ainda não usado",
+    "revoke": "Revogar",
+    "confirmRevoke": "Carregue de novo: o código deixa de funcionar",
+    "revoked": "Código revogado"
   }
 }

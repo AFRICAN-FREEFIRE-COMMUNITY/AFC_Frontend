@@ -418,7 +418,11 @@
       "kol_bad_handle": "Escreva o @utilizador do TikTok (só letras, números, _ e .) ou cole a ligação do perfil.",
       "kol_handle_unavailable": "Essa pessoa não pode ser nomeada nesta ronda.",
       "kol_write_in_too_fast": "Está a acrescentar depressa demais. Aguarde um momento.",
-      "kol_write_ins_too_many": "Já acrescentou o máximo de pessoas novas que um criador pode acrescentar."
+      "kol_write_ins_too_many": "Já acrescentou o máximo de pessoas novas que um criador pode acrescentar.",
+      "kol_claim_needed": "Diga-nos primeiro quem é.",
+      "kol_claim_listed": "Esse criador já está na lista. Peça o seu próprio código pessoal.",
+      "kol_already_claimed": "Este código já pertence a um criador. Introduza-o de novo para abrir o boletim.",
+      "kol_claim_too_fast": "Demasiadas tentativas. Aguarde um momento."
     },
     "you": "Você",
     "handleAdded": "@{handle}, acrescentado por um criador",
@@ -433,6 +437,23 @@
       "cancel": "Cancelar",
       "help": "Quem acrescentar aparece na lista de todos os criadores, sem o seu nome.",
       "already": "{name} já está nas suas escolhas para este prémio."
+    },
+    "awardHelp": {
+      "creator": "O criador cujos vídeos mais se destacaram em 2026: conteúdo forte, publicações regulares e uma grande comunidade envolvida.",
+      "breakthrough": "O criador que mais cresceu este ano: um canal mais recente ou mais pequeno que se destacou em 2026.",
+      "educational": "O criador que melhor ensina: dicas, definições, guias e tutoriais que ajudam os jogadores a melhorar.",
+      "streamer": "O melhor streamer em direto: grandes transmissões, um chat animado e uma comunidade que volta sempre.",
+      "voice": "A melhor voz off: comentários, narração ou histórias em que a voz faz o vídeo.",
+      "funniest": "O criador que mais faz rir: comédia, sketches e momentos que os fãs não param de partilhar."
+    },
+    "claim": {
+      "title": "Diga-nos quem é",
+      "body": "Este código ainda não está ligado a ninguém. Diga uma vez quem é e passa a ser o seu código pessoal.",
+      "name": "O seu nome",
+      "handle": "O seu @utilizador do TikTok ou a ligação do perfil",
+      "country": "O seu país",
+      "go": "Abrir o meu boletim",
+      "going": "A abrir"
     }
   }
 }

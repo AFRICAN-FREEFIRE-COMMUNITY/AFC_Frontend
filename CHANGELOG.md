@@ -19,6 +19,12 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- KOL nominations ballot: every award now says what it means, in English, French and Portuguese. A spare code (one not yet linked to anybody) asks once for a name, TikTok @handle and country, then opens that creator's ballot.
+- Polls admin, Nominations tab: "Copy code" and "Copy message" for each creator; spare codes (make 1 to 50, copy each with its message in English, French or Portuguese, see who used it, revoke one); each award's explanation under "Picks so far".
+
 ## v7.23.0 - 2026-11-26
 
 ### Added
