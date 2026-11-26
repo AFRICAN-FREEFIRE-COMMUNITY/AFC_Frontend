@@ -431,7 +431,10 @@
       "kol_bad_creator_ids": "Those creators could not be read.",
       "awards_edition_not_found": "That edition no longer exists.",
       "kol_merge_not_write_in": "Only a person added by a creator can be merged.",
-      "kol_bad_merge": "Choose another person in this round to merge into."
+      "kol_bad_merge": "Choose another person in this round to merge into.",
+      "kol_bad_spare_count": "Make between 1 and 50 spare codes at a time.",
+      "kol_code_not_found": "That code no longer exists.",
+      "kol_code_unreadable": "This code was made before codes could be copied. Give the creator a new code to copy it."
     },
     "statWriteIns": "Added by creators",
     "writeIn": "Added by a creator",
@@ -442,6 +445,27 @@
     "mergeLabel": "Merge {name} into another person",
     "merge": "Merge",
     "confirmMerge": "Press again: their picks move",
-    "merged": "{name} merged into {target}; their picks moved"
+    "merged": "{name} merged into {target}; their picks moved",
+    "copyCode": "Copy code",
+    "copyMessage": "Copy message",
+    "copied": "Copied",
+    "copyFailed": "Could not copy. Try again.",
+    "spareTitle": "Spare codes",
+    "spareNote": "Codes with nobody behind them, for creators found after the list was made. The first person to open one gives their name and TikTok @handle and becomes a creator in the round. Send each one to one person.",
+    "spareCount": "How many",
+    "makeSpare": "Make spare codes",
+    "spareLang": "Message language",
+    "langEn": "English",
+    "langFr": "French",
+    "langPt": "Portuguese",
+    "spareNone": "No spare codes yet.",
+    "colSpare": "Spare code",
+    "colMade": "Made",
+    "colUsedBy": "Used by",
+    "spareNumber": "Spare {n}",
+    "spareUnused": "Not used yet",
+    "revoke": "Revoke",
+    "confirmRevoke": "Press again: the code stops",
+    "revoked": "Code revoked"
   }
 }

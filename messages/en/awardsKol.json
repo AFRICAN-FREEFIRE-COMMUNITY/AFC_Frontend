@@ -418,7 +418,11 @@
       "kol_bad_handle": "Type their TikTok @handle (letters, numbers, _ and . only) or paste their profile link.",
       "kol_handle_unavailable": "That person cannot be nominated in this round.",
       "kol_write_in_too_fast": "Adding too fast. Wait a moment.",
-      "kol_write_ins_too_many": "You have added as many new people as one creator can."
+      "kol_write_ins_too_many": "You have added as many new people as one creator can.",
+      "kol_claim_needed": "Tell us who you are first.",
+      "kol_claim_listed": "That creator is already on the list. Ask for your own personal code.",
+      "kol_already_claimed": "This code already belongs to a creator. Enter it again to open their ballot.",
+      "kol_claim_too_fast": "Too many tries. Wait a moment."
     },
     "you": "You",
     "handleAdded": "@{handle}, added by a creator",
@@ -433,6 +437,23 @@
       "cancel": "Cancel",
       "help": "Whoever you add appears on every creator's list, without your name.",
       "already": "{name} is already in your picks for this award."
+    },
+    "awardHelp": {
+      "creator": "The creator whose videos stood out most in 2026: strong content, steady posting and a big, engaged audience.",
+      "breakthrough": "The creator who grew the most this year: a newer or smaller channel that broke through in 2026.",
+      "educational": "The creator who teaches best: tips, settings, guides and tutorials that help players get better.",
+      "streamer": "The best live streamer: great live shows, a lively chat and a community that keeps coming back.",
+      "voice": "The best voice over: commentary, narration or storytelling where the voice makes the video.",
+      "funniest": "The creator who makes people laugh the most: comedy, skits and moments fans keep sharing."
+    },
+    "claim": {
+      "title": "Tell us who you are",
+      "body": "This code is not linked to anyone yet. Say who you are once and it becomes your personal code.",
+      "name": "Your name",
+      "handle": "Your TikTok @handle or profile link",
+      "country": "Your country",
+      "go": "Open my ballot",
+      "going": "Opening"
     }
   }
 }

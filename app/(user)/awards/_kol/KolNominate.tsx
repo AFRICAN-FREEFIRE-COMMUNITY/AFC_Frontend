@@ -20,6 +20,10 @@
  * addWriteIn, AFC-B kol_nominations.write_in), who joins `candidates` here and on every other creator's ballot, and
  * is picked through the same change() + save as any pick, so six per award and once per person stay the server's.
  *
+ * SPARE CODES (#639, owner 26 Nov 2026: codes "not linked to anybody" for creators found later): the door answers
+ * `needs_claim` for one nobody has claimed, and the page asks once for a name, TikTok @handle and country ("Tell us
+ * who you are", claim()); the answer is that creator's ballot, and the code is theirs from then on.
+ *
  * Works while the KOL edition is still hidden from the public (the round has its own dates server-side). The KOL
  * look (kol.css, .kol-nom block), never the AFC name in the copy.
  */
@@ -30,9 +34,11 @@ import { LocalTime } from "@/components/LocalTime";
 import {
   handleKey,
   kolNominationsApi,
+  needsClaim,
   NominationError,
   type NominationBallot,
   type NominationCandidate,
+  type NominationClaim,
 } from "@/lib/kolNominations";
 import { readSegment } from "@/lib/routes";
 import { voteDeviceKey } from "@/lib/voteDevice";
@@ -43,7 +49,7 @@ import { KolNominateAward } from "./KolNominateAward";
 
 const SAVE_DELAY_MS = 800;
 
-type View = "loading" | "door" | "ballot" | "error";
+type View = "loading" | "door" | "claim" | "ballot" | "error";
 
 /** The code after "#" in the address, decoded and trimmed ("" when none), and the address bar cleaned of it at
  *  once, so the code never sits in the history, a bookmark or a screenshot of the address bar. */
@@ -87,6 +93,14 @@ export function KolNominate({ slug }: { slug: string }) {
   // first-load effect (React's development double run, or a remount) must still find the code here.
   const linkCode = useRef<string | null>(null);
 
+  // ── a spare code nobody has claimed (#639): who are you? ──
+  const [claimRound, setClaimRound] = useState<NominationBallot["round"] | null>(null);
+  const [claimName, setClaimName] = useState("");
+  const [claimHandle, setClaimHandle] = useState("");
+  const [claimCountry, setClaimCountry] = useState("");
+  const [claiming, setClaiming] = useState(false);
+  const [claimError, setClaimError] = useState("");
+
   const show = useCallback((data: NominationBallot) => {
     setBallot(data);
     setPicks(data.picks);
@@ -94,9 +108,29 @@ export function KolNominate({ slug }: { slug: string }) {
     setView("ballot");
   }, []);
 
-  // A refusal that means "you are not in any more" sends the creator back to the code box with the reason.
+  // What the door answered: a ballot, or (a spare code nobody has claimed) the "who are you" step.
+  const arrive = useCallback(
+    (data: NominationBallot | NominationClaim) => {
+      if (needsClaim(data)) {
+        setClaimRound(data.round);
+        setClaimError("");
+        setView("claim");
+        return;
+      }
+      show(data);
+    },
+    [show],
+  );
+
+  // A refusal that means "you are not in any more" sends the creator back to the code box with the reason; a spare
+  // code that still has to say who it belongs to goes to the claim step.
   const toDoor = useCallback(
     (err: unknown) => {
+      if (err instanceof NominationError && err.code === "kol_claim_needed") {
+        setClaimError("");
+        setView("claim");
+        return true;
+      }
       if (err instanceof NominationError && (err.status === 401 || err.code === "kol_code_wrong")) {
         setDoorError(err.code === "kol_code_needed" ? "" : refusal(err));
         setBallot(null);
@@ -115,7 +149,7 @@ export function KolNominate({ slug }: { slug: string }) {
     const fromHash = linkCode.current;
     const first = fromHash ? kolNominationsApi.openWithCode(slug, fromHash) : kolNominationsApi.getBallot(slug);
     first
-      .then((data) => live && show(data))
+      .then((data) => live && arrive(data))
       .catch((err) => {
         if (!live) return;
         // A wrong or rate-limited code from the link: the code box, holding that code so it can be corrected.
@@ -146,7 +180,7 @@ export function KolNominate({ slug }: { slug: string }) {
       setView("loading");
       kolNominationsApi
         .openWithCode(slug, fromHash)
-        .then(show)
+        .then(arrive)
         .catch((err) => {
           setCode(fromHash);
           setDoorError(
@@ -157,7 +191,7 @@ export function KolNominate({ slug }: { slug: string }) {
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
-  }, [slug, show, refusal]);
+  }, [slug, arrive, refusal]);
 
   const open = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +199,7 @@ export function KolNominate({ slug }: { slug: string }) {
     setOpening(true);
     setDoorError("");
     try {
-      show(await kolNominationsApi.openWithCode(slug, code));
+      arrive(await kolNominationsApi.openWithCode(slug, code));
       setCode("");
     } catch (err) {
       setDoorError(
@@ -173,6 +207,20 @@ export function KolNominate({ slug }: { slug: string }) {
       );
     } finally {
       setOpening(false);
+    }
+  };
+
+  const submitClaim = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!claimHandle.trim() || claiming) return;
+    setClaiming(true);
+    setClaimError("");
+    try {
+      show(await kolNominationsApi.claim(slug, { name: claimName, handle: claimHandle, country: claimCountry }));
+    } catch (err) {
+      if (!(err instanceof NominationError && err.status === 401 && toDoor(err))) setClaimError(refusal(err));
+    } finally {
+      setClaiming(false);
     }
   };
 
@@ -258,7 +306,7 @@ export function KolNominate({ slug }: { slug: string }) {
     <div className={`kol ${kolSub.variable} ${kolBody.variable}`}>
       <main className="kol-nom">
         <div className="wrap nom-wrap">
-          <p className="eyebrow">{ballot?.round.edition_title || t("nominate.eyebrow")}</p>
+          <p className="eyebrow">{ballot?.round.edition_title || claimRound?.edition_title || t("nominate.eyebrow")}</p>
           <h1 className="t2 nom-title">{t.rich("nominate.title", { em: (c) => <em>{c}</em> })}</h1>
 
           {view === "loading" && <p className="nom-lede" role="status">{t("nominate.loading")}</p>}
@@ -289,6 +337,49 @@ export function KolNominate({ slug }: { slug: string }) {
                 {opening ? t("nominate.door.opening") : t("nominate.door.go")}
               </button>
               <p className="nom-help">{t("nominate.door.help")}</p>
+            </form>
+          )}
+
+          {view === "claim" && (
+            <form className="nom-panel nom-door" onSubmit={submitClaim}>
+              <h2 className="nom-claim-title">{t("nominate.claim.title")}</h2>
+              <p className="nom-lede">{t("nominate.claim.body")}</p>
+              <label className="nom-label" htmlFor="kol-nom-claim-name">{t("nominate.claim.name")}</label>
+              <input
+                id="kol-nom-claim-name"
+                className="nom-search"
+                value={claimName}
+                onChange={(e) => setClaimName(e.target.value)}
+                maxLength={60}
+                autoComplete="name"
+              />
+              <label className="nom-label" htmlFor="kol-nom-claim-handle">{t("nominate.claim.handle")}</label>
+              <input
+                id="kol-nom-claim-handle"
+                className="nom-search"
+                value={claimHandle}
+                onChange={(e) => setClaimHandle(e.target.value)}
+                placeholder={t("nominate.add.handlePlaceholder")}
+                autoCapitalize="none"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <label className="nom-label" htmlFor="kol-nom-claim-country">{t("nominate.claim.country")}</label>
+              <input
+                id="kol-nom-claim-country"
+                className="nom-search"
+                value={claimCountry}
+                onChange={(e) => setClaimCountry(e.target.value)}
+                maxLength={80}
+                autoComplete="country-name"
+              />
+              <p className="err-line" role="alert">{claimError}</p>
+              <button type="submit" className="btn y" disabled={claiming || !claimHandle.trim()}>
+                {claiming ? t("nominate.claim.going") : t("nominate.claim.go")}
+              </button>
+              <button type="button" className="nom-link" onClick={() => void askForAnotherCode()}>
+                {t("nominate.notYou")}
+              </button>
             </form>
           )}
 

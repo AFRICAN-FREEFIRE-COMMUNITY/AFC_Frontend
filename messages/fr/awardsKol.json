@@ -418,7 +418,11 @@
       "kol_bad_handle": "Saisissez son @pseudo TikTok (lettres, chiffres, _ et . uniquement) ou collez le lien de son profil.",
       "kol_handle_unavailable": "Cette personne ne peut pas être nominée dans cette sélection.",
       "kol_write_in_too_fast": "Ajouts trop rapides. Patientez un instant.",
-      "kol_write_ins_too_many": "Vous avez ajouté autant de nouvelles personnes qu'un créateur le peut."
+      "kol_write_ins_too_many": "Vous avez ajouté autant de nouvelles personnes qu'un créateur le peut.",
+      "kol_claim_needed": "Dites-nous d'abord qui vous êtes.",
+      "kol_claim_listed": "Ce créateur est déjà sur la liste. Demandez votre propre code personnel.",
+      "kol_already_claimed": "Ce code appartient déjà à un créateur. Saisissez-le à nouveau pour ouvrir son bulletin.",
+      "kol_claim_too_fast": "Trop d'essais. Patientez un instant."
     },
     "you": "Vous",
     "handleAdded": "@{handle}, ajouté par un créateur",
@@ -433,6 +437,23 @@
       "cancel": "Annuler",
       "help": "La personne ajoutée apparaît dans la liste de chaque créateur, sans votre nom.",
       "already": "{name} fait déjà partie de vos choix pour ce prix."
+    },
+    "awardHelp": {
+      "creator": "Le créateur dont les vidéos ont le plus marqué 2026 : un contenu fort, des publications régulières et une grande communauté engagée.",
+      "breakthrough": "Le créateur qui a le plus progressé cette année : une chaîne plus récente ou plus petite qui a percé en 2026.",
+      "educational": "Le créateur qui enseigne le mieux : astuces, réglages, guides et tutoriels qui aident les joueurs à progresser.",
+      "streamer": "Le meilleur streamer en direct : de très bons lives, un chat animé et une communauté qui revient toujours.",
+      "voice": "La meilleure voix off : commentaires, narration ou récits où la voix fait la vidéo.",
+      "funniest": "Le créateur qui fait le plus rire : comédie, sketchs et moments que les fans partagent sans arrêt."
+    },
+    "claim": {
+      "title": "Dites-nous qui vous êtes",
+      "body": "Ce code n'est encore lié à personne. Dites une fois qui vous êtes et il devient votre code personnel.",
+      "name": "Votre nom",
+      "handle": "Votre @pseudo TikTok ou le lien de votre profil",
+      "country": "Votre pays",
+      "go": "Ouvrir mon bulletin",
+      "going": "Ouverture"
     }
   }
 }

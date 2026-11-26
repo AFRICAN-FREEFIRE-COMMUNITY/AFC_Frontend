@@ -4,7 +4,8 @@
  * app/(user)/awards/_kol/KolNominateAward.tsx - ONE award on the creators' nomination ballot (inbox #633 / #634,
  * write-ins and self-picks #636 / #637).
  *
- * Up to `award.max` (6) picks, searchable by name or @handle, country shown beside each name. The creator is on
+ * Up to `award.max` (6) picks, searchable by name or @handle, country shown beside each name. Under the title, what
+ * the award means (#638), written per award key in awardsKol.nominate.awardHelp (the admin tab reads the same text). The creator is on
  * their own list (owner, 26 Nov 2026: "they should be able to nominate themselves now"), tagged "You". No counts of
  * any kind: nobody sees how others voted.
  *
@@ -46,7 +47,7 @@ export function KolNominateAward({
   onAdd,
 }: {
   index: number;
-  award: { question_id: number; name: string; max: number };
+  award: { question_id: number; name: string; key: string; max: number };
   candidates: NominationCandidate[];
   picked: number[];
   meId: number;
@@ -106,6 +107,9 @@ export function KolNominateAward({
         <h2 id={headingId} className="nom-award-name">{award.name}</h2>
         <span className={`nom-count${full ? " full" : ""}`}>{t("nominate.count", { n: picked.length, max: award.max })}</span>
       </header>
+      {award.key && t.has(`nominate.awardHelp.${award.key}`) && (
+        <p className="nom-award-help">{t(`nominate.awardHelp.${award.key}`)}</p>
+      )}
 
       {picked.length > 0 && (
         <ul className="nom-picked" aria-label={t("nominate.yourPicks")}>

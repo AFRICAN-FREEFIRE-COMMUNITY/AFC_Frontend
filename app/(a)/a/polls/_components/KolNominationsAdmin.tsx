@@ -18,6 +18,13 @@
  *      a duplicate of somebody already in the round is MERGED into them (pick "Same person as", press Merge twice):
  *      its picks move there and a ballot that held both keeps one, so nobody counts twice in one award. Who added a
  *      write-in is never shown, only how many people each creator added.
+ *   6. COPY A CODE (#640, owner 26 Nov 2026: "Should be able to copy codes from the site"): "Copy code" and "Copy
+ *      message" per creator read the code back from its sealed copy on the server (readCode) and put it on the
+ *      clipboard. Nothing is shown on screen and nothing is kept in the page.
+ *   7. SPARE CODES (#639: codes "not linked to anybody" for creators found later): make 1 to 50, copy each with its
+ *      message in the chosen language, see who used it, revoke one. The first person to open one says who they are.
+ *   8. Each award's explanation (#638) under its name in "Picks so far", the same text the creators read
+ *      (awardsKol.nominate.awardHelp.<key>).
  *
  * Creators are loaded by `manage.py kol_import_creators` (from the private sheet), not from this page.
  * CALLS: lib/kolNominations.ts kolNominationsAdminApi (GET/POST polls/admin/kol-nominations/<edition>/, POST
@@ -41,6 +48,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { isoToLocalInput } from "@/lib/i18n/time";
 import { formatNumber } from "@/lib/i18n/number";
 import { kolNominationsAdminApi, type NominationAdmin, type NominationAdminCreator } from "@/lib/kolNominations";
+
+type CopyLanguage = "en" | "fr" | "pt";
 import type { AwardsEdition } from "@/lib/polls";
 
 const TALLY_ROWS = 8;
@@ -86,6 +95,8 @@ function saveFile(blob: Blob, name: string) {
 
 export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] }) {
   const t = useTranslations("adminPolls");
+  // The awards' explanations live with the creators' ballot (one text for both pages).
+  const tk = useTranslations("awardsKol");
   const kol = useMemo(() => editions.filter((e) => e.theme === "detty-royale"), [editions]);
   const [slug, setSlug] = useState(kol[0]?.slug || "");
   const [data, setData] = useState<NominationAdmin | null>(null);
@@ -97,6 +108,9 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
   // Merge control per write-in row: the chosen "same person as" candidate, and which row waits for its 2nd press.
   const [mergeTarget, setMergeTarget] = useState<Record<number, string>>({});
   const [confirmingMerge, setConfirmingMerge] = useState<number | null>(null);
+  const [spareCount, setSpareCount] = useState("5");
+  const [spareLang, setSpareLang] = useState<CopyLanguage>("en");
+  const [confirmingRevoke, setConfirmingRevoke] = useState<number | null>(null);
 
   // The refusals of these endpoints, translated (adminPolls.kolNom.errors), else the server's own sentence.
   const refusal = useCallback(
@@ -185,6 +199,60 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
       await load();
     } catch (err) {
       toast.error(refusal(err));
+    }
+  };
+
+  // ── copy a code or its ready message (#640): read back from the server, straight to the clipboard ──
+  const copyCode = async (codeId: number, what: "code" | "message", lang?: CopyLanguage) => {
+    try {
+      const copy = await kolNominationsAdminApi.readCode(slug, codeId, lang);
+      await navigator.clipboard.writeText(what === "code" ? copy.code : copy.message);
+      toast.success(t("kolNom.copied"));
+    } catch (err) {
+      toast.error(axios.isAxiosError(err) ? refusal(err) : t("kolNom.copyFailed"));
+    }
+  };
+
+  // ── spare codes (#639) ──
+  const makeSpare = async () => {
+    // Checked here too: a refusal of a file download arrives as a Blob, so the server's sentence would be lost.
+    const count = Number(spareCount);
+    if (!Number.isInteger(count) || count < 1 || count > 50) {
+      toast.error(t("kolNom.errors.kol_bad_spare_count"));
+      return;
+    }
+    setBusy(true);
+    try {
+      const blob = await kolNominationsAdminApi.spareCodes(slug, count);
+      const rows = countCsvRows(await blob.text());
+      const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+      saveFile(blob, `kol-spare-codes-${slug}-${stamp}.csv`);
+      toast.success(t("kolNom.codesMade", { n: rows }));
+      await load();
+    } catch (err) {
+      toast.error(refusal(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const revoke = async (codeId: number) => {
+    // Two presses: whoever holds the code is shut out at once.
+    if (confirmingRevoke !== codeId) {
+      setConfirmingRevoke(codeId);
+      setTimeout(() => setConfirmingRevoke((c) => (c === codeId ? null : c)), CONFIRM_MS);
+      return;
+    }
+    setBusy(true);
+    try {
+      await kolNominationsAdminApi.revokeCode(slug, codeId);
+      toast.success(t("kolNom.revoked"));
+      await load();
+    } catch (err) {
+      toast.error(refusal(err));
+    } finally {
+      setBusy(false);
+      setConfirmingRevoke(null);
     }
   };
 
@@ -354,9 +422,21 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
                         </TableCell>
                         <TableCell className="p-2 text-right">
                           {c.active && data.round && !writeIn && (
-                            <Button size="sm" variant="outline" onClick={() => newCode(c)} disabled={busy}>
-                              {confirming === c.creator_id ? t("kolNom.confirmNewCode") : t("kolNom.newCode")}
-                            </Button>
+                            <div className="flex items-center justify-end gap-2">
+                              {c.code_id && (
+                                <>
+                                  <Button size="sm" variant="outline" onClick={() => void copyCode(c.code_id!, "code")}>
+                                    {t("kolNom.copyCode")}
+                                  </Button>
+                                  <Button size="sm" variant="outline" onClick={() => void copyCode(c.code_id!, "message")}>
+                                    {t("kolNom.copyMessage")}
+                                  </Button>
+                                </>
+                              )}
+                              <Button size="sm" variant="outline" onClick={() => newCode(c)} disabled={busy}>
+                                {confirming === c.creator_id ? t("kolNom.confirmNewCode") : t("kolNom.newCode")}
+                              </Button>
+                            </div>
                           )}
                           {c.active && data.round && writeIn && (
                             <div className="flex items-center justify-end gap-2">
@@ -400,6 +480,92 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
 
           {data.round && (
             <div className="space-y-3">
+              <h3 className="text-base font-semibold text-foreground">{t("kolNom.spareTitle")}</h3>
+              <p className="max-w-3xl text-xs text-muted-foreground">{t("kolNom.spareNote")}</p>
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="kol-nom-spare-count">{t("kolNom.spareCount")}</Label>
+                  <Input
+                    id="kol-nom-spare-count"
+                    type="number"
+                    min={1}
+                    max={50}
+                    className="w-24"
+                    value={spareCount}
+                    onChange={(e) => setSpareCount(e.target.value)}
+                  />
+                </div>
+                <Button onClick={() => void makeSpare()} disabled={busy}>
+                  {t("kolNom.makeSpare")}
+                </Button>
+                <div className="space-y-2">
+                  <Label>{t("kolNom.spareLang")}</Label>
+                  <Select value={spareLang} onValueChange={(v) => setSpareLang(v as CopyLanguage)}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">{t("kolNom.langEn")}</SelectItem>
+                      <SelectItem value="fr">{t("kolNom.langFr")}</SelectItem>
+                      <SelectItem value="pt">{t("kolNom.langPt")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {data.spare_codes.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t("kolNom.spareNone")}</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table className="text-xs">
+                    <TableHeader>
+                      <TableRow className="h-10">
+                        <TableHead className="text-foreground">{t("kolNom.colSpare")}</TableHead>
+                        <TableHead className="text-foreground">{t("kolNom.colMade")}</TableHead>
+                        <TableHead className="text-foreground">{t("kolNom.colUsedBy")}</TableHead>
+                        <TableHead className="text-foreground" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.spare_codes.map((spare, i) => (
+                        <TableRow key={spare.code_id}>
+                          <TableCell className="p-2 font-medium text-foreground">{t("kolNom.spareNumber", { n: i + 1 })}</TableCell>
+                          <TableCell className="p-2">
+                            <LocalTime value={spare.created_at} mode="relative" />
+                          </TableCell>
+                          <TableCell className="p-2">
+                            {spare.claimed_by ? (
+                              <>
+                                <span className="font-medium text-foreground">{spare.claimed_by.name}</span>
+                                <span className="block text-muted-foreground">@{spare.claimed_by.handle}</span>
+                              </>
+                            ) : (
+                              t("kolNom.spareUnused")
+                            )}
+                          </TableCell>
+                          <TableCell className="p-2 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button size="sm" variant="outline" onClick={() => void copyCode(spare.code_id, "code", spareLang)}>
+                                {t("kolNom.copyCode")}
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => void copyCode(spare.code_id, "message", spareLang)}>
+                                {t("kolNom.copyMessage")}
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => void revoke(spare.code_id)} disabled={busy}>
+                                {confirmingRevoke === spare.code_id ? t("kolNom.confirmRevoke") : t("kolNom.revoke")}
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {data.round && (
+            <div className="space-y-3">
               <h3 className="text-base font-semibold text-foreground">{t("kolNom.tallyTitle")}</h3>
               <p className="text-xs text-muted-foreground">{t("kolNom.tallyNote")}</p>
               <div className="grid gap-3 md:grid-cols-2">
@@ -409,6 +575,9 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
                     <Card key={award.question_id} className="bg-card rounded-md py-6 shadow-sm">
                       <CardContent className="space-y-2">
                         <p className="text-sm font-semibold text-foreground">{award.prompt}</p>
+                        {award.key && tk.has(`nominate.awardHelp.${award.key}`) && (
+                          <p className="text-xs text-muted-foreground">{tk(`nominate.awardHelp.${award.key}`)}</p>
+                        )}
                         {rows.length === 0 ? (
                           <p className="text-xs text-muted-foreground">{t("kolNom.noPicks")}</p>
                         ) : (

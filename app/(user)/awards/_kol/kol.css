@@ -598,6 +598,10 @@ body:has(.kol){overflow-x:clip}
 .kol .nom-award-name{font-family:var(--f-sub);font-weight:700;font-size:22px;line-height:1.1;color:var(--fg);letter-spacing:.03em;text-transform:uppercase}
 .kol .nom-count{font-family:var(--f-sub);font-weight:700;font-size:16px;color:var(--muted);white-space:nowrap}
 .kol .nom-count.full{color:var(--yel)}
+/* #638: what the award means, under its title */
+.kol .nom-award-help{color:var(--body);font-size:15px;line-height:1.45;margin:-4px 0 14px;max-width:62ch}
+/* #639: a spare code's "Tell us who you are" step, in the code box's panel */
+.kol .nom-claim-title{font-family:var(--f-sub);font-weight:700;font-size:24px;letter-spacing:.04em;text-transform:uppercase;color:var(--fg)}
 .kol .nom-picked{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .kol .nom-chip{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 14px;border-radius:999px;background:var(--yel);color:var(--ground);font-weight:700;max-width:100%}
 .kol .nom-chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -632,6 +636,8 @@ body:has(.kol){overflow-x:clip}
   .kol .nom-bar{flex-wrap:wrap;justify-content:flex-start;padding-right:124px}
   .kol .nom-bar .btn{order:-1}
   .kol .nom-status{flex-basis:100%}
+  /* the code box and the claim step end the page: room below them so the floating Help button never covers their button */
+  .kol .nom-door{margin-bottom:96px}
 }
 @media (min-width:720px){
   .kol .nom-award{padding:22px 26px}

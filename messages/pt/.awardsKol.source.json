@@ -332,5 +332,22 @@
   "nominate.errors.kol_bad_handle": "Type their TikTok @handle (letters, numbers, _ and . only) or paste their profile link.",
   "nominate.errors.kol_handle_unavailable": "That person cannot be nominated in this round.",
   "nominate.errors.kol_write_in_too_fast": "Adding too fast. Wait a moment.",
-  "nominate.errors.kol_write_ins_too_many": "You have added as many new people as one creator can."
+  "nominate.errors.kol_write_ins_too_many": "You have added as many new people as one creator can.",
+  "nominate.awardHelp.creator": "The creator whose videos stood out most in 2026: strong content, steady posting and a big, engaged audience.",
+  "nominate.awardHelp.breakthrough": "The creator who grew the most this year: a newer or smaller channel that broke through in 2026.",
+  "nominate.awardHelp.educational": "The creator who teaches best: tips, settings, guides and tutorials that help players get better.",
+  "nominate.awardHelp.streamer": "The best live streamer: great live shows, a lively chat and a community that keeps coming back.",
+  "nominate.awardHelp.voice": "The best voice over: commentary, narration or storytelling where the voice makes the video.",
+  "nominate.awardHelp.funniest": "The creator who makes people laugh the most: comedy, skits and moments fans keep sharing.",
+  "nominate.claim.title": "Tell us who you are",
+  "nominate.claim.body": "This code is not linked to anyone yet. Say who you are once and it becomes your personal code.",
+  "nominate.claim.name": "Your name",
+  "nominate.claim.handle": "Your TikTok @handle or profile link",
+  "nominate.claim.country": "Your country",
+  "nominate.claim.go": "Open my ballot",
+  "nominate.claim.going": "Opening",
+  "nominate.errors.kol_claim_needed": "Tell us who you are first.",
+  "nominate.errors.kol_claim_listed": "That creator is already on the list. Ask for your own personal code.",
+  "nominate.errors.kol_already_claimed": "This code already belongs to a creator. Enter it again to open their ballot.",
+  "nominate.errors.kol_claim_too_fast": "Too many tries. Wait a moment."
 }
