@@ -19,6 +19,14 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## Unreleased
+
+### Added
+- KOL creators' nomination ballot at /awards/<KOL edition>/nominate: the creators on Garena's KOL List open it with the personal code they received (from a link or typed in), pick up to 6 other creators for each of the six awards, never themselves, and can change their picks until the round closes. Picks save as they go; the page works while the KOL edition is still hidden, is never indexed, names nobody but the KOL Awards, and reads in English, French and Portuguese. The code leaves the address bar at once and lives on only as a private cookie.
+
+### Fixed
+- KOL Awards titles in French and Portuguese lost their accented letters ("TROPH E", "CR ATEURS"): the title font maps every accented letter to an empty drawing, so the browser never fell back to the next font. The font now covers only the letters it really draws.
+
 ## v7.22.0 - 2026-11-23
 
 ### Added
