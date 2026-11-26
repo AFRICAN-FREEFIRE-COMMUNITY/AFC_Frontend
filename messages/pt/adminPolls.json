@@ -393,7 +393,7 @@
     "saveDates": "Guardar as datas",
     "roundSaved": "Ronda guardada",
     "makeCodes": "Criar códigos para quem ainda não tem",
-    "codesNote": "Os códigos só aparecem no ficheiro descarregado: o site não guarda nenhuma cópia legível. Mantenha o ficheiro privado e envie a cada criador a sua linha.",
+    "codesNote": "O ficheiro descarregado tem cada código novo com a sua mensagem pronta. Mantenha-o privado e envie a cada criador a sua linha. Um código também pode ser copiado de novo mais abaixo (Copiar código, Copiar mensagem).",
     "codesMade": "{n, plural, one {# código está no ficheiro descarregado.} other {# códigos estão no ficheiro descarregado.}}",
     "noneToMake": "Todos os criadores já têm um código.",
     "statCreators": "Criadores na ronda",
@@ -423,7 +423,7 @@
     "picks": "{n, plural, one {# escolha} other {# escolhas}}",
     "failed": "Não funcionou. Tente de novo.",
     "errors": {
-      "kol_admin_only": "Só os administradores de sondagens da AFC podem gerir as nomeações.",
+      "kol_admin_only": "Só os administradores de sondagens da AFC e os administradores KOL podem gerir as nomeações.",
       "kol_bad_dates": "Verifique as datas: as nomeações têm de fechar depois de abrirem.",
       "kol_round_missing": "Configure primeiro a ronda.",
       "kol_creator_not_found": "Esse criador não faz parte desta edição.",
@@ -466,6 +466,9 @@
     "spareUnused": "Ainda não usado",
     "revoke": "Revogar",
     "confirmRevoke": "Carregue de novo: o código deixa de funcionar",
-    "revoked": "Código revogado"
+    "revoked": "Código revogado",
+    "pageTitle": "Nomeações dos KOL Awards",
+    "pageSubtitle": "A ronda de nomeações dos criadores KOL: códigos, códigos de reserva, escolhas até agora e o link em direto da Garena.",
+    "liveIntro": "Uma página privada com as escolhas até agora em cada prémio (e mais tarde a votação do público), sem nenhum nome de votante. Quem tiver o link pode abri-lo sem iniciar sessão, por isso partilhe-o só com a equipa da Garena."
   }
 }

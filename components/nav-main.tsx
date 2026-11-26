@@ -38,6 +38,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { env } from "@/lib/env";
 import { optionalAuthHeaders } from "@/lib/http";
 import { adminNavSections } from "@/constants/nav-links";
+import { isPartnerOnlyUser, partnerMayOpen } from "@/lib/adminRoles";
 import type { AdminNavLink, AdminNavSection, AdminNavSub } from "@/constants/nav-links";
 
 /** "Head Admin" -> "head_admin" */
@@ -53,6 +54,8 @@ export function useAdminAccess() {
       normalizeRole(user.role || ""),
     ].filter(Boolean);
     if (userRoles.includes("super_admin") || userRoles.includes("head_admin")) return true;
+    // A partner's staff (Garena's kol_admin, #641) see only entries that name their role
+    if (isPartnerOnlyUser(user)) return partnerMayOpen(user, allowedRoles);
     // Sponsors see only entries tagged for them
     if (userRoles.includes("sponsor")) return !!allowedRoles?.includes("sponsor");
     if (!allowedRoles || allowedRoles.length === 0) return true;

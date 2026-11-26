@@ -94,6 +94,9 @@ import { toast } from "sonner";
 import { FullLoader, Loader } from "@/components/Loader";
 import { ScrollableTabsList } from "@/components/ui/scrollable-tabs";
 import { formatWord } from "@/lib/utils";
+// The KOL Admin role (#641, Garena's KOL staff) is new in the pickers below: NEW for five days.
+import { NewBadge } from "@/components/NewBadge";
+import { GARENA_ACCESS_SINCE } from "@/lib/kolNominations";
 import { PageHeader } from "@/components/PageHeader";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -982,6 +985,7 @@ const page = () => {
                                                   <Crown className="h-5 w-5 text-yellow-500" />
                                                 )}
                                                 {formatWord(role.name)}
+                                                {role.name === "kol_admin" && <NewBadge since={GARENA_ACCESS_SINCE} />}
                                               </label>
                                             </div>
                                             <CardDescription>
@@ -1500,6 +1504,7 @@ const page = () => {
                                                   <Crown className="h-5 w-5 text-yellow-500" />
                                                 )}
                                                 {formatWord(role.name)}
+                                                {role.name === "kol_admin" && <NewBadge since={GARENA_ACCESS_SINCE} />}
                                               </label>
 
                                               {/* DELETE SYSTEM ROLE BUTTON */}
@@ -1567,6 +1572,7 @@ const page = () => {
                                             <div className="space-y-1">
                                               <span className="text-sm font-bold leading-none">
                                                 {formatWord(role.name)}
+                                                {role.name === "kol_admin" && <NewBadge since={GARENA_ACCESS_SINCE} />}
                                               </span>
                                               <p className="text-xs text-muted-foreground">
                                                 {role.description}
@@ -1827,6 +1833,7 @@ const page = () => {
                           <ShieldCheck className="h-5 w-5" />
                         )}
                         {formatWord(role.name)}
+                        {role.name === "kol_admin" && <NewBadge since={GARENA_ACCESS_SINCE} />}
                       </div>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>

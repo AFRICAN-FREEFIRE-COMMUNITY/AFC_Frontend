@@ -20,5 +20,26 @@
   "notFound": "Este link não está ativo. Peça um novo aos organizadores.",
   "error": "Não foi possível atualizar os votos. Nova tentativa daqui a um minuto.",
   "placesNote": "Os países e regiões vêm da ligação de cada votante no momento do voto. Locais com menos de 5 votos são agrupados em Outros.",
-  "attribution": "Dados de localização: DB-IP"
+  "attribution": "Dados de localização: DB-IP",
+  "nom": {
+    "title": "Nomeações dos criadores",
+    "note": "Escolhas por criador em cada prémio. Cada criador da lista KOL escolhe até 6 por prémio; quem escolheu quem nunca é mostrado.",
+    "ballots": "{count, plural, one {# de {voters} criadores já nomeou} other {# de {voters} criadores já nomearam}}",
+    "picks": "{count, plural, one {# escolha} other {# escolhas}}",
+    "state": {
+      "not_open": "Ainda não abriu",
+      "open": "Aberta",
+      "closed": "Fechada"
+    },
+    "opens": "Abre a",
+    "closes": "Fecha a",
+    "closed": "Fechou a",
+    "col": {
+      "rank": "Posição",
+      "creator": "Criador",
+      "picks": "Escolhas"
+    },
+    "writeIn": "Acrescentado por um criador",
+    "noPicks": "Ainda não há escolhas."
+  }
 }

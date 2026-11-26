@@ -2,14 +2,15 @@
 
 /**
  * app/(a)/a/polls/_components/KolNominationsAdmin.tsx - the "Nominations" tab of /a/polls: the KOL creators'
- * nomination round, admin side (owner, 25 to 26 Nov 2026, AFC inbox #633 / #634). AFC poll admins only.
+ * nomination round, admin side (owner, 25 to 26 Nov 2026, AFC inbox #633 / #634). AFC poll admins, and Garena's KOL
+ * admins (#641, role kol_admin), who see this tab and nothing else of /a/polls.
  *
  * WHAT AN ADMIN DOES HERE
  *   1. Pick the KOL edition (themed "detty-royale" editions only), set the open and close times, "Set up the round"
  *      (idempotent on the server: AFC-B afc_polls/kol_nominations.py ensure_round).
  *   2. "Make codes for everyone without one" downloads a CSV: name, @handle, country, code, personal link and a
- *      ready-to-send message in the creator's language. The codes exist in plain text ONLY in that file (the server
- *      keeps a hash), so it is downloaded, never shown on screen. Layo and Garena send the lines themselves.
+ *      ready-to-send message in the creator's language. Nothing is shown on screen; since #640 a code can be copied
+ *      again (point 6), from a sealed copy beside the hash. Layo and Garena send the lines themselves.
  *   3. Per creator: switch them off (their code stops at once, they leave every ballot and the tally) or give them a
  *      new code (a one-row CSV; the old code and its cookie stop working).
  *   4. Read who has voted (yes / no) and the picks per creator in each award. Who picked whom is never shown.
@@ -25,6 +26,8 @@
  *      message in the chosen language, see who used it, revoke one. The first person to open one says who they are.
  *   8. Each award's explanation (#638) under its name in "Picks so far", the same text the creators read
  *      (awardsKol.nominate.awardHelp.<key>).
+ *   9. GARENA'S LIVE LINK (#641, owner 26 Nov 2026: "Both"): the edition's private no-sign-in link
+ *      (GarenaLiveLink.tsx), whose page /awards/live/<token> shows the picks so far in every award.
  *
  * Creators are loaded by `manage.py kol_import_creators` (from the private sheet), not from this page.
  * CALLS: lib/kolNominations.ts kolNominationsAdminApi (GET/POST polls/admin/kol-nominations/<edition>/, POST
@@ -47,7 +50,13 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { isoToLocalInput } from "@/lib/i18n/time";
 import { formatNumber } from "@/lib/i18n/number";
-import { kolNominationsAdminApi, type NominationAdmin, type NominationAdminCreator } from "@/lib/kolNominations";
+import {
+  GARENA_ACCESS_SINCE,
+  kolNominationsAdminApi,
+  type NominationAdmin,
+  type NominationAdminCreator,
+} from "@/lib/kolNominations";
+import { GarenaLiveLink } from "./GarenaLiveLink";
 
 type CopyLanguage = "en" | "fr" | "pt";
 import type { AwardsEdition } from "@/lib/polls";
@@ -93,7 +102,9 @@ function saveFile(blob: Blob, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] }) {
+// `editions`: every awards edition for an AFC admin (the page's editions list), or the editions that have a round for a
+// KOL admin (#641, kolNominationsAdminApi.editions). Only the themed KOL ones are offered either way.
+export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition, "slug" | "title" | "theme">[] }) {
   const t = useTranslations("adminPolls");
   // The awards' explanations live with the creators' ballot (one text for both pages).
   const tk = useTranslations("awardsKol");
@@ -348,6 +359,16 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
               <p className="text-xs text-muted-foreground">{t("kolNom.codesNote")}</p>
             </CardContent>
           </Card>
+
+          {/* Garena's private live link of this edition (#641): the same link as the Metrics tab's. */}
+          {data.round && (
+            <GarenaLiveLink
+              editionSlug={slug}
+              initialToken={data.edition.live_view_token || ""}
+              intro={t("kolNom.liveIntro")}
+              newSince={GARENA_ACCESS_SINCE}
+            />
+          )}
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             {stats.map((s) => (

@@ -18,5 +18,20 @@
   "notFound": "This link is not active. Ask the organisers for a new one.",
   "error": "The votes could not be refreshed. Trying again in a minute.",
   "placesNote": "Countries and regions come from each voter's connection when they voted. Places with fewer than 5 votes are grouped as Other.",
-  "attribution": "Location data: DB-IP"
+  "attribution": "Location data: DB-IP",
+  "nom.title": "Creators' nominations",
+  "nom.note": "Picks per creator in each award. Every creator on the KOL List picks up to 6 per award; who picked whom is never shown.",
+  "nom.ballots": "{count, plural, one {# of {voters} creators has nominated} other {# of {voters} creators have nominated}}",
+  "nom.picks": "{count, plural, one {# pick} other {# picks}}",
+  "nom.state.not_open": "Not open yet",
+  "nom.state.open": "Open",
+  "nom.state.closed": "Closed",
+  "nom.opens": "Opens",
+  "nom.closes": "Closes",
+  "nom.closed": "Closed",
+  "nom.col.rank": "Rank",
+  "nom.col.creator": "Creator",
+  "nom.col.picks": "Picks",
+  "nom.writeIn": "Added by a creator",
+  "nom.noPicks": "No picks yet."
 }
