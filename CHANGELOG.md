@@ -23,6 +23,7 @@ workflow checks it again before it builds.
 
 ### Added
 - KOL creators' nomination ballot at /awards/<KOL edition>/nominate: the creators on Garena's KOL List open it with the personal code they received (from a link or typed in), pick up to 6 other creators for each of the six awards, never themselves, and can change their picks until the round closes. Picks save as they go; the page works while the KOL edition is still hidden, is never indexed, names nobody but the KOL Awards, and reads in English, French and Portuguese. The code leaves the address bar at once and lives on only as a private cookie.
+- Polls admin, new Nominations tab (AFC poll admins): set the KOL nomination round's dates, download the creators' personal codes with a ready-to-send message in each creator's language (the codes exist only in that file), give one creator a new code, switch a creator out of the round, and see who has nominated and the picks per creator in each award, never who picked whom.
 
 ### Fixed
 - KOL Awards titles in French and Portuguese lost their accented letters ("TROPH E", "CR ATEURS"): the title font maps every accented letter to an empty drawing, so the browser never fell back to the next font. The font now covers only the letters it really draws.

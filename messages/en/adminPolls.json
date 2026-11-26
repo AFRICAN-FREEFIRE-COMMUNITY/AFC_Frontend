@@ -13,7 +13,8 @@
     "audience": "Who can vote",
     "branching": "Branching",
     "results": "Results",
-    "metrics": "Metrics"
+    "metrics": "Metrics",
+    "nominations": "Nominations"
   },
   "empty": {
     "polls": "No polls yet. Create the first one.",
@@ -375,5 +376,60 @@
     "whatsapp": "One WhatsApp number per ballot",
     "whatsappHelp": "Voters prove a WhatsApp number before their ballot counts. One number backs one account.",
     "preview": "Preview"
+  },
+  "kolNom": {
+    "intro": "The KOL creators nominate each other with a personal code each: up to 6 per award, never themselves. Creators are loaded from Garena's sheet with the import command; codes are made and switched off here.",
+    "noEdition": "No KOL Awards edition yet. Create one with the Detty Royale theme first.",
+    "pickEdition": "KOL edition",
+    "roundTitle": "The round",
+    "state": {
+      "not_open": "Not open yet",
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "opensAt": "Opens",
+    "closesAt": "Closes",
+    "setUp": "Set up the round",
+    "saveDates": "Save the dates",
+    "roundSaved": "Round saved",
+    "makeCodes": "Make codes for everyone without one",
+    "codesNote": "Codes appear only in the downloaded file: the site keeps no readable copy. Keep the file private and send each creator their own line.",
+    "codesMade": "{n, plural, one {# code is in the downloaded file.} other {# codes are in the downloaded file.}}",
+    "noneToMake": "Every creator already has a code.",
+    "statCreators": "Creators in the round",
+    "statCodes": "With a code",
+    "statVoted": "Have nominated",
+    "statWrong": "Wrong codes typed",
+    "creatorsTitle": "Creators",
+    "noCreators": "No creators yet. Load them with manage.py kol_import_creators.",
+    "colName": "Creator",
+    "colCountry": "Country",
+    "colStatus": "Sheet status",
+    "colCode": "Code",
+    "colVoted": "Nominated",
+    "colLastUsed": "Last used",
+    "colOn": "In the round",
+    "yes": "Yes",
+    "no": "No",
+    "never": "Never",
+    "toggleLabel": "{name} in the round",
+    "switchedOn": "{name} is back in the round",
+    "switchedOff": "{name} is out of the round; their code no longer works",
+    "newCode": "New code",
+    "confirmNewCode": "Press again: the old code stops",
+    "tallyTitle": "Picks so far",
+    "tallyNote": "Picks per creator in each award. Who picked whom is never shown.",
+    "noPicks": "No picks yet.",
+    "picks": "{n, plural, one {# pick} other {# picks}}",
+    "failed": "That did not work. Try again.",
+    "errors": {
+      "kol_admin_only": "Only AFC poll admins can run the nominations.",
+      "kol_bad_dates": "Check the dates: nominations must close after they open.",
+      "kol_round_missing": "Set the round up first.",
+      "kol_creator_not_found": "That creator is not in this edition.",
+      "kol_bad_active": "Choose on or off.",
+      "kol_bad_creator_ids": "Those creators could not be read.",
+      "awards_edition_not_found": "That edition no longer exists."
+    }
   }
 }
