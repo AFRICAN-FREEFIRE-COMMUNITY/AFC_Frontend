@@ -58,6 +58,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { pollsApi, type AwardsEdition, type PollCard } from "@/lib/polls";
 import { AwardsMetrics } from "./_components/AwardsMetrics";
+import { KolNominationsAdmin } from "./_components/KolNominationsAdmin";
 
 export default function AdminPollsPage() {
   const t = useTranslations("adminPolls");
@@ -113,6 +114,13 @@ export default function AdminPollsPage() {
               <NewBadge since="2026-11-02" />
             </TabsTrigger>
           )}
+          {/* The KOL creators' nomination round (inbox #633 / #634): KolNominationsAdmin.tsx. */}
+          {isAdmin && (
+            <TabsTrigger value="nominations" className="gap-2">
+              {t("tabs.nominations")}
+              <NewBadge since="2026-11-26" />
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="polls" className="mt-6 space-y-4">
@@ -134,6 +142,12 @@ export default function AdminPollsPage() {
         {isAdmin && (
           <TabsContent value="metrics" className="mt-6">
             <AwardsMetrics editions={editions} />
+          </TabsContent>
+        )}
+
+        {isAdmin && (
+          <TabsContent value="nominations" className="mt-6">
+            <KolNominationsAdmin editions={editions} />
           </TabsContent>
         )}
       </Tabs>

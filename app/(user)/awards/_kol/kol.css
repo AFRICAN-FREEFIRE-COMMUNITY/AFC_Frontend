@@ -20,7 +20,11 @@
  * it first in the ONE variable --kol-title-font; Agdasima Bold stays behind it as the fallback while the
  * file loads (display: swap) and for any character Graffiti City does not draw.
  */
-@font-face{font-family:"Graffiti City";src:url("/kol/fonts/graffiti-city.woff2") format("woff2");font-weight:400 900;font-style:normal;font-display:swap}
+/* unicode-range = the characters this file really DRAWS (measured 26 Nov 2026 with fontTools: 90 of its 242 mapped
+   characters have an outline). Every accented letter is mapped to an EMPTY glyph, so without this range the browser
+   never falls back and French and Portuguese titles lost their accented letters ("TROPH E"). Outside the range
+   the next font in --kol-title-font draws the letter. */
+@font-face{font-family:"Graffiti City";src:url("/kol/fonts/graffiti-city.woff2") format("woff2");font-weight:400 900;font-style:normal;font-display:swap;unicode-range:U+0020-005A,U+0061-007A,U+00A9,U+00AD-00AE,U+037E,U+2122}
 .kol{
   --ground:#1c0a2e; --panel:#2c1049; --panel2:#3b1862; --panel3:#4a1f7a;
   --yel:#ffe046; --gold:#b18f3e; --mag:#b7235f; --purple:#5f208c;
@@ -567,3 +571,72 @@ body:has(.kol){overflow-x:clip}
 @keyframes kw-crown{from{opacity:0;transform:translateX(-50%) translateY(-120px) rotate(-30deg)}to{opacity:1;transform:translateX(-50%) rotate(-6deg)}}
 @keyframes kw-stamp{from{opacity:0;transform:translate(-50%,-50%) rotate(-10deg) scale(2.4)}to{opacity:1;transform:translate(-50%,-50%) rotate(-10deg) scale(1)}}
 @media (prefers-reduced-motion:reduce){.kol .env i,.kol .wband .wstage .wcrown,.kol .wband .wstage .stamp{transition:none;animation:none;opacity:1}.kol .wband .env{display:none}}
+
+/* KOL creators' nomination ballot (inbox #633 / #634): KolNominate.tsx + KolNominateAward.tsx.
+   Mobile first. Filled surfaces one step off the ground, never a stroke; selected = the yellow fill. */
+.kol .kol-nom{padding:calc(var(--kol-top) - 32px) 0 0;min-height:70vh}
+.kol .nom-wrap{max-width:860px}
+.kol .nom-title{margin:10px 0 18px}
+.kol .nom-lede{color:var(--body);max-width:60ch}
+.kol .nom-panel{background:var(--panel);border-radius:14px;padding:22px;display:grid;gap:12px;max-width:520px;margin-top:8px}
+.kol .nom-label{font-family:var(--f-sub);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--fg);font-size:15px}
+.kol .nom-code,.kol .nom-search{width:100%;height:52px;border:0;border-radius:10px;background:var(--panel2);color:var(--fg);padding:0 16px;font:inherit;font-size:18px}
+.kol .nom-code{font-family:var(--f-sub);letter-spacing:.14em;text-transform:uppercase;font-size:22px}
+.kol .nom-code::placeholder,.kol .nom-search::placeholder{color:var(--muted);opacity:1}
+.kol .nom-code:focus-visible,.kol .nom-search:focus-visible{outline:2px solid var(--yel);outline-offset:2px}
+.kol .nom-help{color:var(--muted);font-size:14px}
+.kol .nom-intro{display:grid;gap:8px;margin-bottom:22px}
+.kol .nom-hi{font-family:var(--f-sub);font-weight:700;font-size:26px;color:var(--fg);letter-spacing:.04em}
+.kol .nom-when{color:var(--yel);font-weight:500}
+.kol .nom-link{justify-self:start;color:var(--muted);text-decoration:underline;text-underline-offset:3px;font-size:14px;padding:6px 0}
+.kol .nom-link:hover{color:var(--fg)}
+.kol .nom-note{background:var(--panel2);border-radius:10px;padding:12px 16px;color:var(--fg);margin-bottom:16px}
+.kol .nom-awards{display:grid;gap:18px}
+.kol .nom-award{background:var(--panel);border-radius:16px;padding:18px}
+.kol .nom-award-head{display:grid;grid-template-columns:auto 1fr auto;align-items:baseline;gap:12px;margin-bottom:12px}
+.kol .nom-num{font-family:var(--f-title);font-size:30px;color:var(--yel);line-height:1}
+.kol .nom-award-name{font-family:var(--f-sub);font-weight:700;font-size:22px;line-height:1.1;color:var(--fg);letter-spacing:.03em;text-transform:uppercase}
+.kol .nom-count{font-family:var(--f-sub);font-weight:700;font-size:16px;color:var(--muted);white-space:nowrap}
+.kol .nom-count.full{color:var(--yel)}
+.kol .nom-picked{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.kol .nom-chip{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 14px;border-radius:999px;background:var(--yel);color:var(--ground);font-weight:700;max-width:100%}
+.kol .nom-chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kol .nom-chip .x{font-size:20px;line-height:1}
+.kol .nom-chip[disabled]{cursor:default}
+.kol .nom-full{color:var(--yel);font-size:14px;margin-top:8px}
+.kol .nom-list{list-style:none;display:grid;gap:6px;margin-top:10px}
+.kol .nom-row{width:100%;min-height:48px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"nm ct" "hd ct";align-items:center;gap:0 12px;text-align:left;padding:8px 14px;border-radius:10px;background:var(--panel2);color:var(--fg);transition:background-color .12s}
+.kol .nom-row:hover:not([disabled]){background:var(--panel3)}
+.kol .nom-row[disabled]{color:var(--muted);cursor:not-allowed}
+.kol .nom-row .nm{grid-area:nm;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kol .nom-row .hd{grid-area:hd;color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kol .nom-row .ct{grid-area:ct;color:var(--muted);font-size:13px;white-space:nowrap}
+.kol .nom-empty{color:var(--muted);font-size:14px;margin-top:10px}
+.kol .nom-more{margin-top:12px}
+/* #637: the creator's own row (self-picks are allowed) and somebody a creator added by handle */
+.kol .nom-row .ct.you{color:var(--yel);font-weight:700}
+/* #637: "Someone not on the list? Add them": a filled panel one step up, never a stroke */
+.kol .nom-add-open{display:inline-block;margin-top:10px}
+.kol .nom-add{display:grid;gap:8px;margin-top:12px;background:var(--panel2);border-radius:12px;padding:14px}
+.kol .nom-add .nom-search{background:var(--panel3);height:48px;font-size:17px}
+.kol .nom-label.sm{font-size:13px}
+.kol .nom-add-actions{display:flex;flex-wrap:wrap;gap:8px}
+.kol .nom-add .btn.d{background:var(--panel3)}
+.kol .nom-add .err-line:empty{display:none}
+.kol .nom-bar{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel3);border-radius:14px 14px 0 0;padding:12px 16px;margin-top:22px}
+.kol .nom-status{color:var(--fg);font-size:14px;min-height:20px}
+.kol .nom-status .bad{color:#ff8fb6}
+.kol .nom-bar .btn{white-space:nowrap}
+/* phones: the site's Help button sits bottom right on every page, so the save button leads on the left and the bar keeps its right side clear */
+@media (max-width:719px){
+  .kol .nom-bar{flex-wrap:wrap;justify-content:flex-start;padding-right:124px}
+  .kol .nom-bar .btn{order:-1}
+  .kol .nom-status{flex-basis:100%}
+}
+@media (min-width:720px){
+  .kol .nom-award{padding:22px 26px}
+  .kol .nom-list{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  .kol .nom-row{transition:none}
+}
