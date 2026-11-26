@@ -378,7 +378,7 @@
     "preview": "Prévia"
   },
   "kolNom": {
-    "intro": "Os criadores KOL nomeiam-se uns aos outros com um código pessoal cada: até 6 por prémio, nunca a si próprios. Os criadores são carregados da folha da Garena com o comando de importação; os códigos criam-se e desativam-se aqui.",
+    "intro": "Os criadores KOL nomeiam com um código pessoal cada: até 6 por prémio, incluindo a si próprios, e qualquer pessoa que acrescentem pelo @utilizador do TikTok (quem é acrescentado é candidato para todos, nunca votante). Os criadores são carregados da folha da Garena com o comando de importação; os códigos criam-se e desativam-se aqui.",
     "noEdition": "Ainda não há nenhuma edição dos KOL Awards. Crie uma com o tema Detty Royale primeiro.",
     "pickEdition": "Edição KOL",
     "roundTitle": "A ronda",
@@ -429,7 +429,19 @@
       "kol_creator_not_found": "Esse criador não faz parte desta edição.",
       "kol_bad_active": "Escolha ligado ou desligado.",
       "kol_bad_creator_ids": "Não foi possível ler esses criadores.",
-      "awards_edition_not_found": "Essa edição já não existe."
-    }
+      "awards_edition_not_found": "Essa edição já não existe.",
+      "kol_merge_not_write_in": "Só uma pessoa acrescentada por um criador pode ser fundida.",
+      "kol_bad_merge": "Escolha outra pessoa da ronda com quem fundir."
+    },
+    "statWriteIns": "Acrescentados pelos criadores",
+    "writeIn": "Acrescentado por um criador",
+    "notVoter": "Não vota",
+    "addedCount": "{n, plural, one {acrescentou # pessoa} other {acrescentou # pessoas}}",
+    "mergedInto": "Fundido com {name}",
+    "mergePick": "A mesma pessoa que",
+    "mergeLabel": "Fundir {name} com outra pessoa",
+    "merge": "Fundir",
+    "confirmMerge": "Carregue de novo: as escolhas passam para lá",
+    "merged": "{name} fundido com {target}; as escolhas foram transferidas"
   }
 }

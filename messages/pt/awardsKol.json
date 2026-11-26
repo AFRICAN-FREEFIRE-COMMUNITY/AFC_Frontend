@@ -383,7 +383,7 @@
       "help": "Não tem código? Peça-o à pessoa que lhe enviou o convite para os KOL Awards."
     },
     "hi": "Olá {name}.",
-    "intro": "Escolha até 6 criadores para cada prémio. Pode deixar um prémio vazio, e nunca aparece na sua própria lista.",
+    "intro": "Escolha até 6 criadores para cada prémio. Pode escolher qualquer pessoa, incluindo a si próprio, e acrescentar alguém que não esteja na lista. Um prémio pode ficar vazio.",
     "until": "As suas escolhas ficam guardadas à medida que as faz. Pode alterá-las até <date></date>.",
     "untilNoDate": "As suas escolhas ficam guardadas à medida que as faz. Pode alterá-las até as nomeações fecharem.",
     "notOpen": "As nomeações abrem a <date></date>. Pode ver tudo, mas ainda não é possível guardar escolhas.",
@@ -409,13 +409,30 @@
       "kol_code_too_many": "Demasiados códigos errados. Tente de novo dentro de 15 minutos.",
       "kol_code_needed": "Introduza o seu código para abrir o seu boletim.",
       "kol_code_replaced": "Este código foi substituído por um mais recente. Use o último código que recebeu.",
-      "kol_self_pick": "Não se pode nomear a si próprio.",
       "kol_too_many_picks": "Escolha no máximo 6 criadores por prémio.",
       "kol_bad_picks": "Uma das suas escolhas não está neste boletim. Recarregue a página e tente de novo.",
       "kol_round_closed": "As nomeações estão fechadas.",
       "kol_round_not_open": "As nomeações ainda não abriram.",
       "kol_save_too_many": "Está a guardar depressa demais. Aguarde um momento.",
-      "kol_round_not_found": "Estas nomeações não existem. Verifique a sua ligação."
+      "kol_round_not_found": "Estas nomeações não existem. Verifique a sua ligação.",
+      "kol_bad_handle": "Escreva o @utilizador do TikTok (só letras, números, _ e .) ou cole a ligação do perfil.",
+      "kol_handle_unavailable": "Essa pessoa não pode ser nomeada nesta ronda.",
+      "kol_write_in_too_fast": "Está a acrescentar depressa demais. Aguarde um momento.",
+      "kol_write_ins_too_many": "Já acrescentou o máximo de pessoas novas que um criador pode acrescentar."
+    },
+    "you": "Você",
+    "handleAdded": "@{handle}, acrescentado por um criador",
+    "add": {
+      "open": "Alguém que não está na lista? Acrescente essa pessoa",
+      "openWith": "Acrescentar \"{q}\"",
+      "handleLabel": "O @utilizador do TikTok ou a ligação do perfil",
+      "handlePlaceholder": "@utilizador",
+      "nameLabel": "Nome (opcional)",
+      "submit": "Acrescentar e escolher",
+      "adding": "A acrescentar",
+      "cancel": "Cancelar",
+      "help": "Quem acrescentar aparece na lista de todos os criadores, sem o seu nome.",
+      "already": "{name} já está nas suas escolhas para este prémio."
     }
   }
 }

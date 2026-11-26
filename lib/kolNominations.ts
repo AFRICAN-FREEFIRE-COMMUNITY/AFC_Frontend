@@ -5,9 +5,11 @@ import { authHeaders } from "@/lib/http";
 /**
  * lib/kolNominations.ts - the KOL creators' nomination round (AFC inbox #633 / #634).
  *
- * The creators on Garena's KOL List nominate each other for the six KOL Awards with a PERSONAL CODE (no account):
- * up to 6 per award, never themselves. Backend: AFC-B afc_polls/kol_nominations.py (read its header for the
- * whole shape). Design: WEBSITE/tasks/kol-nominations-design-2026-11-25.md.
+ * The creators on Garena's KOL List nominate for the six KOL Awards with a PERSONAL CODE (no account): up to 6 per
+ * award, themselves included, and anybody they add by TikTok @handle (a WRITE-IN: owner, 26 Nov 2026, #637, a
+ * person one creator adds is a candidate on every creator's ballot, never a voter, and nobody counts twice in one
+ * award). Backend: AFC-B afc_polls/kol_nominations.py (read its header for the whole shape). Design:
+ * WEBSITE/tasks/kol-nominations-design-2026-11-25.md, sections 10 and 11 for the write-ins.
  *
  * TWO DOORS, TWO WAYS OF KNOWING WHO IS ASKING
  *   1. The creator's page (KolNominate.tsx). No Bearer token: the code is posted once to the door, the server
@@ -16,16 +18,18 @@ import { authHeaders } from "@/lib/http";
  *   2. The admin tab (KolNominationsAdmin.tsx). The site's usual Bearer session, AFC poll admins only.
  *
  * Refusals carry a `code` (kol_code_wrong, kol_code_too_many, kol_code_needed, kol_code_replaced,
- * kol_self_pick, kol_too_many_picks, kol_bad_picks, kol_round_closed, kol_round_not_open, kol_save_too_many,
- * kol_round_not_found, kol_admin_only, kol_bad_dates, kol_round_missing ...) that the pages print through
- * useServerMessage (messages/<locale>/serverMessages.json).
+ * kol_too_many_picks, kol_bad_picks, kol_round_closed, kol_round_not_open, kol_save_too_many, kol_round_not_found,
+ * kol_bad_handle, kol_handle_unavailable, kol_write_in_too_fast, kol_write_ins_too_many; admin: kol_admin_only,
+ * kol_bad_dates, kol_round_missing, kol_merge_not_write_in, kol_bad_merge ...) that the pages translate from their
+ * own namespaces (awardsKol.nominate.errors, adminPolls.kolNom.errors).
  */
 
 const BASE = `${env.NEXT_PUBLIC_BACKEND_API_URL}/polls`;
 
 export type NominationState = "not_open" | "open" | "closed";
 
-export type NominationCandidate = { creator_id: number; name: string; handle: string; country: string };
+// write_in: somebody a creator added by handle (#637). WHO added them is never sent.
+export type NominationCandidate = { creator_id: number; name: string; handle: string; country: string; write_in: boolean };
 
 export type NominationBallot = {
   round: { edition_title: string; state: NominationState; opens_at: string | null; closes_at: string | null };
@@ -50,7 +54,7 @@ export class NominationError extends Error {
   }
 }
 
-async function creatorCall(path: string, init: RequestInit = {}): Promise<NominationBallot> {
+async function creatorCall<T = NominationBallot>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}/kol-nominations/${path}`, {
     ...init,
     credentials: "include",
@@ -58,7 +62,17 @@ async function creatorCall(path: string, init: RequestInit = {}): Promise<Nomina
   });
   const body = await res.json().catch(() => null);
   if (!res.ok) throw new NominationError(res.status, body);
-  return body as NominationBallot;
+  return body as T;
+}
+
+/** A typed handle as the server keys it (afc_polls.kol_nominations.handle_from_text): a pasted profile link gives
+ *  its @name, then spaces and a leading "@" go and the rest is lower case. Lets the page find a candidate already on
+ *  screen without asking the server. */
+export function handleKey(raw: string): string {
+  let text = raw.trim();
+  const link = /tiktok\.com\/@([^/?#\s]+)/i.exec(text);
+  if (link) text = link[1];
+  return text.trim().replace(/^@+/, "").trim().toLowerCase();
 }
 
 export const kolNominationsApi = {
@@ -72,6 +86,13 @@ export const kolNominationsApi = {
     creatorCall(`${encodeURIComponent(edition)}/ballot/`, {
       method: "PUT",
       body: JSON.stringify({ picks, ...(deviceKey ? { device_key: deviceKey } : {}) }),
+    }),
+  // POST polls/kol-nominations/<edition>/write-in/ {handle, name?}: the candidate this handle is in the round, added
+  // now when nobody had it (created). The page then picks them and saves the sheet as usual (saveBallot).
+  addWriteIn: (edition: string, handle: string, name?: string) =>
+    creatorCall<{ candidate: NominationCandidate; created: boolean }>(`${encodeURIComponent(edition)}/write-in/`, {
+      method: "POST",
+      body: JSON.stringify({ handle, ...(name?.trim() ? { name: name.trim() } : {}) }),
     }),
   // POST polls/kol-nominations/<edition>/signout/: forget the cookie ("Not you? Use another code").
   signOut: (edition: string) =>
@@ -90,6 +111,12 @@ export type NominationAdminCreator = {
   country: string;
   sheet_status: string;
   active: boolean;
+  // "list": on Garena's KOL List (a voter too); "write-in": added by a creator, a candidate only (#637).
+  origin: "list" | "write-in";
+  // A merged duplicate write-in: the candidate its picks moved to.
+  merged_into: number | null;
+  // How many people this creator added (a count only: who added whom is never sent).
+  write_ins_added: number;
   has_code: boolean;
   voted: boolean;
   last_used_at: string | null;
@@ -125,4 +152,9 @@ export const kolNominationsAdminApi = {
   // PATCH polls/admin/kol-nominations/<edition>/creators/<id>/ {active}
   setActive: async (edition: string, creatorId: number, active: boolean) =>
     (await axios.patch(admin(edition, `creators/${creatorId}/`), { active }, { headers: authHeaders() })).data,
+  // PATCH polls/admin/kol-nominations/<edition>/creators/<id>/ {merge_into}: a duplicate write-in's picks move to
+  // the person it repeats (a ballot holding both keeps one), and the write-in leaves every ballot.
+  merge: async (edition: string, creatorId: number, targetId: number) =>
+    (await axios.patch(admin(edition, `creators/${creatorId}/`), { merge_into: targetId }, { headers: authHeaders() }))
+      .data,
 };

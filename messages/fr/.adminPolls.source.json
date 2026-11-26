@@ -301,7 +301,7 @@
   "release.whatsappHelp": "Voters prove a WhatsApp number before their ballot counts. One number backs one account.",
   "release.preview": "Preview",
   "tabs.nominations": "Nominations",
-  "kolNom.intro": "The KOL creators nominate each other with a personal code each: up to 6 per award, never themselves. Creators are loaded from Garena's sheet with the import command; codes are made and switched off here.",
+  "kolNom.intro": "The KOL creators nominate with a personal code each: up to 6 per award, themselves included, and anybody they add by TikTok handle (an added person is a candidate for everyone, never a voter). Creators are loaded from Garena's sheet with the import command; codes are made and switched off here.",
   "kolNom.noEdition": "No KOL Awards edition yet. Create one with the Detty Royale theme first.",
   "kolNom.pickEdition": "KOL edition",
   "kolNom.roundTitle": "The round",
@@ -349,5 +349,17 @@
   "kolNom.errors.kol_creator_not_found": "That creator is not in this edition.",
   "kolNom.errors.kol_bad_active": "Choose on or off.",
   "kolNom.errors.kol_bad_creator_ids": "Those creators could not be read.",
-  "kolNom.errors.awards_edition_not_found": "That edition no longer exists."
+  "kolNom.errors.awards_edition_not_found": "That edition no longer exists.",
+  "kolNom.statWriteIns": "Added by creators",
+  "kolNom.writeIn": "Added by a creator",
+  "kolNom.notVoter": "Not a voter",
+  "kolNom.addedCount": "{n, plural, one {added # person} other {added # people}}",
+  "kolNom.mergedInto": "Merged into {name}",
+  "kolNom.mergePick": "Same person as",
+  "kolNom.mergeLabel": "Merge {name} into another person",
+  "kolNom.merge": "Merge",
+  "kolNom.confirmMerge": "Press again: their picks move",
+  "kolNom.merged": "{name} merged into {target}; their picks moved",
+  "kolNom.errors.kol_merge_not_write_in": "Only a person added by a creator can be merged.",
+  "kolNom.errors.kol_bad_merge": "Choose another person in this round to merge into."
 }

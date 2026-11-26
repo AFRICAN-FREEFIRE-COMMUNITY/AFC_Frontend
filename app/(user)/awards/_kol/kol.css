@@ -613,6 +613,16 @@ body:has(.kol){overflow-x:clip}
 .kol .nom-row .ct{grid-area:ct;color:var(--muted);font-size:13px;white-space:nowrap}
 .kol .nom-empty{color:var(--muted);font-size:14px;margin-top:10px}
 .kol .nom-more{margin-top:12px}
+/* #637: the creator's own row (self-picks are allowed) and somebody a creator added by handle */
+.kol .nom-row .ct.you{color:var(--yel);font-weight:700}
+/* #637: "Someone not on the list? Add them": a filled panel one step up, never a stroke */
+.kol .nom-add-open{display:inline-block;margin-top:10px}
+.kol .nom-add{display:grid;gap:8px;margin-top:12px;background:var(--panel2);border-radius:12px;padding:14px}
+.kol .nom-add .nom-search{background:var(--panel3);height:48px;font-size:17px}
+.kol .nom-label.sm{font-size:13px}
+.kol .nom-add-actions{display:flex;flex-wrap:wrap;gap:8px}
+.kol .nom-add .btn.d{background:var(--panel3)}
+.kol .nom-add .err-line:empty{display:none}
 .kol .nom-bar{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--panel3);border-radius:14px 14px 0 0;padding:12px 16px;margin-top:22px}
 .kol .nom-status{color:var(--fg);font-size:14px;min-height:20px}
 .kol .nom-status .bad{color:#ff8fb6}

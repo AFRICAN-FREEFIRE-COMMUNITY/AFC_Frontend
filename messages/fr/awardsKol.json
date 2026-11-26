@@ -383,7 +383,7 @@
       "help": "Pas de code ? Demandez-le à la personne qui vous a invité aux KOL Awards."
     },
     "hi": "Bonjour {name}.",
-    "intro": "Choisissez jusqu'à 6 créateurs pour chaque prix. Vous pouvez laisser un prix vide, et vous n'apparaissez jamais dans votre propre liste.",
+    "intro": "Choisissez jusqu'à 6 créateurs pour chaque prix. Vous pouvez choisir n'importe qui, y compris vous-même, et ajouter quelqu'un qui n'est pas sur la liste. Un prix peut rester vide.",
     "until": "Vos choix s'enregistrent au fur et à mesure. Vous pouvez les modifier jusqu'au <date></date>.",
     "untilNoDate": "Vos choix s'enregistrent au fur et à mesure. Vous pouvez les modifier jusqu'à la clôture des nominations.",
     "notOpen": "Les nominations ouvrent le <date></date>. Vous pouvez regarder, mais les choix ne peuvent pas encore être enregistrés.",
@@ -409,13 +409,30 @@
       "kol_code_too_many": "Trop de codes erronés. Réessayez dans 15 minutes.",
       "kol_code_needed": "Saisissez votre code pour ouvrir votre bulletin.",
       "kol_code_replaced": "Ce code a été remplacé par un plus récent. Utilisez le dernier code reçu.",
-      "kol_self_pick": "Vous ne pouvez pas vous nominer vous-même.",
       "kol_too_many_picks": "Choisissez au maximum 6 créateurs par prix.",
       "kol_bad_picks": "Un de vos choix ne figure pas sur ce bulletin. Rechargez la page et réessayez.",
       "kol_round_closed": "Les nominations sont closes.",
       "kol_round_not_open": "Les nominations ne sont pas encore ouvertes.",
       "kol_save_too_many": "Enregistrements trop rapides. Patientez un instant.",
-      "kol_round_not_found": "Ces nominations n'existent pas. Vérifiez votre lien."
+      "kol_round_not_found": "Ces nominations n'existent pas. Vérifiez votre lien.",
+      "kol_bad_handle": "Saisissez son @pseudo TikTok (lettres, chiffres, _ et . uniquement) ou collez le lien de son profil.",
+      "kol_handle_unavailable": "Cette personne ne peut pas être nominée dans cette sélection.",
+      "kol_write_in_too_fast": "Ajouts trop rapides. Patientez un instant.",
+      "kol_write_ins_too_many": "Vous avez ajouté autant de nouvelles personnes qu'un créateur le peut."
+    },
+    "you": "Vous",
+    "handleAdded": "@{handle}, ajouté par un créateur",
+    "add": {
+      "open": "Quelqu'un qui n'est pas sur la liste ? Ajoutez cette personne",
+      "openWith": "Ajouter « {q} »",
+      "handleLabel": "Son @pseudo TikTok ou le lien de son profil",
+      "handlePlaceholder": "@pseudo",
+      "nameLabel": "Nom (facultatif)",
+      "submit": "Ajouter et choisir",
+      "adding": "Ajout en cours",
+      "cancel": "Annuler",
+      "help": "La personne ajoutée apparaît dans la liste de chaque créateur, sans votre nom.",
+      "already": "{name} fait déjà partie de vos choix pour ce prix."
     }
   }
 }

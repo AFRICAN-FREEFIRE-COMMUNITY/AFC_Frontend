@@ -11,9 +11,14 @@
  *      http-only cookie this page never sees;
  *   3. without a code in the hash, the page asks the cookie (getBallot); a 401 shows the code box.
  *
- * THE BALLOT: six awards, up to 6 picks each (KolNominateAward), never yourself, no counts. Picks save by
- * themselves SAVE_DELAY_MS after the last change and on "Save my picks"; the server's answer is the truth (a
+ * THE BALLOT: six awards, up to 6 picks each (KolNominateAward), the creator themselves included, no counts. Picks
+ * save by themselves SAVE_DELAY_MS after the last change and on "Save my picks"; the server's answer is the truth (a
  * switched-off creator comes back dropped). Not open yet or closed: everything shows, nothing can change.
+ *
+ * WRITE-INS (owner, 26 Nov 2026, #637): a creator can add anybody by TikTok @handle (addWriteIn). A handle already
+ * on screen is that candidate (no server call); otherwise the server answers the candidate (lib/kolNominations
+ * addWriteIn, AFC-B kol_nominations.write_in), who joins `candidates` here and on every other creator's ballot, and
+ * is picked through the same change() + save as any pick, so six per award and once per person stay the server's.
  *
  * Works while the KOL edition is still hidden from the public (the round has its own dates server-side). The KOL
  * look (kol.css, .kol-nom block), never the AFC name in the copy.
@@ -22,7 +27,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { LocalTime } from "@/components/LocalTime";
-import { kolNominationsApi, NominationError, type NominationBallot } from "@/lib/kolNominations";
+import {
+  handleKey,
+  kolNominationsApi,
+  NominationError,
+  type NominationBallot,
+  type NominationCandidate,
+} from "@/lib/kolNominations";
 import { readSegment } from "@/lib/routes";
 import { voteDeviceKey } from "@/lib/voteDevice";
 
@@ -202,6 +213,33 @@ export function KolNominate({ slug }: { slug: string }) {
     timer.current = setTimeout(() => void save(), SAVE_DELAY_MS);
   };
 
+  // ── someone not on the list (#637): find or add them, then pick them in this award ──
+  // Resolves to the sentence KolNominateAward shows under its form, or null once the person is picked.
+  const addWriteIn = async (questionId: number, max: number, typed: string, name: string): Promise<string | null> => {
+    if (!ballot) return null;
+    const key = handleKey(typed);
+    let candidate: NominationCandidate | undefined = ballot.candidates.find((c) => c.handle === key);
+    if (!candidate) {
+      try {
+        candidate = (await kolNominationsApi.addWriteIn(slug, typed, name)).candidate;
+      } catch (err) {
+        if (toDoor(err)) return null;
+        return refusal(err);
+      }
+      const found = candidate;
+      setBallot((b) =>
+        b && !b.candidates.some((c) => c.creator_id === found.creator_id)
+          ? { ...b, candidates: [...b.candidates, found].sort((x, y) => x.name.localeCompare(y.name)) }
+          : b,
+      );
+    }
+    const current = latest.current[String(questionId)] ?? [];
+    if (current.includes(candidate.creator_id)) return t("nominate.add.already", { name: candidate.name });
+    if (current.length >= max) return t("nominate.full", { max });
+    change(questionId, [...current, candidate.creator_id]);
+    return null;
+  };
+
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
   }, []);
@@ -285,8 +323,10 @@ export function KolNominate({ slug }: { slug: string }) {
                     award={award}
                     candidates={ballot.candidates}
                     picked={picks[String(award.question_id)] ?? []}
+                    meId={ballot.me.creator_id}
                     readOnly={readOnly}
                     onChange={(next) => change(award.question_id, next)}
+                    onAdd={(handle, name) => addWriteIn(award.question_id, award.max, handle, name)}
                   />
                 ))}
               </div>

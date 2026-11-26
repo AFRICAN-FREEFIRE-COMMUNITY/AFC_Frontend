@@ -13,6 +13,11 @@
  *   3. Per creator: switch them off (their code stops at once, they leave every ballot and the tally) or give them a
  *      new code (a one-row CSV; the old code and its cookie stop working).
  *   4. Read who has voted (yes / no) and the picks per creator in each award. Who picked whom is never shown.
+ *   5. WRITE-INS (owner, 26 Nov 2026, #637): people a creator added by TikTok handle are listed with an "Added by a
+ *      creator" badge. They are candidates, never voters (no code, no "New code"). Junk is switched off like anybody;
+ *      a duplicate of somebody already in the round is MERGED into them (pick "Same person as", press Merge twice):
+ *      its picks move there and a ballot that held both keeps one, so nobody counts twice in one award. Who added a
+ *      write-in is never shown, only how many people each creator added.
  *
  * Creators are loaded by `manage.py kol_import_creators` (from the private sheet), not from this page.
  * CALLS: lib/kolNominations.ts kolNominationsAdminApi (GET/POST polls/admin/kol-nominations/<edition>/, POST
@@ -89,6 +94,9 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
   const [closesAt, setClosesAt] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState<number | null>(null);
+  // Merge control per write-in row: the chosen "same person as" candidate, and which row waits for its 2nd press.
+  const [mergeTarget, setMergeTarget] = useState<Record<number, string>>({});
+  const [confirmingMerge, setConfirmingMerge] = useState<number | null>(null);
 
   // The refusals of these endpoints, translated (adminPolls.kolNom.errors), else the server's own sentence.
   const refusal = useCallback(
@@ -180,14 +188,38 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
     }
   };
 
+  const merge = async (creator: NominationAdminCreator, target: NominationAdminCreator) => {
+    // Two presses: the picks move for good (the duplicate can be switched back on, but its picks stay moved).
+    if (confirmingMerge !== creator.creator_id) {
+      setConfirmingMerge(creator.creator_id);
+      setTimeout(() => setConfirmingMerge((c) => (c === creator.creator_id ? null : c)), CONFIRM_MS);
+      return;
+    }
+    setBusy(true);
+    try {
+      await kolNominationsAdminApi.merge(slug, creator.creator_id, target.creator_id);
+      toast.success(t("kolNom.merged", { name: creator.name, target: target.name }));
+      await load();
+    } catch (err) {
+      toast.error(refusal(err));
+    } finally {
+      setBusy(false);
+      setConfirmingMerge(null);
+    }
+  };
+
   if (kol.length === 0) return <p className="text-sm text-muted-foreground">{t("kolNom.noEdition")}</p>;
 
   const creators = data?.creators ?? [];
+  const byId = new Map(creators.map((c) => [c.creator_id, c]));
   const active = creators.filter((c) => c.active);
+  // Voters are the creators on the KOL List; write-ins (#637) are candidates only, counted on their own.
+  const voters = active.filter((c) => c.origin !== "write-in");
   const stats = [
-    { label: t("kolNom.statCreators"), value: formatNumber(active.length) },
-    { label: t("kolNom.statCodes"), value: formatNumber(active.filter((c) => c.has_code).length) },
-    { label: t("kolNom.statVoted"), value: formatNumber(active.filter((c) => c.voted).length) },
+    { label: t("kolNom.statCreators"), value: formatNumber(voters.length) },
+    { label: t("kolNom.statCodes"), value: formatNumber(voters.filter((c) => c.has_code).length) },
+    { label: t("kolNom.statVoted"), value: formatNumber(voters.filter((c) => c.voted).length) },
+    { label: t("kolNom.statWriteIns"), value: formatNumber(active.length - voters.length) },
     { label: t("kolNom.statWrong"), value: formatNumber(data?.failed_attempts ?? 0) },
   ];
 
@@ -249,7 +281,7 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             {stats.map((s) => (
               <Card key={s.label} className="bg-card rounded-md py-6 shadow-sm">
                 <CardContent>
@@ -280,16 +312,36 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {creators.map((c) => (
+                    {creators.map((c) => {
+                      const writeIn = c.origin === "write-in";
+                      const mergedInto = c.merged_into ? byId.get(c.merged_into) : undefined;
+                      const others = active.filter((o) => o.creator_id !== c.creator_id);
+                      const target = byId.get(Number(mergeTarget[c.creator_id]));
+                      return (
                       <TableRow key={c.creator_id} className={c.active ? "" : "opacity-60"}>
                         <TableCell className="p-2">
                           <span className="font-medium text-foreground">{c.name}</span>
                           <span className="block text-muted-foreground">@{c.handle}</span>
+                          {writeIn && (
+                            <Badge variant="outline" className="mt-1 rounded-full px-2 py-0.5 text-xs text-gold">
+                              {t("kolNom.writeIn")}
+                            </Badge>
+                          )}
+                          {mergedInto && (
+                            <span className="block text-muted-foreground">{t("kolNom.mergedInto", { name: mergedInto.name })}</span>
+                          )}
+                          {!writeIn && c.write_ins_added > 0 && (
+                            <span className="block text-muted-foreground">{t("kolNom.addedCount", { n: c.write_ins_added })}</span>
+                          )}
                         </TableCell>
                         <TableCell className="p-2">{c.country}</TableCell>
                         <TableCell className="p-2">{c.sheet_status}</TableCell>
-                        <TableCell className="p-2">{c.has_code ? t("kolNom.yes") : t("kolNom.no")}</TableCell>
-                        <TableCell className="p-2">{c.voted ? t("kolNom.yes") : t("kolNom.no")}</TableCell>
+                        <TableCell className="p-2">
+                          {writeIn ? t("kolNom.notVoter") : c.has_code ? t("kolNom.yes") : t("kolNom.no")}
+                        </TableCell>
+                        <TableCell className="p-2">
+                          {writeIn ? t("kolNom.notVoter") : c.voted ? t("kolNom.yes") : t("kolNom.no")}
+                        </TableCell>
                         <TableCell className="p-2">
                           {c.last_used_at ? <LocalTime value={c.last_used_at} mode="relative" /> : t("kolNom.never")}
                         </TableCell>
@@ -301,14 +353,45 @@ export function KolNominationsAdmin({ editions }: { editions: AwardsEdition[] })
                           />
                         </TableCell>
                         <TableCell className="p-2 text-right">
-                          {c.active && data.round && (
+                          {c.active && data.round && !writeIn && (
                             <Button size="sm" variant="outline" onClick={() => newCode(c)} disabled={busy}>
                               {confirming === c.creator_id ? t("kolNom.confirmNewCode") : t("kolNom.newCode")}
                             </Button>
                           )}
+                          {c.active && data.round && writeIn && (
+                            <div className="flex items-center justify-end gap-2">
+                              <Select
+                                value={mergeTarget[c.creator_id] ?? ""}
+                                onValueChange={(v) => {
+                                  setMergeTarget((m) => ({ ...m, [c.creator_id]: v }));
+                                  setConfirmingMerge(null);
+                                }}
+                              >
+                                <SelectTrigger className="h-8 w-44 text-xs" aria-label={t("kolNom.mergeLabel", { name: c.name })}>
+                                  <SelectValue placeholder={t("kolNom.mergePick")} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {others.map((o) => (
+                                    <SelectItem key={o.creator_id} value={String(o.creator_id)}>
+                                      {o.name} (@{o.handle})
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => target && void merge(c, target)}
+                                disabled={busy || !target}
+                              >
+                                {confirmingMerge === c.creator_id ? t("kolNom.confirmMerge") : t("kolNom.merge")}
+                              </Button>
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
-                    ))}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

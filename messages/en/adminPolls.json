@@ -378,7 +378,7 @@
     "preview": "Preview"
   },
   "kolNom": {
-    "intro": "The KOL creators nominate each other with a personal code each: up to 6 per award, never themselves. Creators are loaded from Garena's sheet with the import command; codes are made and switched off here.",
+    "intro": "The KOL creators nominate with a personal code each: up to 6 per award, themselves included, and anybody they add by TikTok handle (an added person is a candidate for everyone, never a voter). Creators are loaded from Garena's sheet with the import command; codes are made and switched off here.",
     "noEdition": "No KOL Awards edition yet. Create one with the Detty Royale theme first.",
     "pickEdition": "KOL edition",
     "roundTitle": "The round",
@@ -429,7 +429,19 @@
       "kol_creator_not_found": "That creator is not in this edition.",
       "kol_bad_active": "Choose on or off.",
       "kol_bad_creator_ids": "Those creators could not be read.",
-      "awards_edition_not_found": "That edition no longer exists."
-    }
+      "awards_edition_not_found": "That edition no longer exists.",
+      "kol_merge_not_write_in": "Only a person added by a creator can be merged.",
+      "kol_bad_merge": "Choose another person in this round to merge into."
+    },
+    "statWriteIns": "Added by creators",
+    "writeIn": "Added by a creator",
+    "notVoter": "Not a voter",
+    "addedCount": "{n, plural, one {added # person} other {added # people}}",
+    "mergedInto": "Merged into {name}",
+    "mergePick": "Same person as",
+    "mergeLabel": "Merge {name} into another person",
+    "merge": "Merge",
+    "confirmMerge": "Press again: their picks move",
+    "merged": "{name} merged into {target}; their picks moved"
   }
 }

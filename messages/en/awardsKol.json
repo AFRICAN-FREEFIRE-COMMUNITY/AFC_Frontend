@@ -383,7 +383,7 @@
       "help": "No code? Ask the person who sent you your invitation to the KOL Awards."
     },
     "hi": "Hi {name}.",
-    "intro": "Pick up to 6 creators for each award. You can leave an award empty, and you are never on your own list.",
+    "intro": "Pick up to 6 creators for each award. You can pick anyone, yourself included, and add someone who is not on the list. An award can stay empty.",
     "until": "Your picks save as you go. You can change them until <date></date>.",
     "untilNoDate": "Your picks save as you go. You can change them until nominations close.",
     "notOpen": "Nominations open <date></date>. You can look around, but picks cannot be saved yet.",
@@ -409,13 +409,30 @@
       "kol_code_too_many": "Too many wrong codes. Try again in 15 minutes.",
       "kol_code_needed": "Enter your code to open your ballot.",
       "kol_code_replaced": "That code was replaced by a newer one. Use the newest code you received.",
-      "kol_self_pick": "You cannot nominate yourself.",
       "kol_too_many_picks": "Pick at most 6 creators for each award.",
       "kol_bad_picks": "One of your picks is not on this ballot. Reload the page and try again.",
       "kol_round_closed": "Nominations are closed.",
       "kol_round_not_open": "Nominations have not opened yet.",
       "kol_save_too_many": "Saving too fast. Wait a moment.",
-      "kol_round_not_found": "These nominations do not exist. Check your link."
+      "kol_round_not_found": "These nominations do not exist. Check your link.",
+      "kol_bad_handle": "Type their TikTok @handle (letters, numbers, _ and . only) or paste their profile link.",
+      "kol_handle_unavailable": "That person cannot be nominated in this round.",
+      "kol_write_in_too_fast": "Adding too fast. Wait a moment.",
+      "kol_write_ins_too_many": "You have added as many new people as one creator can."
+    },
+    "you": "You",
+    "handleAdded": "@{handle}, added by a creator",
+    "add": {
+      "open": "Someone not on the list? Add them",
+      "openWith": "Add \"{q}\"",
+      "handleLabel": "Their TikTok @handle or profile link",
+      "handlePlaceholder": "@handle",
+      "nameLabel": "Name (optional)",
+      "submit": "Add and pick",
+      "adding": "Adding",
+      "cancel": "Cancel",
+      "help": "Whoever you add appears on every creator's list, without your name.",
+      "already": "{name} is already in your picks for this award."
     }
   }
 }

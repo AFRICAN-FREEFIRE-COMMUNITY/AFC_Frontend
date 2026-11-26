@@ -1,16 +1,23 @@
 "use client";
 
 /**
- * app/(user)/awards/_kol/KolNominateAward.tsx - ONE award on the creators' nomination ballot (inbox #633 / #634).
+ * app/(user)/awards/_kol/KolNominateAward.tsx - ONE award on the creators' nomination ballot (inbox #633 / #634,
+ * write-ins and self-picks #636 / #637).
  *
- * Up to `award.max` (6) picks, searchable by name or @handle, country shown beside each name. The creator never
- * appears here: the server leaves them out of `candidates` and refuses a self-pick anyway (AFC-B
- * afc_polls/kol_nominations.py). No counts of any kind: nobody sees how others voted.
+ * Up to `award.max` (6) picks, searchable by name or @handle, country shown beside each name. The creator is on
+ * their own list (owner, 26 Nov 2026: "they should be able to nominate themselves now"), tagged "You". No counts of
+ * any kind: nobody sees how others voted.
+ *
+ * SOMEONE NOT ON THE LIST (#637: "creators can add and nominate anybody"): "Add them" opens a small form, a TikTok
+ * @handle (or profile link) and an optional name. The parent (KolNominate.addWriteIn) asks the server, which answers
+ * the candidate this handle is in the round (made now when nobody had it), and picks them; the person then shows on
+ * every creator's list, labelled "added by a creator" and never with who added them. One person never twice in one
+ * award: a handle already picked here answers "already in your picks".
  *
  * Picked creators sit on top as filled chips (tap to remove); the list below shows the first LIST_LIMIT
  * candidates until the creator searches or asks for all, so 108 names do not make a phone page endless.
  *
- * CONSUMED BY KolNominate.tsx, which owns the picks and the saving.
+ * CONSUMED BY KolNominate.tsx, which owns the picks, the saving and the write-in call.
  */
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -33,19 +40,29 @@ export function KolNominateAward({
   award,
   candidates,
   picked,
+  meId,
   readOnly,
   onChange,
+  onAdd,
 }: {
   index: number;
   award: { question_id: number; name: string; max: number };
   candidates: NominationCandidate[];
   picked: number[];
+  meId: number;
   readOnly: boolean;
   onChange: (next: number[]) => void;
+  // Resolves to a sentence to show under the form (a refusal, "already picked"), or null when the person was picked.
+  onAdd: (handle: string, name: string) => Promise<string | null>;
 }) {
   const t = useTranslations("awardsKol");
   const [query, setQuery] = useState("");
   const [showAll, setShowAll] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [handle, setHandle] = useState("");
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [addError, setAddError] = useState("");
 
   const byId = useMemo(() => new Map(candidates.map((c) => [c.creator_id, c])), [candidates]);
   const pickedSet = new Set(picked);
@@ -58,6 +75,28 @@ export function KolNominateAward({
     if (readOnly) return;
     if (pickedSet.has(id)) onChange(picked.filter((p) => p !== id));
     else if (!full) onChange([...picked, id]);
+  };
+
+  const openAdd = () => {
+    setHandle(query.trim());
+    setName("");
+    setAddError("");
+    setAdding(true);
+  };
+
+  const submitAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!handle.trim() || busy) return;
+    setBusy(true);
+    setAddError("");
+    const problem = await onAdd(handle, name);
+    setBusy(false);
+    if (problem) {
+      setAddError(problem);
+      return;
+    }
+    setAdding(false);
+    setQuery("");
   };
 
   return (
@@ -110,8 +149,14 @@ export function KolNominateAward({
               <li key={c.creator_id}>
                 <button type="button" className="nom-row" onClick={() => toggle(c.creator_id)} disabled={full}>
                   <span className="nm">{c.name}</span>
-                  <span className="hd">@{c.handle}</span>
-                  {c.country && <span className="ct">{c.country}</span>}
+                  <span className="hd">
+                    {c.write_in ? t("nominate.handleAdded", { handle: c.handle }) : `@${c.handle}`}
+                  </span>
+                  {c.creator_id === meId ? (
+                    <span className="ct you">{t("nominate.you")}</span>
+                  ) : (
+                    c.country && <span className="ct">{c.country}</span>
+                  )}
                 </button>
               </li>
             ))}
@@ -121,6 +166,47 @@ export function KolNominateAward({
             <button type="button" className="btn d sm nom-more" onClick={() => setShowAll(true)}>
               {t("nominate.showAll", { n: rest.length })}
             </button>
+          )}
+
+          {!full && !adding && (
+            <button type="button" className="nom-link nom-add-open" onClick={openAdd}>
+              {query.trim() && rest.length === 0 ? t("nominate.add.openWith", { q: query.trim() }) : t("nominate.add.open")}
+            </button>
+          )}
+          {!full && adding && (
+            <form className="nom-add" onSubmit={submitAdd}>
+              <label className="nom-label sm" htmlFor={`${headingId}-h`}>{t("nominate.add.handleLabel")}</label>
+              <input
+                id={`${headingId}-h`}
+                className="nom-search"
+                value={handle}
+                onChange={(e) => setHandle(e.target.value)}
+                placeholder={t("nominate.add.handlePlaceholder")}
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                autoFocus
+              />
+              <label className="nom-label sm" htmlFor={`${headingId}-n`}>{t("nominate.add.nameLabel")}</label>
+              <input
+                id={`${headingId}-n`}
+                className="nom-search"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={60}
+                autoComplete="off"
+              />
+              <p className="err-line" role="alert">{addError}</p>
+              <div className="nom-add-actions">
+                <button type="submit" className="btn y sm" disabled={busy || !handle.trim()}>
+                  {busy ? t("nominate.add.adding") : t("nominate.add.submit")}
+                </button>
+                <button type="button" className="btn d sm" onClick={() => setAdding(false)} disabled={busy}>
+                  {t("nominate.add.cancel")}
+                </button>
+              </div>
+              <p className="nom-help">{t("nominate.add.help")}</p>
+            </form>
           )}
         </>
       )}
