@@ -636,6 +636,8 @@ body:has(.kol){overflow-x:clip}
   .kol .nom-bar{flex-wrap:wrap;justify-content:flex-start;padding-right:124px}
   .kol .nom-bar .btn{order:-1}
   .kol .nom-status{flex-basis:100%}
+  /* the code box and the claim step end the page: room below them so the floating Help button never covers their button */
+  .kol .nom-door{margin-bottom:96px}
 }
 @media (min-width:720px){
   .kol .nom-award{padding:22px 26px}
