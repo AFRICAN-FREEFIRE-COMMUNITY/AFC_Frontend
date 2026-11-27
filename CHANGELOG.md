@@ -19,6 +19,12 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.32.0 - 2026-11-28
+
+### Added
+
+- KOL nominations metrics (#653): the Metrics tab of /a/polls has a "Nominations round" view (NEW badge), and Garena's KOL Admins get a Metrics tab beside their round. It shows ballots that count, codes opened, time to nominate, searches, code emails, the steps from invite to a ballot that counts, most searched creators, searches that found nothing, the words most typed, every award's numbers, activity by day and hour, changes, self-only ballots (Copy reminder), write-ins, devices, countries, codes never opened (Email code) and emails, with a CSV of one row per creator. English, French and Portuguese hand-written. The ballot page now reports each search when it ends (nothing changes for the creator).
+
 ## v7.30.0 - 2026-11-27
 
 ### Added

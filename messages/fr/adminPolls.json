@@ -249,7 +249,8 @@
     "byCategory": "Votes par catégorie et nominé",
     "section": "Section",
     "timeline": "Votes par jour",
-    "day": "Jour"
+    "day": "Jour",
+    "nominationsTab": "Tour des nominations"
   },
   "tracking": {
     "title": "Où et comment les gens ont voté",
@@ -516,5 +517,220 @@
     "ballotCountsOn": "Le bulletin de {name} compte de nouveau",
     "ballotCountsOff": "Le bulletin de {name} ne compte plus ; cette personne reste dans la sélection",
     "notCounted": "Non compté (désactivé)"
+  },
+  "kolMetrics": {
+    "noRound": "Aucune édition KOL n'a encore de tour de nominations.",
+    "pickEdition": "Édition KOL",
+    "refresh": "Actualiser",
+    "csv": "Télécharger le CSV",
+    "loadFailed": "Les statistiques n'ont pas pu être chargées.",
+    "tryAgain": "Réessayer",
+    "none": "Aucun",
+    "opened": "Ouvert le",
+    "closes": "ferme le",
+    "updated": "mis à jour à",
+    "recordingNote": "{n, plural, one {# bulletin a été terminé} other {# bulletins ont été terminés}} avant l'enregistrement des recherches, des ouvertures et des heures de fin (28 novembre 2026) : leur temps est mesuré depuis le premier enregistrement et reconstitué à partir des choix.",
+    "dur": {
+      "seconds": "{s} s",
+      "minutes": "{m} min {s} s",
+      "hours": "{h} h {m} min",
+      "days": "{d} j {h} h",
+      "minutesOnly": "{m} min",
+      "hoursOnly": "{h} h"
+    },
+    "showAll": "Tout afficher ({n})",
+    "showFewer": "Afficher moins",
+    "tiles": {
+      "counting": "Bulletins qui comptent",
+      "countingSub": "sur {total} créateurs ({pct} %)",
+      "started": "Commencés, ne comptent pas encore",
+      "startedSub": "un prix encore vide",
+      "opened": "Codes ouverts",
+      "openedSub": "{n} jamais ouverts",
+      "time": "Temps pour nominer",
+      "timeSub": "médiane · moyenne {avg}",
+      "searches": "Recherches",
+      "searchesSub": "par {by} · {nothing} sans résultat",
+      "emails": "E-mails de code",
+      "emailsSub": "envoyés · {failed} en échec · {none} sans adresse"
+    },
+    "funnel": {
+      "title": "De l'invitation au bulletin qui compte",
+      "lead": "Chaque étape sur les {total} créateurs de la liste.",
+      "in_round": "Dans le tour",
+      "emailed": "Code envoyé par e-mail",
+      "opened": "Ont ouvert leur code",
+      "contact": "Ont donné e-mail + WhatsApp",
+      "picked": "Ont choisi au moins une fois",
+      "counting": "Chaque prix choisi (compte)",
+      "bar": "{step} : {n} sur {total}"
+    },
+    "time": {
+      "title": "Combien de temps pour nominer",
+      "lead": "De la première ouverture du code à l'enregistrement qui a fait compter le bulletin. {n, plural, one {# bulletin} other {# bulletins}}.",
+      "empty": "Aucun bulletin ne compte encore.",
+      "binTitle": "{bin} : {n}",
+      "bins": {
+        "under_2m": "moins de 2 min",
+        "2_to_5m": "2 à 5 min",
+        "5_to_10m": "5 à 10 min",
+        "10_to_30m": "10 à 30 min",
+        "30m_to_1d": "30 min à 1 jour",
+        "over_1d": "plus d'un jour"
+      },
+      "median": "Médiane",
+      "average": "Moyenne",
+      "openToPick": "De l'ouverture au premier choix (médiane)",
+      "pickToCount": "Du premier choix au bulletin qui compte (médiane)",
+      "fastest": "Le plus rapide",
+      "longest": "Le plus long",
+      "oneVisit": "Comptent moins d'une heure après l'ouverture",
+      "cameBack": "Revenus plus tard pour finir",
+      "visits": "Visites par créateur (moyenne)"
+    },
+    "search": {
+      "title": "Créateurs les plus recherchés",
+      "lead": "Recherches qui ont abouti à ce créateur (saisi, puis choisi dans les résultats). Choix : ses choix dans tous les bulletins enregistrés à présent.",
+      "empty": "Aucune recherche enregistrée pour l'instant."
+    },
+    "nothing": {
+      "title": "Recherches sans résultat",
+      "lead": "Ce que les créateurs ont tapé quand aucun nom n'est apparu, et ce qu'ils ont fait ensuite. Souvent un créateur à ajouter, ou un surnom.",
+      "empty": "Jusqu'ici, chaque recherche a trouvé quelqu'un."
+    },
+    "then": {
+      "picked": "a choisi {name}",
+      "added": "a ajouté {name}",
+      "nothing": "a abandonné"
+    },
+    "typed": {
+      "title": "Mots les plus tapés",
+      "endedOn": "{name} ({n})"
+    },
+    "awards": {
+      "title": "Par prix",
+      "lead": "Sur les {n} bulletins commencés. Vide : aucun choix dans ce prix. Soi seul : le seul choix du créateur est lui-même (compte comme vide). Les petites barres montrent combien en ont choisi 1, 2, 3, 4, 5 et 6. Le plus nominé ne compte que les bulletins qui comptent.",
+      "distLabel": "Bulletins ayant choisi 1 à 6 : {counts}",
+      "distTitle": "{n} en ont choisi {picks}",
+      "top": "{name} ({n})"
+    },
+    "activity": {
+      "title": "Activité par jour",
+      "lead": "Bulletins qui ont commencé à compter chaque jour (UTC). Heure la plus active pour les choix : {from}:00 à {to}:00 UTC.",
+      "leadNoPeak": "Bulletins qui ont commencé à compter chaque jour (UTC).",
+      "dayTitle": "{day} : {n}",
+      "byHour": "Choix faits par heure de la journée (UTC)",
+      "hourTitle": "{hour}:00 UTC : {n}"
+    },
+    "changes": {
+      "title": "Changements et modifications",
+      "lead": "Chaque fois qu'un créateur a remplacé ou retiré un choix. Par bulletin et après comptage sont enregistrés depuis le 28 novembre 2026.",
+      "total": "Choix modifiés",
+      "after": "Bulletins modifiés après avoir compté",
+      "perBallot": "Modifications par bulletin (moyenne)",
+      "mostChanged": "Prix le plus modifié",
+      "mostChangedValue": "{name} ({n})",
+      "picksEmails": "« M'envoyer mes choix » envoyés",
+      "picksEmailsValue": "{n} à {by} créateurs",
+      "contact": "Contact donné (e-mail + WhatsApp)",
+      "removedTitle": "Les plus retirés après avoir été choisis",
+      "empty": "Aucun choix retiré pour l'instant."
+    },
+    "self": {
+      "title": "Auto-nominations et ajouts",
+      "lead": "{n, plural, one {# créateur s'est choisi} other {# créateurs se sont choisis}} au moins une fois. Ceux-ci ont encore un prix avec eux seuls, donc leur bulletin ne compte pas encore :",
+      "empty": "Personne n'a de prix avec soi seul."
+    },
+    "copyReminder": "Copier le rappel",
+    "reminderCopied": "Rappel pour {name} copié.",
+    "copyFailed": "Copie impossible. Réessayez.",
+    "writeIns": {
+      "title": "Ajoutés par des créateurs (hors liste de Garena)",
+      "empty": "Personne n'a encore été ajouté."
+    },
+    "where": {
+      "title": "Appareils et pays",
+      "lead": "D'après les bulletins enregistrés (pays de connexion, pas celui de la feuille).",
+      "empty": "Aucun bulletin enregistré pour l'instant.",
+      "countries": "Pays",
+      "deviceBar": "{n} bulletins sur {total}",
+      "countryBar": "{n} bulletins",
+      "mismatch": "{n, plural, one {# bulletin a été enregistré} other {# bulletins ont été enregistrés}} depuis un autre pays que celui du créateur sur la feuille."
+    },
+    "device": {
+      "phone": "Téléphone",
+      "computer": "Ordinateur",
+      "tablet": "Tablette",
+      "unknown": "Inconnu"
+    },
+    "unknownCountry": "Inconnu",
+    "codes": {
+      "title": "Codes",
+      "made": "Codes de créateurs créés",
+      "opened": "Ouverts au moins une fois",
+      "never": "Jamais ouverts",
+      "spareMade": "Codes de réserve créés",
+      "spareClaimed": "Codes de réserve réclamés",
+      "revoked": "Codes remplacés (ancien révoqué)",
+      "neverTitle": "N'ont jamais ouvert leur code",
+      "allOpened": "Chaque créateur a ouvert son code."
+    },
+    "status": {
+      "sent": "envoyé",
+      "queued": "en cours d'envoi",
+      "failed": "échec",
+      "no_address": "sans adresse",
+      "not_sent": "non envoyé"
+    },
+    "contactGiven": "donné",
+    "emailCode": "Envoyer le code",
+    "emailQueued": "L'e-mail du code pour {name} est en route.",
+    "addInCreators": "Ajoutez un e-mail dans Créateurs",
+    "emails": {
+      "title": "E-mails",
+      "sent": "E-mails de code envoyés",
+      "failed": "En échec",
+      "noAddress": "Sans adresse pour l'instant",
+      "openedAfter": "Ont ouvert leur code après l'e-mail",
+      "openedAfterValue": "{n} sur {total}",
+      "toOpen": "De l'e-mail à la première ouverture (médiane)",
+      "picks": "E-mails de choix envoyés",
+      "failedTitle": "En échec",
+      "noneFailed": "Aucun e-mail de code n'a échoué."
+    },
+    "col": {
+      "creator": "Créateur",
+      "searches": "Recherches",
+      "by": "Par",
+      "picks": "Choix",
+      "typed": "Tapé",
+      "times": "Fois",
+      "then": "Ensuite",
+      "endedOn": "A abouti à",
+      "award": "Prix",
+      "withPick": "Avec un choix",
+      "empty": "Vide",
+      "onlySelf": "Soi seul",
+      "avgPicks": "Choix moyens",
+      "oneToSix": "Choix 1 à 6",
+      "pickedSelf": "S'est choisi",
+      "writeIns": "Ajouts",
+      "nominees": "Nominés différents",
+      "top": "Le plus nominé",
+      "removed": "Retiré",
+      "stillPicked": "Encore choisi",
+      "awardsOnlySelf": "Prix avec soi seul",
+      "lastSaved": "Dernier enregistrement",
+      "addedBy": "Ajouté par",
+      "country": "Pays",
+      "ballots": "Bulletins",
+      "counting": "Qui comptent",
+      "onList": "Sur la liste depuis ce pays",
+      "share": "Part",
+      "codeEmail": "E-mail du code",
+      "contact": "Contact",
+      "address": "Adresse",
+      "why": "Pourquoi"
+    }
   }
 }
