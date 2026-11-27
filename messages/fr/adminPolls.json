@@ -401,6 +401,8 @@
     "statVoted": "Ont nominé",
     "statWrong": "Codes erronés saisis",
     "creatorsTitle": "Créateurs",
+    "searchCreators": "Rechercher par nom, @identifiant, pays ou email",
+    "noCreatorMatch": "Aucun créateur ne correspond à \"{q}\".",
     "noCreators": "Aucun créateur pour l'instant. Chargez-les avec manage.py kol_import_creators.",
     "colName": "Créateur",
     "colCountry": "Pays",

@@ -401,6 +401,8 @@
     "statVoted": "Já nomearam",
     "statWrong": "Códigos errados introduzidos",
     "creatorsTitle": "Criadores",
+    "searchCreators": "Pesquisar por nome, @utilizador, país ou email",
+    "noCreatorMatch": "Nenhum criador corresponde a \"{q}\".",
     "noCreators": "Ainda não há criadores. Carregue-os com manage.py kol_import_creators.",
     "colName": "Criador",
     "colCountry": "País",

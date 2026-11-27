@@ -401,6 +401,8 @@
     "statVoted": "Have nominated",
     "statWrong": "Wrong codes typed",
     "creatorsTitle": "Creators",
+    "searchCreators": "Search by name, @handle, country or email",
+    "noCreatorMatch": "No creator matches \"{q}\".",
     "noCreators": "No creators yet. Load them with manage.py kol_import_creators.",
     "colName": "Creator",
     "colCountry": "Country",

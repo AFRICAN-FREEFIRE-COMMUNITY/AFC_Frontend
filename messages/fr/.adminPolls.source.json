@@ -423,5 +423,7 @@
   "kolNom.selectAll": "Tick every creator with an email",
   "kolNom.errors.kol_bad_email": "Type a valid email address.",
   "kolNom.errors.kol_bad_whatsapp": "Type the WhatsApp number with its country code, like +234 801 234 5678.",
-  "kolNom.errors.kol_whatsapp_country_code": "Start the WhatsApp number with its country code, like +234."
+  "kolNom.errors.kol_whatsapp_country_code": "Start the WhatsApp number with its country code, like +234.",
+  "kolNom.searchCreators": "Search by name, @handle, country or email",
+  "kolNom.noCreatorMatch": "No creator matches \"{q}\"."
 }
