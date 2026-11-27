@@ -37,6 +37,8 @@
  *     opens it again, empty: the stored values are never sent to this page.
  *   - "request to send their own votes to their mails": "Email me my picks" (kolNominationsApi.emailMe) to the masked
  *     address the server gives (email_hint).
+ *   - #652 "if they nominate only themselves, their nomination will be discarded" ("Per award"): an award holding only
+ *     the creator counts as EMPTY everywhere here (counts() below), the same rule as the server's _ballot_rows.
  *
  * Works while the KOL edition is still hidden from the public (the round has its own dates server-side). The KOL
  * look (kol.css, .kol-nom block), never the AFC name in the copy.
@@ -321,6 +323,10 @@ export function KolNominate({ slug }: { slug: string }) {
     }
   }, [slug, refusal, show, t, toDoor]);
 
+  // #643 + #652: does this award's pick list count (somebody other than the creator in it)?
+  const meId = ballot?.me.creator_id;
+  const counts = useCallback((ids: number[] | undefined) => (ids ?? []).some((id) => id !== meId), [meId]);
+
   // #643: mark `ids` as skipped and name the first of them in the save bar.
   const flagSkipped = useCallback((ids: number[]) => {
     if (!ids.length) return;
@@ -343,7 +349,7 @@ export function KolNominate({ slug }: { slug: string }) {
       flagSkipped(
         ballot.awards
           .slice(0, Math.max(at, 0))
-          .filter((a) => !(updated[String(a.question_id)] ?? []).length)
+          .filter((a) => !counts(updated[String(a.question_id)]))
           .map((a) => a.question_id),
       );
     }
@@ -395,14 +401,14 @@ export function KolNominate({ slug }: { slug: string }) {
         const id = Number((entry.target as HTMLElement).dataset.award);
         if (entry.isIntersecting) {
           seen.add(id);
-        } else if (seen.has(id) && entry.boundingClientRect.bottom <= 0 && !(latest.current[String(id)] ?? []).length) {
+        } else if (seen.has(id) && entry.boundingClientRect.bottom <= 0 && !counts(latest.current[String(id)])) {
           flagSkipped([id]);
         }
       }
     });
     document.querySelectorAll<HTMLElement>(".nom-awards [data-award]").forEach((el) => watcher.observe(el));
     return () => watcher.disconnect();
-  }, [view, roundState, awardCount, flagSkipped]);
+  }, [view, roundState, awardCount, flagSkipped, counts]);
 
   // #643: "Go to it" / "Next empty award" bring that award to the top of the screen.
   const goTo = (questionId: number) => {
@@ -649,7 +655,7 @@ export function KolNominate({ slug }: { slug: string }) {
                   </button>
                   {/* #643: does the ballot count yet, and which award was moved past with no pick */}
                   {(() => {
-                    const empties = ballot.awards.filter((a) => !(picks[String(a.question_id)] ?? []).length);
+                    const empties = ballot.awards.filter((a) => !counts(picks[String(a.question_id)]));
                     const total = ballot.awards.length;
                     const named = empties.find((a) => a.question_id === notice);
                     if (named) {

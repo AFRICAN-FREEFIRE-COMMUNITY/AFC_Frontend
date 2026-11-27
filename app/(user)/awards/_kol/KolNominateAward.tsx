@@ -80,6 +80,8 @@ export function KolNominateAward({
   const shown = query || showAll ? rest : rest.slice(0, LIST_LIMIT);
   const headingId = `kol-nom-award-${award.question_id}`;
   const needsPick = skipped && picked.length === 0 && !readOnly;
+  // #652 (owner, 27 Nov 2026, "Per award"): an award holding only the creator themselves counts as empty.
+  const onlyMe = picked.length > 0 && picked.every((id) => id === meId) && !readOnly;
 
   const toggle = (id: number) => {
     if (readOnly) return;
@@ -110,7 +112,7 @@ export function KolNominateAward({
   };
 
   return (
-    <section className={`nom-award${needsPick ? " need" : ""}`} aria-labelledby={headingId} data-award={award.question_id}>
+    <section className={`nom-award${needsPick || onlyMe ? " need" : ""}`} aria-labelledby={headingId} data-award={award.question_id}>
       <header className="nom-award-head">
         <span className="nom-num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
         <h2 id={headingId} className="nom-award-name">{award.name}</h2>
@@ -130,6 +132,7 @@ export function KolNominateAward({
         </div>
       </div>
       {needsPick && <p className="nom-need" role="alert">{t("nominate.needOne")}</p>}
+      {onlyMe && <p className="nom-need" role="status">{t("nominate.onlyYou")}</p>}
 
       {picked.length > 0 && (
         <ul className="nom-picked" aria-label={t("nominate.yourPicks")}>

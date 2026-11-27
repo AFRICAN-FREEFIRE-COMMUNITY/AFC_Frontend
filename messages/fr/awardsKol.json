@@ -383,7 +383,7 @@
       "help": "Pas de code ? Demandez-le à la personne qui vous a invité aux KOL Awards."
     },
     "hi": "Bonjour {name}.",
-    "intro": "Nominez dans chaque prix : au moins 1 et jusqu'à 6 créateurs par prix. Vous pouvez choisir n'importe qui, y compris vous-même, et ajouter quelqu'un qui n'est pas sur la liste. Vos nominations comptent une fois que les six prix ont au moins un choix.",
+    "intro": "Nominez dans chaque prix : au moins 1 et jusqu'à 6 créateurs par prix. Vous pouvez choisir n'importe qui, y compris vous-même, et ajouter quelqu'un qui n'est pas sur la liste. Un prix où vous ne nominez que vous-même est écarté. Vos nominations comptent une fois que les six prix ont au moins un choix.",
     "until": "Vos choix s'enregistrent au fur et à mesure. Vous pouvez les modifier jusqu'au <date></date>.",
     "untilNoDate": "Vos choix s'enregistrent au fur et à mesure. Vous pouvez les modifier jusqu'à la clôture des nominations.",
     "notOpen": "Les nominations ouvrent le <date></date>. Vous pouvez regarder, mais les choix ne peuvent pas encore être enregistrés.",
@@ -486,6 +486,7 @@
       "button": "M'envoyer mes choix par e-mail",
       "sending": "Envoi",
       "sent": "Envoyé à {email}."
-    }
+    },
+    "onlyYou": "Vous seul êtes choisi ici. Un prix où vous ne nominez que vous-même est écarté : ajoutez au moins un autre créateur."
   }
 }

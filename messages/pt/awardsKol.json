@@ -383,7 +383,7 @@
       "help": "Não tem código? Peça-o à pessoa que lhe enviou o convite para os KOL Awards."
     },
     "hi": "Olá {name}.",
-    "intro": "Nomeie em todos os prémios: pelo menos 1 e até 6 criadores em cada um. Pode escolher qualquer pessoa, incluindo a si próprio, e acrescentar alguém que não esteja na lista. As suas nomeações contam quando os seis prémios tiverem pelo menos uma escolha.",
+    "intro": "Nomeie em todos os prémios: pelo menos 1 e até 6 criadores em cada um. Pode escolher qualquer pessoa, incluindo a si próprio, e acrescentar alguém que não esteja na lista. Um prémio em que se nomeia apenas a si próprio é descartado. As suas nomeações contam quando os seis prémios tiverem pelo menos uma escolha.",
     "until": "As suas escolhas ficam guardadas à medida que as faz. Pode alterá-las até <date></date>.",
     "untilNoDate": "As suas escolhas ficam guardadas à medida que as faz. Pode alterá-las até as nomeações fecharem.",
     "notOpen": "As nomeações abrem a <date></date>. Pode ver tudo, mas ainda não é possível guardar escolhas.",
@@ -486,6 +486,7 @@
       "button": "Enviar-me as minhas escolhas por email",
       "sending": "A enviar",
       "sent": "Enviado para {email}."
-    }
+    },
+    "onlyYou": "Só o próprio está escolhido aqui. Um prémio em que se nomeia apenas a si próprio é descartado: acrescente pelo menos outro criador."
   }
 }

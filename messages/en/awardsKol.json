@@ -383,7 +383,7 @@
       "help": "No code? Ask the person who sent you your invitation to the KOL Awards."
     },
     "hi": "Hi {name}.",
-    "intro": "Nominate in every award: at least 1 and up to 6 creators each. You can pick anyone, yourself included, and add someone who is not on the list. Your nominations count once all six awards have a pick.",
+    "intro": "Nominate in every award: at least 1 and up to 6 creators each. You can pick anyone, yourself included, and add someone who is not on the list. An award where you nominate only yourself is discarded. Your nominations count once all six awards have a pick.",
     "until": "Your picks save as you go. You can change them until <date></date>.",
     "untilNoDate": "Your picks save as you go. You can change them until nominations close.",
     "notOpen": "Nominations open <date></date>. You can look around, but picks cannot be saved yet.",
@@ -486,6 +486,7 @@
       "button": "Email me my picks",
       "sending": "Sending",
       "sent": "Sent to {email}."
-    }
+    },
+    "onlyYou": "Only you are picked here. An award where you nominate only yourself is discarded: add at least one other creator."
   }
 }

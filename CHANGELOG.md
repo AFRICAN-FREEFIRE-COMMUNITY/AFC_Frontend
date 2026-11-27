@@ -19,6 +19,11 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.29.0 - 2026-11-27
+
+### Changed
+- KOL nominations ballot: an award where the creator picks only themselves counts as empty; the award turns pink with "Only you are picked here", the intro says so, and the save bar counts it as not done.
+
 ## v7.27.0 - 2026-11-27
 
 ### Added

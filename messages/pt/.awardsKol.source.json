@@ -286,7 +286,7 @@
   "nominate.door.opening": "Opening",
   "nominate.door.help": "No code? Ask the person who sent you your invitation to the KOL Awards.",
   "nominate.hi": "Hi {name}.",
-  "nominate.intro": "Nominate in every award: at least 1 and up to 6 creators each. You can pick anyone, yourself included, and add someone who is not on the list. Your nominations count once all six awards have a pick.",
+  "nominate.intro": "Nominate in every award: at least 1 and up to 6 creators each. You can pick anyone, yourself included, and add someone who is not on the list. An award where you nominate only yourself is discarded. Your nominations count once all six awards have a pick.",
   "nominate.until": "Your picks save as you go. You can change them until <date></date>.",
   "nominate.untilNoDate": "Your picks save as you go. You can change them until nominations close.",
   "nominate.notOpen": "Nominations open <date></date>. You can look around, but picks cannot be saved yet.",
@@ -377,5 +377,6 @@
   "nominate.errors.kol_whatsapp_country_code": "Start your WhatsApp number with your country code, like +234.",
   "nominate.errors.kol_contact_too_fast": "Too many tries. Wait a moment.",
   "nominate.errors.kol_email_too_many": "You have asked for this email a few times already. Try again in a few minutes.",
-  "nominate.errors.kol_email_send_failed": "The email could not be sent just now. Try again later."
+  "nominate.errors.kol_email_send_failed": "The email could not be sent just now. Try again later.",
+  "nominate.onlyYou": "Only you are picked here. An award where you nominate only yourself is discarded: add at least one other creator."
 }
