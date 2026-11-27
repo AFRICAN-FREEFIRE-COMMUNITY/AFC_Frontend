@@ -9,6 +9,7 @@ import React from "react";
 import { useTranslations } from "next-intl";
 import { FeedbackLauncher } from "@/components/feedback/FeedbackLauncher";
 import { NewBadge } from "@/components/NewBadge";
+import { CbnCredit } from "@/components/CbnCredit";
 import { HELP_PAGE_LIVE_SINCE } from "@/lib/howto-guides";
 
 export const Footer = () => {
@@ -226,6 +227,10 @@ export const Footer = () => {
             <span>{t("footer.poweredBy")}</span>
           </div>
         </div>
+        {/* CBN rate credit, once, site-wide (owner 2026-11-27, inbox #649): the CBN's terms need it
+            named wherever its rates or amounts converted with them are shown. Renders nothing until
+            a CBN rate is loaded. */}
+        <CbnCredit className="mt-4 text-center text-xs text-muted-foreground" />
       </div>
     </footer>
   );

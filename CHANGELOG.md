@@ -19,6 +19,13 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.27.0 - 2026-11-27
+
+### Added
+
+- Exchange rates now name their source: where the Central Bank of Nigeria (CBN) publishes a rate it is used, and a short credit line with the rate date shows under the display currency choice and in the site footer.
+- An amount shown in another currency now carries a note (on hover or long press) saying it was converted at the Central Bank of Nigeria rate of that date, when a CBN rate was used.
+
 ## v7.26.0 - 2026-11-27
 
 ### Added

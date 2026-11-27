@@ -14,6 +14,12 @@
  *     to the user's profile (edit-profile preferred_currency) so it follows them across devices.
  *   - chargeMarkup: the FX buffer applied to CHARGES (display uses the raw rate) - informational.
  *
+ * CBN rates (owner 2026-11-27, AFC inbox #649: "CBN where it can"): the endpoint also answers
+ * `sources` (per currency: "cbn" or "provider", plus the CBN rate date) and `credit` (the line the
+ * CBN's terms require wherever one of its rates is shown). Older cached answers lack both, so they
+ * default to {} and "". `cbnNoteFor(...)` tells Money / CurrencyPicker / Footer whether a CBN rate
+ * is involved and its date, so the source is named wherever it is used.
+ *
  * Used by: components/Money.tsx (<Money/>) + the profile currency picker. Mounted in app/layout.tsx
  * inside AuthProvider. Talks to backend afc_auth.views.fx_rates + edit_profile.
  */
@@ -31,8 +37,23 @@ import Cookies from "js-cookie";
 import { env } from "@/lib/env";
 import type { FxRates } from "@/lib/money";
 
+// Where one currency's rate came from (mirrors afc_auth.views.fx_rates "sources").
+export interface FxSource {
+  source: "cbn" | "provider";
+  date: string | null; // CBN rate date, "YYYY-MM-DD"; null for provider rows
+}
+export type FxSources = Record<string, FxSource>;
+
 interface CurrencyContextValue {
   rates: FxRates;
+  sources: FxSources;
+  credit: string;
+  /**
+   * Is a CBN rate involved when converting between these currencies (USD never is)? Returns the
+   * later of the CBN dates involved, or null when no CBN rate is used. With no arguments, answers
+   * for every loaded CBN rate (the footer's "is any CBN rate on this site" question).
+   */
+  cbnNoteFor: (...codes: string[]) => { date: string } | null;
   currency: string;
   setCurrency: (code: string) => void;
   ready: boolean;
@@ -41,6 +62,9 @@ interface CurrencyContextValue {
 
 const CurrencyContext = createContext<CurrencyContextValue>({
   rates: { USD: 1 },
+  sources: {},
+  credit: "",
+  cbnNoteFor: () => null,
   currency: "USD",
   setCurrency: () => {},
   ready: false,
@@ -54,6 +78,8 @@ const TTL_MS = 60 * 60 * 1000; // 1h: rates barely move intraday; the backend re
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [rates, setRates] = useState<FxRates>({ USD: 1 });
   const [currency, setCurrencyState] = useState<string>("USD");
+  const [sources, setSources] = useState<FxSources>({});
+  const [credit, setCredit] = useState("");
   const [chargeMarkup, setChargeMarkup] = useState(0);
   const [ready, setReady] = useState(false);
 
@@ -62,9 +88,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     try {
       const cached = localStorage.getItem(LS_RATES);
       if (cached) {
-        const { rates: r, ts } = JSON.parse(cached);
+        const { rates: r, sources: s, credit: c, ts } = JSON.parse(cached);
         if (r && Date.now() - ts < TTL_MS) {
           setRates(r);
+          setSources(s && typeof s === "object" ? s : {}); // older cache entries have no sources
+          setCredit(typeof c === "string" ? c : "");
           setReady(true);
         }
       }
@@ -91,8 +119,15 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
         parsed.USD = 1;
         setRates(parsed);
         setChargeMarkup(Number(data.charge_markup) || 0);
+        const src: FxSources = data.sources && typeof data.sources === "object" ? data.sources : {};
+        const cr: string = typeof data.credit === "string" ? data.credit : "";
+        setSources(src);
+        setCredit(cr);
         try {
-          localStorage.setItem(LS_RATES, JSON.stringify({ rates: parsed, ts: Date.now() }));
+          localStorage.setItem(
+            LS_RATES,
+            JSON.stringify({ rates: parsed, sources: src, credit: cr, ts: Date.now() }),
+          );
         } catch {
           /* ignore */
         }
@@ -142,8 +177,23 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const cbnNoteFor = useCallback(
+    (...codes: string[]) => {
+      const pool = codes.length ? codes.map((c) => (c || "").toUpperCase()) : Object.keys(sources);
+      let latest: string | null = null;
+      for (const c of pool) {
+        const s = sources[c];
+        if (s && s.source === "cbn" && s.date && (!latest || s.date > latest)) latest = s.date;
+      }
+      return latest ? { date: latest } : null;
+    },
+    [sources],
+  );
+
   return (
-    <CurrencyContext.Provider value={{ rates, currency, setCurrency, ready, chargeMarkup }}>
+    <CurrencyContext.Provider
+      value={{ rates, sources, credit, cbnNoteFor, currency, setCurrency, ready, chargeMarkup }}
+    >
       {children}
     </CurrencyContext.Provider>
   );

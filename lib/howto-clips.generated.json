@@ -1,25 +1,25 @@
 {
   "organizer-results": {
     "en": {
-      "desktop": 16.9,
-      "phone": 12.5
+      "desktop": 17,
+      "phone": 12.6
     },
     "fr": {
-      "desktop": 16.9,
-      "phone": 13
+      "desktop": 17,
+      "phone": 13.4
     },
     "pt": {
-      "desktop": 16.6,
-      "phone": 13
+      "desktop": 16.7,
+      "phone": 13.9
     }
   },
   "register-tournament": {
     "en": {
-      "desktop": 10.5,
+      "desktop": 10.6,
       "phone": 8.2
     },
     "fr": {
-      "desktop": 10.5,
+      "desktop": 10.6,
       "phone": 8.2
     },
     "pt": {
@@ -29,29 +29,29 @@
   },
   "signup-discord": {
     "en": {
-      "desktop": 19.2,
-      "phone": 16
-    },
-    "fr": {
-      "desktop": 19.2,
+      "desktop": 19.4,
       "phone": 16.2
     },
+    "fr": {
+      "desktop": 19.4,
+      "phone": 16.4
+    },
     "pt": {
-      "desktop": 19.2,
-      "phone": 16
+      "desktop": 19.4,
+      "phone": 16.3
     }
   },
   "team-invite": {
     "en": {
       "desktop": 16.6,
-      "phone": 14
+      "phone": 14.1
     },
     "fr": {
-      "desktop": 16.6,
+      "desktop": 16.8,
       "phone": 14.1
     },
     "pt": {
-      "desktop": 16.6,
+      "desktop": 17,
       "phone": 14.2
     }
   }
