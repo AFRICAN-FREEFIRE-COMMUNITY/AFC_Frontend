@@ -25,7 +25,7 @@
  *
  * CONSUMED BY KolNominate.tsx, which owns the picks, the saving and the write-in call.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import { fuzzyFilter } from "@/lib/fuzzyMatch";
@@ -46,6 +46,7 @@ export function KolNominateAward({
   skipped,
   onChange,
   onAdd,
+  onSearchEnd,
 }: {
   index: number;
   award: { question_id: number; name: string; key: string; max: number };
@@ -58,6 +59,9 @@ export function KolNominateAward({
   onChange: (next: number[]) => void;
   // Resolves to a sentence to show under the form (a refusal, "already picked"), or null when the person was picked.
   onAdd: (handle: string, name: string) => Promise<string | null>;
+  // #653: a search ended (a pick from the results, or the box left without one); KolNominate reports it to the
+  // Metrics tab (kolNominationsApi.logSearch).
+  onSearchEnd?: (query: string, resultCount: number, pickedId: number | null) => void;
 }) {
   const t = useTranslations("awardsKol");
   const [query, setQuery] = useState("");
@@ -84,8 +88,27 @@ export function KolNominateAward({
   // #652 (owner, 27 Nov 2026, "Per award"): an award holding only the creator themselves counts as empty.
   const onlyMe = picked.length > 0 && picked.every((id) => id === meId) && !readOnly;
 
+  // #653 SEARCH REPORTS. A pick made while something is typed reports that search with the person picked. Leaving
+  // the box with 2 or more letters typed and no pick reports it with nobody. The blur waits a moment because tapping
+  // a result blurs the box first; the pick then cancels the empty report. One report per typed text.
+  const reported = useRef("");
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (blurTimer.current) clearTimeout(blurTimer.current); }, []);
+  const reportSearch = (pickedId: number | null) => {
+    const typed = query.trim();
+    if (!onSearchEnd || !typed || (pickedId === null && (typed.length < 2 || reported.current === typed))) return;
+    if (blurTimer.current) clearTimeout(blurTimer.current);
+    reported.current = typed;
+    onSearchEnd(typed, rest.length, pickedId);
+  };
+  const onSearchBlur = () => {
+    if (blurTimer.current) clearTimeout(blurTimer.current);
+    blurTimer.current = setTimeout(() => reportSearch(null), 400);
+  };
+
   const toggle = (id: number) => {
     if (readOnly) return;
+    if (!pickedSet.has(id) && !full && query.trim()) reportSearch(id);
     if (pickedSet.has(id)) onChange(picked.filter((p) => p !== id));
     else if (!full) onChange([...picked, id]);
   };
@@ -170,6 +193,7 @@ export function KolNominateAward({
             placeholder={t("nominate.search")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onBlur={onSearchBlur}
           />
           {full && <p className="nom-full">{t("nominate.full", { max: award.max })}</p>}
           <ul className="nom-list">

@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 import { FullLoader } from "@/components/Loader";
+import { NewBadge } from "@/components/NewBadge";
 import { LocalTime } from "@/components/LocalTime";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,9 +46,11 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatNumber } from "@/lib/i18n/number";
+import { KOL_METRICS_SINCE } from "@/lib/kolNominations";
 import { pollsApi, type AwardsEdition } from "@/lib/polls";
 
 import { GarenaLiveLink } from "./GarenaLiveLink";
+import { KolNominationsMetrics } from "./KolNominationsMetrics";
 import { NomineeDetails, OptionColumns, PollTracking, useDetailsToggle, useOptionColumnHeads } from "./VoteTracking";
 
 export function AwardsMetrics({ editions }: { editions: AwardsEdition[] }) {
@@ -59,12 +62,20 @@ export function AwardsMetrics({ editions }: { editions: AwardsEdition[] }) {
         <TabsList className="h-9 bg-muted">
           <TabsTrigger value="season">{t("metrics.seasonTab")}</TabsTrigger>
           <TabsTrigger value="original">{t("metrics.originalTab")}</TabsTrigger>
+          {/* #653: the KOL creators' nomination round in detail (KolNominationsMetrics.tsx). */}
+          <TabsTrigger value="nominations" className="gap-2">
+            {t("metrics.nominationsTab")}
+            <NewBadge since={KOL_METRICS_SINCE} />
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="season" className="mt-6">
           <SeasonBallots editions={editions} />
         </TabsContent>
         <TabsContent value="original" className="mt-6">
           <OriginalBallot />
+        </TabsContent>
+        <TabsContent value="nominations" className="mt-6">
+          <KolNominationsMetrics />
         </TabsContent>
       </Tabs>
     </div>

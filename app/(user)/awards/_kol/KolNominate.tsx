@@ -615,6 +615,11 @@ export function KolNominate({ slug }: { slug: string }) {
                     skipped={skipped.includes(award.question_id)}
                     onChange={(next) => change(award.question_id, next)}
                     onAdd={(handle, name) => addWriteIn(award.question_id, award.max, handle, name)}
+                    onSearchEnd={(query, resultCount, pickedId) =>
+                      kolNominationsApi.logSearch(slug, {
+                        question_id: award.question_id, query, result_count: resultCount, picked_id: pickedId,
+                      })
+                    }
                   />
                 ))}
               </div>

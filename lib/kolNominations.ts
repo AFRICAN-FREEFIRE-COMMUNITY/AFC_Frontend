@@ -130,6 +130,12 @@ export const kolNominationsApi = {
   // POST polls/kol-nominations/<edition>/email-me/: the creator's picks as saved now, to the email they gave (#648).
   emailMe: (edition: string) =>
     creatorCall<{ message: string; email_hint: string }>(`${encodeURIComponent(edition)}/email-me/`, { method: "POST" }),
+  // POST polls/kol-nominations/<edition>/search/ (#653): one search on the ballot, reported when it ends (a pick from
+  // the results, or the box left without one). Read only by the admin Metrics tab (afc_polls/kol_metrics.py
+  // search_log). Fire and forget: a failed report never shows the creator anything.
+  logSearch: (edition: string, body: { question_id: number; query: string; result_count: number; picked_id: number | null }) =>
+    creatorCall<{ logged: boolean }>(`${encodeURIComponent(edition)}/search/`, { method: "POST", body: JSON.stringify(body) })
+      .catch(() => null),
   // POST polls/kol-nominations/<edition>/signout/: forget the cookie ("Not you? Use another code").
   signOut: (edition: string) =>
     fetch(`${BASE}/kol-nominations/${encodeURIComponent(edition)}/signout/`, {
@@ -263,5 +269,79 @@ export const kolNominationsAdminApi = {
       admin(edition, "emails/"),
       target,
       { headers: authHeaders() },
-    )).data,
+    )).data,  // GET polls/admin/kol-nominations/<edition>/metrics/ (#653): everything the Metrics tab's "Nominations round" shows
+  // (afc_polls/kol_metrics.py metrics). Read by KolNominationsMetrics.tsx.
+  metrics: async (edition: string) =>
+    (await axios.get<NominationMetrics>(admin(edition, "metrics/"), { headers: authHeaders() })).data,
+};
+
+// ── metrics (#653) ───────────────────────────────────────────────────────────────────────────────────────────────
+
+// The day the nominations metrics went live: the NEW badge on the Metrics tab's "Nominations round".
+export const KOL_METRICS_SINCE = "2026-11-28";
+
+type MetricsPerson = { creator_id: number; name: string; handle: string };
+
+/** The answer of GET polls/admin/kol-nominations/<edition>/metrics/, section by section (afc_polls/kol_metrics.py). All
+ *  durations are whole seconds; instants are ISO strings for LocalTime; countries are ISO 3166 two-letter codes. */
+export type NominationMetrics = {
+  round: { opens_at: string | null; closes_at: string | null; state: string; recording_since: string | null };
+  headline: {
+    voters: number; counting: number; started_not_counting: number; codes_opened: number; never_opened: number;
+    median_seconds: number | null; average_seconds: number | null; searches: number; searchers: number;
+    searches_nothing: number; code_emails_sent: number; code_emails_failed: number; no_address: number;
+  };
+  funnel: { key: "in_round" | "emailed" | "opened" | "contact" | "picked" | "counting"; count: number }[];
+  time: {
+    ballots: number; from_first_save: number;
+    bins: { key: "under_2m" | "2_to_5m" | "5_to_10m" | "10_to_30m" | "30m_to_1d" | "over_1d"; count: number }[];
+    median_seconds: number | null; average_seconds: number | null; fastest_seconds: number | null;
+    longest_seconds: number | null; open_to_first_pick_median: number | null;
+    first_pick_to_counting_median: number | null; one_visit: number; came_back: number; visits_average: number | null;
+  };
+  searches: {
+    most_searched: (MetricsPerson & { searches: number; by: number; picks: number })[];
+    // `then`: "nothing", "picked:<name>" or "added:<name>" (what the same creator did within 10 minutes).
+    found_nothing: { query: string; times: number; by: number; then: string }[];
+    most_typed: { query: string; times: number; top: MetricsPerson & { times: number } }[];
+  };
+  awards: {
+    question_id: number; name: string; with_pick: number; empty: number; only_self: number; avg_picks: number;
+    distribution: number[]; picked_self: number; write_in_picks: number; nominees: number;
+    top: (MetricsPerson & { picks: number }) | null;
+  }[];
+  activity: { days: { day: string; counted: number }[]; by_hour: number[]; peak_hour: number | null };
+  changes: {
+    total: number; after_counting: number; per_ballot_average: number | null;
+    most_changed_award: { name: string; count: number } | null;
+    most_removed: (MetricsPerson & { removed: number; picks: number })[];
+    picks_emails: number; picks_emails_by: number; contact_given: number;
+  };
+  self: {
+    picked_self: number;
+    only_self: (MetricsPerson & { awards_only_self: number; saved_at: string | null; reminder: string })[];
+    write_ins: (MetricsPerson & { added_by: MetricsPerson | null; picks: number })[];
+  };
+  devices: { key: string; count: number }[];
+  countries: { country: string; ballots: number; counting: number; on_list: number }[];
+  country_mismatch: number;
+  codes: {
+    creator_codes: number; opened: number; never_opened_count: number; spare_made: number; spare_claimed: number;
+    revoked: number;
+    never_opened: (MetricsPerson & {
+      has_email: boolean; contact_given: boolean; email_status: "" | "queued" | "sent" | "failed" | "no_address";
+      emailed_at: string | null;
+    })[];
+  };
+  emails: {
+    code_sent: number; code_failed: number; no_address: number; emailed_creators: number; opened_after_email: number;
+    email_to_open_median: number | null; picks_sent: number;
+    failed: (MetricsPerson & { address: string; error: string; at: string | null })[];
+  };
+  creators: (MetricsPerson & {
+    country: string; has_email: boolean; contact_given: boolean; emailed: boolean; opened: boolean;
+    first_open: string | null; visits: number; searches: number; awards_with_pick: number; counts: boolean;
+    counted_at: string | null; seconds_to_count: number | null; changes: number; ballot_counts_switch: boolean;
+  })[];
+  generated_at: string;
 };

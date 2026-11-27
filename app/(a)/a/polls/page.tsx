@@ -63,9 +63,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { pollsApi, type AwardsEdition, type PollCard } from "@/lib/polls";
 import { isPartnerOnlyUser } from "@/lib/adminRoles";
-import { GARENA_ACCESS_SINCE, kolNominationsAdminApi, type NominationEdition } from "@/lib/kolNominations";
+import { GARENA_ACCESS_SINCE, KOL_METRICS_SINCE, kolNominationsAdminApi, type NominationEdition } from "@/lib/kolNominations";
 import { AwardsMetrics } from "./_components/AwardsMetrics";
 import { KolNominationsAdmin } from "./_components/KolNominationsAdmin";
+import { KolNominationsMetrics } from "./_components/KolNominationsMetrics";
 
 export default function AdminPollsPage() {
   const t = useTranslations("adminPolls");
@@ -124,9 +125,22 @@ export default function AdminPollsPage() {
           }
           description={t("kolNom.pageSubtitle")}
         />
-        <div className="mt-6">
-          <KolNominationsAdmin editions={kolEditions} />
-        </div>
+        {/* #653: Garena's KOL Admins get the round's metrics too, beside the round itself. */}
+        <Tabs defaultValue="round" className="mt-6 w-full">
+          <TabsList className="h-9 bg-muted">
+            <TabsTrigger value="round">{t("tabs.nominations")}</TabsTrigger>
+            <TabsTrigger value="metrics" className="gap-2">
+              {t("tabs.metrics")}
+              <NewBadge since={KOL_METRICS_SINCE} />
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="round" className="mt-6">
+            <KolNominationsAdmin editions={kolEditions} />
+          </TabsContent>
+          <TabsContent value="metrics" className="mt-6">
+            <KolNominationsMetrics editions={kolEditions} />
+          </TabsContent>
+        </Tabs>
       </div>
     );
   }

@@ -249,7 +249,8 @@
     "byCategory": "Votos por categoria e nomeado",
     "section": "Secção",
     "timeline": "Votos por dia",
-    "day": "Dia"
+    "day": "Dia",
+    "nominationsTab": "Ronda de nomeações"
   },
   "tracking": {
     "title": "Onde e como as pessoas votaram",
@@ -516,5 +517,220 @@
     "ballotCountsOn": "O boletim de {name} volta a contar",
     "ballotCountsOff": "O boletim de {name} deixou de contar; continua na ronda",
     "notCounted": "Não conta (desligado)"
+  },
+  "kolMetrics": {
+    "noRound": "Nenhuma edição KOL tem ainda uma ronda de nomeações.",
+    "pickEdition": "Edição KOL",
+    "refresh": "Atualizar",
+    "csv": "Descarregar CSV",
+    "loadFailed": "Não foi possível carregar as métricas.",
+    "tryAgain": "Tentar de novo",
+    "none": "Nenhum",
+    "opened": "Abriu",
+    "closes": "fecha",
+    "updated": "atualizado às",
+    "recordingNote": "{n, plural, one {# boletim foi concluído} other {# boletins foram concluídos}} antes de as pesquisas, aberturas e horas de conclusão serem registadas (28 de novembro de 2026): o seu tempo é medido desde a primeira gravação e reconstruído a partir das escolhas.",
+    "dur": {
+      "seconds": "{s} s",
+      "minutes": "{m} min {s} s",
+      "hours": "{h} h {m} min",
+      "days": "{d} d {h} h",
+      "minutesOnly": "{m} min",
+      "hoursOnly": "{h} h"
+    },
+    "showAll": "Mostrar todos ({n})",
+    "showFewer": "Mostrar menos",
+    "tiles": {
+      "counting": "Boletins que contam",
+      "countingSub": "de {total} criadores ({pct}%)",
+      "started": "Começados, ainda não contam",
+      "startedSub": "um prémio ainda vazio",
+      "opened": "Códigos abertos",
+      "openedSub": "{n} nunca abertos",
+      "time": "Tempo para nomear",
+      "timeSub": "mediana · média {avg}",
+      "searches": "Pesquisas",
+      "searchesSub": "por {by} · {nothing} sem resultado",
+      "emails": "Emails de código",
+      "emailsSub": "enviados · {failed} falharam · {none} sem endereço"
+    },
+    "funnel": {
+      "title": "Do convite a um boletim que conta",
+      "lead": "Cada passo entre os {total} criadores da lista.",
+      "in_round": "Na ronda",
+      "emailed": "Código enviado por email",
+      "opened": "Abriram o código",
+      "contact": "Deram email + WhatsApp",
+      "picked": "Escolheram pelo menos uma vez",
+      "counting": "Todos os prémios escolhidos (conta)",
+      "bar": "{step}: {n} de {total}"
+    },
+    "time": {
+      "title": "Quanto tempo demora a nomear",
+      "lead": "Da primeira abertura do código à gravação que fez o boletim contar. {n, plural, one {# boletim} other {# boletins}}.",
+      "empty": "Ainda nenhum boletim conta.",
+      "binTitle": "{bin}: {n}",
+      "bins": {
+        "under_2m": "menos de 2 min",
+        "2_to_5m": "2 a 5 min",
+        "5_to_10m": "5 a 10 min",
+        "10_to_30m": "10 a 30 min",
+        "30m_to_1d": "30 min a 1 dia",
+        "over_1d": "mais de 1 dia"
+      },
+      "median": "Mediana",
+      "average": "Média",
+      "openToPick": "Da abertura à primeira escolha (mediana)",
+      "pickToCount": "Da primeira escolha a contar (mediana)",
+      "fastest": "Mais rápido",
+      "longest": "Mais longo",
+      "oneVisit": "Contaram menos de uma hora depois de abrir",
+      "cameBack": "Voltaram mais tarde para terminar",
+      "visits": "Visitas por criador (média)"
+    },
+    "search": {
+      "title": "Criadores mais pesquisados",
+      "lead": "Pesquisas que terminaram neste criador (escrito e depois escolhido nos resultados). Escolhas: as suas escolhas em todos os boletins guardados agora.",
+      "empty": "Ainda não há pesquisas registadas."
+    },
+    "nothing": {
+      "title": "Pesquisas sem resultado",
+      "lead": "O que os criadores escreveram quando nenhum nome apareceu, e o que fizeram a seguir. Muitas vezes um criador a acrescentar, ou uma alcunha.",
+      "empty": "Até agora, todas as pesquisas encontraram alguém."
+    },
+    "then": {
+      "picked": "escolheu {name}",
+      "added": "acrescentou {name}",
+      "nothing": "desistiu"
+    },
+    "typed": {
+      "title": "Palavras mais escritas",
+      "endedOn": "{name} ({n})"
+    },
+    "awards": {
+      "title": "Por prémio",
+      "lead": "Nos {n} boletins começados. Vazio: nenhuma escolha nesse prémio. Só o próprio: a única escolha do criador é ele próprio (conta como vazio). As barrinhas mostram quantos escolheram 1, 2, 3, 4, 5 e 6. O mais nomeado conta apenas os boletins que contam.",
+      "distLabel": "Boletins que escolheram 1 a 6: {counts}",
+      "distTitle": "{n} escolheram {picks}",
+      "top": "{name} ({n})"
+    },
+    "activity": {
+      "title": "Atividade por dia",
+      "lead": "Boletins que começaram a contar em cada dia (UTC). Hora com mais escolhas: {from}:00 às {to}:00 UTC.",
+      "leadNoPeak": "Boletins que começaram a contar em cada dia (UTC).",
+      "dayTitle": "{day}: {n}",
+      "byHour": "Escolhas feitas por hora do dia (UTC)",
+      "hourTitle": "{hour}:00 UTC: {n}"
+    },
+    "changes": {
+      "title": "Alterações",
+      "lead": "Cada vez que um criador trocou ou retirou uma escolha. Por boletim e depois de contar são registados desde 28 de novembro de 2026.",
+      "total": "Escolhas alteradas",
+      "after": "Boletins alterados depois de contarem",
+      "perBallot": "Alterações por boletim (média)",
+      "mostChanged": "Prémio mais alterado",
+      "mostChangedValue": "{name} ({n})",
+      "picksEmails": "\"Enviar as minhas escolhas\" enviados",
+      "picksEmailsValue": "{n} a {by} criadores",
+      "contact": "Contacto dado (email + WhatsApp)",
+      "removedTitle": "Mais retirados depois de escolhidos",
+      "empty": "Ainda nenhuma escolha retirada."
+    },
+    "self": {
+      "title": "Autonomeações e acrescentados",
+      "lead": "{n, plural, one {# criador escolheu-se} other {# criadores escolheram-se}} a si próprio pelo menos uma vez. Estes ainda têm um prémio só consigo próprios, por isso o boletim ainda não conta:",
+      "empty": "Ninguém tem um prémio só consigo próprio."
+    },
+    "copyReminder": "Copiar lembrete",
+    "reminderCopied": "Lembrete para {name} copiado.",
+    "copyFailed": "Não foi possível copiar. Tente de novo.",
+    "writeIns": {
+      "title": "Acrescentados por criadores (fora da lista da Garena)",
+      "empty": "Ainda ninguém foi acrescentado."
+    },
+    "where": {
+      "title": "Dispositivos e países",
+      "lead": "A partir dos boletins guardados (país da ligação, não o da folha).",
+      "empty": "Ainda não há boletins guardados.",
+      "countries": "Países",
+      "deviceBar": "{n} de {total} boletins",
+      "countryBar": "{n} boletins",
+      "mismatch": "{n, plural, one {# boletim foi guardado} other {# boletins foram guardados}} a partir de um país diferente do país do criador na folha."
+    },
+    "device": {
+      "phone": "Telemóvel",
+      "computer": "Computador",
+      "tablet": "Tablet",
+      "unknown": "Desconhecido"
+    },
+    "unknownCountry": "Desconhecido",
+    "codes": {
+      "title": "Códigos",
+      "made": "Códigos de criadores criados",
+      "opened": "Abertos pelo menos uma vez",
+      "never": "Nunca abertos",
+      "spareMade": "Códigos de reserva criados",
+      "spareClaimed": "Códigos de reserva reclamados",
+      "revoked": "Códigos substituídos (o antigo revogado)",
+      "neverTitle": "Nunca abriram o código",
+      "allOpened": "Todos os criadores abriram o código."
+    },
+    "status": {
+      "sent": "enviado",
+      "queued": "a enviar",
+      "failed": "falhou",
+      "no_address": "sem endereço",
+      "not_sent": "não enviado"
+    },
+    "contactGiven": "dado",
+    "emailCode": "Enviar código",
+    "emailQueued": "O email do código para {name} está a caminho.",
+    "addInCreators": "Acrescente um email em Criadores",
+    "emails": {
+      "title": "Emails",
+      "sent": "Emails de código enviados",
+      "failed": "Falharam",
+      "noAddress": "Ainda sem endereço",
+      "openedAfter": "Abriram o código depois do email",
+      "openedAfterValue": "{n} de {total}",
+      "toOpen": "Do email à primeira abertura (mediana)",
+      "picks": "Emails de escolhas enviados",
+      "failedTitle": "Falharam",
+      "noneFailed": "Nenhum email de código falhou."
+    },
+    "col": {
+      "creator": "Criador",
+      "searches": "Pesquisas",
+      "by": "Por",
+      "picks": "Escolhas",
+      "typed": "Escrito",
+      "times": "Vezes",
+      "then": "Depois",
+      "endedOn": "Terminou em",
+      "award": "Prémio",
+      "withPick": "Com escolha",
+      "empty": "Vazio",
+      "onlySelf": "Só o próprio",
+      "avgPicks": "Média de escolhas",
+      "oneToSix": "Escolhas 1 a 6",
+      "pickedSelf": "Escolheu-se",
+      "writeIns": "Acrescentados",
+      "nominees": "Nomeados diferentes",
+      "top": "Mais nomeado",
+      "removed": "Retirado",
+      "stillPicked": "Ainda escolhido",
+      "awardsOnlySelf": "Prémios só com o próprio",
+      "lastSaved": "Última gravação",
+      "addedBy": "Acrescentado por",
+      "country": "País",
+      "ballots": "Boletins",
+      "counting": "Que contam",
+      "onList": "Na lista deste país",
+      "share": "Parte",
+      "codeEmail": "Email do código",
+      "contact": "Contacto",
+      "address": "Endereço",
+      "why": "Porquê"
+    }
   }
 }
