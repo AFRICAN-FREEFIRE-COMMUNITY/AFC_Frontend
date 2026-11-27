@@ -14,10 +14,16 @@
  *           pass "USD" for USD-stored amounts (e.g. event registration fees / prizepools already in USD).
  *   className: optional styling on the <span>.
  *
+ * CBN source note (owner 2026-11-27, AFC inbox #649): when the amount is shown CONVERTED and a Central
+ * Bank of Nigeria rate was used, the span carries a `title` naming the source and the rate date (the
+ * CBN's terms allow copying only with it named). The amount itself looks exactly as before.
+ *
  * Display-only: it never changes stored values or charges - it just shows the viewer their currency.
  */
 
+import { useLocale, useTranslations } from "next-intl";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { formatCalendarDateAnywhere } from "@/lib/i18n/time";
 import { displayMoney } from "@/lib/money";
 
 export function Money({
@@ -29,7 +35,19 @@ export function Money({
   from?: string;
   className?: string;
 }) {
-  const { rates, currency } = useCurrency();
+  const { rates, currency, cbnNoteFor } = useCurrency();
+  const t = useTranslations("common");
+  const locale = useLocale();
   const value = displayMoney(Number(amount) || 0, from, currency, rates);
-  return <span className={className}>{value}</span>;
+  // Only a converted amount (stored currency differs from the display one) used a rate at all.
+  const converted = (from || "USD").toUpperCase() !== (currency || "USD").toUpperCase();
+  const note = converted ? cbnNoteFor(from, currency) : null;
+  const title = note
+    ? t("fx.convertedNote", { date: formatCalendarDateAnywhere(note.date, locale) })
+    : undefined;
+  return (
+    <span className={className} title={title}>
+      {value}
+    </span>
+  );
 }

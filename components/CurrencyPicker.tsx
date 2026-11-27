@@ -8,11 +8,14 @@
  * /auth/set-currency/). Independent of the RHF profile form - it applies immediately on change.
  *
  * `label` is passed in already-translated by the caller (so this stays i18n-agnostic + reusable).
+ * Under the choices it names the Central Bank of Nigeria when the display currency or NGN uses a CBN
+ * rate (owner 2026-11-27, inbox #649), via <CbnCredit/>.
  * Used on the profile edit page beside the language selector.
  */
 
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { AFC_CURRENCIES } from "@/lib/currencies";
+import { CbnCredit } from "@/components/CbnCredit";
 import {
   Select,
   SelectContent,
@@ -51,6 +54,7 @@ export function CurrencyPicker({
           ))}
         </SelectContent>
       </Select>
+      <CbnCredit codes={[currency, "NGN"]} className="mt-1.5 text-xs text-muted-foreground" />
     </div>
   );
 }

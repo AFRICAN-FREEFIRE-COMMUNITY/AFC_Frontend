@@ -239,5 +239,9 @@
   "eventKind": {
     "tournament": "Tournament",
     "scrims": "Scrim"
+  },
+  "fx": {
+    "creditLine": "Exchange rates: <link>Central Bank of Nigeria (www.cbn.gov.ng)</link>, {date}",
+    "convertedNote": "Converted at the Central Bank of Nigeria rate of {date}"
   }
 }
