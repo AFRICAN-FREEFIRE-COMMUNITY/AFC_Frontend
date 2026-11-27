@@ -28,18 +28,13 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
+import { fuzzyFilter } from "@/lib/fuzzyMatch";
 import type { NominationCandidate } from "@/lib/kolNominations";
 
 const LIST_LIMIT = 8;
 // The multiplication sign on a chip's remove mark, built from its code point (the repo's dash guard reads raw
 // bytes and mistakes this character for a dash).
 const TIMES = String.fromCharCode(215);
-
-function matches(candidate: NominationCandidate, query: string) {
-  const q = query.trim().toLowerCase().replace(/^@/, "");
-  if (!q) return true;
-  return candidate.name.toLowerCase().includes(q) || candidate.handle.toLowerCase().includes(q);
-}
 
 export function KolNominateAward({
   index,
@@ -76,7 +71,13 @@ export function KolNominateAward({
   const byId = useMemo(() => new Map(candidates.map((c) => [c.creator_id, c])), [candidates]);
   const pickedSet = new Set(picked);
   const full = picked.length >= award.max;
-  const rest = candidates.filter((c) => !pickedSet.has(c.creator_id) && matches(c, query));
+  // #654: the search forgives typos ("jook" finds Jokie) and puts the closest names first; an empty query keeps the
+  // list in its own order (lib/fuzzyMatch.ts).
+  const rest = fuzzyFilter(
+    candidates.filter((c) => !pickedSet.has(c.creator_id)),
+    query,
+    (c) => [c.name, c.handle],
+  );
   const shown = query || showAll ? rest : rest.slice(0, LIST_LIMIT);
   const headingId = `kol-nom-award-${award.question_id}`;
   const needsPick = skipped && picked.length === 0 && !readOnly;

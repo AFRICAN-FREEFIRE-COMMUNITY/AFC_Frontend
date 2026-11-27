@@ -19,6 +19,15 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.30.0 - 2026-11-27
+
+### Added
+- KOL nominations tab: a "Ballot counts" switch per creator, separate from "In the round": off leaves that creator's own saved ballot out of the counts; "Nominated" then says "Not counted (switched off)".
+- KOL nominations admin tab: a search box above the Creators table (name, @handle, country, email or WhatsApp, typos forgiven).
+
+### Changed
+- KOL nominations ballot: searching for a creator now forgives typos and spelling, so "jook" finds Jokie and the nearest names come first.
+
 ## v7.29.0 - 2026-11-27
 
 ### Changed

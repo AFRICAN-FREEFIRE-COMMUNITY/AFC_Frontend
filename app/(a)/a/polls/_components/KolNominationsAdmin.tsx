@@ -34,6 +34,9 @@
  *      ("Email code"), the ticked rows ("Email the codes to n selected creators") or everyone with an address (two
  *      presses). The server sends them paced on a thread (AFC-B afc_polls/kol_emails.py); "Code emailed" shows sending /
  *      sent / not sent per row, and the tab reloads itself every few seconds while any is still sending.
+ *  11. BALLOT COUNTS (#657, owner 27 Nov 2026: "do a separate switch for that"): a switch per creator, separate from
+ *      "In the round", that leaves THEIR OWN saved ballot out of the counts (AFC-B KolCreator.ballot_counts). "In the
+ *      round" off stops their code and removes them as a nominee but leaves a ballot already saved counting.
  *
  * Creators are loaded by `manage.py kol_import_creators` (from the private sheet), not from this page.
  * CALLS: lib/kolNominations.ts kolNominationsAdminApi (GET/POST polls/admin/kol-nominations/<edition>/, POST
@@ -56,6 +59,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { fuzzyFilter } from "@/lib/fuzzyMatch";
 import { isoToLocalInput } from "@/lib/i18n/time";
 import { formatNumber } from "@/lib/i18n/number";
 import {
@@ -139,6 +143,8 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
   const [editEmail, setEditEmail] = useState("");
   const [editWhatsapp, setEditWhatsapp] = useState("");
   const [confirmingAll, setConfirmingAll] = useState(false);
+  // #655: the Creators table search (display only; ticks and "email everyone" still work on the full list).
+  const [creatorQuery, setCreatorQuery] = useState("");
 
   // The refusals of these endpoints, translated (adminPolls.kolNom.errors), else the server's own sentence.
   const refusal = useCallback(
@@ -281,6 +287,16 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
     void downloadCodes([creator.creator_id]);
   };
 
+  const setBallotCounts = async (creator: NominationAdminCreator, value: boolean) => {
+    try {
+      await kolNominationsAdminApi.setBallotCounts(slug, creator.creator_id, value);
+      toast.success(value ? t("kolNom.ballotCountsOn", { name: creator.name }) : t("kolNom.ballotCountsOff", { name: creator.name }));
+      await load();
+    } catch (err) {
+      toast.error(refusal(err));
+    }
+  };
+
   const setActive = async (creator: NominationAdminCreator, active: boolean) => {
     try {
       await kolNominationsAdminApi.setActive(slug, creator.creator_id, active);
@@ -375,6 +391,8 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
   // #646: who can be emailed their code (a switched-on creator of the list with an address), and the ticked ones
   const emailable = data?.round ? voters.filter((c) => c.email) : [];
   const chosen = selected.filter((id) => emailable.some((c) => c.creator_id === id));
+  // #655: the rows the search leaves visible, closest first; empty search = all rows in their order.
+  const visibleCreators = fuzzyFilter(creators, creatorQuery, (c) => [c.name, c.handle, c.country, c.email, c.whatsapp]);
   const awardCount = data?.award_count ?? 6;
   const stats = [
     { label: t("kolNom.statCreators"), value: formatNumber(voters.length) },
@@ -492,6 +510,22 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                 </div>
               </div>
             )}
+            {creators.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  type="search"
+                  value={creatorQuery}
+                  onChange={(e) => setCreatorQuery(e.target.value)}
+                  placeholder={t("kolNom.searchCreators")}
+                  aria-label={t("kolNom.searchCreators")}
+                  className="max-w-sm"
+                />
+                <NewBadge since="2026-11-27" />
+              </div>
+            )}
+            {creators.length > 0 && creatorQuery.trim() && visibleCreators.length === 0 && (
+              <p className="text-sm text-muted-foreground">{t("kolNom.noCreatorMatch", { q: creatorQuery.trim() })}</p>
+            )}
             {creators.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t("kolNom.noCreators")}</p>
             ) : (
@@ -527,11 +561,17 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                       <TableHead className="text-foreground">{t("kolNom.colVoted")}</TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colLastUsed")}</TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colOn")}</TableHead>
+                      <TableHead className="text-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          {t("kolNom.colBallotCounts")}
+                          <NewBadge since={KOL_CONTACTS_SINCE} />
+                        </span>
+                      </TableHead>
                       <TableHead className="text-foreground" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {creators.map((c) => {
+                    {visibleCreators.map((c) => {
                       const writeIn = c.origin === "write-in";
                       const mergedInto = c.merged_into ? byId.get(c.merged_into) : undefined;
                       const others = active.filter((o) => o.creator_id !== c.creator_id);
@@ -652,7 +692,9 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                         <TableCell className="p-2">
                           {writeIn
                             ? t("kolNom.notVoter")
-                            : c.voted
+                            : !c.ballot_counts
+                              ? t("kolNom.notCounted")
+                              : c.voted
                               ? t("kolNom.yes")
                               : c.awards_done > 0
                                 ? t("kolNom.awardsDone", { n: c.awards_done, total: awardCount })
@@ -667,6 +709,18 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                             onCheckedChange={(v) => void setActive(c, v)}
                             aria-label={t("kolNom.toggleLabel", { name: c.name })}
                           />
+                        </TableCell>
+                        {/* #657: their own ballot counts or not, separate from "In the round" */}
+                        <TableCell className="p-2">
+                          {writeIn ? (
+                            t("kolNom.notVoter")
+                          ) : (
+                            <Switch
+                              checked={c.ballot_counts}
+                              onCheckedChange={(v) => void setBallotCounts(c, v)}
+                              aria-label={t("kolNom.ballotCountsLabel", { name: c.name })}
+                            />
+                          )}
                         </TableCell>
                         <TableCell className="p-2 text-right">
                           {c.active && data.round && !writeIn && (

@@ -164,6 +164,8 @@ export type NominationAdminCreator = {
   email: string;
   whatsapp: string;
   contact_given_at: string | null;
+  // #657: whether this creator's own saved ballot counts (a switch separate from `active`).
+  ballot_counts: boolean;
   // #646: the latest code email. A queued one left by a restart arrives as failed / kol_email_interrupted.
   last_email: { status: "queued" | "sent" | "failed"; at: string; error: string; to: string } | null;
 };
@@ -244,6 +246,11 @@ export const kolNominationsAdminApi = {
   merge: async (edition: string, creatorId: number, targetId: number) =>
     (await axios.patch(admin(edition, `creators/${creatorId}/`), { merge_into: targetId }, { headers: authHeaders() }))
       .data,
+  // PATCH polls/admin/kol-nominations/<edition>/creators/<id>/ {ballot_counts}: their own ballot counts or not (#657).
+  setBallotCounts: async (edition: string, creatorId: number, ballotCounts: boolean) =>
+    (await axios.patch(admin(edition, `creators/${creatorId}/`), { ballot_counts: ballotCounts }, {
+      headers: authHeaders(),
+    })).data,
   // PATCH polls/admin/kol-nominations/<edition>/creators/<id>/ {email, whatsapp}: their contact (#644); "" clears.
   setContact: async (edition: string, creatorId: number, body: { email: string; whatsapp: string }) =>
     (await axios.patch<{ email: string; whatsapp: string }>(admin(edition, `creators/${creatorId}/`), body, {
