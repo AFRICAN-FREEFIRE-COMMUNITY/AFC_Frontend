@@ -383,14 +383,14 @@
       "help": "Pas de code ? Demandez-le à la personne qui vous a invité aux KOL Awards."
     },
     "hi": "Bonjour {name}.",
-    "intro": "Choisissez jusqu'à 6 créateurs pour chaque prix. Vous pouvez choisir n'importe qui, y compris vous-même, et ajouter quelqu'un qui n'est pas sur la liste. Un prix peut rester vide.",
+    "intro": "Nominez dans chaque prix : au moins 1 et jusqu'à 6 créateurs par prix. Vous pouvez choisir n'importe qui, y compris vous-même, et ajouter quelqu'un qui n'est pas sur la liste. Vos nominations comptent une fois que les six prix ont au moins un choix.",
     "until": "Vos choix s'enregistrent au fur et à mesure. Vous pouvez les modifier jusqu'au <date></date>.",
     "untilNoDate": "Vos choix s'enregistrent au fur et à mesure. Vous pouvez les modifier jusqu'à la clôture des nominations.",
     "notOpen": "Les nominations ouvrent le <date></date>. Vous pouvez regarder, mais les choix ne peuvent pas encore être enregistrés.",
     "notOpenNoDate": "Les nominations ne sont pas encore ouvertes. Vous pouvez regarder, mais les choix ne peuvent pas encore être enregistrés.",
     "closed": "Les nominations sont closes. Merci pour vos choix.",
     "notYou": "Ce n'est pas vous ? Utilisez un autre code",
-    "count": "{n} sur {max}",
+    "count": "Choix : {n} sur {max}",
     "yourPicks": "Vos choix",
     "remove": "Retirer {name}",
     "search": "Chercher un nom ou un @pseudo",
@@ -422,7 +422,14 @@
       "kol_claim_needed": "Dites-nous d'abord qui vous êtes.",
       "kol_claim_listed": "Ce créateur est déjà sur la liste. Demandez votre propre code personnel.",
       "kol_already_claimed": "Ce code appartient déjà à un créateur. Saisissez-le à nouveau pour ouvrir son bulletin.",
-      "kol_claim_too_fast": "Trop d'essais. Patientez un instant."
+      "kol_claim_too_fast": "Trop d'essais. Patientez un instant.",
+      "kol_contact_needed": "Donnez d'abord votre e-mail et votre numéro WhatsApp.",
+      "kol_bad_email": "Saisissez une adresse e-mail valide.",
+      "kol_bad_whatsapp": "Saisissez votre numéro WhatsApp avec l'indicatif du pays, par exemple +225 07 12 34 56 78.",
+      "kol_whatsapp_country_code": "Commencez votre numéro WhatsApp par l'indicatif du pays, par exemple +225.",
+      "kol_contact_too_fast": "Trop d'essais. Attendez un instant.",
+      "kol_email_too_many": "Vous avez déjà demandé cet e-mail plusieurs fois. Réessayez dans quelques minutes.",
+      "kol_email_send_failed": "L'e-mail n'a pas pu être envoyé pour l'instant. Réessayez plus tard."
     },
     "you": "Vous",
     "handleAdded": "@{handle}, ajouté par un créateur",
@@ -454,6 +461,31 @@
       "country": "Votre pays",
       "go": "Ouvrir mon bulletin",
       "going": "Ouverture"
+    },
+    "rule": "Choisissez de 1 à {max} créateurs",
+    "needOne": "Aucun choix pour l'instant. Chaque prix en demande au moins un.",
+    "skipped": "Vous avez passé {award} sans rien choisir. Chaque prix demande au moins un choix.",
+    "goTo": "Y aller",
+    "progress": "{done} prix sur {total} faits. Vos nominations comptent une fois que chaque prix a un choix.",
+    "nextEmpty": "Prix vide suivant",
+    "counts": "Les {total} prix ont un choix : vos nominations comptent.",
+    "contact": {
+      "title": "Comment vous joindre ?",
+      "body": "Avant de nominer, donnez-nous votre e-mail et votre numéro WhatsApp pour que l'équipe des KOL Awards puisse vous joindre. Seule l'équipe les voit.",
+      "email": "E-mail",
+      "whatsapp": "Numéro WhatsApp",
+      "whatsappHelp": "Avec l'indicatif du pays, par exemple +225 07 12 34 56 78.",
+      "go": "Continuer vers mon bulletin",
+      "saving": "Enregistrement",
+      "cancel": "Retour à mon bulletin",
+      "change": "Modifier mon e-mail ou mon WhatsApp"
+    },
+    "copy": {
+      "title": "Gardez une copie",
+      "body": "Nous envoyons vos choix, tels qu'ils sont enregistrés maintenant, à {email}.",
+      "button": "M'envoyer mes choix par e-mail",
+      "sending": "Envoi",
+      "sent": "Envoyé à {email}."
     }
   }
 }

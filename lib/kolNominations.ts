@@ -11,7 +11,10 @@ import type { AwardsEdition } from "@/lib/polls";
  * person one creator adds is a candidate on every creator's ballot, never a voter, and nobody counts twice in one
  * award). Later the same day (#638 to #640): every award explained on the page by its `key`, SPARE codes with
  * nobody behind them (the door answers `needs_claim`, then `claim` says who they are), and codes a poll admin can
- * read back to copy (`readCode`). Backend: AFC-B afc_polls/kol_nominations.py (read its header for the shape). Design:
+ * read back to copy (`readCode`). 27 Nov (#643 to #648): a ballot COUNTS only once every award has a pick (`complete`),
+ * the creator gives an email and a WhatsApp number before their first pick (`contact_needed`, `saveContact`), can email
+ * themselves their picks (`emailMe`), and admins keep each creator's contact and email them their codes
+ * (`setContact`, `sendCodeEmails`). Backend: AFC-B afc_polls/kol_nominations.py (read its header for the shape). Design:
  * WEBSITE/tasks/kol-nominations-design-2026-11-25.md, sections 10 and 11 for the write-ins.
  *
  * TWO DOORS, TWO WAYS OF KNOWING WHO IS ASKING
@@ -25,7 +28,8 @@ import type { AwardsEdition } from "@/lib/polls";
  * kol_bad_handle, kol_handle_unavailable, kol_write_in_too_fast, kol_write_ins_too_many, kol_claim_needed,
  * kol_claim_listed, kol_already_claimed, kol_claim_too_fast; admin: kol_admin_only, kol_bad_dates,
  * kol_round_missing, kol_merge_not_write_in, kol_bad_merge, kol_bad_spare_count, kol_code_not_found,
- * kol_code_unreadable ...) that the pages translate from their
+ * kol_code_unreadable; 27 Nov: kol_contact_needed, kol_bad_email, kol_bad_whatsapp, kol_whatsapp_country_code,
+ * kol_contact_too_fast, kol_email_too_many, kol_email_send_failed, kol_bad_creator_ids ...) that the pages translate from their
  * own namespaces (awardsKol.nominate.errors, adminPolls.kolNom.errors).
  */
 
@@ -47,6 +51,12 @@ export type NominationBallot = {
   saved_at: string | null;
   // Only on a save: switched-off creators the server left out of what was sent.
   dropped?: number[];
+  // #643: every award holds a pick, so the ballot counts (the server's word; the page also works it out live).
+  complete: boolean;
+  // #644: the creator still has to give their email and WhatsApp number before any pick is saved.
+  contact_needed: boolean;
+  // #648: "l***@gmail.com", where "Email me my picks" writes to; "" before the contact is given.
+  email_hint: string;
 };
 
 /** What the door answers for an unclaimed SPARE code (#639): the round only; the page asks who they are. */
@@ -114,6 +124,12 @@ export const kolNominationsApi = {
       method: "POST",
       body: JSON.stringify({ handle, ...(name?.trim() ? { name: name.trim() } : {}) }),
     }),
+  // PUT polls/kol-nominations/<edition>/contact/ {email, whatsapp}: both required (#644); answers the ballot.
+  saveContact: (edition: string, body: { email: string; whatsapp: string }) =>
+    creatorCall(`${encodeURIComponent(edition)}/contact/`, { method: "PUT", body: JSON.stringify(body) }),
+  // POST polls/kol-nominations/<edition>/email-me/: the creator's picks as saved now, to the email they gave (#648).
+  emailMe: (edition: string) =>
+    creatorCall<{ message: string; email_hint: string }>(`${encodeURIComponent(edition)}/email-me/`, { method: "POST" }),
   // POST polls/kol-nominations/<edition>/signout/: forget the cookie ("Not you? Use another code").
   signOut: (edition: string) =>
     fetch(`${BASE}/kol-nominations/${encodeURIComponent(edition)}/signout/`, {
@@ -140,9 +156,20 @@ export type NominationAdminCreator = {
   has_code: boolean;
   // The live code's id, for readCode (#640); null without a code.
   code_id: number | null;
+  // #643: the ballot COUNTS (every award has a pick). awards_done: awards a saved ballot fills ("4 of 6").
   voted: boolean;
+  awards_done: number;
   last_used_at: string | null;
+  // #644: how AFC and Garena reach them ("" when unknown); contact_given_at: when the creator gave it on the ballot.
+  email: string;
+  whatsapp: string;
+  contact_given_at: string | null;
+  // #646: the latest code email. A queued one left by a restart arrives as failed / kol_email_interrupted.
+  last_email: { status: "queued" | "sent" | "failed"; at: string; error: string; to: string } | null;
 };
+
+// The day the contacts and the code emails went live (#643 to #648): the NEW badges on the admin tab.
+export const KOL_CONTACTS_SINCE = "2026-11-27";
 
 // The day Garena's access went live (#641): the KOL Admin role and the round on Garena's live page. Drives the NEW
 // badges on the KOL-only /a/polls, the Nominations tab's live link card, the role in Settings and the live page.
@@ -161,6 +188,8 @@ export type NominationAdmin = {
     awards: { question_id: number; prompt: string; key: string }[];
   } | null;
   creators: NominationAdminCreator[];
+  // How many awards the round has (6): a ballot counts once it fills them all.
+  award_count: number;
   tally: Record<string, { creator_id: number; name: string; picks: number }[]>;
   failed_attempts: number;
   // Spare codes (#639), live ones, oldest first.
@@ -215,4 +244,17 @@ export const kolNominationsAdminApi = {
   merge: async (edition: string, creatorId: number, targetId: number) =>
     (await axios.patch(admin(edition, `creators/${creatorId}/`), { merge_into: targetId }, { headers: authHeaders() }))
       .data,
+  // PATCH polls/admin/kol-nominations/<edition>/creators/<id>/ {email, whatsapp}: their contact (#644); "" clears.
+  setContact: async (edition: string, creatorId: number, body: { email: string; whatsapp: string }) =>
+    (await axios.patch<{ email: string; whatsapp: string }>(admin(edition, `creators/${creatorId}/`), body, {
+      headers: authHeaders(),
+    })).data,
+  // POST polls/admin/kol-nominations/<edition>/emails/ {creator_ids} or {all: true}: email their codes (#646). Answers
+  // at once; the server sends on a paced thread and each row's last_email says how it went.
+  sendCodeEmails: async (edition: string, target: { creator_ids: number[] } | { all: true }) =>
+    (await axios.post<{ queued: number; no_email: number; not_voters: number; already_sending: number }>(
+      admin(edition, "emails/"),
+      target,
+      { headers: authHeaders() },
+    )).data,
 };

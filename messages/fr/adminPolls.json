@@ -378,7 +378,7 @@
     "preview": "Aperçu"
   },
   "kolNom": {
-    "intro": "Les créateurs KOL nominent avec un code personnel chacun : jusqu'à 6 par prix, eux-mêmes compris, et toute personne qu'ils ajoutent par son pseudo TikTok (une personne ajoutée est candidate pour tous, jamais votante). Les créateurs sont chargés depuis la feuille de Garena avec la commande d'import ; les codes se créent et se désactivent ici.",
+    "intro": "Les créateurs KOL nominent avec un code personnel chacun : au moins 1 et jusqu'à 6 dans chaque prix, eux-mêmes compris, et toute personne qu'ils ajoutent par son pseudo TikTok (une personne ajoutée est candidate pour tous, jamais votante). Un bulletin compte une fois que les six prix ont un choix. Les créateurs sont chargés depuis la feuille de Garena avec la commande d'import ; les codes sont créés, envoyés par e-mail et désactivés ici.",
     "noEdition": "Aucune édition KOL Awards pour l'instant. Créez-en une avec le thème Detty Royale.",
     "pickEdition": "Édition KOL",
     "roundTitle": "La sélection",
@@ -418,7 +418,7 @@
     "newCode": "Nouveau code",
     "confirmNewCode": "Appuyez encore : l'ancien code s'arrête",
     "tallyTitle": "Choix à ce jour",
-    "tallyNote": "Choix par créateur dans chaque prix. Qui a choisi qui n'est jamais affiché.",
+    "tallyNote": "Choix par créateur dans chaque prix, d'après les bulletins qui comptent (un choix dans chaque prix). Qui a choisi qui n'est jamais affiché.",
     "noPicks": "Aucun choix pour l'instant.",
     "picks": "{n, plural, one {# choix} other {# choix}}",
     "failed": "Cela n'a pas fonctionné. Réessayez.",
@@ -428,13 +428,16 @@
       "kol_round_missing": "Configurez d'abord la sélection.",
       "kol_creator_not_found": "Ce créateur ne fait pas partie de cette édition.",
       "kol_bad_active": "Choisissez activé ou désactivé.",
-      "kol_bad_creator_ids": "Ces créateurs n'ont pas pu être lus.",
+      "kol_bad_creator_ids": "Cochez au moins un créateur.",
       "awards_edition_not_found": "Cette édition n'existe plus.",
       "kol_merge_not_write_in": "Seule une personne ajoutée par un créateur peut être fusionnée.",
       "kol_bad_merge": "Choisissez une autre personne de la sélection avec qui fusionner.",
       "kol_bad_spare_count": "Créez entre 1 et 50 codes de réserve à la fois.",
       "kol_code_not_found": "Ce code n'existe plus.",
-      "kol_code_unreadable": "Ce code a été créé avant que la copie soit possible. Donnez un nouveau code au créateur pour le copier."
+      "kol_code_unreadable": "Ce code a été créé avant que la copie soit possible. Donnez un nouveau code au créateur pour le copier.",
+      "kol_bad_email": "Saisissez une adresse e-mail valide.",
+      "kol_bad_whatsapp": "Saisissez le numéro WhatsApp avec l'indicatif du pays, par exemple +225 07 12 34 56 78.",
+      "kol_whatsapp_country_code": "Commencez le numéro WhatsApp par l'indicatif du pays, par exemple +225."
     },
     "statWriteIns": "Ajoutés par les créateurs",
     "writeIn": "Ajouté par un créateur",
@@ -469,6 +472,42 @@
     "revoked": "Code révoqué",
     "pageTitle": "Nominations des KOL Awards",
     "pageSubtitle": "La sélection des créateurs KOL : codes, codes de réserve, choix à ce jour et lien en direct de Garena.",
-    "liveIntro": "Une page privée avec les choix à ce jour dans chaque prix (et plus tard le vote du public), sans aucun nom de votant. Toute personne qui a le lien peut l'ouvrir sans se connecter : partagez-le seulement avec l'équipe de Garena."
+    "liveIntro": "Une page privée avec les choix à ce jour dans chaque prix (et plus tard le vote du public), sans aucun nom de votant. Toute personne qui a le lien peut l'ouvrir sans se connecter : partagez-le seulement avec l'équipe de Garena.",
+    "statEmails": "Avec un e-mail",
+    "statStarted": "Commencé, pas fini",
+    "awardsDone": "{n} prix sur {total}",
+    "colContact": "Contact",
+    "colEmailed": "Code par e-mail",
+    "noContact": "Aucun contact",
+    "givenByCreator": "Donné par le créateur",
+    "editContact": "Modifier",
+    "saveContact": "Enregistrer",
+    "cancel": "Annuler",
+    "emailLabel": "E-mail",
+    "whatsappLabel": "Numéro WhatsApp",
+    "contactSaved": "Contact enregistré pour {name}",
+    "openWhatsapp": "Ouvrir une discussion WhatsApp avec {name}",
+    "emailTitle": "Envoyer les codes par e-mail",
+    "emailNote": "Chaque créateur reçoit son propre code, son lien et son message, dans sa langue, depuis info@africanfreefirecommunity.com au nom d'African Freefire Community. Un créateur sans code en reçoit un d'abord. Cochez des créateurs ci-dessous, ou envoyez à tous ceux qui ont une adresse. Les e-mails partent un toutes les quelques secondes ; la colonne Code par e-mail montre le résultat de chacun.",
+    "emailSelected": "{n, plural, =0 {Envoyer les codes aux créateurs cochés} one {Envoyer le code au créateur coché} other {Envoyer les codes aux # créateurs cochés}}",
+    "emailAll": "Envoyer à tous ceux qui ont une adresse ({n})",
+    "confirmEmailAll": "Appuyez encore : {n} e-mails partent",
+    "emailsQueued": "{n, plural, =0 {Aucun e-mail à envoyer.} one {# e-mail est en route.} other {# e-mails sont en route.}}",
+    "emailsNoAddress": "{n, plural, one {# créateur n'a pas d'e-mail.} other {# créateurs n'ont pas d'e-mail.}}",
+    "emailsAlready": "{n, plural, one {# était déjà en cours d'envoi.} other {# étaient déjà en cours d'envoi.}}",
+    "emailOne": "Envoyer le code",
+    "emailStatus": {
+      "queued": "Envoi en cours",
+      "sent": "Envoyé",
+      "failed": "Non envoyé"
+    },
+    "emailErrors": {
+      "kol_email_send_failed": "Le serveur de messagerie l'a refusé. Renvoyez-le.",
+      "kol_code_gone": "Le code a changé ou le créateur a été retiré avant l'envoi.",
+      "kol_email_interrupted": "Interrompu par un redémarrage. Renvoyez-le.",
+      "kol_email_build_failed": "N'a pas pu être rédigé. Renvoyez-le."
+    },
+    "selectLabel": "Cocher {name}",
+    "selectAll": "Cocher tous les créateurs qui ont un e-mail"
   }
 }
