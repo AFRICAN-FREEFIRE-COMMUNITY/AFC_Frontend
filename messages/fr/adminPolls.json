@@ -510,6 +510,11 @@
       "kol_email_build_failed": "N'a pas pu être rédigé. Renvoyez-le."
     },
     "selectLabel": "Cocher {name}",
-    "selectAll": "Cocher tous les créateurs qui ont un e-mail"
+    "selectAll": "Cocher tous les créateurs qui ont un e-mail",
+    "colBallotCounts": "Bulletin compté",
+    "ballotCountsLabel": "Le bulletin de {name} est compté",
+    "ballotCountsOn": "Le bulletin de {name} compte de nouveau",
+    "ballotCountsOff": "Le bulletin de {name} ne compte plus ; cette personne reste dans la sélection",
+    "notCounted": "Non compté (désactivé)"
   }
 }

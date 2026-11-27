@@ -425,5 +425,10 @@
   "kolNom.errors.kol_bad_whatsapp": "Type the WhatsApp number with its country code, like +234 801 234 5678.",
   "kolNom.errors.kol_whatsapp_country_code": "Start the WhatsApp number with its country code, like +234.",
   "kolNom.searchCreators": "Search by name, @handle, country or email",
-  "kolNom.noCreatorMatch": "No creator matches \"{q}\"."
+  "kolNom.noCreatorMatch": "No creator matches \"{q}\".",
+  "kolNom.colBallotCounts": "Ballot counts",
+  "kolNom.ballotCountsLabel": "{name}'s own ballot counts",
+  "kolNom.ballotCountsOn": "{name}'s ballot counts again",
+  "kolNom.ballotCountsOff": "{name}'s ballot no longer counts; they stay in the round",
+  "kolNom.notCounted": "Not counted (switched off)"
 }

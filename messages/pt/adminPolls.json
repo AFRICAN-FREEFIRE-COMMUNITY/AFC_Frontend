@@ -510,6 +510,11 @@
       "kol_email_build_failed": "Não foi possível escrevê-lo. Envie de novo."
     },
     "selectLabel": "Marcar {name}",
-    "selectAll": "Marcar todos os criadores com email"
+    "selectAll": "Marcar todos os criadores com email",
+    "colBallotCounts": "Boletim conta",
+    "ballotCountsLabel": "O boletim de {name} conta",
+    "ballotCountsOn": "O boletim de {name} volta a contar",
+    "ballotCountsOff": "O boletim de {name} deixou de contar; continua na ronda",
+    "notCounted": "Não conta (desligado)"
   }
 }

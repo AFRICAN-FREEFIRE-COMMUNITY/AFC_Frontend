@@ -510,6 +510,11 @@
       "kol_email_build_failed": "Could not be written. Send again."
     },
     "selectLabel": "Tick {name}",
-    "selectAll": "Tick every creator with an email"
+    "selectAll": "Tick every creator with an email",
+    "colBallotCounts": "Ballot counts",
+    "ballotCountsLabel": "{name}'s own ballot counts",
+    "ballotCountsOn": "{name}'s ballot counts again",
+    "ballotCountsOff": "{name}'s ballot no longer counts; they stay in the round",
+    "notCounted": "Not counted (switched off)"
   }
 }

@@ -34,6 +34,9 @@
  *      ("Email code"), the ticked rows ("Email the codes to n selected creators") or everyone with an address (two
  *      presses). The server sends them paced on a thread (AFC-B afc_polls/kol_emails.py); "Code emailed" shows sending /
  *      sent / not sent per row, and the tab reloads itself every few seconds while any is still sending.
+ *  11. BALLOT COUNTS (#657, owner 27 Nov 2026: "do a separate switch for that"): a switch per creator, separate from
+ *      "In the round", that leaves THEIR OWN saved ballot out of the counts (AFC-B KolCreator.ballot_counts). "In the
+ *      round" off stops their code and removes them as a nominee but leaves a ballot already saved counting.
  *
  * Creators are loaded by `manage.py kol_import_creators` (from the private sheet), not from this page.
  * CALLS: lib/kolNominations.ts kolNominationsAdminApi (GET/POST polls/admin/kol-nominations/<edition>/, POST
@@ -282,6 +285,16 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
       return;
     }
     void downloadCodes([creator.creator_id]);
+  };
+
+  const setBallotCounts = async (creator: NominationAdminCreator, value: boolean) => {
+    try {
+      await kolNominationsAdminApi.setBallotCounts(slug, creator.creator_id, value);
+      toast.success(value ? t("kolNom.ballotCountsOn", { name: creator.name }) : t("kolNom.ballotCountsOff", { name: creator.name }));
+      await load();
+    } catch (err) {
+      toast.error(refusal(err));
+    }
   };
 
   const setActive = async (creator: NominationAdminCreator, active: boolean) => {
@@ -548,6 +561,12 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                       <TableHead className="text-foreground">{t("kolNom.colVoted")}</TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colLastUsed")}</TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colOn")}</TableHead>
+                      <TableHead className="text-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          {t("kolNom.colBallotCounts")}
+                          <NewBadge since={KOL_CONTACTS_SINCE} />
+                        </span>
+                      </TableHead>
                       <TableHead className="text-foreground" />
                     </TableRow>
                   </TableHeader>
@@ -673,7 +692,9 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                         <TableCell className="p-2">
                           {writeIn
                             ? t("kolNom.notVoter")
-                            : c.voted
+                            : !c.ballot_counts
+                              ? t("kolNom.notCounted")
+                              : c.voted
                               ? t("kolNom.yes")
                               : c.awards_done > 0
                                 ? t("kolNom.awardsDone", { n: c.awards_done, total: awardCount })
@@ -688,6 +709,18 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                             onCheckedChange={(v) => void setActive(c, v)}
                             aria-label={t("kolNom.toggleLabel", { name: c.name })}
                           />
+                        </TableCell>
+                        {/* #657: their own ballot counts or not, separate from "In the round" */}
+                        <TableCell className="p-2">
+                          {writeIn ? (
+                            t("kolNom.notVoter")
+                          ) : (
+                            <Switch
+                              checked={c.ballot_counts}
+                              onCheckedChange={(v) => void setBallotCounts(c, v)}
+                              aria-label={t("kolNom.ballotCountsLabel", { name: c.name })}
+                            />
+                          )}
                         </TableCell>
                         <TableCell className="p-2 text-right">
                           {c.active && data.round && !writeIn && (
