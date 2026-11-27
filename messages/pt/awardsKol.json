@@ -383,14 +383,14 @@
       "help": "Não tem código? Peça-o à pessoa que lhe enviou o convite para os KOL Awards."
     },
     "hi": "Olá {name}.",
-    "intro": "Escolha até 6 criadores para cada prémio. Pode escolher qualquer pessoa, incluindo a si próprio, e acrescentar alguém que não esteja na lista. Um prémio pode ficar vazio.",
+    "intro": "Nomeie em todos os prémios: pelo menos 1 e até 6 criadores em cada um. Pode escolher qualquer pessoa, incluindo a si próprio, e acrescentar alguém que não esteja na lista. As suas nomeações contam quando os seis prémios tiverem pelo menos uma escolha.",
     "until": "As suas escolhas ficam guardadas à medida que as faz. Pode alterá-las até <date></date>.",
     "untilNoDate": "As suas escolhas ficam guardadas à medida que as faz. Pode alterá-las até as nomeações fecharem.",
     "notOpen": "As nomeações abrem a <date></date>. Pode ver tudo, mas ainda não é possível guardar escolhas.",
     "notOpenNoDate": "As nomeações ainda não abriram. Pode ver tudo, mas ainda não é possível guardar escolhas.",
     "closed": "As nomeações estão fechadas. Obrigado pelas suas escolhas.",
     "notYou": "Não é você? Use outro código",
-    "count": "{n} de {max}",
+    "count": "Escolhas: {n} de {max}",
     "yourPicks": "As suas escolhas",
     "remove": "Retirar {name}",
     "search": "Procure um nome ou @utilizador",
@@ -422,7 +422,14 @@
       "kol_claim_needed": "Diga-nos primeiro quem é.",
       "kol_claim_listed": "Esse criador já está na lista. Peça o seu próprio código pessoal.",
       "kol_already_claimed": "Este código já pertence a um criador. Introduza-o de novo para abrir o boletim.",
-      "kol_claim_too_fast": "Demasiadas tentativas. Aguarde um momento."
+      "kol_claim_too_fast": "Demasiadas tentativas. Aguarde um momento.",
+      "kol_contact_needed": "Indique primeiro o seu email e o seu número de WhatsApp.",
+      "kol_bad_email": "Escreva um endereço de email válido.",
+      "kol_bad_whatsapp": "Escreva o seu número de WhatsApp com o indicativo do país, por exemplo +258 84 123 4567.",
+      "kol_whatsapp_country_code": "Comece o seu número de WhatsApp pelo indicativo do país, por exemplo +258.",
+      "kol_contact_too_fast": "Demasiadas tentativas. Aguarde um momento.",
+      "kol_email_too_many": "Já pediu este email algumas vezes. Tente de novo dentro de alguns minutos.",
+      "kol_email_send_failed": "Não foi possível enviar o email agora. Tente de novo mais tarde."
     },
     "you": "Você",
     "handleAdded": "@{handle}, acrescentado por um criador",
@@ -454,6 +461,31 @@
       "country": "O seu país",
       "go": "Abrir o meu boletim",
       "going": "A abrir"
+    },
+    "rule": "Escolha de 1 a {max} criadores",
+    "needOne": "Ainda sem escolha. Cada prémio precisa de pelo menos uma.",
+    "skipped": "Passou {award} sem escolher ninguém. Cada prémio precisa de pelo menos uma escolha.",
+    "goTo": "Ir para lá",
+    "progress": "{done} de {total} prémios feitos. As suas nomeações contam quando todos os prémios tiverem uma escolha.",
+    "nextEmpty": "Próximo prémio vazio",
+    "counts": "Os {total} prémios têm uma escolha: as suas nomeações contam.",
+    "contact": {
+      "title": "Como o podemos contactar?",
+      "body": "Antes de nomear, indique o seu email e o seu número de WhatsApp para que a equipa dos KOL Awards o possa contactar. Só a equipa os vê.",
+      "email": "Email",
+      "whatsapp": "Número de WhatsApp",
+      "whatsappHelp": "Com o indicativo do país, por exemplo +258 84 123 4567.",
+      "go": "Continuar para o meu boletim",
+      "saving": "A guardar",
+      "cancel": "Voltar ao meu boletim",
+      "change": "Alterar o meu email ou WhatsApp"
+    },
+    "copy": {
+      "title": "Guarde uma cópia",
+      "body": "Enviamos as suas escolhas, tal como estão guardadas agora, para {email}.",
+      "button": "Enviar-me as minhas escolhas por email",
+      "sending": "A enviar",
+      "sent": "Enviado para {email}."
     }
   }
 }

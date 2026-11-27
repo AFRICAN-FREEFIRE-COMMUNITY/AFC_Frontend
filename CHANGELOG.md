@@ -19,6 +19,15 @@ At release time `node ~/.claude/skills/versioning/scripts/release.mjs next` (or
 the merge commit. A version tag pushed with the wrong number is blocked before the push, and the tag
 workflow checks it again before it builds.
 
+## v7.26.0 - 2026-11-27
+
+### Added
+- KOL nominations ballot: before their first pick a creator gives their email and WhatsApp number (both required, with the country code), and can change them later. A "Keep a copy" panel emails them their picks as saved, with no code in it.
+- KOL nominations admin tab: a Contact column (email, WhatsApp chat link, edit in place), "Code emailed" per creator (sending, sent, not sent and why), and emailing the codes to one creator, the ticked ones or everyone with an address. New counts: "With an email" and "Started, not finished".
+
+### Changed
+- KOL nominations ballot: every award says plainly "Pick 1 to 6 creators" with six slots that fill as you pick. A ballot counts only once all six awards have a pick: the intro says so, an award moved past with no pick turns pink and the save bar names it with "Go to it", and the bar says how many awards are done or that the ballot counts. The admin tab shows "4 of 6 awards" for a started ballot.
+
 ## v7.25.0 - 2026-11-26
 
 ### Added

@@ -18,6 +18,11 @@
  * Picked creators sit on top as filled chips (tap to remove); the list below shows the first LIST_LIMIT
  * candidates until the creator searches or asks for all, so 108 names do not make a phone page endless.
  *
+ * HOW MANY (owner, 27 Nov 2026, #647: "For each vote let it be obvious they can vote for 6 per category", with a phone
+ * screenshot where only a small "0 of 6" said so; #643: "they must vote in each"): under the explanation, a line of its
+ * own says "Pick 1 to 6 creators" with the count, and six slots fill yellow as the picks come in. `skipped` (the parent
+ * saw the creator move past this award with nothing picked) turns that line pink and says the award needs a pick.
+ *
  * CONSUMED BY KolNominate.tsx, which owns the picks, the saving and the write-in call.
  */
 import { useMemo, useState } from "react";
@@ -43,6 +48,7 @@ export function KolNominateAward({
   picked,
   meId,
   readOnly,
+  skipped,
   onChange,
   onAdd,
 }: {
@@ -52,6 +58,8 @@ export function KolNominateAward({
   picked: number[];
   meId: number;
   readOnly: boolean;
+  // #643: the creator moved past this award with no pick (KolNominate decides); cleared by the first pick.
+  skipped: boolean;
   onChange: (next: number[]) => void;
   // Resolves to a sentence to show under the form (a refusal, "already picked"), or null when the person was picked.
   onAdd: (handle: string, name: string) => Promise<string | null>;
@@ -71,6 +79,7 @@ export function KolNominateAward({
   const rest = candidates.filter((c) => !pickedSet.has(c.creator_id) && matches(c, query));
   const shown = query || showAll ? rest : rest.slice(0, LIST_LIMIT);
   const headingId = `kol-nom-award-${award.question_id}`;
+  const needsPick = skipped && picked.length === 0 && !readOnly;
 
   const toggle = (id: number) => {
     if (readOnly) return;
@@ -101,15 +110,26 @@ export function KolNominateAward({
   };
 
   return (
-    <section className="nom-award" aria-labelledby={headingId}>
+    <section className={`nom-award${needsPick ? " need" : ""}`} aria-labelledby={headingId} data-award={award.question_id}>
       <header className="nom-award-head">
         <span className="nom-num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
         <h2 id={headingId} className="nom-award-name">{award.name}</h2>
-        <span className={`nom-count${full ? " full" : ""}`}>{t("nominate.count", { n: picked.length, max: award.max })}</span>
       </header>
       {award.key && t.has(`nominate.awardHelp.${award.key}`) && (
         <p className="nom-award-help">{t(`nominate.awardHelp.${award.key}`)}</p>
       )}
+
+      {/* #647: how many, said plainly, with six slots that fill as the picks come in */}
+      <div className={`nom-rule${full ? " full" : ""}${picked.length > 0 ? " some" : ""}`}>
+        <p className="nom-rule-text">{t("nominate.rule", { max: award.max })}</p>
+        <p className="nom-rule-count">{t("nominate.count", { n: picked.length, max: award.max })}</p>
+        <div className="nom-slots" aria-hidden="true">
+          {Array.from({ length: award.max }, (_, i) => (
+            <span key={i} className={i < picked.length ? "on" : ""} />
+          ))}
+        </div>
+      </div>
+      {needsPick && <p className="nom-need" role="alert">{t("nominate.needOne")}</p>}
 
       {picked.length > 0 && (
         <ul className="nom-picked" aria-label={t("nominate.yourPicks")}>

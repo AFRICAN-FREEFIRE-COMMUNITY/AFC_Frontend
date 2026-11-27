@@ -24,6 +24,20 @@
  * `needs_claim` for one nobody has claimed, and the page asks once for a name, TikTok @handle and country ("Tell us
  * who you are", claim()); the answer is that creator's ballot, and the code is theirs from then on.
  *
+ * OWNER, 27 NOV 2026 (#643 to #648):
+ *   - "Don't allow awards stay empty" / "Counts only when full": the ballot COUNTS only once every award has a pick
+ *     (the server decides, AFC-B kol_nominations.counted_response_ids). The intro says so; each award says "Pick 1 to 6"
+ *     with six slots (KolNominateAward, #647); the save bar says how many awards are done or that the ballot counts.
+ *   - "notify them that they have not voted for one before they move on to the next and if they skip some": an award
+ *     is SKIPPED when the creator scrolls past it with nothing picked (an IntersectionObserver sees it leave the top of
+ *     the screen after it was on screen) or picks in a later award while it is empty. A skipped award turns pink and
+ *     the save bar names it with "Go to it". Its first pick clears it.
+ *   - "a field for email and Whatsapp number" (both required): view "contact" comes before the first pick while the
+ *     server says contact_needed (it refuses any save until then, kol_contact_needed); "Change my email or WhatsApp"
+ *     opens it again, empty: the stored values are never sent to this page.
+ *   - "request to send their own votes to their mails": "Email me my picks" (kolNominationsApi.emailMe) to the masked
+ *     address the server gives (email_hint).
+ *
  * Works while the KOL edition is still hidden from the public (the round has its own dates server-side). The KOL
  * look (kol.css, .kol-nom block), never the AFC name in the copy.
  */
@@ -49,7 +63,7 @@ import { KolNominateAward } from "./KolNominateAward";
 
 const SAVE_DELAY_MS = 800;
 
-type View = "loading" | "door" | "claim" | "ballot" | "error";
+type View = "loading" | "door" | "claim" | "contact" | "ballot" | "error";
 
 /** The code after "#" in the address, decoded and trimmed ("" when none), and the address bar cleaned of it at
  *  once, so the code never sits in the history, a bookmark or a screenshot of the address bar. */
@@ -101,10 +115,33 @@ export function KolNominate({ slug }: { slug: string }) {
   const [claiming, setClaiming] = useState(false);
   const [claimError, setClaimError] = useState("");
 
+  // ── #644: email + WhatsApp, asked before the first pick ──
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactWhatsapp, setContactWhatsapp] = useState("");
+  const [contactBusy, setContactBusy] = useState(false);
+  const [contactError, setContactError] = useState("");
+  // true when the creator opened the step themselves ("Change my email or WhatsApp"): they may go back unchanged
+  const [contactBack, setContactBack] = useState(false);
+
+  // ── #643: awards the creator moved past with nothing picked, and the one the save bar names ──
+  const [skipped, setSkipped] = useState<number[]>([]);
+  const [notice, setNotice] = useState<number | null>(null);
+
+  // ── #648: "Email me my picks" ──
+  const [copyState, setCopyState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [copyError, setCopyError] = useState("");
+
   const show = useCallback((data: NominationBallot) => {
     setBallot(data);
     setPicks(data.picks);
     latest.current = data.picks;
+    // #644: the contact step first, while the server still wants it (a closed round just shows the ballot).
+    if (data.contact_needed && data.round.state !== "closed") {
+      setContactBack(false);
+      setContactError("");
+      setView("contact");
+      return;
+    }
     setView("ballot");
   }, []);
 
@@ -224,6 +261,33 @@ export function KolNominate({ slug }: { slug: string }) {
     }
   };
 
+  // ── #644: the creator's email and WhatsApp number ──
+  const submitContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (contactBusy || !contactEmail.trim() || !contactWhatsapp.trim()) return;
+    setContactBusy(true);
+    setContactError("");
+    try {
+      const data = await kolNominationsApi.saveContact(slug, { email: contactEmail, whatsapp: contactWhatsapp });
+      setContactEmail("");
+      setContactWhatsapp("");
+      setCopyState("idle");
+      show(data);
+    } catch (err) {
+      if (!toDoor(err)) setContactError(refusal(err));
+    } finally {
+      setContactBusy(false);
+    }
+  };
+
+  const changeContact = () => {
+    setContactEmail("");
+    setContactWhatsapp("");
+    setContactError("");
+    setContactBack(true);
+    setView("contact");
+  };
+
   // ── saving: the whole sheet, debounced; the server's answer replaces what is on screen ──
   const save = useCallback(async () => {
     if (timer.current) clearTimeout(timer.current);
@@ -241,6 +305,11 @@ export function KolNominate({ slug }: { slug: string }) {
       setSaveState("saved");
     } catch (err) {
       if (toDoor(err)) return;
+      if (err instanceof NominationError && err.code === "kol_contact_needed") {
+        // The server still wants the contact (#644): ask, then the picks on screen save with the next change.
+        setContactBack(false);
+        setView("contact");
+      }
       if (err instanceof NominationError && (err.code === "kol_round_closed" || err.code === "kol_round_not_open")) {
         // The round turned while the page was open: reload it read-only, with what was last saved.
         kolNominationsApi.getBallot(slug).then(show).catch(() => undefined);
@@ -252,10 +321,32 @@ export function KolNominate({ slug }: { slug: string }) {
     }
   }, [slug, refusal, show, t, toDoor]);
 
+  // #643: mark `ids` as skipped and name the first of them in the save bar.
+  const flagSkipped = useCallback((ids: number[]) => {
+    if (!ids.length) return;
+    setSkipped((now) => [...now, ...ids.filter((id) => !now.includes(id))]);
+    setNotice(ids[0]);
+  }, []);
+
   const change = (questionId: number, next: number[]) => {
+    const before = latest.current[String(questionId)] ?? [];
     const updated = { ...latest.current, [String(questionId)]: next };
     latest.current = updated;
     setPicks(updated);
+    if (next.length) {
+      setSkipped((now) => now.filter((id) => id !== questionId));
+      setNotice((n) => (n === questionId ? null : n));
+    }
+    // #643: picking in this award while an EARLIER one is still empty means the creator moved on past it.
+    if (ballot && next.length > before.length) {
+      const at = ballot.awards.findIndex((a) => a.question_id === questionId);
+      flagSkipped(
+        ballot.awards
+          .slice(0, Math.max(at, 0))
+          .filter((a) => !(updated[String(a.question_id)] ?? []).length)
+          .map((a) => a.question_id),
+      );
+    }
     setSaveState("pending");
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => void save(), SAVE_DELAY_MS);
@@ -291,6 +382,52 @@ export function KolNominate({ slug }: { slug: string }) {
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
   }, []);
+
+  // #643: an award that was on screen and then left it through the TOP, still empty, was scrolled past ("before they
+  // move on to the next"). Only while the round is open: a read-only ballot cannot be filled anyway.
+  const roundState = ballot?.round.state;
+  const awardCount = ballot?.awards.length ?? 0;
+  useEffect(() => {
+    if (view !== "ballot" || roundState !== "open" || typeof IntersectionObserver === "undefined") return;
+    const seen = new Set<number>();
+    const watcher = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        const id = Number((entry.target as HTMLElement).dataset.award);
+        if (entry.isIntersecting) {
+          seen.add(id);
+        } else if (seen.has(id) && entry.boundingClientRect.bottom <= 0 && !(latest.current[String(id)] ?? []).length) {
+          flagSkipped([id]);
+        }
+      }
+    });
+    document.querySelectorAll<HTMLElement>(".nom-awards [data-award]").forEach((el) => watcher.observe(el));
+    return () => watcher.disconnect();
+  }, [view, roundState, awardCount, flagSkipped]);
+
+  // #643: "Go to it" / "Next empty award" bring that award to the top of the screen.
+  const goTo = (questionId: number) => {
+    const el = document.querySelector<HTMLElement>(`.nom-awards [data-award="${questionId}"]`);
+    if (!el) return;
+    const still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
+    setNotice(null);
+  };
+
+  // #648: the picks as saved now, to the creator's own email. A change still waiting to save goes first.
+  const emailMe = async () => {
+    if (copyState === "sending") return;
+    setCopyState("sending");
+    setCopyError("");
+    try {
+      if (timer.current) await save();
+      await kolNominationsApi.emailMe(slug);
+      setCopyState("sent");
+    } catch (err) {
+      if (toDoor(err)) return;
+      setCopyError(refusal(err));
+      setCopyState("error");
+    }
+  };
 
   const askForAnotherCode = async () => {
     await kolNominationsApi.signOut(slug).catch(() => undefined);
@@ -383,6 +520,59 @@ export function KolNominate({ slug }: { slug: string }) {
             </form>
           )}
 
+          {view === "contact" && ballot && (
+            <form className="nom-panel nom-door" onSubmit={submitContact}>
+              <p className="nom-hi">{t("nominate.hi", { name: ballot.me.name })}</p>
+              <h2 className="nom-claim-title">{t("nominate.contact.title")}</h2>
+              <p className="nom-lede">{t("nominate.contact.body")}</p>
+              <label className="nom-label" htmlFor="kol-nom-email">{t("nominate.contact.email")}</label>
+              <input
+                id="kol-nom-email"
+                className="nom-search"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                maxLength={254}
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+              />
+              <label className="nom-label" htmlFor="kol-nom-whatsapp">{t("nominate.contact.whatsapp")}</label>
+              <input
+                id="kol-nom-whatsapp"
+                className="nom-search"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                maxLength={24}
+                placeholder="+234 801 234 5678"
+                value={contactWhatsapp}
+                onChange={(e) => setContactWhatsapp(e.target.value)}
+                aria-describedby="kol-nom-whatsapp-help"
+              />
+              <p id="kol-nom-whatsapp-help" className="nom-help">{t("nominate.contact.whatsappHelp")}</p>
+              <p className="err-line" role="alert">{contactError}</p>
+              <div className="nom-contact-actions">
+                <button
+                  type="submit"
+                  className="btn y"
+                  disabled={contactBusy || !contactEmail.trim() || !contactWhatsapp.trim()}
+                >
+                  {contactBusy ? t("nominate.contact.saving") : t("nominate.contact.go")}
+                </button>
+                {contactBack && (
+                  <button type="button" className="btn d" onClick={() => setView("ballot")}>
+                    {t("nominate.contact.cancel")}
+                  </button>
+                )}
+              </div>
+              <button type="button" className="nom-link" onClick={() => void askForAnotherCode()}>
+                {t("nominate.notYou")}
+              </button>
+            </form>
+          )}
+
           {view === "ballot" && ballot && (
             <>
               <div className="nom-intro">
@@ -416,11 +606,34 @@ export function KolNominate({ slug }: { slug: string }) {
                     picked={picks[String(award.question_id)] ?? []}
                     meId={ballot.me.creator_id}
                     readOnly={readOnly}
+                    skipped={skipped.includes(award.question_id)}
                     onChange={(next) => change(award.question_id, next)}
                     onAdd={(handle, name) => addWriteIn(award.question_id, award.max, handle, name)}
                   />
                 ))}
               </div>
+
+              {/* #648: keep a copy by email; and #644: change the email or WhatsApp given */}
+              {ballot.email_hint && (
+                <div className="nom-panel nom-copy">
+                  <h2 className="nom-claim-title">{t("nominate.copy.title")}</h2>
+                  <p className="nom-lede">{t("nominate.copy.body", { email: ballot.email_hint })}</p>
+                  <div className="nom-contact-actions">
+                    <button type="button" className="btn d sm" onClick={() => void emailMe()} disabled={copyState === "sending"}>
+                      {copyState === "sending" ? t("nominate.copy.sending") : t("nominate.copy.button")}
+                    </button>
+                    {!readOnly && (
+                      <button type="button" className="nom-link" onClick={changeContact}>
+                        {t("nominate.contact.change")}
+                      </button>
+                    )}
+                  </div>
+                  <p role="status" aria-live="polite">
+                    {copyState === "sent" && <span className="ok">{t("nominate.copy.sent", { email: ballot.email_hint })}</span>}
+                    {copyState === "error" && <span className="bad">{copyError}</span>}
+                  </p>
+                </div>
+              )}
 
               {!readOnly && (
                 <div className="nom-bar">
@@ -434,6 +647,31 @@ export function KolNominate({ slug }: { slug: string }) {
                   <button type="button" className="btn y sm" onClick={() => void save()} disabled={saveState === "saving"}>
                     {t("nominate.save")}
                   </button>
+                  {/* #643: does the ballot count yet, and which award was moved past with no pick */}
+                  {(() => {
+                    const empties = ballot.awards.filter((a) => !(picks[String(a.question_id)] ?? []).length);
+                    const total = ballot.awards.length;
+                    const named = empties.find((a) => a.question_id === notice);
+                    if (named) {
+                      return (
+                        <p className="nom-progress warn" role="alert">
+                          <span>{t("nominate.skipped", { award: named.name })}</span>
+                          <button type="button" className="nom-link" onClick={() => goTo(named.question_id)}>
+                            {t("nominate.goTo")}
+                          </button>
+                        </p>
+                      );
+                    }
+                    if (!empties.length) return <p className="nom-progress done">{t("nominate.counts", { total })}</p>;
+                    return (
+                      <p className="nom-progress">
+                        <span>{t("nominate.progress", { done: total - empties.length, total })}</span>
+                        <button type="button" className="nom-link" onClick={() => goTo(empties[0].question_id)}>
+                          {t("nominate.nextEmpty")}
+                        </button>
+                      </p>
+                    );
+                  })()}
                 </div>
               )}
             </>

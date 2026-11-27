@@ -383,14 +383,14 @@
       "help": "No code? Ask the person who sent you your invitation to the KOL Awards."
     },
     "hi": "Hi {name}.",
-    "intro": "Pick up to 6 creators for each award. You can pick anyone, yourself included, and add someone who is not on the list. An award can stay empty.",
+    "intro": "Nominate in every award: at least 1 and up to 6 creators each. You can pick anyone, yourself included, and add someone who is not on the list. Your nominations count once all six awards have a pick.",
     "until": "Your picks save as you go. You can change them until <date></date>.",
     "untilNoDate": "Your picks save as you go. You can change them until nominations close.",
     "notOpen": "Nominations open <date></date>. You can look around, but picks cannot be saved yet.",
     "notOpenNoDate": "Nominations have not opened yet. You can look around, but picks cannot be saved yet.",
     "closed": "Nominations are closed. Thank you for your picks.",
     "notYou": "Not you? Use another code",
-    "count": "{n} of {max}",
+    "count": "{n} of {max} picked",
     "yourPicks": "Your picks",
     "remove": "Remove {name}",
     "search": "Search a name or @handle",
@@ -422,7 +422,14 @@
       "kol_claim_needed": "Tell us who you are first.",
       "kol_claim_listed": "That creator is already on the list. Ask for your own personal code.",
       "kol_already_claimed": "This code already belongs to a creator. Enter it again to open their ballot.",
-      "kol_claim_too_fast": "Too many tries. Wait a moment."
+      "kol_claim_too_fast": "Too many tries. Wait a moment.",
+      "kol_contact_needed": "Give your email and WhatsApp number first.",
+      "kol_bad_email": "Type a valid email address.",
+      "kol_bad_whatsapp": "Type your WhatsApp number with its country code, like +234 801 234 5678.",
+      "kol_whatsapp_country_code": "Start your WhatsApp number with your country code, like +234.",
+      "kol_contact_too_fast": "Too many tries. Wait a moment.",
+      "kol_email_too_many": "You have asked for this email a few times already. Try again in a few minutes.",
+      "kol_email_send_failed": "The email could not be sent just now. Try again later."
     },
     "you": "You",
     "handleAdded": "@{handle}, added by a creator",
@@ -454,6 +461,31 @@
       "country": "Your country",
       "go": "Open my ballot",
       "going": "Opening"
+    },
+    "rule": "Pick 1 to {max} creators",
+    "needOne": "No pick yet. Every award needs at least one.",
+    "skipped": "You moved past {award} without a pick. Every award needs at least one.",
+    "goTo": "Go to it",
+    "progress": "{done} of {total} awards done. Your nominations count once every award has a pick.",
+    "nextEmpty": "Next empty award",
+    "counts": "All {total} awards have a pick: your nominations count.",
+    "contact": {
+      "title": "How can we reach you?",
+      "body": "Before you nominate, give us your email and your WhatsApp number so the KOL Awards team can reach you. Only the team sees them.",
+      "email": "Email",
+      "whatsapp": "WhatsApp number",
+      "whatsappHelp": "With your country code, like +234 801 234 5678.",
+      "go": "Continue to my ballot",
+      "saving": "Saving",
+      "cancel": "Back to my ballot",
+      "change": "Change my email or WhatsApp"
+    },
+    "copy": {
+      "title": "Keep a copy",
+      "body": "We send your picks, as they are saved now, to {email}.",
+      "button": "Email me my picks",
+      "sending": "Sending",
+      "sent": "Sent to {email}."
     }
   }
 }

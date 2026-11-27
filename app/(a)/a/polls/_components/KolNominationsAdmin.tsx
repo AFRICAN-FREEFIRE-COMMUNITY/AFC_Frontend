@@ -28,6 +28,12 @@
  *      (awardsKol.nominate.awardHelp.<key>).
  *   9. GARENA'S LIVE LINK (#641, owner 26 Nov 2026: "Both"): the edition's private no-sign-in link
  *      (GarenaLiveLink.tsx), whose page /awards/live/<token> shows the picks so far in every award.
+ *  10. OWNER, 27 NOV 2026 (#643 to #646): "Nominated" is Yes only for a ballot with a pick in every award (a started
+ *      one reads "4 of 6 awards"); each creator's email and WhatsApp (Contact column: typed here, loaded from Garena's
+ *      sheet, or given by the creator on the ballot), a WhatsApp chat link; and their CODE BY EMAIL: one row
+ *      ("Email code"), the ticked rows ("Email the codes to n selected creators") or everyone with an address (two
+ *      presses). The server sends them paced on a thread (AFC-B afc_polls/kol_emails.py); "Code emailed" shows sending /
+ *      sent / not sent per row, and the tab reloads itself every few seconds while any is still sending.
  *
  * Creators are loaded by `manage.py kol_import_creators` (from the private sheet), not from this page.
  * CALLS: lib/kolNominations.ts kolNominationsAdminApi (GET/POST polls/admin/kol-nominations/<edition>/, POST
@@ -40,9 +46,11 @@ import axios from "axios";
 
 import { FullLoader } from "@/components/Loader";
 import { LocalTime } from "@/components/LocalTime";
+import { NewBadge } from "@/components/NewBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,6 +60,7 @@ import { isoToLocalInput } from "@/lib/i18n/time";
 import { formatNumber } from "@/lib/i18n/number";
 import {
   GARENA_ACCESS_SINCE,
+  KOL_CONTACTS_SINCE,
   kolNominationsAdminApi,
   type NominationAdmin,
   type NominationAdminCreator,
@@ -63,6 +72,8 @@ import type { AwardsEdition } from "@/lib/polls";
 
 const TALLY_ROWS = 8;
 const CONFIRM_MS = 8000;
+// While any code email is still on its way, the tab reads the round again this often (#646).
+const SENDING_POLL_MS = 4000;
 
 /** A datetime-local value (the admin's own wall clock) as a UTC ISO string, or null when empty. */
 function fromLocalInput(value: string): string | null {
@@ -122,6 +133,12 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
   const [spareCount, setSpareCount] = useState("5");
   const [spareLang, setSpareLang] = useState<CopyLanguage>("en");
   const [confirmingRevoke, setConfirmingRevoke] = useState<number | null>(null);
+  // #644 / #646: ticked rows, the row whose contact is being edited, and the second press of "Email everyone".
+  const [selected, setSelected] = useState<number[]>([]);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [editEmail, setEditEmail] = useState("");
+  const [editWhatsapp, setEditWhatsapp] = useState("");
+  const [confirmingAll, setConfirmingAll] = useState(false);
 
   // The refusals of these endpoints, translated (adminPolls.kolNom.errors), else the server's own sentence.
   const refusal = useCallback(
@@ -155,6 +172,67 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
   useEffect(() => {
     void load();
   }, [load]);
+
+  // #646: while a code email is still on its way, read the round again every few seconds so each row turns to sent
+  // or not sent by itself.
+  const sendingNow = (data?.creators ?? []).some((c) => c.last_email?.status === "queued");
+  useEffect(() => {
+    if (!sendingNow) return;
+    const id = setInterval(() => {
+      kolNominationsAdminApi.get(slug).then(setData).catch(() => undefined);
+    }, SENDING_POLL_MS);
+    return () => clearInterval(id);
+  }, [sendingNow, slug]);
+
+  // ── #644: a creator's email and WhatsApp, typed by an admin ──
+  const startEdit = (creator: NominationAdminCreator) => {
+    setEditing(creator.creator_id);
+    setEditEmail(creator.email);
+    setEditWhatsapp(creator.whatsapp);
+  };
+
+  const saveContact = async (creator: NominationAdminCreator) => {
+    setBusy(true);
+    try {
+      await kolNominationsAdminApi.setContact(slug, creator.creator_id, { email: editEmail, whatsapp: editWhatsapp });
+      toast.success(t("kolNom.contactSaved", { name: creator.name }));
+      setEditing(null);
+      await load();
+    } catch (err) {
+      toast.error(refusal(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // ── #646: their codes by email: one, the ticked ones, or everyone with an address ──
+  const sendEmails = async (target: { creator_ids: number[] } | { all: true }) => {
+    setBusy(true);
+    try {
+      const out = await kolNominationsAdminApi.sendCodeEmails(slug, target);
+      const parts = [t("kolNom.emailsQueued", { n: out.queued })];
+      if (out.no_email) parts.push(t("kolNom.emailsNoAddress", { n: out.no_email }));
+      if (out.already_sending) parts.push(t("kolNom.emailsAlready", { n: out.already_sending }));
+      (out.queued ? toast.success : toast.info)(parts.join(" "));
+      setSelected([]);
+      await load();
+    } catch (err) {
+      toast.error(refusal(err));
+    } finally {
+      setBusy(false);
+      setConfirmingAll(false);
+    }
+  };
+
+  const emailEveryone = () => {
+    // Two presses: real emails go to every creator with an address.
+    if (!confirmingAll) {
+      setConfirmingAll(true);
+      setTimeout(() => setConfirmingAll(false), CONFIRM_MS);
+      return;
+    }
+    void sendEmails({ all: true });
+  };
 
   const setUp = async () => {
     setBusy(true);
@@ -294,10 +372,20 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
   const active = creators.filter((c) => c.active);
   // Voters are the creators on the KOL List; write-ins (#637) are candidates only, counted on their own.
   const voters = active.filter((c) => c.origin !== "write-in");
+  // #646: who can be emailed their code (a switched-on creator of the list with an address), and the ticked ones
+  const emailable = data?.round ? voters.filter((c) => c.email) : [];
+  const chosen = selected.filter((id) => emailable.some((c) => c.creator_id === id));
+  const awardCount = data?.award_count ?? 6;
   const stats = [
     { label: t("kolNom.statCreators"), value: formatNumber(voters.length) },
     { label: t("kolNom.statCodes"), value: formatNumber(voters.filter((c) => c.has_code).length) },
+    { label: t("kolNom.statEmails"), value: formatNumber(voters.filter((c) => c.email).length), since: KOL_CONTACTS_SINCE },
     { label: t("kolNom.statVoted"), value: formatNumber(voters.filter((c) => c.voted).length) },
+    {
+      label: t("kolNom.statStarted"),
+      value: formatNumber(voters.filter((c) => !c.voted && c.awards_done > 0).length),
+      since: KOL_CONTACTS_SINCE,
+    },
     { label: t("kolNom.statWriteIns"), value: formatNumber(active.length - voters.length) },
     { label: t("kolNom.statWrong"), value: formatNumber(data?.failed_attempts ?? 0) },
   ];
@@ -370,11 +458,14 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
             />
           )}
 
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {stats.map((s) => (
               <Card key={s.label} className="bg-card rounded-md py-6 shadow-sm">
                 <CardContent>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                    {s.label}
+                    {s.since && <NewBadge since={s.since} />}
+                  </p>
                   <p className="mt-1 text-2xl font-bold tabular-nums text-foreground">{s.value}</p>
                 </CardContent>
               </Card>
@@ -383,6 +474,24 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
 
           <div className="space-y-2">
             <h3 className="text-base font-semibold text-foreground">{t("kolNom.creatorsTitle")}</h3>
+            {/* #646: their codes by email */}
+            {data.round && creators.length > 0 && (
+              <div className="space-y-2 rounded-md bg-muted/40 p-3">
+                <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  {t("kolNom.emailTitle")}
+                  <NewBadge since={KOL_CONTACTS_SINCE} />
+                </p>
+                <p className="max-w-3xl text-xs text-muted-foreground">{t("kolNom.emailNote")}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => void sendEmails({ creator_ids: chosen })} disabled={busy || chosen.length === 0}>
+                    {t("kolNom.emailSelected", { n: chosen.length })}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={emailEveryone} disabled={busy || emailable.length === 0}>
+                    {confirmingAll ? t("kolNom.confirmEmailAll", { n: emailable.length }) : t("kolNom.emailAll", { n: emailable.length })}
+                  </Button>
+                </div>
+              </div>
+            )}
             {creators.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t("kolNom.noCreators")}</p>
             ) : (
@@ -390,10 +499,31 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                 <Table className="text-xs">
                   <TableHeader>
                     <TableRow className="h-10">
+                      <TableHead className="w-8 text-foreground">
+                        {emailable.length > 0 && (
+                          <Checkbox
+                            checked={chosen.length > 0 && chosen.length === emailable.length}
+                            onCheckedChange={(v) => setSelected(v === true ? emailable.map((c) => c.creator_id) : [])}
+                            aria-label={t("kolNom.selectAll")}
+                          />
+                        )}
+                      </TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colName")}</TableHead>
+                      <TableHead className="text-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          {t("kolNom.colContact")}
+                          <NewBadge since={KOL_CONTACTS_SINCE} />
+                        </span>
+                      </TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colCountry")}</TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colStatus")}</TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colCode")}</TableHead>
+                      <TableHead className="text-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          {t("kolNom.colEmailed")}
+                          <NewBadge since={KOL_CONTACTS_SINCE} />
+                        </span>
+                      </TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colVoted")}</TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colLastUsed")}</TableHead>
                       <TableHead className="text-foreground">{t("kolNom.colOn")}</TableHead>
@@ -406,8 +536,23 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                       const mergedInto = c.merged_into ? byId.get(c.merged_into) : undefined;
                       const others = active.filter((o) => o.creator_id !== c.creator_id);
                       const target = byId.get(Number(mergeTarget[c.creator_id]));
+                      const canEmail = emailable.some((e) => e.creator_id === c.creator_id);
+                      const sent = c.last_email;
                       return (
                       <TableRow key={c.creator_id} className={c.active ? "" : "opacity-60"}>
+                        <TableCell className="p-2">
+                          {canEmail && (
+                            <Checkbox
+                              checked={selected.includes(c.creator_id)}
+                              onCheckedChange={(v) =>
+                                setSelected((now) =>
+                                  v === true ? [...now, c.creator_id] : now.filter((id) => id !== c.creator_id),
+                                )
+                              }
+                              aria-label={t("kolNom.selectLabel", { name: c.name })}
+                            />
+                          )}
+                        </TableCell>
                         <TableCell className="p-2">
                           <span className="font-medium text-foreground">{c.name}</span>
                           <span className="block text-muted-foreground">@{c.handle}</span>
@@ -423,13 +568,95 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                             <span className="block text-muted-foreground">{t("kolNom.addedCount", { n: c.write_ins_added })}</span>
                           )}
                         </TableCell>
+                        {/* #644: email and WhatsApp, edited in place */}
+                        <TableCell className="min-w-48 p-2">
+                          {editing === c.creator_id ? (
+                            <div className="space-y-1">
+                              <Input
+                                className="h-8 text-xs"
+                                type="email"
+                                value={editEmail}
+                                onChange={(e) => setEditEmail(e.target.value)}
+                                placeholder={t("kolNom.emailLabel")}
+                                aria-label={t("kolNom.emailLabel")}
+                              />
+                              <Input
+                                className="h-8 text-xs"
+                                type="tel"
+                                value={editWhatsapp}
+                                onChange={(e) => setEditWhatsapp(e.target.value)}
+                                placeholder="+234 801 234 5678"
+                                aria-label={t("kolNom.whatsappLabel")}
+                              />
+                              <div className="flex gap-1">
+                                <Button size="sm" onClick={() => void saveContact(c)} disabled={busy}>
+                                  {t("kolNom.saveContact")}
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => setEditing(null)} disabled={busy}>
+                                  {t("kolNom.cancel")}
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-0.5">
+                              {c.email && <span className="block break-all text-foreground">{c.email}</span>}
+                              {c.whatsapp && (
+                                <a
+                                  className="block text-primary underline-offset-2 hover:underline"
+                                  href={`https://wa.me/${c.whatsapp.replace(/\D/g, "")}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={t("kolNom.openWhatsapp", { name: c.name })}
+                                >
+                                  {c.whatsapp}
+                                </a>
+                              )}
+                              {!c.email && !c.whatsapp && <span className="block text-muted-foreground">{t("kolNom.noContact")}</span>}
+                              {c.contact_given_at && <span className="block text-muted-foreground">{t("kolNom.givenByCreator")}</span>}
+                              <button
+                                type="button"
+                                className="text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                                onClick={() => startEdit(c)}
+                              >
+                                {t("kolNom.editContact")}
+                              </button>
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell className="p-2">{c.country}</TableCell>
                         <TableCell className="p-2">{c.sheet_status}</TableCell>
                         <TableCell className="p-2">
                           {writeIn ? t("kolNom.notVoter") : c.has_code ? t("kolNom.yes") : t("kolNom.no")}
                         </TableCell>
+                        {/* #646: the latest code email */}
                         <TableCell className="p-2">
-                          {writeIn ? t("kolNom.notVoter") : c.voted ? t("kolNom.yes") : t("kolNom.no")}
+                          {writeIn ? (
+                            t("kolNom.notVoter")
+                          ) : sent ? (
+                            <>
+                              <span className={sent.status === "failed" ? "block text-destructive" : "block"}>
+                                {t(`kolNom.emailStatus.${sent.status}`)}
+                              </span>
+                              <span className="block text-muted-foreground">
+                                <LocalTime value={sent.at} mode="relative" />
+                              </span>
+                              {sent.status === "failed" && sent.error && t.has(`kolNom.emailErrors.${sent.error}`) && (
+                                <span className="block text-muted-foreground">{t(`kolNom.emailErrors.${sent.error}`)}</span>
+                              )}
+                            </>
+                          ) : (
+                            t("kolNom.never")
+                          )}
+                        </TableCell>
+                        {/* #643: Yes only with a pick in every award; a started ballot shows how far it got */}
+                        <TableCell className="p-2">
+                          {writeIn
+                            ? t("kolNom.notVoter")
+                            : c.voted
+                              ? t("kolNom.yes")
+                              : c.awards_done > 0
+                                ? t("kolNom.awardsDone", { n: c.awards_done, total: awardCount })
+                                : t("kolNom.no")}
                         </TableCell>
                         <TableCell className="p-2">
                           {c.last_used_at ? <LocalTime value={c.last_used_at} mode="relative" /> : t("kolNom.never")}
@@ -444,6 +671,16 @@ export function KolNominationsAdmin({ editions }: { editions: Pick<AwardsEdition
                         <TableCell className="p-2 text-right">
                           {c.active && data.round && !writeIn && (
                             <div className="flex items-center justify-end gap-2">
+                              {canEmail && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => void sendEmails({ creator_ids: [c.creator_id] })}
+                                  disabled={busy || sent?.status === "queued"}
+                                >
+                                  {t("kolNom.emailOne")}
+                                </Button>
+                              )}
                               {c.code_id && (
                                 <>
                                   <Button size="sm" variant="outline" onClick={() => void copyCode(c.code_id!, "code")}>

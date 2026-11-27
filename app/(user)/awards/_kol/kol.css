@@ -592,14 +592,37 @@ body:has(.kol){overflow-x:clip}
 .kol .nom-link:hover{color:var(--fg)}
 .kol .nom-note{background:var(--panel2);border-radius:10px;padding:12px 16px;color:var(--fg);margin-bottom:16px}
 .kol .nom-awards{display:grid;gap:18px}
-.kol .nom-award{background:var(--panel);border-radius:16px;padding:18px}
-.kol .nom-award-head{display:grid;grid-template-columns:auto 1fr auto;align-items:baseline;gap:12px;margin-bottom:12px}
+.kol .nom-award{background:var(--panel);border-radius:16px;padding:18px;scroll-margin-top:96px}
+.kol .nom-award-head{display:grid;grid-template-columns:auto 1fr;align-items:baseline;gap:12px;margin-bottom:12px}
 .kol .nom-num{font-family:var(--f-title);font-size:30px;color:var(--yel);line-height:1}
 .kol .nom-award-name{font-family:var(--f-sub);font-weight:700;font-size:22px;line-height:1.1;color:var(--fg);letter-spacing:.03em;text-transform:uppercase}
 .kol .nom-count{font-family:var(--f-sub);font-weight:700;font-size:16px;color:var(--muted);white-space:nowrap}
 .kol .nom-count.full{color:var(--yel)}
 /* #638: what the award means, under its title */
 .kol .nom-award-help{color:var(--body);font-size:15px;line-height:1.45;margin:-4px 0 14px;max-width:62ch}
+/* #647 (owner 27 Nov 2026, "let it be obvious they can vote for 6 per category"): the "Pick 1 to 6" line, its count
+   and six slots that fill yellow. #643: an award the creator moved past with no pick turns the line pink. Filled
+   surfaces only, no stroke. */
+.kol .nom-rule{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px 12px;background:var(--panel2);border-radius:12px;padding:12px 14px;margin:0 0 14px}
+.kol .nom-rule-text{font-family:var(--f-sub);font-weight:700;font-size:19px;letter-spacing:.04em;text-transform:uppercase;color:var(--yel)}
+.kol .nom-rule-count{font-family:var(--f-sub);font-weight:700;font-size:17px;color:var(--fg);white-space:nowrap}
+.kol .nom-slots{grid-column:1/-1;display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.kol .nom-slots span{height:10px;border-radius:5px;background:var(--panel3)}
+.kol .nom-slots span.on{background:var(--yel)}
+.kol .nom-award.need .nom-rule{background:#5a1a4a}
+.kol .nom-award.need .nom-rule-text{color:#ff8fb6}
+.kol .nom-need{color:#ff8fb6;font-weight:700;font-size:15px;margin:-6px 0 12px}
+/* #643: the save bar's progress line and the "you moved past" notice */
+.kol .nom-progress{flex-basis:100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:14px;color:var(--body)}
+.kol .nom-progress.done{color:var(--yel);font-weight:700}
+.kol .nom-progress.warn{color:#ff8fb6;font-weight:700}
+.kol .nom-progress .nom-link{padding:2px 0;color:var(--fg)}
+.kol .nom-bar{flex-wrap:wrap}
+/* #644 / #648: the contact step and "Keep a copy" */
+.kol .nom-contact-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.kol .nom-copy{max-width:none;margin-top:22px}
+.kol .nom-copy .ok{color:var(--yel);font-weight:700}
+.kol .nom-copy .bad{color:#ff8fb6}
 /* #639: a spare code's "Tell us who you are" step, in the code box's panel */
 .kol .nom-claim-title{font-family:var(--f-sub);font-weight:700;font-size:24px;letter-spacing:.04em;text-transform:uppercase;color:var(--fg)}
 .kol .nom-picked{list-style:none;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
@@ -635,7 +658,9 @@ body:has(.kol){overflow-x:clip}
 @media (max-width:719px){
   .kol .nom-bar{flex-wrap:wrap;justify-content:flex-start;padding-right:124px}
   .kol .nom-bar .btn{order:-1}
-  .kol .nom-status{flex-basis:100%}
+  .kol .nom-status{flex:1 1 90px}
+  /* #643: the progress line / skipped notice leads the bar, full width, above the floating Help button */
+  .kol .nom-progress{order:-2;flex-basis:calc(100% + 108px);margin-right:-108px}
   /* the code box and the claim step end the page: room below them so the floating Help button never covers their button */
   .kol .nom-door{margin-bottom:96px}
 }

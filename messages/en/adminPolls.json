@@ -378,7 +378,7 @@
     "preview": "Preview"
   },
   "kolNom": {
-    "intro": "The KOL creators nominate with a personal code each: up to 6 per award, themselves included, and anybody they add by TikTok handle (an added person is a candidate for everyone, never a voter). Creators are loaded from Garena's sheet with the import command; codes are made and switched off here.",
+    "intro": "The KOL creators nominate with a personal code each: at least 1 and up to 6 in every award, themselves included, and anybody they add by TikTok handle (an added person is a candidate for everyone, never a voter). A ballot counts once all six awards have a pick. Creators are loaded from Garena's sheet with the import command; codes are made, emailed and switched off here.",
     "noEdition": "No KOL Awards edition yet. Create one with the Detty Royale theme first.",
     "pickEdition": "KOL edition",
     "roundTitle": "The round",
@@ -418,7 +418,7 @@
     "newCode": "New code",
     "confirmNewCode": "Press again: the old code stops",
     "tallyTitle": "Picks so far",
-    "tallyNote": "Picks per creator in each award. Who picked whom is never shown.",
+    "tallyNote": "Picks per creator in each award, from the ballots that count (a pick in every award). Who picked whom is never shown.",
     "noPicks": "No picks yet.",
     "picks": "{n, plural, one {# pick} other {# picks}}",
     "failed": "That did not work. Try again.",
@@ -428,13 +428,16 @@
       "kol_round_missing": "Set the round up first.",
       "kol_creator_not_found": "That creator is not in this edition.",
       "kol_bad_active": "Choose on or off.",
-      "kol_bad_creator_ids": "Those creators could not be read.",
+      "kol_bad_creator_ids": "Tick at least one creator.",
       "awards_edition_not_found": "That edition no longer exists.",
       "kol_merge_not_write_in": "Only a person added by a creator can be merged.",
       "kol_bad_merge": "Choose another person in this round to merge into.",
       "kol_bad_spare_count": "Make between 1 and 50 spare codes at a time.",
       "kol_code_not_found": "That code no longer exists.",
-      "kol_code_unreadable": "This code was made before codes could be copied. Give the creator a new code to copy it."
+      "kol_code_unreadable": "This code was made before codes could be copied. Give the creator a new code to copy it.",
+      "kol_bad_email": "Type a valid email address.",
+      "kol_bad_whatsapp": "Type the WhatsApp number with its country code, like +234 801 234 5678.",
+      "kol_whatsapp_country_code": "Start the WhatsApp number with its country code, like +234."
     },
     "statWriteIns": "Added by creators",
     "writeIn": "Added by a creator",
@@ -469,6 +472,42 @@
     "revoked": "Code revoked",
     "pageTitle": "KOL Awards nominations",
     "pageSubtitle": "The KOL creators' nomination round: codes, spare codes, the picks so far and Garena's live link.",
-    "liveIntro": "A private page with the picks so far in every award (and later the public vote), with no voter names. Anyone with the link can open it without signing in, so share it only with Garena's team."
+    "liveIntro": "A private page with the picks so far in every award (and later the public vote), with no voter names. Anyone with the link can open it without signing in, so share it only with Garena's team.",
+    "statEmails": "With an email",
+    "statStarted": "Started, not finished",
+    "awardsDone": "{n} of {total} awards",
+    "colContact": "Contact",
+    "colEmailed": "Code emailed",
+    "noContact": "No contact yet",
+    "givenByCreator": "Given by the creator",
+    "editContact": "Edit",
+    "saveContact": "Save",
+    "cancel": "Cancel",
+    "emailLabel": "Email",
+    "whatsappLabel": "WhatsApp number",
+    "contactSaved": "Contact saved for {name}",
+    "openWhatsapp": "Open a WhatsApp chat with {name}",
+    "emailTitle": "Email the codes",
+    "emailNote": "Each creator gets their own code, link and message, in their language, from info@africanfreefirecommunity.com as African Freefire Community. A creator with no code gets one first. Tick creators below, or email everyone with an address. Emails go out one every few seconds; Code emailed shows how each went.",
+    "emailSelected": "{n, plural, =0 {Email the codes to the ticked creators} one {Email the code to # ticked creator} other {Email the codes to # ticked creators}}",
+    "emailAll": "Email everyone with an address ({n})",
+    "confirmEmailAll": "Press again: {n} emails go out",
+    "emailsQueued": "{n, plural, =0 {No email to send.} one {# email is on its way.} other {# emails are on their way.}}",
+    "emailsNoAddress": "{n, plural, one {# creator has no email.} other {# creators have no email.}}",
+    "emailsAlready": "{n, plural, one {# was already being sent.} other {# were already being sent.}}",
+    "emailOne": "Email code",
+    "emailStatus": {
+      "queued": "Sending",
+      "sent": "Sent",
+      "failed": "Not sent"
+    },
+    "emailErrors": {
+      "kol_email_send_failed": "The mail server refused it. Send again.",
+      "kol_code_gone": "The code changed or the creator was switched off before it went.",
+      "kol_email_interrupted": "Cut short by a restart. Send again.",
+      "kol_email_build_failed": "Could not be written. Send again."
+    },
+    "selectLabel": "Tick {name}",
+    "selectAll": "Tick every creator with an email"
   }
 }
